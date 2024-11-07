@@ -22,7 +22,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /// A [Refactoring] for renaming [ConstructorElement]s.
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   RenameConstructorRefactoringImpl(
-      super.workspace, super.sessionHelper, ConstructorElement super.element);
+    super.workspace,
+    super.sessionHelper,
+    ConstructorElement super.element,
+  );
 
   @override
   ConstructorElement get element => super.element as ConstructorElement;
@@ -133,8 +136,10 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var parentClass = element.enclosingElement3;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
-      result.addError('The constructor should not have the same name '
-          'as the name of the enclosing class.');
+      result.addError(
+        'The constructor should not have the same name '
+        'as the name of the enclosing class.',
+      );
     }
     // check if there are members with "newName" in the same ClassElement
     for (var newNameMember in getChildren(parentClass, newName)) {

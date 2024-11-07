@@ -18,7 +18,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /// A [Refactoring] for renaming [LibraryImportElement]s.
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   RenameImportRefactoringImpl(
-      super.workspace, super.sessionHelper, LibraryImportElement super.element);
+    super.workspace,
+    super.sessionHelper,
+    LibraryImportElement super.element,
+  );
 
   @override
   LibraryImportElement get element => super.element as LibraryImportElement;
@@ -59,7 +62,9 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
           var uriEnd = node.uri.end;
           var prefixEnd = prefixNode.end;
           edit = newSourceEdit_range(
-              range.startOffsetEndOffset(uriEnd, prefixEnd), '');
+            range.startOffsetEndOffset(uriEnd, prefixEnd),
+            '',
+          );
         }
       } else {
         if (prefixNode == null) {
@@ -83,10 +88,14 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         var identifier = await _getInterpolationIdentifier(reference);
         if (identifier != null) {
           doSourceChange_addElementEdit(
-              change,
-              reference.element,
-              SourceEdit(identifier.offset, identifier.length,
-                  '{$newName.${identifier.name}}'));
+            change,
+            reference.element,
+            SourceEdit(
+              identifier.offset,
+              identifier.length,
+              '{$newName.${identifier.name}}',
+            ),
+          );
         } else {
           reference.addEdit(change, '$newName.');
         }

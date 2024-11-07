@@ -60,7 +60,7 @@ void f(Completer c) {}
   }
 
   Future<void>
-      test_noExistingLibraryDirective_annotherAnnotationIsFirst() async {
+  test_noExistingLibraryDirective_annotherAnnotationIsFirst() async {
     await resolveTestCode('''
 @deprecated
 @pragma('dart2js:late:trust')
@@ -105,7 +105,7 @@ void f(Completer c) {}
   }
 
   Future<void>
-      test_noExistingLibraryDirective_commentsAreFirst_andAnnotations() async {
+  test_noExistingLibraryDirective_commentsAreFirst_andAnnotations() async {
     await resolveTestCode('''
 // Comment 1.
 

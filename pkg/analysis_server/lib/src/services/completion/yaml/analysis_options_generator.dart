@@ -45,15 +45,13 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
     // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
     AnalyzerOptions.include: EmptyProducer(),
     // TODO(brianwilkerson): Create constants for 'linter' and 'rules'.
-    'linter': MapProducer({
-      'rules': ListProducer(_LintRuleProducer()),
-    }),
+    'linter': MapProducer({'rules': ListProducer(_LintRuleProducer())}),
   });
 
   /// Initialize a newly created suggestion generator for analysis options
   /// files.
   AnalysisOptionsGenerator(ResourceProvider resourceProvider)
-      : super(resourceProvider, null);
+    : super(resourceProvider, null);
 
   @override
   Producer get topLevelProducer => analysisOptionsProducer;

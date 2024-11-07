@@ -19,8 +19,9 @@ class RemoveUnusedElement extends _RemoveUnused {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_ELEMENT;
@@ -32,10 +33,7 @@ class RemoveUnusedElement extends _RemoveUnused {
     var node = this.node;
 
     if (node is ConstructorDeclaration) {
-      await _constructorDeclaration(
-        builder: builder,
-        node: node,
-      );
+      await _constructorDeclaration(builder: builder, node: node);
       return;
     }
 
@@ -120,17 +118,16 @@ class RemoveUnusedField extends _RemoveUnused {
     }
 
     var sourceRanges = <SourceRange>[];
-    var references = [
-      node,
-      ..._findAllReferences(unit, element),
-    ];
+    var references = [node, ..._findAllReferences(unit, element)];
     for (var reference in references) {
       // TODO(pq): consider scoping this to parent or parent.parent.
-      var referenceNode = reference.thisOrAncestorMatching((node) =>
-          node is VariableDeclaration ||
-          node is ExpressionStatement ||
-          node is ConstructorFieldInitializer ||
-          node is FieldFormalParameter);
+      var referenceNode = reference.thisOrAncestorMatching(
+        (node) =>
+            node is VariableDeclaration ||
+            node is ExpressionStatement ||
+            node is ConstructorFieldInitializer ||
+            node is FieldFormalParameter,
+      );
       if (referenceNode == null) {
         return;
       }
@@ -140,14 +137,15 @@ class RemoveUnusedField extends _RemoveUnused {
       if (referenceNode is VariableDeclaration &&
           parent is VariableDeclarationList &&
           grandParent != null) {
-        sourceRange =
-            _forVariableDeclaration(referenceNode, parent, grandParent);
+        sourceRange = _forVariableDeclaration(
+          referenceNode,
+          parent,
+          grandParent,
+        );
       } else if (referenceNode is ConstructorFieldInitializer) {
         sourceRange = _forConstructorFieldInitializer(referenceNode);
       } else if (referenceNode is FieldFormalParameter) {
-        sourceRange = _forFieldFormalParameter(
-          referenceNode,
-        );
+        sourceRange = _forFieldFormalParameter(referenceNode);
       } else {
         sourceRange = utils.getLinesRange(range.node(referenceNode));
       }
@@ -197,13 +195,15 @@ class RemoveUnusedField extends _RemoveUnused {
 
     // (head, node) -> (head)
     // (head, node, tail) -> (head, tail)
-    var isFirstOptional = prevToken.type == TokenType.OPEN_CURLY_BRACKET ||
+    var isFirstOptional =
+        prevToken.type == TokenType.OPEN_CURLY_BRACKET ||
         prevToken.type == TokenType.OPEN_SQUARE_BRACKET;
     if (isFirstOptional) {
       prevToken = prevToken.previous!;
     }
     if (isFirstOptional) {
-      var isLastOptional = nextToken.type == TokenType.CLOSE_CURLY_BRACKET ||
+      var isLastOptional =
+          nextToken.type == TokenType.CLOSE_CURLY_BRACKET ||
           nextToken.type == TokenType.CLOSE_SQUARE_BRACKET;
       if (isLastOptional) {
         nextToken = nextToken.next!;
@@ -212,8 +212,11 @@ class RemoveUnusedField extends _RemoveUnused {
     return range.endStart(prevToken.previous!, nextToken);
   }
 
-  SourceRange _forVariableDeclaration(VariableDeclaration node,
-      VariableDeclarationList parent, AstNode grandParent) {
+  SourceRange _forVariableDeclaration(
+    VariableDeclaration node,
+    VariableDeclarationList parent,
+    AstNode grandParent,
+  ) {
     if (parent.variables.length == 1) {
       return utils.getLinesRange(range.node(grandParent));
     } else {

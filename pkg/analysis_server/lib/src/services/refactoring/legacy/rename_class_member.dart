@@ -25,13 +25,17 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// Checks if creating a method with the given [name] in [interfaceElement] will
 /// cause any conflicts.
 Future<RefactoringStatus> validateCreateMethod(
-    SearchEngine searchEngine,
-    AnalysisSessionHelper sessionHelper,
-    InterfaceElement interfaceElement,
-    String name) {
+  SearchEngine searchEngine,
+  AnalysisSessionHelper sessionHelper,
+  InterfaceElement interfaceElement,
+  String name,
+) {
   return _CreateClassMemberValidator(
-          searchEngine, sessionHelper, interfaceElement, name)
-      .validate();
+    searchEngine,
+    sessionHelper,
+    interfaceElement,
+    name,
+  ).validate();
 }
 
 /// A [Refactoring] for renaming class member [Element]s.
@@ -41,11 +45,11 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   late _RenameClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(
-      RefactoringWorkspace workspace,
-      AnalysisSessionHelper sessionHelper,
-      this.interfaceElement,
-      Element element)
-      : super(workspace, sessionHelper, element);
+    RefactoringWorkspace workspace,
+    AnalysisSessionHelper sessionHelper,
+    this.interfaceElement,
+    Element element,
+  ) : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
@@ -61,7 +65,12 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator = _RenameClassMemberValidator(
-        searchEngine, sessionHelper, interfaceElement, element, newName);
+      searchEngine,
+      sessionHelper,
+      interfaceElement,
+      element,
+      newName,
+    );
     return _validator.validate();
   }
 
@@ -134,7 +143,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> _addPrivateNamedFormalParameterEdit(
-      SourceReference reference, FieldFormalParameterElement element) async {
+    SourceReference reference,
+    FieldFormalParameterElement element,
+  ) async {
     var result = await sessionHelper.getElementDeclaration(element);
     var node = result?.node;
     if (node is! DefaultFormalParameter) return;
@@ -149,9 +160,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     if (constructor != null) {
       var previous = constructor.separator ?? constructor.parameters;
       var replacement = '$newName = ${parameter.name.lexeme}';
-      replacement = constructor.initializers.isEmpty
-          ? ' : $replacement'
-          : ' $replacement,';
+      replacement =
+          constructor.initializers.isEmpty
+              ? ' : $replacement'
+              : ' $replacement,';
       var edit = SourceEdit(previous.end, 0, replacement);
       doSourceChange_addSourceEdit(change, reference.unitSource, edit);
     }
@@ -235,24 +247,28 @@ class _BaseClassMemberValidator {
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
-            format(
-                isRename
-                    ? "Renamed {0} will shadow {1} '{2}'."
-                    : "Created {0} will shadow {1} '{2}'.",
-                elementKind.displayName,
-                getElementKindName(nameElement),
-                getElementQualifiedName(nameElement)),
-            newLocation_fromElement(nameElement));
+          format(
+            isRename
+                ? "Renamed {0} will shadow {1} '{2}'."
+                : "Created {0} will shadow {1} '{2}'.",
+            elementKind.displayName,
+            getElementKindName(nameElement),
+            getElementQualifiedName(nameElement),
+          ),
+          newLocation_fromElement(nameElement),
+        );
       }
       // the renamed Element is shadowed by a member of a subclass
       if (isRename && subClasses.contains(nameClass)) {
         result.addError(
-            format(
-                "Renamed {0} will be shadowed by {1} '{2}'.",
-                elementKind.displayName,
-                getElementKindName(nameElement),
-                getElementQualifiedName(nameElement)),
-            newLocation_fromElement(nameElement));
+          format(
+            "Renamed {0} will be shadowed by {1} '{2}'.",
+            elementKind.displayName,
+            getElementKindName(nameElement),
+            getElementQualifiedName(nameElement),
+          ),
+          newLocation_fromElement(nameElement),
+        );
       }
     }
   }
@@ -261,24 +277,27 @@ class _BaseClassMemberValidator {
 /// Helper to check if the created element will cause any conflicts.
 class _CreateClassMemberValidator extends _BaseClassMemberValidator {
   _CreateClassMemberValidator(
-      SearchEngine searchEngine,
-      AnalysisSessionHelper sessionHelper,
-      InterfaceElement interfaceElement,
-      String name)
-      : super(
-          searchEngine,
-          sessionHelper,
-          interfaceElement,
-          ElementKind.METHOD,
-          name,
-        );
+    SearchEngine searchEngine,
+    AnalysisSessionHelper sessionHelper,
+    InterfaceElement interfaceElement,
+    String name,
+  ) : super(
+        searchEngine,
+        sessionHelper,
+        interfaceElement,
+        ElementKind.METHOD,
+        name,
+      );
 
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
     // do chained computations
     var subClasses = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        interfaceElement, subClasses, OperationPerformanceImpl('<root>'));
+      interfaceElement,
+      subClasses,
+      OperationPerformanceImpl('<root>'),
+    );
     // check shadowing of class names
     if (interfaceElement.name == name) {
       result.addError(
@@ -288,10 +307,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
       );
     }
     // check shadowing in the hierarchy
-    await _checkHierarchy(
-      isRename: false,
-      subClasses: subClasses,
-    );
+    await _checkHierarchy(isRename: false, subClasses: subClasses);
     // done
     return result;
   }
@@ -368,7 +384,10 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     await _prepareReferences();
     var subClasses = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        interfaceElement, subClasses, OperationPerformanceImpl('<root>'));
+      interfaceElement,
+      subClasses,
+      OperationPerformanceImpl('<root>'),
+    );
     // check shadowing of class names
     for (var element in elements) {
       var enclosingElement = element.enclosingElement3;
@@ -387,19 +406,18 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       if (conflict != null) {
         var localElement = conflict.localElement;
         result.addError(
-            format(
-                "Usage of renamed {0} will be shadowed by {1} '{2}'.",
-                elementKind.displayName,
-                getElementKindName(localElement),
-                localElement.displayName),
-            newLocation_fromMatch(conflict.match));
+          format(
+            "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+            elementKind.displayName,
+            getElementKindName(localElement),
+            localElement.displayName,
+          ),
+          newLocation_fromMatch(conflict.match),
+        );
       }
     }
     // check shadowing in the hierarchy
-    await _checkHierarchy(
-      isRename: true,
-      subClasses: subClasses,
-    );
+    await _checkHierarchy(isRename: true, subClasses: subClasses);
     // visibility
     _validateWillBeInvisible();
     // done
@@ -483,8 +501,11 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       var refElement = reference.element;
       var refLibrary = refElement.library!;
       if (refLibrary != library) {
-        var message = format("Renamed {0} will be invisible in '{1}'.",
-            getElementKindName(element), getElementQualifiedName(refLibrary));
+        var message = format(
+          "Renamed {0} will be invisible in '{1}'.",
+          getElementKindName(element),
+          getElementQualifiedName(refLibrary),
+        );
         result.addError(message, newLocation_fromMatch(reference));
       }
     }

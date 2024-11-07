@@ -17,5 +17,8 @@ Future<void> main() async {
   var index = components.indexOf('analysis_server');
   var pkgPath = joinAll(components.sublist(0, index + 1));
   await GeneratedContent.checkAll(
-      pkgPath, join(pkgPath, 'tool', 'spec', 'generate_all.dart'), allTargets);
+    pkgPath,
+    join(pkgPath, 'tool', 'spec', 'generate_all.dart'),
+    allTargets,
+  );
 }

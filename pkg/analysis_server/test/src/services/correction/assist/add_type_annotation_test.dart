@@ -253,22 +253,25 @@ void f() {
     await analyzeTestPackageFiles();
     await resolveTestFile();
 
-    await assertHasAssist('''
+    await assertHasAssist(
+      '''
 part of 'app.dart';
 void f() {
   HashMap<String, int> v = getMap();
 }
-''', additionallyChangedFiles: {
-      appPath: [
-        appCode,
-        '''
+''',
+      additionallyChangedFiles: {
+        appPath: [
+          appCode,
+          '''
 import 'dart:collection';
 
 import 'my_lib.dart';
 part 'test.dart';
-'''
-      ]
-    });
+''',
+        ],
+      },
+    );
   }
 
   Future<void> test_local_addImport_relUri() async {
@@ -708,10 +711,12 @@ typedef F = void Function(final int);
     await assertNoAssistAt('final');
   }
 
-  @FailingTest(reason: '''
+  @FailingTest(
+    reason: '''
 This functionality is disabled in `AddTypeAnnotation._forSimpleFormalParameter`
 because `writeType` is writing the names of the parameters when it shouldn't.
-''')
+''',
+  )
   Future<void> test_parameter_functionType() async {
     await resolveTestCode('''
 foo(f(void Function(int) p)) {}

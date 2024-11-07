@@ -185,8 +185,11 @@ class AssistProcessor {
     return _assists;
   }
 
-  void _addAssistFromBuilder(ChangeBuilder builder, AssistKind kind,
-      {List<Object>? args}) {
+  void _addAssistFromBuilder(
+    ChangeBuilder builder,
+    AssistKind kind, {
+    List<Object>? args,
+  }) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
@@ -204,20 +207,27 @@ class AssistProcessor {
     );
 
     Future<void> compute(CorrectionProducer producer) async {
-      var builder =
-          ChangeBuilder(workspace: _assistContext.workspace, eol: producer.eol);
+      var builder = ChangeBuilder(
+        workspace: _assistContext.workspace,
+        eol: producer.eol,
+      );
       try {
         await producer.compute(builder);
         var assistKind = producer.assistKind;
         if (assistKind != null) {
-          _addAssistFromBuilder(builder, assistKind,
-              args: producer.assistArguments);
+          _addAssistFromBuilder(
+            builder,
+            assistKind,
+            args: producer.assistArguments,
+          );
         }
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding an assist based on the
         // producer and (b) logging the exception.
-        _assistContext.instrumentationService
-            .logException(exception, stackTrace);
+        _assistContext.instrumentationService.logException(
+          exception,
+          stackTrace,
+        );
       }
     }
 
@@ -269,11 +279,11 @@ class AssistProcessor {
   }
 
   static Map<ProducerGenerator, Set<LintCode>> computeLintRuleMap() => {
-        for (var generator in _generators)
-          generator: {
-            for (var MapEntry(key: lintName, value: generators)
-                in registeredFixGenerators.lintProducers.entries)
-              if (generators.contains(generator)) lintName,
-          },
-      };
+    for (var generator in _generators)
+      generator: {
+        for (var MapEntry(key: lintName, value: generators)
+            in registeredFixGenerators.lintProducers.entries)
+          if (generators.contains(generator)) lintName,
+      },
+  };
 }

@@ -11,13 +11,13 @@ class FlutterAnalyzeBenchmark extends Benchmark implements FlutterBenchmark {
   late final String flutterRepositoryPath;
 
   FlutterAnalyzeBenchmark()
-      : super(
-          'analysis-flutter-analyze',
-          'Clone the flutter/flutter repo and run '
-              "'flutter analyze --flutter-repo' with the current Dart VM and "
-              'analysis server.',
-          kind: 'cpu',
-        );
+    : super(
+        'analysis-flutter-analyze',
+        'Clone the flutter/flutter repo and run '
+            "'flutter analyze --flutter-repo' with the current Dart VM and "
+            'analysis server.',
+        kind: 'cpu',
+      );
 
   @override
   int get maxIterations => 3;

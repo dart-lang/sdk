@@ -28,15 +28,22 @@ abstract class AbstractTransformSetParserTest {
     errorListener.assertNoErrors();
   }
 
-  ExpectedError error(ErrorCode code, int offset, int length,
-          {String? text,
-          Pattern? messageContains,
-          List<ExpectedContextMessage> contextMessages =
-              const <ExpectedContextMessage>[]}) =>
-      ExpectedError(code, offset, length,
-          message: text,
-          messageContains: messageContains,
-          expectedContextMessages: contextMessages);
+  ExpectedError error(
+    ErrorCode code,
+    int offset,
+    int length, {
+    String? text,
+    Pattern? messageContains,
+    List<ExpectedContextMessage> contextMessages =
+        const <ExpectedContextMessage>[],
+  }) => ExpectedError(
+    code,
+    offset,
+    length,
+    message: text,
+    messageContains: messageContains,
+    expectedContextMessages: contextMessages,
+  );
 
   void parse(String content) {
     var errorReporter = ErrorReporter(

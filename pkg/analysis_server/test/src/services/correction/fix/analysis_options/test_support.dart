@@ -28,8 +28,10 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     var fileEdits = fixes[0].change.edits;
     expect(fileEdits, hasLength(1));
 
-    var actualContent =
-        SourceEdit.applySequence(initialContent, fileEdits[0].edits);
+    var actualContent = SourceEdit.applySequence(
+      initialContent,
+      fileEdits[0].edits,
+    );
     expect(actualContent, expectedContent);
   }
 
@@ -60,8 +62,12 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     expect(errors, hasLength(1));
     var error = errors[0];
     var options = _parseYaml(content);
-    var generator =
-        AnalysisOptionsFixGenerator(resourceProvider, error, content, options);
+    var generator = AnalysisOptionsFixGenerator(
+      resourceProvider,
+      error,
+      content,
+      options,
+    );
     return generator.computeFixes();
   }
 

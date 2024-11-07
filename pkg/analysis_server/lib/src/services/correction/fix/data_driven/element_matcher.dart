@@ -39,13 +39,13 @@ class ElementMatcher {
   /// Initialize a newly created matcher representing a reference to an element
   /// whose name matches the given [components] and element [kinds] in a library
   /// that imports the [importedUris].
-  ElementMatcher(
-      {required this.importedUris,
-      required this.components,
-      required List<ElementKind> kinds,
-      this.node})
-      : assert(components.isNotEmpty),
-        validKinds = kinds;
+  ElementMatcher({
+    required this.importedUris,
+    required this.components,
+    required List<ElementKind> kinds,
+    this.node,
+  }) : assert(components.isNotEmpty),
+       validKinds = kinds;
 
   /// Return `true` if this matcher matches the given [element].
   bool matches(ElementDescriptor element) {
@@ -217,15 +217,19 @@ class _MatcherBuilder {
     }
   }
 
-  void _addMatcher(
-      {required List<String> components,
-      required List<ElementKind> kinds,
-      AstNode? node}) {
-    matchers.add(ElementMatcher(
+  void _addMatcher({
+    required List<String> components,
+    required List<ElementKind> kinds,
+    AstNode? node,
+  }) {
+    matchers.add(
+      ElementMatcher(
         importedUris: importedUris,
         components: components,
         kinds: kinds,
-        node: node));
+        node: node,
+      ),
+    );
   }
 
   /// Build a matcher for the element being invoked.
@@ -251,7 +255,7 @@ class _MatcherBuilder {
         _addMatcher(
           components: [
             parent.constructorName?.name ?? '',
-            grandparent.returnType.name
+            grandparent.returnType.name,
           ],
           kinds: [ElementKind.constructorKind],
         );
@@ -284,10 +288,7 @@ class _MatcherBuilder {
       components: [constructorName, className],
       kinds: const [ElementKind.constructorKind],
     );
-    _addMatcher(
-      components: [className],
-      kinds: const [ElementKind.classKind],
-    );
+    _addMatcher(components: [className], kinds: const [ElementKind.classKind]);
   }
 
   /// Build a matcher for the extension.
@@ -300,7 +301,8 @@ class _MatcherBuilder {
 
   /// Build a matcher for the function being invoked.
   void _buildFromFunctionExpressionInvocation(
-      FunctionExpressionInvocation node) {
+    FunctionExpressionInvocation node,
+  ) {
     // TODO(brianwilkerson): This case was missed in the original implementation
     //  and there are no tests for it at this point, but it ought to be supported.
   }
@@ -333,10 +335,7 @@ class _MatcherBuilder {
       // that a method is being invoked.
       _addMatcher(
         components: [methodName.name, targetName],
-        kinds: [
-          ElementKind.constructorKind,
-          ElementKind.methodKind,
-        ],
+        kinds: [ElementKind.constructorKind, ElementKind.methodKind],
       );
     } else if (node.realTarget != null) {
       // If there is a target, but we don't know the type of the target, then
@@ -385,7 +384,7 @@ class _MatcherBuilder {
         ElementKind.classKind,
         ElementKind.enumKind,
         ElementKind.mixinKind,
-        ElementKind.typedefKind
+        ElementKind.typedefKind,
       ],
     );
     // TODO(brianwilkerson): Determine whether we can ever get here as a result
@@ -409,27 +408,29 @@ class _MatcherBuilder {
       var parent = node.parent;
       if ((parent is NamedType && parent.parent is! ConstructorName) ||
           (parent is PropertyAccess && parent.target == node)) {
-        _addMatcher(components: [
-          node.identifier.name
-        ], kinds: const [
-          ElementKind.classKind,
-          ElementKind.enumKind,
-          ElementKind.extensionKind,
-          ElementKind.mixinKind,
-          ElementKind.typedefKind
-        ]);
+        _addMatcher(
+          components: [node.identifier.name],
+          kinds: const [
+            ElementKind.classKind,
+            ElementKind.enumKind,
+            ElementKind.extensionKind,
+            ElementKind.mixinKind,
+            ElementKind.typedefKind,
+          ],
+        );
       }
-      _addMatcher(components: [
-        node.identifier.name
-      ], kinds: const [
-        // If the old class has been removed then this might have been a
-        // constructor invocation.
-        ElementKind.constructorKind,
-        ElementKind.functionKind, // tear-off
-        ElementKind.getterKind,
-        ElementKind.setterKind,
-        ElementKind.variableKind
-      ]);
+      _addMatcher(
+        components: [node.identifier.name],
+        kinds: const [
+          // If the old class has been removed then this might have been a
+          // constructor invocation.
+          ElementKind.constructorKind,
+          ElementKind.functionKind, // tear-off
+          ElementKind.getterKind,
+          ElementKind.setterKind,
+          ElementKind.variableKind,
+        ],
+      );
     }
     // It looks like we're accessing a member, so try to figure out the
     // name of the type defining the member.
@@ -443,7 +444,7 @@ class _MatcherBuilder {
           ElementKind.functionKind, // tear-off
           ElementKind.getterKind,
           ElementKind.methodKind, // tear-off
-          ElementKind.setterKind
+          ElementKind.setterKind,
         ],
       );
     }
@@ -459,7 +460,7 @@ class _MatcherBuilder {
           ElementKind.functionKind, // tear-off
           ElementKind.getterKind,
           ElementKind.methodKind, // tear-off
-          ElementKind.setterKind
+          ElementKind.setterKind,
         ],
       );
     } else if (container is ExtensionElement) {
@@ -471,7 +472,7 @@ class _MatcherBuilder {
           ElementKind.functionKind, // tear-off
           ElementKind.getterKind,
           ElementKind.methodKind, // tear-off
-          ElementKind.setterKind
+          ElementKind.setterKind,
         ],
       );
     }
@@ -497,7 +498,7 @@ class _MatcherBuilder {
         ElementKind.functionKind, // tear-off, prefixed
         ElementKind.getterKind,
         ElementKind.methodKind, // tear-off, prefixed
-        ElementKind.setterKind
+        ElementKind.setterKind,
       ],
     );
   }
@@ -540,8 +541,9 @@ class _MatcherBuilder {
           var enclosingElement = staticElement.enclosingElement3;
           if (enclosingElement is! CompilationUnitElement) {
             _addMatcher(
-                components: [node.name, enclosingElement.displayName],
-                kinds: []);
+              components: [node.name, enclosingElement.displayName],
+              kinds: [],
+            );
             return;
           }
         }

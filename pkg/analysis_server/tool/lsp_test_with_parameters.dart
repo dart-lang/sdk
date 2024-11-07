@@ -30,8 +30,9 @@ Future<void> main(List<String> args) async {
 ''');
   {
     Uri exe = Uri.base.resolve(Platform.resolvedExecutable);
-    Uri librariesDart =
-        exe.resolve('../lib/_internal/sdk_library_metadata/lib/libraries.dart');
+    Uri librariesDart = exe.resolve(
+      '../lib/_internal/sdk_library_metadata/lib/libraries.dart',
+    );
     if (!File.fromUri(librariesDart).existsSync()) {
       throw 'Execute with a dart that has '
           "'../lib/_internal/sdk_library_metadata/lib/libraries.dart' "
@@ -111,8 +112,10 @@ Future<void> main(List<String> args) async {
           print('----');
           reportedSomething = true;
         }
-        print('==> Has been waiting for ${waitingFor.key} for '
-            '${waitingFor.value.elapsed}');
+        print(
+          '==> Has been waiting for ${waitingFor.key} for '
+          '${waitingFor.value.elapsed}',
+        );
       }
     }
     if (reportedSomething) {
@@ -135,13 +138,9 @@ Future<void> main(List<String> args) async {
   Duration everyDuration = Duration(milliseconds: everyMs);
   while (true) {
     await send(
-        p,
-        gotoDef(
-          largestIdSeen + 1,
-          clickOnUri,
-          clickLine,
-          clickColumn,
-        ));
+      p,
+      gotoDef(largestIdSeen + 1, clickOnUri, clickLine, clickColumn),
+    );
     await Future.delayed(everyDuration);
   }
 }
@@ -153,7 +152,7 @@ int? headerContentLength;
 Map<String, dynamic> initNotification = {
   'jsonrpc': '2.0',
   'method': 'initialized',
-  'params': {}
+  'params': {},
 };
 
 /// There's something weird about getting (several) id 3's that wasn't
@@ -170,8 +169,8 @@ Map<String, dynamic> gotoDef(int id, Uri uri, int line, int char) {
     'method': 'textDocument/definition',
     'params': {
       'textDocument': {'uri': '$uri'},
-      'position': {'line': line, 'character': char}
-    }
+      'position': {'line': line, 'character': char},
+    },
   };
 }
 
@@ -196,9 +195,9 @@ Map<String, dynamic> initMessage(int processId, Uri rootUri) {
       'capabilities': {},
       'initializationOptions': {},
       'workspaceFolders': [
-        {'uri': '$rootUri', 'name': rootUri.pathSegments.last}
-      ]
-    }
+        {'uri': '$rootUri', 'name': rootUri.pathSegments.last},
+      ],
+    },
   };
 }
 
@@ -208,12 +207,8 @@ Map<String, dynamic> initMore(Uri sdkUri) {
     'id': 1,
     'jsonrpc': '2.0',
     'result': [
-      {
-        'useLsp': true,
-        'sdkPath': sdkPath,
-        'allowAnalytics': false,
-      }
-    ]
+      {'useLsp': true, 'sdkPath': sdkPath, 'allowAnalytics': false},
+    ],
   };
 }
 
@@ -223,8 +218,10 @@ void listenToStdout(List<int> event) {
   for (int element in event) {
     buffer.add(element);
     if (verbosity > 3 && buffer.length % 1000 == 999) {
-      print('DEBUG MESSAGE: Stdout buffer with length ${buffer.length} so far: '
-          '${utf8.decode(buffer)}');
+      print(
+        'DEBUG MESSAGE: Stdout buffer with length ${buffer.length} so far: '
+        '${utf8.decode(buffer)}',
+      );
     }
     if (headerContentLength == null && _endsWithCrLfCrLf()) {
       String headerRaw = utf8.decode(buffer);
@@ -284,7 +281,8 @@ Future<void> send(Process p, Map<String, dynamic> json) async {
   // pkg/analysis_server/lib/src/lsp/channel/lsp_byte_stream_channel.dart
   var jsonEncodedBody = jsonEncode(json);
   var utf8EncodedBody = utf8.encode(jsonEncodedBody);
-  var header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
+  var header =
+      'Content-Length: ${utf8EncodedBody.length}\r\n'
       'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
   var asciiEncodedHeader = ascii.encode(header);
 

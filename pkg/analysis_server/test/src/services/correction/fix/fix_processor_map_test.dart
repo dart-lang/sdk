@@ -30,8 +30,10 @@ class FixProcessorMapTest {
   }
 
   void test_lintProducerMap() {
-    _assertMap(registeredFixGenerators.lintProducers,
-        lintsAllowedToHaveMultipleBulkFixes);
+    _assertMap(
+      registeredFixGenerators.lintProducers,
+      lintsAllowedToHaveMultipleBulkFixes,
+    );
   }
 
   void test_nonLintProducerMap() {
@@ -39,27 +41,32 @@ class FixProcessorMapTest {
   }
 
   void test_registerFixForLint() {
-    ResolvedCorrectionProducer generator(
-            {required CorrectionProducerContext context}) =>
-        MockCorrectionProducer();
+    ResolvedCorrectionProducer generator({
+      required CorrectionProducerContext context,
+    }) => MockCorrectionProducer();
 
     var lintCode = LintCode('test_rule', 'Test rule.');
     expect(registeredFixGenerators.lintProducers[lintCode], null);
     registeredFixGenerators.registerFixForLint(lintCode, generator);
     expect(
-        registeredFixGenerators.lintProducers[lintCode], contains(generator));
+      registeredFixGenerators.lintProducers[lintCode],
+      contains(generator),
+    );
     // Restore the map to it's original state so as to not impact other tests.
     registeredFixGenerators.lintProducers.remove(lintCode);
   }
 
-  void _assertMap(Map<ErrorCode, List<ProducerGenerator>> producerMap,
-      [List<String> codesAllowedToHaveMultipleBulkFixes = const []]) {
+  void _assertMap(
+    Map<ErrorCode, List<ProducerGenerator>> producerMap, [
+    List<String> codesAllowedToHaveMultipleBulkFixes = const [],
+  ]) {
     var unexpectedBulkCodes = <String>[];
     for (var MapEntry(:key, value: generators) in producerMap.entries) {
       var bulkCount = 0;
       for (var generator in generators) {
-        var producer =
-            generator(context: StubCorrectionProducerContext.instance);
+        var producer = generator(
+          context: StubCorrectionProducerContext.instance,
+        );
         _assertValidProducer(producer);
         if (producer.canBeAppliedAcrossFiles) {
           bulkCount++;
@@ -86,8 +93,11 @@ class FixProcessorMapTest {
     var className = producer.runtimeType.toString();
     expect(producer.fixKind, isNotNull, reason: '$className.fixKind');
     if (producer.canBeAppliedAcrossSingleFile) {
-      expect(producer.multiFixKind, isNotNull,
-          reason: '$className.multiFixKind should be non-null');
+      expect(
+        producer.multiFixKind,
+        isNotNull,
+        reason: '$className.multiFixKind should be non-null',
+      );
     }
   }
 }

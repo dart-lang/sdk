@@ -16,8 +16,9 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MOVE_ANNOTATION_TO_LIBRARY_DIRECTIVE;
@@ -33,12 +34,16 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
       return;
     }
 
-    var firstDirective = compilationUnit.directives.isEmpty
-        ? null
-        : compilationUnit.directives.first;
+    var firstDirective =
+        compilationUnit.directives.isEmpty
+            ? null
+            : compilationUnit.directives.first;
     if (firstDirective is LibraryDirective) {
       await _moveToExistingLibraryDirective(
-          builder, annotation, firstDirective);
+        builder,
+        annotation,
+        firstDirective,
+      );
       return;
     }
 
@@ -51,21 +56,28 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
     await _moveToNewLibraryDirective(builder, annotation, compilationUnit);
   }
 
-  Future<void> _moveToExistingLibraryDirective(ChangeBuilder builder,
-      Annotation annotation, LibraryDirective libraryDirective) async {
+  Future<void> _moveToExistingLibraryDirective(
+    ChangeBuilder builder,
+    Annotation annotation,
+    LibraryDirective libraryDirective,
+  ) async {
     // Just move the annotation to the existing library directive.
     var annotationRange = utils.getLinesRange(range.node(annotation));
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(annotationRange);
       var annotationText = utils.getRangeText(annotationRange);
       builder.addSimpleInsertion(
-          libraryDirective.firstTokenAfterCommentAndMetadata.offset,
-          annotationText);
+        libraryDirective.firstTokenAfterCommentAndMetadata.offset,
+        annotationText,
+      );
     });
   }
 
-  Future<void> _moveToNewLibraryDirective(ChangeBuilder builder,
-      Annotation annotation, CompilationUnit compilationUnit) async {
+  Future<void> _moveToNewLibraryDirective(
+    ChangeBuilder builder,
+    Annotation annotation,
+    CompilationUnit compilationUnit,
+  ) async {
     var annotationRange = utils.getLinesRange(range.node(annotation));
     // Create a new, unnamed library directive, and move the annotation to just
     // above the directive.
@@ -104,7 +116,9 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
       builder.addDeletion(annotationRange);
       var annotationText = utils.getRangeText(annotationRange);
       builder.addSimpleInsertion(
-          insertionOffset, '$prefix${annotationText}library;$eol$eol');
+        insertionOffset,
+        '$prefix${annotationText}library;$eol$eol',
+      );
     });
   }
 }

@@ -29,14 +29,13 @@ Matcher _isItem(
   required String? containerName,
   required SourceRange nameRange,
   required SourceRange codeRange,
-}) =>
-    TypeMatcher<CallHierarchyItem>()
-        .having((e) => e.kind, 'kind', kind)
-        .having((e) => e.displayName, 'displayName', displayName)
-        .having((e) => e.containerName, 'containerName', containerName)
-        .having((e) => e.file, 'file', file)
-        .having((e) => e.nameRange, 'nameRange', nameRange)
-        .having((e) => e.codeRange, 'codeRange', codeRange);
+}) => TypeMatcher<CallHierarchyItem>()
+    .having((e) => e.kind, 'kind', kind)
+    .having((e) => e.displayName, 'displayName', displayName)
+    .having((e) => e.containerName, 'containerName', containerName)
+    .having((e) => e.file, 'file', file)
+    .having((e) => e.nameRange, 'nameRange', nameRange)
+    .having((e) => e.codeRange, 'codeRange', codeRange);
 
 /// Matches a [CallHierarchyCalls] result with the given element/ranges.
 Matcher _isResult(
@@ -49,12 +48,17 @@ Matcher _isResult(
   List<SourceRange>? ranges,
 }) {
   var matcher = TypeMatcher<CallHierarchyCalls>().having(
-      (c) => c.item,
-      'item',
-      _isItem(kind, displayName, file,
-          containerName: containerName,
-          nameRange: nameRange,
-          codeRange: codeRange));
+    (c) => c.item,
+    'item',
+    _isItem(
+      kind,
+      displayName,
+      file,
+      containerName: containerName,
+      nameRange: nameRange,
+      codeRange: codeRange,
+    ),
+  );
 
   if (ranges != null) {
     matcher = matcher.having((c) => c.ranges, 'ranges', ranges);
@@ -162,15 +166,16 @@ class Foo {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.constructor,
-          'Foo',
-          otherFile,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('Foo(', otherCode, 'Foo'),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('Foo(', otherCode, 'Foo'),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_constructorCall_to_augmentation() async {
@@ -193,15 +198,16 @@ augment class Foo {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.constructor,
-          'Foo.named',
-          otherFile,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('named', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo.named',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('named', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_extension_method() async {
@@ -212,15 +218,16 @@ extension StringExtension on String {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          testFile.path,
-          containerName: 'StringExtension',
-          nameRange: rangeAtSearch('myMethod', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        testFile.path,
+        containerName: 'StringExtension',
+        nameRange: rangeAtSearch('myMethod', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_extension_methodCall() async {
@@ -240,15 +247,16 @@ extension StringExtension on String {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          otherFile,
-          containerName: 'StringExtension',
-          nameRange: rangeAtSearch('myMethod', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        otherFile,
+        containerName: 'StringExtension',
+        nameRange: rangeAtSearch('myMethod', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_function() async {
@@ -257,15 +265,16 @@ extension StringExtension on String {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.function,
-          'myFunction',
-          testFile.path,
-          containerName: 'test.dart',
-          nameRange: rangeAtSearch('myFunction', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        testFile.path,
+        containerName: 'test.dart',
+        nameRange: rangeAtSearch('myFunction', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_function_startOfParameterList() async {
@@ -274,15 +283,16 @@ extension StringExtension on String {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.function,
-          'myFunction',
-          testFile.path,
-          containerName: 'test.dart',
-          nameRange: rangeAtSearch('myFunction', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        testFile.path,
+        containerName: 'test.dart',
+        nameRange: rangeAtSearch('myFunction', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_function_startOfTypeParameterList() async {
@@ -291,15 +301,16 @@ extension StringExtension on String {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.function,
-          'myFunction',
-          testFile.path,
-          containerName: 'test.dart',
-          nameRange: rangeAtSearch('myFunction', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        testFile.path,
+        containerName: 'test.dart',
+        nameRange: rangeAtSearch('myFunction', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_functionCall() async {
@@ -317,15 +328,16 @@ void f() {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.function,
-          'myFunction',
-          otherFile,
-          containerName: 'other.dart',
-          nameRange: rangeAtSearch('myFunction', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('myFunction', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_functionCallInNullAwareElementInList() async {
@@ -343,15 +355,16 @@ void f() {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.function,
-          'myFunction',
-          otherFile,
-          containerName: 'other.dart',
-          nameRange: rangeAtSearch('myFunction', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('myFunction', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_functionCallInNullAwareElementInMapKey() async {
@@ -369,15 +382,16 @@ void f() {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.function,
-          'myFunction',
-          otherFile,
-          containerName: 'other.dart',
-          nameRange: rangeAtSearch('myFunction', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('myFunction', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_functionCallInNullAwareElementInMapValue() async {
@@ -395,15 +409,16 @@ void f() {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.function,
-          'myFunction',
-          otherFile,
-          containerName: 'other.dart',
-          nameRange: rangeAtSearch('myFunction', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('myFunction', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_functionCallInNullAwareElementInSet() async {
@@ -421,15 +436,16 @@ void f() {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.function,
-          'myFunction',
-          otherFile,
-          containerName: 'other.dart',
-          nameRange: rangeAtSearch('myFunction', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.function,
+        'myFunction',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('myFunction', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_getter() async {
@@ -440,15 +456,16 @@ class Foo {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.property,
-          'get foo',
-          testFile.path,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('foo', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.property,
+        'get foo',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('foo', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_getterCall() async {
@@ -466,15 +483,16 @@ void f() {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.property,
-          'get bar',
-          otherFile,
-          containerName: 'other.dart',
-          nameRange: rangeAtSearch('bar', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.property,
+        'get bar',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('bar', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_implicitConstructorCall() async {
@@ -495,15 +513,16 @@ void f() {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.constructor,
-          'Foo',
-          otherFile,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('Foo {', otherCode, 'Foo'),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('Foo {', otherCode, 'Foo'),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_method() async {
@@ -514,15 +533,16 @@ class Foo {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          testFile.path,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('myMethod', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_method_startOfParameterList() async {
@@ -533,15 +553,16 @@ class Foo {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          testFile.path,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('myMethod', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_method_startOfTypeParameterList() async {
@@ -552,15 +573,16 @@ class Foo {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          testFile.path,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('myMethod', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_methodCall() async {
@@ -580,15 +602,16 @@ class Foo {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          otherFile,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('myMethod', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_methodCall_to_augmentation() async {
@@ -612,15 +635,16 @@ augment class Foo {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          otherFile,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('myMethod', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_mixin_method() async {
@@ -631,15 +655,16 @@ mixin Bar {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          testFile.path,
-          containerName: 'Bar',
-          nameRange: rangeAtSearch('myMethod', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        testFile.path,
+        containerName: 'Bar',
+        nameRange: rangeAtSearch('myMethod', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_mixin_methodCall() async {
@@ -661,15 +686,16 @@ class Foo with Bar {}
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.method,
-          'myMethod',
-          otherFile,
-          containerName: 'Bar',
-          nameRange: rangeAtSearch('myMethod', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.method,
+        'myMethod',
+        otherFile,
+        containerName: 'Bar',
+        nameRange: rangeAtSearch('myMethod', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_namedConstructor() async {
@@ -680,15 +706,16 @@ class Foo {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.constructor,
-          'Foo.Bar',
-          testFile.path,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('Bar', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo.Bar',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('Bar', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_namedConstructor_typeName() async {
@@ -718,15 +745,16 @@ class Foo {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.constructor,
-          'Foo.Bar',
-          otherFile,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('Bar', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.constructor,
+        'Foo.Bar',
+        otherFile,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('Bar', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_namedConstructorCall_typeName() async {
@@ -756,15 +784,16 @@ class Foo {
 ''');
 
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.property,
-          'set foo',
-          testFile.path,
-          containerName: 'Foo',
-          nameRange: rangeAtSearch('foo', code),
-          codeRange: code.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.property,
+        'set foo',
+        testFile.path,
+        containerName: 'Foo',
+        nameRange: rangeAtSearch('foo', code),
+        codeRange: code.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_setterCall() async {
@@ -782,15 +811,16 @@ void f() {
 
     newFile(otherFile, otherCode.code);
     await expectTarget(
-        code,
-        _isItem(
-          CallHierarchyKind.property,
-          'set bar',
-          otherFile,
-          containerName: 'other.dart',
-          nameRange: rangeAtSearch('bar', otherCode),
-          codeRange: otherCode.range.sourceRange,
-        ));
+      code,
+      _isItem(
+        CallHierarchyKind.property,
+        'set bar',
+        otherFile,
+        containerName: 'other.dart',
+        nameRange: rangeAtSearch('bar', otherCode),
+        codeRange: otherCode.range.sourceRange,
+      ),
+    );
   }
 
   Future<void> test_whitespace() async {
@@ -861,17 +891,16 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
     var result = await getResolvedUnit(targetFile);
     expect(result.errors, isEmpty);
 
-    return DartCallHierarchyComputer(result)
-        .findIncomingCalls(target, searchEngine);
+    return DartCallHierarchyComputer(
+      result,
+    ).findIncomingCalls(target, searchEngine);
   }
 
   @override
   void setUp() {
     super.setUp();
     otherFile = convertPath('$testPackageLibPath/other.dart');
-    searchEngine = SearchEngineImpl([
-      driverFor(testFile),
-    ]);
+    searchEngine = SearchEngineImpl([driverFor(testFile)]);
   }
 
   Future<void> test_constructor() async {
@@ -907,42 +936,51 @@ final foo1 = Foo();
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
-            containerName: null,
-            nameRange: startOfFile,
-            codeRange: entireRange(otherCode),
-            ranges: [
-              rangeAfter('foo1 = '),
-            ]),
-        _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
-            codeRange: otherCode.ranges[0].sourceRange,
-            ranges: [
-              rangeAfter('foo2 = '),
-            ]),
-        _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('foo3', otherCode),
-            codeRange: otherCode.ranges[1].sourceRange,
-            ranges: [
-              rangeAfter('foo3 => '),
-            ]),
-        _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
-            codeRange: otherCode.ranges[2].sourceRange,
-            ranges: [
-              rangeAfter('foo4 = '),
-            ]),
-        _isResult(CallHierarchyKind.method, 'bar', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
-            codeRange: otherCode.ranges[3].sourceRange,
-            ranges: [
-              rangeAfter('foo5 = '),
-              rangeAfter('foo6 = '),
-            ]),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo1 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.class_,
+          'Bar',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [rangeAfter('foo2 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.property,
+          'get foo3',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('foo3', otherCode),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [rangeAfter('foo3 => ')],
+        ),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'Bar',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
+          codeRange: otherCode.ranges[2].sourceRange,
+          ranges: [rangeAfter('foo4 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.method,
+          'bar',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+          codeRange: otherCode.ranges[3].sourceRange,
+          ranges: [rangeAfter('foo5 = '), rangeAfter('foo6 = ')],
+        ),
       ]),
     );
   }
@@ -971,13 +1009,15 @@ import 'test.dart';
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfter("''."),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfter("''.")],
+        ),
       ]),
     );
   }
@@ -1036,42 +1076,51 @@ final foo1 = myFunction();
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
-            containerName: null,
-            nameRange: startOfFile,
-            codeRange: entireRange(otherCode),
-            ranges: [
-              rangeAfter('foo1 = '),
-            ]),
-        _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
-            codeRange: otherCode.ranges[0].sourceRange,
-            ranges: [
-              rangeAfter('foo2 = '),
-            ]),
-        _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('foo3', otherCode),
-            codeRange: otherCode.ranges[1].sourceRange,
-            ranges: [
-              rangeAfter('foo3 => '),
-            ]),
-        _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
-            codeRange: otherCode.ranges[2].sourceRange,
-            ranges: [
-              rangeAfter('foo4 = '),
-            ]),
-        _isResult(CallHierarchyKind.method, 'bar', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
-            codeRange: otherCode.ranges[3].sourceRange,
-            ranges: [
-              rangeAfter('foo5 = '),
-              rangeAfter('foo6 = '),
-            ]),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo1 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.class_,
+          'Bar',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [rangeAfter('foo2 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.property,
+          'get foo3',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('foo3', otherCode),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [rangeAfter('foo3 => ')],
+        ),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'Bar',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
+          codeRange: otherCode.ranges[2].sourceRange,
+          ranges: [rangeAfter('foo4 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.method,
+          'bar',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+          codeRange: otherCode.ranges[3].sourceRange,
+          ranges: [rangeAfter('foo5 = '), rangeAfter('foo6 = ')],
+        ),
       ]),
     );
   }
@@ -1107,42 +1156,51 @@ final foo1 = foo;
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
-            containerName: null,
-            nameRange: startOfFile,
-            codeRange: entireRange(otherCode),
-            ranges: [
-              rangeAfter('foo1 = '),
-            ]),
-        _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
-            codeRange: otherCode.ranges[0].sourceRange,
-            ranges: [
-              rangeAfter('foo2 = '),
-            ]),
-        _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('foo3', otherCode),
-            codeRange: otherCode.ranges[1].sourceRange,
-            ranges: [
-              rangeAfter('foo3 => '),
-            ]),
-        _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
-            codeRange: otherCode.ranges[2].sourceRange,
-            ranges: [
-              rangeAfter('foo4 = '),
-            ]),
-        _isResult(CallHierarchyKind.method, 'bar', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
-            codeRange: otherCode.ranges[3].sourceRange,
-            ranges: [
-              rangeAfter('foo5 = '),
-              rangeAfter('foo6 = '),
-            ]),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo1 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.class_,
+          'Bar',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [rangeAfter('foo2 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.property,
+          'get foo3',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('foo3', otherCode),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [rangeAfter('foo3 => ')],
+        ),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'Bar',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
+          codeRange: otherCode.ranges[2].sourceRange,
+          ranges: [rangeAfter('foo4 = ')],
+        ),
+        _isResult(
+          CallHierarchyKind.method,
+          'bar',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+          codeRange: otherCode.ranges[3].sourceRange,
+          ranges: [rangeAfter('foo5 = '), rangeAfter('foo6 = ')],
+        ),
       ]),
     );
   }
@@ -1174,20 +1232,24 @@ final foo2 = Foo();
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', testFile.path,
-            containerName: 'test.dart',
-            nameRange: rangeAtSearch('f() {', code, 'f'),
-            codeRange: code.range.sourceRange,
-            ranges: [
-              rangeAfter('foo1 = ', code),
-            ]),
-        _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
-            containerName: null,
-            nameRange: startOfFile,
-            codeRange: entireRange(otherCode),
-            ranges: [
-              rangeAfter('foo2 = ', otherCode),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          testFile.path,
+          containerName: 'test.dart',
+          nameRange: rangeAtSearch('f() {', code, 'f'),
+          codeRange: code.range.sourceRange,
+          ranges: [rangeAfter('foo1 = ', code)],
+        ),
+        _isResult(
+          CallHierarchyKind.file,
+          'other.dart',
+          otherFile,
+          containerName: null,
+          nameRange: startOfFile,
+          codeRange: entireRange(otherCode),
+          ranges: [rangeAfter('foo2 = ', otherCode)],
+        ),
       ]),
     );
   }
@@ -1217,14 +1279,15 @@ import 'test.dart';
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfter('Foo().'),
-              rangeAfter('tearoff = Foo().'),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfter('Foo().'), rangeAfter('tearoff = Foo().')],
+        ),
       ]),
     );
   }
@@ -1290,14 +1353,15 @@ import 'test.dart';
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfter('Foo().'),
-              rangeAfter('tearoff = Foo().'),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfter('Foo().'), rangeAfter('tearoff = Foo().')],
+        ),
       ]),
     );
   }
@@ -1330,14 +1394,15 @@ import 'test.dart';
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfter('Foo().'),
-              rangeAfter('tearoff = Foo().'),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfter('Foo().'), rangeAfter('tearoff = Foo().')],
+        ),
       ]),
     );
   }
@@ -1370,14 +1435,15 @@ import 'test.dart';
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfter('Foo().'),
-              rangeAfter('tearoff = Foo().'),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfter('Foo().'), rangeAfter('tearoff = Foo().')],
+        ),
       ]),
     );
   }
@@ -1410,14 +1476,15 @@ import 'test.dart';
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfter('Foo().'),
-              rangeAfter('tearoff = Foo().'),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfter('Foo().'), rangeAfter('tearoff = Foo().')],
+        ),
       ]),
     );
   }
@@ -1448,13 +1515,15 @@ import 'test.dart';
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfter('Foo().'),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfter('Foo().')],
+        ),
       ]),
     );
   }
@@ -1483,13 +1552,15 @@ import 'test.dart';
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfter('foo = Foo.'),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [rangeAfter('foo = Foo.')],
+        ),
       ]),
     );
   }
@@ -1522,21 +1593,24 @@ class Bar {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
-            codeRange: otherCode.ranges[0].sourceRange,
-            ranges: [
-              rangeAfter('/*a*/'),
-            ]),
-        _isResult(CallHierarchyKind.method, 'bar', otherFile,
-            containerName: 'Bar',
-            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
-            codeRange: otherCode.ranges[1].sourceRange,
-            ranges: [
-              rangeAfter('/*b*/'),
-              rangeAfter('/*c*/'),
-            ]),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'Bar',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [rangeAfter('/*a*/')],
+        ),
+        _isResult(
+          CallHierarchyKind.method,
+          'bar',
+          otherFile,
+          containerName: 'Bar',
+          nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [rangeAfter('/*b*/'), rangeAfter('/*c*/')],
+        ),
       ]),
     );
   }
@@ -1596,22 +1670,30 @@ class A {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.constructor, 'A', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('A();', otherCode, 'A'),
-            codeRange: otherCode.ranges[0].sourceRange,
-            ranges: [
-              rangeAtSearch('A()', code, 'A'),
-              rangeAfterPrefix('constructorTearoffA = A.', code, 'new'),
-            ]),
-        _isResult(CallHierarchyKind.constructor, 'B', otherFile,
-            containerName: 'B',
-            nameRange: rangeAtSearch('B {', otherCode, 'B'),
-            codeRange: otherCode.ranges[1].sourceRange,
-            ranges: [
-              rangeAtSearch('B()', code, 'B'),
-              rangeAfterPrefix('constructorTearoffB = B.', code, 'new'),
-            ]),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('A();', otherCode, 'A'),
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [
+            rangeAtSearch('A()', code, 'A'),
+            rangeAfterPrefix('constructorTearoffA = A.', code, 'new'),
+          ],
+        ),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'B',
+          otherFile,
+          containerName: 'B',
+          nameRange: rangeAtSearch('B {', otherCode, 'B'),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [
+            rangeAtSearch('B()', code, 'B'),
+            rangeAfterPrefix('constructorTearoffB = B.', code, 'new'),
+          ],
+        ),
       ]),
     );
   }
@@ -1674,14 +1756,18 @@ extension StringExtension on String {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.method, 'bar', otherFile,
-            containerName: 'StringExtension',
-            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAtSearch('bar();', code, 'bar'),
-              rangeAtSearch('bar;', code, 'bar'),
-            ]),
+        _isResult(
+          CallHierarchyKind.method,
+          'bar',
+          otherFile,
+          containerName: 'StringExtension',
+          nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [
+            rangeAtSearch('bar();', code, 'bar'),
+            rangeAtSearch('bar;', code, 'bar'),
+          ],
+        ),
       ]),
     );
   }
@@ -1733,22 +1819,30 @@ void fo^o() {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.function, 'f', otherFile,
-            containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAtSearch('f(); // 1', code, 'f'),
-              rangeAfterPrefix('tearoff = ', code, 'f'),
-            ]),
-        _isResult(CallHierarchyKind.function, 'nested', testFile.path,
-            containerName: 'foo',
-            nameRange: rangeAtSearch('nested() {', code, 'nested'),
-            codeRange: code.range.sourceRange,
-            ranges: [
-              rangeAtSearch('nested();', code, 'nested'),
-              rangeAfterPrefix('nestedTearoff = ', code, 'nested'),
-            ]),
+        _isResult(
+          CallHierarchyKind.function,
+          'f',
+          otherFile,
+          containerName: 'other.dart',
+          nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [
+            rangeAtSearch('f(); // 1', code, 'f'),
+            rangeAfterPrefix('tearoff = ', code, 'f'),
+          ],
+        ),
+        _isResult(
+          CallHierarchyKind.function,
+          'nested',
+          testFile.path,
+          containerName: 'foo',
+          nameRange: rangeAtSearch('nested() {', code, 'nested'),
+          codeRange: code.range.sourceRange,
+          ranges: [
+            rangeAtSearch('nested();', code, 'nested'),
+            rangeAfterPrefix('nestedTearoff = ', code, 'nested'),
+          ],
+        ),
       ]),
     );
   }
@@ -1785,14 +1879,18 @@ String get fo^o {
           nameRange: rangeAtSearch('A {', otherCode, 'A'),
           codeRange: otherCode.ranges[0].sourceRange,
         ),
-        _isResult(CallHierarchyKind.property, 'get b', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('b => ', otherCode, 'b'),
-            codeRange: otherCode.ranges[1].sourceRange,
-            ranges: [
-              rangeAfterPrefix('a.', code, 'b'),
-              rangeAfterPrefix('A().', code, 'b'),
-            ]),
+        _isResult(
+          CallHierarchyKind.property,
+          'get b',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('b => ', otherCode, 'b'),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [
+            rangeAfterPrefix('a.', code, 'b'),
+            rangeAfterPrefix('A().', code, 'b'),
+          ],
+        ),
       ]),
     );
   }
@@ -1857,14 +1955,18 @@ class Foo {
           nameRange: rangeAtSearch('A {', otherCode, 'A'),
           codeRange: otherCode.ranges[0].sourceRange,
         ),
-        _isResult(CallHierarchyKind.method, 'bar', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
-            codeRange: otherCode.ranges[1].sourceRange,
-            ranges: [
-              rangeAfterPrefix('a.', code, 'bar'),
-              rangeAfterPrefix('tearoff = a.', code, 'bar'),
-            ]),
+        _isResult(
+          CallHierarchyKind.method,
+          'bar',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [
+            rangeAfterPrefix('a.', code, 'bar'),
+            rangeAfterPrefix('tearoff = a.', code, 'bar'),
+          ],
+        ),
       ]),
     );
   }
@@ -1941,15 +2043,19 @@ mixin OtherMixin {
           nameRange: rangeAtSearch('A with', otherCode, 'A'),
           codeRange: otherCode.ranges[1].sourceRange,
         ),
-        _isResult(CallHierarchyKind.method, 'foo', otherFile,
-            containerName: 'OtherMixin',
-            nameRange: rangeAtSearch('foo() {', otherCode, 'foo'),
-            codeRange: otherCode.ranges[0].sourceRange,
-            ranges: [
-              rangeAfterPrefix('a.', code, 'foo'),
-              rangeAfterPrefix('A().', code, 'foo'),
-              rangeAfterPrefix('tearoff = a.', code, 'foo'),
-            ]),
+        _isResult(
+          CallHierarchyKind.method,
+          'foo',
+          otherFile,
+          containerName: 'OtherMixin',
+          nameRange: rangeAtSearch('foo() {', otherCode, 'foo'),
+          codeRange: otherCode.ranges[0].sourceRange,
+          ranges: [
+            rangeAfterPrefix('a.', code, 'foo'),
+            rangeAfterPrefix('A().', code, 'foo'),
+            rangeAfterPrefix('tearoff = a.', code, 'foo'),
+          ],
+        ),
       ]),
     );
   }
@@ -1979,14 +2085,18 @@ class A {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('named', otherCode),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfterPrefix('a = A.', code, 'named'),
-              rangeAfterPrefix('constructorTearoff = A.', code, 'named'),
-            ]),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A.named',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('named', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [
+            rangeAfterPrefix('a = A.', code, 'named'),
+            rangeAfterPrefix('constructorTearoff = A.', code, 'named'),
+          ],
+        ),
       ]),
     );
   }
@@ -2020,14 +2130,18 @@ class A {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('named', otherCode),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
-              rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
-            ]),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A.named',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('named', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [
+            rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
+            rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
+          ],
+        ),
       ]),
     );
   }
@@ -2061,14 +2175,18 @@ class A {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('named', otherCode),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
-              rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
-            ]),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A.named',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('named', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [
+            rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
+            rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
+          ],
+        ),
       ]),
     );
   }
@@ -2102,14 +2220,18 @@ class A {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('named', otherCode),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
-              rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
-            ]),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A.named',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('named', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [
+            rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
+            rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
+          ],
+        ),
       ]),
     );
   }
@@ -2143,14 +2265,18 @@ class A {
     expect(
       calls,
       unorderedEquals([
-        _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('named', otherCode),
-            codeRange: otherCode.range.sourceRange,
-            ranges: [
-              rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
-              rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
-            ]),
+        _isResult(
+          CallHierarchyKind.constructor,
+          'A.named',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('named', otherCode),
+          codeRange: otherCode.range.sourceRange,
+          ranges: [
+            rangeAfterPrefix('?a1 = b ? A.', code, 'named'),
+            rangeAfterPrefix('?a2 = b ? A.', code, 'named'),
+          ],
+        ),
       ]),
     );
   }
@@ -2200,14 +2326,18 @@ set fo^o(String value) {
           nameRange: rangeAtSearch('A {', otherCode, 'A'),
           codeRange: otherCode.ranges[0].sourceRange,
         ),
-        _isResult(CallHierarchyKind.property, 'set b', otherFile,
-            containerName: 'A',
-            nameRange: rangeAtSearch('b(String ', otherCode, 'b'),
-            codeRange: otherCode.ranges[1].sourceRange,
-            ranges: [
-              rangeAfterPrefix('a.', code, 'b'),
-              rangeAfterPrefix('A().', code, 'b'),
-            ]),
+        _isResult(
+          CallHierarchyKind.property,
+          'set b',
+          otherFile,
+          containerName: 'A',
+          nameRange: rangeAtSearch('b(String ', otherCode, 'b'),
+          codeRange: otherCode.ranges[1].sourceRange,
+          ranges: [
+            rangeAfterPrefix('a.', code, 'b'),
+            rangeAfterPrefix('A().', code, 'b'),
+          ],
+        ),
       ]),
     );
   }

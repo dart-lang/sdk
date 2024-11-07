@@ -27,15 +27,19 @@ class MessageSchedulerTest {
 
   DtdMessage get dtdMessage {
     return DtdMessage(
-        message: lspRquest,
-        performance: OperationPerformanceImpl('<root>'),
-        completer: Completer());
+      message: lspRquest,
+      performance: OperationPerformanceImpl('<root>'),
+      completer: Completer(),
+    );
   }
 
   legacy.Request get legacyRequest {
     var params = AnalysisSetAnalysisRootsParams(['a', 'b', 'c'], ['d', 'e']);
-    return legacy.Request('1', ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-        params.toJson(clientUriConverter: null));
+    return legacy.Request(
+      '1',
+      ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+      params.toJson(clientUriConverter: null),
+    );
   }
 
   lsp.RequestMessage get lspRquest {
@@ -96,13 +100,15 @@ incomingMessages
           sink.writelnWithIndent('DtdMessage');
           sink.withIndent(() {
             sink.writelnWithIndent(
-                'method: ${message.message.method.toString()}');
+              'method: ${message.message.method.toString()}',
+            );
           });
         case LegacyMessage():
           sink.writelnWithIndent('LegacyMessage');
           sink.withIndent(() {
             sink.writelnWithIndent(
-                'method: ${message.request.method.toString()}');
+              'method: ${message.request.method.toString()}',
+            );
           });
         case LspMessage():
           sink.writelnWithIndent('LspMessage');

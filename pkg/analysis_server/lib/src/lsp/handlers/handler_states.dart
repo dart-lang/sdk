@@ -53,8 +53,8 @@ import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart'
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
-typedef _RequestHandlerGenerator<T extends AnalysisServer>
-    = MessageHandler<Object?, Object?, T> Function(T);
+typedef _RequestHandlerGenerator<T extends AnalysisServer> =
+    MessageHandler<Object?, Object?, T> Function(T);
 
 /// The server moves to this state when a critical unrecoverable error (for
 /// example, inconsistent document state between server/client) occurs and will
@@ -64,8 +64,10 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
 
   @override
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
-    return error(ErrorCodes.InternalError,
-        'An unrecoverable error occurred and the server cannot process messages');
+    return error(
+      ErrorCodes.InternalError,
+      'An unrecoverable error occurred and the server cannot process messages',
+    );
   }
 }
 
@@ -73,34 +75,32 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
   /// Generators for handlers that require an [LspAnalysisServer].
   static const lspHandlerGenerators =
       <_RequestHandlerGenerator<LspAnalysisServer>>[
-    ShutdownMessageHandler.new,
-    ExitMessageHandler.new,
-    TextDocumentOpenHandler.new,
-    TextDocumentChangeHandler.new,
-    TextDocumentCloseHandler.new,
-    CompletionHandler.new,
-    CompletionResolveHandler.new,
-    DefinitionHandler.new,
-    DocumentLinkHandler.new,
-    ReferencesHandler.new,
-    CodeActionHandler.new,
-    ExecuteCommandHandler.new,
-    ChangeWorkspaceFoldersHandler.new,
-    PrepareRenameHandler.new,
-    RenameHandler.new,
-    FoldingHandler.new,
-    DiagnosticServerHandler.new,
-    WorkspaceDidChangeConfigurationMessageHandler.new,
-    ReanalyzeHandler.new,
-    SelectionRangeHandler.new,
-    SemanticTokensFullHandler.new,
-    SemanticTokensRangeHandler.new,
-    InlayHintHandler.new,
-  ];
+        ShutdownMessageHandler.new,
+        ExitMessageHandler.new,
+        TextDocumentOpenHandler.new,
+        TextDocumentChangeHandler.new,
+        TextDocumentCloseHandler.new,
+        CompletionHandler.new,
+        CompletionResolveHandler.new,
+        DefinitionHandler.new,
+        DocumentLinkHandler.new,
+        ReferencesHandler.new,
+        CodeActionHandler.new,
+        ExecuteCommandHandler.new,
+        ChangeWorkspaceFoldersHandler.new,
+        PrepareRenameHandler.new,
+        RenameHandler.new,
+        FoldingHandler.new,
+        DiagnosticServerHandler.new,
+        WorkspaceDidChangeConfigurationMessageHandler.new,
+        ReanalyzeHandler.new,
+        SelectionRangeHandler.new,
+        SemanticTokensFullHandler.new,
+        SemanticTokensRangeHandler.new,
+        InlayHintHandler.new,
+      ];
 
-  InitializedLspStateMessageHandler(
-    LspAnalysisServer server,
-  ) : super(server) {
+  InitializedLspStateMessageHandler(LspAnalysisServer server) : super(server) {
     for (var generator in lspHandlerGenerators) {
       registerHandler(generator(server));
     }
@@ -116,40 +116,44 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
   /// Generators for handlers that work with any [AnalysisServer].
   static const sharedHandlerGenerators =
       <_RequestHandlerGenerator<AnalysisServer>>[
-    AugmentationHandler.new,
-    AugmentedHandler.new,
-    CodeLensHandler.new,
-    ConnectToDtdHandler.new,
-    DartTextDocumentContentProviderHandler.new,
-    DocumentColorHandler.new,
-    DocumentColorPresentationHandler.new,
-    DocumentHighlightsHandler.new,
-    DocumentSymbolHandler.new,
-    FormatOnTypeHandler.new,
-    FormatRangeHandler.new,
-    FormattingHandler.new,
-    HoverHandler.new,
-    ImplementationHandler.new,
-    IncomingCallHierarchyHandler.new,
-    OutgoingCallHierarchyHandler.new,
-    PrepareCallHierarchyHandler.new,
-    PrepareTypeHierarchyHandler.new,
-    SignatureHelpHandler.new,
-    SuperHandler.new,
-    TypeDefinitionHandler.new,
-    TypeHierarchySubtypesHandler.new,
-    TypeHierarchySupertypesHandler.new,
-    WillRenameFilesHandler.new,
-    WorkspaceSymbolHandler.new,
-  ];
+        AugmentationHandler.new,
+        AugmentedHandler.new,
+        CodeLensHandler.new,
+        ConnectToDtdHandler.new,
+        DartTextDocumentContentProviderHandler.new,
+        DocumentColorHandler.new,
+        DocumentColorPresentationHandler.new,
+        DocumentHighlightsHandler.new,
+        DocumentSymbolHandler.new,
+        FormatOnTypeHandler.new,
+        FormatRangeHandler.new,
+        FormattingHandler.new,
+        HoverHandler.new,
+        ImplementationHandler.new,
+        IncomingCallHierarchyHandler.new,
+        OutgoingCallHierarchyHandler.new,
+        PrepareCallHierarchyHandler.new,
+        PrepareTypeHierarchyHandler.new,
+        SignatureHelpHandler.new,
+        SuperHandler.new,
+        TypeDefinitionHandler.new,
+        TypeHierarchySubtypesHandler.new,
+        TypeHierarchySupertypesHandler.new,
+        WillRenameFilesHandler.new,
+        WorkspaceSymbolHandler.new,
+      ];
 
-  InitializedStateMessageHandler(
-    AnalysisServer server,
-  ) : super(server) {
-    reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
-        'Server already initialized');
-    reject(Method.initialized, ServerErrorCodes.ServerAlreadyInitialized,
-        'Server already initialized');
+  InitializedStateMessageHandler(AnalysisServer server) : super(server) {
+    reject(
+      Method.initialize,
+      ServerErrorCodes.ServerAlreadyInitialized,
+      'Server already initialized',
+    );
+    reject(
+      Method.initialized,
+      ServerErrorCodes.ServerAlreadyInitialized,
+      'Server already initialized',
+    );
 
     for (var generator in sharedHandlerGenerators) {
       registerHandler(generator(server));
@@ -162,28 +166,30 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
     LspAnalysisServer server,
     List<String> openWorkspacePaths,
   ) : super(server) {
-    reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
-        'Server already initialized');
+    reject(
+      Method.initialize,
+      ServerErrorCodes.ServerAlreadyInitialized,
+      'Server already initialized',
+    );
     registerHandler(ShutdownMessageHandler(server));
     registerHandler(ExitMessageHandler(server));
-    registerHandler(InitializedMessageHandler(
-      server,
-      openWorkspacePaths,
-    ));
+    registerHandler(InitializedMessageHandler(server, openWorkspacePaths));
   }
 
   @override
   ErrorOr<Object?> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
-      server.instrumentationService
-          .logInfo('Ignoring ${message.method} message while initializing');
+      server.instrumentationService.logInfo(
+        'Ignoring ${message.method} message while initializing',
+      );
       return success(null);
     }
     return error(
-        ErrorCodes.ServerNotInitialized,
-        'Unable to handle ${message.method} before the server is initialized '
-        'and the client has sent the initialized notification');
+      ErrorCodes.ServerNotInitialized,
+      'Unable to handle ${message.method} before the server is initialized '
+      'and the client has sent the initialized notification',
+    );
   }
 }
 
@@ -196,12 +202,15 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
-      server.instrumentationService
-          .logInfo('Ignoring ${message.method} message while shutting down');
+      server.instrumentationService.logInfo(
+        'Ignoring ${message.method} message while shutting down',
+      );
       return success(null);
     }
-    return error(ErrorCodes.InvalidRequest,
-        'Unable to handle ${message.method} after shutdown request');
+    return error(
+      ErrorCodes.InvalidRequest,
+      'Unable to handle ${message.method} after shutdown request',
+    );
   }
 }
 
@@ -216,11 +225,14 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
-      server.instrumentationService
-          .logInfo('Ignoring ${message.method} message while uninitialized');
+      server.instrumentationService.logInfo(
+        'Ignoring ${message.method} message while uninitialized',
+      );
       return success(null);
     }
-    return error(ErrorCodes.ServerNotInitialized,
-        'Unable to handle ${message.method} before client has sent initialize request');
+    return error(
+      ErrorCodes.ServerNotInitialized,
+      'Unable to handle ${message.method} before client has sent initialize request',
+    );
   }
 }

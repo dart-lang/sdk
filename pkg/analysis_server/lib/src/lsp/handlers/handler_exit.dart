@@ -12,10 +12,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 class ExitMessageHandler extends LspMessageHandler<void, void> {
   final bool clientDidCallShutdown;
 
-  ExitMessageHandler(
-    super.server, {
-    this.clientDidCallShutdown = false,
-  });
+  ExitMessageHandler(super.server, {this.clientDidCallShutdown = false});
 
   @override
   Method get handlesMessage => Method.exit;
@@ -25,7 +22,10 @@ class ExitMessageHandler extends LspMessageHandler<void, void> {
 
   @override
   Future<ErrorOr<void>> handle(
-      void params, MessageInfo message, CancellationToken token) async {
+    void params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     // Set a flag that the server shutdown is being controlled here to ensure
     // that the normal code that shuts down the server when the channel closes
     // does not fire.

@@ -70,58 +70,71 @@ class C {
       _Token('import', SemanticTokenTypes.keyword),
       _Token("'other_file.dart'", SemanticTokenTypes.string),
       _Token('as', SemanticTokenTypes.keyword),
-      _Token('other', SemanticTokenTypes.variable,
-          [CustomSemanticTokenModifiers.importPrefix]),
+      _Token('other', SemanticTokenTypes.variable, [
+        CustomSemanticTokenModifiers.importPrefix,
+      ]),
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('a', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.annotation]),
+      _Token('a', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('A', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
-      _Token('(', CustomSemanticTokenTypes.annotation),
-      _Token(')', CustomSemanticTokenTypes.annotation),
-      _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('A', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
-      _Token('.', CustomSemanticTokenTypes.annotation),
-      _Token('n', SemanticTokenTypes.method, [
-        CustomSemanticTokenModifiers.constructor,
-        CustomSemanticTokenModifiers.annotation
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
       ]),
       _Token('(', CustomSemanticTokenTypes.annotation),
       _Token(')', CustomSemanticTokenTypes.annotation),
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('B', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
-      _Token('(', CustomSemanticTokenTypes.annotation),
-      _Token('A', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
-      _Token(')', CustomSemanticTokenTypes.annotation),
-      _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('other', SemanticTokenTypes.variable,
-          [CustomSemanticTokenModifiers.importPrefix]),
-      _Token('.', CustomSemanticTokenTypes.annotation),
-      _Token('C', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
-      _Token('(', CustomSemanticTokenTypes.annotation),
-      _Token(')', CustomSemanticTokenTypes.annotation),
-      _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('other', SemanticTokenTypes.variable,
-          [CustomSemanticTokenModifiers.importPrefix]),
-      _Token('.', CustomSemanticTokenTypes.annotation),
-      _Token('C', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
       _Token('.', CustomSemanticTokenTypes.annotation),
       _Token('n', SemanticTokenTypes.method, [
         CustomSemanticTokenModifiers.constructor,
-        CustomSemanticTokenModifiers.annotation
+        CustomSemanticTokenModifiers.annotation,
       ]),
       _Token('(', CustomSemanticTokenTypes.annotation),
       _Token(')', CustomSemanticTokenTypes.annotation),
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('foo', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static])
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('B', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('other', SemanticTokenTypes.variable, [
+        CustomSemanticTokenModifiers.importPrefix,
+      ]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('C', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('other', SemanticTokenTypes.variable, [
+        CustomSemanticTokenModifiers.importPrefix,
+      ]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('C', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('n', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        CustomSemanticTokenModifiers.annotation,
+      ]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('foo', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
     ];
 
     var otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
@@ -153,13 +166,15 @@ class A {
 
     var expected = [
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('MyAnnotation', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
+      _Token('MyAnnotation', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
       _Token('(', CustomSemanticTokenTypes.annotation),
       _Token(')', CustomSemanticTokenTypes.annotation),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -182,13 +197,15 @@ class B extends A {
 
     var expected = [
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('MyAnnotation', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
+      _Token('MyAnnotation', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
       _Token('(', CustomSemanticTokenTypes.annotation),
       _Token(')', CustomSemanticTokenTypes.annotation),
       _Token('super', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -212,13 +229,15 @@ class B extends A {
 
     var expected = [
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('MyAnnotation', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
+      _Token('MyAnnotation', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
       _Token('(', CustomSemanticTokenTypes.annotation),
       _Token(')', CustomSemanticTokenTypes.annotation),
       _Token('super', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -238,13 +257,15 @@ class A {
 
     var expected = [
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('MyAnnotation', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.annotation]),
+      _Token('MyAnnotation', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
       _Token('(', CustomSemanticTokenTypes.annotation),
       _Token(')', CustomSemanticTokenTypes.annotation),
       _Token('this', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('a', SemanticTokenTypes.variable, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -280,25 +301,21 @@ augment class A {
       _Token('part', SemanticTokenTypes.keyword),
       _Token("'main_augmentation.dart'", SemanticTokenTypes.string),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token(
-        'A',
-        SemanticTokenTypes.class_,
-        [SemanticTokenModifiers.declaration],
-      ),
-      _Token(
-        'void',
-        SemanticTokenTypes.keyword,
-        [CustomSemanticTokenModifiers.void_],
-      ),
+      _Token('A', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
       _Token('f', SemanticTokenTypes.method, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('get', SemanticTokenTypes.keyword),
       _Token('g', SemanticTokenTypes.property, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
       _Token("''", SemanticTokenTypes.string),
     ]);
@@ -309,21 +326,23 @@ augment class A {
       _Token("'main.dart'", SemanticTokenTypes.string),
       _Token('augment', SemanticTokenTypes.keyword),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token(
-          'A', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration]),
+      _Token('A', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('augment', SemanticTokenTypes.keyword),
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
       _Token('f', SemanticTokenTypes.method, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
       _Token('augmented', SemanticTokenTypes.keyword),
       _Token('augment', SemanticTokenTypes.keyword),
       _Token('get', SemanticTokenTypes.keyword),
       _Token('g', SemanticTokenTypes.property, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
       _Token('augmented', SemanticTokenTypes.keyword),
     ]);
@@ -340,11 +359,13 @@ class MyClass<T> {
 ''';
 
     var expected = [
-      _Token('/// class docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// class docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('T', SemanticTokenTypes.typeParameter),
       _Token('// class comment', SemanticTokenTypes.comment),
       _Token('// Trailing comment', SemanticTokenTypes.comment),
@@ -370,63 +391,77 @@ const e = const MyClass();
 
     var expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('const', SemanticTokenTypes.keyword),
       _Token('MyClass', SemanticTokenTypes.class_, [
         CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration
+        SemanticTokenModifiers.declaration,
       ]),
       _Token('MyClass', SemanticTokenTypes.class_, [
         CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration
+        SemanticTokenModifiers.declaration,
       ]),
       _Token('named', SemanticTokenTypes.method, [
         CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration
+        SemanticTokenModifiers.declaration,
       ]),
       _Token('factory', SemanticTokenTypes.keyword),
       _Token('MyClass', SemanticTokenTypes.class_, [
         CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration
+        SemanticTokenModifiers.declaration,
       ]),
       _Token('factory', SemanticTokenTypes.method, [
         CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration
+        SemanticTokenModifiers.declaration,
       ]),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('b', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
-      _Token('named', SemanticTokenTypes.method,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('b', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token('named', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('c', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
-      _Token('factory', SemanticTokenTypes.method,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('c', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token('factory', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('d', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('d', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('MyClass', SemanticTokenTypes.class_),
-      _Token('named', SemanticTokenTypes.method,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('named', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('e', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('e', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -450,39 +485,51 @@ void f() {
 
     var expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
-      _Token('/// field docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('/// field docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('myField', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
       _Token("'FieldVal'", SemanticTokenTypes.string),
-      _Token('/// static field docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// static field docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('static', SemanticTokenTypes.keyword),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('myStaticField', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('myStaticField', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token("'StaticFieldVal'", SemanticTokenTypes.string),
-      _Token(
-          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        SemanticTokenModifiers('void'),
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('myField', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('myField', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('MyClass', SemanticTokenTypes.class_),
-      _Token('myStaticField', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.static]),
+      _Token('myStaticField', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.static,
+      ]),
       _Token("'a'", SemanticTokenTypes.string),
     ];
 
@@ -511,60 +558,78 @@ void f() {
 
     var expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
-      _Token('/// getter docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('/// getter docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('get', SemanticTokenTypes.keyword),
       _Token('myGetter', SemanticTokenTypes.property, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
       _Token("'GetterVal'", SemanticTokenTypes.string),
-      _Token('/// setter docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// setter docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('set', SemanticTokenTypes.keyword),
       _Token('mySetter', SemanticTokenTypes.property, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('v', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
-      _Token('/// static getter docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('v', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('/// static getter docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('static', SemanticTokenTypes.keyword),
       _Token('String', SemanticTokenTypes.class_),
       _Token('get', SemanticTokenTypes.keyword),
-      _Token('myStaticGetter', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('myStaticGetter', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token("'StaticGetterVal'", SemanticTokenTypes.string),
-      _Token('/// static setter docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// static setter docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('static', SemanticTokenTypes.keyword),
       _Token('set', SemanticTokenTypes.keyword),
-      _Token('myStaticSetter', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('myStaticSetter', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('staticV', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
-      _Token(
-          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('staticV', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        SemanticTokenModifiers('void'),
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('myGetter', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('myGetter', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('mySetter', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('mySetter', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token("'a'", SemanticTokenTypes.string),
     ];
 
@@ -594,54 +659,73 @@ void f() {
 
     var expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
-      _Token('/// method docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('/// method docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('override', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.annotation]),
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
+      _Token('override', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.annotation,
+      ]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
       _Token('myMethod', SemanticTokenTypes.method, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
-      _Token('/// static method docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// static method docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('static', SemanticTokenTypes.keyword),
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('myStaticMethod', SemanticTokenTypes.method,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('myStaticMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('// static method comment', SemanticTokenTypes.comment),
-      _Token(
-          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        SemanticTokenModifiers('void'),
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('myMethod', SemanticTokenTypes.method,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('myMethod', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('MyClass', SemanticTokenTypes.class_),
-      _Token('myStaticMethod', SemanticTokenTypes.method,
-          [SemanticTokenModifiers.static]),
+      _Token('myStaticMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.static,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('b', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('b', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('myMethod', SemanticTokenTypes.method,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('myMethod', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('c', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('c', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('MyClass', SemanticTokenTypes.class_),
-      _Token('myStaticMethod', SemanticTokenTypes.method,
-          [SemanticTokenModifiers.static]),
+      _Token('myStaticMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.static,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -681,10 +765,12 @@ class B extends A {
         SemanticTokenModifiers.declaration,
       ]),
       _Token('super', SemanticTokenTypes.keyword),
-      _Token('i', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
+      _Token('i', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
       _Token('f', SemanticTokenTypes.method, [
         SemanticTokenModifiers.declaration,
         CustomSemanticTokenModifiers.instance,
@@ -692,7 +778,7 @@ class B extends A {
       _Token('super', SemanticTokenTypes.keyword),
       _Token('f', SemanticTokenTypes.method, [
         CustomSemanticTokenModifiers.instance,
-      ])
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -740,7 +826,7 @@ class A {
       _Token('this', SemanticTokenTypes.keyword),
       _Token('f', SemanticTokenTypes.method, [
         CustomSemanticTokenModifiers.instance,
-      ])
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -758,33 +844,42 @@ int double(int bbb) => bbb * 2;
 ''';
 
     var expected = [
-      _Token('/// before [', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token('aaa', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
-      _Token('] after', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// before [', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('aaa', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('] after', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('aaa', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
-      _Token('/// before [', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// before [', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('bbb', SemanticTokenTypes.parameter),
-      _Token('] after', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('] after', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
-      _Token('double', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('double', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
-      _Token('bbb', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('bbb', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('bbb', SemanticTokenTypes.parameter),
-      _Token('2', SemanticTokenTypes.number)
+      _Token('2', SemanticTokenTypes.number),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -812,14 +907,16 @@ import '../file.dart'
       _Token("'package:flutter/widgets.dart'", SemanticTokenTypes.string),
       _Token('import', SemanticTokenTypes.keyword),
       _Token("'../file.dart'", SemanticTokenTypes.string),
-      _Token('if', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('if', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('dart', CustomSemanticTokenTypes.source),
       _Token('library', CustomSemanticTokenTypes.source),
       _Token('io', CustomSemanticTokenTypes.source),
       _Token("'file_io.dart'", SemanticTokenTypes.string),
-      _Token('if', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('if', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('dart', CustomSemanticTokenTypes.source),
       _Token('library', CustomSemanticTokenTypes.source),
       _Token('html', CustomSemanticTokenTypes.source),
@@ -852,7 +949,7 @@ extension A on String {}
       _Token('extension', SemanticTokenTypes.keyword),
       _Token('A', SemanticTokenTypes.class_),
       _Token('on', SemanticTokenTypes.keyword),
-      _Token('String', SemanticTokenTypes.class_)
+      _Token('String', SemanticTokenTypes.class_),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -866,13 +963,14 @@ extension type E(int i) {}
     var expected = [
       _Token('extension', SemanticTokenTypes.keyword),
       _Token('type', SemanticTokenTypes.keyword),
-      _Token(
-          'E', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration]),
+      _Token('E', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
       _Token('i', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
-      ])
+        CustomSemanticTokenModifiers.instance,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -887,22 +985,23 @@ extension type E(int i) {}
     var expected = [
       _Token('CLASS', SemanticTokenTypes.class_),
       _Token('STRING', SemanticTokenTypes.string),
-      _Token('VARIABLE', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('VARIABLE', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await initialize();
     await openFile(pluginAnalyzedFileUri, code.code);
 
-    var pluginResult = plugin.AnalysisHighlightsParams(
-      pluginAnalyzedFilePath,
-      [
-        plugin.HighlightRegion(plugin.HighlightRegionType.CLASS, 0, 5),
-        plugin.HighlightRegion(plugin.HighlightRegionType.LITERAL_STRING, 6, 6),
-        plugin.HighlightRegion(
-            plugin.HighlightRegionType.LOCAL_VARIABLE_DECLARATION, 13, 8),
-      ],
-    );
+    var pluginResult = plugin.AnalysisHighlightsParams(pluginAnalyzedFilePath, [
+      plugin.HighlightRegion(plugin.HighlightRegionType.CLASS, 0, 5),
+      plugin.HighlightRegion(plugin.HighlightRegionType.LITERAL_STRING, 6, 6),
+      plugin.HighlightRegion(
+        plugin.HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+        13,
+        8,
+      ),
+    ]);
     configureTestPlugin(notification: pluginResult.toNotification());
 
     var tokens = await getSemanticTokens(pluginAnalyzedFileUri);
@@ -932,11 +1031,13 @@ extension type E(int i) {}
     var decoded = _decodeSemanticTokens(updatedContent, tokens);
     expect(decoded, [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('Aaaaa', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('Aaaaa', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('Bbbbb', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration])
+      _Token('Bbbbb', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ]);
   }
 
@@ -951,13 +1052,15 @@ class A {
     var expected = [
       _Token('A', SemanticTokenTypes.class_, [
         CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration
+        SemanticTokenModifiers.declaration,
       ]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
-      _Token('a', SemanticTokenTypes.variable,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('a', SemanticTokenTypes.variable, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('a', SemanticTokenTypes.parameter),
     ];
 
@@ -982,23 +1085,27 @@ class MyClass2 {
 ''';
     var code = TestCode.parse(content);
 
-// Expect the correct tokens for the valid code before/after but don't
-// check the tokens for the invalid code as there are no concrete
-// expectations for them.
+    // Expect the correct tokens for the valid code before/after but don't
+    // check the tokens for the invalid code as there are no concrete
+    // expectations for them.
     var expected1 = [
-      _Token('/// class docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// class docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('// class comment', SemanticTokenTypes.comment),
     ];
     var expected2 = [
-      _Token('/// class docs 2', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// class docs 2', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass2', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass2', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('// class comment 2', SemanticTokenTypes.comment),
     ];
 
@@ -1032,44 +1139,59 @@ void f() async {
 ''';
 
     var expected = [
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
-      _Token('async', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('async', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('var', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('new', SemanticTokenTypes.keyword),
-      _Token('Object', SemanticTokenTypes.class_,
-          [CustomSemanticTokenModifiers.constructor]),
-      _Token('await', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('Object', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token('await', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('null', SemanticTokenTypes.keyword),
-      _Token('if', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('if', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('false', CustomSemanticTokenTypes.boolean),
       _Token('print', SemanticTokenTypes.function),
       _Token("'test'", SemanticTokenTypes.string),
-      _Token('for', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('for', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('var', SemanticTokenTypes.keyword),
-      _Token('item', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('in', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
-      _Token('switch', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('item', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('in', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
+      _Token('switch', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('1', SemanticTokenTypes.number),
-      _Token('case', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('case', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
       _Token('var', SemanticTokenTypes.keyword),
-      _Token('isEven', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('when', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('isEven', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('when', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('isEven', SemanticTokenTypes.variable),
     ];
 
@@ -1081,8 +1203,9 @@ void f() async {
 
     var expected = [
       _Token('String', SemanticTokenTypes.class_),
-      _Token('bar', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('bar', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1091,9 +1214,7 @@ void f() async {
   Future<void> test_lastLine_comment() async {
     var content = '// Trailing comment';
 
-    var expected = [
-      _Token('// Trailing comment', SemanticTokenTypes.comment),
-    ];
+    var expected = [_Token('// Trailing comment', SemanticTokenTypes.comment)];
 
     await _initializeAndVerifyTokens(content, expected);
   }
@@ -1105,12 +1226,15 @@ void f() async {
  */''';
 
     var expected = [
-      _Token('/**\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' * Trailing comment\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' */', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/**\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' * Trailing comment\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' */', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1125,20 +1249,26 @@ void f() {
 ''';
 
     var expected = [
-      _Token(
-          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
-      _Token('func', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        SemanticTokenModifiers('void'),
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('func', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.parameter),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('funcTearOff', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('funcTearOff', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('func', SemanticTokenTypes.function),
     ];
 
@@ -1161,10 +1291,7 @@ class A {}
     // Create the file and start up the server so that the macro-generated
     // files is available.
     newFile(mainFilePath, mainContent);
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await Future.wait([waitForAnalysisComplete(), initialize()]);
 
     // Fetch the macro-generated content to ensure it was generated successfully
     // but also because verifyTokens uses the content to map locations back to
@@ -1177,31 +1304,23 @@ class A {}
       _Token("'package:test/main.dart'", SemanticTokenTypes.string),
       _Token('augment', SemanticTokenTypes.keyword),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token(
-        'A',
-        SemanticTokenTypes.class_,
-        [SemanticTokenModifiers.declaration],
-      ),
-      _Token(
-        'void',
-        SemanticTokenTypes.keyword,
-        [CustomSemanticTokenModifiers.void_],
-      ),
-      _Token(
-        'f',
-        SemanticTokenTypes.method,
-        [
-          SemanticTokenModifiers.declaration,
-          CustomSemanticTokenModifiers.instance
-        ],
-      )
+      _Token('A', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance,
+      ]),
     ]);
   }
 
   Future<void> test_manyBools_bug() async {
-// Similar to test_manyImports_sortBug, this code triggered inconsistent tokens
-// for "false" because tokens were sorted incorrectly (because both boolean and
-// keyword had the same offset and length, which is all that were sorted by).
+    // Similar to test_manyImports_sortBug, this code triggered inconsistent tokens
+    // for "false" because tokens were sorted incorrectly (because both boolean and
+    // keyword had the same offset and length, which is all that were sorted by).
     var content = '''
 class MyTestClass {
 /// test
@@ -1232,17 +1351,20 @@ bool test6 = false;
 
     var expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyTestClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyTestClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       for (var i = 1; i <= 6; i++) ...[
-        _Token('/// test', SemanticTokenTypes.comment,
-            [SemanticTokenModifiers.documentation]),
-        _Token('/// test', SemanticTokenTypes.comment,
-            [SemanticTokenModifiers.documentation]),
+        _Token('/// test', SemanticTokenTypes.comment, [
+          SemanticTokenModifiers.documentation,
+        ]),
+        _Token('/// test', SemanticTokenTypes.comment, [
+          SemanticTokenModifiers.documentation,
+        ]),
         _Token('bool', SemanticTokenTypes.class_),
         _Token('test$i', SemanticTokenTypes.variable, [
           SemanticTokenModifiers.declaration,
-          CustomSemanticTokenModifiers.instance
+          CustomSemanticTokenModifiers.instance,
         ]),
         _Token('false', CustomSemanticTokenTypes.boolean),
       ],
@@ -1252,12 +1374,12 @@ bool test6 = false;
   }
 
   Future<void> test_manyImports_sortBug() async {
-// This test is for a bug where some "import" tokens would not be highlighted
-// correctly. Imports are made up of a DIRECTIVE token that spans a
-// BUILT_IN ("import") and LITERAL_STRING. The original code sorted by only
-// offset when handling overlapping tokens, which for certain lists (such as
-// the one created for the code below) would result in the BUILTIN coming before
-// the DIRECTIVE, which resulted in the DIRECTIVE overwriting it.
+    // This test is for a bug where some "import" tokens would not be highlighted
+    // correctly. Imports are made up of a DIRECTIVE token that spans a
+    // BUILT_IN ("import") and LITERAL_STRING. The original code sorted by only
+    // offset when handling overlapping tokens, which for certain lists (such as
+    // the one created for the code below) would result in the BUILTIN coming before
+    // the DIRECTIVE, which resulted in the DIRECTIVE overwriting it.
     var content = '''
 import 'dart:async';
 import 'dart:async';
@@ -1296,8 +1418,9 @@ class C {}
       _Token('on', SemanticTokenTypes.keyword),
       _Token('C', SemanticTokenTypes.class_),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token(
-          'C', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration])
+      _Token('C', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1315,21 +1438,28 @@ class MyClass {}
 ''';
 
     var expected = [
-      _Token('/**\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' * This is my class comment\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' *\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' * There are\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' * multiple lines\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' */', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/**\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' * This is my class comment\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' *\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' * There are\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' * multiple lines\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' */', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1343,20 +1473,26 @@ f({String? a, dynamic b}) {
 ''';
 
     var expected = [
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('dynamic', SemanticTokenTypes.type),
-      _Token('b', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('b', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('f', SemanticTokenTypes.function),
-      _Token('a', SemanticTokenTypes.parameter,
-          [CustomSemanticTokenModifiers.label]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        CustomSemanticTokenModifiers.label,
+      ]),
       _Token('a', SemanticTokenTypes.parameter),
-      _Token('b', SemanticTokenTypes.parameter,
-          [CustomSemanticTokenModifiers.label]),
+      _Token('b', SemanticTokenTypes.parameter, [
+        CustomSemanticTokenModifiers.label,
+      ]),
       _Token('b', SemanticTokenTypes.parameter),
     ];
 
@@ -1371,16 +1507,22 @@ Never? g() => throw '';
 
     var expected = [
       _Token('Never', SemanticTokenTypes.type),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
-      _Token('throw', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('throw', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token("''", SemanticTokenTypes.string),
       _Token('Never', SemanticTokenTypes.type),
-      _Token('g', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
-      _Token('throw', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('g', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('throw', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token("''", SemanticTokenTypes.string),
     ];
 
@@ -1397,8 +1539,9 @@ class A {
 
     var expected = [
       _Token('this', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('a', SemanticTokenTypes.variable, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1418,14 +1561,16 @@ class B extends A {
     var expected = [
       _Token('B', SemanticTokenTypes.class_, [
         CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration
+        SemanticTokenModifiers.declaration,
       ]),
       _Token('super', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('super', SemanticTokenTypes.keyword),
-      _Token('b', SemanticTokenTypes.parameter,
-          [CustomSemanticTokenModifiers.label]),
+      _Token('b', SemanticTokenTypes.parameter, [
+        CustomSemanticTokenModifiers.label,
+      ]),
       _Token('a', SemanticTokenTypes.parameter),
     ];
 
@@ -1446,8 +1591,9 @@ class B extends A {
 
     var expected = [
       _Token('super', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1468,8 +1614,9 @@ class B extends A {
 
     var expected = [
       _Token('super', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1490,8 +1637,9 @@ class B extends A {
 
     var expected = [
       _Token('super', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1507,8 +1655,9 @@ class A {
 
     var expected = [
       _Token('this', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('a', SemanticTokenTypes.variable, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1525,8 +1674,9 @@ class A {
 
     var expected = [
       _Token('this', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('a', SemanticTokenTypes.variable, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1542,27 +1692,34 @@ void f() {
 ''';
 
     var expected = [
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
-      _Token('a', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('b', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('b', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
       _Token('a', SemanticTokenTypes.variable),
       _Token('b', SemanticTokenTypes.variable),
       _Token('1', SemanticTokenTypes.number),
       _Token('2', SemanticTokenTypes.number),
       _Token('var', SemanticTokenTypes.keyword),
-      _Token('c', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('d', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('c', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('d', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('1', SemanticTokenTypes.number),
-      _Token('2', SemanticTokenTypes.number)
+      _Token('2', SemanticTokenTypes.number),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1578,23 +1735,30 @@ void f() {
 ''';
 
     var expected = [
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
-      _Token('switch', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('switch', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('1', SemanticTokenTypes.number),
-      _Token('case', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('case', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('var', SemanticTokenTypes.keyword),
-      _Token('c', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('c', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token("'a'", SemanticTokenTypes.string),
-      _Token('when', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('when', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('c', SemanticTokenTypes.variable),
-      _Token('null', SemanticTokenTypes.keyword)
+      _Token('null', SemanticTokenTypes.keyword),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1610,23 +1774,31 @@ void f() {
 ''';
 
     var expected = [
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
-      _Token('switch', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('switch', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('1', SemanticTokenTypes.number),
-      _Token('case', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('case', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
-      _Token('isEven', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('isEven', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('var', SemanticTokenTypes.keyword),
-      _Token('isEven', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('when', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('isEven', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('when', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('isEven', SemanticTokenTypes.variable),
     ];
 
@@ -1643,21 +1815,28 @@ void f() {
 ''';
 
     var expected = [
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
-      _Token('switch', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('switch', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('1', SemanticTokenTypes.number),
-      _Token('case', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('case', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
       _Token('var', SemanticTokenTypes.keyword),
-      _Token('isEven', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
-      _Token('when', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.control]),
+      _Token('isEven', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('when', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.control,
+      ]),
       _Token('isEven', SemanticTokenTypes.variable),
     ];
 
@@ -1675,8 +1854,9 @@ class [!MyClass<T> {
 ''';
 
     var expected = [
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('T', SemanticTokenTypes.typeParameter),
       _Token('// class comment', SemanticTokenTypes.comment),
     ];
@@ -1695,11 +1875,13 @@ class MyClass<T> {
 !]''';
 
     var expected = [
-      _Token('/// class docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// class docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('class', SemanticTokenTypes.keyword),
-      _Token('MyClass', SemanticTokenTypes.class_,
-          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('T', SemanticTokenTypes.typeParameter),
       _Token('// class comment', SemanticTokenTypes.comment),
       _Token('// Trailing comment', SemanticTokenTypes.comment),
@@ -1720,12 +1902,15 @@ class!] MyClass {}
 ''';
 
     var expected = [
-      _Token(' * There are\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' * multiple lines\n', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token(' */', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token(' * There are\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' * multiple lines\n', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token(' */', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('class', SemanticTokenTypes.keyword),
     ];
 
@@ -1749,18 +1934,22 @@ void f((int, {int field1}) record) {
 
     var expected = [
       _Token('record', SemanticTokenTypes.parameter),
-      _Token(r'$1', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token(r'$1', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('record', SemanticTokenTypes.parameter),
-      _Token('field1', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('field1', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('1', SemanticTokenTypes.number),
-      _Token(r'$1', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token(r'$1', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('field1', SemanticTokenTypes.parameter),
       _Token('1', SemanticTokenTypes.number),
-      _Token('field1', SemanticTokenTypes.property,
-          [CustomSemanticTokenModifiers.instance]),
+      _Token('field1', SemanticTokenTypes.property, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
       _Token('1', SemanticTokenTypes.number),
       _Token('unresolved', CustomSemanticTokenTypes.source),
     ];
@@ -1769,11 +1958,11 @@ void f((int, {int field1}) record) {
   }
 
   Future<void> test_sort_sameOffsets() async {
-// This code initially (before merging) produces a String token starting at
-// offset 11 (as it drops out of one interpolated variable) and then a new
-// Interpolatation token.
-// This test is to ensure the assertion in `offsetLengthPrioritySort` does
-// not trigger (as it does if length is ignored, which was a bug).
+    // This code initially (before merging) produces a String token starting at
+    // offset 11 (as it drops out of one interpolated variable) and then a new
+    // Interpolatation token.
+    // This test is to ensure the assertion in `offsetLengthPrioritySort` does
+    // not trigger (as it does if length is ignored, which was a bug).
     var content = r'''
 var s = '';
 var a = [!'$s$s'!];
@@ -1781,13 +1970,15 @@ var a = [!'$s$s'!];
 
     var expected = [
       _Token("'", SemanticTokenTypes.string),
-      _Token(r'$', CustomSemanticTokenTypes.source,
-          [CustomSemanticTokenModifiers.interpolation]),
+      _Token(r'$', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
       _Token('s', SemanticTokenTypes.property),
-      _Token(r'$', CustomSemanticTokenTypes.source,
-          [CustomSemanticTokenModifiers.interpolation]),
+      _Token(r'$', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
       _Token('s', SemanticTokenTypes.property),
-      _Token("'", SemanticTokenTypes.string)
+      _Token("'", SemanticTokenTypes.string),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1808,48 +1999,60 @@ multi
 
     var expected = [
       _Token('String', SemanticTokenTypes.class_),
-      _Token('foo', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('foo', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('c', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('c', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('c', SemanticTokenTypes.parameter),
 
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string1', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('string1', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token("'test'", SemanticTokenTypes.string),
 
       _Token('var', SemanticTokenTypes.keyword),
-      _Token('string2', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('string2', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token(r"'test1 ", SemanticTokenTypes.string),
-      _Token(r'$', CustomSemanticTokenTypes.source,
-          [CustomSemanticTokenModifiers.interpolation]),
+      _Token(r'$', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
       _Token('string1', SemanticTokenTypes.property),
       _Token(' test2 ', SemanticTokenTypes.string),
-      _Token(r'${', CustomSemanticTokenTypes.source,
-          [CustomSemanticTokenModifiers.interpolation]),
+      _Token(r'${', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
       _Token('foo', SemanticTokenTypes.function),
-      _Token('(', CustomSemanticTokenTypes.source,
-          [CustomSemanticTokenModifiers.interpolation]),
+      _Token('(', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
       _Token("'a'", SemanticTokenTypes.string),
-      _Token(' + ', CustomSemanticTokenTypes.source,
-          [CustomSemanticTokenModifiers.interpolation]),
+      _Token(' + ', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
       _Token("'b'", SemanticTokenTypes.string),
-      _Token(')}', CustomSemanticTokenTypes.source,
-          [CustomSemanticTokenModifiers.interpolation]),
+      _Token(')}', CustomSemanticTokenTypes.source, [
+        CustomSemanticTokenModifiers.interpolation,
+      ]),
       _Token("'", SemanticTokenTypes.string),
 
       // string3 is raw and should be treated as a single string.
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string3', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('string3', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token(r"r'$string1 ${string1.length}'", SemanticTokenTypes.string),
       _Token('const', SemanticTokenTypes.keyword),
 
-      _Token('string4', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('string4', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token("'''\n", SemanticTokenTypes.string),
       _Token('multi\n', SemanticTokenTypes.string),
       _Token('  line\n', SemanticTokenTypes.string),
@@ -1873,39 +2076,50 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
 
     var expected = [
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string1', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('string1', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token("'it", SemanticTokenTypes.string),
-      _Token(r"\'", SemanticTokenTypes.string,
-          [CustomSemanticTokenModifiers.escape]),
+      _Token(r"\'", SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
       _Token('s escaped', SemanticTokenTypes.string),
-      _Token(r'\\', SemanticTokenTypes.string,
-          [CustomSemanticTokenModifiers.escape]),
-      _Token(r'\n', SemanticTokenTypes.string,
-          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\\', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\n', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
       _Token(r"'", SemanticTokenTypes.string),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string2', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('string2', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token("'hex ", SemanticTokenTypes.string),
-      _Token(r'\x12', SemanticTokenTypes.string,
-          [CustomSemanticTokenModifiers.escape]),
-      _Token(r'\x12', SemanticTokenTypes.string,
-          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\x12', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\x12', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
       // The 99 is not part of the escape
       _Token("99'", SemanticTokenTypes.string),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string3', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('string3', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token("'unicode ", SemanticTokenTypes.string),
-      _Token(r'\u1234', SemanticTokenTypes.string,
-          [CustomSemanticTokenModifiers.escape]),
-      _Token(r'\u1234', SemanticTokenTypes.string,
-          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\u1234', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
+      _Token(r'\u1234', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
       // The 99 is not part of the escape
       _Token('99', SemanticTokenTypes.string),
-      _Token(r'\u{123456}', SemanticTokenTypes.string,
-          [CustomSemanticTokenModifiers.escape]),
+      _Token(r'\u{123456}', SemanticTokenTypes.string, [
+        CustomSemanticTokenModifiers.escape,
+      ]),
       // The 99 makes this invalid so i's not an escape
       _Token(r"\u{12345699}'", SemanticTokenTypes.string),
     ];
@@ -1935,40 +2149,52 @@ void f() {
 ''';
 
     var expected = [
-      _Token('/// strings docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// strings docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('strings', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('strings', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('"test"', SemanticTokenTypes.string),
       _Token("'test'", SemanticTokenTypes.string),
       _Token("r'test'", SemanticTokenTypes.string),
       _Token("'''test'''", SemanticTokenTypes.string),
-      _Token('/// func docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
-      _Token('func', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('/// func docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
+      _Token('func', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('a', SemanticTokenTypes.parameter,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.parameter),
-      _Token('/// abc docs', SemanticTokenTypes.comment,
-          [SemanticTokenModifiers.documentation]),
+      _Token('/// abc docs', SemanticTokenTypes.comment, [
+        SemanticTokenModifiers.documentation,
+      ]),
       _Token('bool', SemanticTokenTypes.class_),
       _Token('get', SemanticTokenTypes.keyword),
-      _Token('abc', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration]),
+      _Token('abc', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('true', CustomSemanticTokenTypes.boolean),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('funcTearOff', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('funcTearOff', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('func', SemanticTokenTypes.function),
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('strings', SemanticTokenTypes.property),
       _Token('func', SemanticTokenTypes.function),
       _Token('abc', SemanticTokenTypes.property),
@@ -1996,20 +2222,25 @@ void f() {
 ''';
 
     var expected = [
-      _Token(
-          'void', SemanticTokenTypes.keyword, [SemanticTokenModifiers('void')]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        SemanticTokenModifiers('void'),
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('int', SemanticTokenTypes.class_),
-      _Token('a', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('a', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('a', SemanticTokenTypes.variable),
       _Token('foo', CustomSemanticTokenTypes.source),
       _Token('bar', CustomSemanticTokenTypes.source),
       _Token('baz', CustomSemanticTokenTypes.source),
       _Token('dynamic', SemanticTokenTypes.type),
-      _Token('b', SemanticTokenTypes.variable,
-          [SemanticTokenModifiers.declaration]),
+      _Token('b', SemanticTokenTypes.variable, [
+        SemanticTokenModifiers.declaration,
+      ]),
       _Token('b', SemanticTokenTypes.variable),
       _Token('foo', CustomSemanticTokenTypes.source),
       _Token('bar', CustomSemanticTokenTypes.source),
@@ -2029,7 +2260,7 @@ f() {
     var expected = [
       _Token('_', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2046,7 +2277,7 @@ f() {
     var expected = [
       _Token('_', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2063,7 +2294,7 @@ f() {
     var expected = [
       _Token('_', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2080,7 +2311,7 @@ class A {
     var expected = [
       _Token('_', SemanticTokenTypes.method, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.instance
+        CustomSemanticTokenModifiers.instance,
       ]),
     ];
 
@@ -2170,11 +2401,11 @@ f() {
     var expected = [
       _Token('_', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
       _Token('_', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2189,7 +2420,7 @@ var a = [].where(([!_!]) => true);
     var expected = [
       _Token('_', SemanticTokenTypes.parameter, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2204,7 +2435,7 @@ typedef T = void Function(String [!_!]);
     var expected = [
       _Token('_', SemanticTokenTypes.parameter, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2221,7 +2452,7 @@ class A {
     var expected = [
       _Token('_', SemanticTokenTypes.parameter, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2238,7 +2469,7 @@ void f() {
     var expected = [
       _Token('_', SemanticTokenTypes.parameter, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2255,7 +2486,7 @@ class A {
     var expected = [
       _Token('_', SemanticTokenTypes.parameter, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2270,7 +2501,7 @@ void f([!_!]) {}
     var expected = [
       _Token('_', SemanticTokenTypes.parameter, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2288,7 +2519,7 @@ f() {
     var expected = [
       _Token('_', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
     ];
 
@@ -2306,29 +2537,39 @@ void f() {
 
     var expected = [
       _Token('class', SemanticTokenTypes.keyword),
-      _Token(
-          'T', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration]),
-      _Token('_', SemanticTokenTypes.typeParameter,
-          [CustomSemanticTokenModifiers.wildcard]),
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('genericFunction', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
-      _Token('_', SemanticTokenTypes.typeParameter,
-          [CustomSemanticTokenModifiers.wildcard]),
+      _Token('T', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('_', SemanticTokenTypes.typeParameter, [
+        CustomSemanticTokenModifiers.wildcard,
+      ]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('genericFunction', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
+      _Token('_', SemanticTokenTypes.typeParameter, [
+        CustomSemanticTokenModifiers.wildcard,
+      ]),
       _Token('Object', SemanticTokenTypes.class_),
       _Token('_', SemanticTokenTypes.parameter, [
         SemanticTokenModifiers.declaration,
-        CustomSemanticTokenModifiers.wildcard
+        CustomSemanticTokenModifiers.wildcard,
       ]),
-      _Token('void', SemanticTokenTypes.keyword,
-          [CustomSemanticTokenModifiers.void_]),
-      _Token('f', SemanticTokenTypes.function,
-          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('void', SemanticTokenTypes.keyword, [
+        CustomSemanticTokenModifiers.void_,
+      ]),
+      _Token('f', SemanticTokenTypes.function, [
+        SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
+      ]),
       _Token('genericFunction', SemanticTokenTypes.function),
-      _Token('_', SemanticTokenTypes.typeParameter,
-          [CustomSemanticTokenModifiers.wildcard]),
-      _Token('true', CustomSemanticTokenTypes.boolean)
+      _Token('_', SemanticTokenTypes.typeParameter, [
+        CustomSemanticTokenModifiers.wildcard,
+      ]),
+      _Token('true', CustomSemanticTokenTypes.boolean),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -2353,11 +2594,13 @@ void f() {
       var column = lineDelta == 0 ? lastColumn + columnDelta : columnDelta;
 
       var tokenContent = contentLines[line].substring(column, column + length);
-      results.add(_Token(
-        tokenContent,
-        semanticTokenLegend.typeForIndex(tokenTypeIndex),
-        semanticTokenLegend.modifiersForBitmask(modifierBitmask),
-      ));
+      results.add(
+        _Token(
+          tokenContent,
+          semanticTokenLegend.typeForIndex(tokenTypeIndex),
+          semanticTokenLegend.modifiersForBitmask(modifierBitmask),
+        ),
+      );
 
       lastLine = line;
       lastColumn = column;
@@ -2430,18 +2673,20 @@ class _Token {
       o.content == content &&
       o.type == type &&
       listEqual(
-          // Treat nulls the same as empty lists for convenience when comparing.
-          o.modifiers,
-          modifiers,
-          (SemanticTokenModifiers a, SemanticTokenModifiers b) => a == b);
+        // Treat nulls the same as empty lists for convenience when comparing.
+        o.modifiers,
+        modifiers,
+        (SemanticTokenModifiers a, SemanticTokenModifiers b) => a == b,
+      );
 
   /// Outputs a text representation of the token in the form of constructor
   /// args for easy copy/pasting into tests to update expectations.
   @override
   String toString() {
-    var modifiersString = modifiers.isEmpty
-        ? ''
-        : ', [${modifiers.map((m) => 'SemanticTokenModifiers.$m').join(', ')}]';
+    var modifiersString =
+        modifiers.isEmpty
+            ? ''
+            : ', [${modifiers.map((m) => 'SemanticTokenModifiers.$m').join(', ')}]';
     return "('$content', SemanticTokenTypes.$type$modifiersString)";
   }
 }

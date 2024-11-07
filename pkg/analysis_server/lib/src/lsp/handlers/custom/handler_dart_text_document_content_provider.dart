@@ -11,8 +11,12 @@ import 'package:analyzer/dart/analysis/results.dart';
 
 typedef StaticOptions = DartTextDocumentContentProviderRegistrationOptions?;
 
-class DartTextDocumentContentProviderHandler extends SharedMessageHandler<
-    DartTextDocumentContentParams, DartTextDocumentContent> {
+class DartTextDocumentContentProviderHandler
+    extends
+        SharedMessageHandler<
+          DartTextDocumentContentParams,
+          DartTextDocumentContent
+        > {
   DartTextDocumentContentProviderHandler(super.server);
 
   @override
@@ -27,16 +31,18 @@ class DartTextDocumentContentProviderHandler extends SharedMessageHandler<
 
   @override
   Future<ErrorOr<DartTextDocumentContent>> handle(
-      DartTextDocumentContentParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    DartTextDocumentContentParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var allowedSchemes = server.uriConverter.supportedNonFileSchemes;
     var uri = params.uri;
 
     if (!allowedSchemes.contains(uri.scheme)) {
-      var supportedSchemesString = allowedSchemes.isEmpty
-          ? '(none)'
-          : allowedSchemes.map((scheme) => "'$scheme'").join(', ');
+      var supportedSchemesString =
+          allowedSchemes.isEmpty
+              ? '(none)'
+              : allowedSchemes.map((scheme) => "'$scheme'").join(', ');
       return error(
         ErrorCodes.InvalidParams,
         "Fetching content for scheme '${uri.scheme}' is not supported. "
@@ -59,8 +65,9 @@ class DartTextDocumentContentProviderRegistrations extends FeatureRegistration
   final DartTextDocumentContentProviderRegistrationOptions options;
 
   DartTextDocumentContentProviderRegistrations(super.info)
-      : options = DartTextDocumentContentProviderRegistrationOptions(
-            schemes: info.customDartSchemes.toList());
+    : options = DartTextDocumentContentProviderRegistrationOptions(
+        schemes: info.customDartSchemes.toList(),
+      );
 
   @override
   Method get registrationMethod => CustomMethods.dartTextDocumentContent;

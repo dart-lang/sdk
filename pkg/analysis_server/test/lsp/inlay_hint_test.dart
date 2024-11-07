@@ -207,10 +207,7 @@ final a = 1;
 
     // Start with a blank document expecting no hints,
     await openFile(mainFileUri, '');
-    var hintsBeforeChange = await getInlayHints(
-      mainFileUri,
-      startOfDocRange,
-    );
+    var hintsBeforeChange = await getInlayHints(mainFileUri, startOfDocRange);
 
     // Update the document to ensure we get latest hints.
     // Don't await `replaceFile` because we want to check the server correctly
@@ -506,15 +503,21 @@ final a1 = '';
     var hints = await _fetchHints(code.code);
     var location = hints.single.labelParts.single.location!;
 
-    expect(location.uri,
-        pathContext.toUri(convertPath('/sdk/lib/core/core.dart')));
+    expect(
+      location.uri,
+      pathContext.toUri(convertPath('/sdk/lib/core/core.dart')),
+    );
     // Check range looks like sensible values.
     expect(location.range.start.line, greaterThanOrEqualTo(1));
-    expect(location.range.start.character,
-        greaterThanOrEqualTo('abstract class '.length));
+    expect(
+      location.range.start.character,
+      greaterThanOrEqualTo('abstract class '.length),
+    );
     expect(location.range.end.line, location.range.start.line);
-    expect(location.range.end.character,
-        location.range.start.character + 'String'.length);
+    expect(
+      location.range.end.character,
+      location.range.start.character + 'String'.length,
+    );
   }
 
   Future<void> test_location_typeArguments() async {
@@ -763,19 +766,18 @@ final (Type:(int, {String a})) noComma3 = (1, a: '');
 
     // Initialize server (and wait for initialized), but don't respond to
     // the config request yet.
-    unawaited(provideConfig(() async {
-      await initialize();
-      initializedComplete.complete();
-    }, configResponse.future));
+    unawaited(
+      provideConfig(() async {
+        await initialize();
+        initializedComplete.complete();
+      }, configResponse.future),
+    );
     await initializedComplete.future;
 
     // Send a request for inlay hints (which will stall because server isn't
     // ready until we've replied to config).
     unawaited(openFile(mainFileUri, ''));
-    var hintsFuture = getInlayHints(
-      mainFileUri,
-      startOfDocRange,
-    );
+    var hintsFuture = getInlayHints(mainFileUri, startOfDocRange);
     await pumpEventQueue(times: 5000);
 
     // Finally, respond to config and ensure inlay hints completes because
@@ -956,7 +958,9 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> _expectHints(
-      String content, String expectedContentWithHints) async {
+    String content,
+    String expectedContentWithHints,
+  ) async {
     var hints = await _fetchHints(content);
     var actualContentWithHints = substituteHints(content, hints);
     expect(actualContentWithHints, expectedContentWithHints);
@@ -970,10 +974,7 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
   Future<List<InlayHint>> _fetchHints(String content) async {
     await initialize();
     await openFile(mainFileUri, content);
-    var hints = await getInlayHints(
-      mainFileUri,
-      rangeOfWholeContent(content),
-    );
+    var hints = await getInlayHints(mainFileUri, rangeOfWholeContent(content));
     return hints;
   }
 
@@ -1006,15 +1007,15 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
 extension _InlayHintExtension on InlayHint {
   /// Returns the parts of an InlayHint label.
   List<InlayHintLabelPart> get labelParts => label.map(
-        (parts) => parts,
-        (string) => throw 'Expected InlayHintLabelPart, got String',
-      );
+    (parts) => parts,
+    (string) => throw 'Expected InlayHintLabelPart, got String',
+  );
 
   /// Returns the visible text of the InlayHint, concatenating any parts.
   String get textLabel => label.map(
-        // Unwrap where an InlayHint may provide its label in multiple
-        // `InlayHintLabelPart`s.
-        (parts) => parts.map((part) => part.value).join(),
-        (string) => string,
-      );
+    // Unwrap where an InlayHint may provide its label in multiple
+    // `InlayHintLabelPart`s.
+    (parts) => parts.map((part) => part.value).join(),
+    (string) => string,
+  );
 }

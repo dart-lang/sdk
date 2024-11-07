@@ -16,9 +16,10 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Adding the missing case is not a sufficient fix (user logic needs
-      // adding too).
-      CorrectionApplicability.singleLocation;
+          // Adding the missing case is not a sufficient fix (user logic needs
+          // adding too).
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
@@ -86,35 +87,37 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     var enumName_final = '$prefixString$enumName';
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
-          switchKeyword: statement.switchKeyword,
-          rightParenthesis: statement.rightParenthesis,
-          leftBracket: statement.leftBracket,
-          rightBracket: statement.rightBracket, (builder) {
-        void addMissingCase(String expression) {
-          builder.write(statementIndent);
-          builder.write(singleIndent);
-          builder.write('case ');
-          builder.write(expression);
-          builder.writeln(':');
-          builder.write(statementIndent);
-          builder.write(singleIndent);
-          builder.write(singleIndent);
-          builder.writeln('// TODO: Handle this case.');
-          builder.write(statementIndent);
-          builder.write(singleIndent);
-          builder.write(singleIndent);
-          builder.writeln('break;');
-        }
+        switchKeyword: statement.switchKeyword,
+        rightParenthesis: statement.rightParenthesis,
+        leftBracket: statement.leftBracket,
+        rightBracket: statement.rightBracket,
+        (builder) {
+          void addMissingCase(String expression) {
+            builder.write(statementIndent);
+            builder.write(singleIndent);
+            builder.write('case ');
+            builder.write(expression);
+            builder.writeln(':');
+            builder.write(statementIndent);
+            builder.write(singleIndent);
+            builder.write(singleIndent);
+            builder.writeln('// TODO: Handle this case.');
+            builder.write(statementIndent);
+            builder.write(singleIndent);
+            builder.write(singleIndent);
+            builder.writeln('break;');
+          }
 
-        // TODO(brianwilkerson): Consider inserting the names in order into the
-        //  switch statement.
-        for (var constantName in unhandledEnumCases) {
-          addMissingCase('$enumName_final.$constantName');
-        }
-        if (unhandledNullValue) {
-          addMissingCase('null');
-        }
-      });
+          // TODO(brianwilkerson): Consider inserting the names in order into the
+          //  switch statement.
+          for (var constantName in unhandledEnumCases) {
+            addMissingCase('$enumName_final.$constantName');
+          }
+          if (unhandledNullValue) {
+            addMissingCase('null');
+          }
+        },
+      );
     });
   }
 

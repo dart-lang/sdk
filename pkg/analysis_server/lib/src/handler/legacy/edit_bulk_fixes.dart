@@ -16,7 +16,11 @@ class EditBulkFixes extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditBulkFixes(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
@@ -24,8 +28,10 @@ class EditBulkFixes extends LegacyHandler {
     // Compute bulk fixes
     //
     try {
-      var params = EditBulkFixesParams.fromRequest(request,
-          clientUriConverter: server.uriConverter);
+      var params = EditBulkFixesParams.fromRequest(
+        request,
+        clientUriConverter: server.uriConverter,
+      );
       for (var file in params.included) {
         if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
           return;
@@ -41,7 +47,8 @@ class EditBulkFixes extends LegacyHandler {
         byteStore: server.byteStore,
       );
       var workspace = DartChangeWorkspace(
-          collection.contexts.map((c) => c.currentSession).toList());
+        collection.contexts.map((c) => c.currentSession).toList(),
+      );
       var processor = BulkFixProcessor(
         server.instrumentationService,
         workspace,
@@ -53,18 +60,27 @@ class EditBulkFixes extends LegacyHandler {
         if (message != null) {
           sendResult(EditBulkFixesResult(message, [], []));
         } else {
-          sendResult(EditBulkFixesResult(
-              '', result.builder!.sourceChange.edits, processor.fixDetails));
+          sendResult(
+            EditBulkFixesResult(
+              '',
+              result.builder!.sourceChange.edits,
+              processor.fixDetails,
+            ),
+          );
         }
       } else {
-        var (:edits, :details) =
-            await processor.fixPubspec(collection.contexts);
+        var (:edits, :details) = await processor.fixPubspec(
+          collection.contexts,
+        );
         sendResult(EditBulkFixesResult('', edits, details));
       }
     } catch (exception, stackTrace) {
       // TODO(brianwilkerson): Move exception handling outside [handle].
-      server.sendServerErrorNotification('Exception while getting bulk fixes',
-          CaughtException(exception, stackTrace), stackTrace);
+      server.sendServerErrorNotification(
+        'Exception while getting bulk fixes',
+        CaughtException(exception, stackTrace),
+        stackTrace,
+      );
     }
   }
 }

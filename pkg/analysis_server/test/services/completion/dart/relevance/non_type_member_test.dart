@@ -30,11 +30,15 @@ void bar() {
 }
 ''');
 
-    var constructorInvocationSuggestion =
-        suggestionWith(completion: 'StrWrap', element: ElementKind.CONSTRUCTOR);
+    var constructorInvocationSuggestion = suggestionWith(
+      completion: 'StrWrap',
+      element: ElementKind.CONSTRUCTOR,
+    );
 
-    var typeSuggestion =
-        suggestionWith(completion: 'StrWrap', element: ElementKind.CLASS);
+    var typeSuggestion = suggestionWith(
+      completion: 'StrWrap',
+      element: ElementKind.CLASS,
+    );
 
     assertOrder([constructorInvocationSuggestion, typeSuggestion]);
   }
@@ -48,7 +52,9 @@ void foo<T>(List<T> bar) {
 }
 ''');
 
-    assertOrder(
-        [suggestionWith(completion: 'T'), suggestionWith(completion: 'Foo')]);
+    assertOrder([
+      suggestionWith(completion: 'T'),
+      suggestionWith(completion: 'Foo'),
+    ]);
   }
 }

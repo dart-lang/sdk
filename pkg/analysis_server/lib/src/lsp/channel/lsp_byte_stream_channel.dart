@@ -29,7 +29,10 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   bool _closeRequested = false;
 
   LspByteStreamServerChannel(
-      this._input, this._output, this._instrumentationService);
+    this._input,
+    this._output,
+    this._instrumentationService,
+  );
 
   /// Future that will be completed when the input stream is closed.
   @override
@@ -47,18 +50,23 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  StreamSubscription<void> listen(void Function(Message message) onMessage,
-      {Function? onError, void Function()? onDone}) {
-    return _input.transform(LspPacketTransformer()).listen(
-      (String data) => _readMessage(data, onMessage),
-      onError: onError,
-      onDone: () {
-        close();
-        if (onDone != null) {
-          onDone();
-        }
-      },
-    );
+  StreamSubscription<void> listen(
+    void Function(Message message) onMessage, {
+    Function? onError,
+    void Function()? onDone,
+  }) {
+    return _input
+        .transform(LspPacketTransformer())
+        .listen(
+          (String data) => _readMessage(data, onMessage),
+          onError: onError,
+          onDone: () {
+            close();
+            if (onDone != null) {
+              onDone();
+            }
+          },
+        );
   }
 
   @override
@@ -100,7 +108,8 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     }
     var jsonEncodedBody = jsonEncode(json);
     var utf8EncodedBody = utf8.encode(jsonEncodedBody);
-    var header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
+    var header =
+        'Content-Length: ${utf8EncodedBody.length}\r\n'
         'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
     var asciiEncodedHeader = ascii.encode(header);
 
@@ -113,17 +122,17 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
 
   void _sendParseError() {
     var error = ResponseMessage(
-        error: ResponseError(
-            code: ErrorCodes.ParseError, message: 'Unable to parse message'),
-        jsonrpc: jsonRpcVersion);
+      error: ResponseError(
+        code: ErrorCodes.ParseError,
+        message: 'Unable to parse message',
+      ),
+      jsonrpc: jsonRpcVersion,
+    );
     sendResponse(error);
   }
 
   /// Send [bytes] to [_output].
   void _write(List<int> bytes) {
-    runZonedGuarded(
-      () => _output.add(bytes),
-      (e, s) => close(),
-    );
+    runZonedGuarded(() => _output.add(bytes), (e, s) => close());
   }
 }

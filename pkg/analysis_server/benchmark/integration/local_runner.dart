@@ -26,8 +26,9 @@ void main(List<String> args) {
   /*
    * Create a new temp directory
    */
-  var tmpDir =
-      Directory(join(Directory.systemTemp.path, 'analysis_server_perf_target'));
+  var tmpDir = Directory(
+    join(Directory.systemTemp.path, 'analysis_server_perf_target'),
+  );
   if (!tmpDir.path.contains('tmp')) throw 'invalid tmp directory\n  $tmpDir';
   print('Extracting target analysis environment into\n  ${tmpDir.path}');
   if (tmpDir.existsSync()) tmpDir.deleteSync(recursive: true);
@@ -36,13 +37,19 @@ void main(List<String> args) {
    * Setup the initial target source in the temp directory
    */
   var tarFilePath = join(tmpDir.path, 'targetSrc.tar');
-  var result = Process.runSync('git', ['archive', branch, '-o', tarFilePath],
-      workingDirectory: gitDir.path);
+  var result = Process.runSync('git', [
+    'archive',
+    branch,
+    '-o',
+    tarFilePath,
+  ], workingDirectory: gitDir.path);
   if (result.exitCode != 0) throw 'failed to obtain target source: $result';
   var tmpSrcDirPath = join(tmpDir.path, 'targetSrc');
   Directory(tmpSrcDirPath).createSync();
-  result = Process.runSync('tar', ['-xf', tarFilePath],
-      workingDirectory: tmpSrcDirPath);
+  result = Process.runSync('tar', [
+    '-xf',
+    tarFilePath,
+  ], workingDirectory: tmpSrcDirPath);
   if (result.exitCode != 0) throw 'failed to extract target source: $result';
   /*
    * Symlink the out or xcodebuild directory
@@ -54,16 +61,16 @@ void main(List<String> args) {
   if (!Directory(join(gitDir.path, outDirName)).existsSync()) {
     throw 'failed to find out or xcodebuild directory';
   }
-  result = Process.runSync('ln',
-      ['-s', join(gitDir.path, outDirName), join(tmpSrcDirPath, outDirName)]);
+  result = Process.runSync('ln', [
+    '-s',
+    join(gitDir.path, outDirName),
+    join(tmpSrcDirPath, outDirName),
+  ]);
   if (result.exitCode != 0) throw 'failed to link out or xcodebuild: $result';
   /*
    * Collect arguments
    */
-  var perfArgs = [
-    '-i${inputFile.path}',
-    '-t$tmpSrcDirPath',
-  ];
+  var perfArgs = ['-i${inputFile.path}', '-t$tmpSrcDirPath'];
   for (var index = 3; index < args.length; ++index) {
     perfArgs.add(args[index].replaceAll('@tmpSrcDir@', tmpSrcDirPath));
   }

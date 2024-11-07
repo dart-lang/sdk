@@ -28,12 +28,17 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
   late PostfixCompletionProcessor processor;
   late SourceChange change;
 
-  void _assertHasChange(String message, String expectedCode,
-      [int Function(String)? cmp]) {
+  void _assertHasChange(
+    String message,
+    String expectedCode, [
+    int Function(String)? cmp,
+  ]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
-        var resultCode =
-            SourceEdit.applySequence(testCode, change.edits[0].edits);
+        var resultCode = SourceEdit.applySequence(
+          testCode,
+          change.edits[0].edits,
+        );
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
           var offset = cmp(resultCode);

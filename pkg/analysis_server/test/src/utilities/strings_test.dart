@@ -35,7 +35,8 @@ class StringsTest {
       var diff = computeSimpleDiff(oldStr, newStr);
       expect(diff.offset, isNonNegative);
       expect(diff.length, isNonNegative);
-      var applied = oldStr.substring(0, diff.offset) +
+      var applied =
+          oldStr.substring(0, diff.offset) +
           diff.replacement +
           oldStr.substring(diff.offset + diff.length);
       expect(applied, newStr);

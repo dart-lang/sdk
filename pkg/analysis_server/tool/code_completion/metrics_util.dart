@@ -145,15 +145,18 @@ class Counter {
   void printCounterValues() {
     if (_totalCount > 0) {
       var table = [
-        ['', 'count', 'percent']
+        ['', 'count', 'percent'],
       ];
       var entries = _buckets.entries.toList();
       entries.sort((first, second) => second.value - first.value);
       for (var entry in entries) {
         var id = entry.key;
         var count = entry.value;
-        table.add(
-            [id, count.toString(), printPercentage(count / _totalCount, 2)]);
+        table.add([
+          id,
+          count.toString(),
+          printPercentage(count / _totalCount, 2),
+        ]);
       }
       printTable(table);
     } else {
@@ -163,10 +166,7 @@ class Counter {
 
   /// Return a map used to represent this counter in a JSON structure.
   Map<String, dynamic> toJson() {
-    return {
-      'buckets': _buckets,
-      'totalCount': _totalCount,
-    };
+    return {'buckets': _buckets, 'totalCount': _totalCount};
   }
 }
 
@@ -210,9 +210,7 @@ class DistributionComputer {
 
   /// Return a map used to represent this computer in a JSON structure.
   Map<String, dynamic> toJson() {
-    return {
-      'buckets': buckets,
-    };
+    return {'buckets': buckets};
   }
 }
 
@@ -226,9 +224,7 @@ class MeanReciprocalRankComputer {
   double _sum_5 = 0;
   int _count = 0;
 
-  MeanReciprocalRankComputer(
-    this.name,
-  );
+  MeanReciprocalRankComputer(this.name);
 
   int get count => _count;
 
@@ -279,20 +275,20 @@ class MeanReciprocalRankComputer {
 
   void printMean() {
     print('Mean Reciprocal Rank \'$name\' (total = $count)');
-    print('mrr   = ${mrr.toStringAsFixed(6)} '
-        '(inverse = ${(1 / mrr).toStringAsFixed(3)})');
+    print(
+      'mrr   = ${mrr.toStringAsFixed(6)} '
+      '(inverse = ${(1 / mrr).toStringAsFixed(3)})',
+    );
 
-    print('mrr_5 = ${mrr_5.toStringAsFixed(6)} '
-        '(inverse = ${(1 / mrr_5).toStringAsFixed(3)})');
+    print(
+      'mrr_5 = ${mrr_5.toStringAsFixed(6)} '
+      '(inverse = ${(1 / mrr_5).toStringAsFixed(3)})',
+    );
   }
 
   /// Return a map used to represent this computer in a JSON structure.
   Map<String, dynamic> toJson() {
-    return {
-      'sum': _sum,
-      'sum_5': _sum_5,
-      'count': _count,
-    };
+    return {'sum': _sum, 'sum_5': _sum_5, 'count': _count};
   }
 }
 
@@ -327,7 +323,7 @@ class PercentileComputer {
   int maxValue = 0;
 
   PercentileComputer(this.name, {required this.valueLimit})
-      : _counts = Uint32List(valueLimit);
+    : _counts = Uint32List(valueLimit);
 
   /// Calculates the median (p50) value.
   int get median => kthPercentile(50);
@@ -342,8 +338,9 @@ class PercentileComputer {
   void addData(PercentileComputer computer) {
     if (computer.valueLimit != valueLimit) {
       throw UnsupportedError(
-          'Cannot combine two PercentileComputers with different valueLimit '
-          'values');
+        'Cannot combine two PercentileComputers with different valueLimit '
+        'values',
+      );
     }
     for (var i = 0; i < _counts.length; i++) {
       _counts[i] += computer._counts[i];
@@ -436,17 +433,15 @@ class Place {
   final int _denominator;
 
   const Place(this._numerator, this._denominator)
-      : assert(_numerator > 0),
-        assert(_denominator >= _numerator);
+    : assert(_numerator > 0),
+      assert(_denominator >= _numerator);
 
   /// Return an instance extracted from the decoded JSON [map].
   factory Place.fromJson(Map<String, dynamic> map) {
     return Place(map['numerator'] as int, map['denominator'] as int);
   }
 
-  const Place.none()
-      : _numerator = 0,
-        _denominator = 0;
+  const Place.none() : _numerator = 0, _denominator = 0;
 
   int get denominator => _denominator;
 
@@ -465,9 +460,6 @@ class Place {
 
   /// Return a map used to represent this place in a JSON structure.
   Map<String, dynamic> toJson() {
-    return {
-      'numerator': _numerator,
-      'denominator': _denominator,
-    };
+    return {'numerator': _numerator, 'denominator': _denominator};
   }
 }

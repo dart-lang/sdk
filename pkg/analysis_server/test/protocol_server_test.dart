@@ -98,10 +98,10 @@ class AnalysisErrorTest {
             START_COLUMN: 11,
             END_LINE: 4,
             END_COLUMN: 16,
-          }
-        }
+          },
+        },
       ],
-      HAS_FIX: false
+      HAS_FIX: false,
     });
   }
 
@@ -131,7 +131,7 @@ class AnalysisErrorTest {
       CORRECTION: 'my correction',
       CODE: 'ambiguous_export',
       URL: 'https://dart.dev/diagnostics/ambiguous_export',
-      HAS_FIX: false
+      HAS_FIX: false,
     });
   }
 
@@ -159,15 +159,18 @@ class AnalysisErrorTest {
       MESSAGE: 'my message',
       CODE: 'test_error',
       URL: 'http://codes.dartlang.org/TEST_ERROR',
-      HAS_FIX: false
+      HAS_FIX: false,
     });
   }
 
   void test_fromEngine_lint() {
     engineError = MockAnalysisError(
       source: source,
-      errorCode:
-          LintCode('my_lint', 'my message', correctionMessage: 'correction'),
+      errorCode: LintCode(
+        'my_lint',
+        'my message',
+        correctionMessage: 'correction',
+      ),
       offset: 10,
       length: 20,
       message: 'my message',
@@ -187,7 +190,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CODE: 'my_lint',
-      HAS_FIX: false
+      HAS_FIX: false,
     });
   }
 
@@ -215,7 +218,7 @@ class AnalysisErrorTest {
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
       URL: 'https://dart.dev/diagnostics/ambiguous_export',
-      HAS_FIX: false
+      HAS_FIX: false,
     });
   }
 }
@@ -224,50 +227,57 @@ class AnalysisErrorTest {
 class EnumTest {
   void test_AnalysisErrorSeverity() {
     EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
-        (engine.ErrorSeverity engineErrorSeverity) =>
-            AnalysisErrorSeverity(engineErrorSeverity.name),
-        exceptions: {engine.ErrorSeverity.NONE: null});
+      (engine.ErrorSeverity engineErrorSeverity) =>
+          AnalysisErrorSeverity(engineErrorSeverity.name),
+      exceptions: {engine.ErrorSeverity.NONE: null},
+    );
   }
 
   void test_AnalysisErrorType() {
     EnumTester<engine.ErrorType, AnalysisErrorType>().run(
-        (engine.ErrorType engineErrorType) =>
-            AnalysisErrorType(engineErrorType.name));
+      (engine.ErrorType engineErrorType) =>
+          AnalysisErrorType(engineErrorType.name),
+    );
   }
 
   void test_ElementKind() {
-    EnumTester<engine.ElementKind, ElementKind>()
-        .run(convertElementKind, exceptions: {
-      // TODO(paulberry): do any of the exceptions below constitute bugs?
-      engine.ElementKind.AUGMENTATION_IMPORT: ElementKind.UNKNOWN,
-      engine.ElementKind.CLASS_AUGMENTATION: ElementKind.UNKNOWN,
-      engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
-      engine.ElementKind.ERROR: ElementKind.UNKNOWN,
-      engine.ElementKind.EXPORT: ElementKind.UNKNOWN,
-      engine.ElementKind.GENERIC_FUNCTION_TYPE: ElementKind.FUNCTION_TYPE_ALIAS,
-      engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
-      engine.ElementKind.LIBRARY_AUGMENTATION: ElementKind.UNKNOWN,
-      engine.ElementKind.NAME: ElementKind.UNKNOWN,
-      engine.ElementKind.NEVER: ElementKind.UNKNOWN,
-      engine.ElementKind.PART: ElementKind.COMPILATION_UNIT,
-      engine.ElementKind.RECORD: ElementKind.UNKNOWN,
-      engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
-    });
+    EnumTester<engine.ElementKind, ElementKind>().run(
+      convertElementKind,
+      exceptions: {
+        // TODO(paulberry): do any of the exceptions below constitute bugs?
+        engine.ElementKind.AUGMENTATION_IMPORT: ElementKind.UNKNOWN,
+        engine.ElementKind.CLASS_AUGMENTATION: ElementKind.UNKNOWN,
+        engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
+        engine.ElementKind.ERROR: ElementKind.UNKNOWN,
+        engine.ElementKind.EXPORT: ElementKind.UNKNOWN,
+        engine.ElementKind.GENERIC_FUNCTION_TYPE:
+            ElementKind.FUNCTION_TYPE_ALIAS,
+        engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
+        engine.ElementKind.LIBRARY_AUGMENTATION: ElementKind.UNKNOWN,
+        engine.ElementKind.NAME: ElementKind.UNKNOWN,
+        engine.ElementKind.NEVER: ElementKind.UNKNOWN,
+        engine.ElementKind.PART: ElementKind.COMPILATION_UNIT,
+        engine.ElementKind.RECORD: ElementKind.UNKNOWN,
+        engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN,
+      },
+    );
   }
 
   void test_SearchResultKind() {
     // TODO(paulberry): why does the MatchKind class exist at all?  Can't we
     // use SearchResultKind inside the analysis server?
-    EnumTester<MatchKind, SearchResultKind>()
-        .run(newSearchResultKind_fromEngine, exceptions: {
-      MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
-          SearchResultKind.INVOCATION,
-      MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
-      MatchKind.REFERENCE_IN_EXTENDS_CLAUSE: SearchResultKind.REFERENCE,
-      MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE: SearchResultKind.REFERENCE,
-      MatchKind.REFERENCE_IN_WITH_CLAUSE: SearchResultKind.REFERENCE,
-      MatchKind.REFERENCE_IN_ON_CLAUSE: SearchResultKind.REFERENCE,
-    });
+    EnumTester<MatchKind, SearchResultKind>().run(
+      newSearchResultKind_fromEngine,
+      exceptions: {
+        MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
+            SearchResultKind.INVOCATION,
+        MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
+        MatchKind.REFERENCE_IN_EXTENDS_CLAUSE: SearchResultKind.REFERENCE,
+        MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE: SearchResultKind.REFERENCE,
+        MatchKind.REFERENCE_IN_WITH_CLAUSE: SearchResultKind.REFERENCE,
+        MatchKind.REFERENCE_IN_ON_CLAUSE: SearchResultKind.REFERENCE,
+      },
+    );
   }
 }
 
@@ -280,8 +290,10 @@ class EnumTester<EngineEnum, ApiEnum> {
   /// is null, then we check that converting the given key results in an error.
   /// If the corresponding value is an [ApiEnum], then we check that converting
   /// the given key results in the given value.
-  void run(ApiEnum Function(EngineEnum) convert,
-      {Map<EngineEnum, ApiEnum?> exceptions = const {}}) {
+  void run(
+    ApiEnum Function(EngineEnum) convert, {
+    Map<EngineEnum, ApiEnum?> exceptions = const {},
+  }) {
     var engineClass = reflectClass(EngineEnum);
     engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
       if (symbol == #values) {
@@ -333,14 +345,14 @@ class MockAnalysisError implements engine.AnalysisError {
     String? correction,
     DiagnosticMessage? problemMessage,
     String? correctionMessage,
-  })  : _source = source,
-        _errorCode = errorCode,
-        _offset = offset,
-        _length = length,
-        _message = message,
-        _correction = correction,
-        _problemMessage = problemMessage,
-        _correctionMessage = correctionMessage;
+  }) : _source = source,
+       _errorCode = errorCode,
+       _offset = offset,
+       _length = length,
+       _message = message,
+       _correction = correction,
+       _problemMessage = problemMessage,
+       _correctionMessage = correctionMessage;
 
   @override
   String? get correction => _correction;
@@ -386,11 +398,12 @@ class MockErrorCode implements engine.ErrorCode {
   @override
   String? url;
 
-  MockErrorCode(
-      {this.type = engine.ErrorType.COMPILE_TIME_ERROR,
-      this.errorSeverity = engine.ErrorSeverity.ERROR,
-      this.name = 'TEST_ERROR',
-      this.url});
+  MockErrorCode({
+    this.type = engine.ErrorType.COMPILE_TIME_ERROR,
+    this.errorSeverity = engine.ErrorSeverity.ERROR,
+    this.name = 'TEST_ERROR',
+    this.url,
+  });
 
   @override
   String get correctionMessage {
@@ -427,10 +440,7 @@ class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {
   @override
   final List<engine.AnalysisError> errors;
 
-  _ResolvedUnitResultImplMock({
-    required this.lineInfo,
-    required this.errors,
-  });
+  _ResolvedUnitResultImplMock({required this.lineInfo, required this.errors});
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

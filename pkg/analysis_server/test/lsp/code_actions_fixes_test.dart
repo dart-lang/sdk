@@ -25,18 +25,20 @@ void main() {
 
 /// A version of `camel_case_types` that is deprecated.
 class DeprecatedCamelCaseTypes extends LintRule {
-  static const LintCode code = LintCode('camel_case_types',
-      "The type name '{0}' isn't an UpperCamelCase identifier.",
-      correctionMessage:
-          'Try changing the name to follow the UpperCamelCase style.',
-      hasPublishedDocs: true);
+  static const LintCode code = LintCode(
+    'camel_case_types',
+    "The type name '{0}' isn't an UpperCamelCase identifier.",
+    correctionMessage:
+        'Try changing the name to follow the UpperCamelCase style.',
+    hasPublishedDocs: true,
+  );
 
   DeprecatedCamelCaseTypes()
-      : super(
-          name: 'camel_case_types',
-          state: State.deprecated(),
-          description: '',
-        );
+    : super(
+        name: 'camel_case_types',
+        state: State.deprecated(),
+        description: '',
+      );
 
   @override
   LintCode get lintCode => code;
@@ -71,18 +73,22 @@ bar
             plugin.SourceChange(
               "Change 'foo' to 'bar'",
               edits: [
-                plugin.SourceFileEdit(filePath, 0,
-                    edits: [plugin.SourceEdit(0, 3, 'bar')])
+                plugin.SourceFileEdit(
+                  filePath,
+                  0,
+                  edits: [plugin.SourceEdit(0, 3, 'bar')],
+                ),
               ],
               id: 'fooToBar',
             ),
-          )
+          ),
         ],
-      )
+      ),
     ]);
     configureTestPlugin(
-      handler: (request) =>
-          request is plugin.EditGetFixesParams ? pluginResult : null,
+      handler:
+          (request) =>
+              request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
     await verifyActionEdits(
@@ -101,10 +107,7 @@ bar
   }
 
   Future<void> test_addImport_noPreference() async {
-    newFile(
-      join(projectFolderPath, 'lib', 'class.dart'),
-      'class MyClass {}',
-    );
+    newFile(join(projectFolderPath, 'lib', 'class.dart'), 'class MyClass {}');
 
     var code = TestCode.parse('''
 MyCla^ss? a;
@@ -113,10 +116,14 @@ MyCla^ss? a;
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, position: code.position.position);
-    var codeActionTitles = codeActions.map((action) =>
-        action.map((command) => command.title, (action) => action.title));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      position: code.position.position,
+    );
+    var codeActionTitles = codeActions.map(
+      (action) =>
+          action.map((command) => command.title, (action) => action.title),
+    );
 
     expect(
       codeActionTitles,
@@ -131,10 +138,7 @@ MyCla^ss? a;
   Future<void> test_addImport_preferAbsolute() async {
     _enableLints(['always_use_package_imports']);
 
-    newFile(
-      join(projectFolderPath, 'lib', 'class.dart'),
-      'class MyClass {}',
-    );
+    newFile(join(projectFolderPath, 'lib', 'class.dart'), 'class MyClass {}');
 
     var code = TestCode.parse('''
 MyCla^ss? a;
@@ -143,10 +147,14 @@ MyCla^ss? a;
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, position: code.position.position);
-    var codeActionTitles = codeActions.map((action) =>
-        action.map((command) => command.title, (action) => action.title));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      position: code.position.position,
+    );
+    var codeActionTitles = codeActions.map(
+      (action) =>
+          action.map((command) => command.title, (action) => action.title),
+    );
 
     expect(
       codeActionTitles,
@@ -157,10 +165,7 @@ MyCla^ss? a;
   Future<void> test_addImport_preferRelative() async {
     _enableLints(['prefer_relative_imports']);
 
-    newFile(
-      join(projectFolderPath, 'lib', 'class.dart'),
-      'class MyClass {}',
-    );
+    newFile(join(projectFolderPath, 'lib', 'class.dart'), 'class MyClass {}');
 
     var code = TestCode.parse('''
 MyCla^ss? a;
@@ -169,10 +174,14 @@ MyCla^ss? a;
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, position: code.position.position);
-    var codeActionTitles = codeActions.map((action) =>
-        action.map((command) => command.title, (action) => action.title));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      position: code.position.position,
+    );
+    var codeActionTitles = codeActions.map(
+      (action) =>
+          action.map((command) => command.title, (action) => action.title),
+    );
 
     expect(
       codeActionTitles,
@@ -290,8 +299,10 @@ import '[!newfile.dart!]';
   }
 
   Future<void> test_filtersCorrectly() async {
-    setSupportedCodeActionKinds(
-        [CodeActionKind.QuickFix, CodeActionKind.Refactor]);
+    setSupportedCodeActionKinds([
+      CodeActionKind.QuickFix,
+      CodeActionKind.Refactor,
+    ]);
 
     var code = TestCode.parse('''
 import 'dart:async';
@@ -302,11 +313,8 @@ Future foo;
     newFile(mainFilePath, code.code);
     await initialize();
 
-    ofKind(CodeActionKind kind) => getCodeActions(
-          mainFileUri,
-          range: code.range.range,
-          kinds: [kind],
-        );
+    ofKind(CodeActionKind kind) =>
+        getCodeActions(mainFileUri, range: code.range.range, kinds: [kind]);
 
     // The code above will return a quickfix.remove.unusedImport
     expect(await ofKind(CodeActionKind.QuickFix), isNotEmpty);
@@ -437,10 +445,8 @@ void main() {
     var range = Range(start: position, end: position);
     var codeActions = await getCodeActions(mainFileUri, range: range);
     var codeActionKinds = codeActions.map(
-      (item) => item.map(
-        (command) => null,
-        (action) => action.kind?.toString(),
-      ),
+      (item) =>
+          item.map((command) => null, (action) => action.kind?.toString()),
     );
 
     expect(
@@ -525,11 +531,16 @@ Future foo;
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, range: code.range.range);
-    var fixAction = findAction(codeActions,
-        title: 'Remove unused import',
-        kind: CodeActionKind('quickfix.remove.unusedImport'))!;
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      range: code.range.range,
+    );
+    var fixAction =
+        findAction(
+          codeActions,
+          title: 'Remove unused import',
+          kind: CodeActionKind('quickfix.remove.unusedImport'),
+        )!;
 
     await executeCommand(fixAction.command!);
     expectCommandLogged('dart.fix.remove.unusedImport');
@@ -547,8 +558,9 @@ void f() {
     await initialize();
 
     var codeActions = await getCodeActions(
-        uriConverter.toClientUri(macroFilePath),
-        position: code.position.position);
+      uriConverter.toClientUri(macroFilePath),
+      position: code.position.position,
+    );
     expect(codeActions, isEmpty);
   }
 
@@ -573,11 +585,15 @@ int foo() {
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, range: code.range.range);
-    var fixAction = findAction(codeActions,
-        title: 'Convert to expression body',
-        kind: CodeActionKind('quickfix.convert.toExpressionBody'));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      range: code.range.range,
+    );
+    var fixAction = findAction(
+      codeActions,
+      title: 'Convert to expression body',
+      kind: CodeActionKind('quickfix.convert.toExpressionBody'),
+    );
     expect(fixAction, isNotNull);
   }
 
@@ -597,11 +613,15 @@ void f() {
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, position: code.position.position);
-    var removeNnaAction = findAction(codeActions,
-        title: "Remove the '!'",
-        kind: CodeActionKind('quickfix.remove.nonNullAssertion'));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      position: code.position.position,
+    );
+    var removeNnaAction = findAction(
+      codeActions,
+      title: "Remove the '!'",
+      kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
+    );
 
     // Expect only one of the fixes.
     expect(removeNnaAction, isNotNull);
@@ -622,11 +642,15 @@ var a = [Test, Test, Te[!!]st];
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, range: code.range.range);
-    var createClassActions = findAction(codeActions,
-        title: "Create class 'Test'",
-        kind: CodeActionKind('quickfix.create.class'));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      range: code.range.range,
+    );
+    var createClassActions = findAction(
+      codeActions,
+      title: "Create class 'Test'",
+      kind: CodeActionKind('quickfix.create.class'),
+    );
 
     expect(createClassActions, isNotNull);
     expect(createClassActions!.diagnostics, hasLength(3));
@@ -644,11 +668,15 @@ var a = [Test, Test, Te[!!]st];
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, range: code.range.range);
-    var createClassActions = findAction(codeActions,
-        title: "Create class 'Test'",
-        kind: CodeActionKind('quickfix.create.class'));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      range: code.range.range,
+    );
+    var createClassActions = findAction(
+      codeActions,
+      title: "Create class 'Test'",
+      kind: CodeActionKind('quickfix.create.class'),
+    );
 
     expect(createClassActions, isNotNull);
     expect(createClassActions!.diagnostics, hasLength(3));
@@ -732,28 +760,29 @@ ProcessInfo b;
           plugin.PrioritizedSourceChange(10, plugin.SourceChange('Low')),
           plugin.PrioritizedSourceChange(100, plugin.SourceChange('High')),
         ],
-      )
+      ),
     ]);
     configureTestPlugin(
-      handler: (request) =>
-          request is plugin.EditGetFixesParams ? pluginResult : null,
+      handler:
+          (request) =>
+              request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
     newFile(mainFilePath, code.code);
     await initialize();
 
-    var codeActions =
-        await getCodeActions(mainFileUri, range: code.range.range);
-    var codeActionTitles = codeActions.map((action) =>
-        action.map((command) => command.title, (action) => action.title));
+    var codeActions = await getCodeActions(
+      mainFileUri,
+      range: code.range.range,
+    );
+    var codeActionTitles = codeActions.map(
+      (action) =>
+          action.map((command) => command.title, (action) => action.title),
+    );
 
     expect(
       codeActionTitles,
-      containsAllInOrder([
-        'High',
-        'Remove unused import',
-        'Low',
-      ]),
+      containsAllInOrder(['High', 'Remove unused import', 'Low']),
     );
   }
 
@@ -833,7 +862,7 @@ class B extends A {
   }
 
   Future<void>
-      test_snippets_extractVariable_functionTypeNestedParameters() async {
+  test_snippets_extractVariable_functionTypeNestedParameters() async {
     const content = '''
 void f() {
   useFunction(te^st);

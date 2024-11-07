@@ -27,8 +27,8 @@ abstract class TemporaryOverlayOperation {
   final Map<AnalysisDriver, Set<String>> _originalAddedFiles = {};
 
   TemporaryOverlayOperation(this.server)
-      : contextManager = server.contextManager,
-        resourceProvider = server.resourceProvider;
+    : contextManager = server.contextManager,
+      resourceProvider = server.resourceProvider;
 
   /// Apply pending file changes in any context that has a temporary overlay.
   Future<void> applyOverlays() async {
@@ -44,7 +44,8 @@ abstract class TemporaryOverlayOperation {
     var context = contextManager.getContextFor(path);
     if (context == null) {
       throw ArgumentError(
-          'Unable to apply a temporary overlay for file with no context: $path');
+        'Unable to apply a temporary overlay for file with no context: $path',
+      );
     }
 
     // We expect the content from any overlay and that in fsState to match
@@ -59,15 +60,20 @@ abstract class TemporaryOverlayOperation {
     // Store the original overlay content if we haven't already, so we can
     // revert to it at the end.
     _originalOverlays.putIfAbsent(
-        path, () => resourceProvider.hasOverlay(path) ? overlayContent : null);
+      path,
+      () => resourceProvider.hasOverlay(path) ? overlayContent : null,
+    );
 
     // Keep track of which contexts will have pending changes.
     _affectedContexts.add(context);
 
     // Finally, update the overlay and notify the driver.
     var newContent = SourceEdit.applySequence(overlayContent, fileEdit.edits);
-    resourceProvider.setOverlay(path,
-        content: newContent, modificationStamp: -1);
+    resourceProvider.setOverlay(
+      path,
+      content: newContent,
+      modificationStamp: -1,
+    );
     context.changeFile(path);
   }
 
@@ -112,13 +118,17 @@ abstract class TemporaryOverlayOperation {
       var context = contextManager.getContextFor(path);
       if (context == null) {
         throw ArgumentError(
-            'Unable to reset a temporary overlay for file with no context: $path');
+          'Unable to reset a temporary overlay for file with no context: $path',
+        );
       }
 
       var overlayContent = entry.value;
       if (overlayContent != null) {
-        resourceProvider.setOverlay(path,
-            content: overlayContent, modificationStamp: -1);
+        resourceProvider.setOverlay(
+          path,
+          content: overlayContent,
+          modificationStamp: -1,
+        );
       } else {
         resourceProvider.removeOverlay(path);
       }

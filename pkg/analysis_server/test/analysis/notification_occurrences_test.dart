@@ -39,13 +39,19 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
     // Find the result from the first range
     var range = code.ranges.first;
     var sourceRange = range.sourceRange;
-    findRegion(sourceRange.offset, sourceRange.length,
-        kind: kind, exists: true);
+    findRegion(
+      sourceRange.offset,
+      sourceRange.length,
+      kind: kind,
+      exists: true,
+    );
 
     expect(testOccurrences.element.kind, kind);
     expect(testOccurrences.element.name, elementName ?? range.text);
-    expect(testOccurrences.offsets,
-        containsAll(code.ranges.map((r) => r.sourceRange.offset)));
+    expect(
+      testOccurrences.offsets,
+      containsAll(code.ranges.map((r) => r.sourceRange.offset)),
+    );
   }
 
   /// Finds an [Occurrences] with the given [offset] and [length].
@@ -68,8 +74,10 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
         if (occurrenceOffset == offset &&
             (kind == null || kind == occurrences.element.kind)) {
           if (exists == false) {
-            fail('Not expected to find ($searchDescription) in\n'
-                '${occurrencesList.join('\n')}');
+            fail(
+              'Not expected to find ($searchDescription) in\n'
+              '${occurrencesList.join('\n')}',
+            );
           }
           testOccurrences = occurrences;
           return;
@@ -77,8 +85,10 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
       }
     }
     if (exists == true) {
-      fail('Expected to find ($searchDescription) in\n'
-          '${occurrencesList.join('\n')}');
+      fail(
+        'Expected to find ($searchDescription) in\n'
+        '${occurrencesList.join('\n')}',
+      );
     }
   }
 
@@ -90,8 +100,10 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OCCURRENCES) {
-      var params = AnalysisOccurrencesParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisOccurrencesParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       if (params.file == testFile.path) {
         occurrencesList = params.occurrences;
         _resultsAvailable.complete();
@@ -106,21 +118,16 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_afterAnalysis() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 void f() {
   var /*[0*/vvv/*0]*/ = 42;
   print(/*[1*/vvv/*1]*/);
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_class_field_underscore() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 class C {
   int /*[0*/_/*0]*/ = 0;
 }
@@ -129,14 +136,11 @@ void f(int _) {
   int _ = 1;
   C()./*[1*/_/*1]*/;
 }
-''',
-    );
+''');
   }
 
   Future<void> test_enum() async {
-    await assertOccurrences(
-      kind: ElementKind.ENUM,
-      '''
+    await assertOccurrences(kind: ElementKind.ENUM, '''
 enum /*[0*/E/*0]*/ {
   v;
 }
@@ -144,14 +148,11 @@ enum /*[0*/E/*0]*/ {
 void f(/*[1*/E/*1]*/ e) {
   /*[2*/E/*2]*/.v;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_enum_constant() async {
-    await assertOccurrences(
-      kind: ElementKind.ENUM_CONSTANT,
-      '''
+    await assertOccurrences(kind: ElementKind.ENUM_CONSTANT, '''
 enum E {
   /*[0*/v/*0]*/;
 }
@@ -159,14 +160,11 @@ enum E {
 void f() {
   E./*[1*/v/*1]*/;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_enum_field() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 enum E {
   v;
   final int /*[0*/foo/*0]*/ = 0;
@@ -175,14 +173,11 @@ enum E {
 void f(E e) {
   e./*[1*/foo/*1]*/;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_enum_getter() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 enum E {
   v;
   int get /*[0*/foo/*0]*/ => 0;
@@ -191,14 +186,11 @@ enum E {
 void f(E e) {
   e./*[1*/foo/*1]*/;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_enum_method() async {
-    await assertOccurrences(
-      kind: ElementKind.METHOD,
-      '''
+    await assertOccurrences(kind: ElementKind.METHOD, '''
 enum E {
   v;
   void /*[0*/foo/*0]*/() {}
@@ -207,14 +199,11 @@ enum E {
 void f(E e) {
   e./*[1*/foo/*1]*/();
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_enum_setter() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 enum E {
   v;
   set /*[0*/foo/*0]*/(int _) {}
@@ -223,19 +212,15 @@ enum E {
 void f(E e) {
   e./*[1*/foo/*1]*/ = 0;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_extensionType() async {
-    await assertOccurrences(
-      kind: ElementKind.EXTENSION_TYPE,
-      '''
+    await assertOccurrences(kind: ElementKind.EXTENSION_TYPE, '''
 extension type /*[0*/E/*0]*/(int it) {}
 
 void f(/*[1*/E/*1]*/ e) {}
-''',
-    );
+''');
   }
 
   Future<void> test_extensionType_constructor_primary() async {
@@ -269,9 +254,7 @@ void f() {
   }
 
   Future<void> test_extensionType_getter() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 extension type E(int it) {
   int get /*[0*/foo/*0]*/ => 0;
 }
@@ -279,14 +262,11 @@ extension type E(int it) {
 void f(E e) {
   e./*[1*/foo/*1]*/;
 }
-''',
-    );
+''');
   }
 
   Future<void> test_extensionType_method() async {
-    await assertOccurrences(
-      kind: ElementKind.METHOD,
-      '''
+    await assertOccurrences(kind: ElementKind.METHOD, '''
 extension type E(int it) {
   void /*[0*/foo/*0]*/() {}
 }
@@ -294,14 +274,11 @@ extension type E(int it) {
 void f(E e) {
   e./*[1*/foo/*1]*/();
 }
-''',
-    );
+''');
   }
 
   Future<void> test_extensionType_setter() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 extension type E(int it) {
   set /*[0*/foo/*0]*/(int _) {}
 }
@@ -309,14 +286,11 @@ extension type E(int it) {
 void f(E e) {
   e./*[1*/foo/*1]*/ = 0;
 }
-''',
-    );
+''');
   }
 
   Future<void> test_field() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 class A {
   int /*[0*/fff/*0]*/;
   A(this./*[1*/fff/*1]*/);
@@ -325,8 +299,7 @@ class A {
     print(/*[3*/fff/*3]*/);
   }
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_field_unresolved() async {
@@ -340,35 +313,27 @@ class A {
   }
 
   Future<void> test_for_in() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 void f() {
   for (final /*[0*/x^/*0]*/ in []) {
     /*[1*/x/*1]*/;
   }
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_localVariable() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 void f() {
   var /*[0*/vvv/*0]*/ = 42;
   /*[1*/vvv/*1]*/ += 5;
   print(/*[2*/vvv/*2]*/);
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_memberField() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 class A<T> {
   T /*[0*/fff/*0]*/;
 }
@@ -378,14 +343,11 @@ void f() {
   a./*[1*/fff/*1]*/ = 1;
   b./*[2*/fff/*2]*/ = 2;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_memberMethod() async {
-    await assertOccurrences(
-      kind: ElementKind.METHOD,
-      '''
+    await assertOccurrences(kind: ElementKind.METHOD, '''
 class A<T> {
   T /*[0*/mmm/*0]*/() {}
 }
@@ -395,26 +357,20 @@ void f() {
   a./*[1*/mmm/*1]*/();
   b./*[2*/mmm/*2]*/();
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_mixin() async {
-    await assertOccurrences(
-      kind: ElementKind.MIXIN,
-      '''
+    await assertOccurrences(kind: ElementKind.MIXIN, '''
 mixin /*[0*/A/*0]*/ {
   void aaa() {}
 }
 class B with /*[1*/A/*1]*/ {}
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_parameter_named1() async {
-    await assertOccurrences(
-      kind: ElementKind.PARAMETER,
-      '''
+    await assertOccurrences(kind: ElementKind.PARAMETER, '''
 void f(int aaa, int bbb, {int? /*[0*/ccc/*0]*/, int? ddd}) {
   /*[1*/ccc/*1]*/;
   ddd;
@@ -423,14 +379,11 @@ void f(int aaa, int bbb, {int? /*[0*/ccc/*0]*/, int? ddd}) {
 void g() {
   f(0, /*[2*/ccc/*2]*/: 2, 1, ddd: 3);
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_parameter_named2() async {
-    await assertOccurrences(
-      kind: ElementKind.PARAMETER,
-      '''
+    await assertOccurrences(kind: ElementKind.PARAMETER, '''
 void f(int aaa, int bbb, {int? ccc, int? /*[0*/ddd/*0]*/}) {
   ccc;
   /*[1*/ddd/*1]*/;
@@ -439,72 +392,54 @@ void f(int aaa, int bbb, {int? ccc, int? /*[0*/ddd/*0]*/}) {
 void g() {
   f(0, ccc: 2, 1, /*[2*/ddd/*2]*/: 3);
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_parameter_wildcard() async {
     // Ensure no crash.
-    await assertOccurrences(
-      kind: ElementKind.PARAMETER,
-      '''
+    await assertOccurrences(kind: ElementKind.PARAMETER, '''
 void f(int /*[0*/_/*0]*/) {}
-''',
-    );
+''');
   }
 
   Future<void> test_pattern_assignment() async {
-    await assertOccurrences(
-      kind: ElementKind.PARAMETER,
-      '''
+    await assertOccurrences(kind: ElementKind.PARAMETER, '''
 void f(String /*[0*/a/*0]*/, String b) {
   (b, /*[1*/a/*1]*/) = (/*[2*/a/*2]*/, b);
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_assignment_list() async {
-    await assertOccurrences(
-      kind: ElementKind.PARAMETER,
-      '''
+    await assertOccurrences(kind: ElementKind.PARAMETER, '''
 void f(List<int> x, num /*[0*/a/*0]*/) {
   [/*[1*/a/*1]*/] = x;
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_cast_typeName() async {
-    await assertOccurrences(
-      kind: ElementKind.CLASS,
-      '''
+    await assertOccurrences(kind: ElementKind.CLASS, '''
 String f((num, /*[0*/String/*0]*/) record) {
   var (i as int, s as /*[1*/String/*1]*/) = record;
 }
     );
-     ''',
-    );
+     ''');
   }
 
   Future<void> test_pattern_cast_variable() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 void f((num, String) record) {
   var (i as int, /*[0*/s/*0]*/ as String) = record;
   print(/*[1*/s/*1]*/);
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_map() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 void f(x) {
   switch (x) {
     case {0: String /*[0*/a/*0]*/}:
@@ -513,14 +448,11 @@ void f(x) {
   }
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_map_typeArguments() async {
-    await assertOccurrences(
-      kind: ElementKind.CLASS,
-      '''
+    await assertOccurrences(kind: ElementKind.CLASS, '''
 /*[0*/String/*0]*/ f(x) {
   switch (x) {
     case <int, /*[1*/String/*1]*/>{0: var a}:
@@ -529,27 +461,21 @@ void f(x) {
   }
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_nullAssert() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 void f((int?, int?) position) {
   var (x!, /*[0*/y/*0]*/!) = position;
   print(/*[1*/y/*1]*/);
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_nullCheck() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 void f(String? maybeString) {
   switch (maybeString) {
     case var /*[0*/s/*0]*/?:
@@ -557,14 +483,11 @@ void f(String? maybeString) {
   }
 }
     );
-    ''',
-    );
+    ''');
   }
 
   Future<void> test_pattern_object_destructure_getter() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 class A {
   String? /*[0*/key/*0]*/;
 }
@@ -572,14 +495,11 @@ class A {
 void f() {
   final A(:/*[1*/key/*1]*/) = A();
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_object_destructure_variable() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 class A {
   String? key;
 }
@@ -588,14 +508,11 @@ void f() {
   final A(:/*[0*/key/*0]*/) = A();
   /*[1*/key/*1]*/;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_object_fieldName() async {
-    await assertOccurrences(
-      kind: ElementKind.FIELD,
-      '''
+    await assertOccurrences(kind: ElementKind.FIELD, '''
 double calculateArea(Shape shape) =>
   switch (shape) {
     Square(/*[0*/length/*0]*/: var l) => l * l,
@@ -605,14 +522,11 @@ class Shape { }
 class Square extends Shape {
   double get /*[1*/length/*1]*/ => 0;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_object_typeName() async {
-    await assertOccurrences(
-      kind: ElementKind.CLASS,
-      '''
+    await assertOccurrences(kind: ElementKind.CLASS, '''
 double calculateArea(Shape shape) =>
   switch (shape) {
     /*[0*/Square/*0]*/(length: var l) => l * l,
@@ -623,14 +537,11 @@ class /*[1*/Square/*1]*/ extends Shape {
   double get length => 0;
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_object_variable() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 double calculateArea(Shape shape) =>
   switch (shape) {
     Square(length: var /*[0*/l/*0]*/) => /*[1*/l/*1]*/ * /*[2*/l/*2]*/,
@@ -641,26 +552,20 @@ class Square extends Shape {
   double get length => 0;
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_record_variable() async {
-    await assertOccurrences(
-      kind: ElementKind.PARAMETER,
-      '''
+    await assertOccurrences(kind: ElementKind.PARAMETER, '''
 void f(({int foo}) x, num /*[0*/a/*0]*/) {
   (foo: /*[1*/a,/*1]*/) = x;
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_pattern_relational_variable() async {
-    await assertOccurrences(
-      kind: ElementKind.LOCAL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.LOCAL_VARIABLE, '''
 String f(int char) {
   const /*[0*/zero/*0]*/ = 0;
   return switch (char) {
@@ -668,48 +573,36 @@ String f(int char) {
   };
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_prefix_wildcard() async {
     // Ensure no crash.
-    await assertOccurrences(
-      kind: ElementKind.PREFIX,
-      '''
+    await assertOccurrences(kind: ElementKind.PREFIX, '''
 import 'dart:io' as /*[0*/_/*0]*/;
-''',
-    );
+''');
   }
 
   Future<void> test_prefixed() async {
-    await assertOccurrences(
-      kind: ElementKind.CLASS,
-      '''
+    await assertOccurrences(kind: ElementKind.CLASS, '''
 import '' as p;
 
 class /*[0*/A/*0]*/ {}
 
 p./*[1*/A/*1]*/? a;
-''',
-    );
+''');
   }
 
   Future<void> test_recordType_typeName() async {
-    await assertOccurrences(
-      kind: ElementKind.CLASS,
-      r'''
+    await assertOccurrences(kind: ElementKind.CLASS, r'''
 /*[0*/double/*0]*/ f((/*[1*/double/*1]*/, /*[2*/double/*2]*/) param) {
 }
     );
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_superFormalParameter_requiredPositional() async {
-    await assertOccurrences(
-      kind: ElementKind.PARAMETER,
-      '''
+    await assertOccurrences(kind: ElementKind.PARAMETER, '''
 class A {
   A(int x);
 }
@@ -719,59 +612,46 @@ class B extends A {
 
   B(super./*[0*/x/*0]*/) : y = /*[1*/x/*1]*/ * 2;
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_topLevelVariable() async {
-    await assertOccurrences(
-      kind: ElementKind.TOP_LEVEL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.TOP_LEVEL_VARIABLE, '''
 var /*[0*/VVV/*0]*/ = 1;
 void f() {
   /*[1*/VVV/*1]*/ = 2;
   print(/*[2*/VVV/*2]*/);
 }
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_topLevelVariable_underscore() async {
-    await assertOccurrences(
-      kind: ElementKind.TOP_LEVEL_VARIABLE,
-      '''
+    await assertOccurrences(kind: ElementKind.TOP_LEVEL_VARIABLE, '''
 int /*[0*/_/*0]*/ = 0;
 
 void f(int _) {
   int _ = 1;
   /*[1*/_/*1]*/;
 }
-''',
-    );
+''');
   }
 
   Future<void> test_type_class() async {
-    await assertOccurrences(
-      kind: ElementKind.CLASS,
-      '''
+    await assertOccurrences(kind: ElementKind.CLASS, '''
 void f() {
   /*[0*/int/*0]*/ a = 1;
   /*[1*/int/*1]*/ b = 2;
   /*[2*/int/*2]*/ c = 3;
 }
 /*[3*/int/*3]*/ VVV = 4;
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_type_class_definition() async {
-    await assertOccurrences(
-      kind: ElementKind.CLASS,
-      '''
+    await assertOccurrences(kind: ElementKind.CLASS, '''
 class /*[0*/A/*0]*/ {}
 /*[1*/A/*1]*/ a;
-      ''',
-    );
+      ''');
   }
 
   Future<void> test_type_dynamic() async {

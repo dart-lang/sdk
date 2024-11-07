@@ -24,8 +24,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_functionName];
@@ -111,8 +112,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           builder.write('static ');
         }
         // append return type
-        if (builder.writeType(functionType.returnType,
-            groupName: 'RETURN_TYPE')) {
+        if (builder.writeType(
+          functionType.returnType,
+          groupName: 'RETURN_TYPE',
+        )) {
           builder.write(' ');
         }
         // append name
@@ -134,7 +137,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   /// Adds proposal for creating method corresponding to the given
   /// [FunctionType] inside the target element.
   Future<void> _createFunction(
-      ChangeBuilder builder, FunctionType functionType) async {
+    ChangeBuilder builder,
+    FunctionType functionType,
+  ) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var insertOffset = unit.end;

@@ -25,13 +25,13 @@ class JsonTest {
   final decoder = ResponseDecoder(null);
 
   void test_fromJson() {
-    var json = {
-      'offset': 0,
-      'length': 1,
-      'label': 'x',
-    };
-    var label =
-        ClosingLabel.fromJson(decoder, '', json, clientUriConverter: null);
+    var json = {'offset': 0, 'length': 1, 'label': 'x'};
+    var label = ClosingLabel.fromJson(
+      decoder,
+      '',
+      json,
+      clientUriConverter: null,
+    );
     expect(label.label, 'x');
     expect(label.offset, 0);
     expect(label.length, 1);
@@ -41,11 +41,7 @@ class JsonTest {
     var closingLabel = ClosingLabel(0, 1, 'x');
     var json = closingLabel.toJson(clientUriConverter: null);
 
-    expect(json, {
-      'offset': 0,
-      'length': 1,
-      'label': 'x',
-    });
+    expect(json, {'offset': 0, 'length': 1, 'label': 'x'});
   }
 }
 
@@ -68,10 +64,14 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
 
   void test_fromJson_filePath_list() {
     var json = {
-      'files': ['/my/file/1', '/my/file/2']
+      'files': ['/my/file/1', '/my/file/2'],
     };
-    var params = AnalysisFlushResultsParams.fromJson(decoder, '', json,
-        clientUriConverter: clientUriConverter);
+    var params = AnalysisFlushResultsParams.fromJson(
+      decoder,
+      '',
+      json,
+      clientUriConverter: clientUriConverter,
+    );
     expect(params.files, ['Decoded /my/file/1', 'Decoded /my/file/2']);
   }
 
@@ -79,12 +79,14 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
     var json = {
       'included': [],
       'excluded': [],
-      'packageRoots': {
-        '/my/file/key': '/my/file/value',
-      }
+      'packageRoots': {'/my/file/key': '/my/file/value'},
     };
-    var params = AnalysisSetAnalysisRootsParams.fromJson(decoder, '', json,
-        clientUriConverter: clientUriConverter);
+    var params = AnalysisSetAnalysisRootsParams.fromJson(
+      decoder,
+      '',
+      json,
+      clientUriConverter: clientUriConverter,
+    );
     expect(params.packageRoots, {
       'Decoded /my/file/key': 'Decoded /my/file/value',
     });
@@ -93,11 +95,15 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
   void test_fromJson_filePath_map_value_list() {
     var json = {
       'subscriptions': {
-        'CLOSING_LABELS': ['/my/file/value']
-      }
+        'CLOSING_LABELS': ['/my/file/value'],
+      },
     };
-    var params = AnalysisSetSubscriptionsParams.fromJson(decoder, '', json,
-        clientUriConverter: clientUriConverter);
+    var params = AnalysisSetSubscriptionsParams.fromJson(
+      decoder,
+      '',
+      json,
+      clientUriConverter: clientUriConverter,
+    );
     expect(params.subscriptions, {
       AnalysisService.CLOSING_LABELS: ['Decoded /my/file/value'],
     });
@@ -115,24 +121,32 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
               'offset': 0,
               'length': 1,
               'startLine': 2,
-              'startColumn': 3
+              'startColumn': 3,
             },
             'message': 'x',
-            'code': 'y'
+            'code': 'y',
           },
-          'fixes': []
-        }
-      ]
+          'fixes': [],
+        },
+      ],
     };
-    var result = EditGetFixesResult.fromJson(decoder, '', json,
-        clientUriConverter: clientUriConverter);
+    var result = EditGetFixesResult.fromJson(
+      decoder,
+      '',
+      json,
+      clientUriConverter: clientUriConverter,
+    );
     expect(result.fixes.single.error.location.file, 'Decoded /my/file');
   }
 
   void test_fromJson_filePath_topLevel() {
     var json = {'file': '/my/file', 'labels': []};
-    var params = AnalysisClosingLabelsParams.fromJson(decoder, '', json,
-        clientUriConverter: clientUriConverter);
+    var params = AnalysisClosingLabelsParams.fromJson(
+      decoder,
+      '',
+      json,
+      clientUriConverter: clientUriConverter,
+    );
     expect(params.file, 'Decoded /my/file');
   }
 
@@ -148,10 +162,10 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
           'offset': 1,
           'length': 2,
           'startLine': 3,
-          'startColumn': 4
+          'startColumn': 4,
         },
         'message': 'message',
-        'code': 'code'
+        'code': 'code',
       },
       'fixes': [],
     });
@@ -181,26 +195,22 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
   /// Verify that when a Path/URI encoder is set (done in [setUp]), it does
   /// apply to common classes used within server protocol classes.
   void test_nestedCommonClasses_server_withEncoder_fromJson_hasDecoding() {
-    var fixes = server.AnalysisErrorFixes.fromJson(
-        decoder,
-        '',
-        {
-          'error': {
-            'severity': 'ERROR',
-            'type': 'COMPILE_TIME_ERROR',
-            'location': {
-              'file': '/my/file',
-              'offset': 1,
-              'length': 2,
-              'startLine': 3,
-              'startColumn': 4
-            },
-            'message': 'message',
-            'code': 'code'
-          },
-          'fixes': [],
+    var fixes = server.AnalysisErrorFixes.fromJson(decoder, '', {
+      'error': {
+        'severity': 'ERROR',
+        'type': 'COMPILE_TIME_ERROR',
+        'location': {
+          'file': '/my/file',
+          'offset': 1,
+          'length': 2,
+          'startLine': 3,
+          'startColumn': 4,
         },
-        clientUriConverter: clientUriConverter);
+        'message': 'message',
+        'code': 'code',
+      },
+      'fixes': [],
+    }, clientUriConverter: clientUriConverter);
     // Expect file was prefixed with "Decoded".
     expect(fixes.error.location.file, 'Decoded /my/file');
   }
@@ -219,8 +229,8 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
     );
     // Expect file was prefixed with "Encoded".
     expect(
-      (fixes.toJson(clientUriConverter: clientUriConverter) as dynamic)['error']
-          ['location']['file'],
+      (fixes.toJson(clientUriConverter: clientUriConverter)
+          as dynamic)['error']['location']['file'],
       'Encoded /my/file',
     );
   }
@@ -229,43 +239,34 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
     var params = AnalysisFlushResultsParams(['/my/file/1', '/my/file/2']);
     var json = params.toJson(clientUriConverter: clientUriConverter);
 
-    expect(
-      json,
-      {
-        'files': ['Encoded /my/file/1', 'Encoded /my/file/2']
-      },
-    );
+    expect(json, {
+      'files': ['Encoded /my/file/1', 'Encoded /my/file/2'],
+    });
   }
 
   void test_toJson_map_keyValue() {
     var params = AnalysisSetAnalysisRootsParams(
       [],
       [],
-      packageRoots: {
-        '/my/file/key': '/my/file/value',
-      },
+      packageRoots: {'/my/file/key': '/my/file/value'},
     );
     var json = params.toJson(clientUriConverter: clientUriConverter);
     expect(json, {
       'included': [],
       'excluded': [],
-      'packageRoots': {
-        'Encoded /my/file/key': 'Encoded /my/file/value',
-      }
+      'packageRoots': {'Encoded /my/file/key': 'Encoded /my/file/value'},
     });
   }
 
   void test_toJson_map_value_list() {
-    var params = AnalysisSetSubscriptionsParams(
-      {
-        AnalysisService.CLOSING_LABELS: ['/my/file/value'],
-      },
-    );
+    var params = AnalysisSetSubscriptionsParams({
+      AnalysisService.CLOSING_LABELS: ['/my/file/value'],
+    });
     var json = params.toJson(clientUriConverter: clientUriConverter);
     expect(json, {
       'subscriptions': {
-        'CLOSING_LABELS': ['Encoded /my/file/value']
-      }
+        'CLOSING_LABELS': ['Encoded /my/file/value'],
+      },
     });
   }
 
@@ -279,7 +280,7 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
           'x',
           'y',
         ),
-      )
+      ),
     ]);
     var json = result.toJson(clientUriConverter: clientUriConverter);
     expect(json, {
@@ -293,26 +294,24 @@ class JsonWithConvertedFilePathsTest with ResourceProviderMixin {
               'offset': 0,
               'length': 1,
               'startLine': 2,
-              'startColumn': 3
+              'startColumn': 3,
             },
             'message': 'x',
-            'code': 'y'
+            'code': 'y',
           },
-          'fixes': []
-        }
-      ]
+          'fixes': [],
+        },
+      ],
     });
   }
 
   void test_toJson_topLevel() {
     var closingLabelParams = AnalysisClosingLabelsParams('/my/file', []);
-    var json =
-        closingLabelParams.toJson(clientUriConverter: clientUriConverter);
-
-    expect(
-      json,
-      {'file': 'Encoded /my/file', 'labels': []},
+    var json = closingLabelParams.toJson(
+      clientUriConverter: clientUriConverter,
     );
+
+    expect(json, {'file': 'Encoded /my/file', 'labels': []});
   }
 }
 

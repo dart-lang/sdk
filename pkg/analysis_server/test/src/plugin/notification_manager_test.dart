@@ -59,7 +59,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_folding() {
     manager.setSubscriptions({
-      server.AnalysisService.FOLDING: {fileA, fileB}
+      server.AnalysisService.FOLDING: {fileA, fileB},
     });
     var region1 = foldingRegion(10, 3);
     var region2 = foldingRegion(20, 6);
@@ -70,7 +70,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_highlights() {
     manager.setSubscriptions({
-      server.AnalysisService.HIGHLIGHTS: {fileA, fileB}
+      server.AnalysisService.HIGHLIGHTS: {fileA, fileB},
     });
     var region1 = highlightRegion(10, 3);
     var region2 = highlightRegion(20, 6);
@@ -81,7 +81,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_navigation() {
     manager.setSubscriptions({
-      server.AnalysisService.NAVIGATION: {fileA, fileB}
+      server.AnalysisService.NAVIGATION: {fileA, fileB},
     });
     var pluginParams = pluginNavigationParams(0, 0, file: fileA);
     manager.handlePluginNotification('a', pluginParams.toNotification());
@@ -92,12 +92,14 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_occurrences() {
     manager.setSubscriptions({
-      server.AnalysisService.OCCURRENCES: {fileA, fileB}
+      server.AnalysisService.OCCURRENCES: {fileA, fileB},
     });
     var occurrences1 = occurrences(0, 0);
     var occurrences2 = occurrences(5, 7);
-    var params =
-        plugin.AnalysisOccurrencesParams(fileA, [occurrences1, occurrences2]);
+    var params = plugin.AnalysisOccurrencesParams(fileA, [
+      occurrences1,
+      occurrences2,
+    ]);
 
     manager.handlePluginNotification('a', params.toNotification());
     _verifyOccurrences(fileA, [occurrences1, occurrences2]);
@@ -105,7 +107,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_outline() {
     manager.setSubscriptions({
-      server.AnalysisService.OUTLINE: {fileA, fileB}
+      server.AnalysisService.OUTLINE: {fileA, fileB},
     });
     var outline1 = outline(0, 0);
     var params = plugin.AnalysisOutlineParams(fileA, [outline1]);
@@ -168,7 +170,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_recordFoldingRegions_withSubscription() {
     manager.setSubscriptions({
-      server.AnalysisService.FOLDING: {fileA, fileB}
+      server.AnalysisService.FOLDING: {fileA, fileB},
     });
     //
     // Regions should be reported when they are recorded.
@@ -207,7 +209,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_recordHighlightRegions_withSubscription() {
     manager.setSubscriptions({
-      server.AnalysisService.HIGHLIGHTS: {fileA, fileB}
+      server.AnalysisService.HIGHLIGHTS: {fileA, fileB},
     });
     //
     // Regions should be reported when they are recorded.
@@ -246,7 +248,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_recordNavigationParams_withSubscription() {
     manager.setSubscriptions({
-      server.AnalysisService.NAVIGATION: {fileA, fileB}
+      server.AnalysisService.NAVIGATION: {fileA, fileB},
     });
     //
     // Parameters should be reported when they are recorded.
@@ -259,18 +261,18 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     var params2 = serverNavigationParams(2, 4, file: fileA);
     manager.recordNavigationParams('b', fileA, params2);
-    var params1and2 = server.AnalysisNavigationParams(fileA, <NavigationRegion>[
-      NavigationRegion(0, 2, <int>[0]),
-      NavigationRegion(4, 2, <int>[1])
-    ], <NavigationTarget>[
-      NavigationTarget(ElementKind.FIELD, 0, 1, 2, 2, 3),
-      NavigationTarget(ElementKind.FIELD, 2, 5, 2, 6, 7)
-    ], <String>[
-      'aa',
-      'ab',
-      'ac',
-      'ad'
-    ]);
+    var params1and2 = server.AnalysisNavigationParams(
+      fileA,
+      <NavigationRegion>[
+        NavigationRegion(0, 2, <int>[0]),
+        NavigationRegion(4, 2, <int>[1]),
+      ],
+      <NavigationTarget>[
+        NavigationTarget(ElementKind.FIELD, 0, 1, 2, 2, 3),
+        NavigationTarget(ElementKind.FIELD, 2, 5, 2, 6, 7),
+      ],
+      <String>['aa', 'ab', 'ac', 'ad'],
+    );
     _verifyNavigationParams(params1and2);
     //
     // Overwriting parameters from one plugin should not affect parameters from
@@ -278,18 +280,18 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     var params3 = serverNavigationParams(4, 8, file: fileA);
     manager.recordNavigationParams('a', fileA, params3);
-    var params3and2 = server.AnalysisNavigationParams(fileA, <NavigationRegion>[
-      NavigationRegion(8, 2, <int>[0]),
-      NavigationRegion(4, 2, <int>[1])
-    ], <NavigationTarget>[
-      NavigationTarget(ElementKind.FIELD, 0, 9, 2, 10, 11),
-      NavigationTarget(ElementKind.FIELD, 2, 5, 2, 6, 7)
-    ], <String>[
-      'ae',
-      'af',
-      'ac',
-      'ad'
-    ]);
+    var params3and2 = server.AnalysisNavigationParams(
+      fileA,
+      <NavigationRegion>[
+        NavigationRegion(8, 2, <int>[0]),
+        NavigationRegion(4, 2, <int>[1]),
+      ],
+      <NavigationTarget>[
+        NavigationTarget(ElementKind.FIELD, 0, 9, 2, 10, 11),
+        NavigationTarget(ElementKind.FIELD, 2, 5, 2, 6, 7),
+      ],
+      <String>['ae', 'af', 'ac', 'ad'],
+    );
     _verifyNavigationParams(params3and2);
     //
     // Recording parameters against a file should not affect the parameters for
@@ -308,7 +310,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_recordOccurrences_withSubscription() {
     manager.setSubscriptions({
-      server.AnalysisService.OCCURRENCES: {fileA, fileB}
+      server.AnalysisService.OCCURRENCES: {fileA, fileB},
     });
     //
     // Occurrences should be reported when they are recorded.
@@ -351,7 +353,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     // TODO(brianwilkerson): Figure out outlines. What should we do when merge
     // cannot produce a single outline?
     manager.setSubscriptions({
-      server.AnalysisService.OUTLINE: {fileA, fileB}
+      server.AnalysisService.OUTLINE: {fileA, fileB},
     });
     //
     // Outlines should be reported when they are recorded.
@@ -360,14 +362,14 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     var outline2 = outline(5, 7);
     manager.recordOutlines('a', fileA, [outline1, outline2]);
     // TODO(brianwilkerson): Figure out how to test this.
-//    _verifyOutlines(fileA, [outline1, outline2]);
+    //    _verifyOutlines(fileA, [outline1, outline2]);
     //
     // Outlines from different plugins should be cumulative.
     //
     var outline3 = outline(10, 14);
     manager.recordOutlines('b', fileA, [outline3]);
     // TODO(brianwilkerson): Figure out how to test this.
-//    _verifyOutlines(fileA, [outline1, outline2, outline3]);
+    //    _verifyOutlines(fileA, [outline1, outline2, outline3]);
     //
     // Overwriting outlines from one plugin should not affect outlines from
     // other plugins.
@@ -375,7 +377,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     var outline4 = outline(15, 21);
     manager.recordOutlines('a', fileA, [outline4]);
     // TODO(brianwilkerson): Figure out how to test this.
-//    _verifyOutlines(fileA, [outline4, outline3]);
+    //    _verifyOutlines(fileA, [outline4, outline3]);
     //
     // Recording outlines against a file should not affect the outlines for
     // other files.
@@ -383,14 +385,16 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     var outline5 = outline(20, 28);
     manager.recordOutlines('a', fileB, [outline5]);
     // TODO(brianwilkerson): Figure out how to test this.
-//    _verifyOutlines(fileB, [outline5]);
+    //    _verifyOutlines(fileB, [outline5]);
   }
 
   void _verifyErrors(String fileName, List<AnalysisError> expectedErrors) {
     var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.errors');
-    var params = server.AnalysisErrorsParams.fromNotification(notification,
-        clientUriConverter: null);
+    var params = server.AnalysisErrorsParams.fromNotification(
+      notification,
+      clientUriConverter: null,
+    );
     expect(params, isNotNull);
     expect(params.file, fileName);
     expect(params.errors, equals(expectedErrors));
@@ -398,11 +402,15 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyFoldingRegions(
-      String fileName, List<FoldingRegion> expectedRegions) {
+    String fileName,
+    List<FoldingRegion> expectedRegions,
+  ) {
     var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.folding');
-    var params = server.AnalysisFoldingParams.fromNotification(notification,
-        clientUriConverter: null);
+    var params = server.AnalysisFoldingParams.fromNotification(
+      notification,
+      clientUriConverter: null,
+    );
     expect(params, isNotNull);
     expect(params.file, fileName);
     expect(params.regions, equals(expectedRegions));
@@ -410,11 +418,15 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyHighlightRegions(
-      String fileName, List<HighlightRegion> expectedRegions) {
+    String fileName,
+    List<HighlightRegion> expectedRegions,
+  ) {
     var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.highlights');
-    var params = server.AnalysisHighlightsParams.fromNotification(notification,
-        clientUriConverter: null);
+    var params = server.AnalysisHighlightsParams.fromNotification(
+      notification,
+      clientUriConverter: null,
+    );
     expect(params, isNotNull);
     expect(params.file, fileName);
     expect(params.regions, equals(expectedRegions));
@@ -424,8 +436,10 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   void _verifyNavigationParams(server.AnalysisNavigationParams expectedParams) {
     var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.navigation');
-    var params = server.AnalysisNavigationParams.fromNotification(notification,
-        clientUriConverter: null);
+    var params = server.AnalysisNavigationParams.fromNotification(
+      notification,
+      clientUriConverter: null,
+    );
     expect(params, isNotNull);
     expect(params.file, expectedParams.file);
     expect(params.files, equals(expectedParams.files));
@@ -435,11 +449,15 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   }
 
   void _verifyOccurrences(
-      String fileName, List<Occurrences> expectedOccurrences) {
+    String fileName,
+    List<Occurrences> expectedOccurrences,
+  ) {
     var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.occurrences');
-    var params = server.AnalysisOccurrencesParams.fromNotification(notification,
-        clientUriConverter: null);
+    var params = server.AnalysisOccurrencesParams.fromNotification(
+      notification,
+      clientUriConverter: null,
+    );
     expect(params, isNotNull);
     expect(params.file, fileName);
     expect(params.occurrences, equals(expectedOccurrences));
@@ -449,8 +467,10 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   void _verifyOutlines(String fileName, Outline expectedOutline) {
     var notification = channel.sentNotification!;
     expect(notification.event, 'analysis.outline');
-    var params = server.AnalysisOutlineParams.fromNotification(notification,
-        clientUriConverter: null);
+    var params = server.AnalysisOutlineParams.fromNotification(
+      notification,
+      clientUriConverter: null,
+    );
     expect(params, isNotNull);
     expect(params.file, fileName);
     expect(params.outline, equals(expectedOutline));
@@ -460,8 +480,10 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   void _verifyPluginError(bool isFatal, String message, String stackTrace) {
     var notification = channel.sentNotification!;
     expect(notification.event, 'server.error');
-    var params = server.ServerErrorParams.fromNotification(notification,
-        clientUriConverter: null);
+    var params = server.ServerErrorParams.fromNotification(
+      notification,
+      clientUriConverter: null,
+    );
     expect(params, isNotNull);
     expect(params.isFatal, isFatal);
     expect(params.message, message);

@@ -48,8 +48,8 @@ class SurveyManager {
     // we aren't coordinated with.
     Duration initialDelay = const Duration(minutes: 5),
     Duration checkFrequency = const Duration(hours: 24),
-  })  : _initialDelay = initialDelay,
-        _checkFrequency = checkFrequency {
+  }) : _initialDelay = initialDelay,
+       _checkFrequency = checkFrequency {
     _timer = Timer(_initialDelay, checkForSurveys);
   }
 

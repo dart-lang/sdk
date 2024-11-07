@@ -53,8 +53,9 @@ class ReplaceNullCheckWithCast extends ResolvedCorrectionProducer {
     // TODO(srawlins): Follow up on
     // https://github.com/dart-lang/linter/issues/3256.
     await builder.addDartFileEdit(file, (builder) {
-      var operandTypeNonNull =
-          (operandType as TypeImpl).withNullability(NullabilitySuffix.none);
+      var operandTypeNonNull = (operandType as TypeImpl).withNullability(
+        NullabilitySuffix.none,
+      );
       builder.addSimpleReplacement(
         range.token(operator!),
         ' as ${operandTypeNonNull.getDisplayString()}',

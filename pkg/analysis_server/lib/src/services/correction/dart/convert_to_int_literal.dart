@@ -51,14 +51,19 @@ class ConvertToIntLiteral extends ResolvedCorrectionProducer {
         var indexOfDecimal = literal.literal.lexeme.indexOf('.');
         if (indexOfDecimal > 0) {
           // Preserve digit separators by just truncating the existing lexeme.
-          builder.addDeletion(SourceRange(literal.offset + indexOfDecimal,
-              literal.length - indexOfDecimal));
+          builder.addDeletion(
+            SourceRange(
+              literal.offset + indexOfDecimal,
+              literal.length - indexOfDecimal,
+            ),
+          );
           return;
         }
       }
 
-      builder.addReplacement(SourceRange(literal.offset, literal.length),
-          (builder) {
+      builder.addReplacement(SourceRange(literal.offset, literal.length), (
+        builder,
+      ) {
         builder.write('$intValue');
       });
     });

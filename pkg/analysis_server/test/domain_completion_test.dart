@@ -52,12 +52,16 @@ class CompletionDomainHandlerGetSuggestionDetails2Test
   Future<void> test_alreadyImported() async {
     await _configureWithWorkspaceRoot();
 
-    var details = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails(
+      '''
 import 'dart:math';
 void f() {
   Rand^
 }
-''', completion: 'Random', libraryUri: 'dart:math');
+''',
+      completion: 'Random',
+      libraryUri: 'dart:math',
+    );
 
     assertDetailsText(details, r'''
 completion: Random
@@ -68,11 +72,15 @@ completion: Random
   Future<void> test_import_dart() async {
     await _configureWithWorkspaceRoot();
 
-    var details = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails(
+      '''
 void f() {
   R^
 }
-''', completion: 'Random', libraryUri: 'dart:math');
+''',
+      completion: 'Random',
+      libraryUri: 'dart:math',
+    );
 
     assertDetailsText(details, r'''
 completion: Random
@@ -97,17 +105,21 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
 
-    var details = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails(
+      '''
 void f() {
   T^
 }
-''', completion: 'Test', libraryUri: 'package:aaa/a.dart');
+''',
+      completion: 'Test',
+      libraryUri: 'package:aaa/a.dart',
+    );
 
     assertDetailsText(details, r'''
 completion: Test
@@ -126,11 +138,15 @@ class Test {}
 
     await _configureWithWorkspaceRoot();
 
-    var details = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails(
+      '''
 void f() {
   T^
 }
-''', completion: 'Test', libraryUri: 'package:test/a.dart');
+''',
+      completion: 'Test',
+      libraryUri: 'package:test/a.dart',
+    );
 
     assertDetailsText(details, r'''
 completion: Test
@@ -146,8 +162,11 @@ completion: Test
     await _configureWithWorkspaceRoot();
 
     var request = CompletionGetSuggestionDetails2Params(
-            testFile.path, 0, 'Random', '[foo]:bar')
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      testFile.path,
+      0,
+      'Random',
+      '[foo]:bar',
+    ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_PARAMETER);
@@ -157,9 +176,12 @@ completion: Test
   Future<void> test_invalidPath() async {
     await _configureWithWorkspaceRoot();
 
-    var request =
-        CompletionGetSuggestionDetails2Params('foo', 0, 'Random', 'dart:math')
-            .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = CompletionGetSuggestionDetails2Params(
+      'foo',
+      0,
+      'Random',
+      'dart:math',
+    ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
@@ -183,9 +205,10 @@ completion: Test
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
     newFile(
-        path,
-        content.substring(0, completionOffset) +
-            content.substring(completionOffset + 1));
+      path,
+      content.substring(0, completionOffset) +
+          content.substring(completionOffset + 1),
+    );
 
     return await _getDetails(
       path: path,
@@ -209,8 +232,10 @@ completion: Test
     ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleSuccessfulRequest(request);
-    return CompletionGetSuggestionDetails2Result.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    return CompletionGetSuggestionDetails2Result.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
   }
 
   Future<CompletionGetSuggestionDetails2Result> _getTestCodeDetails(
@@ -755,9 +780,10 @@ class A02 {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path)
-        ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'aaa', rootPath: aaaRoot.path)
+            ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -809,9 +835,10 @@ class A04 {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path)
-        ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'aaa', rootPath: aaaRoot.path)
+            ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -859,9 +886,10 @@ class A04 {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path)
-        ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'aaa', rootPath: aaaRoot.path)
+            ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -911,9 +939,10 @@ class A02 {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path)
-        ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'aaa', rootPath: aaaRoot.path)
+            ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -1482,7 +1511,7 @@ suggestions
   }
 
   Future<void>
-      test_prefixed_expression_extensionGetters_notImported_private() async {
+  test_prefixed_expression_extensionGetters_notImported_private() async {
     await _configureWithWorkspaceRoot();
 
     newFile('$testPackageLibPath/a.dart', '''
@@ -1663,7 +1692,7 @@ suggestions
   }
 
   Future<void>
-      test_prefixed_expression_extensionSetters_notImported_private() async {
+  test_prefixed_expression_extensionSetters_notImported_private() async {
     await _configureWithWorkspaceRoot();
 
     newFile('$testPackageLibPath/a.dart', '''
@@ -2019,10 +2048,7 @@ suggestions
     await _configureWithWorkspaceRoot();
 
     var path = convertPath('$testPackageRootPath/analysis_options.yaml');
-    var response = await _getCodeSuggestions(
-      path: path,
-      content: '^',
-    );
+    var response = await _getCodeSuggestions(path: path, content: '^');
 
     printerConfiguration
       ..filter = ((_) => true)
@@ -2048,10 +2074,7 @@ suggestions
     await _configureWithWorkspaceRoot();
 
     var path = convertPath('$testPackageRootPath/fix_data.yaml');
-    var response = await _getCodeSuggestions(
-      path: path,
-      content: '^',
-    );
+    var response = await _getCodeSuggestions(path: path, content: '^');
 
     printerConfiguration
       ..filter = ((_) => true)
@@ -2071,10 +2094,7 @@ suggestions
     await _configureWithWorkspaceRoot();
 
     var path = convertPath('$testPackageRootPath/pubspec.yaml');
-    var response = await _getCodeSuggestions(
-      path: path,
-      content: '^',
-    );
+    var response = await _getCodeSuggestions(path: path, content: '^');
 
     printerConfiguration
       ..filter = ((_) => true)
@@ -2163,8 +2183,10 @@ suggestions
     ).toRequest('0', clientUriConverter: server.uriConverter);
 
     var response = await handleSuccessfulRequest(request);
-    var result = CompletionGetSuggestions2Result.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = CompletionGetSuggestions2Result.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
 
     // Extract the internal request object.
     var dartRequest = server.completionState.currentRequest;
@@ -2212,8 +2234,10 @@ class RequestWithFutureResponse {
   Future<CompletionResponseForTesting> toResponse() async {
     var response = await futureResponse;
     expect(response, isResponseSuccess(request.id));
-    var result = CompletionGetSuggestions2Result.fromResponse(response,
-        clientUriConverter: null);
+    var result = CompletionGetSuggestions2Result.fromResponse(
+      response,
+      clientUriConverter: null,
+    );
     return CompletionResponseForTesting(
       requestOffset: offset,
       requestLocationName: null,

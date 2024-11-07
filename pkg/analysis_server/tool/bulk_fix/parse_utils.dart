@@ -14,10 +14,12 @@ class BulkFixDetails {
   Future<Map<String, CorrectionDetails>> collectOverrides() async {
     var overrideDetails = <String, CorrectionDetails>{};
 
-    var pkgRootPath =
-        PhysicalResourceProvider.INSTANCE.pathContext.normalize(packageRoot);
+    var pkgRootPath = PhysicalResourceProvider.INSTANCE.pathContext.normalize(
+      packageRoot,
+    );
     var directory = Directory(
-        '$pkgRootPath/analysis_server/lib/src/services/correction/dart');
+      '$pkgRootPath/analysis_server/lib/src/services/correction/dart',
+    );
     var collection = AnalysisContextCollection(
       includedPaths: [directory.absolute.path],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -25,14 +27,16 @@ class BulkFixDetails {
     var context = collection.contexts[0];
 
     for (var file in directory.listSync()) {
-      var resolvedFile = await context.currentSession
-          .getResolvedUnit(file.absolute.path) as ResolvedUnitResult;
+      var resolvedFile =
+          await context.currentSession.getResolvedUnit(file.absolute.path)
+              as ResolvedUnitResult;
       for (var classDecl
           in resolvedFile.unit.declarations.whereType<ClassDeclaration>()) {
         var classElement = classDecl.declaredFragment?.element;
         if (classElement != null &&
             classElement.allSupertypes.any(
-                (element) => element.element3.name3 == 'CorrectionProducer')) {
+              (element) => element.element3.name3 == 'CorrectionProducer',
+            )) {
           var correctionName = classDecl.name.lexeme;
 
           for (var method in classDecl.members.whereType<MethodDeclaration>()) {
@@ -47,14 +51,17 @@ class BulkFixDetails {
                   var canBeBulkApplied =
                       (last.expression as BooleanLiteral).value;
                   overrideDetails[correctionName] = CorrectionDetails(
-                      canBeBulkApplied: canBeBulkApplied,
-                      hasComment: hasComment);
+                    canBeBulkApplied: canBeBulkApplied,
+                    hasComment: hasComment,
+                  );
                 }
               } else if (body is ExpressionFunctionBody) {
                 var expression = body.expression;
                 var canBeBulkApplied = (expression as BooleanLiteral).value;
                 overrideDetails[correctionName] = CorrectionDetails(
-                    canBeBulkApplied: canBeBulkApplied, hasComment: hasComment);
+                  canBeBulkApplied: canBeBulkApplied,
+                  hasComment: hasComment,
+                );
               }
             }
           }

@@ -42,8 +42,12 @@ class ErrorNotifier extends NoopInstrumentationService {
       }
     }
 
-    server.sendServerErrorNotification(message, exception, stackTrace,
-        fatal: exception is FatalException);
+    server.sendServerErrorNotification(
+      message,
+      exception,
+      stackTrace,
+      fatal: exception is FatalException,
+    );
   }
 }
 
@@ -51,5 +55,5 @@ class ErrorNotifier extends NoopInstrumentationService {
 /// IDEs.
 class FatalException extends CaughtException {
   FatalException(String super.message, super.exception, super.stackTrace)
-      : super.withMessage();
+    : super.withMessage();
 }

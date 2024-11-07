@@ -31,7 +31,7 @@ class CompletionState {
 
   /// Initialize a newly created completion state.
   CompletionState(this.request, this.selection, this.budget, this.matcher)
-      : assert(selection.length == 0);
+    : assert(selection.length == 0);
 
   /// The type of value required by the context in which completion was
   /// requested.
@@ -61,8 +61,12 @@ class CompletionState {
   LibraryElement get libraryElement => request.libraryElement;
 
   /// The type of quotes preferred for [String]s as specified in [CodeStyleOptions].
-  String get preferredQuoteForStrings => request
-      .fileState.analysisOptions.codeStyleOptions.preferredQuoteForStrings;
+  String get preferredQuoteForStrings =>
+      request
+          .fileState
+          .analysisOptions
+          .codeStyleOptions
+          .preferredQuoteForStrings;
 
   /// The type of `this` at the completion location, or `null` if the completion
   /// location doesn't allow `this` to be used.

@@ -48,10 +48,7 @@ abstract class AbstractCodeLensProvider
     }
 
     var lineInfo = fragment.libraryFragment.lineInfo;
-    return Location(
-      uri: uri,
-      range: toRange(lineInfo, nameOffset, nameLength),
-    );
+    return Location(uri: uri, range: toRange(lineInfo, nameOffset, nameLength));
   }
 
   /// Builds a [Command] that with the text [title] that navigate to the

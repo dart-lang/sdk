@@ -63,9 +63,10 @@ class CompletionResolveHandler
     var file = data.file;
     var importUris = data.importUris.map(Uri.parse).toList();
     var elementLocationReference = data.ref;
-    var elementLocation = elementLocationReference != null
-        ? ElementLocationImpl.con2(elementLocationReference)
-        : null;
+    var elementLocation =
+        elementLocationReference != null
+            ? ElementLocationImpl.con2(elementLocationReference)
+            : null;
 
     const timeout = Duration(milliseconds: 1000);
     var timer = Stopwatch()..start();
@@ -112,30 +113,38 @@ class CompletionResolveHandler
         Command? command;
         if (otherFilesChanges.isNotEmpty) {
           var workspaceEdit = createPlainWorkspaceEdit(
-              server, clientCapabilities, otherFilesChanges);
+            server,
+            clientCapabilities,
+            otherFilesChanges,
+          );
           command = Command(
-              title: 'Add import',
-              command: Commands.sendWorkspaceEdit,
-              arguments: [
-                {'edit': workspaceEdit}
-              ]);
+            title: 'Add import',
+            command: Commands.sendWorkspaceEdit,
+            arguments: [
+              {'edit': workspaceEdit},
+            ],
+          );
         }
 
         // Look up documentation if we can get an element for this item.
         Either2<MarkupContent, String>? documentation;
-        var element = elementLocation != null
-            ? await session.locateElement(elementLocation)
-            : null;
+        var element =
+            elementLocation != null
+                ? await session.locateElement(elementLocation)
+                : null;
         if (element != null) {
           var formats = clientCapabilities.completionDocumentationFormats;
           var dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
           var dartDocComputer = DartDocumentationComputer(dartDocInfo);
-          var dartDoc = dartDocComputer.computePreferred(element,
-              server.lspClientConfiguration.global.preferredDocumentation);
+          var dartDoc = dartDocComputer.computePreferred(
+            element,
+            server.lspClientConfiguration.global.preferredDocumentation,
+          );
           // `dartDoc` can be both null or empty.
-          documentation = dartDoc != null && dartDoc.isNotEmpty
-              ? asMarkupContentOrString(formats, dartDoc)
-              : null;
+          documentation =
+              dartDoc != null && dartDoc.isNotEmpty
+                  ? asMarkupContentOrString(formats, dartDoc)
+                  : null;
         }
 
         String? detail = item.detail;
@@ -157,28 +166,34 @@ class CompletionResolveHandler
           }
         }
 
-        return success(CompletionItem(
-          label: item.label,
-          kind: item.kind,
-          tags: item.tags,
-          detail: detail,
-          labelDetails: item.labelDetails,
-          documentation: documentation,
-          deprecated: item.deprecated,
-          preselect: item.preselect,
-          sortText: item.sortText,
-          filterText: item.filterText,
-          insertTextFormat: item.insertTextFormat,
-          insertTextMode: item.insertTextMode,
-          textEdit: item.textEdit,
-          additionalTextEdits: thisFilesChanges
-              .expand((change) => sortSourceEditsForLsp(change.edits)
-                  .map((edit) => toTextEdit(result.lineInfo, edit)))
-              .toList(),
-          commitCharacters: item.commitCharacters,
-          command: command ?? item.command,
-          data: item.data,
-        ));
+        return success(
+          CompletionItem(
+            label: item.label,
+            kind: item.kind,
+            tags: item.tags,
+            detail: detail,
+            labelDetails: item.labelDetails,
+            documentation: documentation,
+            deprecated: item.deprecated,
+            preselect: item.preselect,
+            sortText: item.sortText,
+            filterText: item.filterText,
+            insertTextFormat: item.insertTextFormat,
+            insertTextMode: item.insertTextMode,
+            textEdit: item.textEdit,
+            additionalTextEdits:
+                thisFilesChanges
+                    .expand(
+                      (change) => sortSourceEditsForLsp(
+                        change.edits,
+                      ).map((edit) => toTextEdit(result.lineInfo, edit)),
+                    )
+                    .toList(),
+            commitCharacters: item.commitCharacters,
+            command: command ?? item.command,
+            data: item.data,
+          ),
+        );
       } on InconsistentAnalysisException {
         // Loop around to try again.
       }
@@ -199,32 +214,36 @@ class CompletionResolveHandler
   ) async {
     // Fetch details for this package. This may come from the cache or trigger
     // a real web request to the Pub API.
-    var packageDetails =
-        await server.pubPackageService.packageDetails(data.packageName);
+    var packageDetails = await server.pubPackageService.packageDetails(
+      data.packageName,
+    );
 
     if (token.isCancellationRequested) {
       return cancelled();
     }
 
     var description = packageDetails?.description;
-    return success(CompletionItem(
-      label: item.label,
-      kind: item.kind,
-      tags: item.tags,
-      detail: item.detail,
-      documentation: description != null
-          ? Either2<MarkupContent, String>.t2(description)
-          : null,
-      deprecated: item.deprecated,
-      preselect: item.preselect,
-      sortText: item.sortText,
-      filterText: item.filterText,
-      insertTextFormat: item.insertTextFormat,
-      textEdit: item.textEdit,
-      additionalTextEdits: item.additionalTextEdits,
-      commitCharacters: item.commitCharacters,
-      command: item.command,
-      data: item.data,
-    ));
+    return success(
+      CompletionItem(
+        label: item.label,
+        kind: item.kind,
+        tags: item.tags,
+        detail: item.detail,
+        documentation:
+            description != null
+                ? Either2<MarkupContent, String>.t2(description)
+                : null,
+        deprecated: item.deprecated,
+        preselect: item.preselect,
+        sortText: item.sortText,
+        filterText: item.filterText,
+        insertTextFormat: item.insertTextFormat,
+        textEdit: item.textEdit,
+        additionalTextEdits: item.additionalTextEdits,
+        commitCharacters: item.commitCharacters,
+        command: item.command,
+        data: item.data,
+      ),
+    );
   }
 }

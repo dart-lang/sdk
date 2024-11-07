@@ -102,8 +102,11 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  ClosingLabel? _addLabel(AstNode node, String label,
-      {AstNode? checkLinesUsing}) {
+  ClosingLabel? _addLabel(
+    AstNode node,
+    String label, {
+    AstNode? checkLinesUsing,
+  }) {
     // Never add labels if we're inside strings.
     if (interpolatedStringsEntered > 0) {
       return null;

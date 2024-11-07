@@ -32,8 +32,12 @@ AstNode? _tweakLocatedNode(AstNode? node, int offset) {
 
 typedef StaticOptions = Either2<bool, RenameOptions>;
 
-class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
-    TextDocumentPrepareRenameResult> {
+class PrepareRenameHandler
+    extends
+        LspMessageHandler<
+          TextDocumentPositionParams,
+          TextDocumentPrepareRenameResult
+        > {
   PrepareRenameHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
@@ -44,9 +48,10 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
 
   @override
   Future<ErrorOr<TextDocumentPrepareRenameResult>> handle(
-      TextDocumentPositionParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    TextDocumentPositionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -70,7 +75,10 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
       }
 
       var refactoring = RenameRefactoring.create(
-          server.refactoringWorkspace, unit, refactorDetails.element);
+        server.refactoringWorkspace,
+        unit,
+        refactorDetails.element,
+      );
       if (refactoring == null) {
         return success(null);
       }
@@ -79,22 +87,27 @@ class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
       var initStatus = await refactoring.checkInitialConditions();
       if (initStatus.hasFatalError) {
         return error(
-            ServerErrorCodes.RenameNotValid, initStatus.problem!.message);
+          ServerErrorCodes.RenameNotValid,
+          initStatus.problem!.message,
+        );
       }
 
       return success(
-          TextDocumentPrepareRenameResult.t1(PrepareRenamePlaceholder(
-        range: toRange(
-          unit.lineInfo,
-          // If the offset is set to -1 it means there is no location for the
-          // old name. However since we must provide a range for LSP, we'll use
-          // a 0-character span at the originally requested location to ensure
-          // it's valid.
-          refactorDetails.offset == -1 ? offset : refactorDetails.offset,
-          refactorDetails.length,
+        TextDocumentPrepareRenameResult.t1(
+          PrepareRenamePlaceholder(
+            range: toRange(
+              unit.lineInfo,
+              // If the offset is set to -1 it means there is no location for the
+              // old name. However since we must provide a range for LSP, we'll use
+              // a 0-character span at the originally requested location to ensure
+              // it's valid.
+              refactorDetails.offset == -1 ? offset : refactorDetails.offset,
+              refactorDetails.length,
+            ),
+            placeholder: refactoring.oldName,
+          ),
         ),
-        placeholder: refactoring.oldName,
-      )));
+      );
     });
   }
 }
@@ -113,7 +126,10 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(
-      RenameParams params, MessageInfo message, CancellationToken token) async {
+    RenameParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -129,13 +145,18 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
     // Capture the document version so we can verify it hasn't changed after
     // we've computed the rename.
     var docIdentifier = path.mapResultSync(
-        (path) => success(extractDocumentVersion(textDocument, path)));
+      (path) => success(extractDocumentVersion(textDocument, path)),
+    );
 
     var unit = await path.mapResult(requireResolvedUnit);
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
-    return (path, docIdentifier, unit, offset)
-        .mapResults((path, docIdentifier, unit, offset) async {
+    return (path, docIdentifier, unit, offset).mapResults((
+      path,
+      docIdentifier,
+      unit,
+      offset,
+    ) async {
       var node = NodeLocator(offset).searchWithin(unit.unit);
       node = _tweakLocatedNode(node, offset);
       var element = server.getElementOfNode(node);
@@ -149,7 +170,10 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       }
 
       var refactoring = RenameRefactoring.create(
-          server.refactoringWorkspace, unit, refactorDetails.element);
+        server.refactoringWorkspace,
+        unit,
+        refactorDetails.element,
+      );
       if (refactoring == null) {
         return success(null);
       }
@@ -161,7 +185,9 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       }
       if (initStatus.hasFatalError) {
         return error(
-            ServerErrorCodes.RenameNotValid, initStatus.problem!.message);
+          ServerErrorCodes.RenameNotValid,
+          initStatus.problem!.message,
+        );
       }
 
       // Check the name is valid.
@@ -169,7 +195,9 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       var optionsStatus = refactoring.checkNewName();
       if (optionsStatus.hasError) {
         return error(
-            ServerErrorCodes.RenameNotValid, optionsStatus.problem!.message);
+          ServerErrorCodes.RenameNotValid,
+          optionsStatus.problem!.message,
+        );
       }
 
       // Final validation.
@@ -179,7 +207,9 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       }
       if (finalStatus.hasFatalError) {
         return error(
-            ServerErrorCodes.RenameNotValid, finalStatus.problem!.message);
+          ServerErrorCodes.RenameNotValid,
+          finalStatus.problem!.message,
+        );
       } else if (finalStatus.hasError || finalStatus.hasWarning) {
         var prompt = server.userPromptSender;
 
@@ -193,10 +223,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
         var userChoice = await prompt(
           MessageType.warning,
           finalStatus.message!,
-          [
-            UserPromptActions.renameAnyway,
-            UserPromptActions.cancel,
-          ],
+          [UserPromptActions.renameAnyway, UserPromptActions.cancel],
         );
 
         if (token.isCancellationRequested) {
@@ -230,19 +257,23 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
         return fileModifiedError;
       }
 
-      var workspaceEdit =
-          createWorkspaceEdit(server, clientCapabilities, change);
+      var workspaceEdit = createWorkspaceEdit(
+        server,
+        clientCapabilities,
+        change,
+      );
 
       // Check whether we should handle renaming the file to match the class.
       if (_clientSupportsRename(clientCapabilities) &&
           _isClassRename(refactoring)) {
         // The rename must always be performed on the file that defines the
         // class which is not necessarily the one where the rename was invoked.
-        var declaringFile = (refactoring as RenameUnitMemberRefactoringImpl)
-            .element
-            .declaration
-            ?.source
-            ?.fullName;
+        var declaringFile =
+            (refactoring as RenameUnitMemberRefactoringImpl)
+                .element
+                .declaration
+                ?.source
+                ?.fullName;
         if (declaringFile != null) {
           var folder = pathContext.dirname(declaringFile);
           var actualFilename = pathContext.basename(declaringFile);
@@ -253,13 +284,17 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
           // the original class name will we consider renaming.
           if (actualFilename == oldComputedFilename) {
             var renameConfig = config.renameFilesWithClasses;
-            var shouldRename = renameConfig == 'always' ||
+            var shouldRename =
+                renameConfig == 'always' ||
                 (renameConfig == 'prompt' &&
                     await _promptToRenameFile(actualFilename, newFilename));
             if (shouldRename) {
               var newPath = pathContext.join(folder, newFilename);
-              var renameEdit =
-                  createRenameEdit(uriConverter, declaringFile, newPath);
+              var renameEdit = createRenameEdit(
+                uriConverter,
+                declaringFile,
+                newPath,
+              );
               workspaceEdit = mergeWorkspaceEdits([workspaceEdit, renameEdit]);
             }
           }
@@ -283,7 +318,9 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
   /// Asks the user whether they would like to rename the file along with the
   /// class.
   Future<bool> _promptToRenameFile(
-      String oldFilename, String newFilename) async {
+    String oldFilename,
+    String newFilename,
+  ) async {
     var prompt = server.userPromptSender;
     // If we can't prompt, do the same as if they said no.
     if (prompt == null) {
@@ -293,10 +330,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
     var userChoice = await prompt(
       MessageType.info,
       "Rename '$oldFilename' to '$newFilename'?",
-      [
-        UserPromptActions.yes,
-        UserPromptActions.no,
-      ],
+      [UserPromptActions.yes, UserPromptActions.no],
     );
 
     return userChoice == UserPromptActions.yes;
@@ -309,15 +343,20 @@ class RenameRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => RenameRegistrationOptions(
-      documentSelector: fullySupportedTypes, prepareProvider: true);
+    documentSelector: fullySupportedTypes,
+    prepareProvider: true,
+  );
 
   @override
   Method get registrationMethod => Method.textDocument_rename;
 
   @override
-  StaticOptions get staticOptions => clientCapabilities.renameValidation
-      ? Either2<bool, RenameOptions>.t2(RenameOptions(prepareProvider: true))
-      : Either2<bool, RenameOptions>.t1(true);
+  StaticOptions get staticOptions =>
+      clientCapabilities.renameValidation
+          ? Either2<bool, RenameOptions>.t2(
+            RenameOptions(prepareProvider: true),
+          )
+          : Either2<bool, RenameOptions>.t1(true);
 
   @override
   bool get supportsDynamic => clientDynamic.rename;

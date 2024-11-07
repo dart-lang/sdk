@@ -200,7 +200,7 @@ suggestions
       'this',
       'void',
       'null',
-      'false'
+      'false',
     };
     await computeSuggestions('''
 class A {}
@@ -226,7 +226,7 @@ suggestions
       'this',
       'void',
       'null',
-      'false'
+      'false',
     };
     await computeSuggestions('''
 class A {}
@@ -6949,7 +6949,7 @@ suggestions
       'fromPath',
       'FileMode',
       '_internal1',
-      '_internal'
+      '_internal',
     };
     await computeSuggestions('''
 class FileMode {
@@ -8222,7 +8222,7 @@ suggestions
 
   @failingTest
   Future<void>
-      test_completion_dartDoc_reference_forFunctionTypeAlias_1() async {
+  test_completion_dartDoc_reference_forFunctionTypeAlias_1() async {
     allowedIdentifiers = {'aaa', 'bbb'};
     await computeSuggestions('''
 /**
@@ -8245,7 +8245,7 @@ suggestions
   }
 
   Future<void>
-      test_completion_dartDoc_reference_forFunctionTypeAlias_2() async {
+  test_completion_dartDoc_reference_forFunctionTypeAlias_2() async {
     allowedIdentifiers = {'int', 'double'};
     await computeSuggestions('''
 /**
@@ -8268,7 +8268,7 @@ suggestions
   }
 
   Future<void>
-      test_completion_dartDoc_reference_forFunctionTypeAlias_3() async {
+  test_completion_dartDoc_reference_forFunctionTypeAlias_3() async {
     allowedIdentifiers = {'FunctionA', 'FunctionB', 'int'};
     await computeSuggestions('''
 /**
@@ -9546,7 +9546,7 @@ suggestions
   }
 
   Future<void>
-      test_completion_methodRef_asArg_incompatibleFunctionType_1() async {
+  test_completion_methodRef_asArg_incompatibleFunctionType_1() async {
     allowedIdentifiers = {'myFuncInt', 'myFuncDouble'};
     await computeSuggestions('''
 foo( f(int p) ) {}
@@ -9977,7 +9977,7 @@ suggestions
   }
 
   Future<void>
-      test_completion_privateElement_sameLibrary_constructor_1() async {
+  test_completion_privateElement_sameLibrary_constructor_1() async {
     allowedIdentifiers = {'_c', 'c'};
     await computeSuggestions('''
 class A {
@@ -10036,7 +10036,7 @@ suggestions
   }
 
   Future<void>
-      test_completion_propertyAccess_whenClassTarget_excludeSuper_1() async {
+  test_completion_propertyAccess_whenClassTarget_excludeSuper_1() async {
     allowedIdentifiers = {'FIELD_B', 'methodB', 'FIELD_A', 'methodA'};
     await computeSuggestions('''
 class A {
@@ -10290,7 +10290,7 @@ suggestions
   }
 
   Future<void>
-      test_completion_superConstructorInvocation_noNamePrefix_1() async {
+  test_completion_superConstructorInvocation_noNamePrefix_1() async {
     allowedIdentifiers = {'fooA', 'fooB', 'bar'};
     await computeSuggestions('''
 class A {
@@ -10314,7 +10314,7 @@ suggestions
   }
 
   Future<void>
-      test_completion_superConstructorInvocation_withNamePrefix_1() async {
+  test_completion_superConstructorInvocation_withNamePrefix_1() async {
     allowedIdentifiers = {'fooA', 'fooB', 'bar'};
     await computeSuggestions('''
 class A {
@@ -10394,7 +10394,7 @@ suggestions
 
   @FailingTest(reason: 'instance members should not be suggested')
   Future<void>
-      test_completion_this_bad_inTopLevelVariableDeclaration_1() async {
+  test_completion_this_bad_inTopLevelVariableDeclaration_1() async {
     allowedIdentifiers = {'toString'};
     await computeSuggestions('''
 var v = this.^;
@@ -11062,7 +11062,7 @@ suggestions
   }
 
   Future<void>
-      test_noPrivateElement_otherLibrary_constructor_1_withImport() async {
+  test_noPrivateElement_otherLibrary_constructor_1_withImport() async {
     allowedIdentifiers = {'f', '_f'};
     newFile('$testPackageLibPath/lib.dart', '''
 library lib;
@@ -11084,7 +11084,7 @@ suggestions
   }
 
   Future<void>
-      test_noPrivateElement_otherLibrary_constructor_1_withoutImport() async {
+  test_noPrivateElement_otherLibrary_constructor_1_withoutImport() async {
     allowedIdentifiers = {'f', '_f'};
     await computeSuggestions('''
 import 'lib.dart';

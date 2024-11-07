@@ -16,8 +16,9 @@ class RemoveNameFromDeclarationClause extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_fixMessage];
@@ -63,7 +64,10 @@ class RemoveNameFromDeclarationClause extends ResolvedCorrectionProducer {
   }
 
   Future<void> _delete(
-      ChangeBuilder builder, AstNode clause, String clauseName) async {
+    ChangeBuilder builder,
+    AstNode clause,
+    String clauseName,
+  ) async {
     _fixMessage = "Remove '$clauseName' clause";
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(range.deletionRange(clause));

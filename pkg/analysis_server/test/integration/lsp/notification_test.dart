@@ -68,7 +68,8 @@ class A {}
 
     // Modify the file and expect a change event.
     writeFile(testFile, content.replaceAll('void foo() {', 'void foo2() {'));
-    await dartTextDocumentContentDidChangeNotifications
-        .firstWhere((notification) => notification.uri == testFileMacroUri);
+    await dartTextDocumentContentDidChangeNotifications.firstWhere(
+      (notification) => notification.uri == testFileMacroUri,
+    );
   }
 }

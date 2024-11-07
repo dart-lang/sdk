@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class MissingTemplateEndTest extends AbstractTransformSetParserTest {
   void test_missing() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - date: 2020-09-19
@@ -31,8 +32,8 @@ transforms:
       style: optional_positional
       argumentValue:
         expression: 'a{% x b'
-''', [
-      error(TransformSetErrorCode.missingTemplateEnd, 252, 2),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingTemplateEnd, 252, 2)],
+    );
   }
 }

@@ -17,8 +17,9 @@ class AddLate extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_LATE;
@@ -37,10 +38,10 @@ class AddLate extends ResolvedCorrectionProducer {
               // TODO(brianwilkerson): Consider converting this into an assist and
               //  expand it to support converting `var` to `late` as well as
               //  working anywhere a non-late local variableElement or field is selected.
-//          } else if (keyword.type == Keyword.VAR) {
-//            builder.addFileEdit(file, (builder) {
-//              builder.addSimpleReplacement(range.token(keyword), 'late');
-//            });
+              //          } else if (keyword.type == Keyword.VAR) {
+              //            builder.addFileEdit(file, (builder) {
+              //              builder.addSimpleReplacement(range.token(keyword), 'late');
+              //            });
             } else if (keyword.type != Keyword.CONST) {
               await _insertAt(builder, variableList.variables[0].offset);
             }
@@ -68,8 +69,9 @@ class AddLate extends ResolvedCorrectionProducer {
             !variableElement.isLate &&
             variableElement.setter2 == null) {
           var variableFragment = variableElement.firstFragment;
-          var declarationResult =
-              await sessionHelper.getElementDeclaration2(variableFragment);
+          var declarationResult = await sessionHelper.getElementDeclaration2(
+            variableFragment,
+          );
           if (declarationResult == null) {
             return;
           }
@@ -82,8 +84,11 @@ class AddLate extends ResolvedCorrectionProducer {
             if (variableList.variables.length == 1 &&
                 keywordToken != null &&
                 keywordToken.keyword == Keyword.FINAL) {
-              await _insertAt(builder, keywordToken.offset,
-                  source: variableFragment.libraryFragment.source);
+              await _insertAt(
+                builder,
+                keywordToken.offset,
+                source: variableFragment.libraryFragment.source,
+              );
             }
           }
         }
@@ -91,8 +96,11 @@ class AddLate extends ResolvedCorrectionProducer {
     }
   }
 
-  Future<void> _insertAt(ChangeBuilder builder, int offset,
-      {Source? source}) async {
+  Future<void> _insertAt(
+    ChangeBuilder builder,
+    int offset, {
+    Source? source,
+  }) async {
     await builder.addDartFileEdit(source?.fullName ?? file, (builder) {
       builder.addSimpleInsertion(offset, 'late ');
     });

@@ -14,12 +14,18 @@ class AnalysisGetSignatureHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisGetSignatureHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = AnalysisGetSignatureParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = AnalysisGetSignatureParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -37,7 +43,10 @@ class AnalysisGetSignatureHandler extends LegacyHandler {
     // Ensure the offset provided is a valid location in the file.
     var unit = result.unit;
     var computer = DartUnitSignatureComputer(
-        server.getDartdocDirectiveInfoFor(result), unit, params.offset);
+      server.getDartdocDirectiveInfoFor(result),
+      unit,
+      params.offset,
+    );
     if (!computer.offsetIsValid) {
       sendResponse(Response.getSignatureInvalidOffset(request));
       return;

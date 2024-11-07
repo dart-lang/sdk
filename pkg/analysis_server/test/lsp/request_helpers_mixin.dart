@@ -100,22 +100,26 @@ mixin LspProgressNotificationsMixin {
     requestsFromServer
         .where((r) => r.method == Method.window_workDoneProgress_create)
         .listen((request) async {
-      var params = WorkDoneProgressCreateParams.fromJson(
-          request.params as Map<String, Object?>);
-      if (params.token != analyzingProgressToken) {
-        controller.add('CREATE');
-      }
-    }, onDone: controller.close);
-    notificationsFromServer
-        .where((n) => n.method == Method.progress)
-        .listen((notification) {
-      var params =
-          ProgressParams.fromJson(notification.params as Map<String, Object?>);
+          var params = WorkDoneProgressCreateParams.fromJson(
+            request.params as Map<String, Object?>,
+          );
+          if (params.token != analyzingProgressToken) {
+            controller.add('CREATE');
+          }
+        }, onDone: controller.close);
+    notificationsFromServer.where((n) => n.method == Method.progress).listen((
+      notification,
+    ) {
+      var params = ProgressParams.fromJson(
+        notification.params as Map<String, Object?>,
+      );
       if (params.token != analyzingProgressToken) {
         if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
           controller.add('BEGIN');
         } else if (WorkDoneProgressEnd.canParse(
-            params.value, nullLspJsonReporter)) {
+          params.value,
+          nullLspJsonReporter,
+        )) {
           controller.add('END');
         }
       }
@@ -141,8 +145,9 @@ mixin LspRequestHelpersMixin {
   final startOfDocPos = Position(line: 0, character: 0);
 
   final startOfDocRange = Range(
-      start: Position(line: 0, character: 0),
-      end: Position(line: 0, character: 0));
+    start: Position(line: 0, character: 0),
+    end: Position(line: 0, character: 0),
+  );
 
   /// Whether to include 'clientRequestTime' fields in outgoing messages.
   bool includeClientRequestTime = false;
@@ -150,34 +155,44 @@ mixin LspRequestHelpersMixin {
   /// A stream of [DartTextDocumentContentDidChangeParams] for any
   /// `dart/textDocumentContentDidChange` notifications.
   Stream<DartTextDocumentContentDidChangeParams>
-      get dartTextDocumentContentDidChangeNotifications =>
-          notificationsFromServer
-              .where((notification) =>
-                  notification.method ==
-                  CustomMethods.dartTextDocumentContentDidChange)
-              .map((message) => DartTextDocumentContentDidChangeParams.fromJson(
-                  message.params as Map<String, Object?>));
+  get dartTextDocumentContentDidChangeNotifications => notificationsFromServer
+      .where(
+        (notification) =>
+            notification.method ==
+            CustomMethods.dartTextDocumentContentDidChange,
+      )
+      .map(
+        (message) => DartTextDocumentContentDidChangeParams.fromJson(
+          message.params as Map<String, Object?>,
+        ),
+      );
 
   Stream<NotificationMessage> get notificationsFromServer;
 
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
-      CallHierarchyItem item) {
+    CallHierarchyItem item,
+  ) {
     var request = makeRequest(
       Method.callHierarchy_incomingCalls,
       CallHierarchyIncomingCallsParams(item: item),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(CallHierarchyIncomingCall.fromJson));
+      request,
+      _fromJsonList(CallHierarchyIncomingCall.fromJson),
+    );
   }
 
   Future<List<CallHierarchyOutgoingCall>?> callHierarchyOutgoing(
-      CallHierarchyItem item) {
+    CallHierarchyItem item,
+  ) {
     var request = makeRequest(
       Method.callHierarchy_outgoingCalls,
       CallHierarchyOutgoingCallsParams(item: item),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(CallHierarchyOutgoingCall.fromJson));
+      request,
+      _fromJsonList(CallHierarchyOutgoingCall.fromJson),
+    );
   }
 
   Future<Null> connectToDtd(Uri uri) {
@@ -189,16 +204,16 @@ mixin LspRequestHelpersMixin {
   }
 
   /// Gets the entire range for [code].
-  Range entireRange(String code) => Range(
-        start: startOfDocPos,
-        end: positionFromOffset(code.length, code),
-      );
+  Range entireRange(String code) =>
+      Range(start: startOfDocPos, end: positionFromOffset(code.length, code));
 
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
 
   Future<T> expectSuccessfulResponseTo<T, R>(
-      RequestMessage request, T Function(R) fromJson);
+    RequestMessage request,
+    T Function(R) fromJson,
+  );
 
   Future<List<TextEdit>?> formatDocument(Uri fileUri) {
     var request = makeRequest(
@@ -206,29 +221,38 @@ mixin LspRequestHelpersMixin {
       DocumentFormattingParams(
         textDocument: TextDocumentIdentifier(uri: fileUri),
         options: FormattingOptions(
-            tabSize: 2,
-            insertSpaces: true), // These currently don't do anything
+          tabSize: 2,
+          insertSpaces: true,
+        ), // These currently don't do anything
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(TextEdit.fromJson));
+      request,
+      _fromJsonList(TextEdit.fromJson),
+    );
   }
 
   Future<List<TextEdit>?> formatOnType(
-      Uri fileUri, Position pos, String character) {
+    Uri fileUri,
+    Position pos,
+    String character,
+  ) {
     var request = makeRequest(
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingParams(
         ch: character,
         options: FormattingOptions(
-            tabSize: 2,
-            insertSpaces: true), // These currently don't do anything
+          tabSize: 2,
+          insertSpaces: true,
+        ), // These currently don't do anything
         textDocument: TextDocumentIdentifier(uri: fileUri),
         position: pos,
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(TextEdit.fromJson));
+      request,
+      _fromJsonList(TextEdit.fromJson),
+    );
   }
 
   Future<List<TextEdit>?> formatRange(Uri fileUri, Range range) {
@@ -236,20 +260,20 @@ mixin LspRequestHelpersMixin {
       Method.textDocument_rangeFormatting,
       DocumentRangeFormattingParams(
         options: FormattingOptions(
-            tabSize: 2,
-            insertSpaces: true), // These currently don't do anything
+          tabSize: 2,
+          insertSpaces: true,
+        ), // These currently don't do anything
         textDocument: TextDocumentIdentifier(uri: fileUri),
         range: range,
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(TextEdit.fromJson));
+      request,
+      _fromJsonList(TextEdit.fromJson),
+    );
   }
 
-  Future<Location?> getAugmentation(
-    Uri uri,
-    Position pos,
-  ) {
+  Future<Location?> getAugmentation(Uri uri, Position pos) {
     var request = makeRequest(
       CustomMethods.augmentation,
       TextDocumentPositionParams(
@@ -260,10 +284,7 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, Location.fromJson);
   }
 
-  Future<Location?> getAugmented(
-    Uri uri,
-    Position pos,
-  ) {
+  Future<Location?> getAugmented(Uri uri, Position pos) {
     var request = makeRequest(
       CustomMethods.augmented,
       TextDocumentPositionParams(
@@ -282,9 +303,10 @@ mixin LspRequestHelpersMixin {
     CodeActionTriggerKind? triggerKind,
     ProgressToken? workDoneToken,
   }) {
-    range ??= position != null
-        ? Range(start: position, end: position)
-        : throw 'Supply either a Range or Position for CodeActions requests';
+    range ??=
+        position != null
+            ? Range(start: position, end: position)
+            : throw 'Supply either a Range or Position for CodeActions requests';
     var request = makeRequest(
       Method.textDocument_codeAction,
       CodeActionParams(
@@ -303,24 +325,33 @@ mixin LspRequestHelpersMixin {
     );
     return expectSuccessfulResponseTo(
       request,
-      _fromJsonList(_generateFromJsonFor(Command.canParse, Command.fromJson,
-          CodeAction.canParse, CodeAction.fromJson)),
+      _fromJsonList(
+        _generateFromJsonFor(
+          Command.canParse,
+          Command.fromJson,
+          CodeAction.canParse,
+          CodeAction.fromJson,
+        ),
+      ),
     );
   }
 
   Future<TextDocumentCodeLensResult> getCodeLens(Uri uri) {
     var request = makeRequest(
       Method.textDocument_codeLens,
-      CodeLensParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-      ),
+      CodeLensParams(textDocument: TextDocumentIdentifier(uri: uri)),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(CodeLens.fromJson));
+      request,
+      _fromJsonList(CodeLens.fromJson),
+    );
   }
 
   Future<List<ColorPresentation>> getColorPresentation(
-      Uri fileUri, Range range, Color color) {
+    Uri fileUri,
+    Range range,
+    Color color,
+  ) {
     var request = makeRequest(
       Method.textDocument_colorPresentation,
       ColorPresentationParams(
@@ -335,14 +366,20 @@ mixin LspRequestHelpersMixin {
     );
   }
 
-  Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
-      {CompletionContext? context}) async {
+  Future<List<CompletionItem>> getCompletion(
+    Uri uri,
+    Position pos, {
+    CompletionContext? context,
+  }) async {
     var response = await getCompletionList(uri, pos, context: context);
     return response.items;
   }
 
-  Future<CompletionList> getCompletionList(Uri uri, Position pos,
-      {CompletionContext? context}) async {
+  Future<CompletionList> getCompletionList(
+    Uri uri,
+    Position pos, {
+    CompletionContext? context,
+  }) async {
     var request = makeRequest(
       Method.textDocument_completion,
       CompletionParams(
@@ -351,8 +388,10 @@ mixin LspRequestHelpersMixin {
         position: pos,
       ),
     );
-    var completions =
-        await expectSuccessfulResponseTo(request, CompletionList.fromJson);
+    var completions = await expectSuccessfulResponseTo(
+      request,
+      CompletionList.fromJson,
+    );
     _assertMinimalCompletionListPayload(completions);
     return completions;
   }
@@ -363,11 +402,15 @@ mixin LspRequestHelpersMixin {
       DartTextDocumentContentParams(uri: uri),
     );
     return expectSuccessfulResponseTo(
-        request, DartTextDocumentContent.fromJson);
+      request,
+      DartTextDocumentContent.fromJson,
+    );
   }
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
-      Uri uri, Position pos) {
+    Uri uri,
+    Position pos,
+  ) {
     var request = makeRequest(
       Method.textDocument_definition,
       TextDocumentPositionParams(
@@ -378,10 +421,11 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(
       request,
       _generateFromJsonFor(
-          _canParseList(Location.canParse),
-          _fromJsonList(Location.fromJson),
-          _canParseList(LocationLink.canParse),
-          _fromJsonList(LocationLink.fromJson)),
+        _canParseList(Location.canParse),
+        _fromJsonList(Location.fromJson),
+        _canParseList(LocationLink.canParse),
+        _fromJsonList(LocationLink.fromJson),
+      ),
     );
   }
 
@@ -394,7 +438,9 @@ mixin LspRequestHelpersMixin {
   }
 
   Future<List<LocationLink>> getDefinitionAsLocationLinks(
-      Uri uri, Position pos) async {
+    Uri uri,
+    Position pos,
+  ) async {
     var results = await getDefinition(uri, pos);
     return results.map(
       (locations) => throw 'Expected List<LocationLink> got List<Location>',
@@ -403,19 +449,14 @@ mixin LspRequestHelpersMixin {
   }
 
   Future<DartDiagnosticServer> getDiagnosticServer() {
-    var request = makeRequest(
-      CustomMethods.diagnosticServer,
-      null,
-    );
+    var request = makeRequest(CustomMethods.diagnosticServer, null);
     return expectSuccessfulResponseTo(request, DartDiagnosticServer.fromJson);
   }
 
   Future<List<ColorInformation>> getDocumentColors(Uri fileUri) {
     var request = makeRequest(
       Method.textDocument_documentColor,
-      DocumentColorParams(
-        textDocument: TextDocumentIdentifier(uri: fileUri),
-      ),
+      DocumentColorParams(textDocument: TextDocumentIdentifier(uri: fileUri)),
     );
     return expectSuccessfulResponseTo(
       request,
@@ -424,7 +465,9 @@ mixin LspRequestHelpersMixin {
   }
 
   Future<List<DocumentHighlight>?> getDocumentHighlights(
-      Uri uri, Position pos) {
+    Uri uri,
+    Position pos,
+  ) {
     var request = makeRequest(
       Method.textDocument_documentHighlight,
       TextDocumentPositionParams(
@@ -433,7 +476,9 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(DocumentHighlight.fromJson));
+      request,
+      _fromJsonList(DocumentHighlight.fromJson),
+    );
   }
 
   Future<List<DocumentLink>?> getDocumentLinks(Uri uri) {
@@ -448,39 +493,40 @@ mixin LspRequestHelpersMixin {
   }
 
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
-      getDocumentSymbols(Uri uri) {
+  getDocumentSymbols(Uri uri) {
     var request = makeRequest(
       Method.textDocument_documentSymbol,
-      DocumentSymbolParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-      ),
+      DocumentSymbolParams(textDocument: TextDocumentIdentifier(uri: uri)),
     );
     return expectSuccessfulResponseTo(
       request,
       _generateFromJsonFor(
-          _canParseList(DocumentSymbol.canParse),
-          _fromJsonList(DocumentSymbol.fromJson),
-          _canParseList(SymbolInformation.canParse),
-          _fromJsonList(SymbolInformation.fromJson)),
+        _canParseList(DocumentSymbol.canParse),
+        _fromJsonList(DocumentSymbol.fromJson),
+        _canParseList(SymbolInformation.canParse),
+        _fromJsonList(SymbolInformation.fromJson),
+      ),
     );
   }
 
   Future<List<FoldingRange>> getFoldingRanges(Uri uri) {
     var request = makeRequest(
       Method.textDocument_foldingRange,
-      FoldingRangeParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-      ),
+      FoldingRangeParams(textDocument: TextDocumentIdentifier(uri: uri)),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(FoldingRange.fromJson));
+      request,
+      _fromJsonList(FoldingRange.fromJson),
+    );
   }
 
   Future<Hover?> getHover(Uri uri, Position pos) {
     var request = makeRequest(
       Method.textDocument_hover,
       TextDocumentPositionParams(
-          textDocument: TextDocumentIdentifier(uri: uri), position: pos),
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
     );
     return expectSuccessfulResponseTo(request, Hover.fromJson);
   }
@@ -498,7 +544,9 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(Location.fromJson));
+      request,
+      _fromJsonList(Location.fromJson),
+    );
   }
 
   Future<List<InlayHint>> getInlayHints(Uri uri, Range range) {
@@ -510,7 +558,9 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(InlayHint.fromJson));
+      request,
+      _fromJsonList(InlayHint.fromJson),
+    );
   }
 
   Future<List<Location>> getReferences(
@@ -527,7 +577,9 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(Location.fromJson));
+      request,
+      _fromJsonList(Location.fromJson),
+    );
   }
 
   Future<CompletionItem> getResolvedCompletion(
@@ -547,22 +599,26 @@ mixin LspRequestHelpersMixin {
   }
 
   Future<List<SelectionRange>?> getSelectionRanges(
-      Uri uri, List<Position> positions) {
+    Uri uri,
+    List<Position> positions,
+  ) {
     var request = makeRequest(
       Method.textDocument_selectionRange,
       SelectionRangeParams(
-          textDocument: TextDocumentIdentifier(uri: uri), positions: positions),
+        textDocument: TextDocumentIdentifier(uri: uri),
+        positions: positions,
+      ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(SelectionRange.fromJson));
+      request,
+      _fromJsonList(SelectionRange.fromJson),
+    );
   }
 
   Future<SemanticTokens> getSemanticTokens(Uri uri) {
     var request = makeRequest(
       Method.textDocument_semanticTokens_full,
-      SemanticTokensParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-      ),
+      SemanticTokensParams(textDocument: TextDocumentIdentifier(uri: uri)),
     );
     return expectSuccessfulResponseTo(request, SemanticTokens.fromJson);
   }
@@ -578,8 +634,11 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, SemanticTokens.fromJson);
   }
 
-  Future<SignatureHelp?> getSignatureHelp(Uri uri, Position pos,
-      [SignatureHelpContext? context]) {
+  Future<SignatureHelp?> getSignatureHelp(
+    Uri uri,
+    Position pos, [
+    SignatureHelpContext? context,
+  ]) {
     var request = makeRequest(
       Method.textDocument_signatureHelp,
       SignatureHelpParams(
@@ -591,10 +650,7 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, SignatureHelp.fromJson);
   }
 
-  Future<Location> getSuper(
-    Uri uri,
-    Position pos,
-  ) {
+  Future<Location> getSuper(Uri uri, Position pos) {
     var request = makeRequest(
       CustomMethods.super_,
       TextDocumentPositionParams(
@@ -606,7 +662,9 @@ mixin LspRequestHelpersMixin {
   }
 
   Future<TextDocumentTypeDefinitionResult> getTypeDefinition(
-      Uri uri, Position pos) {
+    Uri uri,
+    Position pos,
+  ) {
     var request = makeRequest(
       Method.textDocument_typeDefinition,
       TypeDefinitionParams(
@@ -635,15 +693,18 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(
       request,
       _generateFromJsonFor(
-          definitionCanParse,
-          definitionFromJson,
-          _canParseList(DefinitionLink.canParse),
-          _fromJsonList(DefinitionLink.fromJson)),
+        definitionCanParse,
+        definitionFromJson,
+        _canParseList(DefinitionLink.canParse),
+        _fromJsonList(DefinitionLink.fromJson),
+      ),
     );
   }
 
   Future<List<Location>> getTypeDefinitionAsLocation(
-      Uri uri, Position pos) async {
+    Uri uri,
+    Position pos,
+  ) async {
     var results = (await getTypeDefinition(uri, pos))!;
     return results.map(
       (locationOrList) => locationOrList.map(
@@ -655,7 +716,9 @@ mixin LspRequestHelpersMixin {
   }
 
   Future<List<LocationLink>> getTypeDefinitionAsLocationLinks(
-      Uri uri, Position pos) async {
+    Uri uri,
+    Position pos,
+  ) async {
     var results = (await getTypeDefinition(uri, pos))!;
     return results.map(
       (locationOrList) => throw 'Expected LocationLinks, got Locations',
@@ -669,7 +732,9 @@ mixin LspRequestHelpersMixin {
       WorkspaceSymbolParams(query: query),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(SymbolInformation.fromJson));
+      request,
+      _fromJsonList(SymbolInformation.fromJson),
+    );
   }
 
   RequestMessage makeRequest(Method method, ToJsonable? params) {
@@ -679,9 +744,10 @@ mixin LspRequestHelpersMixin {
       method: method,
       params: params,
       jsonrpc: jsonRpcVersion,
-      clientRequestTime: includeClientRequestTime
-          ? DateTime.now().millisecondsSinceEpoch
-          : null,
+      clientRequestTime:
+          includeClientRequestTime
+              ? DateTime.now().millisecondsSinceEpoch
+              : null,
     );
   }
 
@@ -707,7 +773,9 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(CallHierarchyItem.fromJson));
+      request,
+      _fromJsonList(CallHierarchyItem.fromJson),
+    );
   }
 
   Future<PrepareRenamePlaceholder?> prepareRename(Uri uri, Position pos) {
@@ -719,7 +787,9 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo(
-        request, PrepareRenamePlaceholder.fromJson);
+      request,
+      PrepareRenamePlaceholder.fromJson,
+    );
   }
 
   Future<List<TypeHierarchyItem>?> prepareTypeHierarchy(Uri uri, Position pos) {
@@ -731,35 +801,40 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(TypeHierarchyItem.fromJson));
+      request,
+      _fromJsonList(TypeHierarchyItem.fromJson),
+    );
   }
 
   Future<CompletionItem> resolveCompletion(CompletionItem item) {
-    var request = makeRequest(
-      Method.completionItem_resolve,
-      item,
-    );
+    var request = makeRequest(Method.completionItem_resolve, item);
     return expectSuccessfulResponseTo(request, CompletionItem.fromJson);
   }
 
   Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
-      TypeHierarchyItem item) {
+    TypeHierarchyItem item,
+  ) {
     var request = makeRequest(
       Method.typeHierarchy_subtypes,
       TypeHierarchySubtypesParams(item: item),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(TypeHierarchyItem.fromJson));
+      request,
+      _fromJsonList(TypeHierarchyItem.fromJson),
+    );
   }
 
   Future<List<TypeHierarchyItem>?> typeHierarchySupertypes(
-      TypeHierarchyItem item) {
+    TypeHierarchyItem item,
+  ) {
     var request = makeRequest(
       Method.typeHierarchy_supertypes,
       TypeHierarchySupertypesParams(item: item),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(TypeHierarchyItem.fromJson));
+      request,
+      _fromJsonList(TypeHierarchyItem.fromJson),
+    );
   }
 
   /// A helper that performs some checks on a completion sent back during
@@ -767,10 +842,14 @@ mixin LspRequestHelpersMixin {
   /// reduced.
   void _assertMinimalCompletionItemPayload(CompletionItem completion) {
     var labelDetails = completion.labelDetails;
-    var textEditInsertRange =
-        completion.textEdit?.map((ranges) => ranges.insert, (range) => null);
-    var textEditReplaceRange =
-        completion.textEdit?.map((ranges) => ranges.replace, (range) => null);
+    var textEditInsertRange = completion.textEdit?.map(
+      (ranges) => ranges.insert,
+      (range) => null,
+    );
+    var textEditReplaceRange = completion.textEdit?.map(
+      (ranges) => ranges.replace,
+      (range) => null,
+    );
     var sortText = completion.sortText;
 
     // Check fields that default to label if not supplied.
@@ -824,7 +903,8 @@ mixin LspRequestHelpersMixin {
       expect(
         sortText.length,
         lessThanOrEqualTo(maximumRelevance.toString().length),
-        reason: 'sortText never needs to have more characters '
+        reason:
+            'sortText never needs to have more characters '
             'than "$maximumRelevance" (${maximumRelevance.bitLength})',
       );
     }
@@ -837,22 +917,34 @@ mixin LspRequestHelpersMixin {
     for (var completion in completions.items) {
       var data = completion.data;
       var commitCharacters = completion.commitCharacters;
-      var insertRange = completion.textEdit
-          ?.map((insertReplace) => insertReplace.insert, (textEdit) => null);
-      var replaceRange = completion.textEdit
-          ?.map((insertReplace) => insertReplace.replace, (textEdit) => null);
-      var combinedRange = completion.textEdit
-          ?.map((insertReplace) => null, (textEdit) => textEdit.range);
+      var insertRange = completion.textEdit?.map(
+        (insertReplace) => insertReplace.insert,
+        (textEdit) => null,
+      );
+      var replaceRange = completion.textEdit?.map(
+        (insertReplace) => insertReplace.replace,
+        (textEdit) => null,
+      );
+      var combinedRange = completion.textEdit?.map(
+        (insertReplace) => null,
+        (textEdit) => textEdit.range,
+      );
       var insertTextFormat = completion.insertTextFormat;
       var insertTextMode = completion.insertTextMode;
 
       var defaults = completions.itemDefaults;
-      var defaultInsertRange = defaults?.editRange
-          ?.map((editRange) => editRange.insert, (range) => null);
-      var defaultReplaceRange = defaults?.editRange
-          ?.map((editRange) => editRange.replace, (range) => null);
-      var defaultCombinedRange =
-          defaults?.editRange?.map((editRange) => null, (range) => range);
+      var defaultInsertRange = defaults?.editRange?.map(
+        (editRange) => editRange.insert,
+        (range) => null,
+      );
+      var defaultReplaceRange = defaults?.editRange?.map(
+        (editRange) => editRange.replace,
+        (range) => null,
+      );
+      var defaultCombinedRange = defaults?.editRange?.map(
+        (editRange) => null,
+        (range) => range,
+      );
 
       _assertMinimalCompletionItemPayload(completion);
 
@@ -869,15 +961,24 @@ mixin LspRequestHelpersMixin {
 
         expectNotDefault(data?.toJson(), defaults.data, 'data');
         expectNotDefault(
-            commitCharacters, defaults.commitCharacters, 'commitCharacters');
+          commitCharacters,
+          defaults.commitCharacters,
+          'commitCharacters',
+        );
 
         expectNotDefault(insertRange, defaultInsertRange, 'insertRange');
         expectNotDefault(replaceRange, defaultReplaceRange, 'replaceRange');
         expectNotDefault(combinedRange, defaultCombinedRange, 'combined range');
         expectNotDefault(
-            insertTextFormat, defaults.insertTextFormat, 'insertTextFormat');
+          insertTextFormat,
+          defaults.insertTextFormat,
+          'insertTextFormat',
+        );
         expectNotDefault(
-            insertTextMode, defaults.insertTextMode, 'insertTextMode');
+          insertTextMode,
+          defaults.insertTextMode,
+          'insertTextMode',
+        );
       }
 
       // If we have separate insert/replace ranges, they should not be the same.
@@ -888,16 +989,17 @@ mixin LspRequestHelpersMixin {
   }
 
   bool Function(Object?, LspJsonReporter) _canParseList<T>(
-          bool Function(Map<String, Object?>, LspJsonReporter) canParse) =>
+    bool Function(Map<String, Object?>, LspJsonReporter) canParse,
+  ) =>
       (input, reporter) =>
           input is List &&
-          input
-              .cast<Map<String, Object?>>()
-              .every((item) => canParse(item, reporter));
+          input.cast<Map<String, Object?>>().every(
+            (item) => canParse(item, reporter),
+          );
 
   List<T> Function(List<Object?>) _fromJsonList<T>(
-          T Function(Map<String, Object?>) fromJson) =>
-      (input) => input.cast<Map<String, Object?>>().map(fromJson).toList();
+    T Function(Map<String, Object?>) fromJson,
+  ) => (input) => input.cast<Map<String, Object?>>().map(fromJson).toList();
 
   /// Creates a `canParse()` function for an `Either2<T1, T2>` using
   /// the `canParse` function for each type.
@@ -912,11 +1014,12 @@ mixin LspRequestHelpersMixin {
   /// Creates a `fromJson()` function for an `Either2<T1, T2>` using
   /// the `canParse` and `fromJson` functions for each type.
   static Either2<T1, T2> Function(Object?) _generateFromJsonFor<T1, T2, R1, R2>(
-      bool Function(Object?, LspJsonReporter) canParse1,
-      T1 Function(R1) fromJson1,
-      bool Function(Object?, LspJsonReporter) canParse2,
-      T2 Function(R2) fromJson2,
-      [LspJsonReporter? reporter]) {
+    bool Function(Object?, LspJsonReporter) canParse1,
+    T1 Function(R1) fromJson1,
+    bool Function(Object?, LspJsonReporter) canParse2,
+    T2 Function(R2) fromJson2, [
+    LspJsonReporter? reporter,
+  ]) {
     reporter ??= nullLspJsonReporter;
     return (input) {
       reporter!;

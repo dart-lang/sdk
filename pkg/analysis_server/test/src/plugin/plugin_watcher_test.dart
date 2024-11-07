@@ -35,8 +35,13 @@ class PluginWatcherTest extends AbstractContextTest {
   Future<void> test_addedDriver() async {
     newPubspecYamlFile('/foo', 'name: foo');
     newFile(
-      join('/foo', PluginLocator.toolsFolderName,
-          PluginLocator.defaultPluginFolderName, 'bin', 'plugin.dart'),
+      join(
+        '/foo',
+        PluginLocator.toolsFolderName,
+        PluginLocator.defaultPluginFolderName,
+        'bin',
+        'plugin.dart',
+      ),
       '',
     );
     newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
@@ -46,8 +51,9 @@ analyzer:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: convertPath('/foo')),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: convertPath('/foo')),
     );
 
     var driver = driverFor(testFile);
@@ -102,7 +108,9 @@ class TestPluginManager implements PluginManager {
 
   @override
   Future<void> addPluginToContextRoot(
-      ContextRoot contextRoot, String path) async {
+    ContextRoot contextRoot,
+    String path,
+  ) async {
     addedContextRoots.add(contextRoot);
     return;
   }

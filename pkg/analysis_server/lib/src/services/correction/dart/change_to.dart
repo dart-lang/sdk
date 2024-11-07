@@ -27,23 +27,23 @@ class ChangeTo extends ResolvedCorrectionProducer {
 
   /// Initializes a newly created instance that will propose classes and mixins.
   ChangeTo.annotation({required super.context})
-      : _kind = _ReplacementKind.annotation;
+    : _kind = _ReplacementKind.annotation;
 
   /// Initializes a newly created instance that will propose classes and mixins.
   ChangeTo.classOrMixin({required super.context})
-      : _kind = _ReplacementKind.classOrMixin;
+    : _kind = _ReplacementKind.classOrMixin;
 
   /// Initializes a newly created instance that will propose fields.
   ChangeTo.field({required super.context}) : _kind = _ReplacementKind.field;
 
   /// Initializes a newly created instance that will propose functions.
   ChangeTo.function({required super.context})
-      : _kind = _ReplacementKind.function;
+    : _kind = _ReplacementKind.function;
 
   /// Initializes a newly created instance that will propose getters and
   /// setters.
   ChangeTo.getterOrSetter({required super.context})
-      : _kind = _ReplacementKind.getterOrSetter;
+    : _kind = _ReplacementKind.getterOrSetter;
 
   /// Initializes a newly created instance that will propose methods.
   ChangeTo.method({required super.context}) : _kind = _ReplacementKind.method;
@@ -51,12 +51,13 @@ class ChangeTo extends ResolvedCorrectionProducer {
   /// Initializes a newly created instance that will propose super formal
   /// parameters.
   ChangeTo.superFormalParameter({required super.context})
-      : _kind = _ReplacementKind.superFormalParameter;
+    : _kind = _ReplacementKind.superFormalParameter;
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_proposedName];
@@ -77,18 +78,23 @@ class ChangeTo extends ResolvedCorrectionProducer {
       _ReplacementKind.function => _proposeFunction(builder),
       _ReplacementKind.getterOrSetter => _proposeGetterOrSetter(builder),
       _ReplacementKind.method => _proposeMethod(builder),
-      _ReplacementKind.superFormalParameter =>
-        _proposeSuperFormalParameter(builder),
+      _ReplacementKind.superFormalParameter => _proposeSuperFormalParameter(
+        builder,
+      ),
     };
   }
 
   Iterable<FormalParameterElement> _formalParameterSuggestions(
-      FunctionTypedElement2 element,
-      Iterable<FormalParameter> formalParameters) {
-    return element.formalParameters.where((superParam) =>
-        superParam.isNamed &&
-        !formalParameters
-            .any((param) => superParam.name3 == param.name?.lexeme));
+    FunctionTypedElement2 element,
+    Iterable<FormalParameter> formalParameters,
+  ) {
+    return element.formalParameters.where(
+      (superParam) =>
+          superParam.isNamed &&
+          !formalParameters.any(
+            (param) => superParam.name3 == param.name?.lexeme,
+          ),
+    );
   }
 
   Future<void> _proposeAnnotation(ChangeBuilder builder) async {
@@ -122,7 +128,9 @@ class ChangeTo extends ResolvedCorrectionProducer {
     if (nameToken != null) {
       // Prepare for selecting the closest element.
       var finder = _ClosestElementFinder(
-          nameToken.lexeme, (element) => element is InterfaceElement2);
+        nameToken.lexeme,
+        (element) => element is InterfaceElement2,
+      );
       // Check elements of this library.
       if (prefixName == null) {
         finder._updateList(unitResult.libraryElement2.classes);
@@ -140,8 +148,12 @@ class ChangeTo extends ResolvedCorrectionProducer {
     }
   }
 
-  Future<void> _proposeClassOrMixinMember(ChangeBuilder builder, Token node,
-      Expression? target, _ElementPredicate predicate) async {
+  Future<void> _proposeClassOrMixinMember(
+    ChangeBuilder builder,
+    Token node,
+    Expression? target,
+    _ElementPredicate predicate,
+  ) async {
     var targetIdentifierElement = target is Identifier ? target.element : null;
     var finder = _ClosestElementFinder(node.lexeme, predicate);
     // unqualified invocation
@@ -197,8 +209,11 @@ class ChangeTo extends ResolvedCorrectionProducer {
           !element.isSynthetic &&
           !element.isExternal &&
           (type == null ||
-              typeSystem.isAssignableTo(type, element.type,
-                  strictCasts: analysisOptions.strictCasts));
+              typeSystem.isAssignableTo(
+                type,
+                element.type,
+                strictCasts: analysisOptions.strictCasts,
+              ));
     });
   }
 
@@ -218,7 +233,9 @@ class ChangeTo extends ResolvedCorrectionProducer {
       }
       // Prepare for selecting the closest element.
       var finder = _ClosestElementFinder(
-          node.name, (element) => element is TopLevelFunctionElement);
+        node.name,
+        (element) => element is TopLevelFunctionElement,
+      );
       // Check to this library units.
       if (prefixName == null) {
         for (var function in unitResult.libraryElement2.functions) {
@@ -270,8 +287,12 @@ class ChangeTo extends ResolvedCorrectionProducer {
     var node = this.node;
     var parent = node.parent;
     if (parent is MethodInvocation && node is SimpleIdentifier) {
-      await _proposeClassOrMixinMember(builder, node.token, parent.realTarget,
-          (element) => element is MethodElement2 && !element.isOperator);
+      await _proposeClassOrMixinMember(
+        builder,
+        node.token,
+        parent.realTarget,
+        (element) => element is MethodElement2 && !element.isOperator,
+      );
     }
   }
 
@@ -283,8 +304,9 @@ class ChangeTo extends ResolvedCorrectionProducer {
         superParameter.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration == null) return;
 
-    var formalParameters = constructorDeclaration.parameters.parameters
-        .whereType<DefaultFormalParameter>();
+    var formalParameters =
+        constructorDeclaration.parameters.parameters
+            .whereType<DefaultFormalParameter>();
 
     var finder = _ClosestElementFinder(superParameter.name.lexeme, (e) => true);
 
@@ -319,7 +341,10 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   Future<void> _suggest(
-      ChangeBuilder builder, SyntacticEntity node, String? name) async {
+    ChangeBuilder builder,
+    SyntacticEntity node,
+    String? name,
+  ) async {
     if (name != null) {
       _proposedName = name;
       await builder.addDartFileEdit(file, (builder) {
@@ -329,13 +354,17 @@ class ChangeTo extends ResolvedCorrectionProducer {
   }
 
   void _updateFinderWithClassMembers(
-      _ClosestElementFinder finder, InterfaceElement2 clazz) {
+    _ClosestElementFinder finder,
+    InterfaceElement2 clazz,
+  ) {
     var members = getMembers2(clazz);
     finder._updateList(members);
   }
 
   void _updateFinderWithExtensionMembers(
-      _ClosestElementFinder finder, ExtensionElement2? element) {
+    _ClosestElementFinder finder,
+    ExtensionElement2? element,
+  ) {
     if (element != null) {
       finder._updateList(getExtensionMembers2(element));
     }

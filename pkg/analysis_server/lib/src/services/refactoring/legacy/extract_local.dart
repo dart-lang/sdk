@@ -59,14 +59,18 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   Set<String> excludedVariableNames = <String>{};
 
   ExtractLocalRefactoringImpl(
-      this.resolveResult, this.selectionOffset, this.selectionLength) {
+    this.resolveResult,
+    this.selectionOffset,
+    this.selectionLength,
+  ) {
     selectionRange = SourceRange(selectionOffset, selectionLength);
     utils = CorrectionUtils(resolveResult);
   }
 
-  CodeStyleOptions get codeStyleOptions => resolveResult.session.analysisContext
-      .getAnalysisOptionsForFile(resolveResult.file)
-      .codeStyleOptions;
+  CodeStyleOptions get codeStyleOptions =>
+      resolveResult.session.analysisContext
+          .getAnalysisOptionsForFile(resolveResult.file)
+          .codeStyleOptions;
 
   String get file => resolveResult.path;
 
@@ -78,15 +82,17 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   CompilationUnitElement get unitElement => unit.declaredElement!;
 
   String get _declarationKeywordAndType {
-    var useConst = stringLiteralPart == null &&
+    var useConst =
+        stringLiteralPart == null &&
         _isPartOfConstantExpression(singleExpression);
     var useFinal = codeStyleOptions.makeLocalsFinal;
 
     String? typeString;
     if (codeStyleOptions.specifyTypes) {
-      typeString = singleExpression != null
-          ? singleExpression?.staticType?.getDisplayString()
-          : stringLiteralPart != null
+      typeString =
+          singleExpression != null
+              ? singleExpression?.staticType?.getDisplayString()
+              : stringLiteralPart != null
               ? 'String'
               : null;
     }
@@ -119,8 +125,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     _prepareOccurrences();
     _prepareOffsetsLengths();
     // names
-    excludedVariableNames =
-        unit.findPossibleLocalVariableConflicts(selectionOffset);
+    excludedVariableNames = unit.findPossibleLocalVariableConflicts(
+      selectionOffset,
+    );
     _prepareNames();
     // done
     return Future.value(result);
@@ -132,7 +139,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     result.addStatus(validateVariableName(name));
     if (excludedVariableNames.contains(name)) {
       result.addError(
-          format("The name '{0}' is already used in the scope.", name));
+        format("The name '{0}' is already used in the scope.", name),
+      );
     }
     return result;
   }
@@ -197,16 +205,23 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         {
           var code = '{$eol$prefix$indent';
           addPosition(
-              target.offset + code.length + nameOffsetInDeclarationCode);
+            target.offset + code.length + nameOffsetInDeclarationCode,
+          );
           code += declarationCode + eol;
           code += '$prefix${indent}return ';
-          var edit =
-              SourceEdit(target.offset, expr.offset - target.offset, code);
+          var edit = SourceEdit(
+            target.offset,
+            expr.offset - target.offset,
+            code,
+          );
           occurrencesShift = target.offset + code.length - expr.offset;
           doSourceChange_addElementEdit(change, unitElement, edit);
         }
-        doSourceChange_addElementEdit(change, unitElement,
-            SourceEdit(expr.end, target.end - expr.end, ';$eol$prefix}'));
+        doSourceChange_addElementEdit(
+          change,
+          unitElement,
+          SourceEdit(expr.end, target.end - expr.end, ';$eol$prefix}'),
+        );
       }
     }
     // prepare replacement
@@ -224,13 +239,18 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       doSourceChange_addElementEdit(change, unitElement, edit);
     }
     // add the linked group
-    change.addLinkedEditGroup(LinkedEditGroup(
+    change.addLinkedEditGroup(
+      LinkedEditGroup(
         positions,
         name.length,
         names
-            .map((name) =>
-                LinkedEditSuggestion(name, LinkedEditSuggestionKind.VARIABLE))
-            .toList()));
+            .map(
+              (name) =>
+                  LinkedEditSuggestion(name, LinkedEditSuggestionKind.VARIABLE),
+            )
+            .toList(),
+      ),
+    );
     // done
     return Future.value(change);
   }
@@ -245,11 +265,13 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   RefactoringStatus _checkSelection() {
     if (selectionOffset <= 0) {
       return RefactoringStatus.fatal(
-          'The selection offset must be greater than zero.');
+        'The selection offset must be greater than zero.',
+      );
     }
     if (selectionOffset + selectionLength >= resolveResult.content.length) {
       return RefactoringStatus.fatal(
-          'The selection end offset must be less than the length of the file.');
+        'The selection end offset must be less than the length of the file.',
+      );
     }
 
     var selectionStr = utils.getRangeText(selectionRange);
@@ -264,8 +286,10 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
 
     // get covering node
-    var coveringNode = NodeLocator(selectionRange.offset, selectionRange.end)
-        .searchWithin(unit);
+    var coveringNode = NodeLocator(
+      selectionRange.offset,
+      selectionRange.end,
+    ).searchWithin(unit);
 
     // We need an enclosing function.
     // If it has a block body, we can add a new variable declaration statement
@@ -274,8 +298,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     coveringFunctionBody = coveringNode?.thisOrAncestorOfType<FunctionBody>();
     if (coveringFunctionBody == null) {
       return RefactoringStatus.fatal(
-          'An expression inside a function must be selected '
-          'to activate this refactoring.');
+        'An expression inside a function must be selected '
+        'to activate this refactoring.',
+      );
     }
 
     // part of string literal
@@ -319,8 +344,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         if (element is ExecutableElement && element.returnType is VoidType) {
           if (singleExpression == null) {
             return RefactoringStatus.fatal(
-                'Cannot extract the void expression.',
-                newLocation_fromNode(node));
+              'Cannot extract the void expression.',
+              newLocation_fromNode(node),
+            );
           }
           break;
         }
@@ -330,8 +356,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         if (node is SimpleIdentifier) {
           if (node.inDeclarationContext()) {
             return RefactoringStatus.fatal(
-                'Cannot extract the name part of a declaration.',
-                newLocation_fromNode(node));
+              'Cannot extract the name part of a declaration.',
+              newLocation_fromNode(node),
+            );
           }
           var element = node.staticElement;
           if (element is FunctionElement || element is MethodElement) {
@@ -340,8 +367,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         }
         if (parent is AssignmentExpression && parent.leftHandSide == node) {
           return RefactoringStatus.fatal(
-              'Cannot extract the left-hand side of an assignment.',
-              newLocation_fromNode(node));
+            'Cannot extract the left-hand side of an assignment.',
+            newLocation_fromNode(node),
+          );
         }
       }
       // set selected expression
@@ -357,7 +385,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
     // invalid selection
     return RefactoringStatus.fatal(
-        'Expression must be selected to activate this refactoring.');
+      'Expression must be selected to activate this refactoring.',
+    );
   }
 
   /// Return an unique identifier for the given [Element], or `null` if
@@ -383,23 +412,26 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   String _encodeExpressionTokens(Expression expr, List<Token> tokens) {
     // prepare Token -> LocalElement map
     Map<Token, Element> map = HashMap<Token, Element>(
-        equals: (Token a, Token b) => a.lexeme == b.lexeme,
-        hashCode: (Token t) => t.lexeme.hashCode);
+      equals: (Token a, Token b) => a.lexeme == b.lexeme,
+      hashCode: (Token t) => t.lexeme.hashCode,
+    );
     expr.accept(_TokenLocalElementVisitor(map));
     // map and join tokens
-    var result = tokens.map((Token token) {
-      var tokenString = token.lexeme;
-      // append token's Element id
-      var element = map[token];
-      if (element != null) {
-        var elementId = _encodeElement(element);
-        if (elementId != null) {
-          tokenString += '-$elementId';
-        }
-      }
-      // done
-      return tokenString;
-    }).join(_TOKEN_SEPARATOR);
+    var result = tokens
+        .map((Token token) {
+          var tokenString = token.lexeme;
+          // append token's Element id
+          var element = map[token];
+          if (element != null) {
+            var elementId = _encodeElement(element);
+            if (elementId != null) {
+              tokenString += '-$elementId';
+            }
+          }
+          // done
+          return tokenString;
+        })
+        .join(_TOKEN_SEPARATOR);
     return result + _TOKEN_SEPARATOR;
   }
 
@@ -493,13 +525,20 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     var stringLiteralPart = this.stringLiteralPart;
     var singleExpression = this.singleExpression;
     if (stringLiteralPart != null) {
-      names.addAll(getVariableNameSuggestionsForText(
-          stringLiteralPart, excludedVariableNames));
+      names.addAll(
+        getVariableNameSuggestionsForText(
+          stringLiteralPart,
+          excludedVariableNames,
+        ),
+      );
     } else if (singleExpression != null) {
-      names.addAll(getVariableNameSuggestionsForExpression(
+      names.addAll(
+        getVariableNameSuggestionsForExpression(
           singleExpression.staticType,
           singleExpression,
-          excludedVariableNames));
+          excludedVariableNames,
+        ),
+      );
     }
   }
 
@@ -517,8 +556,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       selectionSource = _encodeExpressionTokens(singleExpression, tokens);
     }
     // visit function
-    coveringFunctionBody!.accept(_OccurrencesVisitor(
-        this, occurrences, selectionSource, unit.featureSet));
+    coveringFunctionBody!.accept(
+      _OccurrencesVisitor(this, occurrences, selectionSource, unit.featureSet),
+    );
   }
 
   void _prepareOffsetsLengths() {
@@ -538,7 +578,11 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final FeatureSet featureSet;
 
   _OccurrencesVisitor(
-      this.ref, this.occurrences, this.selectionSource, this.featureSet);
+    this.ref,
+    this.occurrences,
+    this.selectionSource,
+    this.featureSet,
+  );
 
   @override
   void visitExpression(Expression node) {

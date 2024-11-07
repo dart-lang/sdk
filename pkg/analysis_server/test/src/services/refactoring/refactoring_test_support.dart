@@ -100,12 +100,8 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   ///
   /// Enables all required client capabilities for new refactors unless the
   /// corresponding flags are set to `false`.
-  Future<void> initializeServer({
-    bool experimentalOptInFlag = true,
-  }) async {
-    var config = {
-      if (experimentalOptInFlag) 'experimentalRefactors': true,
-    };
+  Future<void> initializeServer({bool experimentalOptInFlag = true}) async {
+    var config = {if (experimentalOptInFlag) 'experimentalRefactors': true};
 
     await provideConfig(super.initialize, config);
   }

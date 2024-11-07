@@ -51,7 +51,12 @@ class LogPage extends PageWriter {
 
     writeMenu(sink);
     writeTwoColumns(
-        sink, 'leftColumn', _writeLeftColumn, 'rightColumn', _writeRightColumn);
+      sink,
+      'leftColumn',
+      _writeLeftColumn,
+      'rightColumn',
+      _writeRightColumn,
+    );
   }
 
   @override
@@ -258,7 +263,8 @@ function selectEntryGroup(pageStart) {
     } else {
       sink.write('<button type="button">');
       sink.write(
-          '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart - pageLength!}">');
+        '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart - pageLength!}">',
+      );
       sink.write('<b>&lt;</b>');
       sink.writeln('</a></button>');
     }
@@ -268,7 +274,8 @@ function selectEntryGroup(pageStart) {
     } else {
       sink.write('<button type="button">');
       sink.write(
-          '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart + pageLength!}">');
+        '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart + pageLength!}">',
+      );
       sink.write('<b>&gt;</b>');
       sink.writeln('</a></button>');
     }

@@ -43,7 +43,9 @@ class InstrumentationInputConverter extends CommonInputConverter {
       }
     } catch (e, s) {
       throw AnalysisException(
-          'Failed to parse line\n$line', CaughtException(e, s));
+        'Failed to parse line\n$line',
+        CaughtException(e, s),
+      );
     }
     // int timeStamp = int.parse(fields[0], onError: (_) => -1);
     var opCode = fields[1];
@@ -71,7 +73,9 @@ class InstrumentationInputConverter extends CommonInputConverter {
     }
     if (codesSeen.add(opCode)) {
       logger.log(
-          Level.WARNING, 'Ignored instrumentation op code: $opCode\n  $line');
+        Level.WARNING,
+        'Ignored instrumentation op code: $opCode\n  $line',
+      );
     }
     return null;
   }
@@ -81,7 +85,9 @@ class InstrumentationInputConverter extends CommonInputConverter {
       return asMap(json.decode(text));
     } catch (e, s) {
       throw AnalysisException(
-          'Failed to decode JSON: $text\n$line', CaughtException(e, s));
+        'Failed to decode JSON: $text\n$line',
+        CaughtException(e, s),
+      );
     }
   }
 

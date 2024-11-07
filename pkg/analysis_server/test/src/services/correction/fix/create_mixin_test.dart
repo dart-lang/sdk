@@ -124,7 +124,8 @@ class MyAnnotation {
 @MyAnnotation(int, const [Test])
 void f() {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -133,9 +134,11 @@ void f() {}
 
 mixin Test {
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
+      },
+    );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 

@@ -25,8 +25,11 @@ abstract class AbstractGoToHandler
   Element? findRelatedElement(Element element);
 
   @override
-  Future<ErrorOr<Location?>> handle(TextDocumentPositionParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<Location?>> handle(
+    TextDocumentPositionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -66,14 +69,16 @@ abstract class AbstractGoToHandler
         return success(null);
       }
 
-      return success(Location(
-        uri: uriConverter.toClientUri(sourcePath),
-        range: toRange(
-          locationLineInfo,
-          targetElement.nameOffset,
-          targetElement.nameLength,
+      return success(
+        Location(
+          uri: uriConverter.toClientUri(sourcePath),
+          range: toRange(
+            locationLineInfo,
+            targetElement.nameOffset,
+            targetElement.nameLength,
+          ),
         ),
-      ));
+      );
     });
   }
 }

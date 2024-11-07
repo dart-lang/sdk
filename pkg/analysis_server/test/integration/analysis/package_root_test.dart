@@ -44,14 +44,17 @@ f() {}
     await sendServerSetSubscriptions([ServerService.STATUS]);
     var navigationParamsFuture = onAnalysisNavigation.first;
     await sendAnalysisSetSubscriptions({
-      AnalysisService.NAVIGATION: [mainPath]
+      AnalysisService.NAVIGATION: [mainPath],
     });
     List<NavigationRegion> navigationRegions;
     List<NavigationTarget> navigationTargets;
     List<String> navigationTargetFiles;
 
-    await sendAnalysisSetAnalysisRoots([projPath], [],
-        packageRoots: {projPath: packagesPath});
+    await sendAnalysisSetAnalysisRoots(
+      [projPath],
+      [],
+      packageRoots: {projPath: packagesPath},
+    );
     await sendAnalysisSetPriorityFiles([mainPath]);
 
     var params = await navigationParamsFuture;
@@ -67,8 +70,10 @@ f() {}
     // refers to it.
     var found = false;
     for (var region in navigationRegions) {
-      var navigationSource =
-          mainText.substring(region.offset, region.offset + region.length);
+      var navigationSource = mainText.substring(
+        region.offset,
+        region.offset + region.length,
+      );
       if (navigationSource == 'f') {
         found = true;
         expect(region.targets, hasLength(1));

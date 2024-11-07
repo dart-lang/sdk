@@ -39,17 +39,9 @@ Future<WriteArgumentsStatus> writeArguments({
             }
             if (update is FormalParameterUpdateExistingNamed) {
               // TODO(scheglov): maybe support renames
-              newArguments.add(
-                _ArgumentAsIs(
-                  argument: argument,
-                ),
-              );
+              newArguments.add(_ArgumentAsIs(argument: argument));
             } else {
-              newArguments.add(
-                _ArgumentRemoveName(
-                  namedExpression: argument,
-                ),
-              );
+              newArguments.add(_ArgumentRemoveName(namedExpression: argument));
             }
           case PositionalFormalParameterReference():
             var argument = positionArguments.elementAtOrNull(reference.index);
@@ -58,32 +50,18 @@ Future<WriteArgumentsStatus> writeArguments({
             }
             if (update is FormalParameterUpdateExistingNamed) {
               newArguments.add(
-                _ArgumentAddName(
-                  name: update.name,
-                  argument: argument,
-                ),
+                _ArgumentAddName(name: update.name, argument: argument),
               );
             } else {
-              newArguments.add(
-                _ArgumentAsIs(
-                  argument: argument,
-                ),
-              );
+              newArguments.add(_ArgumentAsIs(argument: argument));
             }
         }
       case FormalParameterUpdateNewNamed():
         newArguments.add(
-          _ArgumentNewNamed(
-            name: update.name,
-            valueCode: update.valueCode,
-          ),
+          _ArgumentNewNamed(name: update.name, valueCode: update.valueCode),
         );
       case FormalParameterUpdateNewPositional():
-        newArguments.add(
-          _ArgumentNewPositional(
-            valueCode: update.valueCode,
-          ),
-        );
+        newArguments.add(_ArgumentNewPositional(valueCode: update.valueCode));
     }
   }
 
@@ -92,11 +70,7 @@ Future<WriteArgumentsStatus> writeArguments({
     if (removedNamedFormalParameters.contains(name)) {
       return;
     }
-    newArguments.add(
-      _ArgumentAsIs(
-        argument: argument,
-      ),
-    );
+    newArguments.add(_ArgumentAsIs(argument: argument));
   });
 
   await builder.addDartFileEdit(resolvedUnit.path, (builder) {
@@ -166,9 +140,7 @@ sealed class FormalParameterUpdateExisting extends FormalParameterUpdate {
   /// The original formal parameter reference.
   final FormalParameterReference reference;
 
-  FormalParameterUpdateExisting({
-    required this.reference,
-  });
+  FormalParameterUpdateExisting({required this.reference});
 }
 
 /// Existing named formal parameter update.
@@ -186,9 +158,7 @@ final class FormalParameterUpdateExistingNamed
 /// Existing positional formal parameter update.
 final class FormalParameterUpdateExistingPositional
     extends FormalParameterUpdateExisting {
-  FormalParameterUpdateExistingPositional({
-    required super.reference,
-  });
+  FormalParameterUpdateExistingPositional({required super.reference});
 }
 
 /// New formal parameter.
@@ -196,10 +166,7 @@ sealed class FormalParameterUpdateNew extends FormalParameterUpdate {
   final String name;
   final String valueCode;
 
-  FormalParameterUpdateNew({
-    required this.name,
-    required this.valueCode,
-  });
+  FormalParameterUpdateNew({required this.name, required this.valueCode});
 }
 
 /// New named formal parameter.
@@ -240,54 +207,40 @@ final class _ArgumentAddName extends _Argument {
   final String name;
   final Expression argument;
 
-  _ArgumentAddName({
-    required this.name,
-    required this.argument,
-  });
+  _ArgumentAddName({required this.name, required this.argument});
 }
 
 /// The argument to write as is, positional or named.
 final class _ArgumentAsIs extends _Argument {
   final Expression argument;
 
-  _ArgumentAsIs({
-    required this.argument,
-  });
+  _ArgumentAsIs({required this.argument});
 }
 
 /// The new argument.
 sealed class _ArgumentNew extends _Argument {
   final String valueCode;
 
-  _ArgumentNew({
-    required this.valueCode,
-  });
+  _ArgumentNew({required this.valueCode});
 }
 
 /// The new named argument.
 final class _ArgumentNewNamed extends _ArgumentNew {
   final String name;
 
-  _ArgumentNewNamed({
-    required super.valueCode,
-    required this.name,
-  });
+  _ArgumentNewNamed({required super.valueCode, required this.name});
 }
 
 /// The new positional argument.
 final class _ArgumentNewPositional extends _ArgumentNew {
-  _ArgumentNewPositional({
-    required super.valueCode,
-  });
+  _ArgumentNewPositional({required super.valueCode});
 }
 
 /// The argument to write without the name.
 final class _ArgumentRemoveName extends _Argument {
   final NamedExpression namedExpression;
 
-  _ArgumentRemoveName({
-    required this.namedExpression,
-  });
+  _ArgumentRemoveName({required this.namedExpression});
 }
 
 extension on ArgumentList {

@@ -13,17 +13,23 @@ import 'domain_completion_util.dart';
 class CompletionTestCase extends AbstractCompletionDomainTest {
   static const String CURSOR_MARKER = '!';
 
-  List<String> get suggestedCompletions => suggestions
-      .map((CompletionSuggestion suggestion) => suggestion.completion)
-      .toList();
+  List<String> get suggestedCompletions =>
+      suggestions
+          .map((CompletionSuggestion suggestion) => suggestion.completion)
+          .toList();
 
-  void assertHasCompletion(String completion,
-      {ElementKind? elementKind, bool? isDeprecated, Matcher? libraryUri}) {
+  void assertHasCompletion(
+    String completion, {
+    ElementKind? elementKind,
+    bool? isDeprecated,
+    Matcher? libraryUri,
+  }) {
     var expectedOffset = completion.indexOf(CURSOR_MARKER);
     if (expectedOffset >= 0) {
       if (completion.contains(CURSOR_MARKER, expectedOffset + 1)) {
         fail(
-            "Invalid completion, contains multiple cursor positions: '$completion'");
+          "Invalid completion, contains multiple cursor positions: '$completion'",
+        );
       }
       completion = completion.replaceFirst(CURSOR_MARKER, '');
     } else {
@@ -43,7 +49,8 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
             return;
           }
           fail(
-              "Expected exactly one '$completion' but found multiple:\n  $suggestedCompletions");
+            "Expected exactly one '$completion' but found multiple:\n  $suggestedCompletions",
+          );
         }
       }
     }
@@ -64,10 +71,12 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
   }
 
   void assertHasNoCompletion(String completion) {
-    if (suggestions.any((CompletionSuggestion suggestion) =>
-        suggestion.completion == completion)) {
+    if (suggestions.any(
+      (CompletionSuggestion suggestion) => suggestion.completion == completion,
+    )) {
       fail(
-          "Did not expect completion '$completion' but found:\n  $suggestedCompletions");
+        "Did not expect completion '$completion' but found:\n  $suggestedCompletions",
+      );
     }
   }
 
@@ -76,14 +85,20 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
   void filterResults(String content) {
     var charsAlreadyTyped =
         content.substring(replacementOffset!, completionOffset).toLowerCase();
-    suggestions = suggestions
-        .where((CompletionSuggestion suggestion) =>
-            suggestion.completion.toLowerCase().startsWith(charsAlreadyTyped))
-        .toList();
+    suggestions =
+        suggestions
+            .where(
+              (CompletionSuggestion suggestion) => suggestion.completion
+                  .toLowerCase()
+                  .startsWith(charsAlreadyTyped),
+            )
+            .toList();
   }
 
-  Future<void> runTest(LocationSpec spec,
-      [Map<String, String>? extraFiles]) async {
+  Future<void> runTest(
+    LocationSpec spec, [
+    Map<String, String>? extraFiles,
+  ]) async {
     await super.setUp();
 
     try {
@@ -138,7 +153,9 @@ class LocationSpec {
   /// locations. The [validationStrings] are the positive and negative
   /// predictions.
   static List<LocationSpec> from(
-      String originalSource, List<String> validationStrings) {
+    String originalSource,
+    List<String> validationStrings,
+  ) {
     Map<String, LocationSpec> tests = HashMap<String, LocationSpec>();
     var modifiedSource = originalSource;
     var modifiedPosition = 0;
@@ -157,7 +174,8 @@ class LocationSpec {
       } else {
         modifiedPosition = index + 1;
       }
-      modifiedSource = modifiedSource.substring(0, index) +
+      modifiedSource =
+          modifiedSource.substring(0, index) +
           modifiedSource.substring(index + n);
     }
     if (modifiedSource == originalSource) {

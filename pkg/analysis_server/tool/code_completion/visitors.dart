@@ -33,9 +33,14 @@ class ExpectedCompletion {
 
   final protocol.ElementKind? _elementKind;
 
-  ExpectedCompletion(this._filePath, this._entity, this._lineNumber,
-      this._columnNumber, this._kind, this._elementKind)
-      : _completionString = null;
+  ExpectedCompletion(
+    this._filePath,
+    this._entity,
+    this._lineNumber,
+    this._columnNumber,
+    this._kind,
+    this._elementKind,
+  ) : _completionString = null;
 
   /// Return an instance extracted from the decoded JSON [map].
   factory ExpectedCompletion.fromJson(Map<String, dynamic> map) {
@@ -45,32 +50,42 @@ class ExpectedCompletion {
     var lineNumber = map['lineNumber'] as int;
     var columnNumber = map['columnNumber'] as int;
     var completionString = map['completionString'] as String;
-    var kind = map['kind'] != null
-        ? protocol.CompletionSuggestionKind.fromJson(
-            jsonDecoder, '', map['kind'] as String)
-        : null;
-    var elementKind = map['elementKind'] != null
-        ? protocol.ElementKind.fromJson(
-            jsonDecoder, '', map['elementKind'] as String)
-        : null;
+    var kind =
+        map['kind'] != null
+            ? protocol.CompletionSuggestionKind.fromJson(
+              jsonDecoder,
+              '',
+              map['kind'] as String,
+            )
+            : null;
+    var elementKind =
+        map['elementKind'] != null
+            ? protocol.ElementKind.fromJson(
+              jsonDecoder,
+              '',
+              map['elementKind'] as String,
+            )
+            : null;
     return ExpectedCompletion.specialCompletionString(
-        filePath,
-        _SyntacticEntity(offset),
-        lineNumber,
-        columnNumber,
-        completionString,
-        kind,
-        elementKind);
+      filePath,
+      _SyntacticEntity(offset),
+      lineNumber,
+      columnNumber,
+      completionString,
+      kind,
+      elementKind,
+    );
   }
 
   ExpectedCompletion.specialCompletionString(
-      this._filePath,
-      this._entity,
-      this._lineNumber,
-      this._columnNumber,
-      this._completionString,
-      this._kind,
-      this._elementKind);
+    this._filePath,
+    this._entity,
+    this._lineNumber,
+    this._columnNumber,
+    this._completionString,
+    this._kind,
+    this._elementKind,
+  );
 
   int get columnNumber => _columnNumber;
 
@@ -166,7 +181,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   final bool _doExpectCommentRefs = false;
 
   ExpectedCompletionsVisitor(this.result, {required int caretOffset})
-      : _caretOffset = caretOffset;
+    : _caretOffset = caretOffset;
 
   /// Return the path of the file that is being visited.
   String get filePath => result.path;
@@ -174,9 +189,11 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// Return the line info for the file that is being visited.
   LineInfo get lineInfo => result.lineInfo;
 
-  void safelyRecordEntity(SyntacticEntity? entity,
-      {protocol.CompletionSuggestionKind? kind,
-      protocol.ElementKind? elementKind}) {
+  void safelyRecordEntity(
+    SyntacticEntity? entity, {
+    protocol.CompletionSuggestionKind? kind,
+    protocol.ElementKind? elementKind,
+  }) {
     // Only record if this entity is not null, has a length, etc.
     if (entity != null && entity.offset >= 0 && entity.length > 0) {
       var location = lineInfo.getLocation(entity.offset);
@@ -192,88 +209,122 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
       // DAS is "import '';" which we want to be sure to match.
       var lexeme = entity.toString();
       if (lexeme == 'async') {
-        expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+        expectedCompletions.add(
+          ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
             lineNumber,
             columnNumber,
             ASYNC_STAR,
             kind,
-            elementKind));
+            elementKind,
+          ),
+        );
       } else if (lexeme == 'default') {
-        expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+        expectedCompletions.add(
+          ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
             lineNumber,
             columnNumber,
             DEFAULT_COLON,
             kind,
-            elementKind));
+            elementKind,
+          ),
+        );
       } else if (lexeme == 'deferred') {
-        expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+        expectedCompletions.add(
+          ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
             lineNumber,
             columnNumber,
             DEFERRED_AS,
             kind,
-            elementKind));
+            elementKind,
+          ),
+        );
       } else if (lexeme == 'export' && isKeyword()) {
-        expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+        expectedCompletions.add(
+          ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
             lineNumber,
             columnNumber,
             EXPORT_STATEMENT,
             kind,
-            elementKind));
+            elementKind,
+          ),
+        );
       } else if (lexeme == 'import' && isKeyword()) {
-        expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+        expectedCompletions.add(
+          ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
             lineNumber,
             columnNumber,
             IMPORT_STATEMENT,
             kind,
-            elementKind));
+            elementKind,
+          ),
+        );
       } else if (lexeme == 'part' && isKeyword()) {
-        expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+        expectedCompletions.add(
+          ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
             lineNumber,
             columnNumber,
             PART_STATEMENT,
             kind,
-            elementKind));
+            elementKind,
+          ),
+        );
       } else if (lexeme == 'sync') {
-        expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+        expectedCompletions.add(
+          ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
             lineNumber,
             columnNumber,
             SYNC_STAR,
             kind,
-            elementKind));
+            elementKind,
+          ),
+        );
       } else if (lexeme == 'yield') {
-        expectedCompletions.add(ExpectedCompletion.specialCompletionString(
+        expectedCompletions.add(
+          ExpectedCompletion.specialCompletionString(
             filePath,
             entity,
             lineNumber,
             columnNumber,
             YIELD_STAR,
             kind,
-            elementKind));
+            elementKind,
+          ),
+        );
       } else {
-        expectedCompletions.add(ExpectedCompletion(
-            filePath, entity, lineNumber, columnNumber, kind, elementKind));
+        expectedCompletions.add(
+          ExpectedCompletion(
+            filePath,
+            entity,
+            lineNumber,
+            columnNumber,
+            kind,
+            elementKind,
+          ),
+        );
       }
     }
   }
 
   void safelyRecordKeywordCompletion(SyntacticEntity? entity) {
     if (_doExpectKeywordCompletions) {
-      safelyRecordEntity(entity,
-          kind: protocol.CompletionSuggestionKind.KEYWORD);
+      safelyRecordEntity(
+        entity,
+        kind: protocol.CompletionSuggestionKind.KEYWORD,
+      );
     }
   }
 
@@ -599,7 +650,8 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     safelyRecordKeywordCompletion(node.thisKeyword);
     super.visitRedirectingConstructorInvocation(node);
   }

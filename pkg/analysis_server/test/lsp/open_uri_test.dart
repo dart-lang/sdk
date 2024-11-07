@@ -20,9 +20,7 @@ class OpenUriTest extends AbstractLspAnalysisServerTest {
   final exampleUri = Uri.parse('https://example.org');
 
   Future<void> initializeWithUriSupport() async {
-    await initialize(initializationOptions: {
-      'allowOpenUri': true,
-    });
+    await initialize(initializationOptions: {'allowOpenUri': true});
   }
 
   Future<void> test_assertsSupported() async {

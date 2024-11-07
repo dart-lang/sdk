@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class UndefinedVariableTest extends AbstractTransformSetParserTest {
   void test_missingVariable() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - date: 2020-09-19
@@ -35,13 +36,14 @@ transforms:
           zyx:
             kind: 'fragment'
             value: 'arguments[0]'
-''', [
-      error(TransformSetErrorCode.undefinedVariable, 253, 3),
-    ]);
+''',
+      [error(TransformSetErrorCode.undefinedVariable, 253, 3)],
+    );
   }
 
   void test_noVariables() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - date: 2020-09-19
@@ -56,8 +58,8 @@ transforms:
       style: optional_positional
       argumentValue:
         expression: '{%xyz%}'
-''', [
-      error(TransformSetErrorCode.undefinedVariable, 253, 3),
-    ]);
+''',
+      [error(TransformSetErrorCode.undefinedVariable, 253, 3)],
+    );
   }
 }

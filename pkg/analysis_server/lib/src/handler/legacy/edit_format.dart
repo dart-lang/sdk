@@ -18,12 +18,18 @@ class EditFormatHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditFormatHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditFormatParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditFormatParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     var driver = server.getAnalysisDriver(file);
@@ -53,8 +59,9 @@ class EditFormatHandler extends LegacyHandler {
         unit.analysisOptions.formatterOptions.pageWidth ?? params.lineLength;
     var effectiveLanguageVersion = unit.unit.languageVersion.effective;
     var formatter = DartFormatter(
-        pageWidth: effectivePageWidth,
-        languageVersion: effectiveLanguageVersion);
+      pageWidth: effectivePageWidth,
+      languageVersion: effectiveLanguageVersion,
+    );
     SourceCode formattedResult;
     try {
       formattedResult = formatter.formatSource(code);

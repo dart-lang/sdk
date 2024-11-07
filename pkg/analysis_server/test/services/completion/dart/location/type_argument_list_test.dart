@@ -80,7 +80,7 @@ suggestions
   }
 
   Future<void>
-      test_afterLess_beforeGreater_topLevel_withVariableName_partial() async {
+  test_afterLess_beforeGreater_topLevel_withVariableName_partial() async {
     await computeSuggestions('''
 Future<v^> x
 ''');

@@ -22,8 +22,9 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind =>
@@ -75,8 +76,10 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
       }
     }
 
-    var usageVerifier =
-        _StateUsageVisitor(widgetClassElement, stateClassElement);
+    var usageVerifier = _StateUsageVisitor(
+      widgetClassElement,
+      stateClassElement,
+    );
     unit.visitChildren(usageVerifier);
     if (usageVerifier.used) return;
 
@@ -128,13 +131,17 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
 
       // Remove `widget.` before references to the widget instance members.
       var visitor = _ReplacementEditBuilder(
-          widgetClassElement, elementsToMove, linesRange);
+        widgetClassElement,
+        elementsToMove,
+        linesRange,
+      );
       movedNode.accept(visitor);
       return SourceEdit.applySequence(text, visitor.edits.reversed);
     }
 
-    var statelessWidgetClass =
-        await sessionHelper.getFlutterClass2('StatelessWidget');
+    var statelessWidgetClass = await sessionHelper.getFlutterClass2(
+      'StatelessWidget',
+    );
     if (statelessWidgetClass == null) {
       return;
     }
@@ -150,8 +157,9 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
       createStateNextToEnd =
           createStateNextToEnd.precedingComments ?? createStateNextToEnd;
       var createStateRange = range.startOffsetEndOffset(
-          utils.getLineContentStart(createStateMethod.offset),
-          utils.getLineContentStart(createStateNextToEnd.offset));
+        utils.getLineContentStart(createStateMethod.offset),
+        utils.getLineContentStart(createStateNextToEnd.offset),
+      );
 
       var newLine = createStateNextToEnd.type != TokenType.CLOSE_CURLY_BRACKET;
 
@@ -202,7 +210,9 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
   }
 
   bool _isSameTypeParameters(
-      ClassDeclaration widgetClass, ClassDeclaration stateClass) {
+    ClassDeclaration widgetClass,
+    ClassDeclaration stateClass,
+  ) {
     List<TypeParameter>? parameters(ClassDeclaration declaration) =>
         declaration.typeParameters?.typeParameters;
 
@@ -314,7 +324,10 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
   List<SourceEdit> edits = [];
 
   _ReplacementEditBuilder(
-      this.widgetClassElement, this.elementsToMove, this.linesRange);
+    this.widgetClassElement,
+    this.elementsToMove,
+    this.linesRange,
+  );
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -333,8 +346,13 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
             grandParent is InterpolationExpression &&
             grandParent.leftBracket.type ==
                 TokenType.STRING_INTERPOLATION_EXPRESSION) {
-          edits.add(SourceEdit(
-              grandParent.leftBracket.end - 1 - linesRange.offset, 1, ''));
+          edits.add(
+            SourceEdit(
+              grandParent.leftBracket.end - 1 - linesRange.offset,
+              1,
+              '',
+            ),
+          );
           var offset = grandParent.rightBracket?.offset;
           if (offset != null) {
             rightBracketEdit = SourceEdit(offset - linesRange.offset, 1, '');
@@ -377,7 +395,8 @@ class _StatelessVerifier extends RecursiveAstVisitor<void> {
     if (classElement is ClassElement2 &&
         classElement.isExactState &&
         !FlutterConvertToStatelessWidget._isDefaultOverride(
-            node.thisOrAncestorOfType<MethodDeclaration>())) {
+          node.thisOrAncestorOfType<MethodDeclaration>(),
+        )) {
       canBeStateless = false;
       return;
     }

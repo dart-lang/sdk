@@ -30,13 +30,18 @@ var c = Completer();
     expect(currentAnalysisErrors[pathname], isEmpty);
 
     // expect at least one assist (add show combinator to the dart:async import)
-    var result =
-        await sendEditGetAssists(pathname, text.indexOf('dart:async'), 0);
+    var result = await sendEditGetAssists(
+      pathname,
+      text.indexOf('dart:async'),
+      0,
+    );
     expect(result.assists, isNotEmpty);
 
     // apply it and make sure that the code analyzing cleanly
-    var change = result.assists.singleWhere((SourceChange change) =>
-        change.message == "Add explicit 'show' combinator");
+    var change = result.assists.singleWhere(
+      (SourceChange change) =>
+          change.message == "Add explicit 'show' combinator",
+    );
     expect(change.edits, hasLength(1));
     expect(change.edits.first.edits, hasLength(1));
     var edit = change.edits.first.edits.first;

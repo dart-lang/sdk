@@ -33,8 +33,9 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
     // We need to discover the cause and re-enable it.
 
     _fail(
-        'This test times out on the bots and has been disabled to keep them green.'
-        'We need to discover the cause and re-enable it.');
+      'This test times out on the bots and has been disabled to keep them green.'
+      'We need to discover the cause and re-enable it.',
+    );
 
     var statusReceived = false;
     var analysisBegun = Completer();

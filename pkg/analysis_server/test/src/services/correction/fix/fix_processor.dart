@@ -41,8 +41,9 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   /// using the [errorFilter] to filter out errors that should be ignored, and
   /// expecting that there is a single remaining error. The error filter should
   /// return `true` if the error should not be ignored.
-  Future<AnalysisError> _findErrorToFix(
-      {bool Function(AnalysisError)? errorFilter}) async {
+  Future<AnalysisError> _findErrorToFix({
+    bool Function(AnalysisError)? errorFilter,
+  }) async {
     var errors = testAnalysisResult.errors;
     if (errorFilter != null) {
       if (errors.length == 1) {
@@ -99,15 +100,18 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Computes fixes for the pubspecs in the given contexts.
-  Future<void> assertFixPubspec(String original, String expected,
-      {File? file}) async {
+  Future<void> assertFixPubspec(
+    String original,
+    String expected, {
+    File? file,
+  }) async {
     var analysisContext = contextFor(file ?? testFile);
-    var processor =
-        BulkFixProcessor(TestInstrumentationService(), await workspace);
+    var processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      await workspace,
+    );
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
-    var edits = [
-      for (var fix in fixes) ...fix.edits,
-    ];
+    var edits = [for (var fix in fixes) ...fix.edits];
     var result = SourceEdit.applySequence(original, edits);
     expect(result, expected);
   }
@@ -155,8 +159,10 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// Computes fixes for the specified [testUnit].
   Future<BulkFixProcessor> computeFixes({bool isParse = false}) async {
     var analysisContext = contextFor(testFile);
-    var processor =
-        BulkFixProcessor(TestInstrumentationService(), await workspace);
+    var processor = BulkFixProcessor(
+      TestInstrumentationService(),
+      await workspace,
+    );
     if (isParse) {
       await processor.fixErrorsUsingParsedResult([analysisContext]);
     } else {
@@ -256,11 +262,12 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   /// Return the [LintCode] for the [lintCode] (which is actually a name).
   Future<LintCode> lintCodeByName(String name) async {
     var errors = testAnalysisResult.errors;
-    var lintCodeSet = errors
-        .map((error) => error.errorCode)
-        .whereType<LintCode>()
-        .where((errorCode) => errorCode.name == name)
-        .toSet();
+    var lintCodeSet =
+        errors
+            .map((error) => error.errorCode)
+            .whereType<LintCode>()
+            .where((errorCode) => errorCode.name == name)
+            .toSet();
     if (lintCodeSet.length != 1) {
       fail('Expected exactly one LintCode, actually: $lintCodeSet');
     }
@@ -276,10 +283,7 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    createAnalysisOptionsFile(
-      experiments: experiments,
-      lints: [lintCode],
-    );
+    createAnalysisOptionsFile(experiments: experiments, lints: [lintCode]);
   }
 }
 
@@ -290,20 +294,22 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Asserts that the resolved compilation unit has a fix which produces
   /// [expected] output.
-  Future<void> assertHasFix(String expected,
-      {bool Function(AnalysisError)? errorFilter,
-      String? target,
-      int? expectedNumberOfFixesForKind,
-      String? matchFixMessage,
-      bool allowFixAllFixes = false}) async {
+  Future<void> assertHasFix(
+    String expected, {
+    bool Function(AnalysisError)? errorFilter,
+    String? target,
+    int? expectedNumberOfFixesForKind,
+    String? matchFixMessage,
+    bool allowFixAllFixes = false,
+  }) async {
     expected = normalizeSource(expected);
-    var error = await _findErrorToFix(
-      errorFilter: errorFilter,
+    var error = await _findErrorToFix(errorFilter: errorFilter);
+    var fix = await _assertHasFix(
+      error,
+      expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
+      matchFixMessage: matchFixMessage,
+      allowFixAllFixes: allowFixAllFixes,
     );
-    var fix = await _assertHasFix(error,
-        expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
-        matchFixMessage: matchFixMessage,
-        allowFixAllFixes: allowFixAllFixes);
     change = fix.change;
 
     // Apply to file.
@@ -320,8 +326,11 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     expect(resultCode, expected);
   }
 
-  Future<void> assertHasFixAllFix(ErrorCode errorCode, String expected,
-      {String? target}) async {
+  Future<void> assertHasFixAllFix(
+    ErrorCode errorCode,
+    String expected, {
+    String? target,
+  }) async {
     expected = normalizeSource(expected);
     var error = await _findErrorToFixOfType(errorCode);
     var fix = await _assertHasFixAllFix(error);
@@ -357,15 +366,19 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     );
   }
 
-  Future<void> assertHasFixWithoutApplying(
-      {bool Function(AnalysisError)? errorFilter}) async {
+  Future<void> assertHasFixWithoutApplying({
+    bool Function(AnalysisError)? errorFilter,
+  }) async {
     var error = await _findErrorToFix(errorFilter: errorFilter);
     var fix = await _assertHasFix(error);
     change = fix.change;
   }
 
-  void assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
-      [List<LinkedEditSuggestion>? expectedSuggestions]) {
+  void assertLinkedGroup(
+    LinkedEditGroup group,
+    List<String> expectedStrings, [
+    List<LinkedEditSuggestion>? expectedSuggestions,
+  ]) {
     var expectedPositions = _findResultPositions(expectedStrings);
     expect(group.positions, unorderedEquals(expectedPositions));
     if (expectedSuggestions != null) {
@@ -395,7 +408,9 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   }
 
   List<LinkedEditSuggestion> expectedSuggestions(
-      LinkedEditSuggestionKind kind, List<String> values) {
+    LinkedEditSuggestionKind kind,
+    List<String> values,
+  ) {
     return values.map((value) {
       return LinkedEditSuggestion(value, kind);
     }).toList();
@@ -416,10 +431,12 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   ///
   /// If [expectedNumberOfFixesForKind] is non-null, then the number of fixes
   /// for [kind] is verified to be [expectedNumberOfFixesForKind].
-  Future<Fix> _assertHasFix(AnalysisError error,
-      {int? expectedNumberOfFixesForKind,
-      String? matchFixMessage,
-      bool allowFixAllFixes = false}) async {
+  Future<Fix> _assertHasFix(
+    AnalysisError error, {
+    int? expectedNumberOfFixesForKind,
+    String? matchFixMessage,
+    bool allowFixAllFixes = false,
+  }) async {
     // Compute the fixes for this AnalysisError
     var fixes = await _computeFixes(error);
 
@@ -435,11 +452,15 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
         }
       }
       if (fixes.isEmpty) {
-        fail('Expected to find fix $kind with name $matchFixMessage'
-            ' but there were no fixes.');
+        fail(
+          'Expected to find fix $kind with name $matchFixMessage'
+          ' but there were no fixes.',
+        );
       } else {
-        fail('Expected to find fix $kind with name $matchFixMessage'
-            ' in\n${fixes.join('\n')}');
+        fail(
+          'Expected to find fix $kind with name $matchFixMessage'
+          ' in\n${fixes.join('\n')}',
+        );
       }
     }
 
@@ -447,8 +468,10 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     Fix? foundFix;
     for (var fix in fixes) {
       if (!allowFixAllFixes && fix.isFixAllFix()) {
-        fail('A fix-all fix was found for the error: $error '
-            'in the computed set of fixes:\n${fixes.join('\n')}');
+        fail(
+          'A fix-all fix was found for the error: $error '
+          'in the computed set of fixes:\n${fixes.join('\n')}',
+        );
       } else if (fix.kind == kind) {
         foundFix ??= fix;
       }
@@ -463,8 +486,10 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// the appropriate kind.
   Future<Fix> _assertHasFixAllFix(AnalysisError error) async {
     if (!kind.canBeAppliedTogether()) {
-      fail('Expected to find and return fix-all FixKind for $kind, '
-          'but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}');
+      fail(
+        'Expected to find and return fix-all FixKind for $kind, '
+        'but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}',
+      );
     }
 
     // Compute the fixes for the error.
@@ -479,8 +504,10 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       }
     }
     if (foundFix == null) {
-      fail('No fix-all fix was found for the error: $error '
-          'in the computed set of fixes:\n${fixes.join('\n')}');
+      fail(
+        'No fix-all fix was found for the error: $error '
+        'in the computed set of fixes:\n${fixes.join('\n')}',
+      );
     }
     return foundFix;
   }
@@ -511,8 +538,10 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   Future<void> _assertNoFixAllFix(AnalysisError error) async {
     if (!kind.canBeAppliedTogether()) {
-      fail('Expected to find and return fix-all FixKind for $kind, '
-          'but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}');
+      fail(
+        'Expected to find and return fix-all FixKind for $kind, '
+        'but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}',
+      );
     }
     var fixes = await _computeFixes(error);
     for (var fix in fixes) {
@@ -523,12 +552,16 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   }
 
   void _assertNumberOfFixesForKind(
-      List<Fix> fixes, int expectedNumberOfFixesForKind) {
+    List<Fix> fixes,
+    int expectedNumberOfFixesForKind,
+  ) {
     var actualNumberOfFixesForKind =
         fixes.where((fix) => fix.kind == kind).length;
     if (actualNumberOfFixesForKind != expectedNumberOfFixesForKind) {
-      fail('Expected $expectedNumberOfFixesForKind fixes of kind $kind,'
-          ' but found $actualNumberOfFixesForKind:\n${fixes.join('\n')}');
+      fail(
+        'Expected $expectedNumberOfFixesForKind fixes of kind $kind,'
+        ' but found $actualNumberOfFixesForKind:\n${fixes.join('\n')}',
+      );
     }
   }
 
@@ -564,9 +597,7 @@ mixin WithNullSafetyLintMixin on AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    createAnalysisOptionsFile(
-      lints: [lintCode],
-    );
+    createAnalysisOptionsFile(lints: [lintCode]);
   }
 }
 

@@ -75,8 +75,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   final List<_Parameter> _parameters = [];
 
   ExtractWidgetRefactoringImpl(
-      this.searchEngine, this.resolveResult, this.offset, this.length)
-      : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
+    this.searchEngine,
+    this.resolveResult,
+    this.offset,
+    this.length,
+  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
     utils = CorrectionUtils(resolveResult);
   }
 
@@ -127,8 +130,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     if (!result.hasFatalError) {
       visitLibraryTopLevelElements(resolveResult.libraryElement, (element) {
         if (hasDisplayName(element, name)) {
-          var message = format("Library already declares {0} with name '{1}'.",
-              getElementKindName(element), name);
+          var message = format(
+            "Library already declares {0} with name '{1}'.",
+            getElementKindName(element),
+            name,
+          );
           result.addError(message, newLocation_fromElement(element));
         }
       });
@@ -139,8 +145,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    var builder =
-        ChangeBuilder(session: sessionHelper.session, eol: utils.endOfLine);
+    var builder = ChangeBuilder(
+      session: sessionHelper.session,
+      eol: utils.endOfLine,
+    );
     await builder.addDartFileEdit(resolveResult.path, (builder) {
       var expression = _expression;
       var statements = _statements;
@@ -171,8 +179,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a widget creation expression that can be extracted.
   RefactoringStatus _checkSelection() {
-    var node =
-        NodeLocator(offset, offset + length).searchWithin(resolveResult.unit);
+    var node = NodeLocator(
+      offset,
+      offset + length,
+    ).searchWithin(resolveResult.unit);
 
     // Treat single ReturnStatement as its expression.
     if (node is ReturnStatement) {
@@ -209,7 +219,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           return RefactoringStatus();
         } else {
           return RefactoringStatus.fatal(
-              'The last selected statement must return a widget.');
+            'The last selected statement must return a widget.',
+          );
         }
       }
     }
@@ -231,7 +242,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Invalid selection.
     return RefactoringStatus.fatal(
-        'Can only extract a widget expression or a method returning widget.');
+      'Can only extract a widget expression or a method returning widget.',
+    );
   }
 
   Future<RefactoringStatus> _initializeClasses() async {
@@ -246,7 +258,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     Future<PropertyAccessorElement?> getAccessor(
-        String uri, String name) async {
+      String uri,
+      String name,
+    ) async {
       var element = await sessionHelper.getTopLevelPropertyAccessor(uri, name);
       if (element == null) {
         result.addFatalError("Unable to find 'required' in $uri");
@@ -278,8 +292,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     var statements = _statements;
     if (statements != null) {
-      collector =
-          _ParametersCollector(_enclosingClassElement, _statementsRange!);
+      collector = _ParametersCollector(
+        _enclosingClassElement,
+        _statementsRange!,
+      );
       for (var statement in statements) {
         statement.accept(collector);
       }
@@ -304,8 +320,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           parameter = parameter.notDefault;
           if (parameter is NormalFormalParameter) {
             var element = parameter.declaredElement!;
-            _parameters.add(_Parameter(element.name, element.type,
-                isMethodParameter: true));
+            _parameters.add(
+              _Parameter(element.name, element.type, isMethodParameter: true),
+            );
           }
         }
       }
@@ -319,7 +336,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     for (var parameter in _parameters) {
       if (parameter.name == 'key') {
         status.addError(
-            "The parameter 'key' will conflict with the widget 'key'.");
+          "The parameter 'key' will conflict with the widget 'key'.",
+        );
       }
     }
 
@@ -336,7 +354,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       var name = parameter.name;
       if (name.startsWith('_')) {
         var baseName = name.substring(1);
-        for (var i = 1;; i++) {
+        for (var i = 1; ; i++) {
           name = i == 1 ? baseName : '$baseName$i';
           if (usedNames.add(name)) {
             break;
@@ -352,8 +370,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// Remove the [_method] declaration.
   void _removeMethodDeclaration(DartFileEditBuilder builder) {
     var methodRange = range.node(_method!);
-    var linesRange =
-        utils.getLinesRange(methodRange, skipLeadingEmptyLines: true);
+    var linesRange = utils.getLinesRange(
+      methodRange,
+      skipLeadingEmptyLines: true,
+    );
     builder.addDeletion(linesRange);
   }
 
@@ -445,25 +465,26 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               builder.write('  }');
             },
-            initializerWriter: useSuperParameters && paramsToInitialize.isEmpty
-                ? null
-                : () {
-                    for (var i = 0; i < paramsToInitialize.length; ++i) {
-                      var parameter = paramsToInitialize[i];
-                      if (i > 0) {
-                        builder.write(', ');
+            initializerWriter:
+                useSuperParameters && paramsToInitialize.isEmpty
+                    ? null
+                    : () {
+                      for (var i = 0; i < paramsToInitialize.length; ++i) {
+                        var parameter = paramsToInitialize[i];
+                        if (i > 0) {
+                          builder.write(', ');
+                        }
+                        builder.write(parameter.name);
+                        builder.write(' = ');
+                        builder.write(parameter.constructorName);
                       }
-                      builder.write(parameter.name);
-                      builder.write(' = ');
-                      builder.write(parameter.constructorName);
-                    }
-                    if (!useSuperParameters) {
-                      if (paramsToInitialize.isNotEmpty) {
-                        builder.write(', ');
+                      if (!useSuperParameters) {
+                        if (paramsToInitialize.isNotEmpty) {
+                          builder.write(', ');
+                        }
+                        builder.write('super(key: key)');
                       }
-                      builder.write('super(key: key)');
-                    }
-                  },
+                    },
           );
           builder.writeln();
           builder.writeln();
@@ -472,8 +493,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           if (_parameters.isNotEmpty) {
             for (var parameter in _parameters) {
               builder.write('  ');
-              builder.writeFieldDeclaration(parameter.name,
-                  isFinal: true, type: parameter.type);
+              builder.writeFieldDeclaration(
+                parameter.name,
+                isFinal: true,
+                type: parameter.type,
+              );
               builder.writeln();
             }
             builder.writeln();
@@ -504,11 +528,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                 var indentNew = '    ';
 
                 var code = utils.getNodeText(expression);
-                code = utils.replaceSourceIndent(
-                  code,
-                  indentOld,
-                  indentNew,
-                );
+                code = utils.replaceSourceIndent(code, indentOld, indentNew);
 
                 builder.writeln('{');
 
@@ -616,7 +636,8 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
     if (element is MethodElement) {
       if (_isMemberOfEnclosingClass(element)) {
         status.addError(
-            'Reference to an enclosing class method cannot be extracted.');
+          'Reference to an enclosing class method cannot be extracted.',
+        );
       }
     } else if (element is LocalVariableElement) {
       if (!expressionRange.contains(element.nameOffset)) {
@@ -652,10 +673,11 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   bool _isMemberOfEnclosingClass(Element element) {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      var enclosingClasses = this.enclosingClasses ??= <InterfaceElement>[
-        enclosingClass,
-        ...enclosingClass.allSupertypes.map((t) => t.element)
-      ];
+      var enclosingClasses =
+          this.enclosingClasses ??= <InterfaceElement>[
+            enclosingClass,
+            ...enclosingClass.allSupertypes.map((t) => t.element),
+          ];
       return enclosingClasses.contains(element.enclosingElement3);
     }
     return false;

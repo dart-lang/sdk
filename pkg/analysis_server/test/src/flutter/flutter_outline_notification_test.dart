@@ -41,8 +41,10 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
   void processNotification(Notification notification) {
     super.processNotification(notification);
     if (notification.event == FLUTTER_NOTIFICATION_OUTLINE) {
-      var params = FlutterOutlineParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = FlutterOutlineParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       if (params.file == testFile.path) {
         outline = params.outline;
         _outlineReceived.complete();

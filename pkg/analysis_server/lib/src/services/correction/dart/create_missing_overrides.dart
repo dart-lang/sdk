@@ -19,12 +19,15 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
-  List<String> get fixArguments =>
-      [_numElements.toString(), _numElements == 1 ? '' : 's'];
+  List<String> get fixArguments => [
+    _numElements.toString(),
+    _numElements == 1 ? '' : 's',
+  ];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_MISSING_OVERRIDES;
@@ -41,7 +44,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
     }
     var signatures = [
       ...InheritanceOverrideVerifier.missingOverrides(targetDeclaration),
-      ...InheritanceOverrideVerifier.missingMustBeOverridden(targetDeclaration)
+      ...InheritanceOverrideVerifier.missingMustBeOverridden(targetDeclaration),
     ];
     // Sort by name, getters before setters.
     signatures.sort((ExecutableElement a, ExecutableElement b) {

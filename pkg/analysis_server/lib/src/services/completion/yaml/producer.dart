@@ -14,7 +14,8 @@ class BooleanProducer extends Producer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
+    YamlCompletionRequest request,
+  ) sync* {
     yield identifier('true');
     yield identifier('false');
   }
@@ -28,7 +29,8 @@ class EmptyProducer extends Producer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
+    YamlCompletionRequest request,
+  ) sync* {
     // Returns nothing.
   }
 }
@@ -44,7 +46,8 @@ class EnumProducer extends Producer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
+    YamlCompletionRequest request,
+  ) sync* {
     for (var value in values) {
       yield identifier(value);
     }
@@ -58,7 +61,8 @@ class FilePathProducer extends Producer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
+    YamlCompletionRequest request,
+  ) sync* {
     //
     // This currently assumes that all of the paths in the assets section will
     // be posix paths.
@@ -77,7 +81,9 @@ class FilePathProducer extends Producer {
       parentDirectory = '';
     } else if (parentDirectory.endsWith(separator)) {
       parentDirectory = parentDirectory.substring(
-          0, parentDirectory.length - separator.length);
+        0,
+        parentDirectory.length - separator.length,
+      );
     }
     //
     // Convert from posix to the platform context.
@@ -90,8 +96,10 @@ class FilePathProducer extends Producer {
     // exist within the [parentDirectory] that can be suggested.
     //
     if (context.isRelative(parentDirectory)) {
-      parentDirectory =
-          context.join(context.dirname(request.filePath), parentDirectory);
+      parentDirectory = context.join(
+        context.dirname(request.filePath),
+        parentDirectory,
+      );
     }
     parentDirectory = context.normalize(parentDirectory);
     var dir = provider.getResource(parentDirectory);
@@ -130,7 +138,8 @@ class ListProducer extends Producer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
+    YamlCompletionRequest request,
+  ) sync* {
     for (var suggestion in element.suggestions(request)) {
       // TODO(brianwilkerson): Consider prepending the suggestion with a hyphen
       //  when the current node isn't already preceded by a hyphen. The
@@ -157,7 +166,8 @@ class MapProducer extends KeyValueProducer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
+    YamlCompletionRequest request,
+  ) sync* {
     for (var entry in _children.entries) {
       if (entry.value is ListProducer) {
         yield identifier('${entry.key}:');
@@ -176,17 +186,34 @@ abstract class Producer {
   const Producer();
 
   /// A utility method used to create a suggestion for the [identifier].
-  CompletionSuggestion identifier(String identifier,
-          {int relevance = 1000, String? docComplete}) =>
-      CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, relevance,
-          identifier, identifier.length, 0, false, false,
-          docComplete: docComplete);
+  CompletionSuggestion identifier(
+    String identifier, {
+    int relevance = 1000,
+    String? docComplete,
+  }) => CompletionSuggestion(
+    CompletionSuggestionKind.IDENTIFIER,
+    relevance,
+    identifier,
+    identifier.length,
+    0,
+    false,
+    false,
+    docComplete: docComplete,
+  );
 
   /// A utility method used to create a suggestion for the package [packageName].
-  CompletionSuggestion packageName(String packageName,
-          {int relevance = 1000}) =>
-      CompletionSuggestion(CompletionSuggestionKind.PACKAGE_NAME, relevance,
-          packageName, packageName.length, 0, false, false);
+  CompletionSuggestion packageName(
+    String packageName, {
+    int relevance = 1000,
+  }) => CompletionSuggestion(
+    CompletionSuggestionKind.PACKAGE_NAME,
+    relevance,
+    packageName,
+    packageName.length,
+    0,
+    false,
+    false,
+  );
 
   /// Return the completion suggestions appropriate to this location.
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request);
@@ -207,9 +234,10 @@ class YamlCompletionRequest {
   final String precedingText;
 
   /// Initialize a newly created completion request.
-  YamlCompletionRequest(
-      {required this.filePath,
-      required this.precedingText,
-      required this.resourceProvider,
-      required this.pubPackageService});
+  YamlCompletionRequest({
+    required this.filePath,
+    required this.precedingText,
+    required this.resourceProvider,
+    required this.pubPackageService,
+  });
 }

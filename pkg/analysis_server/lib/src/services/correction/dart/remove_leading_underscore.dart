@@ -67,7 +67,8 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       if (block != null) {
         references = findLocalElementReferences3(block, element);
 
-        var declaration = block.thisOrAncestorOfType<MethodDeclaration>() ??
+        var declaration =
+            block.thisOrAncestorOfType<MethodDeclaration>() ??
             block.thisOrAncestorOfType<FunctionDeclaration>();
 
         if (declaration != null) {
@@ -82,12 +83,15 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       }
     } else if (element is FormalParameterElement) {
       if (!element.isNamed) {
-        var root = node
-            .thisOrAncestorMatching((node) =>
-                node.parent is FunctionDeclaration ||
-                node.parent is MethodDeclaration ||
-                node.parent is ConstructorDeclaration)
-            ?.parent;
+        var root =
+            node
+                .thisOrAncestorMatching(
+                  (node) =>
+                      node.parent is FunctionDeclaration ||
+                      node.parent is MethodDeclaration ||
+                      node.parent is ConstructorDeclaration,
+                )
+                ?.parent;
         if (root != null) {
           references = findLocalElementReferences3(root, element);
         }
@@ -103,10 +107,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     }
 
     // Compute the change.
-    var sourceRanges = {
-      range.token(nameToken),
-      ...references.map(range.node),
-    };
+    var sourceRanges = {range.token(nameToken), ...references.map(range.node)};
     await builder.addDartFileEdit(file, (builder) {
       for (var sourceRange in sourceRanges) {
         builder.addSimpleReplacement(sourceRange, newName);

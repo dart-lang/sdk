@@ -19,8 +19,9 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_RELATED_TO_CASCADE;
@@ -35,8 +36,9 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
 
     var errors = _context.dartFixContext?.resolvedResult.errors
         .where((error) => error.errorCode.name == LintNames.cascade_invocations)
-        .whereNot((error) =>
-            error.offset == node.offset && error.length == node.length);
+        .whereNot(
+          (error) => error.offset == node.offset && error.length == node.length,
+        );
 
     if (errors == null || errors.isEmpty) return;
 
@@ -44,27 +46,33 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
     var next = _getNext(block, node);
 
     // Skip if no error has the offset and length of previous or next.
-    if (errors.none((error) =>
-            error.offset == previous?.offset &&
-            error.length == previous?.length) &&
-        errors.none((error) =>
-            error.offset == next?.offset && error.length == next?.length)) {
+    if (errors.none(
+          (error) =>
+              error.offset == previous?.offset &&
+              error.length == previous?.length,
+        ) &&
+        errors.none(
+          (error) =>
+              error.offset == next?.offset && error.length == next?.length,
+        )) {
       return;
     }
 
     // Get the full list of statements with errors that are related to this.
     List<ExpressionStatement> relatedStatements = [node];
     while (previous != null && previous is ExpressionStatement) {
-      if (errors.any((error) =>
-          error.offset == previous!.offset &&
-          error.length == previous.length)) {
+      if (errors.any(
+        (error) =>
+            error.offset == previous!.offset && error.length == previous.length,
+      )) {
         relatedStatements.insert(0, previous);
       }
       previous = _getPrevious(block, previous);
     }
     while (next != null && next is ExpressionStatement) {
-      if (errors.any((error) =>
-          error.offset == next!.offset && error.length == next.length)) {
+      if (errors.any(
+        (error) => error.offset == next!.offset && error.length == next.length,
+      )) {
         relatedStatements.add(next);
       }
       next = _getNext(block, next);
@@ -73,14 +81,16 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
     for (var (index, statement) in relatedStatements.indexed) {
       Token? previousOperator;
       Token? semicolon;
-      var previous = index > 0
-          ? relatedStatements[index - 1]
-          : _getPrevious(block, statement);
+      var previous =
+          index > 0
+              ? relatedStatements[index - 1]
+              : _getPrevious(block, statement);
       if (previous is ExpressionStatement) {
         semicolon = previous.semicolon;
-        previousOperator = (index == 0)
-            ? _getTargetAndOperator(previous.expression)?.operator
-            : null;
+        previousOperator =
+            (index == 0)
+                ? _getTargetAndOperator(previous.expression)?.operator
+                : null;
       } else if (previous is VariableDeclarationStatement) {
         // Single variable declaration.
         if (previous.variables.variables.length != 1) {

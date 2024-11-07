@@ -37,7 +37,8 @@ FutureOr f;
     expect(fix.fixes, isNotEmpty);
 
     var change = fix.fixes.singleWhere(
-        (SourceChange change) => change.message.startsWith('Import '));
+      (SourceChange change) => change.message.startsWith('Import '),
+    );
     expect(change.edits, hasLength(1));
     expect(change.edits.first.edits, hasLength(1));
   }

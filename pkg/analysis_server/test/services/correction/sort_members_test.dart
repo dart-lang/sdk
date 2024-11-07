@@ -1786,10 +1786,11 @@ void f() {}
 
   void _assertSort(String expectedCode) {
     var sorter = MemberSorter(
-        testCode,
-        testUnit,
-        testParsedResult.analysisOptions.codeStyleOptions,
-        testParsedResult.lineInfo);
+      testCode,
+      testUnit,
+      testParsedResult.analysisOptions.codeStyleOptions,
+      testParsedResult.lineInfo,
+    );
     var edits = sorter.sort();
     var result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);

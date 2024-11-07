@@ -15,8 +15,9 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.JOIN_VARIABLE_DECLARATION;
@@ -41,8 +42,11 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
 
   /// Join the declaration when the variable is on the left-hand side of an
   /// assignment.
-  Future<void> _joinOnAssignment(ChangeBuilder builder, SimpleIdentifier left,
-      AssignmentExpression assignment) async {
+  Future<void> _joinOnAssignment(
+    ChangeBuilder builder,
+    SimpleIdentifier left,
+    AssignmentExpression assignment,
+  ) async {
     // Check that assignment is not a compound assignment.
     if (assignment.operator.type != TokenType.EQ) {
       return;
@@ -98,7 +102,9 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
   /// Join the declaration when the variable is on the left-hand side of an
   /// assignment.
   Future<void> _joinOnDeclaration(
-      ChangeBuilder builder, VariableDeclarationList declList) async {
+    ChangeBuilder builder,
+    VariableDeclarationList declList,
+  ) async {
     // Only one variable must be declared.
     var declaredVariables = declList.variables;
     if (declaredVariables.length != 1) {

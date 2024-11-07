@@ -23,13 +23,13 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 
   /// Initialize a newly created instance with [DartFixKind.REMOVE_COMPARISON].
   RemoveComparison({required super.context})
-      : fixKind = DartFixKind.REMOVE_COMPARISON,
-        multiFixKind = DartFixKind.REMOVE_COMPARISON_MULTI;
+    : fixKind = DartFixKind.REMOVE_COMPARISON,
+      multiFixKind = DartFixKind.REMOVE_COMPARISON_MULTI;
 
   /// Initialize a newly created instance with [DartFixKind.REMOVE_TYPE_CHECK].
   RemoveComparison.typeCheck({required super.context})
-      : fixKind = DartFixKind.REMOVE_TYPE_CHECK,
-        multiFixKind = DartFixKind.REMOVE_TYPE_CHECK_MULTI;
+    : fixKind = DartFixKind.REMOVE_TYPE_CHECK,
+      multiFixKind = DartFixKind.REMOVE_TYPE_CHECK_MULTI;
 
   @override
   CorrectionApplicability get applicability =>
@@ -141,10 +141,7 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     Future<void> replaceWithBlock(Block replacement) async {
       var text = utils.getRangeText(
         utils.getLinesRange(
-          range.endStart(
-            replacement.leftBracket,
-            replacement.rightBracket,
-          ),
+          range.endStart(replacement.leftBracket, replacement.rightBracket),
         ),
       );
       var unIndented = indentLeft(text);
@@ -194,7 +191,9 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   /// Use the [builder] to add an edit to delete the operator and given
   /// [operand] from the [binary] expression.
   Future<void> _removeOperatorAndOperand(
-      ChangeBuilder builder, BinaryExpression binary) async {
+    ChangeBuilder builder,
+    BinaryExpression binary,
+  ) async {
     SourceRange operatorAndOperand;
     if (binary.leftOperand == node) {
       operatorAndOperand = range.startStart(node, binary.rightOperand);

@@ -89,8 +89,9 @@ class DartLazyTypeHierarchyComputer {
 
     if (type == null) {
       // Try enclosing class/mixins.
-      Declaration? declaration = node
-          ?.thisOrAncestorMatching((node) => _isValidTargetDeclaration(node));
+      Declaration? declaration = node?.thisOrAncestorMatching(
+        (node) => _isValidTargetDeclaration(node),
+      );
       var element = declaration?.declaredElement;
       if (element is InterfaceElement) {
         type = element.thisType;
@@ -108,7 +109,9 @@ class DartLazyTypeHierarchyComputer {
 
   /// Gets immediate sub types for the class/mixin [element].
   Future<List<TypeHierarchyRelatedItem>> _getSubtypes(
-      InterfaceElement target, SearchEngine searchEngine) async {
+    InterfaceElement target,
+    SearchEngine searchEngine,
+  ) async {
     /// Helper to convert a [SearchMatch] to a [TypeHierarchyRelatedItem].
     TypeHierarchyRelatedItem toHierarchyItem(SearchMatch match) {
       var element = match.element as InterfaceElement;
@@ -128,8 +131,10 @@ class DartLazyTypeHierarchyComputer {
       }
     }
 
-    var matches =
-        await searchEngine.searchSubtypes(target, SearchEngineCache());
+    var matches = await searchEngine.searchSubtypes(
+      target,
+      SearchEngineCache(),
+    );
     return matches
         .where((match) => !(match.element as InterfaceElement).isAugmentation)
         .map(toHierarchyItem)
@@ -184,7 +189,9 @@ class DartLazyTypeHierarchyComputer {
   /// Navigate to [target] from [anchor], preserving type arguments supplied
   /// along the way.
   Future<InterfaceType?> _locateTargetFromAnchor(
-      TypeHierarchyAnchor anchor, InterfaceType target) async {
+    TypeHierarchyAnchor anchor,
+    InterfaceType target,
+  ) async {
     // Start from the anchor.
     var anchorElement = await _findTargetElement(anchor.location);
     var anchorPath = anchor.path;
@@ -248,14 +255,14 @@ class TypeHierarchyItem {
   }) : _type = type;
 
   TypeHierarchyItem.forType(InterfaceType type)
-      : this(
-          type: type,
-          displayName: _displayNameForType(type),
-          location: type.element.location!,
-          nameRange: _nameRangeForElement(type.element),
-          codeRange: _codeRangeForElement(type.element),
-          file: type.element.source.fullName,
-        );
+    : this(
+        type: type,
+        displayName: _displayNameForType(type),
+        location: type.element.location!,
+        nameRange: _nameRangeForElement(type.element),
+        codeRange: _codeRangeForElement(type.element),
+        file: type.element.source.fullName,
+      );
 
   /// Returns the [SourceRange] of the code for [element].
   static SourceRange _codeRangeForElement(Element element) {
@@ -298,26 +305,27 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
   TypeHierarchyAnchor? _anchor;
 
   TypeHierarchyRelatedItem.constrainedTo(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.constrainedTo);
+    : this._forType(
+        type,
+        relationship: TypeHierarchyItemRelationship.constrainedTo,
+      );
   TypeHierarchyRelatedItem.extends_(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.extends_);
+    : this._forType(type, relationship: TypeHierarchyItemRelationship.extends_);
 
   TypeHierarchyRelatedItem.implements(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.implements);
+    : this._forType(
+        type,
+        relationship: TypeHierarchyItemRelationship.implements,
+      );
 
   TypeHierarchyRelatedItem.mixesIn(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.mixesIn);
+    : this._forType(type, relationship: TypeHierarchyItemRelationship.mixesIn);
 
   TypeHierarchyRelatedItem.unknown(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.unknown);
+    : this._forType(type, relationship: TypeHierarchyItemRelationship.unknown);
 
   TypeHierarchyRelatedItem._forType(super.type, {required this.relationship})
-      : super.forType();
+    : super.forType();
 
   /// An optional anchor element used to preserve type args.
   TypeHierarchyAnchor? get anchor => _anchor;

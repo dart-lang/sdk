@@ -905,9 +905,10 @@ abstract final class DartFixKind {
     "Insert ';'",
   );
   static const INSERT_SEMICOLON_MULTI = FixKind(
-      'dart.fix.insertSemicolon.multi',
-      DartFixKindPriority.inFile,
-      "Insert ';' everywhere in file");
+    'dart.fix.insertSemicolon.multi',
+    DartFixKindPriority.inFile,
+    "Insert ';' everywhere in file",
+  );
   static const MAKE_CLASS_ABSTRACT = FixKind(
     'dart.fix.makeClassAbstract',
     DartFixKindPriority.standard,
@@ -2029,8 +2030,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Use x.isNotEmpty instead of '!x.isEmpty' everywhere in file",
   );
-  static const USE_NAMED_CONSTANTS = FixKind('dart.fix.use.namedConstants',
-      DartFixKindPriority.standard, 'Replace with a predefined named constant');
+  static const USE_NAMED_CONSTANTS = FixKind(
+    'dart.fix.use.namedConstants',
+    DartFixKindPriority.standard,
+    'Replace with a predefined named constant',
+  );
   static const USE_NOT_EQ_NULL = FixKind(
     'dart.fix.use.notEqNull',
     DartFixKindPriority.standard,

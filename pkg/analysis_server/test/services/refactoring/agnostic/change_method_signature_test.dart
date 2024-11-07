@@ -44,14 +44,9 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     var testCode = TestCode.parse(rawCode);
     newFile(testFile.path, testCode.code);
 
-    await _buildRefactoringContext(
-      file: testFile,
-      testCode: testCode,
-    );
+    await _buildRefactoringContext(file: testFile, testCode: testCode);
 
-    return analyzeAvailability(
-      refactoringContext: refactoringContext,
-    );
+    return analyzeAvailability(refactoringContext: refactoringContext);
   }
 
   /// Create [testFile] with [rawCode], analyze selection in it.
@@ -59,9 +54,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     var availability = await _analyzeAvailability(rawCode);
     availability as Available;
 
-    selectionState = await analyzeSelection(
-      available: availability,
-    );
+    selectionState = await analyzeSelection(available: availability);
   }
 
   Future<void> _analyzeValidSelection(String rawCode) async {
@@ -121,9 +114,10 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     if (reference != null) {
       return _referenceToString(reference);
     } else if (element is ParameterElement) {
-      var enclosingStr = enclosingElement != null
-          ? _elementToReferenceString(enclosingElement)
-          : 'root';
+      var enclosingStr =
+          enclosingElement != null
+              ? _elementToReferenceString(enclosingElement)
+              : 'root';
       return '$enclosingStr::@parameter::${element.name}';
     } else {
       return '${element.name}@${element.nameOffset}';
@@ -617,8 +611,9 @@ void test(int a, int b) {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$packagesRootPath/foo'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: '$packagesRootPath/foo'),
     );
 
     var availability = await _analyzeAvailability(r'''
@@ -914,7 +909,7 @@ void f() {
   }
 
   Future<void>
-      test_classConstructor_optionalNamed_toRequiredPositional() async {
+  test_classConstructor_optionalNamed_toRequiredPositional() async {
     await _analyzeValidSelection(r'''
 class A {
   final int a;
@@ -968,7 +963,7 @@ void f() {
   }
 
   Future<void>
-      test_classConstructor_redirectingConstructorInvocation_named() async {
+  test_classConstructor_redirectingConstructorInvocation_named() async {
     await _analyzeValidSelection(r'''
 class A {
   final int a;
@@ -979,10 +974,7 @@ class A {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -999,7 +991,7 @@ class A {
   }
 
   Future<void>
-      test_classConstructor_redirectingConstructorInvocation_unnamed() async {
+  test_classConstructor_redirectingConstructorInvocation_unnamed() async {
     await _analyzeValidSelection(r'''
 class A {
   final int a;
@@ -1010,10 +1002,7 @@ class A {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1051,14 +1040,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1083,7 +1066,7 @@ void f() {
   }
 
   Future<void>
-      test_classConstructor_requiredNamed_toRequiredPositional() async {
+  test_classConstructor_requiredNamed_toRequiredPositional() async {
     await _analyzeValidSelection(r'''
 class A {
   final int a;
@@ -1187,7 +1170,7 @@ void f() {
   }
 
   Future<void>
-      test_classConstructor_requiredPositional_toRequiredNamed() async {
+  test_classConstructor_requiredPositional_toRequiredNamed() async {
     await _analyzeValidSelection(r'''
 class A {
   final int a;
@@ -1206,14 +1189,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1238,7 +1215,7 @@ void f() {
   }
 
   Future<void>
-      test_classConstructor_requiredPositional_toRequiredNamed_canSuper() async {
+  test_classConstructor_requiredPositional_toRequiredNamed_canSuper() async {
     await _analyzeValidSelection(r'''
 class A {
   ^A(int a, int b, int c);
@@ -1264,10 +1241,7 @@ void f() {
           id: 2,
           kind: FormalParameterKind.requiredPositional,
         ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1291,7 +1265,7 @@ void f() {
   }
 
   Future<void>
-      test_classConstructor_requiredPositional_toRequiredNamed_canSuper_differentName() async {
+  test_classConstructor_requiredPositional_toRequiredNamed_canSuper_differentName() async {
     await _analyzeValidSelection(r'''
 class A {
   ^A(int a, int b, int c, int d);
@@ -1317,14 +1291,8 @@ void f() {
           id: 3,
           kind: FormalParameterKind.requiredPositional,
         ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 2,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 2, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1351,7 +1319,7 @@ void f() {
   }
 
   Future<void>
-      test_classConstructor_requiredPositional_toRequiredNamed_canSuper_optionalNamed() async {
+  test_classConstructor_requiredPositional_toRequiredNamed_canSuper_optionalNamed() async {
     await _analyzeValidSelection(r'''
 class A {
   ^A(int a, int b);
@@ -1369,14 +1337,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1401,7 +1363,7 @@ void f() {
   }
 
   Future<void>
-      test_classConstructor_requiredPositional_toRequiredNamed_canSuper_requiredNamed() async {
+  test_classConstructor_requiredPositional_toRequiredNamed_canSuper_requiredNamed() async {
     await _analyzeValidSelection(r'''
 class A {
   ^A(int a, int b);
@@ -1419,14 +1381,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1463,10 +1419,7 @@ class B extends A {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1486,7 +1439,7 @@ class B extends A {
   }
 
   Future<void>
-      test_classConstructor_superConstructorInvocation_unnamed() async {
+  test_classConstructor_superConstructorInvocation_unnamed() async {
     await _analyzeValidSelection(r'''
 class A {
   final int a;
@@ -1500,10 +1453,7 @@ class B extends A {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1535,14 +1485,8 @@ class A {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 2,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 2, kind: FormalParameterKind.optionalNamed),
       ],
       removedNamedFormalParameters: {'b'},
       formalParametersTrailingComma: TrailingComma.ifPresent,
@@ -1578,18 +1522,9 @@ void f(A a, B b) {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 2,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 2, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1630,14 +1565,8 @@ void f(A a, B b) {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1686,14 +1615,8 @@ void f(A a, B b) {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 2,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 2, kind: FormalParameterKind.requiredNamed),
       ],
       removedNamedFormalParameters: {'b'},
       formalParametersTrailingComma: TrailingComma.ifPresent,
@@ -1828,7 +1751,7 @@ ChangeStatusFailure
   }
 
   Future<void>
-      test_classMethod_requiredPositional_reorder_more_optional() async {
+  test_classMethod_requiredPositional_reorder_more_optional() async {
     await _analyzeValidSelection(r'''
 class A {
   void ^test(int a, int b) {}
@@ -1860,21 +1783,15 @@ ChangeStatusFailure
   }
 
   Future<void>
-      test_formalParametersTrailingComma_requiredNamed_always_add() async {
+  test_formalParametersTrailingComma_requiredNamed_always_add() async {
     await _analyzeValidSelection(r'''
 void ^test({required int a, required int b}) {}
 ''');
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1887,21 +1804,15 @@ void test({required int b, required int a}) {}
   }
 
   Future<void>
-      test_formalParametersTrailingComma_requiredNamed_ifPresent_false() async {
+  test_formalParametersTrailingComma_requiredNamed_ifPresent_false() async {
     await _analyzeValidSelection(r'''
 void ^test({required int a, required int b}) {}
 ''');
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1914,7 +1825,7 @@ void test({required int b, required int a}) {}
   }
 
   Future<void>
-      test_formalParametersTrailingComma_requiredNamed_ifPresent_true() async {
+  test_formalParametersTrailingComma_requiredNamed_ifPresent_true() async {
     await _analyzeValidSelection(r'''
 void ^test({
   required int a,
@@ -1924,14 +1835,8 @@ void ^test({
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1944,7 +1849,7 @@ void test({required int b, required int a}) {}
   }
 
   Future<void>
-      test_formalParametersTrailingComma_requiredNamed_never_remove() async {
+  test_formalParametersTrailingComma_requiredNamed_never_remove() async {
     await _analyzeValidSelection(r'''
 void ^test({
   required int b,
@@ -1954,14 +1859,8 @@ void ^test({
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -1974,7 +1873,7 @@ void test({required int a, required int b}) {}
   }
 
   Future<void>
-      test_formalParametersTrailingComma_requiredPositional_always_add() async {
+  test_formalParametersTrailingComma_requiredPositional_always_add() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, int b) {}
 ''');
@@ -2001,7 +1900,7 @@ void test(int b, int a) {}
   }
 
   Future<void>
-      test_formalParametersTrailingComma_requiredPositional_never_remove() async {
+  test_formalParametersTrailingComma_requiredPositional_never_remove() async {
     await _analyzeValidSelection(r'''
 void ^test(
   int a,
@@ -2037,10 +1936,7 @@ void ^test(int a) {}
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2058,10 +1954,7 @@ void ^test(int a) {}
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: -1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: -1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2083,10 +1976,7 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
         FormalParameterUpdate(
           id: 1,
           kind: FormalParameterKind.optionalPositional,
@@ -2112,10 +2002,7 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
         FormalParameterUpdate(
           id: 1,
           kind: FormalParameterKind.requiredPositional,
@@ -2145,10 +2032,7 @@ void f() {
           id: 0,
           kind: FormalParameterKind.optionalPositional,
         ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2160,7 +2044,7 @@ ChangeStatusFailure
   }
 
   Future<void>
-      test_topFunction_fail_optionalPositional_requiredPositional() async {
+  test_topFunction_fail_optionalPositional_requiredPositional() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, int b) {}
 
@@ -2200,10 +2084,7 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
         FormalParameterUpdate(
           id: 1,
           kind: FormalParameterKind.requiredPositional,
@@ -2229,10 +2110,7 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2267,10 +2145,7 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2303,14 +2178,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 2,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 2, kind: FormalParameterKind.optionalNamed),
       ],
       removedNamedFormalParameters: {'b'},
       formalParametersTrailingComma: TrailingComma.ifPresent,
@@ -2341,14 +2210,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2375,14 +2238,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2449,14 +2306,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2483,14 +2334,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.never,
@@ -2651,14 +2496,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2685,14 +2524,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2709,7 +2542,7 @@ void f() {
   }
 
   Future<void>
-      test_topFunction_optionalPositional_toRequiredPositional() async {
+  test_topFunction_optionalPositional_toRequiredPositional() async {
     await _analyzeValidSelection(r'''
 void ^test([int a, double b]) {}
 
@@ -2744,7 +2577,7 @@ void f() {
   }
 
   Future<void>
-      test_topFunction_optionalPositional_toRequiredPositional_notAll() async {
+  test_topFunction_optionalPositional_toRequiredPositional_notAll() async {
     await _analyzeValidSelection(r'''
 void ^test([int a, double b]) {}
 
@@ -2816,14 +2649,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 2,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 2, kind: FormalParameterKind.requiredNamed),
       ],
       removedNamedFormalParameters: {'a'},
       formalParametersTrailingComma: TrailingComma.ifPresent,
@@ -2855,14 +2682,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       removedNamedFormalParameters: {'c'},
       formalParametersTrailingComma: TrailingComma.ifPresent,
@@ -2894,14 +2715,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 2,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 2, kind: FormalParameterKind.requiredNamed),
       ],
       removedNamedFormalParameters: {'b'},
       formalParametersTrailingComma: TrailingComma.ifPresent,
@@ -2932,14 +2747,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -2976,14 +2785,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -3017,14 +2820,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -3054,14 +2851,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -3276,7 +3067,7 @@ void f() {
   }
 
   Future<void>
-      test_topFunction_requiredPositional_reorder_hasNamedArgumentMiddle() async {
+  test_topFunction_requiredPositional_reorder_hasNamedArgumentMiddle() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b, {int? c}) {}
 
@@ -3295,10 +3086,7 @@ void f() {
           id: 0,
           kind: FormalParameterKind.requiredPositional,
         ),
-        FormalParameterUpdate(
-          id: 2,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 2, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -3354,14 +3142,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.optionalNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.optionalNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.optionalNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.optionalNamed),
       ],
       formalParametersTrailingComma: TrailingComma.never,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
@@ -3378,7 +3160,7 @@ void f() {
   }
 
   Future<void>
-      test_topFunction_requiredPositional_toOptionalPositional() async {
+  test_topFunction_requiredPositional_toOptionalPositional() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b) {}
 
@@ -3413,7 +3195,7 @@ void f() {
   }
 
   Future<void>
-      test_topFunction_requiredPositional_toOptionalPositional1() async {
+  test_topFunction_requiredPositional_toOptionalPositional1() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b) {}
 
@@ -3458,14 +3240,8 @@ void f() {
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: [
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredNamed,
-        ),
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredNamed,
-        ),
+        FormalParameterUpdate(id: 0, kind: FormalParameterKind.requiredNamed),
+        FormalParameterUpdate(id: 1, kind: FormalParameterKind.requiredNamed),
       ],
       formalParametersTrailingComma: TrailingComma.always,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,

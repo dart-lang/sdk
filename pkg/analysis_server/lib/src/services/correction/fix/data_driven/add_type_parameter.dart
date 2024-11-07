@@ -26,12 +26,12 @@ class AddTypeParameter extends Change<_Data> {
 
   /// Initialize a newly created change to describe adding a type parameter to a
   /// type or a function.
-  AddTypeParameter(
-      {required this.index,
-      required this.name,
-      required this.argumentValue,
-      required this.extendedType})
-      : assert(index >= 0);
+  AddTypeParameter({
+    required this.index,
+    required this.name,
+    required this.argumentValue,
+    required this.extendedType,
+  }) : assert(index >= 0);
 
   @override
   // The private type of the [data] parameter is dictated by the signature of
@@ -102,7 +102,10 @@ class AddTypeParameter extends Change<_Data> {
   }
 
   void _applyToTypeArguments(
-      DartFileEditBuilder builder, DataDrivenFix fix, _TypeArgumentData data) {
+    DartFileEditBuilder builder,
+    DataDrivenFix fix,
+    _TypeArgumentData data,
+  ) {
     var context = TemplateContext.forInvocation(fix.node, fix.utils);
     var typeArguments = data.typeArguments;
     if (typeArguments == null) {
@@ -131,7 +134,10 @@ class AddTypeParameter extends Change<_Data> {
   }
 
   void _applyToTypeParameters(
-      DartFileEditBuilder builder, DataDrivenFix fix, _TypeParameterData data) {
+    DartFileEditBuilder builder,
+    DataDrivenFix fix,
+    _TypeParameterData data,
+  ) {
     var context = TemplateContext.forInvocation(fix.node, fix.utils);
 
     void writeParameter(DartEditBuilder builder) {

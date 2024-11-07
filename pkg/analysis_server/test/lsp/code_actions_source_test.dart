@@ -72,11 +72,7 @@ final b = <String>{};
     newFile(analysisOptionsPath, analysisOptionsContent);
     newFile(mainFilePath, content);
 
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.fixAll,
-    );
+    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
   }
 
   Future<void> test_multipleIterations_noOverlay() async {
@@ -101,11 +97,7 @@ void f() {
     newFile(analysisOptionsPath, analysisOptionsContent);
     newFile(mainFilePath, content);
 
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.fixAll,
-    );
+    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
   }
 
   Future<void> test_multipleIterations_overlay() async {
@@ -129,11 +121,7 @@ void f() {
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
 
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.fixAll,
-    );
+    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
   }
 
   Future<void> test_multipleIterations_withClientModification() async {
@@ -151,10 +139,7 @@ void f() {
     registerLintRules();
     newFile(analysisOptionsPath, analysisOptionsContent);
 
-    var codeAction = await expectAction(
-      content,
-      command: Commands.fixAll,
-    );
+    var codeAction = await expectAction(content, command: Commands.fixAll);
     var command = codeAction.command!;
 
     // Files must be open to apply edits.
@@ -163,8 +148,11 @@ void f() {
     // Execute the command with a modification and capture the edit that is
     // sent back to us.
     ApplyWorkspaceEditParams? editParams;
-    await handleExpectedRequest<Object?, ApplyWorkspaceEditParams,
-        ApplyWorkspaceEditResult>(
+    await handleExpectedRequest<
+      Object?,
+      ApplyWorkspaceEditParams,
+      ApplyWorkspaceEditResult
+    >(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () async {
@@ -278,11 +266,7 @@ class _MyClass {
 }
 ''';
 
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.fixAll,
-    );
+    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
   }
 
   Future<void> test_unavailable_outsideAnalysisRoot() async {
@@ -330,11 +314,7 @@ int? a;
 int? a;
 ''';
 
-    await verifyActionEdits(
-      content,
-      expectedContent,
-      command: Commands.fixAll,
-    );
+    await verifyActionEdits(content, expectedContent, command: Commands.fixAll);
   }
 }
 
@@ -393,10 +373,7 @@ int minified(int x, int y) => min(x, y);
   Future<void> test_availableAsCodeActionLiteral() async {
     const content = '';
 
-    await expectAction(
-      content,
-      command: Commands.organizeImports,
-    );
+    await expectAction(content, command: Commands.organizeImports);
   }
 
   Future<void> test_availableAsCommand() async {
@@ -438,18 +415,17 @@ int minified(int x, int y) => min(x, y);
 
     // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).
-    await expectLater(executeCommand(command),
-        throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
+    await expectLater(
+      executeCommand(command),
+      throwsA(isResponseError(ServerErrorCodes.FileHasErrors)),
+    );
   }
 
   Future<void> test_filtersCorrectly() async {
     newFile(mainFilePath, '');
     await initialize();
 
-    ofKind(CodeActionKind kind) => getCodeActions(
-          mainFileUri,
-          kinds: [kind],
-        );
+    ofKind(CodeActionKind kind) => getCodeActions(mainFileUri, kinds: [kind]);
 
     expect(await ofKind(CodeActionKind.Source), hasLength(3));
     expect(await ofKind(CodeActionKind.SourceOrganizeImports), hasLength(1));
@@ -485,20 +461,14 @@ int minified(int x, int y) => min(x, y);
     var content = '';
 
     setSupportedCodeActionKinds([CodeActionKind.Refactor]); // not Source
-    await expectNoAction(
-      content,
-      command: Commands.organizeImports,
-    );
+    await expectNoAction(content, command: Commands.organizeImports);
   }
 
   Future<void> test_unavailableWithoutApplyEditSupport() async {
     var content = '';
 
     setApplyEditSupport(false);
-    await expectNoAction(
-      content,
-      command: Commands.organizeImports,
-    );
+    await expectNoAction(content, command: Commands.organizeImports);
   }
 }
 
@@ -542,10 +512,7 @@ String b;
   Future<void> test_availableAsCodeActionLiteral() async {
     const content = '';
 
-    await expectAction(
-      content,
-      command: Commands.sortMembers,
-    );
+    await expectAction(content, command: Commands.sortMembers);
   }
 
   Future<void> test_availableAsCommand() async {
@@ -567,28 +534,33 @@ String b;
 String a;
 ''';
 
-    var codeAction = await expectAction(
-      content,
-      command: Commands.sortMembers,
-    );
+    var codeAction = await expectAction(content, command: Commands.sortMembers);
     var command = codeAction.command!;
 
-    var commandResponse = handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
+    var commandResponse = handleExpectedRequest<
+      Object?,
+      ApplyWorkspaceEditParams,
+      ApplyWorkspaceEditResult
+    >(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(command),
       // Claim that we failed tpo apply the edits. This is what the client
       // would do if the edits provided were for an old version of the
       // document.
-      handler: (edit) => ApplyWorkspaceEditResult(
-          applied: false, failureReason: 'Document changed'),
+      handler:
+          (edit) => ApplyWorkspaceEditResult(
+            applied: false,
+            failureReason: 'Document changed',
+          ),
     );
 
     // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).
-    await expectLater(commandResponse,
-        throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)));
+    await expectLater(
+      commandResponse,
+      throwsA(isResponseError(ServerErrorCodes.ClientFailedToApplyEdit)),
+    );
   }
 
   Future<void> test_fileHasErrors_failsSilentlyForAutomatic() async {
@@ -609,16 +581,15 @@ String a;
   Future<void> test_fileHasErrors_failsWithErrorForManual() async {
     var content = 'invalid dart code';
 
-    var codeAction = await expectAction(
-      content,
-      command: Commands.sortMembers,
-    );
+    var codeAction = await expectAction(content, command: Commands.sortMembers);
     var command = codeAction.command!;
 
     // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).
-    await expectLater(executeCommand(command),
-        throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
+    await expectLater(
+      executeCommand(command),
+      throwsA(isResponseError(ServerErrorCodes.FileHasErrors)),
+    );
   }
 
   Future<void> test_nonDartFile() async {
@@ -633,19 +604,13 @@ String a;
     var content = '';
 
     setSupportedCodeActionKinds([CodeActionKind.Refactor]); // not Source
-    await expectNoAction(
-      content,
-      command: Commands.sortMembers,
-    );
+    await expectNoAction(content, command: Commands.sortMembers);
   }
 
   Future<void> test_unavailableWithoutApplyEditSupport() async {
     var content = '';
 
     setApplyEditSupport(false);
-    await expectNoAction(
-      content,
-      command: Commands.sortMembers,
-    );
+    await expectNoAction(content, command: Commands.sortMembers);
   }
 }

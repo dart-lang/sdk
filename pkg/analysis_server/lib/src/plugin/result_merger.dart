@@ -24,7 +24,8 @@ class ResultMerger {
   /// contribute the same fix for a given error, the resulting list will contain
   /// duplications.
   List<plugin.AnalysisErrorFixes> mergeAnalysisErrorFixes(
-      List<List<plugin.AnalysisErrorFixes>> partialResultList) {
+    List<List<plugin.AnalysisErrorFixes>> partialResultList,
+  ) {
     /// Return a key encoding the unique attributes of the given [error].
     String computeKey(AnalysisError error) {
       var buffer = StringBuffer();
@@ -59,8 +60,10 @@ class ResultMerger {
           // will result in extra copy operations.
           var mergedChanges = mergedFix.fixes.toList();
           mergedChanges.addAll(fix.fixes);
-          var copiedFix =
-              plugin.AnalysisErrorFixes(mergedFix.error, fixes: mergedChanges);
+          var copiedFix = plugin.AnalysisErrorFixes(
+            mergedFix.error,
+            fixes: mergedChanges,
+          );
           fixesMap[key] = copiedFix;
         }
       }
@@ -79,7 +82,8 @@ class ResultMerger {
   /// plugins. If two or more plugins contribute the same error the resulting
   /// list will contain duplications.
   List<AnalysisError> mergeAnalysisErrors(
-      List<List<AnalysisError>> partialResultList) {
+    List<List<AnalysisError>> partialResultList,
+  ) {
     // TODO(brianwilkerson): Consider merging duplicate errors (same code,
     // location, and messages). If we do that, we should return the logical-or
     // of the hasFix fields from the merged errors.
@@ -103,7 +107,8 @@ class ResultMerger {
   /// plugins. If two or more plugins contribute the same suggestion the
   /// resulting list will contain duplications.
   List<CompletionSuggestion> mergeCompletionSuggestions(
-      List<List<CompletionSuggestion>> partialResultList) {
+    List<List<CompletionSuggestion>> partialResultList,
+  ) {
     var count = partialResultList.length;
     if (count == 0) {
       return <CompletionSuggestion>[];
@@ -126,7 +131,8 @@ class ResultMerger {
   /// purposes, if either region is fully contained within the other they are
   /// not considered to be overlapping.)
   List<FoldingRegion> mergeFoldingRegions(
-      List<List<FoldingRegion>> partialResultList) {
+    List<List<FoldingRegion>> partialResultList,
+  ) {
     var count = partialResultList.length;
     if (count == 0) {
       return <FoldingRegion>[];
@@ -143,8 +149,13 @@ class ResultMerger {
       for (var existingRegion in mergedRegions) {
         var existingStart = existingRegion.offset;
         var existingEnd = existingStart + existingRegion.length;
-        if (overlaps(newStart, newEnd, existingStart, existingEnd,
-            allowNesting: true)) {
+        if (overlaps(
+          newStart,
+          newEnd,
+          existingStart,
+          existingEnd,
+          allowNesting: true,
+        )) {
           return false;
         }
       }
@@ -169,7 +180,8 @@ class ResultMerger {
   /// the plugins. If two or more plugins contribute the same highlight region
   /// the resulting list will contain duplications.
   List<HighlightRegion> mergeHighlightRegions(
-      List<List<HighlightRegion>> partialResultList) {
+    List<List<HighlightRegion>> partialResultList,
+  ) {
     var count = partialResultList.length;
     if (count == 0) {
       return <HighlightRegion>[];
@@ -191,7 +203,8 @@ class ResultMerger {
   /// region from a previous plugin, the overlapping region will be omitted.
   /// (For these purposes, nested regions are considered to be overlapping.)
   AnalysisNavigationParams? mergeNavigation(
-      List<AnalysisNavigationParams> partialResultList) {
+    List<AnalysisNavigationParams> partialResultList,
+  ) {
     var count = partialResultList.length;
     if (count == 0) {
       return null;
@@ -266,9 +279,16 @@ class ResultMerger {
         var target = targets[j];
         var newIndex = fileMap[target.fileIndex];
         if (newIndex != null && target.fileIndex != newIndex) {
-          target = NavigationTarget(target.kind, newIndex, target.offset,
-              target.length, target.startLine, target.startColumn,
-              codeOffset: target.codeOffset, codeLength: target.codeLength);
+          target = NavigationTarget(
+            target.kind,
+            newIndex,
+            target.offset,
+            target.length,
+            target.startLine,
+            target.startColumn,
+            codeOffset: target.codeOffset,
+            codeLength: target.codeLength,
+          );
         }
         var index = mergedTargets.indexOf(target);
         if (index < 0) {
@@ -282,10 +302,11 @@ class ResultMerger {
       //
       for (var j = 0; j < regions.length; j++) {
         var region = regions[j];
-        var newTargets = region.targets
-            .map((int oldTarget) => targetMap[oldTarget])
-            .toList()
-            .cast<int>();
+        var newTargets =
+            region.targets
+                .map((int oldTarget) => targetMap[oldTarget])
+                .toList()
+                .cast<int>();
         if (region.targets != newTargets) {
           region = NavigationRegion(region.offset, region.length, newTargets);
         }
@@ -308,7 +329,10 @@ class ResultMerger {
                 mergedTargets = mergedTargets.toList();
                 mergedTargets.add(target);
                 mergedRegion = NavigationRegion(
-                    mergedRegion.offset, mergedRegion.length, mergedTargets);
+                  mergedRegion.offset,
+                  mergedRegion.length,
+                  mergedTargets,
+                );
                 mergedRegions[index] = mergedRegion;
                 added = true;
               }
@@ -323,7 +347,11 @@ class ResultMerger {
       }
     }
     return AnalysisNavigationParams(
-        file, mergedRegions, mergedTargets, mergedFiles);
+      file,
+      mergedRegions,
+      mergedTargets,
+      mergedFiles,
+    );
   }
 
   /// Return a list of occurrences composed by merging the lists of occurrences
@@ -335,7 +363,8 @@ class ResultMerger {
   /// occurrences for that element will include all of the locations from all of
   /// the plugins without duplications.
   List<Occurrences> mergeOccurrences(
-      List<List<Occurrences>> partialResultList) {
+    List<List<Occurrences>> partialResultList,
+  ) {
     var count = partialResultList.length;
     if (count == 0) {
       return <Occurrences>[];
@@ -354,8 +383,9 @@ class ResultMerger {
     elementMap.forEach((Element element, Set<int> offsets) {
       var sortedOffsets = offsets.toList();
       sortedOffsets.sort();
-      mergedOccurrences
-          .add(Occurrences(element, sortedOffsets, element.name.length));
+      mergedOccurrences.add(
+        Occurrences(element, sortedOffsets, element.name.length),
+      );
     });
     return mergedOccurrences;
   }
@@ -378,7 +408,8 @@ class ResultMerger {
       var location = element.location;
       if (location == null) {
         throw StateError(
-            'Elements in an outline are expected to have a location');
+          'Elements in an outline are expected to have a location',
+        );
       }
       var buffer = StringBuffer();
       buffer.write(location.offset);
@@ -420,14 +451,16 @@ class ResultMerger {
             var mergedChildren = _copyList(mergedOutline.children);
             mergedChildren.add(newChild);
             copyMap.putIfAbsent(
-                mergedOutline,
-                () => Outline(
-                    mergedOutline.element,
-                    mergedOutline.offset,
-                    mergedOutline.length,
-                    mergedOutline.codeOffset,
-                    mergedOutline.codeLength,
-                    children: mergedChildren));
+              mergedOutline,
+              () => Outline(
+                mergedOutline.element,
+                mergedOutline.offset,
+                mergedOutline.length,
+                mergedOutline.codeOffset,
+                mergedOutline.codeLength,
+                children: mergedChildren,
+              ),
+            );
             addToMap(newChild);
           } else {
             mergeChildren(mergedChild, newChild);
@@ -468,12 +501,13 @@ class ResultMerger {
       if (currentChildren != updatedChildren) {
         if (!isCopied) {
           return Outline(
-              copiedOutline.element,
-              copiedOutline.offset,
-              copiedOutline.length,
-              copiedOutline.codeOffset,
-              copiedOutline.codeLength,
-              children: updatedChildren);
+            copiedOutline.element,
+            copiedOutline.offset,
+            copiedOutline.length,
+            copiedOutline.codeOffset,
+            copiedOutline.codeLength,
+            children: updatedChildren,
+          );
         }
         copiedOutline.children = updatedChildren;
         return copiedOutline;
@@ -494,7 +528,8 @@ class ResultMerger {
   /// plugins. If two or more plugins contribute the same source change the
   /// resulting list will contain duplications.
   List<plugin.PrioritizedSourceChange> mergePrioritizedSourceChanges(
-      List<List<plugin.PrioritizedSourceChange>> partialResultList) {
+    List<List<plugin.PrioritizedSourceChange>> partialResultList,
+  ) {
     var count = partialResultList.length;
     if (count == 0) {
       return <plugin.PrioritizedSourceChange>[];
@@ -520,7 +555,8 @@ class ResultMerger {
   /// The feedbacks in the [partialResultList] are expected to all be of the
   /// same type. If that expectation is violated, and exception might be thrown.
   RefactoringFeedback? mergeRefactoringFeedbacks(
-      List<RefactoringFeedback> feedbacks) {
+    List<RefactoringFeedback> feedbacks,
+  ) {
     var count = feedbacks.length;
     if (count == 0) {
       return null;
@@ -535,10 +571,12 @@ class ResultMerger {
       // The feedbacks are empty, so there's nothing to merge.
       return first;
     } else if (first is ExtractLocalVariableFeedback) {
-      var coveringExpressionOffsets =
-          _copyList(first.coveringExpressionOffsets);
-      var coveringExpressionLengths =
-          _copyList(first.coveringExpressionLengths);
+      var coveringExpressionOffsets = _copyList(
+        first.coveringExpressionOffsets,
+      );
+      var coveringExpressionLengths = _copyList(
+        first.coveringExpressionLengths,
+      );
       var names = first.names.toList();
       var offsets = first.offsets.toList();
       var lengths = first.lengths.toList();
@@ -562,13 +600,19 @@ class ResultMerger {
         offsets.addAll(feedback.offsets);
         lengths.addAll(feedback.lengths);
       }
-      return ExtractLocalVariableFeedback(names.toList(), offsets, lengths,
-          coveringExpressionOffsets: coveringExpressionOffsets.isEmpty
-              ? null
-              : coveringExpressionOffsets,
-          coveringExpressionLengths: coveringExpressionLengths.isEmpty
-              ? null
-              : coveringExpressionLengths);
+      return ExtractLocalVariableFeedback(
+        names.toList(),
+        offsets,
+        lengths,
+        coveringExpressionOffsets:
+            coveringExpressionOffsets.isEmpty
+                ? null
+                : coveringExpressionOffsets,
+        coveringExpressionLengths:
+            coveringExpressionLengths.isEmpty
+                ? null
+                : coveringExpressionLengths,
+      );
     } else if (first is ExtractMethodFeedback) {
       var offset = first.offset;
       var length = first.length;
@@ -594,8 +638,16 @@ class ResultMerger {
         offsets.addAll(feedback.offsets);
         lengths.addAll(feedback.lengths);
       }
-      return ExtractMethodFeedback(offset, length, returnType, names.toList(),
-          canCreateGetter, parameters, offsets, lengths);
+      return ExtractMethodFeedback(
+        offset,
+        length,
+        returnType,
+        names.toList(),
+        canCreateGetter,
+        parameters,
+        offsets,
+        lengths,
+      );
     } else if (first is InlineLocalVariableFeedback) {
       var occurrences = first.occurrences;
       for (var i = 1; i < count; i++) {
@@ -616,7 +668,8 @@ class ResultMerger {
       return first;
     }
     throw StateError(
-        'Unsupported class of refactoring feedback: ${first.runtimeType}');
+      'Unsupported class of refactoring feedback: ${first.runtimeType}',
+    );
   }
 
   /// Return a list of refactoring kinds composed by merging the lists of
@@ -625,7 +678,8 @@ class ResultMerger {
   /// The resulting list will contain all of the refactoring kinds from all of
   /// the plugins, but will not contain duplicate elements.
   List<RefactoringKind> mergeRefactoringKinds(
-      List<List<RefactoringKind>> partialResultList) {
+    List<List<RefactoringKind>> partialResultList,
+  ) {
     var count = partialResultList.length;
     if (count == 0) {
       return <RefactoringKind>[];
@@ -654,7 +708,8 @@ class ResultMerger {
   /// If two or more plugins produce the same potential edit, then the resulting
   /// list of potential edits will contain duplications.
   EditGetRefactoringResult? mergeRefactorings(
-      List<EditGetRefactoringResult> partialResultList) {
+    List<EditGetRefactoringResult> partialResultList,
+  ) {
     /// Return the result of merging the given list of source [changes] into a
     /// single source change.
     ///
@@ -692,17 +747,21 @@ class ResultMerger {
             var edits = mergedEdit.edits.toList();
             edits.addAll(edit.edits);
             editMap[edit.file] = SourceFileEdit(
-                mergedEdit.file, mergedEdit.fileStamp,
-                edits: edits);
+              mergedEdit.file,
+              mergedEdit.fileStamp,
+              edits: edits,
+            );
           }
         }
         linkedEditGroups.addAll(change.linkedEditGroups);
         selection ??= change.selection;
       }
-      return SourceChange(message,
-          edits: editMap.values.toList(),
-          linkedEditGroups: linkedEditGroups,
-          selection: selection);
+      return SourceChange(
+        message,
+        edits: editMap.values.toList(),
+        linkedEditGroups: linkedEditGroups,
+        selection: selection,
+      );
     }
 
     var count = partialResultList.length;
@@ -745,10 +804,13 @@ class ResultMerger {
       }
     }
     return EditGetRefactoringResult(
-        initialProblems, optionsProblems, finalProblems,
-        feedback: mergeRefactoringFeedbacks(feedbacks),
-        change: mergeChanges(changes),
-        potentialEdits: potentialEdits);
+      initialProblems,
+      optionsProblems,
+      finalProblems,
+      feedback: mergeRefactoringFeedbacks(feedbacks),
+      change: mergeChanges(changes),
+      potentialEdits: potentialEdits,
+    );
   }
 
   /// Return a list of source changes composed by merging the lists of source
@@ -758,7 +820,8 @@ class ResultMerger {
   /// plugins. If two or more plugins contribute the same source change the
   /// resulting list will contain duplications.
   List<SourceChange> mergeSourceChanges(
-      List<List<SourceChange>> partialResultList) {
+    List<List<SourceChange>> partialResultList,
+  ) {
     var count = partialResultList.length;
     if (count == 0) {
       return <SourceChange>[];
@@ -778,8 +841,13 @@ class ResultMerger {
   /// the regions are allowed to overlap as long as one region is completely
   /// nested within the other region.
   @visibleForTesting
-  bool overlaps(int leftStart, int leftEnd, int rightStart, int rightEnd,
-      {bool allowNesting = false}) {
+  bool overlaps(
+    int leftStart,
+    int leftEnd,
+    int rightStart,
+    int rightEnd, {
+    bool allowNesting = false,
+  }) {
     if (leftEnd < rightStart || leftStart > rightEnd) {
       return false;
     }

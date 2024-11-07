@@ -33,7 +33,7 @@ class CodeFragmentParser {
 
   /// Initialize a newly created parser to report errors to the [errorReporter].
   CodeFragmentParser(this.errorReporter, {VariableScope? scope})
-      : variableScope = scope ?? VariableScope(null, {});
+    : variableScope = scope ?? VariableScope(null, {});
 
   /// Return the current token, or `null` if the end of the tokens has been
   /// reached.
@@ -378,7 +378,7 @@ class _CodeFragmentScanner {
 
   /// Initialize a newly created scanner to scan the given [content].
   _CodeFragmentScanner(this.content, this.delta, this.errorReporter)
-      : length = content.length;
+    : length = content.length;
 
   /// Return the tokens in the content, or `null` if there is an error in the
   /// content that prevents it from being scanned.
@@ -431,23 +431,30 @@ class _CodeFragmentScanner {
         }
         offset++;
         tokens.add(
-            _Token(start, _TokenKind.string, content.substring(start, offset)));
+          _Token(start, _TokenKind.string, content.substring(start, offset)),
+        );
       } else if (char.isLetter) {
         var start = offset;
         offset++;
         while (offset < length && content.codeUnitAt(offset).isLetter) {
           offset++;
         }
-        tokens.add(_Token(
-            start, _TokenKind.identifier, content.substring(start, offset)));
+        tokens.add(
+          _Token(
+            start,
+            _TokenKind.identifier,
+            content.substring(start, offset),
+          ),
+        );
       } else if (char.isDigit) {
         var start = offset;
         offset++;
         while (offset < length && content.codeUnitAt(offset).isDigit) {
           offset++;
         }
-        tokens.add(_Token(
-            start, _TokenKind.integer, content.substring(start, offset)));
+        tokens.add(
+          _Token(start, _TokenKind.integer, content.substring(start, offset)),
+        );
       } else {
         return _reportInvalidCharacter(offset);
       }
@@ -527,7 +534,7 @@ extension on _TokenKind {
       _TokenKind.notEqual => "'!='",
       _TokenKind.openSquareBracket => "'['",
       _TokenKind.period => "'.'",
-      _TokenKind.string => 'a string'
+      _TokenKind.string => 'a string',
     };
   }
 }

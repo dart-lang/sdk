@@ -25,14 +25,14 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
 
   /// Initialize a newly created instance that adds a function body.
   ConvertIntoBlockBody.missingBody({required super.context})
-      : _correctionKind = _CorrectionKind.missingBody,
-        applicability = CorrectionApplicability.singleLocation;
+    : _correctionKind = _CorrectionKind.missingBody,
+      applicability = CorrectionApplicability.singleLocation;
 
   /// Initialize a newly created instance that converts the set literal to
   /// a function body.
   ConvertIntoBlockBody.setLiteral({required super.context})
-      : _correctionKind = _CorrectionKind.setLiteral,
-        applicability = CorrectionApplicability.automatically;
+    : _correctionKind = _CorrectionKind.setLiteral,
+      applicability = CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
@@ -97,7 +97,8 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       var next = functionDefinition.next!;
       builder.addDeletion(
-          range.startStart(functionDefinition, next.precedingComments ?? next));
+        range.startStart(functionDefinition, next.precedingComments ?? next),
+      );
 
       for (var element in elements) {
         bool isCommaAdded;
@@ -118,7 +119,9 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
         var next = endToken.next;
         if (next?.type == TokenType.COMMA) {
           builder.addSimpleReplacement(
-              range.token(next!), isCommaAdded ? '' : ';');
+            range.token(next!),
+            isCommaAdded ? '' : ';',
+          );
         } else if (!isCommaAdded) {
           builder.addSimpleInsertion(endToken.end, ';');
         }
@@ -133,7 +136,8 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
           next = next.next;
         }
         builder.addDeletion(
-            range.endEnd(precedingComments ?? semiColon.previous!, semiColon));
+          range.endEnd(precedingComments ?? semiColon.previous!, semiColon),
+        );
       }
     });
   }
@@ -188,7 +192,4 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
 }
 
 /// The kinds of corrections supported by [ConvertIntoBlockBody].
-enum _CorrectionKind {
-  missingBody,
-  setLiteral,
-}
+enum _CorrectionKind { missingBody, setLiteral }

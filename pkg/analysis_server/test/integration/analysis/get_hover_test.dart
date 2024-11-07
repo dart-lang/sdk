@@ -140,52 +140,139 @@ void f() {
     // request is made.  So wait for analysis to finish before testing anything.
     await analysisFinished;
 
-    await checkHover('topLevelVar;', 11, ['List', 'topLevelVar'],
-        'top level variable', ['List']);
-
-    await checkHover('func(', 4, ['func', 'int', 'param'], 'function', null,
-        docRegexp: 'Documentation for func');
-
-    await checkHover('int param', 3, ['int'], 'class', null,
-        isCore: true, docRegexp: '.*');
-
-    await checkHover('param)', 5, ['int', 'param'], 'parameter', ['int'],
-        isLocal: true, docRegexp: 'Documentation for func');
-
-    await checkHover('num localVar', 3, ['num'], 'class', null,
-        isCore: true, docRegexp: '.*');
+    await checkHover(
+      'topLevelVar;',
+      11,
+      ['List', 'topLevelVar'],
+      'top level variable',
+      ['List'],
+    );
 
     await checkHover(
-        'localVar =', 8, ['num', 'localVar'], 'local variable', ['num'],
-        isLocal: true);
-
-    await checkHover('topLevelVar.length;', 11, ['List', 'topLevelVar'],
-        'top level variable', ['List']);
-
-    await checkHover('length;', 6, ['get', 'length', 'int'], 'getter', ['int'],
-        isCore: true, docRegexp: '.*');
-
-    await checkHover('length =', 6, ['set', 'length', 'int'], 'setter', ['int'],
-        isCore: true, docRegexp: '.*');
-
-    await checkHover('param;', 5, ['int', 'param'], 'parameter', ['int'],
-        isLocal: true,
-        docRegexp: 'Documentation for func',
-        parameterRegexps: ['.*']);
-
-    await checkHover('add(', 3, ['add'], 'method', ['dynamic', 'void'],
-        isCore: true, docRegexp: '.*');
+      'func(',
+      4,
+      ['func', 'int', 'param'],
+      'function',
+      null,
+      docRegexp: 'Documentation for func',
+    );
 
     await checkHover(
-        'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],
-        isLocal: true, parameterRegexps: ['.*']);
+      'int param',
+      3,
+      ['int'],
+      'class',
+      null,
+      isCore: true,
+      docRegexp: '.*',
+    );
 
     await checkHover(
-        'func(35', 4, ['func', 'int', 'param'], 'function', ['int', 'void'],
-        docRegexp: 'Documentation for func');
+      'param)',
+      5,
+      ['int', 'param'],
+      'parameter',
+      ['int'],
+      isLocal: true,
+      docRegexp: 'Documentation for func',
+    );
 
-    await checkHover('35', 2, null, null, ['int'],
-        isLiteral: true, parameterRegexps: ['int', 'param']);
+    await checkHover(
+      'num localVar',
+      3,
+      ['num'],
+      'class',
+      null,
+      isCore: true,
+      docRegexp: '.*',
+    );
+
+    await checkHover(
+      'localVar =',
+      8,
+      ['num', 'localVar'],
+      'local variable',
+      ['num'],
+      isLocal: true,
+    );
+
+    await checkHover(
+      'topLevelVar.length;',
+      11,
+      ['List', 'topLevelVar'],
+      'top level variable',
+      ['List'],
+    );
+
+    await checkHover(
+      'length;',
+      6,
+      ['get', 'length', 'int'],
+      'getter',
+      ['int'],
+      isCore: true,
+      docRegexp: '.*',
+    );
+
+    await checkHover(
+      'length =',
+      6,
+      ['set', 'length', 'int'],
+      'setter',
+      ['int'],
+      isCore: true,
+      docRegexp: '.*',
+    );
+
+    await checkHover(
+      'param;',
+      5,
+      ['int', 'param'],
+      'parameter',
+      ['int'],
+      isLocal: true,
+      docRegexp: 'Documentation for func',
+      parameterRegexps: ['.*'],
+    );
+
+    await checkHover(
+      'add(',
+      3,
+      ['add'],
+      'method',
+      ['dynamic', 'void'],
+      isCore: true,
+      docRegexp: '.*',
+    );
+
+    await checkHover(
+      'localVar)',
+      8,
+      ['num', 'localVar'],
+      'local variable',
+      ['num'],
+      isLocal: true,
+      parameterRegexps: ['.*'],
+    );
+
+    await checkHover(
+      'func(35',
+      4,
+      ['func', 'int', 'param'],
+      'function',
+      ['int', 'void'],
+      docRegexp: 'Documentation for func',
+    );
+
+    await checkHover(
+      '35',
+      2,
+      null,
+      null,
+      ['int'],
+      isLiteral: true,
+      parameterRegexps: ['int', 'param'],
+    );
 
     await checkNoHover('comment');
   }

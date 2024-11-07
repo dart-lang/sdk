@@ -16,53 +16,86 @@ void main() {
 @reflectiveTest
 class SearchResultKindTest {
   void test_fromEngine() {
-    expect(newSearchResultKind_fromEngine(MatchKind.DECLARATION),
-        SearchResultKind.DECLARATION);
     expect(
-        newSearchResultKind_fromEngine(MatchKind.READ), SearchResultKind.READ);
-    expect(newSearchResultKind_fromEngine(MatchKind.READ_WRITE),
-        SearchResultKind.READ_WRITE);
-    expect(newSearchResultKind_fromEngine(MatchKind.WRITE),
-        SearchResultKind.WRITE);
-    expect(newSearchResultKind_fromEngine(MatchKind.REFERENCE),
-        SearchResultKind.REFERENCE);
+      newSearchResultKind_fromEngine(MatchKind.DECLARATION),
+      SearchResultKind.DECLARATION,
+    );
     expect(
-        newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_EXTENDS_CLAUSE),
-        SearchResultKind.REFERENCE);
+      newSearchResultKind_fromEngine(MatchKind.READ),
+      SearchResultKind.READ,
+    );
     expect(
-        newSearchResultKind_fromEngine(
-            MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE),
-        SearchResultKind.REFERENCE);
-    expect(newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_WITH_CLAUSE),
-        SearchResultKind.REFERENCE);
-    expect(newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_ON_CLAUSE),
-        SearchResultKind.REFERENCE);
+      newSearchResultKind_fromEngine(MatchKind.READ_WRITE),
+      SearchResultKind.READ_WRITE,
+    );
     expect(
-        newSearchResultKind_fromEngine(
-            MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF),
-        SearchResultKind.REFERENCE);
-    expect(newSearchResultKind_fromEngine(MatchKind.INVOCATION),
-        SearchResultKind.INVOCATION);
+      newSearchResultKind_fromEngine(MatchKind.WRITE),
+      SearchResultKind.WRITE,
+    );
+    expect(
+      newSearchResultKind_fromEngine(MatchKind.REFERENCE),
+      SearchResultKind.REFERENCE,
+    );
+    expect(
+      newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_EXTENDS_CLAUSE),
+      SearchResultKind.REFERENCE,
+    );
+    expect(
+      newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE),
+      SearchResultKind.REFERENCE,
+    );
+    expect(
+      newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_WITH_CLAUSE),
+      SearchResultKind.REFERENCE,
+    );
+    expect(
+      newSearchResultKind_fromEngine(MatchKind.REFERENCE_IN_ON_CLAUSE),
+      SearchResultKind.REFERENCE,
+    );
+    expect(
+      newSearchResultKind_fromEngine(
+        MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+      ),
+      SearchResultKind.REFERENCE,
+    );
+    expect(
+      newSearchResultKind_fromEngine(MatchKind.INVOCATION),
+      SearchResultKind.INVOCATION,
+    );
   }
 
   void test_fromName() {
-    expect(SearchResultKind(SearchResultKind.DECLARATION.name),
-        SearchResultKind.DECLARATION);
-    expect(SearchResultKind(SearchResultKind.READ.name), SearchResultKind.READ);
-    expect(SearchResultKind(SearchResultKind.READ_WRITE.name),
-        SearchResultKind.READ_WRITE);
     expect(
-        SearchResultKind(SearchResultKind.WRITE.name), SearchResultKind.WRITE);
-    expect(SearchResultKind(SearchResultKind.REFERENCE.name),
-        SearchResultKind.REFERENCE);
-    expect(SearchResultKind(SearchResultKind.INVOCATION.name),
-        SearchResultKind.INVOCATION);
-    expect(SearchResultKind(SearchResultKind.UNKNOWN.name),
-        SearchResultKind.UNKNOWN);
+      SearchResultKind(SearchResultKind.DECLARATION.name),
+      SearchResultKind.DECLARATION,
+    );
+    expect(SearchResultKind(SearchResultKind.READ.name), SearchResultKind.READ);
+    expect(
+      SearchResultKind(SearchResultKind.READ_WRITE.name),
+      SearchResultKind.READ_WRITE,
+    );
+    expect(
+      SearchResultKind(SearchResultKind.WRITE.name),
+      SearchResultKind.WRITE,
+    );
+    expect(
+      SearchResultKind(SearchResultKind.REFERENCE.name),
+      SearchResultKind.REFERENCE,
+    );
+    expect(
+      SearchResultKind(SearchResultKind.INVOCATION.name),
+      SearchResultKind.INVOCATION,
+    );
+    expect(
+      SearchResultKind(SearchResultKind.UNKNOWN.name),
+      SearchResultKind.UNKNOWN,
+    );
   }
 
   void test_toString() {
-    expect(SearchResultKind.DECLARATION.toString(),
-        'SearchResultKind.DECLARATION');
+    expect(
+      SearchResultKind.DECLARATION.toString(),
+      'SearchResultKind.DECLARATION',
+    );
   }
 }

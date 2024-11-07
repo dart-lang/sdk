@@ -41,14 +41,13 @@ const Map<String, String> _extraMethodsOnElement = {
 };
 
 /// Type references in the spec that are named something else in Java.
-const Map<String, String> _typeRenames = {
-  'Override': 'OverrideMember',
-};
+const Map<String, String> _typeRenames = {'Override': 'OverrideMember'};
 
 final String pathToGenTypes = 'tool/spec/generated/java/types';
 
-final GeneratedDirectory targetDir =
-    GeneratedDirectory(pathToGenTypes, (String pkgPath) {
+final GeneratedDirectory targetDir = GeneratedDirectory(pathToGenTypes, (
+  String pkgPath,
+) {
   var api = readApi(pkgPath);
   var impliedTypes = computeImpliedTypes(api);
   var map = <String, FileContentsComputer>{};
@@ -85,8 +84,13 @@ final GeneratedDirectory targetDir =
             generateSetters = true;
           }
           // create the visitor
-          var visitor = CodegenJavaType(api, typeNameInJava, superclassName,
-              generateGetters, generateSetters);
+          var visitor = CodegenJavaType(
+            api,
+            typeNameInJava,
+            superclassName,
+            generateGetters,
+            generateSetters,
+          );
           return visitor.collectCode(() {
             var doc = type.html;
             if (impliedType.apiNode is TypeDefinition) {
@@ -107,8 +111,13 @@ class CodegenJavaType extends CodegenJavaVisitor {
   final bool generateGetters;
   final bool generateSetters;
 
-  CodegenJavaType(super.api, this.className, this.superclassName,
-      this.generateGetters, this.generateSetters);
+  CodegenJavaType(
+    super.api,
+    this.className,
+    this.superclassName,
+    this.generateGetters,
+    this.generateSetters,
+  );
 
   /// Get the name of the consumer class for responses to this request.
   @override
@@ -170,7 +179,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
 
   bool _isTypeFieldInUpdateContentUnionType(
-      String className, String fieldName) {
+    String className,
+    String fieldName,
+  ) {
     if ((className == 'AddContentOverlay' ||
             className == 'ChangeContentOverlay' ||
             className == 'RemoveContentOverlay') &&
@@ -234,11 +245,13 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
 
   void _writeTypeEnum(TypeDecl type, dom.Element? html) {
-    javadocComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.translateHtml(html);
-      toHtmlVisitor.br();
-      toHtmlVisitor.write('@coverage dart.server.generated.types');
-    }));
+    javadocComment(
+      toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.translateHtml(html);
+        toHtmlVisitor.br();
+        toHtmlVisitor.write('@coverage dart.server.generated.types');
+      }),
+    );
     makeClass('public class $className', () {
       var typeEnum = type as TypeEnum;
       var values = typeEnum.values;
@@ -247,11 +260,14 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       for (var value in values) {
         privateField(javaName(value.value), () {
-          javadocComment(toHtmlVisitor.collectHtml(() {
-            toHtmlVisitor.translateHtml(value.html);
-          }));
+          javadocComment(
+            toHtmlVisitor.collectHtml(() {
+              toHtmlVisitor.translateHtml(value.html);
+            }),
+          );
           writeln(
-              'public static final String ${value.value} = "${value.value}";');
+            'public static final String ${value.value} = "${value.value}";',
+          );
         });
       }
     });
@@ -271,11 +287,13 @@ class CodegenJavaType extends CodegenJavaVisitor {
     writeln('import com.google.gson.JsonPrimitive;');
     writeln('import org.apache.commons.lang3.StringUtils;');
     writeln();
-    javadocComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.translateHtml(html);
-      toHtmlVisitor.br();
-      toHtmlVisitor.write('@coverage dart.server.generated.types');
-    }));
+    javadocComment(
+      toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.translateHtml(html);
+        toHtmlVisitor.br();
+        toHtmlVisitor.write('@coverage dart.server.generated.types');
+      }),
+    );
     writeln('@SuppressWarnings("unused")');
     var header = 'public class $className';
     if (superclassName != null) {
@@ -290,7 +308,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       publicField(javaName('EMPTY_ARRAY'), () {
         writeln(
-            'public static final $className[] EMPTY_ARRAY = new $className[0];');
+          'public static final $className[] EMPTY_ARRAY = new $className[0];',
+        );
       });
 
       //
@@ -310,9 +329,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
         var name = javaName(field.name);
         if (!(className == 'Outline' && name == 'children')) {
           privateField(name, () {
-            javadocComment(toHtmlVisitor.collectHtml(() {
-              toHtmlVisitor.translateHtml(field.html);
-            }));
+            javadocComment(
+              toHtmlVisitor.collectHtml(() {
+                toHtmlVisitor.translateHtml(field.html);
+              }),
+            );
             if (generateSetters) {
               writeln('private $type $name;');
             } else {
@@ -332,7 +353,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       if (className == 'NavigationRegion') {
         privateField(javaName('targetObjects'), () {
           writeln(
-              'private final List<NavigationTarget> targetObjects = new ArrayList<>();');
+            'private final List<NavigationTarget> targetObjects = new ArrayList<>();',
+          );
         });
       }
       if (className == 'NavigationTarget') {
@@ -345,9 +367,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
       // constructor
       //
       constructor(className, () {
-        javadocComment(toHtmlVisitor.collectHtml(() {
-          toHtmlVisitor.write('Constructor for {@link $className}.');
-        }));
+        javadocComment(
+          toHtmlVisitor.collectHtml(() {
+            toHtmlVisitor.write('Constructor for {@link $className}.');
+          }),
+        );
         write('public $className(');
         // write out parameters to constructor
         var parameters = <String>[];
@@ -394,9 +418,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
           var type = javaFieldType(field);
           var name = javaName(field.name);
           publicMethod('get$name', () {
-            javadocComment(toHtmlVisitor.collectHtml(() {
-              toHtmlVisitor.translateHtml(field.html);
-            }));
+            javadocComment(
+              toHtmlVisitor.collectHtml(() {
+                toHtmlVisitor.translateHtml(field.html);
+              }),
+            );
             if (type == 'boolean') {
               writeln('public $type $name() {');
             } else {
@@ -416,9 +442,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
           var type = javaFieldType(field);
           var name = javaName(field.name);
           publicMethod('set$name', () {
-            javadocComment(toHtmlVisitor.collectHtml(() {
-              toHtmlVisitor.translateHtml(field.html);
-            }));
+            javadocComment(
+              toHtmlVisitor.collectHtml(() {
+                toHtmlVisitor.translateHtml(field.html);
+              }),
+            );
             var setterName = 'set${capitalize(name)}';
             writeln('public void $setterName($type $name) {');
             writeln('  this.$name = $name;');
@@ -430,7 +458,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       if (className == 'NavigationRegion') {
         publicMethod('lookupTargets', () {
           writeln(
-              'public void lookupTargets(List<NavigationTarget> allTargets) {');
+            'public void lookupTargets(List<NavigationTarget> allTargets) {',
+          );
           writeln('  for (int targetIndex : targets) {');
           writeln('    NavigationTarget target = allTargets.get(targetIndex);');
           writeln('    targetObjects.add(target);');
@@ -458,10 +487,10 @@ class CodegenJavaType extends CodegenJavaVisitor {
 
       //
       // fromJson(JsonObject) factory constructor, example:
-//      public JsonObject toJson(JsonObject jsonObject) {
-//          String x = jsonObject.get("x").getAsString();
-//          return new Y(x);
-//        }
+      //      public JsonObject toJson(JsonObject jsonObject) {
+      //          String x = jsonObject.get("x").getAsString();
+      //          return new Y(x);
+      //        }
       if (className != 'Outline') {
         publicMethod('fromJson', () {
           writeln('public static $className fromJson(JsonObject jsonObject) {');
@@ -470,29 +499,35 @@ class CodegenJavaType extends CodegenJavaVisitor {
               write('${javaFieldType(field)} ${javaName(field.name)} = ');
               if (field.optional) {
                 write(
-                    'jsonObject.get("${javaName(field.name)}") == null ? null : ');
+                  'jsonObject.get("${javaName(field.name)}") == null ? null : ',
+                );
               }
               if (isDeclaredInSpec(field.type)) {
                 write('${javaFieldType(field)}.fromJson(');
                 write(
-                    'jsonObject.get("${javaName(field.name)}").getAsJsonObject())');
+                  'jsonObject.get("${javaName(field.name)}").getAsJsonObject())',
+                );
               } else {
                 if (isList(field.type)) {
                   if (javaFieldType(field).endsWith('<String>')) {
                     write(
-                        'JsonUtilities.decodeStringList(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                      'JsonUtilities.decodeStringList(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())',
+                    );
                   } else {
                     write(
-                        '${javaType((field.type as TypeList).itemType)}.fromJsonArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                      '${javaType((field.type as TypeList).itemType)}.fromJsonArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())',
+                    );
                   }
                 } else if (isArray(field.type)) {
                   if (javaFieldType(field).startsWith('int')) {
                     write(
-                        'JsonUtilities.decodeIntArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                      'JsonUtilities.decodeIntArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())',
+                    );
                   }
                 } else {
                   write(
-                      'jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}()');
+                    'jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}()',
+                  );
                 }
               }
               writeln(';');
@@ -501,7 +536,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
             var parameters = <String>[];
             for (var field in fields) {
               if (!_isTypeFieldInUpdateContentUnionType(
-                  className, field.name)) {
+                className,
+                field.name,
+              )) {
                 parameters.add(javaName(field.name));
               }
             }
@@ -513,7 +550,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       } else {
         publicMethod('fromJson', () {
           writeln(
-              '''public static Outline fromJson(Outline parent, JsonObject outlineObject) {
+            '''public static Outline fromJson(Outline parent, JsonObject outlineObject) {
   JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
   Element element = Element.fromJson(elementObject);
   int offset = outlineObject.get("offset").getAsInt();
@@ -535,7 +572,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
   outline.setChildren(childrenList);
   return outline;
-}''');
+}''',
+          );
         });
         publicMethod('getParent', () {
           writeln('''public Outline getParent() {
@@ -552,13 +590,15 @@ class CodegenJavaType extends CodegenJavaVisitor {
           className != 'RefactoringOptions') {
         publicMethod('fromJsonArray', () {
           writeln(
-              'public static List<$className> fromJsonArray(JsonArray jsonArray) {');
+            'public static List<$className> fromJsonArray(JsonArray jsonArray) {',
+          );
           indent(() {
             writeln('if (jsonArray == null) {');
             writeln('  return EMPTY_LIST;');
             writeln('}');
             writeln(
-                'List<$className> list = new ArrayList<>(jsonArray.size());');
+              'List<$className> list = new ArrayList<>(jsonArray.size());',
+            );
             writeln('for (final JsonElement element : jsonArray) {');
             writeln('  list.add(fromJson(element.getAsJsonObject()));');
             writeln('}');
@@ -570,12 +610,12 @@ class CodegenJavaType extends CodegenJavaVisitor {
 
       //
       // toJson() method, example:
-//      public JsonObject toJson() {
-//          JsonObject jsonObject = new JsonObject();
-//          jsonObject.addProperty("x", x);
-//          jsonObject.addProperty("y", y);
-//          return jsonObject;
-//        }
+      //      public JsonObject toJson() {
+      //          JsonObject jsonObject = new JsonObject();
+      //          jsonObject.addProperty("x", x);
+      //          jsonObject.addProperty("y", y);
+      //          return jsonObject;
+      //        }
       if (className != 'Outline') {
         publicMethod('toJson', () {
           writeln('public JsonObject toJson() {');

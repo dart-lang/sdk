@@ -813,9 +813,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 1,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 1),
     );
 
     assertExpectedChange(result, r'''
@@ -846,9 +844,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 1,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 1),
     );
 
     assertExpectedChange(result, r'''
@@ -876,9 +872,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       topProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 1,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 1),
     );
 
     assertExpectedChange(result, r'''
@@ -906,9 +900,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 11,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 11),
     );
 
     assertExpectedChange(result, r'''
@@ -936,9 +928,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       topProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 0,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 0),
     );
 
     assertExpectedChange(result, r'''
@@ -968,9 +958,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       topProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 4,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 4),
     );
 
     assertExpectedChange(result, r'''
@@ -1001,9 +989,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 3,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 3),
     );
 
     assertExpectedChange(result, r'''
@@ -1031,9 +1017,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       topProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 4,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 4),
     );
 
     assertExpectedChange(result, r'''
@@ -1061,9 +1045,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 11,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 11),
     );
 
     assertExpectedChange(result, r'''
@@ -1092,9 +1074,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 1,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 1),
     );
 
     assertExpectedChange(result, r'''

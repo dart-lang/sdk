@@ -25,27 +25,35 @@ void main(List<String> rawArgs) {
   var driver = Driver(diagnosticPort: args.diagnosticPort);
   var stream = openInput(args);
   late StreamSubscription<Operation?> subscription;
-  subscription = stream.listen((Operation? op) {
-    var future = driver.perform(op!);
-    if (future != null) {
-      logger.log(Level.FINE, 'pausing operations for ${op.runtimeType}');
-      subscription.pause(future.then((_) {
-        logger.log(Level.FINE, 'resuming operations');
-      }));
-    }
-  }, onDone: () {
-    subscription.cancel();
-    driver.stopServer(SHUTDOWN_TIMEOUT);
-  }, onError: (e, s) {
-    subscription.cancel();
-    logger.log(Level.SEVERE, '$e\n$s');
-    driver.stopServer(SHUTDOWN_TIMEOUT);
-  });
-  driver.runComplete.then((Results results) {
-    results.printResults();
-  }).whenComplete(() {
-    return subscription.cancel();
-  });
+  subscription = stream.listen(
+    (Operation? op) {
+      var future = driver.perform(op!);
+      if (future != null) {
+        logger.log(Level.FINE, 'pausing operations for ${op.runtimeType}');
+        subscription.pause(
+          future.then((_) {
+            logger.log(Level.FINE, 'resuming operations');
+          }),
+        );
+      }
+    },
+    onDone: () {
+      subscription.cancel();
+      driver.stopServer(SHUTDOWN_TIMEOUT);
+    },
+    onError: (e, s) {
+      subscription.cancel();
+      logger.log(Level.SEVERE, '$e\n$s');
+      driver.stopServer(SHUTDOWN_TIMEOUT);
+    },
+  );
+  driver.runComplete
+      .then((Results results) {
+        results.printResults();
+      })
+      .whenComplete(() {
+        return subscription.cancel();
+      });
 }
 
 const DIAGNOSTIC_PORT_OPTION = 'diagnosticPort';
@@ -64,34 +72,56 @@ const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
 final ArgParser argParser = () {
   var argParser = ArgParser();
 
-  argParser.addOption(INPUT_CMDLINE_OPTION,
-      abbr: 'i',
-      help: '<filePath>\n'
-          'The input file specifying how this client should interact with the server.\n'
-          'If the input file name is "stdin", then the instructions are read from standard input.');
-  argParser.addMultiOption(MAP_OPTION,
-      abbr: 'm',
-      splitCommas: false,
-      help: '<oldSrcPath>,<newSrcPath>\n'
-          'This option defines a mapping from the original source directory <oldSrcPath>\n'
-          'when the instrumentation or log file was generated\n'
-          'to the target source directory <newSrcPath> used during performance testing.\n'
-          'Multiple mappings can be specified.\n'
-          'WARNING: The contents of the target directory will be modified');
-  argParser.addOption(TMP_SRC_DIR_OPTION,
-      abbr: 't',
-      help: '<dirPath>\n'
-          'The temporary directory containing source used during performance measurement.\n'
-          'WARNING: The contents of the target directory will be modified');
-  argParser.addOption(DIAGNOSTIC_PORT_OPTION,
-      abbr: 'd',
-      help: 'localhost port on which server will provide diagnostic web pages');
-  argParser.addFlag(VERBOSE_CMDLINE_OPTION,
-      abbr: 'v', help: 'Verbose logging', negatable: false);
-  argParser.addFlag(VERY_VERBOSE_CMDLINE_OPTION,
-      help: 'Extra verbose logging', negatable: false);
-  argParser.addFlag(HELP_CMDLINE_OPTION,
-      abbr: 'h', help: 'Print this help information', negatable: false);
+  argParser.addOption(
+    INPUT_CMDLINE_OPTION,
+    abbr: 'i',
+    help:
+        '<filePath>\n'
+        'The input file specifying how this client should interact with the server.\n'
+        'If the input file name is "stdin", then the instructions are read from standard input.',
+  );
+  argParser.addMultiOption(
+    MAP_OPTION,
+    abbr: 'm',
+    splitCommas: false,
+    help:
+        '<oldSrcPath>,<newSrcPath>\n'
+        'This option defines a mapping from the original source directory <oldSrcPath>\n'
+        'when the instrumentation or log file was generated\n'
+        'to the target source directory <newSrcPath> used during performance testing.\n'
+        'Multiple mappings can be specified.\n'
+        'WARNING: The contents of the target directory will be modified',
+  );
+  argParser.addOption(
+    TMP_SRC_DIR_OPTION,
+    abbr: 't',
+    help:
+        '<dirPath>\n'
+        'The temporary directory containing source used during performance measurement.\n'
+        'WARNING: The contents of the target directory will be modified',
+  );
+  argParser.addOption(
+    DIAGNOSTIC_PORT_OPTION,
+    abbr: 'd',
+    help: 'localhost port on which server will provide diagnostic web pages',
+  );
+  argParser.addFlag(
+    VERBOSE_CMDLINE_OPTION,
+    abbr: 'v',
+    help: 'Verbose logging',
+    negatable: false,
+  );
+  argParser.addFlag(
+    VERY_VERBOSE_CMDLINE_OPTION,
+    help: 'Extra verbose logging',
+    negatable: false,
+  );
+  argParser.addFlag(
+    HELP_CMDLINE_OPTION,
+    abbr: 'h',
+    help: 'Print this help information',
+    negatable: false,
+  );
   return argParser;
 }();
 
@@ -107,9 +137,10 @@ Stream<Operation?> openInput(PerfArgs args) {
   }
   for (var entry in args.srcPathMap.entries) {
     logger.log(
-        Level.INFO,
-        'mapping source path\n'
-        '  from ${entry.oldSrcPrefix}\n  to   ${entry.newSrcPrefix}');
+      Level.INFO,
+      'mapping source path\n'
+      '  from ${entry.oldSrcPrefix}\n  to   ${entry.newSrcPrefix}',
+    );
   }
   logger.log(Level.INFO, 'tmpSrcDir: ${args.tmpSrcDirPath}');
   return inputRaw

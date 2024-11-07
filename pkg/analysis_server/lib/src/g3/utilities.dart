@@ -24,7 +24,8 @@ import 'package:pub_semver/pub_semver.dart';
 String format(String content, {Version? languageVersion}) {
   var code = SourceCode(content);
   var formatter = DartFormatter(
-      languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion);
+    languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion,
+  );
   SourceCode formattedResult;
   formattedResult = formatter.formatSource(code);
   return formattedResult.text;
@@ -35,9 +36,14 @@ String format(String content, {Version? languageVersion}) {
 /// cause of the failure, a list of [AnalysisError]'s.
 ParseStringResult sortDirectives(String contents, {String? fileName}) {
   var (unit, errors) = _parse(contents, fullName: fileName);
-  var parseErrors = errors.where((error) =>
-      error.errorCode is ScannerErrorCode ||
-      error.errorCode is ParserErrorCode).toList();
+  var parseErrors =
+      errors
+          .where(
+            (error) =>
+                error.errorCode is ScannerErrorCode ||
+                error.errorCode is ParserErrorCode,
+          )
+          .toList();
   if (parseErrors.isNotEmpty) {
     return ParseStringResultImpl(contents, unit, parseErrors);
   }
@@ -46,8 +52,10 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
   return ParseStringResultImpl(sorter.code, unit, parseErrors);
 }
 
-(CompilationUnit, List<AnalysisError>) _parse(String contents,
-    {String? fullName}) {
+(CompilationUnit, List<AnalysisError>) _parse(
+  String contents, {
+  String? fullName,
+}) {
   var source = StringSource(contents, fullName);
   var errorListener = RecordingErrorListener();
   var reader = CharSequenceReader(contents);
@@ -55,11 +63,10 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [],
   );
-  var scanner = Scanner(source, reader, errorListener)
-    ..configureFeatures(
-      featureSetForOverriding: FeatureSet.latestLanguageVersion(),
-      featureSet: featureSet,
-    );
+  var scanner = Scanner(source, reader, errorListener)..configureFeatures(
+    featureSetForOverriding: FeatureSet.latestLanguageVersion(),
+    featureSet: featureSet,
+  );
   var token = scanner.tokenize(reportScannerErrors: false);
   var lineInfo = LineInfo(scanner.lineStarts);
   var languageVersion = LibraryLanguageVersion(

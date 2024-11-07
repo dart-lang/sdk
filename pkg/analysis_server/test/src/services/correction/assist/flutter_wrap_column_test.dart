@@ -22,9 +22,7 @@ class FlutterWrapColumnTest extends AssistProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_controlFlowCollections_if() async {
@@ -167,9 +165,7 @@ class FakeFlutter {
   }
 }
 ''');
-    await assertHasAssistAt(
-        'Text(',
-        '''
+    await assertHasAssistAt('Text(', '''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {
@@ -183,7 +179,6 @@ class FakeFlutter {
     );
   }
 }
-''',
-        length: 4);
+''', length: 4);
   }
 }

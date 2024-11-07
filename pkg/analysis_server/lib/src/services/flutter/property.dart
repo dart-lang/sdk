@@ -96,7 +96,8 @@ class PropertyDescription {
   }
 
   Future<protocol.SourceChange?> changeValue(
-      protocol.FlutterWidgetPropertyValue value) async {
+    protocol.FlutterWidgetPropertyValue value,
+  ) async {
     var edgeInsetsProperty = parent?._edgeInsetsProperty;
     if (edgeInsetsProperty != null) {
       return edgeInsetsProperty.changeValue(this, value);
@@ -156,9 +157,7 @@ class PropertyDescription {
 
       var beginOffset = argumentExpression.offset;
       await builder.addDartFileEdit(resolvedUnit.path, (builder) {
-        builder.addDeletion(
-          SourceRange(beginOffset, endOffset - beginOffset),
-        );
+        builder.addDeletion(SourceRange(beginOffset, endOffset - beginOffset));
       });
     }
 
@@ -268,10 +267,7 @@ class PropertyDescription {
     if (parentCreation != null) {
       // `new Padding(...)` -> `Container(...)`
       builder.addReplacement(
-        range.startEnd(
-          parentCreation,
-          parentCreation.constructorName,
-        ),
+        range.startEnd(parentCreation, parentCreation.constructorName),
         (builder) {
           builder.writeReference(virtualContainer.containerElement);
         },
@@ -300,37 +296,31 @@ class PropertyDescription {
         leadingComma = true;
       }
 
-      builder.addInsertion(
-        parameterOffset,
-        (builder) {
-          if (leadingComma) {
-            builder.write(', ');
-          }
-
-          builder.write(parameterName);
-          builder.write(': ');
-          writeArgumentValue(builder);
-
-          if (trailingComma) {
-            builder.write(', ');
-          }
-        },
-      );
-    } else {
-      builder.addInsertion(
-        virtualContainer.widgetCreation.offset,
-        (builder) {
-          builder.writeReference(virtualContainer.containerElement);
-          builder.write('(');
-
-          builder.write(parameterName);
-          builder.write(': ');
-          writeArgumentValue(builder);
+      builder.addInsertion(parameterOffset, (builder) {
+        if (leadingComma) {
           builder.write(', ');
+        }
 
-          builder.write('child: ');
-        },
-      );
+        builder.write(parameterName);
+        builder.write(': ');
+        writeArgumentValue(builder);
+
+        if (trailingComma) {
+          builder.write(', ');
+        }
+      });
+    } else {
+      builder.addInsertion(virtualContainer.widgetCreation.offset, (builder) {
+        builder.writeReference(virtualContainer.containerElement);
+        builder.write('(');
+
+        builder.write(parameterName);
+        builder.write(': ');
+        writeArgumentValue(builder);
+        builder.write(', ');
+
+        builder.write('child: ');
+      });
       builder.addSimpleInsertion(virtualContainer.widgetCreation.end, ',)');
     }
   }
@@ -412,10 +402,7 @@ class VirtualContainerProperty {
   /// the new `Container` creation during its materialization.
   NamedExpression? _parentArgumentToMove;
 
-  VirtualContainerProperty(
-    this.containerElement,
-    this.widgetCreation,
-  );
+  VirtualContainerProperty(this.containerElement, this.widgetCreation);
 
   void setParentCreation(
     InstanceCreationExpression parentCreation,
@@ -662,11 +649,10 @@ class _EdgeInsetsProperty {
   }
 
   static protocol.FlutterWidgetPropertyValue? _protocolValueDouble(
-      double? value) {
+    double? value,
+  ) {
     if (value != null) {
-      return protocol.FlutterWidgetPropertyValue(
-        doubleValue: value,
-      );
+      return protocol.FlutterWidgetPropertyValue(doubleValue: value);
     }
     return null;
   }

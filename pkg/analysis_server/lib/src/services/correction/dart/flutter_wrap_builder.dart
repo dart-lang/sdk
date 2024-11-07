@@ -15,8 +15,9 @@ class FlutterWrapBuilder extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_BUILDER;
@@ -50,11 +51,7 @@ class FlutterWrapBuilder extends ResolvedCorrectionProducer {
         builder.write(indentNew1);
         builder.writeln('builder: (context) {');
 
-        widgetSrc = utils.replaceSourceIndent(
-          widgetSrc,
-          indentOld,
-          indentNew2,
-        );
+        widgetSrc = utils.replaceSourceIndent(widgetSrc, indentOld, indentNew2);
         builder.write(indentNew2);
         builder.write('return $widgetSrc');
         builder.writeln(';');

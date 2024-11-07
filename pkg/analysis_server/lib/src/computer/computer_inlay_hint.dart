@@ -27,8 +27,8 @@ class DartInlayHintComputer {
   final List<InlayHint> _hints = [];
 
   DartInlayHintComputer(this.pathContext, ResolvedUnitResult result)
-      : _unit = result.unit,
-        _lineInfo = result.lineInfo;
+    : _unit = result.unit,
+      _lineInfo = result.lineInfo;
 
   List<InlayHint> compute() {
     _unit.accept(_DartInlayHintComputerVisitor(this));
@@ -43,7 +43,9 @@ class DartInlayHintComputer {
   /// A colon and padding will be added between the hint and [node]
   /// automatically.
   void _addParameterNamePrefix(
-      SyntacticEntity nodeOrToken, ParameterElement parameter) {
+    SyntacticEntity nodeOrToken,
+    ParameterElement parameter,
+  ) {
     var name = parameter.name;
     if (name.isEmpty) {
       return;
@@ -56,12 +58,14 @@ class DartInlayHintComputer {
         location: _locationForElement(parameter),
       ),
     ]);
-    _hints.add(InlayHint(
-      label: labelParts,
-      position: position,
-      kind: InlayHintKind.Parameter,
-      paddingRight: true,
-    ));
+    _hints.add(
+      InlayHint(
+        label: labelParts,
+        position: position,
+        kind: InlayHintKind.Parameter,
+        paddingRight: true,
+      ),
+    );
   }
 
   /// Adds a type hint for [node] showing a label for type arguments [types].
@@ -83,11 +87,15 @@ class DartInlayHintComputer {
     var labelParts = <InlayHintLabelPart>[];
     _appendTypeArgumentParts(labelParts, types);
 
-    _hints.add(InlayHint(
-      label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts.toList()),
-      position: position,
-      kind: InlayHintKind.Type,
-    ));
+    _hints.add(
+      InlayHint(
+        label: Either2<List<InlayHintLabelPart>, String>.t1(
+          labelParts.toList(),
+        ),
+        position: position,
+        kind: InlayHintKind.Type,
+      ),
+    );
   }
 
   /// Adds a type hint before [node] showing a label for the type [type].
@@ -98,12 +106,14 @@ class DartInlayHintComputer {
     var position = toPosition(_lineInfo.getLocation(offset));
     var labelParts = <InlayHintLabelPart>[];
     _appendTypePart(labelParts, type);
-    _hints.add(InlayHint(
-      label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts),
-      position: position,
-      kind: InlayHintKind.Type,
-      paddingRight: true,
-    ));
+    _hints.add(
+      InlayHint(
+        label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts),
+        position: position,
+        kind: InlayHintKind.Type,
+        paddingRight: true,
+      ),
+    );
   }
 
   /// Adds labels to [parts] for each element of [type], formatted as
@@ -171,12 +181,14 @@ class DartInlayHintComputer {
     if (type is RecordType) {
       _appendRecordParts(parts, type);
     } else {
-      parts.add(InlayHintLabelPart(
-        // Write type without type args or nullability suffix. Type args need
-        // adding as their own parts, and the nullability suffix does after them.
-        value: type.element?.name ?? type.getDisplayString(),
-        location: _locationForElement(type.element),
-      ));
+      parts.add(
+        InlayHintLabelPart(
+          // Write type without type args or nullability suffix. Type args need
+          // adding as their own parts, and the nullability suffix does after them.
+          value: type.element?.name ?? type.getDisplayString(),
+          location: _locationForElement(type.element),
+        ),
+      );
       // Call recursively for any nested type arguments.
       if (type is InterfaceType && type.typeArguments.isNotEmpty) {
         _appendTypeArgumentParts(parts, type.typeArguments);
@@ -208,8 +220,11 @@ class DartInlayHintComputer {
   }
 
   /// Adds a Type hint for type arguments of [type] (if it has type arguments).
-  void _maybeAddTypeArguments(Token token, DartType? type,
-      {bool suffix = false}) {
+  void _maybeAddTypeArguments(
+    Token token,
+    DartType? type, {
+    bool suffix = false,
+  }) {
     if (type is! ParameterizedType) {
       return;
     }
@@ -308,7 +323,9 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     }
 
     _computer._addTypeArguments(
-        node.argumentList.leftParenthesis, node.typeArgumentTypes);
+      node.argumentList.leftParenthesis,
+      node.typeArgumentTypes,
+    );
   }
 
   @override

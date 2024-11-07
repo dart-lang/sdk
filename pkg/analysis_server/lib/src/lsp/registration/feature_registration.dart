@@ -70,10 +70,7 @@ abstract class FeatureRegistration {
   /// not included here as their support is very limited and do not provide
   /// functionality in most handlers.
   List<TextDocumentFilterScheme> get fullySupportedTypes {
-    return {
-      ...dartFiles,
-      ...pluginTypes,
-    }.toList();
+    return {...dartFiles, ...pluginTypes}.toList();
   }
 
   /// Types of documents that loaded plugins are interested in.
@@ -113,76 +110,76 @@ class LspFeatures {
   final TypeHierarchyRegistrations typeHierarchy;
   final WillRenameFilesRegistrations willRename;
   final WorkspaceDidChangeConfigurationRegistrations
-      workspaceDidChangeConfiguration;
+  workspaceDidChangeConfiguration;
   final WorkspaceSymbolRegistrations workspaceSymbol;
   final DartTextDocumentContentProviderRegistrations
-      dartTextDocumentContentProvider;
+  dartTextDocumentContentProvider;
 
   LspFeatures(RegistrationContext context)
-      : callHierarchy = CallHierarchyRegistrations(context),
-        changeNotifications = ChangeWorkspaceFoldersRegistrations(context),
-        codeActions = CodeActionRegistrations(context),
-        codeLens = CodeLensRegistrations(context),
-        colors = DocumentColorRegistrations(context),
-        completion = CompletionRegistrations(context),
-        definition = DefinitionRegistrations(context),
-        documentLink = DocumentLinkRegistrations(context),
-        format = FormattingRegistrations(context),
-        documentHighlight = DocumentHighlightsRegistrations(context),
-        formatOnType = FormatOnTypeRegistrations(context),
-        formatRange = FormatRangeRegistrations(context),
-        documentSymbol = DocumentSymbolsRegistrations(context),
-        executeCommand = ExecuteCommandRegistrations(context),
-        foldingRange = FoldingRegistrations(context),
-        hover = HoverRegistrations(context),
-        implementation = ImplementationRegistrations(context),
-        inlayHint = InlayHintRegistrations(context),
-        references = ReferencesRegistrations(context),
-        rename = RenameRegistrations(context),
-        selectionRange = SelectionRangeRegistrations(context),
-        semanticTokens = SemanticTokensRegistrations(context),
-        signatureHelp = SignatureHelpRegistrations(context),
-        textDocumentSync = TextDocumentRegistrations(context),
-        typeDefinition = TypeDefinitionRegistrations(context),
-        typeHierarchy = TypeHierarchyRegistrations(context),
-        willRename = WillRenameFilesRegistrations(context),
-        workspaceDidChangeConfiguration =
-            WorkspaceDidChangeConfigurationRegistrations(context),
-        workspaceSymbol = WorkspaceSymbolRegistrations(context),
-        dartTextDocumentContentProvider =
-            DartTextDocumentContentProviderRegistrations(context);
+    : callHierarchy = CallHierarchyRegistrations(context),
+      changeNotifications = ChangeWorkspaceFoldersRegistrations(context),
+      codeActions = CodeActionRegistrations(context),
+      codeLens = CodeLensRegistrations(context),
+      colors = DocumentColorRegistrations(context),
+      completion = CompletionRegistrations(context),
+      definition = DefinitionRegistrations(context),
+      documentLink = DocumentLinkRegistrations(context),
+      format = FormattingRegistrations(context),
+      documentHighlight = DocumentHighlightsRegistrations(context),
+      formatOnType = FormatOnTypeRegistrations(context),
+      formatRange = FormatRangeRegistrations(context),
+      documentSymbol = DocumentSymbolsRegistrations(context),
+      executeCommand = ExecuteCommandRegistrations(context),
+      foldingRange = FoldingRegistrations(context),
+      hover = HoverRegistrations(context),
+      implementation = ImplementationRegistrations(context),
+      inlayHint = InlayHintRegistrations(context),
+      references = ReferencesRegistrations(context),
+      rename = RenameRegistrations(context),
+      selectionRange = SelectionRangeRegistrations(context),
+      semanticTokens = SemanticTokensRegistrations(context),
+      signatureHelp = SignatureHelpRegistrations(context),
+      textDocumentSync = TextDocumentRegistrations(context),
+      typeDefinition = TypeDefinitionRegistrations(context),
+      typeHierarchy = TypeHierarchyRegistrations(context),
+      willRename = WillRenameFilesRegistrations(context),
+      workspaceDidChangeConfiguration =
+          WorkspaceDidChangeConfigurationRegistrations(context),
+      workspaceSymbol = WorkspaceSymbolRegistrations(context),
+      dartTextDocumentContentProvider =
+          DartTextDocumentContentProviderRegistrations(context);
 
   List<FeatureRegistration> get allFeatures => [
-        callHierarchy,
-        changeNotifications,
-        codeActions,
-        codeLens,
-        completion,
-        definition,
-        documentLink,
-        colors,
-        documentHighlight,
-        documentSymbol,
-        executeCommand,
-        foldingRange,
-        formatOnType,
-        formatRange,
-        format,
-        hover,
-        implementation,
-        inlayHint,
-        references,
-        rename,
-        selectionRange,
-        semanticTokens,
-        signatureHelp,
-        textDocumentSync,
-        typeDefinition,
-        typeHierarchy,
-        willRename,
-        workspaceDidChangeConfiguration,
-        workspaceSymbol,
-      ];
+    callHierarchy,
+    changeNotifications,
+    codeActions,
+    codeLens,
+    completion,
+    definition,
+    documentLink,
+    colors,
+    documentHighlight,
+    documentSymbol,
+    executeCommand,
+    foldingRange,
+    formatOnType,
+    formatRange,
+    format,
+    hover,
+    implementation,
+    inlayHint,
+    references,
+    rename,
+    selectionRange,
+    semanticTokens,
+    signatureHelp,
+    textDocumentSync,
+    typeDefinition,
+    typeHierarchy,
+    willRename,
+    workspaceDidChangeConfiguration,
+    workspaceSymbol,
+  ];
 }
 
 class RegistrationContext {

@@ -19,11 +19,16 @@ import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 
-typedef StaticOptions
-    = Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>;
+typedef StaticOptions =
+    Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>;
 
-class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
-    TextDocumentTypeDefinitionResult> with LspPluginRequestHandlerMixin {
+class TypeDefinitionHandler
+    extends
+        SharedMessageHandler<
+          TypeDefinitionParams,
+          TextDocumentTypeDefinitionResult
+        >
+    with LspPluginRequestHandlerMixin {
   static const _emptyResult = TextDocumentTypeDefinitionResult.t2([]);
 
   TypeDefinitionHandler(super.server);
@@ -42,9 +47,10 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
   // The private type in the return type is dictated by the signature of the
   // super-method and the class's super-class.
   Future<ErrorOr<TextDocumentTypeDefinitionResult>> handle(
-      TypeDefinitionParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    TypeDefinitionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(_emptyResult);
     }
@@ -127,14 +133,23 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
         }
 
         if (supportsLocationLink) {
-          return success(TextDocumentTypeDefinitionResult.t2([
-            _toLocationLink(result.lineInfo, targetLineInfo, originEntity,
-                element, location)
-          ]));
+          return success(
+            TextDocumentTypeDefinitionResult.t2([
+              _toLocationLink(
+                result.lineInfo,
+                targetLineInfo,
+                originEntity,
+                element,
+                location,
+              ),
+            ]),
+          );
         } else {
-          return success(TextDocumentTypeDefinitionResult.t1(
-            Definition.t2(_toLocation(location, targetLineInfo)),
-          ));
+          return success(
+            TextDocumentTypeDefinitionResult.t1(
+              Definition.t2(_toLocation(location, targetLineInfo)),
+            ),
+          );
         }
       });
     });
@@ -159,18 +174,25 @@ class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
     analyzer.ElementImpl targetElement,
     plugin.Location targetLocation,
   ) {
-    var nameRange =
-        toRange(targetLineInfo, targetLocation.offset, targetLocation.length);
+    var nameRange = toRange(
+      targetLineInfo,
+      targetLocation.offset,
+      targetLocation.length,
+    );
 
     var codeOffset = targetElement.codeOffset;
     var codeLength = targetElement.codeLength;
-    var codeRange = codeOffset != null && codeLength != null
-        ? toRange(targetLineInfo, codeOffset, codeLength)
-        : nameRange;
+    var codeRange =
+        codeOffset != null && codeLength != null
+            ? toRange(targetLineInfo, codeOffset, codeLength)
+            : nameRange;
 
     return LocationLink(
-      originSelectionRange:
-          toRange(originLineInfo, originEntity.offset, originEntity.length),
+      originSelectionRange: toRange(
+        originLineInfo,
+        originEntity.offset,
+        originEntity.length,
+      ),
       targetUri: uriConverter.toClientUri(targetLocation.file),
       targetRange: codeRange,
       targetSelectionRange: nameRange,
@@ -210,8 +232,8 @@ class TypeDefinitionRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => TextDocumentRegistrationOptions(
-        documentSelector: dartFiles, // This is currently Dart-specific
-      );
+    documentSelector: dartFiles, // This is currently Dart-specific
+  );
 
   @override
   Method get registrationMethod => Method.textDocument_typeDefinition;

@@ -16,48 +16,56 @@ void main() {
     });
 
     test('with list fields can be checked for equality', () {
-      var a = ClientCodeActionKindOptions(
-        valueSet: [CodeActionKind.QuickFix],
-      );
-      var b = ClientCodeActionKindOptions(
-        valueSet: [CodeActionKind.QuickFix],
-      );
+      var a = ClientCodeActionKindOptions(valueSet: [CodeActionKind.QuickFix]);
+      var b = ClientCodeActionKindOptions(valueSet: [CodeActionKind.QuickFix]);
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
     });
 
     test('with aliased list fields can be checked for equality', () {
-      var a = TextDocumentRegistrationOptions(documentSelector: [
-        TextDocumentFilterScheme(language: 'dart', scheme: 'file')
-      ]);
-      var b = TextDocumentRegistrationOptions(documentSelector: [
-        TextDocumentFilterScheme(language: 'dart', scheme: 'file')
-      ]);
+      var a = TextDocumentRegistrationOptions(
+        documentSelector: [
+          TextDocumentFilterScheme(language: 'dart', scheme: 'file'),
+        ],
+      );
+      var b = TextDocumentRegistrationOptions(
+        documentSelector: [
+          TextDocumentFilterScheme(language: 'dart', scheme: 'file'),
+        ],
+      );
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
     });
 
     test('with map fields can be checked for equality', () {
-      var a = WorkspaceEdit(changes: {
-        Uri.file('/a'): [
-          TextEdit(
+      var a = WorkspaceEdit(
+        changes: {
+          Uri.file('/a'): [
+            TextEdit(
               range: Range(
-                  start: Position(line: 0, character: 0),
-                  end: Position(line: 0, character: 0)),
-              newText: 'a')
-        ]
-      });
-      var b = WorkspaceEdit(changes: {
-        Uri.file('/a'): [
-          TextEdit(
+                start: Position(line: 0, character: 0),
+                end: Position(line: 0, character: 0),
+              ),
+              newText: 'a',
+            ),
+          ],
+        },
+      );
+      var b = WorkspaceEdit(
+        changes: {
+          Uri.file('/a'): [
+            TextEdit(
               range: Range(
-                  start: Position(line: 0, character: 0),
-                  end: Position(line: 0, character: 0)),
-              newText: 'a')
-        ]
-      });
+                start: Position(line: 0, character: 0),
+                end: Position(line: 0, character: 0),
+              ),
+              newText: 'a',
+            ),
+          ],
+        },
+      );
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -73,27 +81,32 @@ void main() {
 
     test('with union fields can be checked for equality', () {
       var a = SignatureInformation(
-          label: 'a',
-          documentation: Either2<MarkupContent, String>.t2('a'),
-          parameters: []);
+        label: 'a',
+        documentation: Either2<MarkupContent, String>.t2('a'),
+        parameters: [],
+      );
       var b = SignatureInformation(
-          label: 'a',
-          documentation: Either2<MarkupContent, String>.t2('a'),
-          parameters: []);
+        label: 'a',
+        documentation: Either2<MarkupContent, String>.t2('a'),
+        parameters: [],
+      );
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
     });
 
     test('consider subclasses when checking for equality', () {
-      var a = TextDocumentRegistrationOptions(documentSelector: [
-        TextDocumentFilterScheme(language: 'dart', scheme: 'file')
-      ]);
+      var a = TextDocumentRegistrationOptions(
+        documentSelector: [
+          TextDocumentFilterScheme(language: 'dart', scheme: 'file'),
+        ],
+      );
       var b = TextDocumentSaveRegistrationOptions(
-          includeText: true,
-          documentSelector: [
-            TextDocumentFilterScheme(language: 'dart', scheme: 'file')
-          ]);
+        includeText: true,
+        documentSelector: [
+          TextDocumentFilterScheme(language: 'dart', scheme: 'file'),
+        ],
+      );
 
       expect(a, isNot(equals(b)));
       expect(b, isNot(equals(a)));

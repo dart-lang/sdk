@@ -45,7 +45,7 @@ f(Iterable<int> i) {
   }
 
   Future<void>
-      test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
+  test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
   var k = 3;
@@ -61,9 +61,10 @@ f(Iterable<int> i) {
   }
 
   Future<void>
-      test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue_noAssistWithLint() async {
+  test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue_noAssistWithLint() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.prefer_for_elements_to_map_fromIterable]);
+      lints: [LintNames.prefer_for_elements_to_map_fromIterable],
+    );
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 f(Iterable<int> i) {
@@ -75,7 +76,7 @@ f(Iterable<int> i) {
   }
 
   Future<void>
-      test_mapFromIterable_differentParameterNames_usedInKey_noConflictInValue() async {
+  test_mapFromIterable_differentParameterNames_usedInKey_noConflictInValue() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => 0);
@@ -89,7 +90,7 @@ f(Iterable<int> i) {
   }
 
   Future<void>
-      test_mapFromIterable_differentParameterNames_usedInKeyAndValue_conflictWithDefault() async {
+  test_mapFromIterable_differentParameterNames_usedInKeyAndValue_conflictWithDefault() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
   var e = 2;
@@ -105,7 +106,7 @@ f(Iterable<int> i) {
   }
 
   Future<void>
-      test_mapFromIterable_differentParameterNames_usedInKeyAndValue_noConflictWithDefault() async {
+  test_mapFromIterable_differentParameterNames_usedInKeyAndValue_noConflictWithDefault() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => v + 3);
@@ -119,7 +120,7 @@ f(Iterable<int> i) {
   }
 
   Future<void>
-      test_mapFromIterable_differentParameterNames_usedInValue_conflictInKey() async {
+  test_mapFromIterable_differentParameterNames_usedInValue_conflictInKey() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
   int v = 0;
@@ -135,7 +136,7 @@ f(Iterable<int> i) {
   }
 
   Future<void>
-      test_mapFromIterable_differentParameterNames_usedInValue_noConflictInKey() async {
+  test_mapFromIterable_differentParameterNames_usedInValue_noConflictInKey() async {
     await resolveTestCode('''
 f(Iterable<int> i) {
   int index = 0;

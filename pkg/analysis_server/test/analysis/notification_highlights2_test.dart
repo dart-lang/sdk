@@ -57,7 +57,10 @@ class AAA<T> {
 ''');
     await prepareHighlights();
     assertHasRegion(
-        HighlightRegionType.ANNOTATION, '@AAA', '@AAA<int>('.length);
+      HighlightRegionType.ANNOTATION,
+      '@AAA',
+      '@AAA<int>('.length,
+    );
     assertHasRegion(HighlightRegionType.ANNOTATION, ') void', ')'.length);
     assertHasRegion(HighlightRegionType.CLASS, 'int>');
   }
@@ -958,7 +961,9 @@ void f(p) {
 ''');
     await prepareHighlights();
     assertHasRegion(
-        HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION, 'v = f()');
+      HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION,
+      'v = f()',
+    );
     assertHasRegion(HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, 'v;');
   }
 
@@ -1315,11 +1320,17 @@ void f() {
 ''');
     await prepareHighlights();
     assertHasRegion(
-        HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION, 'i = 0');
+      HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION,
+      'i = 0',
+    );
     assertHasRegion(
-        HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, 'i < 10');
+      HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE,
+      'i < 10',
+    );
     assertHasRegion(
-        HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, 'i++');
+      HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE,
+      'i++',
+    );
   }
 
   Future<void> test_FUNCTION_TYPE_ALIAS() async {
@@ -1350,11 +1361,17 @@ void f(A a) {
 ''');
     await prepareHighlights();
     assertHasRegion(
-        HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION, 'aaa => null');
+      HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION,
+      'aaa => null',
+    );
     assertHasRegion(
-        HighlightRegionType.INSTANCE_GETTER_DECLARATION, 'bbb => null');
+      HighlightRegionType.INSTANCE_GETTER_DECLARATION,
+      'bbb => null',
+    );
     assertHasRegion(
-        HighlightRegionType.STATIC_GETTER_DECLARATION, 'ccc => null');
+      HighlightRegionType.STATIC_GETTER_DECLARATION,
+      'ccc => null',
+    );
     assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'aaa;');
     assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'bbb;');
     assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'ccc;');
@@ -1790,15 +1807,30 @@ var V6 = 3_3.4_4e5_5;
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.LITERAL_DOUBLE, '4.2;', '4.2'.length);
     assertHasRegion(
-        HighlightRegionType.LITERAL_DOUBLE, '1_2.3_4;', '1_2.3_4'.length);
+      HighlightRegionType.LITERAL_DOUBLE,
+      '1_2.3_4;',
+      '1_2.3_4'.length,
+    );
     assertHasRegion(
-        HighlightRegionType.LITERAL_DOUBLE, '33e44;', '33e44'.length);
+      HighlightRegionType.LITERAL_DOUBLE,
+      '33e44;',
+      '33e44'.length,
+    );
     assertHasRegion(
-        HighlightRegionType.LITERAL_DOUBLE, '3_3e4_4;', '3_3e4_4'.length);
+      HighlightRegionType.LITERAL_DOUBLE,
+      '3_3e4_4;',
+      '3_3e4_4'.length,
+    );
     assertHasRegion(
-        HighlightRegionType.LITERAL_DOUBLE, '33.44e55;', '33.44e55'.length);
-    assertHasRegion(HighlightRegionType.LITERAL_DOUBLE, '3_3.4_4e5_5;',
-        '3_3.4_4e5_5'.length);
+      HighlightRegionType.LITERAL_DOUBLE,
+      '33.44e55;',
+      '33.44e55'.length,
+    );
+    assertHasRegion(
+      HighlightRegionType.LITERAL_DOUBLE,
+      '3_3.4_4e5_5;',
+      '3_3.4_4e5_5'.length,
+    );
   }
 
   Future<void> test_LITERAL_INTEGER() async {
@@ -1811,11 +1843,20 @@ var V4 = 0x12_34;
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.LITERAL_INTEGER, '42;');
     assertHasRegion(
-        HighlightRegionType.LITERAL_INTEGER, '1_000_000;', '1_000_000'.length);
+      HighlightRegionType.LITERAL_INTEGER,
+      '1_000_000;',
+      '1_000_000'.length,
+    );
     assertHasRegion(
-        HighlightRegionType.LITERAL_INTEGER, '0x123;', '0x123'.length);
+      HighlightRegionType.LITERAL_INTEGER,
+      '0x123;',
+      '0x123'.length,
+    );
     assertHasRegion(
-        HighlightRegionType.LITERAL_INTEGER, '0x12_34;', '0x12_34'.length);
+      HighlightRegionType.LITERAL_INTEGER,
+      '0x12_34;',
+      '0x12_34'.length,
+    );
   }
 
   Future<void> test_LITERAL_LIST() async {
@@ -1827,15 +1868,20 @@ var V4 = 0x12_34;
   Future<void> test_LITERAL_MAP() async {
     addTestFile("var V = const <int, String>{1: 'a', 2: 'b', 3: 'c'};");
     await prepareHighlights();
-    assertHasStringRegion(HighlightRegionType.LITERAL_MAP,
-        "const <int, String>{1: 'a', 2: 'b', 3: 'c'}");
+    assertHasStringRegion(
+      HighlightRegionType.LITERAL_MAP,
+      "const <int, String>{1: 'a', 2: 'b', 3: 'c'}",
+    );
   }
 
   Future<void> test_LITERAL_STRING() async {
     addTestFile('var V = "abc";');
     await prepareHighlights();
     assertHasRegion(
-        HighlightRegionType.LITERAL_STRING, '"abc";', '"abc"'.length);
+      HighlightRegionType.LITERAL_STRING,
+      '"abc";',
+      '"abc"'.length,
+    );
   }
 
   Future<void> test_LOCAL_FUNCTION() async {
@@ -1881,7 +1927,9 @@ void f(A a) {
 ''');
     await prepareHighlights();
     assertHasRegion(
-        HighlightRegionType.INSTANCE_METHOD_DECLARATION, 'aaa() {}');
+      HighlightRegionType.INSTANCE_METHOD_DECLARATION,
+      'aaa() {}',
+    );
     assertHasRegion(HighlightRegionType.STATIC_METHOD_DECLARATION, 'bbb() {}');
     assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'aaa();');
     assertHasRegion(HighlightRegionType.INSTANCE_METHOD_TEAR_OFF, 'aaa;');
@@ -2094,10 +2142,14 @@ void f((int, {int field1}) record) {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, r'$1; // 1');
     assertHasRegion(
-        HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'field1; // 2');
+      HighlightRegionType.INSTANCE_GETTER_REFERENCE,
+      'field1; // 2',
+    );
     assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, r'$1; // 3');
-    assertHasRegion(HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
-        'notResolved');
+    assertHasRegion(
+      HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
+      'notResolved',
+    );
   }
 
   Future<void> test_recordTypeAnnotation_named() async {
@@ -2199,9 +2251,13 @@ void f() {
 ''');
     await prepareHighlights();
     assertHasRegion(
-        HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION, 'fff(p) {}');
+      HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION,
+      'fff(p) {}',
+    );
     assertHasRegion(
-        HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE, 'fff(42)');
+      HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE,
+      'fff(42)',
+    );
     assertHasRegion(HighlightRegionType.TOP_LEVEL_FUNCTION_TEAR_OFF, 'fff;');
   }
 
@@ -2217,11 +2273,17 @@ void f() {
 ''');
     await prepareHighlights();
     assertHasRegion(
-        HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION, 'V1 = 1');
+      HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
+      'V1 = 1',
+    );
     assertHasRegion(
-        HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION, 'V2 = 2');
+      HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
+      'V2 = 2',
+    );
     assertHasRegion(
-        HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 // annotation');
+      HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE,
+      'V1 // annotation',
+    );
     assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1);');
     assertHasRegion(HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE, 'V2 = 3');
   }
@@ -2384,7 +2446,7 @@ void f(A a) {}
   }
 
   Future<void>
-      test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_dynamicVarTarget() async {
+  test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_dynamicVarTarget() async {
     addTestFile('''
 void f(p) {
   p.aaa;
@@ -2408,7 +2470,7 @@ void f(p) {
   }
 
   Future<void>
-      test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_nonDynamicTarget() async {
+  test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_nonDynamicTarget() async {
     addTestFile('''
 import 'dart:math' as math;
 void f(String str) {
@@ -2476,9 +2538,10 @@ void f(Object o) {
   /// Returns the textual dump of the highlight regions that intersect with
   /// the [index]th range in [testCode] (or all code if `-1`).
   String _getHighlightText(TestCode testCode, int index) {
-    var window = index == -1
-        ? SourceRange(0, testCode.code.length)
-        : testCode.ranges[index].sourceRange;
+    var window =
+        index == -1
+            ? SourceRange(0, testCode.code.length)
+            : testCode.ranges[index].sourceRange;
 
     // TODO(scheglov): Apparently, we don't sort in the server.
     var sortedRegions = regions.sortedBy<num>((e) => e.offset);
@@ -2513,18 +2576,25 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
     // Attempt to figure out what's wrong with the expectation.
     for (var region in regions) {
       if (region.offset == offset && region.length == length) {
-        fail('Expected a type of $type, but found a type of ${region.type} at '
-            'offset=$offset; length=$length.');
+        fail(
+          'Expected a type of $type, but found a type of ${region.type} at '
+          'offset=$offset; length=$length.',
+        );
       }
     }
     // Fall back to a general failure message.
     regions.sort((first, second) => first.offset.compareTo(second.offset));
-    fail('Expected to find (offset=$offset; length=$length; type=$type) in\n'
-        '${regions.join('\n')}');
+    fail(
+      'Expected to find (offset=$offset; length=$length; type=$type) in\n'
+      '${regions.join('\n')}',
+    );
   }
 
-  void assertHasRegion(HighlightRegionType type, String search,
-      [int length = -1]) {
+  void assertHasRegion(
+    HighlightRegionType type,
+    String search, [
+    int length = -1,
+  ]) {
     var offset = findOffset(search);
     length = findRegionLength(search, length);
     assertHasRawRegion(type, offset, length);
@@ -2542,14 +2612,18 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
           region.length == length &&
           region.type == type) {
         fail(
-            'Not expected to find (offset=$offset; length=$length; type=$type) in\n'
-            '${regions.join('\n')}');
+          'Not expected to find (offset=$offset; length=$length; type=$type) in\n'
+          '${regions.join('\n')}',
+        );
       }
     }
   }
 
-  void assertNoRegion(HighlightRegionType type, String search,
-      [int length = -1]) {
+  void assertNoRegion(
+    HighlightRegionType type,
+    String search, [
+    int length = -1,
+  ]) {
     var offset = findOffset(search);
     length = findRegionLength(search, length);
     assertNoRawRegion(type, offset, length);
@@ -2589,8 +2663,10 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
       fail('SERVER_NOTIFICATION_ERROR');
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = AnalysisHighlightsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisHighlightsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       if (params.file == testFile.path) {
         regions = params.regions;
         _resultsAvailable.complete();
@@ -2615,8 +2691,10 @@ part 'test.dart';
 @reflectiveTest
 class HighlightTypeTest {
   void test_constructor() {
-    expect(HighlightRegionType.CLASS,
-        HighlightRegionType(HighlightRegionType.CLASS.name));
+    expect(
+      HighlightRegionType.CLASS,
+      HighlightRegionType(HighlightRegionType.CLASS.name),
+    );
   }
 
   void test_toString() {

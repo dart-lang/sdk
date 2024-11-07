@@ -260,23 +260,24 @@ class ContextManagerImpl implements ContextManager {
   final _CancellingTaskQueue _currentContextRebuild = _CancellingTaskQueue();
 
   ContextManagerImpl(
-      this.resourceProvider,
-      this.sdkManager,
-      this.packagesFile,
-      this._enabledExperiments,
-      this._byteStore,
-      this._fileContentCache,
-      this._unlinkedUnitStore,
-      this._infoDeclarationStore,
-      this._performanceLog,
-      this._scheduler,
-      this._instrumentationService,
-      {required bool enableBlazeWatcher})
-      : pathContext = resourceProvider.pathContext {
+    this.resourceProvider,
+    this.sdkManager,
+    this.packagesFile,
+    this._enabledExperiments,
+    this._byteStore,
+    this._fileContentCache,
+    this._unlinkedUnitStore,
+    this._infoDeclarationStore,
+    this._performanceLog,
+    this._scheduler,
+    this._instrumentationService, {
+    required bool enableBlazeWatcher,
+  }) : pathContext = resourceProvider.pathContext {
     if (enableBlazeWatcher) {
       blazeWatcherService = BlazeFileWatcherService(_instrumentationService);
-      blazeWatcherSubscription = blazeWatcherService!.events
-          .listen((events) => _handleBlazeWatchEvents(events));
+      blazeWatcherSubscription = blazeWatcherService!.events.listen(
+        (events) => _handleBlazeWatchEvents(events),
+      );
     }
   }
 
@@ -353,7 +354,9 @@ class ContextManagerImpl implements ContextManager {
   /// If the roots have not changed, exits early without performing any work.
   @override
   Future<void> setRoots(
-      List<String> includedPaths, List<String> excludedPaths) async {
+    List<String> includedPaths,
+    List<String> excludedPaths,
+  ) async {
     if (_rootsAreUnchanged(includedPaths, excludedPaths)) {
       return;
     }
@@ -367,7 +370,10 @@ class ContextManagerImpl implements ContextManager {
   /// Use the given analysis [driver] to analyze the content of the analysis
   /// options file at the given [path].
   void _analyzeAnalysisOptionsYaml(
-      AnalysisDriver driver, WorkspacePackage? package, String path) {
+    AnalysisDriver driver,
+    WorkspacePackage? package,
+    String path,
+  ) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
@@ -384,8 +390,11 @@ class ContextManagerImpl implements ContextManager {
         sdkVersionConstraint,
       );
       var converter = AnalyzerConverter();
-      convertedErrors = converter.convertAnalysisErrors(errors,
-          lineInfo: lineInfo, options: analysisOptions);
+      convertedErrors = converter.convertAnalysisErrors(
+        errors,
+        lineInfo: lineInfo,
+        options: analysisOptions,
+      );
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -404,11 +413,16 @@ class ContextManagerImpl implements ContextManager {
       var validator = ManifestValidator(source);
       var lineInfo = LineInfo.fromContent(content);
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
-      var errors =
-          validator.validate(content, analysisOptions.chromeOsManifestChecks);
+      var errors = validator.validate(
+        content,
+        analysisOptions.chromeOsManifestChecks,
+      );
       var converter = AnalyzerConverter();
-      convertedErrors = converter.convertAnalysisErrors(errors,
-          lineInfo: lineInfo, options: analysisOptions);
+      convertedErrors = converter.convertAnalysisErrors(
+        errors,
+        lineInfo: lineInfo,
+        options: analysisOptions,
+      );
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -419,7 +433,10 @@ class ContextManagerImpl implements ContextManager {
   /// Use the given analysis [driver] to analyze the content of yaml files
   /// inside [folder].
   void _analyzeFixDataFolder(
-      AnalysisDriver driver, Folder folder, String packageName) {
+    AnalysisDriver driver,
+    Folder folder,
+    String packageName,
+  ) {
     for (var resource in folder.getChildren()) {
       if (resource is File) {
         if (resource.shortName.endsWith('.yaml')) {
@@ -434,21 +451,24 @@ class ContextManagerImpl implements ContextManager {
   /// Use the given analysis [driver] to analyze the content of the
   /// given [File].
   void _analyzeFixDataYaml(
-      AnalysisDriver driver, File file, String packageName) {
+    AnalysisDriver driver,
+    File file,
+    String packageName,
+  ) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = file.readAsStringSync();
       var errorListener = RecordingErrorListener();
-      var errorReporter = ErrorReporter(
-        errorListener,
-        FileSource(file),
-      );
+      var errorReporter = ErrorReporter(errorListener, FileSource(file));
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
       var converter = AnalyzerConverter();
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
-      convertedErrors = converter.convertAnalysisErrors(errorListener.errors,
-          lineInfo: LineInfo.fromContent(content), options: analysisOptions);
+      convertedErrors = converter.convertAnalysisErrors(
+        errorListener.errors,
+        lineInfo: LineInfo.fromContent(content),
+        options: analysisOptions,
+      );
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -476,8 +496,11 @@ class ContextManagerImpl implements ContextManager {
       );
       var converter = AnalyzerConverter();
       var lineInfo = LineInfo.fromContent(content);
-      convertedErrors = converter.convertAnalysisErrors(errors,
-          lineInfo: lineInfo, options: analysisOptions);
+      convertedErrors = converter.convertAnalysisErrors(
+        errors,
+        lineInfo: lineInfo,
+        options: analysisOptions,
+      );
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -546,33 +569,34 @@ class ContextManagerImpl implements ContextManager {
         _fileContentCache.invalidateAll();
 
         var watchers = <ResourceWatcher>[];
-        var collection = _collection = AnalysisContextCollectionImpl(
-          includedPaths: includedPaths,
-          excludedPaths: excludedPaths,
-          byteStore: _byteStore,
-          drainStreams: false,
-          enableIndex: true,
-          performanceLog: _performanceLog,
-          resourceProvider: resourceProvider,
-          scheduler: _scheduler,
-          sdkPath: sdkManager.defaultSdkDirectory,
-          packagesFile: packagesFile,
-          fileContentCache: _fileContentCache,
-          unlinkedUnitStore: _unlinkedUnitStore,
-          infoDeclarationStore: _infoDeclarationStore,
-          updateAnalysisOptions2: ({
-            required analysisOptions,
-            required contextRoot,
-            required sdk,
-          }) {
-            if (_enabledExperiments.isNotEmpty) {
-              analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
-                sdkLanguageVersion: sdk.languageVersion,
-                flags: _enabledExperiments,
-              );
-            }
-          },
-        );
+        var collection =
+            _collection = AnalysisContextCollectionImpl(
+              includedPaths: includedPaths,
+              excludedPaths: excludedPaths,
+              byteStore: _byteStore,
+              drainStreams: false,
+              enableIndex: true,
+              performanceLog: _performanceLog,
+              resourceProvider: resourceProvider,
+              scheduler: _scheduler,
+              sdkPath: sdkManager.defaultSdkDirectory,
+              packagesFile: packagesFile,
+              fileContentCache: _fileContentCache,
+              unlinkedUnitStore: _unlinkedUnitStore,
+              infoDeclarationStore: _infoDeclarationStore,
+              updateAnalysisOptions2: ({
+                required analysisOptions,
+                required contextRoot,
+                required sdk,
+              }) {
+                if (_enabledExperiments.isNotEmpty) {
+                  analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+                    sdkLanguageVersion: sdk.languageVersion,
+                    flags: _enabledExperiments,
+                  );
+                }
+              },
+            );
 
         for (var analysisContext in collection.contexts) {
           var driver = analysisContext.driver;
@@ -597,8 +621,8 @@ class ContextManagerImpl implements ContextManager {
 
           for (var file in analysisContext.contextRoot.analyzedFiles()) {
             if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
-              var package =
-                  analysisContext.contextRoot.workspace.findPackageFor(file);
+              var package = analysisContext.contextRoot.workspace
+                  .findPackageFor(file);
               _analyzeAnalysisOptionsYaml(driver, package, file);
             } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);
@@ -646,33 +670,37 @@ class ContextManagerImpl implements ContextManager {
       // Create temporary watchers before we start the context build so we can
       // tell if any files were modified while waiting for the "real" watchers to
       // become ready and start the process again.
-      var temporaryWatchers = includedPaths
-          .map((path) => resourceProvider.getResource(path))
-          .map((resource) => resource.watch())
-          .toList();
+      var temporaryWatchers =
+          includedPaths
+              .map((path) => resourceProvider.getResource(path))
+              .map((resource) => resource.watch())
+              .toList();
 
       // If any watcher picks up an important change while we're running the
       // rest of this method, we will need to start again.
       var needsBuild = true;
-      var temporaryWatcherSubscriptions = temporaryWatchers
-          .map((watcher) => watcher.changes.listen(
-                (event) {
-                  if (shouldRestartBuild(event.path)) {
+      var temporaryWatcherSubscriptions =
+          temporaryWatchers
+              .map(
+                (watcher) => watcher.changes.listen(
+                  (event) {
+                    if (shouldRestartBuild(event.path)) {
+                      needsBuild = true;
+                    }
+                  },
+                  onError: (error, stackTrace) {
+                    // Errors in the watcher such as "Directory watcher closed
+                    // unexpectedly" on Windows when the buffer overflows also
+                    // require that we restarted to be consistent.
                     needsBuild = true;
-                  }
-                },
-                onError: (error, stackTrace) {
-                  // Errors in the watcher such as "Directory watcher closed
-                  // unexpectedly" on Windows when the buffer overflows also
-                  // require that we restarted to be consistent.
-                  needsBuild = true;
-                  _instrumentationService.logError(
-                    'Temporary watcher error; restarting context build.\n'
-                    '$error\n$stackTrace',
-                  );
-                },
-              ))
-          .toList();
+                    _instrumentationService.logError(
+                      'Temporary watcher error; restarting context build.\n'
+                      '$error\n$stackTrace',
+                    );
+                  },
+                ),
+              )
+              .toList();
 
       try {
         // Ensure all watchers are ready before we begin any rebuild.
@@ -746,14 +774,19 @@ class ContextManagerImpl implements ContextManager {
   /// Whenever the files change, we trigger re-analysis. This allows us to react
   /// to creation/modification of files that were generated by Blaze.
   void _handleBlazeSearchInfo(
-      Folder folder, String workspace, BlazeSearchInfo info) {
+    Folder folder,
+    String workspace,
+    BlazeSearchInfo info,
+  ) {
     var blazeWatcherService = this.blazeWatcherService;
     if (blazeWatcherService == null) {
       return;
     }
 
     var watched = blazeWatchedPathsPerFolder.putIfAbsent(
-        folder, () => _BlazeWatchedFiles(workspace));
+      folder,
+      () => _BlazeWatchedFiles(workspace),
+    );
     var added = watched.paths.add(info.requestedPath);
     if (added) blazeWatcherService.startWatching(workspace, info);
   }
@@ -852,14 +885,17 @@ class ContextManagerImpl implements ContextManager {
     // re-occur.
     // https://github.com/Dart-Code/Dart-Code/issues/4280
     if (error is PathNotFoundException) {
-      _instrumentationService.logError('Watcher error; not refreshing contexts '
-          'because PathNotFound.\n$error\n$stackTrace');
+      _instrumentationService.logError(
+        'Watcher error; not refreshing contexts '
+        'because PathNotFound.\n$error\n$stackTrace',
+      );
       return;
     }
 
     // We've handled the error, so we only have to log it.
-    _instrumentationService
-        .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
+    _instrumentationService.logError(
+      'Watcher error; refreshing contexts.\n$error\n$stackTrace',
+    );
     // TODO(mfairhurst): Optimize this, or perhaps be less complete.
     refresh();
   }
@@ -867,7 +903,9 @@ class ContextManagerImpl implements ContextManager {
   /// Checks whether the current roots were built using the same paths as
   /// [includedPaths]/[excludedPaths].
   bool _rootsAreUnchanged(
-      List<String> includedPaths, List<String> excludedPaths) {
+    List<String> includedPaths,
+    List<String> excludedPaths,
+  ) {
     if (includedPaths.length != this.includedPaths.length ||
         excludedPaths.length != this.excludedPaths.length) {
       return false;
@@ -894,8 +932,9 @@ class ContextManagerImpl implements ContextManager {
     if (workspace is BlazeWorkspace &&
         !blazeSearchSubscriptions.containsKey(folder)) {
       blazeSearchSubscriptions[folder] = workspace.blazeCandidateFiles.listen(
-          (notification) =>
-              _handleBlazeSearchInfo(folder, workspace.root, notification));
+        (notification) =>
+            _handleBlazeSearchInfo(folder, workspace.root, notification),
+      );
 
       var watched = _BlazeWatchedFiles(workspace.root);
       blazeWatchedPathsPerFolder[folder] = watched;

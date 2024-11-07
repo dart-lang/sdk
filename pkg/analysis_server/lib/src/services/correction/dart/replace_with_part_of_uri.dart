@@ -16,8 +16,9 @@ class ReplaceWithPartOrUriEmpty extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_uriStr];
@@ -43,12 +44,9 @@ class ReplaceWithPartOrUriEmpty extends ResolvedCorrectionProducer {
     _uriStr = uriStr;
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addReplacement(
-        range.node(libraryName),
-        (builder) {
-          builder.write("'$uriStr'");
-        },
-      );
+      builder.addReplacement(range.node(libraryName), (builder) {
+        builder.write("'$uriStr'");
+      });
     });
   }
 

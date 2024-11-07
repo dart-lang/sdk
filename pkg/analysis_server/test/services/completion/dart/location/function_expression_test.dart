@@ -81,7 +81,7 @@ suggestions
   }
 
   Future<void>
-      test_afterRightParen_beforeLeftBrace_missingRightParen_partial_a() async {
+  test_afterRightParen_beforeLeftBrace_missingRightParen_partial_a() async {
     await computeSuggestions('''
 void f() {foo(() a^ {}}}
 ''');

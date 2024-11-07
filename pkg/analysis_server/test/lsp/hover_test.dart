@@ -40,12 +40,9 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     class ^A {}
     ''');
 
-    await provideConfig(
-      initialize,
-      {
-        if (preference != null) 'documentation': preference,
-      },
-    );
+    await provideConfig(initialize, {
+      if (preference != null) 'documentation': preference,
+    });
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     var hover = await getHover(mainFileUri, code.position.position);
@@ -140,9 +137,8 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     expect(contents, matcher);
   }
 
-  Future<void> test_dartDoc_macros() => assertStringContents(
-        waitForAnalysis: true,
-        '''
+  Future<void> test_dartDoc_macros() =>
+      assertStringContents(waitForAnalysis: true, '''
     /// {@template template_name}
     /// This is shared content.
     /// {@endtemplate}
@@ -150,9 +146,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     /// {@macro template_name}
     const String? [!f^oo2!] = null;
-    ''',
-        endsWith('This is shared content.'),
-      );
+    ''', endsWith('This is shared content.'));
 
   Future<void> test_dartDocPreference_full() =>
       assertDocumentation('full', includesSummary: true, includesFull: true);
@@ -160,9 +154,11 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dartDocPreference_none() =>
       assertDocumentation('none', includesSummary: false, includesFull: false);
 
-  Future<void> test_dartDocPreference_summary() =>
-      assertDocumentation('summary',
-          includesSummary: true, includesFull: false);
+  Future<void> test_dartDocPreference_summary() => assertDocumentation(
+    'summary',
+    includesSummary: true,
+    includesFull: false,
+  );
 
   /// No preference should result in full docs.
   Future<void> test_dartDocPreference_unset() =>
@@ -251,21 +247,16 @@ Type: `String`''';
     await assertStringContents(content, equals(expected));
   }
 
-  Future<void> test_function_startOfParameterList() => assertStringContents(
-        '''
+  Future<void> test_function_startOfParameterList() => assertStringContents('''
     /// This is a function.
     void [!abc!]^() {}
-    ''',
-        contains('This is a function.'),
-      );
+    ''', contains('This is a function.'));
 
-  Future<void> test_function_startOfTypeParameterList() => assertStringContents(
-        '''
+  Future<void> test_function_startOfTypeParameterList() =>
+      assertStringContents('''
     /// This is a function.
     void [!abc!]^<T>(T a) {}
-    ''',
-        contains('This is a function.'),
-      );
+    ''', contains('This is a function.'));
 
   Future<void> test_hover_bad_position() async {
     await initialize();
@@ -397,7 +388,8 @@ Type: `int`''';
     String? [!a^bc!];
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 String? abc
 ```
@@ -414,39 +406,30 @@ With some [refs] and some
 ```dart
 print();
 ```
-    '''
-        .trim();
+    '''.trim();
 
     await assertMarkdownContents(content, equals(expectedHoverContent));
   }
 
-  Future<void> test_markdown_simple() => assertMarkdownContents(
-        '''
+  Future<void> test_markdown_simple() => assertMarkdownContents('''
     /// This is a string.
     String [!a^bc!] = '';
-    ''',
-        contains('This is a string.'),
-      );
+    ''', contains('This is a string.'));
 
-  Future<void> test_method_startOfParameterList() => assertStringContents(
-        '''
+  Future<void> test_method_startOfParameterList() => assertStringContents('''
     class A {
       /// This is a method.
       void [!abc!]^() {}
     }
-    ''',
-        contains('This is a method.'),
-      );
+    ''', contains('This is a method.'));
 
-  Future<void> test_method_startOfTypeParameterList() => assertStringContents(
-        '''
+  Future<void> test_method_startOfTypeParameterList() =>
+      assertStringContents('''
     class A {
       /// This is a method.
       String [!abc!]^<T>(T a) => '';
     }
-    ''',
-        contains('This is a method.'),
-      );
+    ''', contains('This is a method.'));
 
   Future<void> test_method_underscore() async {
     var content = '''
@@ -492,15 +475,15 @@ Type: `int Function()`
     String? [!a^bc!];
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 String? abc
 ```
 Type: `String?`
 
 *package:test/main.dart*
-    '''
-        .trim();
+    '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -517,88 +500,63 @@ Type: `int`''';
     await assertStringContents(content, equals(expected));
   }
 
-  Future<void> test_pattern_assignment_left() => assertStringContents(
-        '''
+  Future<void> test_pattern_assignment_left() => assertStringContents('''
 void f(String a, String b) {
   (b, [!a^!]) = (a, b);
 }
-    ''',
-        contains('Type: `String`'),
-      );
+    ''', contains('Type: `String`'));
 
-  Future<void> test_pattern_assignment_list() => assertStringContents(
-        '''
+  Future<void> test_pattern_assignment_list() => assertStringContents('''
 void f(List<int> x, num a) {
   [[!a^!]] = x;
 }
-    ''',
-        contains('num a'),
-      );
+    ''', contains('num a'));
 
-  Future<void> test_pattern_assignment_right() => assertStringContents(
-        '''
+  Future<void> test_pattern_assignment_right() => assertStringContents('''
 void f(String a, String b) {
   (b, a) = ([!a^!], b);
 }
-    ''',
-        contains('Type: `String`'),
-      );
+    ''', contains('Type: `String`'));
 
-  Future<void> test_pattern_cast_typeName() => assertStringContents(
-        '''
+  Future<void> test_pattern_cast_typeName() => assertStringContents('''
 void f((num, Object) record) {
   var (i as int, s as [!St^ring!]) = record;
 }
-    ''',
-        contains('class String'),
-      );
+    ''', contains('class String'));
 
-  Future<void> test_pattern_map() => assertStringContents(
-        '''
+  Future<void> test_pattern_map() => assertStringContents('''
 void f(x) {
   switch (x) {
     case {0: [!Str^ing!] a}:
       break;
   }
 }
-    ''',
-        contains('class String'),
-      );
+    ''', contains('class String'));
 
-  Future<void> test_pattern_map_typeArguments() => assertStringContents(
-        '''
+  Future<void> test_pattern_map_typeArguments() => assertStringContents('''
 void f(x) {
   switch (x) {
     case <int, [!Str^ing!]>{0: var a}:
       break;
   }
 }
-    ''',
-        contains('class String'),
-      );
+    ''', contains('class String'));
 
-  Future<void> test_pattern_nullAssert() => assertStringContents(
-        '''
+  Future<void> test_pattern_nullAssert() => assertStringContents('''
 void f((int?, int?) position) {
   var ([!x^!]!, y!) = position;
 }
-    ''',
-        contains('Type: `int`'),
-      );
+    ''', contains('Type: `int`'));
 
-  Future<void> test_pattern_nullCheck() => assertStringContents(
-        '''
+  Future<void> test_pattern_nullCheck() => assertStringContents('''
 void f(String? maybeString) {
   switch (maybeString) {
     case var [!s^!]?:
   }
 }
-    ''',
-        contains('Type: `String`'),
-      );
+    ''', contains('Type: `String`'));
 
-  Future<void> test_pattern_object_fieldName() => assertStringContents(
-        '''
+  Future<void> test_pattern_object_fieldName() => assertStringContents('''
 double calculateArea(Shape shape) =>
   switch (shape) {
     Square([!leng^th!]: var l) => l * l,
@@ -609,15 +567,9 @@ class Square extends Shape {
   /// The length.
   double get length => 0;
 }
-    ''',
-        allOf([
-          contains('double get length'),
-          contains('The length.'),
-        ]),
-      );
+    ''', allOf([contains('double get length'), contains('The length.')]));
 
-  Future<void> test_pattern_object_typeName() => assertStringContents(
-        '''
+  Future<void> test_pattern_object_typeName() => assertStringContents('''
 double calculateArea(Shape shape) =>
   switch (shape) {
     [!Squ^are!](length: var l) => l * l,
@@ -628,39 +580,27 @@ sealed class Shape { }
 class Square extends Shape {
   double get length => 0;
 }
-    ''',
-        contains('A square.'),
-      );
+    ''', contains('A square.'));
 
-  Future<void> test_pattern_record_fieldName() => assertStringContents(
-        '''
+  Future<void> test_pattern_record_fieldName() => assertStringContents('''
 void f(({int foo}) x, num a) {
   ([!fo^o!]: a,) = x;
 }
-    ''',
-        contains('Type: `int`'),
-      );
+    ''', contains('Type: `int`'));
 
-  Future<void> test_pattern_record_fieldValue() => assertStringContents(
-        '''
+  Future<void> test_pattern_record_fieldValue() => assertStringContents('''
 void f(({int foo}) x, num a) {
   (foo: [!a^!],) = x;
 }
-    ''',
-        contains('Type: `num`'),
-      );
+    ''', contains('Type: `num`'));
 
-  Future<void> test_pattern_record_variable() => assertStringContents(
-        '''
+  Future<void> test_pattern_record_variable() => assertStringContents('''
 void f(({int foo}) x, num a) {
   (foo: a,) = [!x^!];
 }
-    ''',
-        contains('Type: `({int foo})`'),
-      );
+    ''', contains('Type: `({int foo})`'));
 
-  Future<void> test_pattern_relational_variable() => assertStringContents(
-        '''
+  Future<void> test_pattern_relational_variable() => assertStringContents('''
 String f(int char) {
   const zero = 0;
   return switch (char) {
@@ -668,38 +608,27 @@ String f(int char) {
     _ => '',
   };
 }
-    ''',
-        contains('Type: `int`'),
-      );
+    ''', contains('Type: `int`'));
 
-  Future<void> test_pattern_variable_wildcard() => assertStringContents(
-        '''
+  Future<void> test_pattern_variable_wildcard() => assertStringContents('''
 void f() {
   var a = (1, 2);
   var ([!^_!], _) = a;
 }
-    ''',
-        contains('Type: `int`'),
-      );
+    ''', contains('Type: `int`'));
 
   Future<void> test_pattern_variable_wildcard_annotated() =>
-      assertStringContents(
-        '''
+      assertStringContents('''
 void f() {
   var a = (1, 2);
   var (int [!^_!], _) = a;
 }
-    ''',
-        contains('Type: `int`'),
-      );
+    ''', contains('Type: `int`'));
 
-  Future<void> test_plainText_simple() => assertPlainTextContents(
-        '''
+  Future<void> test_plainText_simple() => assertPlainTextContents('''
     /// This is a string.
     String? [!a^bc!];
-    ''',
-        contains('This is a string.'),
-      );
+    ''', contains('This is a string.'));
 
   Future<void> test_promotedTypes() async {
     var content = '''
@@ -710,65 +639,50 @@ void f(aaa) {
 }
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 dynamic aaa
 ```
 Type: `String`
-    '''
-        .trim();
+    '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
 
-  Future<void> test_range_multiLineConstructorCall() => assertStringContents(
-        '''
+  Future<void> test_range_multiLineConstructorCall() => assertStringContents('''
     final a = new [!Str^ing.fromCharCodes!]([
       1,
       2,
     ]);
-    ''',
-        contains('String String.fromCharCodes('),
-      );
+    ''', contains('String String.fromCharCodes('));
 
-  Future<void> test_recordLiteral_named() => assertStringContents(
-        r'''
+  Future<void> test_recordLiteral_named() => assertStringContents(r'''
 void f(({int f1, int f2}) r) {
   r.[!f^1!];
 }
-    ''',
-        contains('Type: `int`'),
-      );
+    ''', contains('Type: `int`'));
 
-  Future<void> test_recordLiteral_positional() => assertStringContents(
-        r'''
+  Future<void> test_recordLiteral_positional() => assertStringContents(r'''
 void f((int, int) r) {
   r.[!$^1!];
 }
-    ''',
-        contains('Type: `int`'),
-      );
+    ''', contains('Type: `int`'));
 
-  Future<void> test_recordType_parameter() => assertStringContents(
-        '''
+  Future<void> test_recordType_parameter() => assertStringContents('''
 Object f(([!dou^ble!], double) param) {
   return (1.0, 1.0);
 }
-    ''',
-        contains('class double'),
-      );
+    ''', contains('class double'));
 
-  Future<void> test_recordType_return() => assertStringContents(
-        '''
+  Future<void> test_recordType_return() => assertStringContents('''
 ([!dou^ble!], double) f() {
   return (1.0, 1.0);
 }
-    ''',
-        contains('class double'),
-      );
+    ''', contains('class double'));
 
   Future<void> test_signatureFormatting_multiLine() => assertStringContents(
-        '''
+    '''
     class Foo {
       Foo(String arg1, String arg2, [String? arg3]);
     }
@@ -777,7 +691,7 @@ Object f(([!dou^ble!], double) param) {
       var a = [!Fo^o!]('', '');
     }
     ''',
-        startsWith('''
+    startsWith('''
 ```dart
 (new) Foo Foo(
   String arg1,
@@ -785,10 +699,10 @@ Object f(([!dou^ble!], double) param) {
   String? arg3,
 ])
 ```'''),
-      );
+  );
 
   Future<void> test_signatureFormatting_singleLine() => assertStringContents(
-        '''
+    '''
     class Foo {
       Foo(String a, String b);
     }
@@ -797,11 +711,11 @@ Object f(([!dou^ble!], double) param) {
       var a = [!Fo^o!]('', '');
     }
     ''',
-        startsWith('''
+    startsWith('''
 ```dart
 (new) Foo Foo(String a, String b)
 ```'''),
-      );
+  );
 
   Future<void> test_staticType_field() async {
     var content = '''
@@ -812,15 +726,15 @@ class A<T> {
 final data = A<String?>().[!myF^ield!];
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 T? myField
 ```
 Type: `String?`
 
 *package:test/main.dart*
-'''
-        .trim();
+'''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -834,15 +748,15 @@ class A {
 final data = A().[!myG^etter!];
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 String get myGetter
 ```
 Type: `String`
 
 *package:test/main.dart*
-'''
-        .trim();
+'''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -857,15 +771,15 @@ class A<T> {
 final data = A<String?>().[!myG^etter!];
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 T? get myGetter
 ```
 Type: `String?`
 
 *package:test/main.dart*
-'''
-        .trim();
+'''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -881,15 +795,15 @@ void f() {
 }
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 set mySetter(String value)
 ```
 Type: `String`
 
 *package:test/main.dart*
-'''
-        .trim();
+'''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -905,15 +819,15 @@ void f() {
 }
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 set mySetter(T value)
 ```
 Type: `String`
 
 *package:test/main.dart*
-'''
-        .trim();
+'''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -923,15 +837,15 @@ Type: `String`
     String? [!a^bc!];
     ''';
 
-    var expectedHoverContent = '''
+    var expectedHoverContent =
+        '''
 ```dart
 String? abc
 ```
 Type: `String?`
 
 *package:test/main.dart*
-    '''
-        .trim();
+    '''.trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }

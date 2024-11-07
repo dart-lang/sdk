@@ -3,5 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @Deprecated(
-    "Use 'package:analysis_server_plugin/edit/dart/correction_producer.dart'")
+  "Use 'package:analysis_server_plugin/edit/dart/correction_producer.dart'",
+)
 export 'package:analysis_server_plugin/edit/dart/correction_producer.dart';

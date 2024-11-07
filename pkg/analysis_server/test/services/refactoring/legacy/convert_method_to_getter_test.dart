@@ -107,8 +107,10 @@ class A {
     var refactoringChange = await refactoring.createChange();
 
     // Verify that `test.macro.dart` is unmodified.
-    expect(refactoringChange.edits.map((e) => e.file),
-        unorderedEquals([testFile.path]));
+    expect(
+      refactoringChange.edits.map((e) => e.file),
+      unorderedEquals([testFile.path]),
+    );
   }
 
   Future<void> test_change_multipleFiles() async {
@@ -154,7 +156,8 @@ void f() {
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-        'Only class methods or top-level functions can be converted to getters.');
+      'Only class methods or top-level functions can be converted to getters.',
+    );
   }
 
   Future<void> test_checkInitialConditions_hasParameters() async {
@@ -168,7 +171,8 @@ void f() {
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-        'Only methods without parameters can be converted to getters.');
+      'Only methods without parameters can be converted to getters.',
+    );
   }
 
   Future<void> test_checkInitialConditions_localFunction() async {
@@ -182,7 +186,8 @@ void f() {
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-        'Only top-level functions can be converted to getters.');
+      'Only top-level functions can be converted to getters.',
+    );
   }
 
   Future<void> test_checkInitialConditions_notFunctionOrMethod() async {
@@ -195,7 +200,8 @@ class A {
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-        'Only class methods or top-level functions can be converted to getters.');
+      'Only class methods or top-level functions can be converted to getters.',
+    );
   }
 
   Future<void> test_checkInitialConditions_outsideOfProject() async {
@@ -212,7 +218,8 @@ String foo() => '';
 
     // check conditions
     await _assertInitialConditions_fatal(
-        'Only methods in your workspace can be converted.');
+      'Only methods in your workspace can be converted.',
+    );
   }
 
   Future<void> test_checkInitialConditions_returnTypeVoid() async {
@@ -223,13 +230,17 @@ void test() {}
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-        'Cannot convert function returning void.');
+      'Cannot convert function returning void.',
+    );
   }
 
   Future<void> _assertInitialConditions_fatal(String message) async {
     var status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: message);
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: message,
+    );
   }
 
   /// Checks that all conditions are OK and the result of applying the [Change]
@@ -243,6 +254,9 @@ void test() {}
 
   void _createRefactoringForElement(ExecutableElement element) {
     refactoring = ConvertMethodToGetterRefactoring(
-        refactoringWorkspace, testAnalysisResult.session, element);
+      refactoringWorkspace,
+      testAnalysisResult.session,
+      element,
+    );
   }
 }

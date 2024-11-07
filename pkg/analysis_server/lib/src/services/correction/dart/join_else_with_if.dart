@@ -20,7 +20,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /// `if` statement.
 class JoinElseWithIf extends _JoinIfWithElseBlock {
   JoinElseWithIf({required super.context})
-      : super(DartAssistKind.JOIN_ELSE_WITH_IF);
+    : super(DartAssistKind.JOIN_ELSE_WITH_IF);
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -66,7 +66,7 @@ class JoinElseWithIf extends _JoinIfWithElseBlock {
 /// `if` statement.
 class JoinIfWithElse extends _JoinIfWithElseBlock {
   JoinIfWithElse({required super.context})
-      : super(DartAssistKind.JOIN_IF_WITH_ELSE);
+    : super(DartAssistKind.JOIN_IF_WITH_ELSE);
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -140,16 +140,22 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
-  String _blockSource(Block block, String? startCommentsSource, String prefix,
-      String? endCommentSource) {
+  String _blockSource(
+    Block block,
+    String? startCommentsSource,
+    String prefix,
+    String? endCommentSource,
+  ) {
     var lineRanges = range.node(block);
     var blockSource = utils.getRangeText(lineRanges);
     blockSource = utils.indentSourceLeftRight(blockSource).trimRight();
-    var rightBraceIndex =
-        blockSource.lastIndexOf(TokenType.CLOSE_CURLY_BRACKET.lexeme);
+    var rightBraceIndex = blockSource.lastIndexOf(
+      TokenType.CLOSE_CURLY_BRACKET.lexeme,
+    );
     var blockAfterRightBrace = blockSource.substring(rightBraceIndex);
     // If starting comments, insert them after the first new line.
     if (startCommentsSource != null) {
@@ -157,15 +163,21 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
       // If the block is missing new lines, add it (else).
       if (firstNewLine != -1) {
         var blockBeforeComment = blockSource.substring(0, firstNewLine);
-        var blockAfterComment =
-            blockSource.substring(firstNewLine, rightBraceIndex);
-        blockSource = '$blockBeforeComment$eol$startCommentsSource'
+        var blockAfterComment = blockSource.substring(
+          firstNewLine,
+          rightBraceIndex,
+        );
+        blockSource =
+            '$blockBeforeComment$eol$startCommentsSource'
             '$blockAfterComment';
       } else {
-        var leftBraceIndex =
-            blockSource.indexOf(TokenType.OPEN_CURLY_BRACKET.lexeme);
-        var blockAfterComment =
-            blockSource.substring(leftBraceIndex + 1, rightBraceIndex);
+        var leftBraceIndex = blockSource.indexOf(
+          TokenType.OPEN_CURLY_BRACKET.lexeme,
+        );
+        var blockAfterComment = blockSource.substring(
+          leftBraceIndex + 1,
+          rightBraceIndex,
+        );
         if (!blockAfterComment.startsWith('$prefix${utils.oneIndent}')) {
           blockAfterComment = '$prefix${utils.oneIndent}$blockAfterComment';
         }
@@ -185,8 +197,11 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
   /// Receives the [ChangeBuilder] and the enclosing and inner `if` statements.
   /// It then joins the `else` block of the outer `if` statement with the inner
   /// `if` statement.
-  Future<void> _compute(ChangeBuilder builder, List<Statement> statements,
-      IfStatement outerIfStatement) async {
+  Future<void> _compute(
+    ChangeBuilder builder,
+    List<Statement> statements,
+    IfStatement outerIfStatement,
+  ) async {
     var elseKeyword = outerIfStatement.elseKeyword;
     if (elseKeyword == null) {
       return;
@@ -238,7 +253,11 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
 
         if (statement case Block block) {
           newBlockSource = _blockSource(
-              block, beginCommentsSource, prefix, endCommentSource);
+            block,
+            beginCommentsSource,
+            prefix,
+            endCommentSource,
+          );
         } else {
           var statementSource = utils.getNodeText(statement);
           // Add indentation for the else statement if it is missing.
@@ -259,10 +278,7 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
       }
 
       builder.addSimpleReplacement(
-        range.startOffsetEndOffset(
-          elseKeyword.offset - 1,
-          elseStatement.end,
-        ),
+        range.startOffsetEndOffset(elseKeyword.offset - 1, elseStatement.end),
         source,
       );
     });

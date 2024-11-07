@@ -13,12 +13,18 @@ class EditIsPostfixCompletionApplicableHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditIsPostfixCompletionApplicableHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditGetPostfixCompletionParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditGetPostfixCompletionParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -29,11 +35,7 @@ class EditIsPostfixCompletionApplicableHandler extends LegacyHandler {
 
     var result = await server.getResolvedUnit(file);
     if (result != null) {
-      var context = PostfixCompletionContext(
-        result,
-        params.offset,
-        params.key,
-      );
+      var context = PostfixCompletionContext(result, params.offset, params.key);
       var processor = PostfixCompletionProcessor(context);
       value = await processor.isApplicable();
     }

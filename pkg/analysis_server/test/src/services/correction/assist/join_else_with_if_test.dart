@@ -474,7 +474,7 @@ void f() {
   }
 
   Future<void>
-      test_endOfLineComments_after_inner_elseIf_else_statement() async {
+  test_endOfLineComments_after_inner_elseIf_else_statement() async {
     await resolveTestCode('''
 void f() {
   if (1 == 1) {

@@ -12,8 +12,12 @@ import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
 typedef StaticOptions = Either2<bool, DocumentHighlightOptions>;
 
-class DocumentHighlightsHandler extends SharedMessageHandler<
-    TextDocumentPositionParams, List<DocumentHighlight>> {
+class DocumentHighlightsHandler
+    extends
+        SharedMessageHandler<
+          TextDocumentPositionParams,
+          List<DocumentHighlight>
+        > {
   DocumentHighlightsHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentHighlight;
@@ -27,9 +31,10 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
 
   @override
   Future<ErrorOr<List<DocumentHighlight>>> handle(
-      TextDocumentPositionParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    TextDocumentPositionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -54,10 +59,14 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       }
 
       // Find an occurrence that has an instance that spans the position.
-      var occurrences = collector.allOccurrences
-          .where((occurrence) => occurrence.offsets.any(
-              (offset) => spansRequestedPosition(offset, occurrence.length)))
-          .toList();
+      var occurrences =
+          collector.allOccurrences
+              .where(
+                (occurrence) => occurrence.offsets.any(
+                  (offset) => spansRequestedPosition(offset, occurrence.length),
+                ),
+              )
+              .toList();
 
       // No matches will return an empty list (not null) because that prevents
       // the editor falling back to a text search.

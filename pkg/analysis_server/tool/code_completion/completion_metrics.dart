@@ -100,8 +100,10 @@ Future<void> main(List<String> args) async {
       if (child is File) {
         var metricsList =
             (json.decode(child.readAsStringSync()) as List<dynamic>)
-                .map((map) =>
-                    CompletionMetrics.fromJson(map as Map<String, dynamic>))
+                .map(
+                  (map) =>
+                      CompletionMetrics.fromJson(map as Map<String, dynamic>),
+                )
                 .toList();
         if (targetMetrics.isEmpty) {
           targetMetrics.addAll(metricsList);
@@ -147,73 +149,96 @@ Counter rankComparison = Counter('relevance rank comparison');
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   return ArgParser(
-      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : 80)
-    ..addFlag(
-      'help',
-      abbr: 'h',
-      help: 'Print this help message.',
+      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : 80,
     )
-    ..addOption(CompletionMetricsOptions.OVERLAY,
-        allowed: [
-          OverlayMode.none.flag,
-          OverlayMode.removeRestOfFile.flag,
-          OverlayMode.removeToken.flag,
-        ],
-        defaultsTo: OverlayMode.none.flag,
-        help:
-            'Before attempting a completion at the location of each token, the '
-            'token can be removed, or the rest of the file can be removed to '
-            'test code completion with diverse methods. The default mode is to '
-            'complete at the start of the token without modifying the file.')
-    ..addOption(CompletionMetricsOptions.PREFIX_LENGTH,
-        defaultsTo: '0',
-        help: 'The number of characters to include in the prefix. Each '
-            'completion will be requested this many characters in from the '
-            'start of the token being completed.')
-    ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_DETAILS,
-        help:
-            'Print detailed information every time a completion request fails '
-            'to produce a suggestions matching the expected suggestion.',
-        negatable: false)
-    ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_SUMMARY,
-        help: 'Print summary information about the times that a completion '
-            'request failed to produce a suggestions matching the expected '
-            'suggestion.',
-        negatable: false)
-    ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSING_INFORMATION,
-        help: 'Print information about places where no completion location was '
-            'computed and about information that is missing in the completion '
-            'tables.',
-        negatable: false)
-    ..addFlag(CompletionMetricsQualityOptions.PRINT_MRR_BY_LOCATION,
-        help:
-            'Print information about the mrr score achieved at each completion '
-            'location. This can help focus efforts to improve the overall '
-            'score by pointing out the locations that are causing the biggest '
-            'impact.',
-        negatable: false)
-    ..addFlag(CompletionMetricsQualityOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
-        help: 'Print detailed information every time a completion request '
-            'produces a suggestion whose name matches the expected suggestion '
-            'but that is referencing a different element',
-        negatable: false)
-    ..addFlag(CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
-        help: 'Print information about the completion requests that were the '
-            'slowest to return suggestions.',
-        negatable: false)
-    ..addFlag(CompletionMetricsQualityOptions.PRINT_WORST_RESULTS,
-        help: 'Print information about the completion requests that had the '
-            'worst mrr scores.',
-        negatable: false)
+    ..addFlag('help', abbr: 'h', help: 'Print this help message.')
+    ..addOption(
+      CompletionMetricsOptions.OVERLAY,
+      allowed: [
+        OverlayMode.none.flag,
+        OverlayMode.removeRestOfFile.flag,
+        OverlayMode.removeToken.flag,
+      ],
+      defaultsTo: OverlayMode.none.flag,
+      help:
+          'Before attempting a completion at the location of each token, the '
+          'token can be removed, or the rest of the file can be removed to '
+          'test code completion with diverse methods. The default mode is to '
+          'complete at the start of the token without modifying the file.',
+    )
+    ..addOption(
+      CompletionMetricsOptions.PREFIX_LENGTH,
+      defaultsTo: '0',
+      help:
+          'The number of characters to include in the prefix. Each '
+          'completion will be requested this many characters in from the '
+          'start of the token being completed.',
+    )
+    ..addFlag(
+      CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_DETAILS,
+      help:
+          'Print detailed information every time a completion request fails '
+          'to produce a suggestions matching the expected suggestion.',
+      negatable: false,
+    )
+    ..addFlag(
+      CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_SUMMARY,
+      help:
+          'Print summary information about the times that a completion '
+          'request failed to produce a suggestions matching the expected '
+          'suggestion.',
+      negatable: false,
+    )
+    ..addFlag(
+      CompletionMetricsQualityOptions.PRINT_MISSING_INFORMATION,
+      help:
+          'Print information about places where no completion location was '
+          'computed and about information that is missing in the completion '
+          'tables.',
+      negatable: false,
+    )
+    ..addFlag(
+      CompletionMetricsQualityOptions.PRINT_MRR_BY_LOCATION,
+      help:
+          'Print information about the mrr score achieved at each completion '
+          'location. This can help focus efforts to improve the overall '
+          'score by pointing out the locations that are causing the biggest '
+          'impact.',
+      negatable: false,
+    )
+    ..addFlag(
+      CompletionMetricsQualityOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
+      help:
+          'Print detailed information every time a completion request '
+          'produces a suggestion whose name matches the expected suggestion '
+          'but that is referencing a different element',
+      negatable: false,
+    )
+    ..addFlag(
+      CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
+      help:
+          'Print information about the completion requests that were the '
+          'slowest to return suggestions.',
+      negatable: false,
+    )
+    ..addFlag(
+      CompletionMetricsQualityOptions.PRINT_WORST_RESULTS,
+      help:
+          'Print information about the completion requests that had the '
+          'worst mrr scores.',
+      negatable: false,
+    )
     ..addOption(
       'mapFile',
-      help: 'The absolute path of the file to which the completion metrics '
+      help:
+          'The absolute path of the file to which the completion metrics '
           'data will be written. Using this option will prevent the completion '
           'results from being written in a textual form.',
     )
     ..addOption(
       'reduceDir',
-      help: 'The absolute path of the directory from which the completion '
+      help:
+          'The absolute path of the directory from which the completion '
           'metrics data will be read.',
     );
 }
@@ -246,10 +271,13 @@ bool validArguments(ArgParser parser, ArgResults result) {
   if (result.wasParsed('mapFile')) {
     var mapFilePath = result['mapFile'];
     if (mapFilePath is! String ||
-        !PhysicalResourceProvider.INSTANCE.pathContext
-            .isAbsolute(mapFilePath)) {
-      printUsage(parser,
-          error: 'The path "$mapFilePath" must be an absolute path.');
+        !PhysicalResourceProvider.INSTANCE.pathContext.isAbsolute(
+          mapFilePath,
+        )) {
+      printUsage(
+        parser,
+        error: 'The path "$mapFilePath" must be an absolute path.',
+      );
       return false;
     }
   }
@@ -281,7 +309,6 @@ enum CompletionGroup {
   typeParameterElement,
 
   // Groups for keywords.
-
   keywordDynamic,
   keywordVoid,
 
@@ -312,27 +339,34 @@ class CompletionMetrics {
 
   final Counter completionCounter = Counter('all completions');
 
-  final Counter completionMissedTokenCounter =
-      Counter('unsuccessful completion token counter');
+  final Counter completionMissedTokenCounter = Counter(
+    'unsuccessful completion token counter',
+  );
 
-  final Counter completionKindCounter =
-      Counter('unsuccessful completion kind counter');
+  final Counter completionKindCounter = Counter(
+    'unsuccessful completion kind counter',
+  );
 
-  final Counter completionElementKindCounter =
-      Counter('unsuccessful completion element kind counter');
+  final Counter completionElementKindCounter = Counter(
+    'unsuccessful completion element kind counter',
+  );
 
-  final ArithmeticMeanComputer meanCompletionMS =
-      ArithmeticMeanComputer('ms per completion');
+  final ArithmeticMeanComputer meanCompletionMS = ArithmeticMeanComputer(
+    'ms per completion',
+  );
 
   /// A percentile computer for the ms per completion request, using 2.000
   /// seconds as the max value to use in percentile calculations.
-  final PercentileComputer percentileCompletionMS =
-      PercentileComputer('ms per completion', valueLimit: 2000);
+  final PercentileComputer percentileCompletionMS = PercentileComputer(
+    'ms per completion',
+    valueLimit: 2000,
+  );
 
   final DistributionComputer distributionCompletionMS = DistributionComputer();
 
-  final MeanReciprocalRankComputer mrrComputer =
-      MeanReciprocalRankComputer('all completions');
+  final MeanReciprocalRankComputer mrrComputer = MeanReciprocalRankComputer(
+    'all completions',
+  );
 
   final MeanReciprocalRankComputer successfulMrrComputer =
       MeanReciprocalRankComputer('successful completions');
@@ -345,11 +379,13 @@ class CompletionMetrics {
   /// suggestions for those locations.
   final Map<String, MeanReciprocalRankComputer> locationMrrComputers = {};
 
-  final ArithmeticMeanComputer charsBeforeTop =
-      ArithmeticMeanComputer('chars_before_top');
+  final ArithmeticMeanComputer charsBeforeTop = ArithmeticMeanComputer(
+    'chars_before_top',
+  );
 
-  final ArithmeticMeanComputer charsBeforeTopFive =
-      ArithmeticMeanComputer('chars_before_top_five');
+  final ArithmeticMeanComputer charsBeforeTopFive = ArithmeticMeanComputer(
+    'chars_before_top_five',
+  );
 
   final ArithmeticMeanComputer insertionLengthTheoretical =
       ArithmeticMeanComputer('insertion_length_theoretical');
@@ -377,28 +413,36 @@ class CompletionMetrics {
   final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
   CompletionMetrics(this.name, {this.enableFunction, this.disableFunction})
-      : userTag = UserTag(name);
+    : userTag = UserTag(name);
 
   /// Return an instance extracted from the decoded JSON [map].
   factory CompletionMetrics.fromJson(Map<String, dynamic> map) {
     var metrics = CompletionMetrics(map['name'] as String);
-    metrics.completionCounter
-        .fromJson(map['completionCounter'] as Map<String, dynamic>);
-    metrics.completionMissedTokenCounter
-        .fromJson(map['completionMissedTokenCounter'] as Map<String, dynamic>);
-    metrics.completionKindCounter
-        .fromJson(map['completionKindCounter'] as Map<String, dynamic>);
-    metrics.completionElementKindCounter
-        .fromJson(map['completionElementKindCounter'] as Map<String, dynamic>);
-    metrics.meanCompletionMS
-        .fromJson(map['meanCompletionMS'] as Map<String, dynamic>);
-    metrics.percentileCompletionMS
-        .fromJson(map['percentileMS'] as Map<String, dynamic>);
-    metrics.distributionCompletionMS
-        .fromJson(map['distributionCompletionMS'] as Map<String, dynamic>);
+    metrics.completionCounter.fromJson(
+      map['completionCounter'] as Map<String, dynamic>,
+    );
+    metrics.completionMissedTokenCounter.fromJson(
+      map['completionMissedTokenCounter'] as Map<String, dynamic>,
+    );
+    metrics.completionKindCounter.fromJson(
+      map['completionKindCounter'] as Map<String, dynamic>,
+    );
+    metrics.completionElementKindCounter.fromJson(
+      map['completionElementKindCounter'] as Map<String, dynamic>,
+    );
+    metrics.meanCompletionMS.fromJson(
+      map['meanCompletionMS'] as Map<String, dynamic>,
+    );
+    metrics.percentileCompletionMS.fromJson(
+      map['percentileMS'] as Map<String, dynamic>,
+    );
+    metrics.distributionCompletionMS.fromJson(
+      map['distributionCompletionMS'] as Map<String, dynamic>,
+    );
     metrics.mrrComputer.fromJson(map['mrrComputer'] as Map<String, dynamic>);
-    metrics.successfulMrrComputer
-        .fromJson(map['successfulMrrComputer'] as Map<String, dynamic>);
+    metrics.successfulMrrComputer.fromJson(
+      map['successfulMrrComputer'] as Map<String, dynamic>,
+    );
     for (var entry
         in (map['groupMrrComputers'] as Map<String, dynamic>).entries) {
       var group = CompletionGroup.values[int.parse(entry.key)];
@@ -408,16 +452,19 @@ class CompletionMetrics {
     for (var entry
         in (map['locationMrrComputers'] as Map<String, dynamic>).entries) {
       var location = entry.key;
-      metrics.locationMrrComputers[location] =
-          MeanReciprocalRankComputer(location)
-            ..fromJson(entry.value as Map<String, Object?>);
+      metrics.locationMrrComputers[location] = MeanReciprocalRankComputer(
+        location,
+      )..fromJson(entry.value as Map<String, Object?>);
     }
-    metrics.charsBeforeTop
-        .fromJson(map['charsBeforeTop'] as Map<String, dynamic>);
-    metrics.charsBeforeTopFive
-        .fromJson(map['charsBeforeTopFive'] as Map<String, dynamic>);
-    metrics.insertionLengthTheoretical
-        .fromJson(map['insertionLengthTheoretical'] as Map<String, dynamic>);
+    metrics.charsBeforeTop.fromJson(
+      map['charsBeforeTop'] as Map<String, dynamic>,
+    );
+    metrics.charsBeforeTopFive.fromJson(
+      map['charsBeforeTopFive'] as Map<String, dynamic>,
+    );
+    metrics.insertionLengthTheoretical.fromJson(
+      map['insertionLengthTheoretical'] as Map<String, dynamic>,
+    );
     for (var element in map['missingCompletionLocations'] as List<dynamic>) {
       metrics.missingCompletionLocations.add(element as String);
     }
@@ -431,9 +478,12 @@ class CompletionMetrics {
     ]);
     for (var entry in (map['worstResults'] as Map<String, dynamic>).entries) {
       var group = CompletionGroup.values[int.parse(entry.key)];
-      var results = (entry.value as List<dynamic>)
-          .map((map) => CompletionResult.fromJson(map as Map<String, dynamic>))
-          .toList();
+      var results =
+          (entry.value as List<dynamic>)
+              .map(
+                (map) => CompletionResult.fromJson(map as Map<String, dynamic>),
+              )
+              .toList();
       metrics.worstResults[group] = results;
     }
     return metrics;
@@ -466,8 +516,9 @@ class CompletionMetrics {
     charsBeforeTopFive.addData(metrics.charsBeforeTopFive);
     insertionLengthTheoretical.addData(metrics.insertionLengthTheoretical);
     missingCompletionLocations.addAll(metrics.missingCompletionLocations);
-    missingCompletionLocationTables
-        .addAll(metrics.missingCompletionLocationTables);
+    missingCompletionLocationTables.addAll(
+      metrics.missingCompletionLocationTables,
+    );
     for (var result in metrics.slowestResults) {
       _recordSlowestResult(result);
     }
@@ -499,7 +550,9 @@ class CompletionMetrics {
   /// Record the completion [result]. This method handles the worst ranked items
   /// as well as the longest sets of results to compute.
   void recordCompletionResult(
-      CompletionResult result, MetricsSuggestionListener listener) {
+    CompletionResult result,
+    MetricsSuggestionListener listener,
+  ) {
     _recordTime(result);
     _recordMrr(result);
     _recordWorstResult(result);
@@ -510,7 +563,9 @@ class CompletionMetrics {
   /// Record an [expectedCompletion] at the [completionLocation] for which no
   /// suggestion was produced.
   void recordMissedCompletion(
-      String? completionLocation, ExpectedCompletion expectedCompletion) {
+    String? completionLocation,
+    ExpectedCompletion expectedCompletion,
+  ) {
     missedCompletions
         .putIfAbsent(completionLocation ?? 'unknown', () => [])
         .add(expectedCompletion);
@@ -520,9 +575,10 @@ class CompletionMetrics {
   /// suggestion (the [closeMatchSuggestion]) was produced when the suggestion
   /// was for a different element but with the same name.
   void recordShadowedCompletion(
-      String? completionLocation,
-      ExpectedCompletion expectedCompletion,
-      CompletionSuggestionLite closeMatchSuggestion) {
+    String? completionLocation,
+    ExpectedCompletion expectedCompletion,
+    CompletionSuggestionLite closeMatchSuggestion,
+  ) {
     shadowedCompletions
         .putIfAbsent(completionLocation ?? 'unknown', () => [])
         .add(ShadowedCompletion(expectedCompletion, closeMatchSuggestion));
@@ -540,10 +596,12 @@ class CompletionMetrics {
       'distributionCompletionMS': distributionCompletionMS.toJson(),
       'mrrComputer': mrrComputer.toJson(),
       'successfulMrrComputer': successfulMrrComputer.toJson(),
-      'groupMrrComputers': groupMrrComputers
-          .map((key, value) => MapEntry(key.index.toString(), value.toJson())),
-      'locationMrrComputers': locationMrrComputers
-          .map((key, value) => MapEntry(key, value.toJson())),
+      'groupMrrComputers': groupMrrComputers.map(
+        (key, value) => MapEntry(key.index.toString(), value.toJson()),
+      ),
+      'locationMrrComputers': locationMrrComputers.map(
+        (key, value) => MapEntry(key, value.toJson()),
+      ),
       'charsBeforeTop': charsBeforeTop.toJson(),
       'charsBeforeTopFive': charsBeforeTopFive.toJson(),
       'insertionLengthTheoretical': insertionLengthTheoretical.toJson(),
@@ -552,9 +610,12 @@ class CompletionMetrics {
           missingCompletionLocationTables.toList(),
       'slowestResults':
           slowestResults.map((result) => result.toJson()).toList(),
-      'worstResults': worstResults.map((key, value) => MapEntry(
+      'worstResults': worstResults.map(
+        (key, value) => MapEntry(
           key.index.toString(),
-          value.map((result) => result.toJson()).toList())),
+          value.map((result) => result.toJson()).toList(),
+        ),
+      ),
     };
   }
 
@@ -586,7 +647,9 @@ class CompletionMetrics {
     var location = result.completionLocation;
     if (location != null) {
       var computer = locationMrrComputers.putIfAbsent(
-          location, () => MeanReciprocalRankComputer(location));
+        location,
+        () => MeanReciprocalRankComputer(location),
+      );
       computer.addRank(rank);
     }
   }
@@ -688,15 +751,15 @@ class CompletionMetricsQualityOptions extends CompletionMetricsOptions {
   final bool printWorstResults;
 
   CompletionMetricsQualityOptions(super.results)
-      : printMissedCompletionDetails =
-            results[PRINT_MISSED_COMPLETION_DETAILS] as bool,
-        printMissedCompletionSummary =
-            results[PRINT_MISSED_COMPLETION_SUMMARY] as bool,
-        printMissingInformation = results[PRINT_MISSING_INFORMATION] as bool,
-        printMrrByLocation = results[PRINT_MRR_BY_LOCATION] as bool,
-        printShadowedCompletionDetails =
-            results[PRINT_SHADOWED_COMPLETION_DETAILS] as bool,
-        printWorstResults = results[PRINT_WORST_RESULTS] as bool;
+    : printMissedCompletionDetails =
+          results[PRINT_MISSED_COMPLETION_DETAILS] as bool,
+      printMissedCompletionSummary =
+          results[PRINT_MISSED_COMPLETION_SUMMARY] as bool,
+      printMissingInformation = results[PRINT_MISSING_INFORMATION] as bool,
+      printMrrByLocation = results[PRINT_MRR_BY_LOCATION] as bool,
+      printShadowedCompletionDetails =
+          results[PRINT_SHADOWED_COMPLETION_DETAILS] as bool,
+      printWorstResults = results[PRINT_WORST_RESULTS] as bool;
 }
 
 /// This is the main metrics computer class for code completions. After the
@@ -707,7 +770,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   final List<CompletionMetrics> targetMetrics = [];
 
   CompletionQualityMetricsComputer(
-      super.rootPath, CompletionMetricsQualityOptions super.options);
+    super.rootPath,
+    CompletionMetricsQualityOptions super.options,
+  );
 
   @override
   CompletionMetricsQualityOptions get options =>
@@ -736,8 +801,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       );
       context.changeFile(filePath);
       await context.applyPendingFileChanges();
-      resolvedUnitResult = await context.currentSession
-          .getResolvedUnit(filePath) as ResolvedUnitResult;
+      resolvedUnitResult =
+          await context.currentSession.getResolvedUnit(filePath)
+              as ResolvedUnitResult;
     }
   }
 
@@ -748,16 +814,18 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     for (var i = 0; i < featureCount; i++) {
       var weights = List.filled(featureCount, 0.00);
       weights[i] = 1.00;
-      targetMetrics.add(CompletionMetrics(
-        featureNames[i],
-        enableFunction: () {
-          FeatureComputer.featureWeights = weights;
-        },
-        disableFunction: () {
-          FeatureComputer.featureWeights =
-              FeatureComputer.defaultFeatureWeights;
-        },
-      ));
+      targetMetrics.add(
+        CompletionMetrics(
+          featureNames[i],
+          enableFunction: () {
+            FeatureComputer.featureWeights = weights;
+          },
+          disableFunction: () {
+            FeatureComputer.featureWeights =
+                FeatureComputer.defaultFeatureWeights;
+          },
+        ),
+      );
     }
   }
 
@@ -765,17 +833,19 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   void compareRelevanceTables(List<RelevanceTables> tables) {
     assert(tables.isNotEmpty);
     for (var tablePair in tables) {
-      targetMetrics.add(CompletionMetrics(
-        tablePair.name,
-        enableFunction: () {
-          elementKindRelevance = tablePair.elementKindRelevance;
-          keywordRelevance = tablePair.keywordRelevance;
-        },
-        disableFunction: () {
-          elementKindRelevance = defaultElementKindRelevance;
-          keywordRelevance = defaultKeywordRelevance;
-        },
-      ));
+      targetMetrics.add(
+        CompletionMetrics(
+          tablePair.name,
+          enableFunction: () {
+            elementKindRelevance = tablePair.elementKindRelevance;
+            keywordRelevance = tablePair.keywordRelevance;
+          },
+          disableFunction: () {
+            elementKindRelevance = defaultElementKindRelevance;
+            keywordRelevance = defaultKeywordRelevance;
+          },
+        ),
+      );
     }
   }
 
@@ -788,11 +858,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables
     // should not be included in the list.
-//    compareRelevanceTables([]);
+    //    compareRelevanceTables([]);
 
     // To compare the relative benefit from each of the features, uncomment the
     // line below.
-//    compareIndividualFeatures();
+    //    compareIndividualFeatures();
 
     await super.computeMetrics();
   }
@@ -826,13 +896,14 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       stopwatch.stop();
 
       return gatherMetricsForSuggestions(
-          request,
-          listener,
-          expectedCompletion,
-          opType.completionLocation,
-          suggestions,
-          metrics,
-          stopwatch.elapsedMilliseconds);
+        request,
+        listener,
+        expectedCompletion,
+        opType.completionLocation,
+        suggestions,
+        metrics,
+        stopwatch.elapsedMilliseconds,
+      );
     }
 
     var bestRank = -1;
@@ -843,8 +914,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       metrics.enable();
       metrics.userTag.makeCurrent();
       var listener = MetricsSuggestionListener();
-      var rank =
-          await handleExpectedCompletion(listener: listener, metrics: metrics);
+      var rank = await handleExpectedCompletion(
+        listener: listener,
+        metrics: metrics,
+      );
       if (bestRank < 0 || rank < bestRank) {
         bestRank = rank;
         bestName = metrics.name;
@@ -858,13 +931,14 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   /// Gathers various metrics for the completion [request] which resulted in
   /// [suggestions], with [expectedCompletion] as the expected completion.
   int gatherMetricsForSuggestions(
-      DartCompletionRequest request,
-      MetricsSuggestionListener listener,
-      ExpectedCompletion expectedCompletion,
-      String? completionLocation,
-      List<CompletionSuggestionLite> suggestions,
-      CompletionMetrics metrics,
-      int elapsedMS) {
+    DartCompletionRequest request,
+    MetricsSuggestionListener listener,
+    ExpectedCompletion expectedCompletion,
+    String? completionLocation,
+    List<CompletionSuggestionLite> suggestions,
+    CompletionMetrics metrics,
+    int elapsedMS,
+  ) {
     var place = placementInSuggestionList(suggestions, expectedCompletion);
 
     metrics.mrrComputer.addRank(place.rank);
@@ -874,18 +948,21 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
       var rank = place.rank;
       var suggestion = suggestions[rank - 1];
-      var features = listener.featureMap[suggestion] ??
+      var features =
+          listener.featureMap[suggestion] ??
           MetricsSuggestionListener.noFeatures;
       var actualSuggestion = SuggestionData(suggestion, features);
       List<SuggestionData>? topSuggestions;
       Map<int, int>? precedingRelevanceCounts;
       if (options.printWorstResults) {
-        var features = listener.featureMap[suggestion] ??
+        var features =
+            listener.featureMap[suggestion] ??
             MetricsSuggestionListener.noFeatures;
-        topSuggestions = suggestions
-            .sublist(0, math.min(10, suggestions.length))
-            .map((suggestion) => SuggestionData(suggestion, features))
-            .toList();
+        topSuggestions =
+            suggestions
+                .sublist(0, math.min(10, suggestions.length))
+                .map((suggestion) => SuggestionData(suggestion, features))
+                .toList();
         precedingRelevanceCounts = <int, int>{};
         for (var i = 0; i < rank - 1; i++) {
           var relevance = suggestions[i].relevance;
@@ -894,24 +971,30 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         }
       }
       metrics.recordCompletionResult(
-          CompletionResult(
-              place,
-              request,
-              actualSuggestion,
-              topSuggestions,
-              precedingRelevanceCounts,
-              expectedCompletion,
-              completionLocation,
-              elapsedMS),
-          listener);
+        CompletionResult(
+          place,
+          request,
+          actualSuggestion,
+          topSuggestions,
+          precedingRelevanceCounts,
+          expectedCompletion,
+          completionLocation,
+          elapsedMS,
+        ),
+        listener,
+      );
 
-      var charsBeforeTop =
-          _computeCharsBeforeTop(expectedCompletion, suggestions);
+      var charsBeforeTop = _computeCharsBeforeTop(
+        expectedCompletion,
+        suggestions,
+      );
       metrics.charsBeforeTop.addValue(charsBeforeTop);
       metrics.charsBeforeTopFive.addValue(
-          _computeCharsBeforeTop(expectedCompletion, suggestions, minRank: 5));
-      metrics.insertionLengthTheoretical
-          .addValue(expectedCompletion.completion.length - charsBeforeTop);
+        _computeCharsBeforeTop(expectedCompletion, suggestions, minRank: 5),
+      );
+      metrics.insertionLengthTheoretical.addValue(
+        expectedCompletion.completion.length - charsBeforeTop,
+      );
 
       return place.rank;
     } else {
@@ -919,8 +1002,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
       metrics.completionMissedTokenCounter.count(expectedCompletion.completion);
       metrics.completionKindCounter.count(expectedCompletion.kind.toString());
-      metrics.completionElementKindCounter
-          .count(expectedCompletion.elementKind.toString());
+      metrics.completionElementKindCounter.count(
+        expectedCompletion.elementKind.toString(),
+      );
 
       if (options.printMissedCompletionDetails ||
           options.printShadowedCompletionDetails) {
@@ -934,11 +1018,16 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         if (closeMatchSuggestion == null &&
             options.printMissedCompletionDetails) {
           metrics.recordMissedCompletion(
-              completionLocation, expectedCompletion);
+            completionLocation,
+            expectedCompletion,
+          );
         } else if (closeMatchSuggestion != null &&
             options.printShadowedCompletionDetails) {
           metrics.recordShadowedCompletion(
-              completionLocation, expectedCompletion, closeMatchSuggestion);
+            completionLocation,
+            expectedCompletion,
+            closeMatchSuggestion,
+          );
         }
       }
       return -1;
@@ -957,12 +1046,12 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       [
         'successful',
         for (var counter in counters)
-          toString(counter.getCountOf('successful'), counter.totalCount)
+          toString(counter.getCountOf('successful'), counter.totalCount),
       ],
       [
         'unsuccessful',
         for (var counter in counters)
-          toString(counter.getCountOf('unsuccessful'), counter.totalCount)
+          toString(counter.getCountOf('unsuccessful'), counter.totalCount),
       ],
     ];
     rightJustifyColumns(table, range(1, table[0].length));
@@ -1022,11 +1111,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       ['total', counter.totalCount.toString()],
       [
         'successful',
-        toString(counter.getCountOf('successful'), counter.totalCount)
+        toString(counter.getCountOf('successful'), counter.totalCount),
       ],
       [
         'unsuccessful',
-        toString(counter.getCountOf('unsuccessful'), counter.totalCount)
+        toString(counter.getCountOf('unsuccessful'), counter.totalCount),
       ],
     ];
     rightJustifyColumns(table, range(1, table[0].length));
@@ -1083,12 +1172,15 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         var mrr = 1 / entry.value.mrr;
         var mrr_5 = 1 / entry.value.mrr_5;
         var product = count * mrr;
-        lines.add(LocationTableLine(
+        lines.add(
+          LocationTableLine(
             label: entry.key,
             product: product,
             count: count,
             mrr: mrr,
-            mrr_5: mrr_5));
+            mrr_5: mrr_5,
+          ),
+        );
       }
       lines.sort((first, second) => second.product.compareTo(first.product));
       var table = <List<String>>[];
@@ -1127,8 +1219,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     if (options.printMissedCompletionDetails) {
       printHeading(2, 'Missed Completions');
       var needsBlankLine = false;
-      var entries = metrics.missedCompletions.entries.toList()
-        ..sort((first, second) => first.key.compareTo(second.key));
+      var entries =
+          metrics.missedCompletions.entries.toList()
+            ..sort((first, second) => first.key.compareTo(second.key));
       for (var entry in entries) {
         if (needsBlankLine) {
           print('');
@@ -1193,27 +1286,41 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       toRow(targetMetrics.map((metrics) => metrics.successfulMrrComputer)),
       blankRow,
     ];
-    var elementKinds = targetMetrics
-        .expand((metrics) => metrics.groupMrrComputers.keys)
-        .toSet()
-        .toList();
+    var elementKinds =
+        targetMetrics
+            .expand((metrics) => metrics.groupMrrComputers.keys)
+            .toSet()
+            .toList();
     elementKinds.sort((first, second) => first.name.compareTo(second.name));
     for (var kind in elementKinds) {
-      table.add(toRow(targetMetrics.map((metrics) =>
-          metrics.groupMrrComputers[kind] ??
-          MeanReciprocalRankComputer(kind.name))));
+      table.add(
+        toRow(
+          targetMetrics.map(
+            (metrics) =>
+                metrics.groupMrrComputers[kind] ??
+                MeanReciprocalRankComputer(kind.name),
+          ),
+        ),
+      );
     }
     if (options.printMrrByLocation) {
       table.add(blankRow);
-      var locations = targetMetrics
-          .expand((metrics) => metrics.locationMrrComputers.keys)
-          .toSet()
-          .toList();
+      var locations =
+          targetMetrics
+              .expand((metrics) => metrics.locationMrrComputers.keys)
+              .toSet()
+              .toList();
       locations.sort();
       for (var location in locations) {
-        table.add(toRow(targetMetrics.map((metrics) =>
-            metrics.locationMrrComputers[location] ??
-            MeanReciprocalRankComputer(location))));
+        table.add(
+          toRow(
+            targetMetrics.map(
+              (metrics) =>
+                  metrics.locationMrrComputers[location] ??
+                  MeanReciprocalRankComputer(location),
+            ),
+          ),
+        );
       }
     }
     rightJustifyColumns(table, range(1, table[0].length));
@@ -1298,8 +1405,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     if (options.printShadowedCompletionDetails) {
       printHeading(2, 'Shadowed Completions');
       var needsBlankLine = false;
-      var entries = metrics.shadowedCompletions.entries.toList()
-        ..sort((first, second) => first.key.compareTo(second.key));
+      var entries =
+          metrics.shadowedCompletions.entries.toList()
+            ..sort((first, second) => first.key.compareTo(second.key));
       for (var entry in entries) {
         if (needsBlankLine) {
           print('');
@@ -1322,9 +1430,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   /// are in the top [maxSlowestResults] slowest results, are included.
   void printSlowestResults(CompletionMetrics metrics) {
     var p90ElapsedMs = metrics.percentileCompletionMS.p90;
-    var slowestResults = metrics.slowestResults
-        .where((element) => element.elapsedMS >= p90ElapsedMs)
-        .toList();
+    var slowestResults =
+        metrics.slowestResults
+            .where((element) => element.elapsedMS >= p90ElapsedMs)
+            .toList();
     print('');
     printHeading(2, 'The slowest completion results to compute');
     for (var result in slowestResults) {
@@ -1340,8 +1449,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
     print('');
     var slowestResultCountByGroup = slowestResults.groupFoldBy(
-        (result) => result.group.name,
-        (int? previous, result) => (previous ?? 0) + 1);
+      (result) => result.group.name,
+      (int? previous, result) => (previous ?? 0) + 1,
+    );
     slowestResultCountByGroup.forEach((groupName, count) {
       var countString = count.toString().padLeft(2);
       print('${groupName.padRight(20)}: $countString result(s)');
@@ -1367,8 +1477,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       provider.removeOverlay(filePath);
       context.changeFile(filePath);
       await context.applyPendingFileChanges();
-      resolvedUnitResult = await context.currentSession
-          .getResolvedUnit(filePath) as ResolvedUnitResult;
+      resolvedUnitResult =
+          await context.currentSession.getResolvedUnit(filePath)
+              as ResolvedUnitResult;
     }
   }
 
@@ -1376,8 +1487,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   void setupForResolution(AnalysisContext context) {}
 
   int _computeCharsBeforeTop(
-      ExpectedCompletion target, List<CompletionSuggestionLite> suggestions,
-      {int minRank = 1}) {
+    ExpectedCompletion target,
+    List<CompletionSuggestionLite> suggestions, {
+    int minRank = 1,
+  }) {
     var rank = placementInSuggestionList(suggestions, target).rank;
     if (rank <= minRank) {
       return 0;
@@ -1397,10 +1510,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   /// Computes completion suggestions for [dartRequest], and returns the
   /// suggestions, sorted by rank and then by completion text.
   Future<List<CompletionSuggestionLite>> _computeCompletionSuggestions(
-      MetricsSuggestionListener listener,
-      OperationPerformanceImpl performance,
-      DartCompletionRequest dartRequest,
-      NotImportedSuggestions notImportedSuggestions) async {
+    MetricsSuggestionListener listener,
+    OperationPerformanceImpl performance,
+    DartCompletionRequest dartRequest,
+    NotImportedSuggestions notImportedSuggestions,
+  ) async {
     var budget = CompletionBudget(Duration(seconds: 30));
     var suggestions = await DartCompletionManager(
       budget: budget,
@@ -1421,7 +1535,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   }
 
   List<CompletionSuggestionLite> _filterSuggestions(
-      String prefix, List<CompletionSuggestionLite> suggestions) {
+    String prefix,
+    List<CompletionSuggestionLite> suggestions,
+  ) {
     // TODO(brianwilkerson): Replace this with a more realistic filtering
     //  algorithm.
     return suggestions
@@ -1436,7 +1552,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         rank.toString(),
         suggestion.relevance.toString(),
         suggestion.completion,
-        suggestion.kind.toString()
+        suggestion.kind.toString(),
       ];
     }
 
@@ -1444,7 +1560,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       var features = data.features;
       return [
         rank.toString(),
-        for (var feature in features) feature.toStringAsFixed(4)
+        for (var feature in features) feature.toStringAsFixed(4),
       ];
     }
 
@@ -1463,7 +1579,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       precedingRelevances.sort();
 
       var suggestionsTable = [
-        ['Rank', 'Relevance', 'Completion', 'Kind']
+        ['Rank', 'Relevance', 'Completion', 'Kind'],
       ];
       for (var i = 0; i < topSuggestionCount; i++) {
         suggestionsTable.add(suggestionRow(i, topSuggestions[i]));
@@ -1485,7 +1601,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
           'superMatches',
           'inheritanceDistance',
           'localVariableDistance',
-        ]
+        ],
       ];
       for (var i = 0; i < topSuggestionCount; i++) {
         featuresTable.add(featuresRow(i, topSuggestions[i]));
@@ -1502,8 +1618,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       print('  Location: ${expected.location}');
       print('  Comparison with the top $topSuggestionCount suggestions:');
       printTable(suggestionsTable);
-      print('  Comparison of features with the top $topSuggestionCount '
-          'suggestions:');
+      print(
+        '  Comparison of features with the top $topSuggestionCount '
+        'suggestions:',
+      );
       printTable(featuresTable);
       print('  Preceding relevance scores and counts:');
       for (var relevance in precedingRelevances.reversed) {
@@ -1517,8 +1635,9 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   ///
   /// If [expectedCompletion] is not found, `Place.none()` is returned.
   static Place placementInSuggestionList(
-      List<CompletionSuggestionLite> suggestions,
-      ExpectedCompletion expectedCompletion) {
+    List<CompletionSuggestionLite> suggestions,
+    ExpectedCompletion expectedCompletion,
+  ) {
     for (var i = 0; i < suggestions.length; i++) {
       if (expectedCompletion.matches(suggestions[i])) {
         return Place(i + 1, suggestions.length);
@@ -1547,39 +1666,44 @@ class CompletionResult {
   final Map<int, int>? precedingRelevanceCounts;
 
   CompletionResult(
-      this.place,
-      this.request,
-      this.actualSuggestion,
-      this.topSuggestions,
-      this.precedingRelevanceCounts,
-      this.expectedCompletion,
-      this.completionLocation,
-      this.elapsedMS);
+    this.place,
+    this.request,
+    this.actualSuggestion,
+    this.topSuggestions,
+    this.precedingRelevanceCounts,
+    this.expectedCompletion,
+    this.completionLocation,
+    this.elapsedMS,
+  );
 
   /// Return an instance extracted from the decoded JSON [map].
   factory CompletionResult.fromJson(Map<String, dynamic> map) {
     var place = Place.fromJson(map['place'] as Map<String, dynamic>);
     var actualSuggestion = SuggestionData.fromJson(
-        map['actualSuggestion'] as Map<String, dynamic>);
-    var topSuggestions = (map['topSuggestions'] as List<dynamic>)
-        .map((map) => SuggestionData.fromJson(map as Map<String, dynamic>))
-        .toList();
-    var precedingRelevanceCounts =
-        (map['precedingRelevanceCounts'] as Map<String, dynamic>)
-            .map((key, value) => MapEntry(int.parse(key), value as int));
+      map['actualSuggestion'] as Map<String, dynamic>,
+    );
+    var topSuggestions =
+        (map['topSuggestions'] as List<dynamic>)
+            .map((map) => SuggestionData.fromJson(map as Map<String, dynamic>))
+            .toList();
+    var precedingRelevanceCounts = (map['precedingRelevanceCounts']
+            as Map<String, dynamic>)
+        .map((key, value) => MapEntry(int.parse(key), value as int));
     var expectedCompletion = ExpectedCompletion.fromJson(
-        map['expectedCompletion'] as Map<String, dynamic>);
+      map['expectedCompletion'] as Map<String, dynamic>,
+    );
     var completionLocation = map['completionLocation'] as String;
     var elapsedMS = map['elapsedMS'] as int;
     return CompletionResult(
-        place,
-        null,
-        actualSuggestion,
-        topSuggestions,
-        precedingRelevanceCounts,
-        expectedCompletion,
-        completionLocation,
-        elapsedMS);
+      place,
+      null,
+      actualSuggestion,
+      topSuggestions,
+      precedingRelevanceCounts,
+      expectedCompletion,
+      completionLocation,
+      elapsedMS,
+    );
   }
 
   /// Return the completion group for the location at which completion was
@@ -1647,8 +1771,9 @@ class CompletionResult {
         'topSuggestions':
             topSuggestions!.map((suggestion) => suggestion.toJson()).toList(),
       if (precedingRelevanceCounts != null)
-        'precedingRelevanceCounts': precedingRelevanceCounts!
-            .map((key, value) => MapEntry(key.toString(), value)),
+        'precedingRelevanceCounts': precedingRelevanceCounts!.map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
       'expectedCompletion': expectedCompletion.toJson(),
       'completionLocation': completionLocation,
       'elapsedMS': elapsedMS,
@@ -1732,13 +1857,14 @@ class CompletionSuggestionLite {
 
     return CompletionSuggestionLite(
       completion: map['completion'] as String,
-      elementKind: elementKindStr != null
-          ? protocol.ElementKind.fromJson(
-              ResponseDecoder(null),
-              '',
-              elementKindStr,
-            )
-          : null,
+      elementKind:
+          elementKindStr != null
+              ? protocol.ElementKind.fromJson(
+                ResponseDecoder(null),
+                '',
+                elementKindStr,
+              )
+              : null,
       relevance: map['relevance'] as int,
       kind: protocol.CompletionSuggestionKind.fromJson(
         ResponseDecoder(null),
@@ -1780,12 +1906,13 @@ class LocationTableLine {
   final double mrr;
   final double mrr_5;
 
-  LocationTableLine(
-      {required this.label,
-      required this.product,
-      required this.count,
-      required this.mrr,
-      required this.mrr_5});
+  LocationTableLine({
+    required this.label,
+    required this.product,
+    required this.count,
+    required this.mrr,
+    required this.mrr_5,
+  });
 }
 
 class MetricsSuggestionListener implements SuggestionListener {
@@ -1801,7 +1928,7 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0,
     0.0,
     0.0,
-    0.0
+    0.0,
   ];
 
   Map<CompletionSuggestionLite, List<double>> featureMap = Map.identity();
@@ -1820,19 +1947,20 @@ class MetricsSuggestionListener implements SuggestionListener {
   }
 
   @override
-  void computedFeatures(
-      {double contextType = 0.0,
-      double elementKind = 0.0,
-      double hasDeprecated = 0.0,
-      double isConstant = 0.0,
-      double isNoSuchMethod = 0.0,
-      double isNotImported = 0.0,
-      double keyword = 0.0,
-      double startsWithDollar = 0.0,
-      double superMatches = 0.0,
-      // Dependent features
-      double inheritanceDistance = 0.0,
-      double localVariableDistance = 0.0}) {
+  void computedFeatures({
+    double contextType = 0.0,
+    double elementKind = 0.0,
+    double hasDeprecated = 0.0,
+    double isConstant = 0.0,
+    double isNoSuchMethod = 0.0,
+    double isNotImported = 0.0,
+    double keyword = 0.0,
+    double startsWithDollar = 0.0,
+    double superMatches = 0.0,
+    // Dependent features
+    double inheritanceDistance = 0.0,
+    double localVariableDistance = 0.0,
+  }) {
     cachedFeatures = [
       contextType,
       elementKind,
@@ -1879,7 +2007,7 @@ class RelevanceTables {
 
   /// The relevance table used for element kinds.
   final Map<String, Map<protocol.ElementKind, ProbabilityRange>>
-      elementKindRelevance;
+  elementKindRelevance;
 
   /// The relevance table used for keywords.
   final Map<String, Map<String, ProbabilityRange>> keywordRelevance;
@@ -1919,10 +2047,7 @@ class SuggestionData {
 
   /// Return a map used to represent this suggestion data in a JSON structure.
   Map<String, dynamic> toJson() {
-    return {
-      'suggestion': suggestion.toJson(),
-      'features': features,
-    };
+    return {'suggestion': suggestion.toJson(), 'features': features};
   }
 }
 
@@ -1971,6 +2096,7 @@ extension on CompletionGroup {
 
 extension on num {
   String asPercentage([int fractionDigits = 1]) =>
-      '${(this * 100).toStringAsFixed(fractionDigits)}%'
-          .padLeft(4 + fractionDigits);
+      '${(this * 100).toStringAsFixed(fractionDigits)}%'.padLeft(
+        4 + fractionDigits,
+      );
 }

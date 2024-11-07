@@ -63,7 +63,9 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
   }
 
   Future<void> _convertFunctionTypeAlias(
-      ChangeBuilder builder, FunctionTypeAlias node) async {
+    ChangeBuilder builder,
+    FunctionTypeAlias node,
+  ) async {
     if (!_allParametersHaveTypes(node.parameters)) {
       return;
     }
@@ -75,7 +77,8 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     }
 
     var functionName = utils.getRangeText(
-        range.startEnd(node.name, node.typeParameters ?? node.name));
+      range.startEnd(node.name, node.typeParameters ?? node.name),
+    );
     var parameters = utils.getNodeText(node.parameters);
     String replacement;
     if (returnType == null) {
@@ -86,13 +89,16 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     // add change
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.startStart(node.typedefKeyword.next!, node.semicolon),
-          replacement);
+        range.startStart(node.typedefKeyword.next!, node.semicolon),
+        replacement,
+      );
     });
   }
 
   Future<void> _convertFunctionTypedFormalParameter(
-      ChangeBuilder builder, FunctionTypedFormalParameter node) async {
+    ChangeBuilder builder,
+    FunctionTypedFormalParameter node,
+  ) async {
     if (!_allParametersHaveTypes(node.parameters)) {
       return;
     }
@@ -108,7 +114,8 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
 
     var parameters = utils.getNodeText(node.parameters);
     var question = node.question != null ? '?' : '';
-    var replacement = '$required$covariant${returnType}Function'
+    var replacement =
+        '$required$covariant${returnType}Function'
         '$typeParameters$parameters$question $functionName';
 
     await builder.addDartFileEdit(file, (builder) {

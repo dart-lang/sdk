@@ -15,8 +15,9 @@ class ConvertDocumentationIntoBlock extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK;
@@ -29,9 +30,11 @@ class ConvertDocumentationIntoBlock extends ResolvedCorrectionProducer {
     }
     var tokens = comment.tokens;
     if (tokens.isEmpty ||
-        tokens.any((Token token) =>
-            token is! DocumentationCommentToken ||
-            token.type != TokenType.SINGLE_LINE_COMMENT)) {
+        tokens.any(
+          (Token token) =>
+              token is! DocumentationCommentToken ||
+              token.type != TokenType.SINGLE_LINE_COMMENT,
+        )) {
       return;
     }
     var prefix = utils.getNodePrefix(comment);

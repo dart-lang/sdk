@@ -60,9 +60,10 @@ class ServerDartFixPromptTest extends AbstractLspAnalysisServerTest {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
-  List<String> get currentContextPaths => server.contextManager.analysisContexts
-      .map((context) => context.contextRoot.root.path)
-      .toList();
+  List<String> get currentContextPaths =>
+      server.contextManager.analysisContexts
+          .map((context) => context.contextRoot.root.path)
+          .toList();
 
   @override
   MemoryResourceProvider get resourceProvider =>
@@ -122,10 +123,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   Future<void> test_capturesLatency_afterStartup() async {
     await initialize(includeClientRequestTime: true);
     await openFile(mainFileUri, '');
-    await expectLater(
-      getHover(mainFileUri, startOfDocPos),
-      completes,
-    );
+    await expectLater(getHover(mainFileUri, startOfDocPos), completes);
     expect(server.performanceAfterStartup!.latencyCount, isPositive);
   }
 
@@ -137,13 +135,11 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   Future<void> test_capturesRequestPerformance() async {
     await initialize(includeClientRequestTime: true);
     await openFile(mainFileUri, '');
-    await expectLater(
-      getHover(mainFileUri, startOfDocPos),
-      completes,
-    );
+    await expectLater(getHover(mainFileUri, startOfDocPos), completes);
     var performanceItems = server.recentPerformance.requests.items;
     var hoverItems = performanceItems.where(
-        (item) => item.operation == Method.textDocument_hover.toString());
+      (item) => item.operation == Method.textDocument_hover.toString(),
+    );
     expect(hoverItems, hasLength(1));
   }
 
@@ -167,7 +163,10 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
     var error = await expectErrorNotification(() async {
       server.sendServerErrorNotification(
-          'message', Exception('dummy exception'), null);
+        'message',
+        Exception('dummy exception'),
+        null,
+      );
     });
 
     expect(error, isNotNull);
@@ -186,11 +185,15 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     // client and server are out of sync and we expect the server to shut down.
     var error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
-        TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
+        TextDocumentContentChangeEvent.t1(
+          TextDocumentContentChangePartial(
             range: Range(
-                start: Position(line: 99, character: 99),
-                end: Position(line: 99, character: 99)),
-            text: ' ')),
+              start: Position(line: 99, character: 99),
+              end: Position(line: 99, character: 99),
+            ),
+            text: ' ',
+          ),
+        ),
       ]);
     });
 
@@ -206,8 +209,12 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await expectLater(
       getHover(missingFileUri, startOfDocPos),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'File does not exist')),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
+          message: 'File does not exist',
+        ),
+      ),
     );
   }
 
@@ -218,8 +225,12 @@ class ServerTest extends AbstractLspAnalysisServerTest {
         // Add some invalid path characters to the end of a valid file:// URI.
         Uri.parse(mainFileUri.toString() + r'###***\\\///:::.dart'),
       ),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI does not contain a valid file path')),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
+          message: 'URI does not contain a valid file path',
+        ),
+      ),
     );
   }
 
@@ -237,9 +248,13 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await expectLater(
       getHover(missingDriveLetterFileUri, startOfDocPos),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
           message:
-              'URI does not contain an absolute file path (missing drive letter)')),
+              'URI does not contain an absolute file path (missing drive letter)',
+        ),
+      ),
     );
   }
 
@@ -248,9 +263,13 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await expectLater(
       getHover(relativeFileUri, startOfDocPos),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
           message:
-              "URI scheme 'foo' is not supported. Allowed schemes are 'file'.")),
+              "URI scheme 'foo' is not supported. Allowed schemes are 'file'.",
+        ),
+      ),
     );
   }
 
@@ -261,8 +280,12 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       getHover(relativeFileUri, startOfDocPos),
       // The pathContext.toUri() above translates to a non-file:// URI of just
       // 'a/b.dart' so will get the not-file-scheme error message.
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'URI is not a valid file:// URI')),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
+          message: 'URI is not a valid file:// URI',
+        ),
+      ),
     );
   }
 
@@ -288,8 +311,10 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   Future<void> test_unknownNotifications_logError() async {
     await initialize();
 
-    var notification =
-        makeNotification(Method.fromJson(r'some/randomNotification'), null);
+    var notification = makeNotification(
+      Method.fromJson(r'some/randomNotification'),
+      null,
+    );
 
     var notificationParams = await expectErrorNotification(
       () => channel.sendNotificationToServer(notification),
@@ -303,21 +328,24 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_unknownOptionalNotifications_silentlyDropped() async {
     await initialize();
-    var notification =
-        makeNotification(Method.fromJson(r'$/randomNotification'), null);
+    var notification = makeNotification(
+      Method.fromJson(r'$/randomNotification'),
+      null,
+    );
     var firstError = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.
     var didTimeout = false;
-    var notificationFromServer =
-        await firstError.then<NotificationMessage?>((error) => error).timeout(
-      const Duration(seconds: 1),
-      onTimeout: () {
-        didTimeout = true;
-        return null;
-      },
-    );
+    var notificationFromServer = await firstError
+        .then<NotificationMessage?>((error) => error)
+        .timeout(
+          const Duration(seconds: 1),
+          onTimeout: () {
+            didTimeout = true;
+            return null;
+          },
+        );
 
     expect(notificationFromServer, isNull);
     expect(didTimeout, isTrue);

@@ -22,9 +22,7 @@ class FlutterMoveUpTest extends AssistProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_first() async {

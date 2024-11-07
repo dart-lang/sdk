@@ -9,8 +9,8 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
-typedef StaticOptions
-    = Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>;
+typedef StaticOptions =
+    Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>;
 
 class InlayHintHandler
     extends LspMessageHandler<InlayHintParams, List<InlayHint>> {
@@ -23,8 +23,11 @@ class InlayHintHandler
       InlayHintParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<InlayHint>>> handle(InlayHintParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<InlayHint>>> handle(
+    InlayHintParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var textDocument = params.textDocument;
     if (!isDartDocument(textDocument)) {
       return success([]);
@@ -67,17 +70,16 @@ class InlayHintRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => InlayHintRegistrationOptions(
-        documentSelector: dartFiles,
-        resolveProvider: false,
-      );
+    documentSelector: dartFiles,
+    resolveProvider: false,
+  );
 
   @override
   Method get registrationMethod => Method.textDocument_inlayHint;
 
   @override
-  StaticOptions get staticOptions => Either3.t2(
-        InlayHintOptions(resolveProvider: false),
-      );
+  StaticOptions get staticOptions =>
+      Either3.t2(InlayHintOptions(resolveProvider: false));
 
   @override
   bool get supportsDynamic => clientDynamic.inlayHints;

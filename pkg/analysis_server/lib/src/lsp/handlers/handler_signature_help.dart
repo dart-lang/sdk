@@ -27,8 +27,11 @@ class SignatureHelpHandler
   bool get requiresTrustedCaller => false;
 
   @override
-  Future<ErrorOr<SignatureHelp?>> handle(SignatureHelpParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<SignatureHelp?>> handle(
+    SignatureHelpParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -45,7 +48,8 @@ class SignatureHelpHandler
     // whenever the user types a `(` that might not be the start of an argument
     // list, as the client does not have any context and will always send the
     // request.
-    var autoTriggered = params.context?.triggerKind ==
+    var autoTriggered =
+        params.context?.triggerKind ==
             SignatureHelpTriggerKind.TriggerCharacter &&
         // Retriggers can be ignored (treated as manual invocations) as it's
         // fine to always generate results if the signature help is already
@@ -114,9 +118,13 @@ class SignatureHelpHandler
     Set<MarkupKind>? formats,
   ) {
     var typeArgsComputer = DartTypeArgumentsSignatureComputer(
-        dartDocInfo, unit, offset, formats,
-        documentationPreference:
-            server.lspClientConfiguration.global.preferredDocumentation);
+      dartDocInfo,
+      unit,
+      offset,
+      formats,
+      documentationPreference:
+          server.lspClientConfiguration.global.preferredDocumentation,
+    );
     if (!typeArgsComputer.offsetIsValid) {
       return null;
     }
@@ -142,19 +150,19 @@ class SignatureHelpRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => SignatureHelpRegistrationOptions(
-        documentSelector: fullySupportedTypes,
-        triggerCharacters: dartSignatureHelpTriggerCharacters,
-        retriggerCharacters: dartSignatureHelpRetriggerCharacters,
-      );
+    documentSelector: fullySupportedTypes,
+    triggerCharacters: dartSignatureHelpTriggerCharacters,
+    retriggerCharacters: dartSignatureHelpRetriggerCharacters,
+  );
 
   @override
   Method get registrationMethod => Method.textDocument_signatureHelp;
 
   @override
   SignatureHelpOptions get staticOptions => SignatureHelpOptions(
-        triggerCharacters: dartSignatureHelpTriggerCharacters,
-        retriggerCharacters: dartSignatureHelpRetriggerCharacters,
-      );
+    triggerCharacters: dartSignatureHelpTriggerCharacters,
+    retriggerCharacters: dartSignatureHelpRetriggerCharacters,
+  );
 
   @override
   bool get supportsDynamic => clientDynamic.signatureHelp;

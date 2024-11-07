@@ -58,8 +58,8 @@ void f() {
           {'file': testFile.path, 'offset': 35},
         ],
         'length': 1,
-        'suggestions': []
-      }
+        'suggestions': [],
+      },
     ]);
   }
 
@@ -98,8 +98,8 @@ void f() {
           {'file': testFile.path, 'offset': 55},
         ],
         'length': 1,
-        'suggestions': []
-      }
+        'suggestions': [],
+      },
     ]);
   }
 }

@@ -36,13 +36,15 @@ augment extension E on int { }
 augment extension E on num { }
 ''');
     await assertHasFixAllFix(
-        ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE, '''
+      ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE,
+      '''
 part of 'a.dart';
 
 augment extension E { }
 
 augment extension E { }
-''');
+''',
+    );
   }
 }
 

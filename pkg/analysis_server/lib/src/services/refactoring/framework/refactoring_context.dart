@@ -45,16 +45,19 @@ class AbstractRefactoringContext {
   late final CorrectionUtils utils = CorrectionUtils(resolvedUnitResult);
 
   /// The selection, or `null` if the selection is not valid.
-  late final Selection? selection = resolvedUnitResult.unit
-      .select(offset: selectionOffset, length: selectionLength);
+  late final Selection? selection = resolvedUnitResult.unit.select(
+    offset: selectionOffset,
+    length: selectionLength,
+  );
 
   /// Capabilities of the client that will handle the edits resulting from this
   /// refactor.
   final LspClientCapabilities? clientCapabilities;
 
   /// The helper used to efficiently access resolved units.
-  late final AnalysisSessionHelper sessionHelper =
-      AnalysisSessionHelper(session);
+  late final AnalysisSessionHelper sessionHelper = AnalysisSessionHelper(
+    session,
+  );
 
   /// The change workspace associated with this refactoring.
   late final ChangeWorkspace workspace = DartChangeWorkspace(startSessions);
@@ -106,7 +109,5 @@ class RefactoringContext extends AbstractRefactoringContext {
     required super.selectionOffset,
     required super.selectionLength,
     required super.includeExperimental,
-  }) : super(
-          searchEngine: server.searchEngine,
-        );
+  }) : super(searchEngine: server.searchEngine);
 }

@@ -12,8 +12,11 @@ extension StringExtension on String {
   /// It is assumed that this String is a valid identifier and does not contain
   /// characters that are invalid in file names.
   String get toFileName {
-    var fileName = replaceAllMapped(RegExp('[A-Z]'),
-        (match) => match.start == 0 ? match[0]! : '_${match[0]}').toLowerCase();
+    var fileName =
+        replaceAllMapped(
+          RegExp('[A-Z]'),
+          (match) => match.start == 0 ? match[0]! : '_${match[0]}',
+        ).toLowerCase();
     return '$fileName.dart';
   }
 
@@ -100,4 +103,3 @@ extension StringExtension on String {
   /// Returns `null` if this string is the same as [other], otherwise `this`.
   String? orNullIfSameAs(String other) => this == other ? null : this;
 }
-

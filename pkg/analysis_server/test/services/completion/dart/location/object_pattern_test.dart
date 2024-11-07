@@ -24,7 +24,7 @@ class ObjectPatternTest extends AbstractCompletionDriverTest
 
 mixin ObjectPatternTestCases on AbstractCompletionDriverTest {
   Future<void>
-      test_declarationContext_pattern_first_withoutGetter_afterColon() async {
+  test_declarationContext_pattern_first_withoutGetter_afterColon() async {
     await computeSuggestions('''
 void f1(A1 x0) {
   var A1(: ^) = x0;
@@ -70,7 +70,7 @@ suggestions
   }
 
   Future<void>
-      test_declarationContext_pattern_first_withoutGetter_afterColon_partial() async {
+  test_declarationContext_pattern_first_withoutGetter_afterColon_partial() async {
     await computeSuggestions('''
 void f1(A1 x0) {
   var A1(: g^) = x0;
@@ -110,7 +110,7 @@ suggestions
   }
 
   Future<void>
-      test_forEachPartsWithPattern_first_afterColon_withoutGetter() async {
+  test_forEachPartsWithPattern_first_afterColon_withoutGetter() async {
     await computeSuggestions('''
 void f1(List<A1> x0) {
   for (final A1(: ^) in x0) {}
@@ -156,7 +156,7 @@ suggestions
   }
 
   Future<void>
-      test_forEachPartsWithPattern_first_afterColon_withoutGetter_partial() async {
+  test_forEachPartsWithPattern_first_afterColon_withoutGetter_partial() async {
     await computeSuggestions('''
 void f1(List<A1> x0) {
   for (final A1(: g^) in x0) {}
@@ -295,7 +295,7 @@ suggestions
   }
 
   Future<void>
-      test_ifCase_logicalAnd_objectPattern_type_partial_notImported() async {
+  test_ifCase_logicalAnd_objectPattern_type_partial_notImported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A01 {}
 ''');
@@ -429,7 +429,7 @@ suggestions
   }
 
   Future<void>
-      test_matchingContext_pattern_first_withoutGetter_afterColon() async {
+  test_matchingContext_pattern_first_withoutGetter_afterColon() async {
     await computeSuggestions('''
 void f1(Object x0) {
   switch (x0) {
@@ -457,7 +457,7 @@ suggestions
   }
 
   Future<void>
-      test_matchingContext_pattern_first_withoutGetter_afterVar() async {
+  test_matchingContext_pattern_first_withoutGetter_afterVar() async {
     await computeSuggestions('''
 void f1(Object x0) {
   switch (x0) {
@@ -697,7 +697,7 @@ suggestions
   }
 
   Future<void>
-      test_property_first_afterPartialName_trailingColonAndValue() async {
+  test_property_first_afterPartialName_trailingColonAndValue() async {
     await computeSuggestions('''
 void f1(Object x0) {
   switch (x0) {
@@ -739,7 +739,7 @@ suggestions
   }
 
   Future<void>
-      test_property_first_beforePartialName_trailingColonAndValue() async {
+  test_property_first_beforePartialName_trailingColonAndValue() async {
     await computeSuggestions('''
 void f1(Object x0) {
   switch (x0) {
@@ -873,7 +873,7 @@ suggestions
   }
 
   Future<void>
-      test_switchPatternCase_objectPattern_type_partial_notImported() async {
+  test_switchPatternCase_objectPattern_type_partial_notImported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A01 {}
 ''');

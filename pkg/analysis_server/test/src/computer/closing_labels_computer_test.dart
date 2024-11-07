@@ -363,8 +363,11 @@ void myMethod() {
 
   /// Compares provided closing labels with expected
   /// labels extracted from the comments in the provided content.
-  void _compareLabels(List<ClosingLabel> labels, String content,
-      {int? expectedLabelCount}) {
+  void _compareLabels(
+    List<ClosingLabel> labels,
+    String content, {
+    int? expectedLabelCount,
+  }) {
     // Require the test pass us the expected count to guard
     // against expected annotations being mistyped and not
     // extracted by the regex.
@@ -389,8 +392,10 @@ void myMethod() {
       var expectedLength = endMatch.start - expectedStart;
       var expectedLabel = endMatch.group(1)!;
 
-      expect(labels,
-          contains(ClosingLabel(expectedStart, expectedLength, expectedLabel)));
+      expect(
+        labels,
+        contains(ClosingLabel(expectedStart, expectedLength, expectedLabel)),
+      );
     }
   }
 

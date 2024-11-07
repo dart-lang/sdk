@@ -30,9 +30,12 @@ void f() {
     // check status
     refactoring.newName = 'newName';
     var status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.");
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage:
+          "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
+    );
   }
 
   Future<void> test_checkNewName() async {
@@ -46,9 +49,10 @@ class A {
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'The new name must be different than the current name.');
+      refactoring.checkNewName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'The new name must be different than the current name.',
+    );
     // empty
     refactoring.newName = '';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -68,10 +72,13 @@ class A {
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Class 'A' already declares constructor with name 'newName'.",
-        expectedContextSearch: 'newName() {} // existing');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage:
+          "Class 'A' already declares constructor with name 'newName'.",
+      expectedContextSearch: 'newName() {} // existing',
+    );
   }
 
   Future<void> test_checkNewName_hasMember_method() async {
@@ -85,10 +92,12 @@ class A {
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Class 'A' already declares method with name 'newName'.",
-        expectedContextSearch: 'newName() {} // existing');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "Class 'A' already declares method with name 'newName'.",
+      expectedContextSearch: 'newName() {} // existing',
+    );
   }
 
   Future<void> test_createChange_add() async {
@@ -212,7 +221,7 @@ void f() {
   }
 
   Future<void>
-      test_createChange_implicitlyInvoked_hasConstructor_hasInitializers() async {
+  test_createChange_implicitlyInvoked_hasConstructor_hasInitializers() async {
     await indexTestUnit('''
 class A {
   A();
@@ -243,7 +252,7 @@ class B extends A {
   }
 
   Future<void>
-      test_createChange_implicitlyInvoked_hasConstructor_noInitializers() async {
+  test_createChange_implicitlyInvoked_hasConstructor_noInitializers() async {
     await indexTestUnit('''
 class A {
   A();
@@ -372,8 +381,11 @@ void f() {
   Future<void> test_newInstance_nullElement() async {
     await indexTestUnit('');
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
-    var refactoring =
-        RenameRefactoring.create(workspace, testAnalysisResult, null);
+    var refactoring = RenameRefactoring.create(
+      workspace,
+      testAnalysisResult,
+      null,
+    );
     expect(refactoring, isNull);
   }
 }
@@ -392,9 +404,10 @@ enum E {
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'The new name must be different than the current name.');
+      refactoring.checkNewName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'The new name must be different than the current name.',
+    );
     // empty
     refactoring.newName = '';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -415,10 +428,13 @@ enum E {
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Enum 'E' already declares constructor with name 'newName'.",
-        expectedContextSearch: 'newName(); // existing');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage:
+          "Enum 'E' already declares constructor with name 'newName'.",
+      expectedContextSearch: 'newName(); // existing',
+    );
   }
 
   Future<void> test_checkNewName_hasMember_method() async {
@@ -433,10 +449,12 @@ enum E {
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Enum 'E' already declares method with name 'newName'.",
-        expectedContextSearch: 'newName() {} // existing');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "Enum 'E' already declares method with name 'newName'.",
+      expectedContextSearch: 'newName() {} // existing',
+    );
   }
 
   Future<void> test_createChange_add() async {
@@ -667,9 +685,10 @@ extension type E.test(int it) {}
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'The new name must be different than the current name.');
+      refactoring.checkNewName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'The new name must be different than the current name.',
+    );
     // empty
     refactoring.newName = '';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -688,11 +707,14 @@ extension type E.test(int it) {
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Extension type 'E' already declares constructor with name "
-            "'newName'.",
-        expectedContextSearch: 'newName() :');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage:
+          "Extension type 'E' already declares constructor with name "
+          "'newName'.",
+      expectedContextSearch: 'newName() :',
+    );
   }
 
   Future<void> test_checkNewName_hasMember_method() async {
@@ -705,10 +727,13 @@ extension type E.test(int it) {
     // check status
     refactoring.newName = 'newName';
     var status = refactoring.checkNewName();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Extension type 'E' already declares method with name 'newName'.",
-        expectedContextSearch: 'newName() {} // existing');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage:
+          "Extension type 'E' already declares method with name 'newName'.",
+      expectedContextSearch: 'newName() {} // existing',
+    );
   }
 
   Future<void> test_createChange_primary_add() async {

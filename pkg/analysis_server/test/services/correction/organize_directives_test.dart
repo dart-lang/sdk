@@ -689,7 +689,7 @@ import 'c.dart'; // c
   }
 
   Future<void>
-      test_sort_imports_with_library_blankLineInImportComments() async {
+  test_sort_imports_with_library_blankLineInImportComments() async {
     await _computeUnitAndErrors(r'''
 /// Copyright...
 library lib;
@@ -847,7 +847,7 @@ import 'annotations.dart'; // annotations import
   }
 
   Future<void>
-      test_sort_multipleAnnotationWithComments_removedDirective() async {
+  test_sort_multipleAnnotationWithComments_removedDirective() async {
     await _addAnnotationsFile();
     await _computeUnitAndErrors(r'''
 // lib1
@@ -933,8 +933,12 @@ class NonLibraryAnnotation {
   }
 
   void _assertOrganize(String expectedCode, {bool removeUnused = false}) {
-    var organizer = ImportOrganizer(testCode, testUnit, testErrors,
-        removeUnused: removeUnused);
+    var organizer = ImportOrganizer(
+      testCode,
+      testUnit,
+      testErrors,
+      removeUnused: removeUnused,
+    );
     var edits = organizer.organize();
     var result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);

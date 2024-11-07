@@ -80,9 +80,10 @@ void main() {
     test('displayString', () {
       var computer = DistributionComputer();
       expect(
-          computer.displayString(),
-          '[0] 0 [10] 0 [20] 0 [30] 0 [40] 0 [50] 0 '
-          '[60] 0 [70] 0 [80] 0 [90] 0 [100] 0');
+        computer.displayString(),
+        '[0] 0 [10] 0 [20] 0 [30] 0 [40] 0 [50] 0 '
+        '[60] 0 [70] 0 [80] 0 [90] 0 [100] 0',
+      );
 
       for (var value in [
         3, // 0-9
@@ -100,9 +101,10 @@ void main() {
         computer.addValue(value);
       }
       expect(
-          computer.displayString(),
-          '[0] 1 [10] 2 [20] 3 [30] 4 [40] 5 [50] 6 '
-          '[60] 1 [70] 2 [80] 3 [90] 4 [100] 4');
+        computer.displayString(),
+        '[0] 1 [10] 2 [20] 3 [30] 4 [40] 5 [50] 6 '
+        '[60] 1 [70] 2 [80] 3 [90] 4 [100] 4',
+      );
     });
   });
 

@@ -79,7 +79,8 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   Iterable<CodeActionWithPriority> _convertFixes(
-      plugin.AnalysisErrorFixes fixes) {
+    plugin.AnalysisErrorFixes fixes,
+  ) {
     var diagnostic = pluginToDiagnostic(
       server.uriConverter,
       (_) => lineInfo,
@@ -96,7 +97,8 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   }
 
   Future<List<plugin.Response>> _sendPluginRequest(
-      plugin.RequestParams requestParams) async {
+    plugin.RequestParams requestParams,
+  ) async {
     var driver = this.driver;
     if (driver == null) {
       return [];
@@ -104,9 +106,6 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
     var pluginFutures = server.broadcastRequestToPlugins(requestParams, driver);
 
-    return waitForResponses(
-      pluginFutures,
-      requestParameters: requestParams,
-    );
+    return waitForResponses(pluginFutures, requestParameters: requestParams);
   }
 }

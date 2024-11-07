@@ -30,15 +30,18 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
     CancellationToken cancellationToken,
   ) async {
     if (parameters['edit'] is! Map<String, Object?>) {
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.InvalidCommandArguments,
-        message:
-            '$commandName requires a Map argument containing "edit" (WorkspaceEdit)',
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidCommandArguments,
+          message:
+              '$commandName requires a Map argument containing "edit" (WorkspaceEdit)',
+        ),
+      );
     }
 
-    var workspaceEdit =
-        WorkspaceEdit.fromJson(parameters['edit'] as Map<String, Object?>);
+    var workspaceEdit = WorkspaceEdit.fromJson(
+      parameters['edit'] as Map<String, Object?>,
+    );
 
     return await sendWorkspaceEditToClient(workspaceEdit);
   }

@@ -14,22 +14,23 @@ class AddAwait extends ResolvedCorrectionProducer {
   final _CorrectionKind _correctionKind;
 
   AddAwait.argumentType({required super.context})
-      : _correctionKind = _CorrectionKind.argumentType;
+    : _correctionKind = _CorrectionKind.argumentType;
 
   AddAwait.assignment({required super.context})
-      : _correctionKind = _CorrectionKind.invalidAssignment;
+    : _correctionKind = _CorrectionKind.invalidAssignment;
 
   AddAwait.nonBool({required super.context})
-      : _correctionKind = _CorrectionKind.nonBool;
+    : _correctionKind = _CorrectionKind.nonBool;
 
   AddAwait.unawaited({required super.context})
-      : _correctionKind = _CorrectionKind.unawaited;
+    : _correctionKind = _CorrectionKind.unawaited;
 
   @override
   CorrectionApplicability get applicability =>
-      // Adding `await` can change behaviour and is not clearly the right
-      // choice. See https://github.com/dart-lang/sdk/issues/54022.
-      CorrectionApplicability.singleLocation;
+          // Adding `await` can change behaviour and is not clearly the right
+          // choice. See https://github.com/dart-lang/sdk/issues/54022.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_AWAIT;
@@ -74,11 +75,14 @@ class AddAwait extends ResolvedCorrectionProducer {
   /// If [expectedTypeFromExp] is provided the return type should be the
   /// underlying expected type of the expression. The future type will then be
   /// checked if it is assignable to it.
-  bool _isValidType(
-      {DartType? Function(Expression expr)? expectedTypeFromExp,
-      bool Function(DartType type)? isValid}) {
-    assert((isValid != null) ^ (expectedTypeFromExp != null),
-        'Use either isValid or expectedTypeFromExp, but not both');
+  bool _isValidType({
+    DartType? Function(Expression expr)? expectedTypeFromExp,
+    bool Function(DartType type)? isValid,
+  }) {
+    assert(
+      (isValid != null) ^ (expectedTypeFromExp != null),
+      'Use either isValid or expectedTypeFromExp, but not both',
+    );
     var expr = node;
     if (expr is! Expression) {
       return false;
@@ -106,12 +110,7 @@ class AddAwait extends ResolvedCorrectionProducer {
 }
 
 /// The kinds of corrections supported by [AddAwait].
-enum _CorrectionKind {
-  argumentType,
-  invalidAssignment,
-  nonBool,
-  unawaited,
-}
+enum _CorrectionKind { argumentType, invalidAssignment, nonBool, unawaited }
 
 extension on Expression {
   DartType? get argumentType {
@@ -129,7 +128,7 @@ extension on Expression {
     return switch (parent) {
       VariableDeclarationImpl variableDeclaration => variableDeclaration.type,
       AssignmentExpression assignment => assignment.writeType,
-      _ => null
+      _ => null,
     };
   }
 }

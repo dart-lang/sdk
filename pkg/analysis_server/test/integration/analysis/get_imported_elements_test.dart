@@ -29,9 +29,13 @@ class AnalysisGetImportedElementsIntegrationTest
   /// with the first character that matches [target] and having the given
   /// [length] matches the given list of [expected] imported elements.
   Future<void> checkElements(
-      String target, List<ImportedElements> expected) async {
+    String target,
+    List<ImportedElements> expected,
+  ) async {
     bool equals(
-        ImportedElements actualElements, ImportedElements expectedElements) {
+      ImportedElements actualElements,
+      ImportedElements expectedElements,
+    ) {
       if (actualElements.path.endsWith(expectedElements.path) &&
           actualElements.prefix == expectedElements.prefix) {
         var actual = actualElements.elements;
@@ -59,8 +63,11 @@ class AnalysisGetImportedElementsIntegrationTest
     }
 
     var offset = text.indexOf(target);
-    var result =
-        await sendAnalysisGetImportedElements(pathname, offset, target.length);
+    var result = await sendAnalysisGetImportedElements(
+      pathname,
+      offset,
+      target.length,
+    );
 
     var actual = result.elements;
     expect(actual, hasLength(expected.length));
@@ -77,8 +84,11 @@ class AnalysisGetImportedElementsIntegrationTest
   /// [target] produces an empty list of elements.
   Future<void> checkNoElements(String target) async {
     var offset = text.indexOf(target);
-    var result =
-        await sendAnalysisGetImportedElements(pathname, offset, target.length);
+    var result = await sendAnalysisGetImportedElements(
+      pathname,
+      offset,
+      target.length,
+    );
 
     expect(result.elements, hasLength(0));
   }
@@ -119,9 +129,11 @@ void f() {
       await checkElements('f()', []);
     } else {
       await checkElements('f()', [
-        ImportedElements(
-            path.join('lib', 'core', 'core.dart'), '', ['String', 'print']),
-        ImportedElements(path.join('lib', 'math', 'math.dart'), '', ['Random'])
+        ImportedElements(path.join('lib', 'core', 'core.dart'), '', [
+          'String',
+          'print',
+        ]),
+        ImportedElements(path.join('lib', 'math', 'math.dart'), '', ['Random']),
       ]);
     }
   }

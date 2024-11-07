@@ -34,7 +34,7 @@ Widget build(BuildContext context) {
 
   static final expectedResults = [
     ClosingLabel(51, 88, 'Row'),
-    ClosingLabel(79, 49, '<Widget>[]')
+    ClosingLabel(79, 49, '<Widget>[]'),
   ];
 
   List<ClosingLabel>? lastLabels;
@@ -44,15 +44,19 @@ Widget build(BuildContext context) {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_CLOSING_LABELS) {
-      var params = AnalysisClosingLabelsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisClosingLabelsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       if (params.file == testFile.path) {
         lastLabels = params.labels;
         _labelsReceived.complete();
       }
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
-      var params = ServerErrorParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = ServerErrorParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       throw '${params.message}\n${params.stackTrace}';
     }
   }

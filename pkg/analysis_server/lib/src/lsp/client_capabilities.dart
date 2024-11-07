@@ -33,16 +33,10 @@ const dartExperimentalTextDocumentContentProviderLegacyKey =
 final fixedBasicLspClientCapabilities = LspClientCapabilities(
   ClientCapabilities(
     textDocument: TextDocumentClientCapabilities(
-      hover: HoverClientCapabilities(
-        contentFormat: [
-          MarkupKind.Markdown,
-        ],
-      ),
+      hover: HoverClientCapabilities(contentFormat: [MarkupKind.Markdown]),
     ),
     workspace: WorkspaceClientCapabilities(
-      workspaceEdit: WorkspaceEditClientCapabilities(
-        documentChanges: true,
-      ),
+      workspaceEdit: WorkspaceEditClientCapabilities(documentChanges: true),
     ),
   ),
 );
@@ -165,21 +159,26 @@ class LspClientCapabilities {
     var workspaceSymbol = workspace?.symbol;
 
     var applyEdit = workspace?.applyEdit ?? false;
-    var codeActionKinds =
-        _listToSet(codeActionLiteral?.codeActionKind.valueSet);
+    var codeActionKinds = _listToSet(
+      codeActionLiteral?.codeActionKind.valueSet,
+    );
     var completionDeprecatedFlag = completionItem?.deprecatedSupport ?? false;
-    var completionDocumentationFormats =
-        _listToNullableSet(completionItem?.documentationFormat);
-    var completionInsertTextModes =
-        _listToSet(completionItem?.insertTextModeSupport?.valueSet);
+    var completionDocumentationFormats = _listToNullableSet(
+      completionItem?.documentationFormat,
+    );
+    var completionInsertTextModes = _listToSet(
+      completionItem?.insertTextModeSupport?.valueSet,
+    );
     var completionItemKinds = _listToSet(
-        completion?.completionItemKind?.valueSet,
-        defaults: defaultSupportedCompletionKinds);
+      completion?.completionItemKind?.valueSet,
+      defaults: defaultSupportedCompletionKinds,
+    );
     var completionLabelDetails = completionItem?.labelDetailsSupport ?? false;
     var completionSnippets = completionItem?.snippetSupport ?? false;
     var completionDefaultEditRange = completionDefaults.contains('editRange');
-    var completionDefaultTextMode =
-        completionDefaults.contains('insertTextMode');
+    var completionDefaultTextMode = completionDefaults.contains(
+      'insertTextMode',
+    );
     var configuration = workspace?.configuration ?? false;
     var createResourceOperations =
         resourceOperations?.contains(ResourceOperationKind.Create) ?? false;
@@ -191,8 +190,10 @@ class LspClientCapabilities {
     var diagnosticTags = _listToSet(publishDiagnostics?.tagSupport?.valueSet);
     var documentChanges = workspaceEdit?.documentChanges ?? false;
     var changeAnnotations = workspaceEdit?.changeAnnotationSupport != null;
-    var documentSymbolKinds = _listToSet(documentSymbol?.symbolKind?.valueSet,
-        defaults: defaultSupportedSymbolKinds);
+    var documentSymbolKinds = _listToSet(
+      documentSymbol?.symbolKind?.valueSet,
+      defaults: defaultSupportedSymbolKinds,
+    );
     var hierarchicalSymbols =
         documentSymbol?.hierarchicalDocumentSymbolSupport ?? false;
     var diagnosticCodeDescription =
@@ -203,11 +204,14 @@ class LspClientCapabilities {
     var lineFoldingOnly = textDocument?.foldingRange?.lineFoldingOnly ?? false;
     var literalCodeActions = codeActionLiteral != null;
     var renameValidation = textDocument?.rename?.prepareSupport ?? false;
-    var signatureHelpDocumentationFormats =
-        _listToNullableSet(signatureInformation?.documentationFormat);
+    var signatureHelpDocumentationFormats = _listToNullableSet(
+      signatureInformation?.documentationFormat,
+    );
     var workDoneProgress = raw.window?.workDoneProgress ?? false;
-    var workspaceSymbolKinds = _listToSet(workspaceSymbol?.symbolKind?.valueSet,
-        defaults: defaultSupportedSymbolKinds);
+    var workspaceSymbolKinds = _listToSet(
+      workspaceSymbol?.symbolKind?.valueSet,
+      defaults: defaultSupportedSymbolKinds,
+    );
 
     var experimental = _ExperimentalClientCapabilities.parse(raw.experimental);
 
@@ -344,7 +348,8 @@ class _ExperimentalClientCapabilities {
     T? expectType<T>(String suffix, Object? object, [String? typeDescription]) {
       if (object is! T) {
         errors.add(
-            'ClientCapabilities.experimental$suffix must be a ${typeDescription ?? T}');
+          'ClientCapabilities.experimental$suffix must be a ${typeDescription ?? T}',
+        );
         return null;
       }
       return object;
@@ -356,10 +361,11 @@ class _ExperimentalClientCapabilities {
 
     /// Helper to expect a nullable list of strings and return them as a set.
     Set<String>? expectNullableStringSet(String name, Object? object) {
-      return expectType<List<Object?>?>(name, object, 'List<String>?')
-          ?.map((item) => expectString('$name[]', item))
-          .nonNulls
-          .toSet();
+      return expectType<List<Object?>?>(
+        name,
+        object,
+        'List<String>?',
+      )?.map((item) => expectString('$name[]', item)).nonNulls.toSet();
     }
 
     var experimental = expectMap('', raw) ?? const {};
@@ -389,15 +395,17 @@ class _ExperimentalClientCapabilities {
     // Macro/Augmentation content.
     var dartContentValue =
         experimental[dartExperimentalTextDocumentContentProviderKey] ??
-            experimental[dartExperimentalTextDocumentContentProviderLegacyKey];
+        experimental[dartExperimentalTextDocumentContentProviderLegacyKey];
     var dartTextDocumentContentProvider = expectBool(
       '.$dartExperimentalTextDocumentContentProviderKey',
       dartContentValue,
     );
 
     // Executable commands.
-    var commands =
-        expectNullableStringSet('.commands', experimental['commands']);
+    var commands = expectNullableStringSet(
+      '.commands',
+      experimental['commands'],
+    );
 
     /// At the time of writing (2023-02-01) there is no official capability for
     /// supporting 'showMessageRequest' because LSP assumed all clients

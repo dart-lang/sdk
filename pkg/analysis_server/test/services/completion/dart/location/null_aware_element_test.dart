@@ -208,7 +208,7 @@ suggestions
   }
 
   Future<void>
-      test_inMap_inKey_after_withoutValue_entriesBeforeAndAfter() async {
+  test_inMap_inKey_after_withoutValue_entriesBeforeAndAfter() async {
     await computeSuggestions('''
 f() => <String, int>{"one": 1, ?^, "two": 2};
 ''');
@@ -377,7 +377,7 @@ suggestions
   }
 
   Future<void>
-      test_inMap_inKey_before_withoutValue_entriesBeforeAndAfter() async {
+  test_inMap_inKey_before_withoutValue_entriesBeforeAndAfter() async {
     await computeSuggestions('''
 f() => <String, int>{"one": 1, ^?, "two": 2};
 ''');

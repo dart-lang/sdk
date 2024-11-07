@@ -121,14 +121,16 @@ class DartUnitFoldingComputer {
 
       // Single line comments are file headers if they're followed by a different
       // comment type of there's a blank line between them and the first token.
-      isFileHeader = mayBeFileHeader &&
+      isFileHeader =
+          mayBeFileHeader &&
           (nextComment != null ||
               _hasBlankLineBetween(end, _unit.beginToken.offset));
     }
 
-    var kind = isFileHeader
-        ? FoldingKind.FILE_HEADER
-        : (commentToken.lexeme.startsWith('///') ||
+    var kind =
+        isFileHeader
+            ? FoldingKind.FILE_HEADER
+            : (commentToken.lexeme.startsWith('///') ||
                 commentToken.lexeme.startsWith('/**'))
             ? FoldingKind.DOCUMENTATION_COMMENT
             : FoldingKind.COMMENT;
@@ -147,8 +149,10 @@ class DartUnitFoldingComputer {
     while (token != null) {
       Token? commentToken = token.precedingComments;
       while (commentToken != null) {
-        commentToken =
-            _addCommentRegion(commentToken, mayBeFileHeader: isFirstToken);
+        commentToken = _addCommentRegion(
+          commentToken,
+          mayBeFileHeader: isFirstToken,
+        );
       }
       isFirstToken = false;
       // Only exit the loop when hitting EOF *after* processing the token as
@@ -164,8 +168,12 @@ class DartUnitFoldingComputer {
   ///
   /// If [startOffset] is the same line as a previous range and [fallbackStart]
   /// is provided (and not the same line), then [fallbackStart] will be used.
-  void _addRegion(int startOffset, int endOffset, FoldingKind kind,
-      {int? fallbackStart}) {
+  void _addRegion(
+    int startOffset,
+    int endOffset,
+    FoldingKind kind, {
+    int? fallbackStart,
+  }) {
     var start = _lineInfo.getLocation(startOffset);
     var end = _lineInfo.getLocation(endOffset);
 
@@ -190,16 +198,20 @@ class DartUnitFoldingComputer {
     }
 
     if (end.lineNumber > start.lineNumber) {
-      _foldingRegions
-          .add(FoldingRegion(kind, startOffset, endOffset - startOffset));
+      _foldingRegions.add(
+        FoldingRegion(kind, startOffset, endOffset - startOffset),
+      );
       _linesWithRegions.add(start.lineNumber);
     }
   }
 
   void _addRegionForAnnotations(List<Annotation> annotations) {
     if (annotations.isNotEmpty) {
-      _addRegion(annotations.first.name.end, annotations.last.end,
-          FoldingKind.ANNOTATIONS);
+      _addRegion(
+        annotations.first.name.end,
+        annotations.last.end,
+        FoldingKind.ANNOTATIONS,
+      );
     }
   }
 
@@ -245,8 +257,11 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
-        FoldingKind.INVOCATION);
+    _computer._addRegion(
+      node.leftParenthesis.end,
+      node.rightParenthesis.offset,
+      FoldingKind.INVOCATION,
+    );
     super.visitAssertStatement(node);
   }
 
@@ -254,15 +269,21 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-        node.name.end, node.rightBracket.end, FoldingKind.CLASS_BODY);
+      node.name.end,
+      node.rightBracket.end,
+      FoldingKind.CLASS_BODY,
+    );
     super.visitClassDeclaration(node);
   }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
-    _computer._addRegion(node.name?.end ?? node.returnType.end, node.end,
-        FoldingKind.FUNCTION_BODY);
+    _computer._addRegion(
+      node.name?.end ?? node.returnType.end,
+      node.end,
+      FoldingKind.FUNCTION_BODY,
+    );
     super.visitConstructorDeclaration(node);
   }
 
@@ -279,7 +300,10 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitEnumDeclaration(EnumDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
+      node.leftBracket.end,
+      node.rightBracket.offset,
+      FoldingKind.CLASS_BODY,
+    );
     super.visitEnumDeclaration(node);
   }
 
@@ -293,7 +317,10 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
+      node.leftBracket.end,
+      node.rightBracket.offset,
+      FoldingKind.CLASS_BODY,
+    );
     super.visitExtensionDeclaration(node);
   }
 
@@ -386,7 +413,10 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitListLiteral(ListLiteral node) {
     _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.offset, FoldingKind.LITERAL);
+      node.leftBracket.end,
+      node.rightBracket.offset,
+      FoldingKind.LITERAL,
+    );
     super.visitListLiteral(node);
   }
 
@@ -419,35 +449,33 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
-    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
-        FoldingKind.LITERAL);
+    _computer._addRegion(
+      node.leftParenthesis.end,
+      node.rightParenthesis.offset,
+      FoldingKind.LITERAL,
+    );
     super.visitRecordLiteral(node);
   }
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.offset, FoldingKind.LITERAL);
+      node.leftBracket.end,
+      node.rightBracket.offset,
+      FoldingKind.LITERAL,
+    );
     super.visitSetOrMapLiteral(node);
   }
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    _computer._addRegion(
-      node.offset,
-      node.end,
-      FoldingKind.LITERAL,
-    );
+    _computer._addRegion(node.offset, node.end, FoldingKind.LITERAL);
     super.visitSimpleStringLiteral(node);
   }
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    _computer._addRegion(
-      node.offset,
-      node.end,
-      FoldingKind.LITERAL,
-    );
+    _computer._addRegion(node.offset, node.end, FoldingKind.LITERAL);
     super.visitStringInterpolation(node);
   }
 
@@ -466,7 +494,10 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSwitchExpression(SwitchExpression node) {
     _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.end, FoldingKind.BLOCK);
+      node.leftBracket.end,
+      node.rightBracket.end,
+      FoldingKind.BLOCK,
+    );
     super.visitSwitchExpression(node);
   }
 
@@ -485,7 +516,10 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSwitchStatement(SwitchStatement node) {
     _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.end, FoldingKind.BLOCK);
+      node.leftBracket.end,
+      node.rightBracket.end,
+      FoldingKind.BLOCK,
+    );
     super.visitSwitchStatement(node);
   }
 

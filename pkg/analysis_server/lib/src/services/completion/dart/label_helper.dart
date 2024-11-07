@@ -44,8 +44,10 @@ class LabelHelper {
     for (var label in labels) {
       var matcherScore = state.matcher.score(label.label.name);
       if (matcherScore != -1) {
-        var suggestion =
-            LabelSuggestion(label: label, matcherScore: matcherScore);
+        var suggestion = LabelSuggestion(
+          label: label,
+          matcherScore: matcherScore,
+        );
         collector.addSuggestion(suggestion);
       }
     }

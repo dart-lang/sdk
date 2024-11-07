@@ -146,19 +146,23 @@ class ServerCapabilitiesComputer {
 
   ServerCapabilitiesComputer(this._server);
 
-  List<TextDocumentFilterScheme> get pluginTypes => AnalysisServer
-          .supportsPlugins
-      ? _server.pluginManager.plugins
-          .expand(
-            (plugin) => plugin.currentSession?.interestingFiles ?? const [],
-          )
-          // All published plugins use something like `*.extension` as
-          // interestingFiles. Prefix a `**/` so that the glob matches nested
-          // folders as well.
-          .map((glob) =>
-              TextDocumentFilterScheme(scheme: 'file', pattern: '**/$glob'))
-          .toList()
-      : <TextDocumentFilterScheme>[];
+  List<TextDocumentFilterScheme> get pluginTypes =>
+      AnalysisServer.supportsPlugins
+          ? _server.pluginManager.plugins
+              .expand(
+                (plugin) => plugin.currentSession?.interestingFiles ?? const [],
+              )
+              // All published plugins use something like `*.extension` as
+              // interestingFiles. Prefix a `**/` so that the glob matches nested
+              // folders as well.
+              .map(
+                (glob) => TextDocumentFilterScheme(
+                  scheme: 'file',
+                  pattern: '**/$glob',
+                ),
+              )
+              .toList()
+          : <TextDocumentFilterScheme>[];
 
   ServerCapabilities computeServerCapabilities(
     LspClientCapabilities clientCapabilities,
@@ -199,11 +203,12 @@ class ServerCapabilitiesComputer {
           supported: true,
           changeNotifications: features.changeNotifications.staticRegistration,
         ),
-        fileOperations: !context.clientDynamic.fileOperations
-            ? FileOperationOptions(
-                willRename: features.willRename.staticRegistration,
-              )
-            : null,
+        fileOperations:
+            !context.clientDynamic.fileOperations
+                ? FileOperationOptions(
+                  willRename: features.willRename.staticRegistration,
+                )
+                : null,
       ),
       experimental: {
         if (clientCapabilities
@@ -264,21 +269,25 @@ class ServerCapabilitiesComputer {
         '${registration.method}${registration.registerOptions.hashCode}';
 
     var newRegistrationsMap = Map.fromEntries(
-        newRegistrations.map((r) => MapEntry(r, registrationHash(r))));
+      newRegistrations.map((r) => MapEntry(r, registrationHash(r))),
+    );
     var newRegistrationsJsons = newRegistrationsMap.values.toSet();
     var currentRegistrationsMap = Map.fromEntries(
-        currentRegistrations.map((r) => MapEntry(r, registrationHash(r))));
+      currentRegistrations.map((r) => MapEntry(r, registrationHash(r))),
+    );
     var currentRegistrationJsons = currentRegistrationsMap.values.toSet();
 
-    var registrationsToAdd = newRegistrationsMap.entries
-        .where((entry) => !currentRegistrationJsons.contains(entry.value))
-        .map((entry) => entry.key)
-        .toList();
+    var registrationsToAdd =
+        newRegistrationsMap.entries
+            .where((entry) => !currentRegistrationJsons.contains(entry.value))
+            .map((entry) => entry.key)
+            .toList();
 
-    var registrationsToRemove = currentRegistrationsMap.entries
-        .where((entry) => !newRegistrationsJsons.contains(entry.value))
-        .map((entry) => entry.key)
-        .toList();
+    var registrationsToRemove =
+        currentRegistrationsMap.entries
+            .where((entry) => !newRegistrationsJsons.contains(entry.value))
+            .map((entry) => entry.key)
+            .toList();
 
     // Update the current list before we start sending requests since we
     // go async.
@@ -288,16 +297,18 @@ class ServerCapabilitiesComputer {
 
     Future<void>? unregistrationRequest;
     if (registrationsToRemove.isNotEmpty) {
-      var unregistrations = registrationsToRemove
-          .map((r) => Unregistration(id: r.id, method: r.method))
-          .toList();
+      var unregistrations =
+          registrationsToRemove
+              .map((r) => Unregistration(id: r.id, method: r.method))
+              .toList();
       // It's important not to await this request here, as we must ensure
       // we cannot re-enter this method until we have sent both the unregister
       // and register requests to the client atomically.
       // https://github.com/dart-lang/sdk/issues/47851#issuecomment-988093109
       unregistrationRequest = _server.sendRequest(
-          Method.client_unregisterCapability,
-          UnregistrationParams(unregisterations: unregistrations));
+        Method.client_unregisterCapability,
+        UnregistrationParams(unregisterations: unregistrations),
+      );
     }
 
     Future<void>? registrationRequest;
@@ -305,18 +316,20 @@ class ServerCapabilitiesComputer {
     // otherwise we don't know that the client supports registerCapability).
     if (registrationsToAdd.isNotEmpty) {
       registrationRequest = _server
-          .sendRequest(Method.client_registerCapability,
-              RegistrationParams(registrations: registrationsToAdd))
+          .sendRequest(
+            Method.client_registerCapability,
+            RegistrationParams(registrations: registrationsToAdd),
+          )
           .then((registrationResponse) {
-        var error = registrationResponse.error;
-        if (error != null) {
-          _server.logErrorToClient(
-            'Failed to register capabilities with client: '
-            '(${error.code}) '
-            '${error.message}',
-          );
-        }
-      });
+            var error = registrationResponse.error;
+            if (error != null) {
+              _server.logErrorToClient(
+                'Failed to register capabilities with client: '
+                '(${error.code}) '
+                '${error.message}',
+              );
+            }
+          });
     }
 
     // Only after we have sent both unregistration + registration events may
@@ -334,9 +347,9 @@ class ServerCapabilitiesComputer {
       dartFilters: [
         for (var scheme in {
           'file',
-          ..._server.uriConverter.supportedNonFileSchemes
+          ..._server.uriConverter.supportedNonFileSchemes,
         })
-          TextDocumentFilterScheme(language: 'dart', scheme: scheme)
+          TextDocumentFilterScheme(language: 'dart', scheme: scheme),
       ],
       pluginTypes: pluginTypes,
     );

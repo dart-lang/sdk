@@ -17,8 +17,9 @@ class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_combinatorKind];
@@ -49,8 +50,9 @@ class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
     if (parent is NamespaceDirective) {
       var combinators = parent.combinators;
       if (combinators.length == 1) {
-        var previousToken =
-            combinator.parent?.findPrevious(combinator.beginToken);
+        var previousToken = combinator.parent?.findPrevious(
+          combinator.beginToken,
+        );
         if (previousToken != null) {
           return range.endEnd(previousToken, combinator);
         }
@@ -68,7 +70,9 @@ class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
   }
 
   static SourceRange? rangeForNameInCombinator(
-      Combinator combinator, SimpleIdentifier name) {
+    Combinator combinator,
+    SimpleIdentifier name,
+  ) {
     NodeList<SimpleIdentifier> names;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;

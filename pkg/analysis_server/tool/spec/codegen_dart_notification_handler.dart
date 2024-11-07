@@ -13,20 +13,22 @@ import 'from_html.dart';
 
 GeneratedFile clientTarget() {
   return GeneratedFile(
-      '../analysis_server_client/lib/handler/notification_handler.dart',
-      (String pkgPath) async {
-    var visitor = CodegenNotificationHandlerVisitor(readApi(pkgPath));
-    return visitor.collectCode(visitor.visitApi);
-  });
+    '../analysis_server_client/lib/handler/notification_handler.dart',
+    (String pkgPath) async {
+      var visitor = CodegenNotificationHandlerVisitor(readApi(pkgPath));
+      return visitor.collectCode(visitor.visitApi);
+    },
+  );
 }
 
 String _capitalize(String name) =>
     '${name.substring(0, 1).toUpperCase()}${name.substring(1)}';
 
-List<String> _generateDartDoc(Element html) => html.children
-    .where((Element elem) => elem.name == 'p')
-    .map<String>((Element elem) => innerText(elem).trim())
-    .toList();
+List<String> _generateDartDoc(Element html) =>
+    html.children
+        .where((Element elem) => elem.name == 'p')
+        .map<String>((Element elem) => innerText(elem).trim())
+        .toList();
 
 String _generateNotificationMethodName(String domainName, String event) =>
     'on${_capitalize(domainName)}${_capitalize(event)}';
@@ -123,7 +125,11 @@ class _Notification {
   final List<String> dartdoc;
 
   _Notification(
-      this.constName, this.methodName, this.paramsTypeName, this.dartdoc);
+    this.constName,
+    this.methodName,
+    this.paramsTypeName,
+    this.dartdoc,
+  );
 }
 
 class _NotificationVisitor extends HierarchicalApiVisitor {
@@ -133,12 +139,20 @@ class _NotificationVisitor extends HierarchicalApiVisitor {
 
   @override
   void visitNotification(Notification notification) {
-    notificationConstants.add(_Notification(
+    notificationConstants.add(
+      _Notification(
         generateConstName(
-            notification.domainName, 'notification', notification.event),
+          notification.domainName,
+          'notification',
+          notification.event,
+        ),
         _generateNotificationMethodName(
-            notification.domainName, notification.event),
+          notification.domainName,
+          notification.event,
+        ),
         _generateParamTypeName(notification.domainName, notification.event),
-        _generateDartDoc(notification.html!)));
+        _generateDartDoc(notification.html!),
+      ),
+    );
   }
 }

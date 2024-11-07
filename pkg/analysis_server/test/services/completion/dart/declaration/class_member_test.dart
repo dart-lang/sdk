@@ -72,7 +72,7 @@ suggestions
   }
 
   Future<void>
-      test_afterCascade_onlyStatic_notFromSuperclass_async_partial() async {
+  test_afterCascade_onlyStatic_notFromSuperclass_async_partial() async {
     allowedIdentifiers = {'wait'};
     await computeSuggestions('''
 import "dart:async" as async;
@@ -108,7 +108,7 @@ suggestions
   }
 
   Future<void>
-      test_afterPeriod_beforeStatement_onlyStatic_notFromSuperclass() async {
+  test_afterPeriod_beforeStatement_onlyStatic_notFromSuperclass() async {
     // TODO(brianwilkerson): Split into two tests and remove extraneous code.
     await computeSuggestions('''
 class B {
@@ -316,7 +316,7 @@ suggestions
   }
 
   Future<void>
-      test_betweenPeriods_onlyStatic_notFromSuperclass_async_partial() async {
+  test_betweenPeriods_onlyStatic_notFromSuperclass_async_partial() async {
     allowedIdentifiers = {'wait'};
     await computeSuggestions('''
 import "dart:async" as async;
@@ -330,7 +330,7 @@ suggestions
   }
 
   Future<void>
-      test_betweenPeriods_onlyStatic_notFromSuperclass_partial() async {
+  test_betweenPeriods_onlyStatic_notFromSuperclass_partial() async {
     await computeSuggestions('''
 class B {
   static int b0;

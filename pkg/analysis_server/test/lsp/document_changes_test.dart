@@ -37,22 +37,29 @@ class Bar {
     if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
     await changeFile(2, mainFileUri, [
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
-        range: Range(
+      TextDocumentContentChangeEvent.t1(
+        TextDocumentContentChangePartial(
+          range: Range(
             start: Position(line: 0, character: 6),
-            end: Position(line: 0, character: 9)),
-        text: 'Bar',
-      )),
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
-        range: Range(
+            end: Position(line: 0, character: 9),
+          ),
+          text: 'Bar',
+        ),
+      ),
+      TextDocumentContentChangeEvent.t1(
+        TextDocumentContentChangePartial(
+          range: Range(
             start: Position(line: 1, character: 21),
-            end: Position(line: 1, character: 24)),
-        text: 'updated',
-      )),
+            end: Position(line: 1, character: 24),
+          ),
+          text: 'updated',
+        ),
+      ),
     ]);
 
-    var notifiedChanges = pluginManager.analysisUpdateContentParams!
-        .files[mainFilePath] as ChangeContentOverlay;
+    var notifiedChanges =
+        pluginManager.analysisUpdateContentParams!.files[mainFilePath]
+            as ChangeContentOverlay;
 
     expect(
       applySequenceOfEdits(content, notifiedChanges.edits),
@@ -63,23 +70,31 @@ class Bar {
   Future<void> test_documentChange_updatesOverlay() async {
     await _initializeAndOpen();
     await changeFile(2, mainFileUri, [
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
-        range: Range(
+      TextDocumentContentChangeEvent.t1(
+        TextDocumentContentChangePartial(
+          range: Range(
             start: Position(line: 0, character: 6),
-            end: Position(line: 0, character: 9)),
-        text: 'Bar',
-      )),
-      TextDocumentContentChangeEvent.t1(TextDocumentContentChangePartial(
-        range: Range(
+            end: Position(line: 0, character: 9),
+          ),
+          text: 'Bar',
+        ),
+      ),
+      TextDocumentContentChangeEvent.t1(
+        TextDocumentContentChangePartial(
+          range: Range(
             start: Position(line: 1, character: 21),
-            end: Position(line: 1, character: 24)),
-        text: 'updated',
-      )),
+            end: Position(line: 1, character: 24),
+          ),
+          text: 'updated',
+        ),
+      ),
     ]);
 
     expect(server.resourceProvider.hasOverlay(mainFilePath), isTrue);
-    expect(server.resourceProvider.getFile(mainFilePath).readAsStringSync(),
-        equals(contentAfterUpdate));
+    expect(
+      server.resourceProvider.getFile(mainFilePath).readAsStringSync(),
+      equals(contentAfterUpdate),
+    );
   }
 
   Future<void> test_documentClose_deletesOverlay() async {
@@ -94,12 +109,14 @@ class Bar {
     await _initializeAndOpen();
     await closeFile(mainFileUri);
 
-    expect(pluginManager.analysisUpdateContentParams!.files,
-        equals({mainFilePath: RemoveContentOverlay()}));
+    expect(
+      pluginManager.analysisUpdateContentParams!.files,
+      equals({mainFilePath: RemoveContentOverlay()}),
+    );
   }
 
   Future<void>
-      test_documentOpen_addsOverlayOnlyToDriver_onlyIfInsideRoots() async {
+  test_documentOpen_addsOverlayOnlyToDriver_onlyIfInsideRoots() async {
     // Ensures that opening a file doesn't add it to the driver if it's outside
     // of the drivers root.
     var fileInsideRootPath = mainFilePath;
@@ -154,8 +171,10 @@ class Bar {
     await _initializeAndOpen();
 
     expect(server.resourceProvider.hasOverlay(mainFilePath), isTrue);
-    expect(server.resourceProvider.getFile(mainFilePath).readAsStringSync(),
-        equals(content));
+    expect(
+      server.resourceProvider.getFile(mainFilePath).readAsStringSync(),
+      equals(content),
+    );
   }
 
   /// Verify that calling open/close repeatedly produces no errors and ends
@@ -171,8 +190,8 @@ class Bar {
     await Future.wait([
       for (var i = 0; i < 100; i++) ...[
         openFile(mainFileUri, content),
-        closeFile(mainFileUri)
-      ]
+        closeFile(mainFileUri),
+      ],
     ]);
 
     expect(server.resourceProvider.hasOverlay(mainFilePath), isFalse);
@@ -191,7 +210,7 @@ class Bar {
     await Future.wait([
       for (var i = 0; i < 100; i++) ...[
         openFile(mainFileUri, content),
-        closeFile(mainFileUri)
+        closeFile(mainFileUri),
       ],
       openFile(mainFileUri, content),
     ]);
@@ -239,7 +258,7 @@ class Bar {
   ///
   /// https://github.com/dart-lang/sdk/issues/53475
   Future<void>
-      test_documentOpen_fileDeleted_fileCreated_documentClosed_fileDeleted() async {
+  test_documentOpen_fileDeleted_fileCreated_documentClosed_fileDeleted() async {
     failTestOnErrorDiagnostic = false;
 
     const content = 'error';
@@ -284,8 +303,10 @@ class Bar {
     if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
 
-    expect(pluginManager.analysisUpdateContentParams!.files,
-        equals({mainFilePath: AddContentOverlay(content)}));
+    expect(
+      pluginManager.analysisUpdateContentParams!.files,
+      equals({mainFilePath: AddContentOverlay(content)}),
+    );
   }
 
   /// Verifies the fix for a race condition where an overlay would not be
@@ -363,8 +384,10 @@ class Foo {}
     await pumpEventQueue(times: 5000);
 
     // Ensure the opened file is in the priority list.
-    expect(server.getAnalysisDriver(mainFilePath)!.priorityFiles,
-        equals([mainFilePath]));
+    expect(
+      server.getAnalysisDriver(mainFilePath)!.priorityFiles,
+      equals([mainFilePath]),
+    );
   }
 
   Future<void> _initializeAndOpen() async {

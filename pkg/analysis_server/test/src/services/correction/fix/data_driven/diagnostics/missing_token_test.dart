@@ -22,9 +22,7 @@ class MissingTokenTest extends AbstractCodeFragmentParserTest {
   }
 
   void test_empty() {
-    assertErrors('', [
-      error(TransformSetErrorCode.missingToken, 0, 0),
-    ]);
+    assertErrors('', [error(TransformSetErrorCode.missingToken, 0, 0)]);
   }
 
   void test_identifier_afterPeriod() {
@@ -34,9 +32,7 @@ class MissingTokenTest extends AbstractCodeFragmentParserTest {
   }
 
   void test_identifier_initial() {
-    assertErrors('', [
-      error(TransformSetErrorCode.missingToken, 0, 0),
-    ]);
+    assertErrors('', [error(TransformSetErrorCode.missingToken, 0, 0)]);
   }
 
   void test_index() {

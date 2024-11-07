@@ -40,7 +40,9 @@ class ImportAnalyzer {
   ImportAnalyzer(this.result, String path, List<SourceRange> ranges) {
     for (var unit in result.units) {
       var finder = _ReferenceFinder(
-          unit, _ElementRecorder(this, path == unit.path ? ranges : []));
+        unit,
+        _ElementRecorder(this, path == unit.path ? ranges : []),
+      );
       unit.unit.accept(finder);
     }
     // Remove references that will be within the same file.
@@ -115,7 +117,10 @@ class _ElementRecorder {
   /// [referenceOffset]. [import] is the specific import used to reference the
   /// including any prefix, show, hide.
   void recordReference(
-      Element2 referencedElement, int referenceOffset, LibraryImport? import) {
+    Element2 referencedElement,
+    int referenceOffset,
+    LibraryImport? import,
+  ) {
     switch (referencedElement) {
       case GetterElement():
         if (referencedElement.isSynthetic) {
@@ -136,14 +141,18 @@ class _ElementRecorder {
     }
 
     if (_isBeingMoved(referenceOffset)) {
-      var imports =
-          analyzer.movingReferences.putIfAbsent(referencedElement, () => {});
+      var imports = analyzer.movingReferences.putIfAbsent(
+        referencedElement,
+        () => {},
+      );
       if (import != null) {
         imports.add(import);
       }
     } else {
-      var imports =
-          analyzer.stayingReferences.putIfAbsent(referencedElement, () => {});
+      var imports = analyzer.stayingReferences.putIfAbsent(
+        referencedElement,
+        () => {},
+      );
       if (import != null) {
         imports.add(import);
       }
@@ -317,27 +326,31 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
       return null;
     }
 
-    var import = _importsByPrefix[prefix ?? '']?.where((import) {
-      // Check if this import is providing our element with the correct
-      // prefix/name.
-      var exportedElement = prefix != null
-          ? import.namespace.getPrefixed2(prefix, elementName)
-          : import.namespace.get2(elementName);
-      return exportedElement == element;
-    }).firstOrNull;
+    var import =
+        _importsByPrefix[prefix ?? '']?.where((import) {
+          // Check if this import is providing our element with the correct
+          // prefix/name.
+          var exportedElement =
+              prefix != null
+                  ? import.namespace.getPrefixed2(prefix, elementName)
+                  : import.namespace.get2(elementName);
+          return exportedElement == element;
+        }).firstOrNull;
 
     // Extensions can be used without a prefix, so we can use any import that
     // brings in the extension.
     if (import == null && prefix == null && element is ExtensionElement2) {
-      import = _importsByPrefix.values.flattenedToList
-          .where((import) =>
-              // Because we don't know what prefix we're looking for (any is
-              // allowed), use the imports own prefix when checking for the
-              // element.
-              import.namespace.getPrefixed2(
-                  import.prefix2?.element.name3 ?? '', elementName) ==
-              element)
-          .firstOrNull;
+      import =
+          _importsByPrefix.values.flattenedToList
+              .where(
+                (import) =>
+                    // Because we don't know what prefix we're looking for (any is
+                    // allowed), use the imports own prefix when checking for the
+                    // element.
+                    import.namespace.getPrefixed2(import.prefix2?.element.name3 ?? '', elementName) ==
+                    element,
+              )
+              .firstOrNull;
     }
 
     return import;

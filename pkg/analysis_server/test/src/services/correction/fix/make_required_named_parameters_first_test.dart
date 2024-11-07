@@ -111,7 +111,8 @@ void f({required int a, int? b}) {}
 class MakeRequiredNamedParametersInFileTest extends FixInFileProcessorTest {
   Future<void> test_file() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.always_put_required_named_parameters_first]);
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
     await resolveTestCode(r'''
 void f({int? c, required int a, required int b}) {}
 ''');
@@ -124,7 +125,8 @@ void f({required int a, required int b, int? c}) {}
 
   Future<void> test_multiple() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.always_put_required_named_parameters_first]);
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
     await resolveTestCode(r'''
 void f({required int a, int? d, required num b, required String c,}) {}
 ''');

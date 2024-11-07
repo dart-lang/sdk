@@ -129,7 +129,8 @@ class C extends B {
         sb.writeln("class X0 { void foo() { print('hello'); } }");
       } else {
         sb.writeln(
-            "class X$i extends X${i - 1} { void foo() { print('hello'); } }");
+          "class X$i extends X${i - 1} { void foo() { print('hello'); } }",
+        );
       }
     }
 
@@ -139,9 +140,10 @@ class C extends B {
         classLast.methods.where((element) => element.name == 'foo').single;
     OperationPerformanceImpl performance = OperationPerformanceImpl('<root>');
     var result = await performance.runAsync(
-        'getHierarchyMembers',
-        (performance) => getHierarchyMembers(searchEngine, member,
-            performance: performance));
+      'getHierarchyMembers',
+      (performance) =>
+          getHierarchyMembers(searchEngine, member, performance: performance),
+    );
     expect(result, hasLength(count));
 
     var worklist = <OperationPerformance>[];
@@ -274,10 +276,7 @@ class D extends B {
     var methodD = findElement.method('_test', of: 'D');
 
     var members = await getHierarchyMembers(searchEngine, methodB);
-    expect(
-      members,
-      unorderedEquals([methodA, methodB, methodC, methodD]),
-    );
+    expect(members, unorderedEquals([methodA, methodB, methodC, methodD]));
   }
 
   Future<void> test_methods_static() async {
@@ -482,39 +481,41 @@ class B extends A {
       var classA = findElement.class_('A');
       var members = getMembers(classA);
       expect(
-          members.map((e) => e.name),
-          unorderedEquals([
-            'ma1',
-            'ma2',
-            '==',
-            'toString',
-            'hashCode',
-            'noSuchMethod',
-            'runtimeType',
-            'hash',
-            'hashAll',
-            'hashAllUnordered',
-          ]));
+        members.map((e) => e.name),
+        unorderedEquals([
+          'ma1',
+          'ma2',
+          '==',
+          'toString',
+          'hashCode',
+          'noSuchMethod',
+          'runtimeType',
+          'hash',
+          'hashAll',
+          'hashAllUnordered',
+        ]),
+      );
     }
     {
       var classB = findElement.class_('B');
       var members = getMembers(classB);
       expect(
-          members.map((e) => e.name),
-          unorderedEquals([
-            'mb1',
-            'mb2',
-            'ma1',
-            'ma2',
-            '==',
-            'toString',
-            'hashCode',
-            'noSuchMethod',
-            'runtimeType',
-            'hash',
-            'hashAll',
-            'hashAllUnordered',
-          ]));
+        members.map((e) => e.name),
+        unorderedEquals([
+          'mb1',
+          'mb2',
+          'ma1',
+          'ma2',
+          '==',
+          'toString',
+          'hashCode',
+          'noSuchMethod',
+          'runtimeType',
+          'hash',
+          'hashAll',
+          'hashAllUnordered',
+        ]),
+      );
     }
   }
 }

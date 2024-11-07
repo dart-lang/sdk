@@ -135,10 +135,12 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await sendConnectToDtdRequest();
     await expectLater(
       sendConnectToDtdRequest(),
-      throwsA(isResponseError(
-        ServerErrorCodes.StateError,
-        message: 'Server is already connected to DTD',
-      )),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.StateError,
+          message: 'Server is already connected to DTD',
+        ),
+      ),
     );
   }
 
@@ -146,11 +148,14 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await initializeServer();
     await expectLater(
       sendConnectToDtdRequest(invalidUri),
-      throwsA(isResponseError(
-        ErrorCodes.RequestFailed,
-        message: startsWith(
-            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:'),
-      )),
+      throwsA(
+        isResponseError(
+          ErrorCodes.RequestFailed,
+          message: startsWith(
+            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:',
+          ),
+        ),
+      ),
     );
   }
 
@@ -160,11 +165,14 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     // Perform a failed connection.
     await expectLater(
       sendConnectToDtdRequest(invalidUri),
-      throwsA(isResponseError(
-        ErrorCodes.RequestFailed,
-        message: startsWith(
-            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:'),
-      )),
+      throwsA(
+        isResponseError(
+          ErrorCodes.RequestFailed,
+          message: startsWith(
+            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:',
+          ),
+        ),
+      ),
     );
 
     // Expect complete with no error.
@@ -239,17 +247,22 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     var call = dtd.call(
       lspServiceName,
       'textDocument/hover',
-      params: TextDocumentPositionParams(
-        textDocument:
-            TextDocumentIdentifier(uri: Uri.file(nonExistantFilePath)),
-        position: Position(line: 1, character: 1),
-      ).toJson(),
+      params:
+          TextDocumentPositionParams(
+            textDocument: TextDocumentIdentifier(
+              uri: Uri.file(nonExistantFilePath),
+            ),
+            position: Position(line: 1, character: 1),
+          ).toJson(),
     );
 
     // Expect a proper RPC Exception with the standard LSP error code/message.
     var expectedException = isA<RpcException>()
         .having(
-            (e) => e.code, 'code', ServerErrorCodes.InvalidFilePath.toJson())
+          (e) => e.code,
+          'code',
+          ServerErrorCodes.InvalidFilePath.toJson(),
+        )
         .having((e) => e.message, 'message', 'File does not exist')
         .having((e) => e.data, 'data', nonExistantFilePath);
     await expectLater(call, throwsA(expectedException));
@@ -271,10 +284,11 @@ void [!myFun^ction!]() {}
     var response = await dtd.call(
       lspServiceName,
       'textDocument/hover',
-      params: TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: testFileUri),
-        position: code.position.position,
-      ).toJson(),
+      params:
+          TextDocumentPositionParams(
+            textDocument: TextDocumentIdentifier(uri: testFileUri),
+            position: code.position.position,
+          ).toJson(),
     );
 
     expect(response.type, equals('Hover'));

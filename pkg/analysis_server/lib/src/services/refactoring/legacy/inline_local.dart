@@ -29,7 +29,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   _InitialState? _initialState;
 
   InlineLocalRefactoringImpl(this.searchEngine, this.resolveResult, this.offset)
-      : utils = CorrectionUtils(resolveResult);
+    : utils = CorrectionUtils(resolveResult);
 
   @override
   String get refactoringName => 'Inline Local Variable';
@@ -83,10 +83,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         "Local variable '{0}' is not initialized at declaration.",
         element.displayName,
       );
-      return RefactoringStatus.fatal(
-        message,
-        newLocation_fromNode(node),
-      );
+      return RefactoringStatus.fatal(message, newLocation_fromNode(node));
     }
     // prepare references
     var references = await searchEngine.searchReferences(element);
@@ -123,7 +120,10 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     {
       var range = utils.getLinesRangeStatements([state.declarationStatement]);
       doSourceChange_addElementEdit(
-          change, unitElement, newSourceEdit_range(range, ''));
+        change,
+        unitElement,
+        newSourceEdit_range(range, ''),
+      );
     }
     // prepare initializer
     var initializer = state.initializer;
@@ -160,8 +160,11 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         codeForReference = initializerCode;
       }
       // do replace
-      doSourceChange_addElementEdit(change, unitElement,
-          newSourceEdit_range(editRange, codeForReference));
+      doSourceChange_addElementEdit(
+        change,
+        unitElement,
+        newSourceEdit_range(editRange, codeForReference),
+      );
     }
     // done
     return Future.value(change);
@@ -215,7 +218,9 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   }
 
   static bool _shouldBeExpressionInterpolation(
-      InterpolationExpression target, Expression expression) {
+    InterpolationExpression target,
+    Expression expression,
+  ) {
     var targetType = target.beginToken.type;
     return targetType == TokenType.STRING_INTERPOLATION_IDENTIFIER &&
         expression is! SimpleIdentifier;

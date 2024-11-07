@@ -69,16 +69,20 @@ class WidgetDescriptions {
     var property = _properties[id];
     if (property == null) {
       return SetPropertyValueResult._(
-        errorCode: protocol
-            .RequestErrorCode.FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
+        errorCode:
+            protocol
+                .RequestErrorCode
+                .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
       );
     }
 
     if (value == null) {
       if (property.protocolProperty.isRequired) {
         return SetPropertyValueResult._(
-          errorCode: protocol
-              .RequestErrorCode.FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
+          errorCode:
+              protocol
+                  .RequestErrorCode
+                  .FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
         );
       }
       var change = await property.removeValue();
@@ -89,8 +93,10 @@ class WidgetDescriptions {
         return SetPropertyValueResult._(change: change);
       } on FormatterException {
         return SetPropertyValueResult._(
-          errorCode: protocol.RequestErrorCode
-              .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
+          errorCode:
+              protocol
+                  .RequestErrorCode
+                  .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
         );
       }
     }
@@ -160,10 +166,7 @@ class _WidgetDescriptionComputer {
     await _fetchClassElements();
 
     var properties = <PropertyDescription>[];
-    _addProperties(
-      properties: properties,
-      instanceCreation: instanceCreation,
-    );
+    _addProperties(properties: properties, instanceCreation: instanceCreation);
     _addContainerProperty(properties, instanceCreation);
 
     return _WidgetDescription(properties);
@@ -386,9 +389,7 @@ class _WidgetDescriptionComputer {
     } else if (valueExpression == null) {
       var type = parameter.type;
       if (type is InterfaceType) {
-        var classDescription = classRegistry.get(
-          type.element,
-        );
+        var classDescription = classRegistry.get(type.element);
         if (classDescription != null) {
           _addProperties(
             properties: propertyDescription.children,
@@ -410,7 +411,8 @@ class _WidgetDescriptionComputer {
   }
 
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForStaticFields(
-      ClassElement classElement) {
+    ClassElement classElement,
+  ) {
     return classElement.fields
         .where((f) => f.isStatic)
         .map(_toEnumItem)
@@ -420,8 +422,9 @@ class _WidgetDescriptionComputer {
   Future<void> _fetchClassElements() async {
     var sessionHelper = AnalysisSessionHelper(resolvedUnit.session);
     _classAlignment = await sessionHelper.getFlutterClass('Alignment');
-    _classAlignmentDirectional =
-        await sessionHelper.getFlutterClass('AlignmentDirectional');
+    _classAlignmentDirectional = await sessionHelper.getFlutterClass(
+      'AlignmentDirectional',
+    );
     _classContainer = await sessionHelper.getFlutterClass('Container');
     _classEdgeInsets = await sessionHelper.getFlutterClass('EdgeInsets');
   }

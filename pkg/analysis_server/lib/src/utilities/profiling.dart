@@ -59,8 +59,11 @@ class _PosixProcessProfiler extends ProcessProfiler {
   Future<UsageInfo?> getProcessUsage(int processId) {
     try {
       // Execution time is typically 2-4ms.
-      var future =
-          Process.run('ps', ['-o', '%cpu=,rss=', processId.toString()]);
+      var future = Process.run('ps', [
+        '-o',
+        '%cpu=,rss=',
+        processId.toString(),
+      ]);
       return future.then((ProcessResult result) {
         if (result.exitCode != 0) {
           return Future.value();
@@ -91,8 +94,13 @@ class _WindowsProcessProfiler extends ProcessProfiler {
   @override
   Future<UsageInfo?> getProcessUsage(int processId) async {
     try {
-      var result = await Process.run(
-          'tasklist', ['/FI', 'PID eq $processId', '/NH', '/FO', 'csv']);
+      var result = await Process.run('tasklist', [
+        '/FI',
+        'PID eq $processId',
+        '/NH',
+        '/FO',
+        'csv',
+      ]);
 
       if (result.exitCode != 0) {
         return Future.value();

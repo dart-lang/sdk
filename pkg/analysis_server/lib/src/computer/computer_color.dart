@@ -103,9 +103,10 @@ class ColorComputer {
       double? alpha, red, green, blue;
       for (var arg in args.whereType<NamedExpression>()) {
         var expression = arg.expression;
-        var value = expression is DoubleLiteral
-            ? expression.value
-            : expression is IntegerLiteral
+        var value =
+            expression is DoubleLiteral
+                ? expression.value
+                : expression is IntegerLiteral
                 ? expression.value?.toDouble()
                 : null;
         switch (arg.name.label.name) {
@@ -150,9 +151,10 @@ class ColorComputer {
       var red = arg0 is IntegerLiteral ? arg0.value : null;
       var green = arg1 is IntegerLiteral ? arg1.value : null;
       var blue = arg2 is IntegerLiteral ? arg2.value : null;
-      var opacity = arg3 is IntegerLiteral
-          ? arg3.value
-          : arg3 is DoubleLiteral
+      var opacity =
+          arg3 is IntegerLiteral
+              ? arg3.value
+              : arg3 is DoubleLiteral
               ? arg3.value
               : null;
       var alpha = opacity != null ? (opacity * 255).toInt() : null;
@@ -167,14 +169,18 @@ class ColorComputer {
 
   /// Extracts the color from Flutter MaterialAccentColor constructor args.
   ColorInformation? _getFlutterMaterialAccentColor(
-          String? name, List<Expression> args) =>
-      // MaterialAccentColor is a subclass of SwatchColor and has the same
-      // constructor.
-      _getFlutterSwatchColor(name, args);
+    String? name,
+    List<Expression> args,
+  ) =>
+  // MaterialAccentColor is a subclass of SwatchColor and has the same
+  // constructor.
+  _getFlutterSwatchColor(name, args);
 
   /// Extracts the color information from Flutter ColorSwatch constructor args.
   ColorInformation? _getFlutterSwatchColor(
-      String? name, List<Expression> args) {
+    String? name,
+    List<Expression> args,
+  ) {
     if (name == null && args.isNotEmpty) {
       var arg0 = args[0];
       return arg0 is IntegerLiteral ? getColorForInt(arg0.value) : null;
@@ -241,7 +247,9 @@ class ColorComputer {
   ///
   /// Returns whether a valid color was found and recorded.
   bool _tryRecordColorInformation(
-      Expression expression, ColorInformation? color) {
+    Expression expression,
+    ColorInformation? color,
+  ) {
     if (color == null) return false;
 
     // Record the color against the original entire expression.
@@ -259,11 +267,11 @@ class ColorComputer {
   }) {
     return alpha != null && red != null && green != null && blue != null
         ? ColorInformation(
-            (alpha * 255.0).round() & 0xff,
-            (red * 255.0).round() & 0xff,
-            (green * 255.0).round() & 0xff,
-            (blue * 255.0).round() & 0xff,
-          )
+          (alpha * 255.0).round() & 0xff,
+          (red * 255.0).round() & 0xff,
+          (green * 255.0).round() & 0xff,
+          (blue * 255.0).round() & 0xff,
+        )
         : null;
   }
 
@@ -272,11 +280,11 @@ class ColorComputer {
   static ColorInformation? getColorForInt(int? value) {
     return value != null
         ? ColorInformation(
-            (value >> 24) & 0xff,
-            (value >> 16) & 0xff,
-            (value >> 8) & 0xff,
-            value & 0xff,
-          )
+          (value >> 24) & 0xff,
+          (value >> 16) & 0xff,
+          (value >> 8) & 0xff,
+          value & 0xff,
+        )
         : null;
   }
 
@@ -294,12 +302,7 @@ class ColorComputer {
     var green = color.getFieldFromHierarchy('g')?.toDoubleValue();
     var blue = color.getFieldFromHierarchy('b')?.toDoubleValue();
 
-    return getColorForDoubles(
-      alpha: alpha,
-      red: red,
-      green: green,
-      blue: blue,
-    );
+    return getColorForDoubles(alpha: alpha, red: red, green: green, blue: blue);
   }
 }
 

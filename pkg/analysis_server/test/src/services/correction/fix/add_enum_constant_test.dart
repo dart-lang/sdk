@@ -168,15 +168,18 @@ void f() {
   E.ONE;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 enum E {ONE}
 
 void f() {
   E.ONE;
 }
-''', errorFilter: (e) {
-      return e.errorCode == CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT;
-    });
+''',
+      errorFilter: (e) {
+        return e.errorCode == CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT;
+      },
+    );
   }
 
   Future<void> test_unnamed() async {

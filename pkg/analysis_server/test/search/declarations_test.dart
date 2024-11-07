@@ -19,22 +19,35 @@ void main() {
 class DeclarationsTest extends AbstractSearchDomainTest {
   late SearchGetElementDeclarationsResult declarationsResult;
 
-  ElementDeclaration assertHas(String name, ElementKind kind,
-      {String? className, String? mixinName}) {
-    return declarationsResult.declarations.singleWhere((ElementDeclaration d) =>
-        declarationsResult.files[d.fileIndex] == testFile.path &&
-        d.name == name &&
-        d.kind == kind &&
-        d.className == className &&
-        d.mixinName == mixinName);
+  ElementDeclaration assertHas(
+    String name,
+    ElementKind kind, {
+    String? className,
+    String? mixinName,
+  }) {
+    return declarationsResult.declarations.singleWhere(
+      (ElementDeclaration d) =>
+          declarationsResult.files[d.fileIndex] == testFile.path &&
+          d.name == name &&
+          d.kind == kind &&
+          d.className == className &&
+          d.mixinName == mixinName,
+    );
   }
 
   void assertNo(String name) {
     expect(
-        declarationsResult.declarations,
-        isNot(contains(predicate((ElementDeclaration d) =>
-            declarationsResult.files[d.fileIndex] == testFile.path &&
-            d.name == name))));
+      declarationsResult.declarations,
+      isNot(
+        contains(
+          predicate(
+            (ElementDeclaration d) =>
+                declarationsResult.files[d.fileIndex] == testFile.path &&
+                d.name == name,
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> test_class() async {
@@ -177,8 +190,9 @@ mixin M {
     expect(declarationsResult.files, contains(b));
 
     {
-      var declaration =
-          declarationsResult.declarations.singleWhere((d) => d.name == 'A');
+      var declaration = declarationsResult.declarations.singleWhere(
+        (d) => d.name == 'A',
+      );
       expect(declaration.name, 'A');
       expect(declaration.kind, ElementKind.CLASS);
       expect(declarationsResult.files[declaration.fileIndex], a);
@@ -188,8 +202,9 @@ mixin M {
     }
 
     {
-      var declaration =
-          declarationsResult.declarations.singleWhere((d) => d.name == 'B');
+      var declaration = declarationsResult.declarations.singleWhere(
+        (d) => d.name == 'B',
+      );
       expect(declaration.name, 'B');
       expect(declaration.kind, ElementKind.CLASS);
       expect(declarationsResult.files[declaration.fileIndex], b);
@@ -225,7 +240,8 @@ void f(bool a, String b) {}
   /// parent library.
   Future<void> test_parts() async {
     var a = newFile('$testPackageLibPath/a.dart', "part 'b.dart';").path;
-    var b = newFile('$testPackageLibPath/b.dart', '''
+    var b =
+        newFile('$testPackageLibPath/b.dart', '''
 part of 'a.dart';
 class A {}
 ''').path;
@@ -235,8 +251,9 @@ class A {}
     expect(declarationsResult.files, isNot(contains(a)));
     expect(declarationsResult.files, contains(b));
 
-    var declaration =
-        declarationsResult.declarations.singleWhere((d) => d.name == 'A');
+    var declaration = declarationsResult.declarations.singleWhere(
+      (d) => d.name == 'A',
+    );
     expect(declaration.name, 'A');
     expect(declaration.kind, ElementKind.CLASS);
     expect(declarationsResult.files[declaration.fileIndex], b);
@@ -266,15 +283,21 @@ typedef td3 = double;
     assertHas('td3', ElementKind.TYPE_ALIAS);
   }
 
-  Future<void> _getDeclarations(
-      {String? file, String? pattern, int? maxResults}) async {
+  Future<void> _getDeclarations({
+    String? file,
+    String? pattern,
+    int? maxResults,
+  }) async {
     var request = SearchGetElementDeclarationsParams(
-            file: file, pattern: pattern, maxResults: maxResults)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      file: file,
+      pattern: pattern,
+      maxResults: maxResults,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
 
     declarationsResult = SearchGetElementDeclarationsResult.fromResponse(
-        response,
-        clientUriConverter: server.uriConverter);
+      response,
+      clientUriConverter: server.uriConverter,
+    );
   }
 }

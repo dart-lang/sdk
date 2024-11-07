@@ -19,12 +19,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path show posix, Context;
 
-typedef _FileReference = ({
-  SourceRange range,
-  String sourceFile,
-  String targetFile,
-  String quotedUriValue,
-});
+typedef _FileReference =
+    ({
+      SourceRange range,
+      String sourceFile,
+      String targetFile,
+      String quotedUriValue,
+    });
 
 /// [MoveFileRefactoring] implementation.
 class MoveFileRefactoringImpl extends RefactoringImpl
@@ -39,19 +40,25 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   final Map<String, String?> _renameMapping;
 
   MoveFileRefactoringImpl(
-      this.resourceProvider, this.refactoringWorkspace, String oldFile)
-      : pathContext = resourceProvider.pathContext,
-        _renameMapping = {oldFile: null};
+    this.resourceProvider,
+    this.refactoringWorkspace,
+    String oldFile,
+  ) : pathContext = resourceProvider.pathContext,
+      _renameMapping = {oldFile: null};
 
   MoveFileRefactoringImpl.multi(
-      this.resourceProvider, this.refactoringWorkspace, this._renameMapping)
-      : pathContext = resourceProvider.pathContext;
+    this.resourceProvider,
+    this.refactoringWorkspace,
+    this._renameMapping,
+  ) : pathContext = resourceProvider.pathContext;
 
   @override
   set newFile(String value) {
     if (_renameMapping.length != 1) {
-      throw StateError('Cannot set newFile unless mapping has only a '
-          'single item (actual: ${_renameMapping.length})');
+      throw StateError(
+        'Cannot set newFile unless mapping has only a '
+        'single item (actual: ${_renameMapping.length})',
+      );
     }
     _renameMapping[_renameMapping.keys.single] = value;
   }
@@ -68,14 +75,16 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         var rootPath = driver.analysisContext!.contextRoot.root.path;
         if (pathContext.equals(rootPath, oldFile)) {
           return RefactoringStatus.fatal(
-              'Renaming an analysis root is not supported ($oldFile)');
+            'Renaming an analysis root is not supported ($oldFile)',
+          );
         }
       }
 
       var drivers = refactoringWorkspace.driversContaining(oldFile);
       if (drivers.length != 1) {
         return RefactoringStatus.fatal(
-            '$oldFile does not belong to an analysis root.');
+          '$oldFile does not belong to an analysis root.',
+        );
       }
 
       driver = drivers.first;
@@ -88,7 +97,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
     if (sessions.length != 1) {
       return RefactoringStatus.fatal(
-          'Cannot move files from multiple analysis sessions');
+        'Cannot move files from multiple analysis sessions',
+      );
     }
     _session = sessions.elementAt(0);
 
@@ -148,8 +158,11 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             var newSource = resolvedMapping[sourceFile] ?? sourceFile;
             var newTarget = resolvedMapping[targetFile] ?? targetFile;
 
-            var (:startQuote, :endQuote, unquotedValue: uriValue) =
-                _extractQuotes(reference.quotedUriValue);
+            var (
+              :startQuote,
+              :endQuote,
+              unquotedValue: uriValue,
+            ) = _extractQuotes(reference.quotedUriValue);
 
             var newUri = _computeNewUri(
               sourceFile: newSource,
@@ -158,7 +171,9 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             );
             if (newUri != uriValue) {
               builder.addSimpleReplacement(
-                  reference.range, '$startQuote$newUri$endQuote');
+                reference.range,
+                '$startQuote$newUri$endQuote',
+              );
             }
           }
         });
@@ -212,8 +227,9 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     // If this element is a library, handle inbound 'part of' directives which
     // are not included in `searchEngine.searchReferences` below.
     if (element == libraryElement.definingCompilationUnit) {
-      var libraryResult =
-          await _session.getResolvedLibraryByElement(libraryElement);
+      var libraryResult = await _session.getResolvedLibraryByElement(
+        libraryElement,
+      );
       if (libraryResult is! ResolvedLibraryResult) {
         return;
       }
@@ -254,8 +270,9 @@ class MoveFileRefactoringImpl extends RefactoringImpl
           recordReference(
             range: range.node(uriString),
             sourceFile: element.source.fullName,
-            targetFile: pathContext
-                .normalize(pathContext.join(oldDir, _uriToPath(uriValue))),
+            targetFile: pathContext.normalize(
+              pathContext.join(oldDir, _uriToPath(uriValue)),
+            ),
             quotedUriValue: uriString.literal.lexeme,
           );
         }
@@ -263,8 +280,9 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     }
 
     // Finally, locate all other incoming references to this file.
-    var matches =
-        await refactoringWorkspace.searchEngine.searchReferences(element);
+    var matches = await refactoringWorkspace.searchEngine.searchReferences(
+      element,
+    );
     var references = getSourceReferences(matches);
     for (var reference in references) {
       recordReference(
@@ -296,14 +314,17 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     }
 
     // Otherwise, compute a relative URI.
-    var uri =
-        pathContext.relative(targetFile, from: pathContext.dirname(sourceFile));
+    var uri = pathContext.relative(
+      targetFile,
+      from: pathContext.dirname(sourceFile),
+    );
     var parts = pathContext.split(uri);
     return path.posix.joinAll(parts);
   }
 
   ({String startQuote, String endQuote, String unquotedValue}) _extractQuotes(
-      String quotedValue) {
+    String quotedValue,
+  ) {
     var quote = analyzeQuote(quotedValue);
 
     var startIndex = firstQuoteLength(quotedValue, quote);
@@ -323,16 +344,19 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   /// Extracts the existing URI string from a [SourceReference].
   String _extractUriString(SourceReference reference) {
     var source = reference.element.source!;
-    return source.contents.data
-        .substring(reference.range.offset, reference.range.end);
+    return source.contents.data.substring(
+      reference.range.offset,
+      reference.range.end,
+    );
   }
 
   /// Gets the string for the URI in a directive, or `null` if it's not a
   /// directive with a URI.
   SimpleStringLiteral? _getDirectiveUri(Directive directive) {
-    var uri = directive is PartOfDirective
-        ? directive.uri
-        : directive is UriBasedDirective
+    var uri =
+        directive is PartOfDirective
+            ? directive.uri
+            : directive is UriBasedDirective
             ? directive.uri
             : null;
 

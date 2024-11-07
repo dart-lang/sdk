@@ -67,9 +67,10 @@ class DtdServices {
   /// Executes the LSP handler for [message] and completes [completer] with the
   /// result or an [RpcException].
   void processMessage(
-      IncomingMessage message,
-      OperationPerformanceImpl performance,
-      Completer<Map<String, Object?>> completer) async {
+    IncomingMessage message,
+    OperationPerformanceImpl performance,
+    Completer<Map<String, Object?>> completer,
+  ) async {
     var info = MessageInfo(
       performance: performance,
       // DTD clients requests are always executed with a fixed set of
@@ -80,17 +81,18 @@ class DtdServices {
     var token = NotCancelableToken(); // We don't currently support cancel.
 
     // Execute the handler.
-    var result = await _server.immediatelyHandleLspMessage(message, info,
-        cancellationToken: token);
+    var result = await _server.immediatelyHandleLspMessage(
+      message,
+      info,
+      cancellationToken: token,
+    );
 
     // Complete with the result or error.
     result.map(
       // Map LSP errors on to equiv JSON-RPC errors for DTD.
-      (error) => completer.completeError(RpcException(
-        error.code.toJson(),
-        error.message,
-        data: error.data,
-      )),
+      (error) => completer.completeError(
+        RpcException(error.code.toJson(), error.message, data: error.data),
+      ),
       // DTD requires that all results are a Map and that they contain a
       // 'type' field. This differs slightly from LSP where we could return a
       // boolean (for example). This means we need to put the result in a
@@ -177,8 +179,13 @@ class DtdServices {
     );
     var scheduler = _server.messageScheduler;
     var completer = Completer<Map<String, Object?>>();
-    scheduler.add(DtdMessage(
-        message: message, performance: performance, completer: completer));
+    scheduler.add(
+      DtdMessage(
+        message: message,
+        performance: performance,
+        completer: completer,
+      ),
+    );
     scheduler.notify();
     return completer.future;
   }
@@ -186,11 +193,13 @@ class DtdServices {
   /// Handles an unexpected error occurring on the DTD connection by logging and
   /// closing the connection.
   void _handleError(Object? error, Object? stack) {
-    _server.instrumentationService.logError([
-      'Failed to connect to/initialize DTD:',
-      error,
-      if (stack != null) stack,
-    ].join('\n'));
+    _server.instrumentationService.logError(
+      [
+        'Failed to connect to/initialize DTD:',
+        error,
+        if (stack != null) stack,
+      ].join('\n'),
+    );
 
     _close(DtdConnectionState.Error);
   }
@@ -219,25 +228,23 @@ class DtdServices {
   ) async {
     if (messageHandler.requiresTrustedCaller) return;
     var method = messageHandler.handlesMessage;
-    await dtd.registerService(
-      _lspServiceName,
-      method.toString(),
-      (Parameters params) async {
-        var rootPerformance = OperationPerformanceImpl('<root>');
-        RequestPerformance? requestPerformance;
-        return await rootPerformance.runAsync('request', (performance) async {
-          // Record request performance so DTD requests show up in the
-          // server diagnostic pages.
-          requestPerformance = RequestPerformance(
-            operation: '$method (DTD)',
-            performance: performance,
-          );
-          _server.recentPerformance.requests.add(requestPerformance!);
+    await dtd.registerService(_lspServiceName, method.toString(), (
+      Parameters params,
+    ) async {
+      var rootPerformance = OperationPerformanceImpl('<root>');
+      RequestPerformance? requestPerformance;
+      return await rootPerformance.runAsync('request', (performance) async {
+        // Record request performance so DTD requests show up in the
+        // server diagnostic pages.
+        requestPerformance = RequestPerformance(
+          operation: '$method (DTD)',
+          performance: performance,
+        );
+        _server.recentPerformance.requests.add(requestPerformance!);
 
-          return await _executeLspHandler(method, params, performance);
-        });
-      },
-    );
+        return await _executeLspHandler(method, params, performance);
+      });
+    });
   }
 
   /// Connects to DTD at [uri] and exposes shared LSP handlers from [server]
@@ -246,7 +253,9 @@ class DtdServices {
   /// Returns a [ErrorCodes.RequestFailed] error if the connection cannot be
   /// made or fails to initialize.
   static Future<ErrorOr<DtdServices>> connect(
-      AnalysisServer server, Uri uri) async {
+    AnalysisServer server,
+    Uri uri,
+  ) async {
     try {
       var dtd = DtdServices._(server, uri);
       await dtd._connect();

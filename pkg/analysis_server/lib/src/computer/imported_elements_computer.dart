@@ -126,7 +126,9 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
     var key = '$prefix;$path';
     var elements = importedElements.putIfAbsent(
-        key, () => ImportedElements(path, prefix, <String>[]));
+      key,
+      () => ImportedElements(path, prefix, <String>[]),
+    );
     var elementNames = elements.elements;
     var elementName = element.name;
     if (elementName != null && !elementNames.contains(elementName)) {

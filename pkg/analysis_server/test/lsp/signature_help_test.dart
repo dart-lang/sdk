@@ -117,16 +117,15 @@ final a = A(^);
     required bool includesFull,
   }) async {
     var code = TestCode.parse(content);
-    await provideConfig(
-      initialize,
-      {
-        if (preference != null) 'documentation': preference,
-      },
-    );
+    await provideConfig(initialize, {
+      if (preference != null) 'documentation': preference,
+    });
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
-    var signatureHelp =
-        await getSignatureHelp(mainFileUri, code.position.position);
+    var signatureHelp = await getSignatureHelp(
+      mainFileUri,
+      code.position.position,
+    );
     var docs = signatureHelp!.signatures.single.documentation?.map(
       (markup) => markup.value,
       (string) => string,
@@ -179,14 +178,9 @@ augment class Foo {
     var expectedLabel = 'myMethod(String s)';
     var expectedDoc = 'My method.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+    ]);
   }
 
   Future<void> test_callableClass() async {
@@ -202,15 +196,10 @@ class Foo {
     var expectedLabel = 'foo(String s, int i)';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ]);
   }
 
   Future<void> test_dartDocMacro() async {
@@ -230,27 +219,29 @@ foo(String s, int i) {
     var expectedLabel = 'foo(String s, int i)';
     var expectedDoc = 'This is shared content.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-      expectedFormat: null,
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ], expectedFormat: null);
   }
 
-  Future<void> test_dartDocPreference_full() => assertArgsDocumentation('full',
-      includesSummary: true, includesFull: true);
+  Future<void> test_dartDocPreference_full() => assertArgsDocumentation(
+    'full',
+    includesSummary: true,
+    includesFull: true,
+  );
 
-  Future<void> test_dartDocPreference_none() => assertArgsDocumentation('none',
-      includesSummary: false, includesFull: false);
+  Future<void> test_dartDocPreference_none() => assertArgsDocumentation(
+    'none',
+    includesSummary: false,
+    includesFull: false,
+  );
 
-  Future<void> test_dartDocPreference_summary() =>
-      assertArgsDocumentation('summary',
-          includesSummary: true, includesFull: false);
+  Future<void> test_dartDocPreference_summary() => assertArgsDocumentation(
+    'summary',
+    includesSummary: true,
+    includesFull: false,
+  );
 
   /// No preference should result in full docs.
   Future<void> test_dartDocPreference_unset() =>
@@ -285,14 +276,9 @@ void f() {
 }
 ''';
 
-    await _expectSignature(
-      content,
-      'f(int e)',
-      null,
-      [
-        ParameterInformation(label: 'int e'),
-      ],
-    );
+    await _expectSignature(content, 'f(int e)', null, [
+      ParameterInformation(label: 'int e'),
+    ]);
   }
 
   Future<void> test_formats_markdown() async {
@@ -305,15 +291,10 @@ foo(String s, int i) {
     var expectedLabel = 'foo(String s, int i)';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ]);
   }
 
   Future<void> test_formats_notSupported() async {
@@ -328,16 +309,10 @@ foo(String s, int i) {
     var expectedLabel = 'foo(String s, int i)';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-      expectedFormat: null,
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ], expectedFormat: null);
   }
 
   Future<void> test_formats_plainTextOnly() async {
@@ -352,16 +327,10 @@ foo(String s, int i) {
     var expectedLabel = 'foo(String s, int i)';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-      expectedFormat: MarkupKind.PlainText,
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ], expectedFormat: MarkupKind.PlainText);
   }
 
   Future<void> test_formats_plainTextPreferred() async {
@@ -380,15 +349,10 @@ foo(String s, int i) {
     // support Markdown and the client supports it, we expect the server
     // to provide Markdown.
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ]);
   }
 
   Future<void> test_functionExpression_local() async {
@@ -424,15 +388,10 @@ void f() {
     var expectedLabel = 'foo(String s, int i)';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ]);
   }
 
   Future<void> test_manualTrigger_invalidLocation() async {
@@ -448,17 +407,18 @@ foo(String s, int i) {
     var expectedDoc = 'Does foo.';
 
     await _expectSignature(
-        content,
-        expectedLabel,
-        expectedDoc,
-        [
-          ParameterInformation(label: 'String s'),
-          ParameterInformation(label: 'int i'),
-        ],
-        context: SignatureHelpContext(
-          triggerKind: SignatureHelpTriggerKind.Invoked,
-          isRetrigger: false,
-        ));
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
+      ],
+      context: SignatureHelpContext(
+        triggerKind: SignatureHelpTriggerKind.Invoked,
+        isRetrigger: false,
+      ),
+    );
   }
 
   Future<void> test_noDefaultConstructor() async {
@@ -492,16 +452,11 @@ foo(String s, {bool b = true, bool a}) {
     var expectedLabel = 'foo(String s, {bool b = true, bool a})';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool b = true'),
-        ParameterInformation(label: 'bool a'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool b = true'),
+      ParameterInformation(label: 'bool a'),
+    ]);
   }
 
   Future<void> test_params_multipleNamed_retrigger() async {
@@ -515,16 +470,11 @@ foo(String s, {bool b = true, bool a}) {
     var expectedLabel = 'foo(String s, {bool b = true, bool a})';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool b = true'),
-        ParameterInformation(label: 'bool a'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool b = true'),
+      ParameterInformation(label: 'bool a'),
+    ]);
   }
 
   Future<void> test_params_multipleOptional() async {
@@ -538,16 +488,11 @@ foo(String s, [bool b = true, bool a]) {
     var expectedLabel = 'foo(String s, [bool b = true, bool a])';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool b = true'),
-        ParameterInformation(label: 'bool a'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool b = true'),
+      ParameterInformation(label: 'bool a'),
+    ]);
   }
 
   Future<void> test_params_named() async {
@@ -561,15 +506,10 @@ foo(String s, {bool b = true}) {
     var expectedLabel = 'foo(String s, {bool b = true})';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool b = true'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool b = true'),
+    ]);
   }
 
   Future<void> test_params_optional() async {
@@ -583,15 +523,10 @@ foo(String s, [bool b = true]) {
     var expectedLabel = 'foo(String s, [bool b = true])';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool b = true'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool b = true'),
+    ]);
   }
 
   Future<void> test_params_recordType() async {
@@ -605,14 +540,9 @@ void f((String, int) r) {
     var expectedLabel = 'f((String, int) r)';
     var expectedDoc = 'Does something.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: '(String, int) r'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: '(String, int) r'),
+    ]);
   }
 
   Future<void> test_params_requiredNamed() async {
@@ -627,16 +557,11 @@ foo(String s, {bool? b = true, required bool a}) {
     var expectedLabel = 'foo(String s, {bool? b = true, required bool a})';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool? b = true'),
-        ParameterInformation(label: 'required bool a'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool? b = true'),
+      ParameterInformation(label: 'required bool a'),
+    ]);
   }
 
   Future<void> test_simple() async {
@@ -649,15 +574,10 @@ foo(String s, int i) {
     var expectedLabel = 'foo(String s, int i)';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ]);
   }
 
   Future<void> test_triggerCharacter_invalidLocation() async {
@@ -691,30 +611,40 @@ foo(String s, int i) {
     var expectedDoc = 'Does foo.';
 
     await _expectSignature(
-        content,
-        expectedLabel,
-        expectedDoc,
-        [
-          ParameterInformation(label: 'String s'),
-          ParameterInformation(label: 'int i'),
-        ],
-        context: SignatureHelpContext(
-          triggerKind: SignatureHelpTriggerKind.Invoked,
-          isRetrigger: false,
-        ));
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
+      ],
+      context: SignatureHelpContext(
+        triggerKind: SignatureHelpTriggerKind.Invoked,
+        isRetrigger: false,
+      ),
+    );
   }
 
   Future<void> test_typeArgs_dartDocPreference_full() =>
-      assertArgsDocumentation('full',
-          includesSummary: true, includesFull: true);
+      assertArgsDocumentation(
+        'full',
+        includesSummary: true,
+        includesFull: true,
+      );
 
   Future<void> test_typeArgs_dartDocPreference_none() =>
-      assertArgsDocumentation('none',
-          includesSummary: false, includesFull: false);
+      assertArgsDocumentation(
+        'none',
+        includesSummary: false,
+        includesFull: false,
+      );
 
   Future<void> test_typeArgs_dartDocPreference_summary() =>
-      assertArgsDocumentation('summary',
-          includesSummary: true, includesFull: false);
+      assertArgsDocumentation(
+        'summary',
+        includesSummary: true,
+        includesFull: false,
+      );
 
   /// No preference should result in full docs.
   Future<void> test_typeArgs_dartDocPreference_unset() =>
@@ -731,15 +661,10 @@ class Bar extends Foo<^> {}
     const expectedLabel = 'class Foo<T1, T2 extends String>';
     const expectedDoc = 'My Foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'T1'),
-        ParameterInformation(label: 'T2 extends String'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'T1'),
+      ParameterInformation(label: 'T2 extends String'),
+    ]);
   }
 
   Future<void> test_typeParams_function() async {
@@ -753,15 +678,10 @@ void foo<T1, T2 extends String>() {
     const expectedLabel = 'void foo<T1, T2 extends String>()';
     const expectedDoc = 'My Foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'T1'),
-        ParameterInformation(label: 'T2 extends String'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'T1'),
+      ParameterInformation(label: 'T2 extends String'),
+    ]);
   }
 
   Future<void> test_typeParams_method() async {
@@ -777,15 +697,10 @@ class Foo {
     const expectedLabel = 'void foo<T1, T2 extends String>()';
     const expectedDoc = 'My Foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'T1'),
-        ParameterInformation(label: 'T2 extends String'),
-      ],
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'T1'),
+      ParameterInformation(label: 'T2 extends String'),
+    ]);
   }
 
   Future<void> test_unopenFile() async {
@@ -798,16 +713,10 @@ foo(String s, int i) {
     var expectedLabel = 'foo(String s, int i)';
     var expectedDoc = 'Does foo.';
 
-    await _expectSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'int i'),
-      ],
-      state: _FileState.closed,
-    );
+    await _expectSignature(content, expectedLabel, expectedDoc, [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ], state: _FileState.closed);
   }
 }
 

@@ -128,8 +128,9 @@ class VerificationTests {
       for (var fixEntry in registeredFixGenerators.lintProducers.entries) {
         var errorCode = fixEntry.key;
         for (var generator in fixEntry.value) {
-          var producer =
-              generator(context: StubCorrectionProducerContext.instance);
+          var producer = generator(
+            context: StubCorrectionProducerContext.instance,
+          );
           if (producer.canBeAppliedAcrossSingleFile) {
             test('$errorCode |', () {
               var multiFixKind = producer.multiFixKind;
@@ -152,14 +153,17 @@ class VerificationTests {
       for (var fixEntry in registeredFixGenerators.lintProducers.entries) {
         var errorCode = fixEntry.key;
         for (var generator in fixEntry.value) {
-          var producer =
-              generator(context: StubCorrectionProducerContext.instance);
+          var producer = generator(
+            context: StubCorrectionProducerContext.instance,
+          );
           // At least one generator should have a multiFix.
           if (producer.canBeAppliedAcrossSingleFile) {
             test('$errorCode |', () {
-              var foundMultiFix = producer.multiFixKind != null ||
-                  dynamicProducerTypes
-                      .contains(producer.runtimeType.toString());
+              var foundMultiFix =
+                  producer.multiFixKind != null ||
+                  dynamicProducerTypes.contains(
+                    producer.runtimeType.toString(),
+                  );
               expect(foundMultiFix, isTrue);
             });
           }

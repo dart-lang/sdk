@@ -22,16 +22,16 @@ class Analysis_UpdateContent extends ServerOperation {
   @override
   void perform(Server server) {
     server.sendAnalysisUpdateContent({filePath: overlay});
-//    if (overlay is ChangeContentOverlay) {
-//      List<SourceEdit> edits = (overlay as ChangeContentOverlay).edits;
-//      if (edits.length == 1) {
-//        SourceEdit edit = edits[0];
-//        if (edit.replacement.endsWith('.')) {
-//          int offset = edit.offset + edit.replacement.length - 1;
-//          server.sendCompletionGetSuggestions(filePath, offset);
-//        }
-//      }
-//    }
+    //    if (overlay is ChangeContentOverlay) {
+    //      List<SourceEdit> edits = (overlay as ChangeContentOverlay).edits;
+    //      if (edits.length == 1) {
+    //        SourceEdit edit = edits[0];
+    //        if (edit.replacement.endsWith('.')) {
+    //          int offset = edit.offset + edit.replacement.length - 1;
+    //          server.sendCompletionGetSuggestions(filePath, offset);
+    //        }
+    //      }
+    //    }
   }
 }
 

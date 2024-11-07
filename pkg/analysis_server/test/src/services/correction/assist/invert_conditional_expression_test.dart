@@ -46,7 +46,7 @@ void f() {
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_conditionParentheses() async {
+  test_thenStatement_elseStatement_on_conditionParentheses() async {
     await resolveTestCode('''
 void f() {
   (t/*caret*/rue) ? 0 : 1;
@@ -60,7 +60,7 @@ void f() {
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_conditionTestParentheses() async {
+  test_thenStatement_elseStatement_on_conditionTestParentheses() async {
     await resolveTestCode('''
 void f() {
   (1 ==/*caret*/ 1) ? 0 : 1;
@@ -113,7 +113,7 @@ void f() {
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_thenAsyncParenthesizedFunction() async {
+  test_thenStatement_elseStatement_on_thenAsyncParenthesizedFunction() async {
     await resolveTestCode('''
 void f() async {
   (true) ? await (f/*caret*/n()) : 1;
@@ -149,7 +149,7 @@ void f() async {
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_thenLambdaParameters() async {
+  test_thenStatement_elseStatement_on_thenLambdaParameters() async {
     await resolveTestCode('''
 void f() async {
   (true) ? (/*caret*/) => 1 : 1;
@@ -159,7 +159,7 @@ void f() async {
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_thenLambdaParenthesized() async {
+  test_thenStatement_elseStatement_on_thenLambdaParenthesized() async {
     await resolveTestCode('''
 void f() async {
   (true) ? (/*caret*/() => 1) : 1;
@@ -169,7 +169,7 @@ void f() async {
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_thenParenthesesAsyncFunction() async {
+  test_thenStatement_elseStatement_on_thenParenthesesAsyncFunction() async {
     await resolveTestCode('''
 void f() async {
   (true) ? (await f/*caret*/n()) : 1;
@@ -187,7 +187,7 @@ Future<void> fn() async {}
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_thenParenthesesFunction() async {
+  test_thenStatement_elseStatement_on_thenParenthesesFunction() async {
     await resolveTestCode('''
 void f() {
   (true) ? (f/*caret*/n()) : 1;
@@ -205,7 +205,7 @@ void fn() {}
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_thenParenthesesFunctionResultExpression() async {
+  test_thenStatement_elseStatement_on_thenParenthesesFunctionResultExpression() async {
     await resolveTestCode('''
 void f() {
   (true) ? (f/*caret*/n() && false) : 1;
@@ -223,7 +223,7 @@ bool fn() => true;
   }
 
   Future<void>
-      test_thenStatement_elseStatement_on_thenParenthesesTearoff() async {
+  test_thenStatement_elseStatement_on_thenParenthesesTearoff() async {
     await resolveTestCode('''
 void f() {
   (true) ? (f/*caret*/n) : 1;

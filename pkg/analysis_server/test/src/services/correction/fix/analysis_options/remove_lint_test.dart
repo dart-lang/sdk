@@ -17,26 +17,32 @@ void main() {
 }
 
 class DeprecatedRule extends LintRule {
-  static const LintCode code = LintCode('deprecated_rule', 'Deprecated rule.',
-      correctionMessage: 'Try deprecated rule.');
+  static const LintCode code = LintCode(
+    'deprecated_rule',
+    'Deprecated rule.',
+    correctionMessage: 'Try deprecated rule.',
+  );
 
   DeprecatedRule()
-      : super(
-          name: 'deprecated_rule',
-          description: '',
-          state: State.deprecated(since: dart2_12),
-        );
+    : super(
+        name: 'deprecated_rule',
+        description: '',
+        state: State.deprecated(since: dart2_12),
+      );
 
   @override
   LintCode get lintCode => code;
 }
 
 class RemovedRule extends LintRule {
-  static const LintCode code = LintCode('removed_rule', 'Removed rule.',
-      correctionMessage: 'Try removed rule.');
+  static const LintCode code = LintCode(
+    'removed_rule',
+    'Removed rule.',
+    correctionMessage: 'Try removed rule.',
+  );
 
   RemovedRule()
-      : super(name: 'removed_rule', description: '', state: State.removed());
+    : super(name: 'removed_rule', description: '', state: State.removed());
 
   @override
   LintCode get lintCode => code;
@@ -60,46 +66,56 @@ class RemoveLintTest extends AnalysisOptionsFixTest {
   }
 
   Future<void> test_deprecated() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 linter:
   rules:
     - camel_case_types
     - deprecated_rule
-''', '''
+''',
+      '''
 linter:
   rules:
     - camel_case_types
-''');
+''',
+    );
   }
 
   Future<void> test_deprecated_only() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 linter:
   rules:
     - deprecated_rule
-''', '''
-''');
+''',
+      '''
+''',
+    );
   }
 
   Future<void> test_deprecated_withSectionAfter() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 linter:
   rules:
     - camel_case_types
     - deprecated_rule
 section:
   - foo
-''', '''
+''',
+      '''
 linter:
   rules:
     - camel_case_types
 section:
   - foo
-''');
+''',
+    );
   }
 
   Future<void> test_deprecated_withSectionBefore() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 analyzer:
   exclude:
     - test/data/**
@@ -108,7 +124,8 @@ linter:
   rules:
     - camel_case_types
     - deprecated_rule
-''', '''
+''',
+      '''
 analyzer:
   exclude:
     - test/data/**
@@ -116,45 +133,55 @@ analyzer:
 linter:
   rules:
     - camel_case_types
-''');
+''',
+    );
   }
 
   Future<void> test_duplicated() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 linter:
   rules:
     - camel_case_types
     - camel_case_types
-''', '''
+''',
+      '''
 linter:
   rules:
     - camel_case_types
-''');
+''',
+    );
   }
 
   Future<void> test_removed() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 linter:
   rules:
     - camel_case_types
     - removed_rule
-''', '''
+''',
+      '''
 linter:
   rules:
     - camel_case_types
-''');
+''',
+    );
   }
 
   Future<void> test_undefined() async {
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 linter:
   rules:
     - camel_case_types
     - undefined_rule
-''', '''
+''',
+      '''
 linter:
   rules:
     - camel_case_types
-''');
+''',
+    );
   }
 }

@@ -73,8 +73,10 @@ class CompletionDriver with ExpectMixin {
     if (response.error case var error?) {
       fail('${request.method} failed: ${error.code}: ${error.message}');
     }
-    var result = CompletionGetSuggestions2Result.fromResponse(response,
-        clientUriConverter: null);
+    var result = CompletionGetSuggestions2Result.fromResponse(
+      response,
+      clientUriConverter: null,
+    );
     replacementOffset = result.replacementOffset;
     replacementLength = result.replacementLength;
     return result.suggestions;
@@ -89,8 +91,10 @@ class CompletionDriver with ExpectMixin {
       );
       fileToExistingImports[params.file] = params.imports;
     } else if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification,
-          clientUriConverter: null);
+      var decoded = AnalysisErrorsParams.fromNotification(
+        notification,
+        clientUriConverter: null,
+      );
       filesErrors[decoded.file] = decoded.errors;
     } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
       // Ignored.

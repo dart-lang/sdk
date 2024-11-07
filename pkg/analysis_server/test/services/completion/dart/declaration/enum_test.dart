@@ -504,7 +504,8 @@ suggestions
     required void Function(
       CompletionResponseForTesting response,
       _Context context,
-    ) validator,
+    )
+    validator,
   }) async {
     // local
     {

@@ -20,10 +20,11 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      // TODO(pq): find out why overlapping edits were not being applied (and
-      // enable).
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          // TODO(pq): find out why overlapping edits were not being applied (and
+          // enable).
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
@@ -46,7 +47,10 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       if (childrenExpression is ListLiteral &&
           childrenExpression.elements.isNotEmpty) {
         await _removeChildren(
-            builder, widgetCreation, childrenExpression.elements);
+          builder,
+          widgetCreation,
+          childrenExpression.elements,
+        );
       }
     } else if (widgetCreation.childArgument case var childArgument?) {
       await _removeSingle(builder, widgetCreation, childArgument.expression);
@@ -57,7 +61,10 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       if (sliversExpression is ListLiteral &&
           sliversExpression.elements.isNotEmpty) {
         await _removeChildren(
-            builder, widgetCreation, sliversExpression.elements);
+          builder,
+          widgetCreation,
+          sliversExpression.elements,
+        );
       }
     } else if (widgetCreation.sliverArgument case var sliverArgument?) {
       await _removeSingle(builder, widgetCreation, sliverArgument.expression);
@@ -67,13 +74,19 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   }
 
   Future<void> _removeBuilder(
-      ChangeBuilder builder,
-      InstanceCreationExpression widgetCreation,
-      NamedExpression builderArgument) async {
+    ChangeBuilder builder,
+    InstanceCreationExpression widgetCreation,
+    NamedExpression builderArgument,
+  ) async {
     var builderExpression = builderArgument.expression;
     if (builderExpression is! FunctionExpression) return;
-    var parameterElement = builderExpression
-        .parameters?.parameters.firstOrNull?.declaredFragment?.element;
+    var parameterElement =
+        builderExpression
+            .parameters
+            ?.parameters
+            .firstOrNull
+            ?.declaredFragment
+            ?.element;
     if (parameterElement == null) return;
 
     var visitor = _UsageFinder(parameterElement);
@@ -95,9 +108,10 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   }
 
   Future<void> _removeChildren(
-      ChangeBuilder builder,
-      InstanceCreationExpression widgetCreation,
-      List<CollectionElement> childrenExpressions) async {
+    ChangeBuilder builder,
+    InstanceCreationExpression widgetCreation,
+    List<CollectionElement> childrenExpressions,
+  ) async {
     // We can inline the list of our children only into another list.
     var widgetParentNode = widgetCreation.parent;
     if (childrenExpressions.length > 1 && widgetParentNode is! ListLiteral) {
@@ -110,11 +124,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       var childText = utils.getRangeText(range.startEnd(firstChild, lastChild));
       var indentOld = utils.getLinePrefix(firstChild.offset);
       var indentNew = utils.getLinePrefix(widgetCreation.offset);
-      childText = utils.replaceSourceIndent(
-        childText,
-        indentOld,
-        indentNew,
-      );
+      childText = utils.replaceSourceIndent(childText, indentOld, indentNew);
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
   }
@@ -128,11 +138,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       var childText = utils.getNodeText(expression);
       var indentOld = utils.getLinePrefix(expression.offset);
       var indentNew = utils.getLinePrefix(widgetCreation.offset);
-      childText = utils.replaceSourceIndent(
-        childText,
-        indentOld,
-        indentNew,
-      );
+      childText = utils.replaceSourceIndent(childText, indentOld, indentNew);
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
   }

@@ -37,7 +37,10 @@ Map<String, Element> _getExportNamespaceForLibrary(LibraryElement library) {
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
 LibraryImportElement? _getImportElement(
-    LibraryElement libraryElement, String prefix, Element element) {
+  LibraryElement libraryElement,
+  String prefix,
+  Element element,
+) {
   if (element.enclosingElement3 is! CompilationUnitElement) {
     return null;
   }

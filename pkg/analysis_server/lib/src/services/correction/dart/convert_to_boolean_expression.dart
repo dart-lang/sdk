@@ -62,7 +62,9 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
   }
 
   static bool isPositiveCase(
-      BinaryExpression expression, BooleanLiteral literal) {
+    BinaryExpression expression,
+    BooleanLiteral literal,
+  ) {
     if (expression.operator.lexeme == '==') return literal.value;
     return !literal.value;
   }

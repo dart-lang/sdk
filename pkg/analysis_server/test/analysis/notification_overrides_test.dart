@@ -37,8 +37,10 @@ class AnalysisNotificationOverridesTest extends PubPackageAnalysisServerTest {
         return;
       }
     }
-    fail('Expect to find an overridden interface members at $offset in '
-        '${interfaceMembers.join('\n')}');
+    fail(
+      'Expect to find an overridden interface members at $offset in '
+      '${interfaceMembers.join('\n')}',
+    );
   }
 
   /// Validates that there is an [Override] at the offset of [search].
@@ -101,16 +103,20 @@ class AnalysisNotificationOverridesTest extends PubPackageAnalysisServerTest {
     for (var override in overridesList) {
       if (override.offset == offset && override.length == length) {
         if (exists == false) {
-          fail('Not expected to find (offset=$offset; length=$length) in\n'
-              '${overridesList.join('\n')}');
+          fail(
+            'Not expected to find (offset=$offset; length=$length) in\n'
+            '${overridesList.join('\n')}',
+          );
         }
         overrideObject = override;
         return;
       }
     }
     if (exists == true) {
-      fail('Expected to find (offset=$offset; length=$length) in\n'
-          '${overridesList.join('\n')}');
+      fail(
+        'Expected to find (offset=$offset; length=$length) in\n'
+        '${overridesList.join('\n')}',
+      );
     }
   }
 
@@ -122,8 +128,10 @@ class AnalysisNotificationOverridesTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OVERRIDES) {
-      var params = AnalysisOverridesParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisOverridesParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       if (params.file == testFile.path) {
         overridesList = params.overrides;
         _resultsAvailable.complete();

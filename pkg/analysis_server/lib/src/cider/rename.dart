@@ -27,8 +27,12 @@ class CanRenameResponse {
 
   FlutterWidgetState? _flutterWidgetState;
 
-  CanRenameResponse(this.lineInfo, this.refactoringElement, this._fileResolver,
-      this.filePath);
+  CanRenameResponse(
+    this.lineInfo,
+    this.refactoringElement,
+    this._fileResolver,
+    this.filePath,
+  );
 
   String get oldName => refactoringElement.element.displayName;
 
@@ -65,17 +69,26 @@ class CanRenameResponse {
   }
 
   void _analyzePossibleConflicts(
-      ConstructorElement element, RefactoringStatus result, String newName) {
+    ConstructorElement element,
+    RefactoringStatus result,
+    String newName,
+  ) {
     var parentClass = element.enclosingElement3;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
-      result.addError('The constructor should not have the same name '
-          'as the name of the enclosing class.');
+      result.addError(
+        'The constructor should not have the same name '
+        'as the name of the enclosing class.',
+      );
     }
     // check if there are members with "newName" in the same ClassElement
     for (var newNameMember in getChildren(parentClass, newName)) {
-      var message = format("Class '{0}' already declares {1} with name '{2}'.",
-          parentClass.displayName, getElementKindName(newNameMember), newName);
+      var message = format(
+        "Class '{0}' already declares {1} with name '{2}'.",
+        parentClass.displayName,
+        getElementKindName(newNameMember),
+        newName,
+      );
       result.addError(message, newLocation_fromElement(newNameMember));
     }
   }
@@ -146,8 +159,9 @@ class CheckNameResponse {
               MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS) {
             replacement += '()';
           }
-          replaceInfo
-              .add(ReplaceInfo(replacement, ref.startPosition, ref.length));
+          replaceInfo.add(
+            ReplaceInfo(replacement, ref.startPosition, ref.length),
+          );
         }
         replaceMatches.addMatch(match.path, replaceInfo);
       }
@@ -165,14 +179,22 @@ class CheckNameResponse {
             replaceInfo.add(ReplaceInfo('', ref.startPosition, ref.length));
           } else {
             var identifier = await _getInterpolationIdentifier(
-                match.path, ref.startPosition);
+              match.path,
+              ref.startPosition,
+            );
             if (identifier != null) {
               var lineInfo = canRename.lineInfo;
-              replaceInfo.add(ReplaceInfo('{$newName.${identifier.name}}',
-                  lineInfo.getLocation(identifier.offset), identifier.length));
+              replaceInfo.add(
+                ReplaceInfo(
+                  '{$newName.${identifier.name}}',
+                  lineInfo.getLocation(identifier.offset),
+                  identifier.length,
+                ),
+              );
             } else {
-              replaceInfo
-                  .add(ReplaceInfo('$newName.', ref.startPosition, ref.length));
+              replaceInfo.add(
+                ReplaceInfo('$newName.', ref.startPosition, ref.length),
+              );
             }
           }
         }
@@ -184,36 +206,50 @@ class CheckNameResponse {
     } else {
       for (var match in matches) {
         replaceMatches.addMatch(
-            match.path,
-            match.references
-                .map((info) =>
-                    ReplaceInfo(newName, info.startPosition, info.length))
-                .toList());
+          match.path,
+          match.references
+              .map(
+                (info) => ReplaceInfo(newName, info.startPosition, info.length),
+              )
+              .toList(),
+        );
       }
       // add element declaration
       var sourcePath = element.source!.fullName;
       var infos = await _addElementDeclaration(element, sourcePath);
       replaceMatches.addMatch(sourcePath, infos);
     }
-    return RenameResponse(matches, this, replaceMatches,
-        flutterWidgetRename: flutterRename);
+    return RenameResponse(
+      matches,
+      this,
+      replaceMatches,
+      flutterWidgetRename: flutterRename,
+    );
   }
 
   Future<List<ReplaceInfo>> _addElementDeclaration(
-      Element element, String sourcePath) async {
+    Element element,
+    String sourcePath,
+  ) async {
     var infos = <ReplaceInfo>[];
     if (element is PropertyInducingElement && element.isSynthetic) {
       if (element.getter != null) {
-        infos.add(ReplaceInfo(
+        infos.add(
+          ReplaceInfo(
             newName,
             lineInfo.getLocation(element.getter!.nameOffset),
-            element.getter!.nameLength));
+            element.getter!.nameLength,
+          ),
+        );
       }
       if (element.setter != null) {
-        infos.add(ReplaceInfo(
+        infos.add(
+          ReplaceInfo(
             newName,
             lineInfo.getLocation(element.setter!.nameOffset),
-            element.setter!.nameLength));
+            element.setter!.nameLength,
+          ),
+        );
       }
     } else if (element is LibraryImportElement) {
       var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
@@ -225,14 +261,20 @@ class CheckNameResponse {
         // `checkNewName` that the new name is different.
         if (prefixNode != null) {
           var prefixEnd = prefixNode.end;
-          infos.add(ReplaceInfo(newName, lineInfo.getLocation(node.uri.end),
-              prefixEnd - node.uri.end));
+          infos.add(
+            ReplaceInfo(
+              newName,
+              lineInfo.getLocation(node.uri.end),
+              prefixEnd - node.uri.end,
+            ),
+          );
         }
       } else {
         if (prefixNode == null) {
           var uriEnd = node.uri.end;
           infos.add(
-              ReplaceInfo(' as $newName', lineInfo.getLocation(uriEnd), 0));
+            ReplaceInfo(' as $newName', lineInfo.getLocation(uriEnd), 0),
+          );
         } else {
           var offset = prefixNode.offset;
           var length = prefixNode.length;
@@ -240,9 +282,9 @@ class CheckNameResponse {
         }
       }
     } else {
-      var location = (await canRename._fileResolver.resolve(path: sourcePath))
-          .lineInfo
-          .getLocation(element.nameOffset);
+      var location = (await canRename._fileResolver.resolve(
+        path: sourcePath,
+      )).lineInfo.getLocation(element.nameOffset);
       infos.add(ReplaceInfo(newName, location, element.nameLength));
     }
     return infos;
@@ -254,25 +296,38 @@ class CheckNameResponse {
     var stateName = flutterState.newName;
     var match = await canRename._fileResolver.findReferences2(stateClass);
     var sourcePath = stateClass.source.fullName;
-    var location = stateClass.enclosingElement3.lineInfo
-        .getLocation(stateClass.nameOffset);
+    var location = stateClass.enclosingElement3.lineInfo.getLocation(
+      stateClass.nameOffset,
+    );
     CiderSearchMatch ciderMatch;
-    var searchInfo =
-        CiderSearchInfo(location, stateClass.nameLength, MatchKind.DECLARATION);
+    var searchInfo = CiderSearchInfo(
+      location,
+      stateClass.nameLength,
+      MatchKind.DECLARATION,
+    );
     try {
       ciderMatch = match.firstWhere((m) => m.path == sourcePath);
       ciderMatch.references.add(searchInfo);
     } catch (_) {
       match.add(CiderSearchMatch(sourcePath, [searchInfo]));
     }
-    var replacements = match
-        .map((m) => CiderReplaceMatch(
-            m.path,
-            m.references
-                .map((p) => ReplaceInfo(
-                    stateName, p.startPosition, stateClass.nameLength))
-                .toList()))
-        .toList();
+    var replacements =
+        match
+            .map(
+              (m) => CiderReplaceMatch(
+                m.path,
+                m.references
+                    .map(
+                      (p) => ReplaceInfo(
+                        stateName,
+                        p.startPosition,
+                        stateClass.nameLength,
+                      ),
+                    )
+                    .toList(),
+              ),
+            )
+            .toList();
     return FlutterWidgetRename(stateName, match, replacements);
   }
 
@@ -280,12 +335,14 @@ class CheckNameResponse {
   /// an [InterpolationExpression] without surrounding curly brackets, return
   /// it. Otherwise return `null`.
   Future<SimpleIdentifier?> _getInterpolationIdentifier(
-      String path, CharacterLocation loc) async {
+    String path,
+    CharacterLocation loc,
+  ) async {
     var resolvedUnit = await canRename._fileResolver.resolve(path: path);
     var lineInfo = resolvedUnit.lineInfo;
     var node = NodeLocator(
-            lineInfo.getOffsetOfLine(loc.lineNumber - 1) + loc.columnNumber)
-        .searchWithin(resolvedUnit.unit);
+      lineInfo.getOffsetOfLine(loc.lineNumber - 1) + loc.columnNumber,
+    ).searchWithin(resolvedUnit.unit);
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is InterpolationExpression && parent.rightBracket == null) {
@@ -335,7 +392,7 @@ class CheckNameResponse {
         edit.replacement,
         resolvedUnit.lineInfo.getLocation(edit.offset),
         0,
-      )
+      ),
     ]);
   }
 }
@@ -348,7 +405,10 @@ class CiderRenameComputer {
   /// Check if the identifier at the [line], [column] for the file at the
   /// [filePath] can be renamed.
   Future<CanRenameResponse?> canRename2(
-      String filePath, int line, int column) async {
+    String filePath,
+    int line,
+    int column,
+  ) async {
     var resolvedUnit = await _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
@@ -436,8 +496,12 @@ class RenameResponse {
   final List<CiderReplaceMatch> replaceMatches;
   FlutterWidgetRename? flutterWidgetRename;
 
-  RenameResponse(this.matches, this.checkName, this.replaceMatches,
-      {this.flutterWidgetRename});
+  RenameResponse(
+    this.matches,
+    this.checkName,
+    this.replaceMatches, {
+    this.flutterWidgetRename,
+  });
 }
 
 class ReplaceInfo {
@@ -448,11 +512,7 @@ class ReplaceInfo {
   ReplaceInfo(this.replacementText, this.startPosition, this.length);
 
   @override
-  int get hashCode => Object.hash(
-        replacementText,
-        startPosition,
-        length,
-      );
+  int get hashCode => Object.hash(replacementText, startPosition, length);
 
   @override
   bool operator ==(Object other) =>

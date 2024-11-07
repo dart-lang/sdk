@@ -9,7 +9,7 @@ class FileStringSink implements StringSink {
   final IOSink _sink;
 
   FileStringSink(String path)
-      : _sink = File(path).openWrite(mode: FileMode.append);
+    : _sink = File(path).openWrite(mode: FileMode.append);
 
   @override
   void write(Object? obj) {

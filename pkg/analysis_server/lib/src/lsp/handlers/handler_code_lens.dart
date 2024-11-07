@@ -14,9 +14,7 @@ class CodeLensHandler
   final List<AbstractCodeLensProvider> codeLensProviders;
 
   CodeLensHandler(super.server)
-      : codeLensProviders = [
-          AugmentationCodeLensProvider(server),
-        ];
+    : codeLensProviders = [AugmentationCodeLensProvider(server)];
 
   @override
   Method get handlesMessage => Method.textDocument_codeLens;

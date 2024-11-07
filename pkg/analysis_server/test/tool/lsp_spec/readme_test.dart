@@ -15,8 +15,12 @@ import '../../../tool/lsp_spec/meta_model.dart';
 void main() {
   var serverPkgPath = _getAnalysisServerPkgPath();
   var readmeFile = File(path.join(serverPkgPath, 'tool/lsp_spec/README.md'));
-  var metaModelJsonFile = File(path.join(serverPkgPath,
-      '../../third_party/pkg/language_server_protocol/lsp_meta_model.json'));
+  var metaModelJsonFile = File(
+    path.join(
+      serverPkgPath,
+      '../../third_party/pkg/language_server_protocol/lsp_meta_model.json',
+    ),
+  );
 
   group('LSP readme', () {
     test('contains all methods', () {

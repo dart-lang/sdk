@@ -17,7 +17,10 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   List<ParameterElement> elements = [];
 
   RenameParameterRefactoringImpl(
-      super.workspace, super.sessionHelper, ParameterElement super.element);
+    super.workspace,
+    super.sessionHelper,
+    ParameterElement super.element,
+  );
 
   @override
   ParameterElement get element => super.element as ParameterElement;
@@ -34,8 +37,10 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     for (var element in elements) {
       if (newName.startsWith('_') && element.isNamed) {
         result.addError(
-          format("The parameter '{0}' is named and can not be private.",
-              element.name),
+          format(
+            "The parameter '{0}' is named and can not be private.",
+            element.name,
+          ),
         );
         break;
       }

@@ -21,11 +21,8 @@ import 'package:meta/meta.dart';
 
 typedef CodeActionWithPriority = ({CodeAction action, int priority});
 
-typedef CodeActionWithPriorityAndIndex = ({
-  CodeAction action,
-  int priority,
-  int index
-});
+typedef CodeActionWithPriorityAndIndex =
+    ({CodeAction action, int priority, int index});
 
 /// A base for classes that produce [CodeAction]s for the LSP handler.
 abstract class AbstractCodeActionsProducer
@@ -71,21 +68,33 @@ abstract class AbstractCodeActionsProducer
   /// before the version number is read.
   @protected
   CodeAction createAssistAction(
-      protocol.SourceChange change, String path, LineInfo lineInfo) {
+    protocol.SourceChange change,
+    String path,
+    LineInfo lineInfo,
+  ) {
     return CodeAction(
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
       diagnostics: const [],
       command: createLogActionCommand(change.id),
-      edit: createWorkspaceEdit(server, capabilities, change,
-          allowSnippets: true, filePath: path, lineInfo: lineInfo),
+      edit: createWorkspaceEdit(
+        server,
+        capabilities,
+        change,
+        allowSnippets: true,
+        filePath: path,
+        lineInfo: lineInfo,
+      ),
     );
   }
 
   /// Create an LSP [Diagnostic] for [error].
   @protected
   Diagnostic createDiagnostic(
-      LineInfo lineInfo, engine.ErrorsResultImpl result, AnalysisError error) {
+    LineInfo lineInfo,
+    engine.ErrorsResultImpl result,
+    AnalysisError error,
+  ) {
     return pluginToDiagnostic(
       server.uriConverter,
       (_) => lineInfo,
@@ -100,15 +109,25 @@ abstract class AbstractCodeActionsProducer
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
   @protected
-  CodeAction createFixAction(protocol.SourceChange change,
-      Diagnostic diagnostic, String path, LineInfo lineInfo) {
+  CodeAction createFixAction(
+    protocol.SourceChange change,
+    Diagnostic diagnostic,
+    String path,
+    LineInfo lineInfo,
+  ) {
     return CodeAction(
       title: change.message,
       kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
       command: createLogActionCommand(change.id),
-      edit: createWorkspaceEdit(server, capabilities, change,
-          allowSnippets: true, filePath: path, lineInfo: lineInfo),
+      edit: createWorkspaceEdit(
+        server,
+        capabilities,
+        change,
+        allowSnippets: true,
+        filePath: path,
+        lineInfo: lineInfo,
+      ),
     );
   }
 
@@ -126,14 +145,17 @@ abstract class AbstractCodeActionsProducer
       command: Commands.logAction,
       title: 'Log Action',
       arguments: [
-        {'action': action}
+        {'action': action},
       ],
     );
   }
 
   @protected
   engine.ErrorsResultImpl createResult(
-      AnalysisSession session, LineInfo lineInfo, List<AnalysisError> errors) {
+    AnalysisSession session,
+    LineInfo lineInfo,
+    List<AnalysisError> errors,
+  ) {
     return engine.ErrorsResultImpl(
       session: session,
       file: file,

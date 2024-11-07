@@ -289,8 +289,6 @@ void f() {
   Future<void> _assertNoRefactoring() async {
     await initializeServer();
 
-    await expectNoCodeAction(
-      ConvertSelectedFormalParametersToNamed.constTitle,
-    );
+    await expectNoCodeAction(ConvertSelectedFormalParametersToNamed.constTitle);
   }
 }

@@ -23,9 +23,7 @@ class ExtractWidgetTest extends RefactoringTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_checkAllConditions_selection() async {
@@ -55,8 +53,10 @@ class MyWidget extends StatelessWidget {
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Class name must not be empty.');
+      refactoring.checkName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'Class name must not be empty.',
+    );
 
     // OK
     refactoring.name = 'Test';
@@ -80,8 +80,10 @@ class Test {}
 
     refactoring.name = 'Test';
     assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Library already declares class with name 'Test'.");
+      refactoring.checkName(),
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "Library already declares class with name 'Test'.",
+    );
   }
 
   Future<void> test_expression() async {
@@ -1195,8 +1197,10 @@ void f() {
 ''');
     _createRefactoringForStartEnd();
 
-    assertRefactoringStatus(await refactoring.checkInitialConditions(),
-        RefactoringProblemSeverity.FATAL);
+    assertRefactoringStatus(
+      await refactoring.checkInitialConditions(),
+      RefactoringProblemSeverity.FATAL,
+    );
   }
 
   Future<void> test_statements_BAD_notReturnStatement() async {
@@ -1211,8 +1215,10 @@ void f() {
 ''');
     _createRefactoringForStartEnd();
 
-    assertRefactoringStatus(await refactoring.checkInitialConditions(),
-        RefactoringProblemSeverity.FATAL);
+    assertRefactoringStatus(
+      await refactoring.checkInitialConditions(),
+      RefactoringProblemSeverity.FATAL,
+    );
   }
 
   Future<void> test_useSuperParameters_disabled() async {
@@ -1355,7 +1361,11 @@ class Test extends StatelessWidget {
 
   void _createRefactoring(int offset, int length) {
     refactoring = ExtractWidgetRefactoringImpl(
-        searchEngine, testAnalysisResult, offset, length);
+      searchEngine,
+      testAnalysisResult,
+      offset,
+      length,
+    );
     refactoring.name = 'Test';
   }
 

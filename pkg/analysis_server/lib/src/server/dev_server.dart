@@ -100,8 +100,10 @@ class DevAnalysisServer {
         var line = location['startLine'] as int;
         var column = location['startColumn'] as int;
 
-        print('  $severity • $bold$message$none at $filePath:$line:$column • '
-            '($code)');
+        print(
+          '  $severity • $bold$message$none at $filePath:$line:$column • '
+          '($code)',
+        );
       }
     }
 
@@ -122,8 +124,9 @@ class DevAnalysisServer {
       whenComplete.completeError(message);
     }
 
-    var notificationSubscriptions =
-        _channel.onNotification.listen((Notification notification) {
+    var notificationSubscriptions = _channel.onNotification.listen((
+      Notification notification,
+    ) {
       if (notification.event == 'server.status') {
         handleStatusNotification(notification);
       } else if (notification.event == 'analysis.errors') {
@@ -134,29 +137,32 @@ class DevAnalysisServer {
     });
 
     await _channel.simulateRequestFromClient(
-        Request('${_nextId++}', 'server.setSubscriptions', {
-      'subscriptions': ['STATUS'],
-    }));
+      Request('${_nextId++}', 'server.setSubscriptions', {
+        'subscriptions': ['STATUS'],
+      }),
+    );
 
     directories =
         directories.map((dir) => path.normalize(path.absolute(dir))).toList();
 
-    await _channel.simulateRequestFromClient(Request(
-      '${_nextId++}',
-      'analysis.setAnalysisRoots',
-      {'included': directories, 'excluded': []},
-    ));
+    await _channel.simulateRequestFromClient(
+      Request('${_nextId++}', 'analysis.setAnalysisRoots', {
+        'included': directories,
+        'excluded': [],
+      }),
+    );
 
     try {
       return await whenComplete.future;
     } finally {
       await notificationSubscriptions.cancel();
 
-      await _channel.simulateRequestFromClient(Request(
-        '${_nextId++}',
-        'analysis.setAnalysisRoots',
-        {'included': [], 'excluded': []},
-      ));
+      await _channel.simulateRequestFromClient(
+        Request('${_nextId++}', 'analysis.setAnalysisRoots', {
+          'included': [],
+          'excluded': [],
+        }),
+      );
     }
   }
 }
@@ -188,7 +194,8 @@ class DevChannel implements ServerCommunicationChannel {
   @override
   void sendRequest(Request request) {
     throw UnimplementedError(
-        'sendRequest (did you mean simulateRequestFromClient?)');
+      'sendRequest (did you mean simulateRequestFromClient?)',
+    );
   }
 
   @override

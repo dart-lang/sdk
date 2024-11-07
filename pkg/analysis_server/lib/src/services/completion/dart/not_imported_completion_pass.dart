@@ -23,7 +23,7 @@ class ConstructorsOperation extends NotImportedOperation {
   /// Initialize a newly created operation to use the [declarationHelper] to add
   /// the static members from a library.
   ConstructorsOperation({required DeclarationHelper declarationHelper})
-      : _declarationHelper = declarationHelper;
+    : _declarationHelper = declarationHelper;
 
   /// Compute any candidate suggestions for elements in the [library].
   void computeSuggestionsIn(LibraryElement library) {
@@ -49,26 +49,27 @@ class InstanceExtensionMembersOperation extends NotImportedOperation {
   /// Whether to include suggestions for setters.
   final bool _includeSetters;
 
-  InstanceExtensionMembersOperation(
-      {required DeclarationHelper declarationHelper,
-      required DartType type,
-      required Set<String> excludedGetters,
-      required bool includeMethods,
-      required bool includeSetters})
-      : _declarationHelper = declarationHelper,
-        _type = type,
-        _excludedGetters = excludedGetters,
-        _includeMethods = includeMethods,
-        _includeSetters = includeSetters;
+  InstanceExtensionMembersOperation({
+    required DeclarationHelper declarationHelper,
+    required DartType type,
+    required Set<String> excludedGetters,
+    required bool includeMethods,
+    required bool includeSetters,
+  }) : _declarationHelper = declarationHelper,
+       _type = type,
+       _excludedGetters = excludedGetters,
+       _includeMethods = includeMethods,
+       _includeSetters = includeSetters;
 
   /// Compute any candidate suggestions for elements in the [library].
   void computeSuggestionsIn(LibraryElement library) {
     _declarationHelper.addNotImportedExtensionMethods(
-        library: library,
-        type: _type,
-        excludedGetters: _excludedGetters,
-        includeMethods: _includeMethods,
-        includeSetters: _includeSetters);
+      library: library,
+      type: _type,
+      excludedGetters: _excludedGetters,
+      includeMethods: _includeMethods,
+      includeSetters: _includeSetters,
+    );
   }
 }
 
@@ -86,13 +87,13 @@ class NotImportedCompletionPass {
   final List<NotImportedOperation> _operations;
 
   /// Initialize a newly created completion pass.
-  NotImportedCompletionPass(
-      {required CompletionState state,
-      required SuggestionCollector collector,
-      required List<NotImportedOperation> operations})
-      : _state = state,
-        _collector = collector,
-        _operations = operations;
+  NotImportedCompletionPass({
+    required CompletionState state,
+    required SuggestionCollector collector,
+    required List<NotImportedOperation> operations,
+  }) : _state = state,
+       _collector = collector,
+       _operations = operations;
 
   /// Compute any candidate suggestions for elements in not imported libraries.
   Future<void> computeSuggestions({
@@ -104,9 +105,7 @@ class NotImportedCompletionPass {
     var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
-    var filter = FileStateFilter(
-      fsState.getFileForPath(request.path),
-    );
+    var filter = FileStateFilter(fsState.getFileForPath(request.path));
 
     try {
       await performance.runAsync('discoverAvailableFiles', (_) async {
@@ -129,12 +128,11 @@ class NotImportedCompletionPass {
         continue;
       }
 
-      var elementResult = await performance.runAsync(
-        'getLibraryByUri',
-        (_) async {
-          return await analysisDriver.getLibraryByUri(file.uriStr);
-        },
-      );
+      var elementResult = await performance.runAsync('getLibraryByUri', (
+        _,
+      ) async {
+        return await analysisDriver.getLibraryByUri(file.uriStr);
+      });
       if (elementResult is! LibraryElementResult) {
         continue;
       }
@@ -171,8 +169,11 @@ class NotImportedCompletionPass {
             var exportElements = exportNamespace.definedNames.values.toList();
 
             performance.run('staticMembers', (_) {
-              operation.computeSuggestionsIn(element, exportElements,
-                  importSummary?.importedElements ?? {});
+              operation.computeSuggestionsIn(
+                element,
+                exportElements,
+                importSummary?.importedElements ?? {},
+              );
             });
         }
       }
@@ -193,11 +194,14 @@ class StaticMembersOperation extends NotImportedOperation {
   /// Initialize a newly created operation to use the [declarationHelper] to add
   /// the static members from a library.
   StaticMembersOperation({required DeclarationHelper declarationHelper})
-      : _declarationHelper = declarationHelper;
+    : _declarationHelper = declarationHelper;
 
   /// Compute any candidate suggestions for elements in the [library].
-  void computeSuggestionsIn(LibraryElement library,
-      List<Element> exportElements, Set<Element> importedElements) {
+  void computeSuggestionsIn(
+    LibraryElement library,
+    List<Element> exportElements,
+    Set<Element> importedElements,
+  ) {
     // TODO(brianwilkerson): Determine whether we need the element parameters.
     _declarationHelper.addNotImportedTopLevelDeclarations(library);
   }
@@ -219,9 +223,7 @@ class _ImportSummary {
         if (import.combinators.isEmpty) {
           importedLibraries.add(importedLibrary);
         } else {
-          importedElements.addAll(
-            import.namespace.definedNames.values,
-          );
+          importedElements.addAll(import.namespace.definedNames.values);
         }
       }
     }

@@ -27,10 +27,11 @@ class ReplacedBy extends Change<_Data> {
 
   /// Initialize a newly created transform to describe a replacement of an old
   /// element by a [newElement].
-  ReplacedBy(
-      {required this.newElement,
-      required this.replaceTarget,
-      List<CodeTemplate>? argumentList}) {
+  ReplacedBy({
+    required this.newElement,
+    required this.replaceTarget,
+    List<CodeTemplate>? argumentList,
+  }) {
     if (argumentList != null) {
       arguments.addAll(argumentList);
     }
@@ -245,10 +246,7 @@ class ReplacedBy extends Change<_Data> {
       }
     }
     if (referenceRange == null) return null;
-    return _Data(
-      referenceRange,
-      replacement: '${newComponents[0]}$suffix',
-    );
+    return _Data(referenceRange, replacement: '${newComponents[0]}$suffix');
   }
 }
 

@@ -31,14 +31,16 @@ class A {
 main() {}
 ''');
     await assertHasFixAllFix(
-        CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, '''
+      CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
+      '''
 class A {
   const A();
 }
 @A()
 @A()
 main() {}
-''');
+''',
+    );
   }
 }
 

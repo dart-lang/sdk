@@ -137,10 +137,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       builder.writeln("$constructorName('$name', $name));");
     }
 
-    var debugFillProperties = classDeclaration.members
-        .whereType<MethodDeclaration>()
-        .where((e) => e.name.lexeme == 'debugFillProperties')
-        .singleOrNull;
+    var debugFillProperties =
+        classDeclaration.members
+            .whereType<MethodDeclaration>()
+            .where((e) => e.name.lexeme == 'debugFillProperties')
+            .singleOrNull;
     if (debugFillProperties == null) {
       await builder.addDartFileEdit(file, (builder) {
         builder.insertMethod(classDeclaration, (builder) {
@@ -149,11 +150,16 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
           builder.writeln('@override');
           builder.writeln(
-              '${declPrefix}void debugFillProperties(DiagnosticPropertiesBuilder properties) {');
-          builder
-              .writeln('${bodyPrefix}super.debugFillProperties(properties);');
-          writePropertyReference(builder,
-              prefix: bodyPrefix, builderName: 'properties');
+            '${declPrefix}void debugFillProperties(DiagnosticPropertiesBuilder properties) {',
+          );
+          builder.writeln(
+            '${bodyPrefix}super.debugFillProperties(properties);',
+          );
+          writePropertyReference(
+            builder,
+            prefix: bodyPrefix,
+            builderName: 'properties',
+          );
           builder.write('$declPrefix}');
         });
       });
@@ -199,8 +205,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       var final_propertiesBuilderName = propertiesBuilderName;
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(utils.getLineNext(offset), (builder) {
-          writePropertyReference(builder,
-              prefix: prefix, builderName: final_propertiesBuilderName);
+          writePropertyReference(
+            builder,
+            prefix: prefix,
+            builderName: final_propertiesBuilderName,
+          );
         });
       });
     }
@@ -209,7 +218,9 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   /// Fixes all instances of the [LintNames.diagnostic_describe_all_properties] in the given
   /// [declaration].
   Future<void> _fixAllDiagnosticPropertyReferences(
-      ChangeBuilder builder, ClassDeclaration declaration) async {
+    ChangeBuilder builder,
+    ClassDeclaration declaration,
+  ) async {
     var propertyErrors = _getAllDiagnosticsInClass(declaration);
 
     // Create fixes only when its the first error.
@@ -218,10 +229,12 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       return;
     }
 
-    void writePropertyReference(DartEditBuilder builder,
-        {required String prefix,
-        required String builderName,
-        required _PropertyInfo property}) {
+    void writePropertyReference(
+      DartEditBuilder builder, {
+      required String prefix,
+      required String builderName,
+      required _PropertyInfo property,
+    }) {
       builder.write('$prefix$builderName.add(${property.constructorId}');
       var type = property.type;
       if (property.typeArgs != null) {
@@ -241,7 +254,8 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
         }
       }
       builder.writeln(
-          "${property.constructorName}('${property.name}', ${property.name}));");
+        "${property.constructorName}('${property.name}', ${property.name}));",
+      );
     }
 
     var properties = <_PropertyInfo>[];
@@ -265,10 +279,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       return;
     }
 
-    var debugFillProperties = declaration.members
-        .whereType<MethodDeclaration>()
-        .where((e) => e.name.lexeme == 'debugFillProperties')
-        .singleOrNull;
+    var debugFillProperties =
+        declaration.members
+            .whereType<MethodDeclaration>()
+            .where((e) => e.name.lexeme == 'debugFillProperties')
+            .singleOrNull;
 
     if (debugFillProperties == null) {
       await builder.addDartFileEdit(file, (builder) {
@@ -278,15 +293,19 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
 
           builder.writeln('@override');
           builder.writeln(
-              '${declPrefix}void debugFillProperties(DiagnosticPropertiesBuilder properties) {');
-          builder
-              .writeln('${bodyPrefix}super.debugFillProperties(properties);');
+            '${declPrefix}void debugFillProperties(DiagnosticPropertiesBuilder properties) {',
+          );
+          builder.writeln(
+            '${bodyPrefix}super.debugFillProperties(properties);',
+          );
 
           for (var property in properties) {
-            writePropertyReference(builder,
-                prefix: bodyPrefix,
-                builderName: 'properties',
-                property: property);
+            writePropertyReference(
+              builder,
+              prefix: bodyPrefix,
+              builderName: 'properties',
+              property: property,
+            );
           }
           builder.write('$declPrefix}');
         });
@@ -334,10 +353,12 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(utils.getLineNext(offset), (builder) {
           for (var property in properties) {
-            writePropertyReference(builder,
-                prefix: prefix,
-                builderName: final_propertiesBuilderName,
-                property: property);
+            writePropertyReference(
+              builder,
+              prefix: prefix,
+              builderName: final_propertiesBuilderName,
+              property: property,
+            );
           }
         });
       });
@@ -419,7 +440,13 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     }
 
     return _PropertyInfo(
-        name, type, constructorId, typeArgs, constructorName, declType);
+      name,
+      type,
+      constructorId,
+      typeArgs,
+      constructorName,
+      declType,
+    );
   }
 
   /// Return the return type of the given [node].
@@ -456,6 +483,12 @@ class _PropertyInfo {
   final String constructorName;
   final TypeAnnotation? declType;
 
-  _PropertyInfo(this.name, this.type, this.constructorId, this.typeArgs,
-      this.constructorName, this.declType);
+  _PropertyInfo(
+    this.name,
+    this.type,
+    this.constructorId,
+    this.typeArgs,
+    this.constructorName,
+    this.declType,
+  );
 }

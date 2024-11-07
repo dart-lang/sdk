@@ -12,20 +12,31 @@ class SearchFindMemberReferencesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   SearchFindMemberReferencesHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     var searchEngine = server.searchEngine;
-    var params = protocol.SearchFindMemberReferencesParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = protocol.SearchFindMemberReferencesParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     await server.onAnalysisComplete;
     // respond
     var searchId = (server.nextSearchId++).toString();
     sendResult(protocol.SearchFindMemberReferencesResult(searchId));
     // search
     var matches = await searchEngine.searchMemberReferences(params.name);
-    sendSearchResults(protocol.SearchResultsParams(searchId,
-        matches.map(protocol.newSearchResult_fromMatch).toList(), true));
+    sendSearchResults(
+      protocol.SearchResultsParams(
+        searchId,
+        matches.map(protocol.newSearchResult_fromMatch).toList(),
+        true,
+      ),
+    );
   }
 }

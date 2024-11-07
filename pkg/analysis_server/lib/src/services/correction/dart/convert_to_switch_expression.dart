@@ -31,8 +31,9 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
@@ -57,13 +58,23 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     switch (switchType) {
       case _SwitchTypeReturn():
         await _convertReturnSwitchExpression(
-            builder, switchStatement, switchType, followingThrow);
+          builder,
+          switchStatement,
+          switchType,
+          followingThrow,
+        );
       case _SwitchTypeAssignment():
         await _convertAssignmentSwitchExpression(
-            builder, switchStatement, switchType);
+          builder,
+          switchStatement,
+          switchType,
+        );
       case _SwitchTypeArgument():
         await _convertArgumentSwitchExpression(
-            builder, switchStatement, switchType);
+          builder,
+          switchStatement,
+          switchType,
+        );
       case null:
         return;
     }
@@ -86,20 +97,28 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         if (statement is ExpressionStatement) {
           var invocation = statement.expression;
           if (invocation is MethodInvocation) {
-            var deletion = !hasComment
-                ? range.startOffsetEndOffset(
-                    lastColon.end, invocation.argumentList.leftParenthesis.end)
-                : range.startOffsetEndOffset(invocation.offset,
-                    invocation.argumentList.leftParenthesis.end);
+            var deletion =
+                !hasComment
+                    ? range.startOffsetEndOffset(
+                      lastColon.end,
+                      invocation.argumentList.leftParenthesis.end,
+                    )
+                    : range.startOffsetEndOffset(
+                      invocation.offset,
+                      invocation.argumentList.leftParenthesis.end,
+                    );
             builder.addDeletion(deletion);
             builder.addDeletion(
-                range.entity(invocation.argumentList.rightParenthesis));
+              range.entity(invocation.argumentList.rightParenthesis),
+            );
           }
         }
 
         if (!hasComment && statement.isThrowExpressionStatement) {
-          var deletionRange =
-              range.startOffsetEndOffset(lastColon.end, statement.offset - 1);
+          var deletionRange = range.startOffsetEndOffset(
+            lastColon.end,
+            statement.offset - 1,
+          );
           builder.addDeletion(deletionRange);
         }
 
@@ -173,15 +192,22 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
           var expression = statement.expression;
           if (expression is AssignmentExpression) {
             var hasComment = statement.beginToken.precedingComments != null;
-            var deletion = !hasComment
-                ? range.startOffsetEndOffset(
-                    lastColon.end, expression.operator.end)
-                : range.startOffsetEndOffset(expression.beginToken.offset,
-                    expression.rightHandSide.offset);
+            var deletion =
+                !hasComment
+                    ? range.startOffsetEndOffset(
+                      lastColon.end,
+                      expression.operator.end,
+                    )
+                    : range.startOffsetEndOffset(
+                      expression.beginToken.offset,
+                      expression.rightHandSide.offset,
+                    );
             builder.addDeletion(deletion);
           } else if (expression is ThrowExpression) {
-            var deletionRange =
-                range.startOffsetEndOffset(lastColon.end, statement.offset - 1);
+            var deletionRange = range.startOffsetEndOffset(
+              lastColon.end,
+              statement.offset - 1,
+            );
             builder.addDeletion(deletionRange);
           }
         }
@@ -200,7 +226,9 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
-          node.offset, '${writeElement!.name3} ${assignmentOperator!.lexeme} ');
+        node.offset,
+        '${writeElement!.name3} ${assignmentOperator!.lexeme} ',
+      );
 
       var groupCount = switchType.groups.length;
       for (var i = 0; i < groupCount; ++i) {
@@ -311,10 +339,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
                 .map((pattern) => utils.getNodeText(pattern))
                 .join(' || ');
             builder.addSimpleReplacement(
-              range.startEnd(
-                firstCase.keyword,
-                lastCase.colon,
-              ),
+              range.startEnd(firstCase.keyword, lastCase.colon),
               '$patternCode =>',
             );
 
@@ -342,7 +367,9 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   }
 
   void _convertSwitchDefault(
-      DartFileEditBuilder builder, SwitchDefault member) {
+    DartFileEditBuilder builder,
+    SwitchDefault member,
+  ) {
     var defaultClauseRange = range.startEnd(member.keyword, member.colon);
     builder.addSimpleReplacement(defaultClauseRange, '_ =>');
   }
@@ -379,10 +406,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         // Support `default`, if alone.
         if (members.singleOrNull case SwitchDefault switchDefault) {
           result.add(
-            _DefaultGroup(
-              node: switchDefault,
-              statements: group.statements,
-            ),
+            _DefaultGroup(node: switchDefault, statements: group.statements),
           );
           return;
         }
@@ -499,18 +523,12 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
     if (canBeReturn) {
       assert(!canBeAssignment && !canBeArgument);
-      return _SwitchTypeReturn(
-        groups: result,
-      );
+      return _SwitchTypeReturn(groups: result);
     } else if (canBeAssignment) {
       assert(!canBeArgument);
-      return _SwitchTypeAssignment(
-        groups: result,
-      );
+      return _SwitchTypeAssignment(groups: result);
     } else if (canBeArgument) {
-      return _SwitchTypeArgument(
-        groups: result,
-      );
+      return _SwitchTypeArgument(groups: result);
     }
 
     return null;
@@ -571,10 +589,13 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   }
 
   static SourceRange _getBreakRange(BreakStatement statement) {
-    var previous = (statement.beginToken.precedingComments ??
-        statement.beginToken.previous)!;
-    var deletion =
-        range.startOffsetEndOffset(previous.end, statement.endToken.end);
+    var previous =
+        (statement.beginToken.precedingComments ??
+            statement.beginToken.previous)!;
+    var deletion = range.startOffsetEndOffset(
+      previous.end,
+      statement.endToken.end,
+    );
     return deletion;
   }
 }
@@ -582,18 +603,13 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 class _DefaultGroup extends _Group {
   final SwitchDefault node;
 
-  _DefaultGroup({
-    required super.statements,
-    required this.node,
-  });
+  _DefaultGroup({required super.statements, required this.node});
 }
 
 sealed class _Group {
   final List<Statement> statements;
 
-  _Group({
-    required this.statements,
-  });
+  _Group({required this.statements});
 }
 
 /// Superclass for all indentation strategies.
@@ -605,48 +621,35 @@ sealed class _Indentation {}
 final class _IndentationFullFirstRightAll extends _Indentation {
   final int level;
 
-  _IndentationFullFirstRightAll({
-    required this.level,
-  });
+  _IndentationFullFirstRightAll({required this.level});
 }
 
 /// Joined [Pattern]s, without `when`, before statements.
 class _JoinedCaseGroup extends _Group {
   final List<SwitchPatternCase> patternCases;
 
-  _JoinedCaseGroup({
-    required this.patternCases,
-    required super.statements,
-  });
+  _JoinedCaseGroup({required this.patternCases, required super.statements});
 }
 
 sealed class _SwitchType {
   final List<_Group> groups;
 
-  _SwitchType({
-    required this.groups,
-  });
+  _SwitchType({required this.groups});
 }
 
 /// Each case statement passes a value to the same function.
 final class _SwitchTypeArgument extends _SwitchType {
-  _SwitchTypeArgument({
-    required super.groups,
-  });
+  _SwitchTypeArgument({required super.groups});
 }
 
 /// Each case statement assigns to a local variable.
 final class _SwitchTypeAssignment extends _SwitchType {
-  _SwitchTypeAssignment({
-    required super.groups,
-  });
+  _SwitchTypeAssignment({required super.groups});
 }
 
 /// Each case statement returns a value.
 final class _SwitchTypeReturn extends _SwitchType {
-  _SwitchTypeReturn({
-    required super.groups,
-  });
+  _SwitchTypeReturn({required super.groups});
 }
 
 extension on Statement {

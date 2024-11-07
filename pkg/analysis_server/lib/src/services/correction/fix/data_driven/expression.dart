@@ -70,11 +70,7 @@ class LiteralString extends Expression {
 }
 
 /// An operator used in a binary expression.
-enum Operator {
-  and,
-  equal,
-  notEqual,
-}
+enum Operator { and, equal, notEqual }
 
 /// A reference to a variable.
 class VariableReference extends Expression {
@@ -99,7 +95,7 @@ extension on Operator {
     return switch (this) {
       Operator.and => '&&',
       Operator.equal => '==',
-      Operator.notEqual => '!='
+      Operator.notEqual => '!=',
     };
   }
 }

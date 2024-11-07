@@ -20,10 +20,7 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   /// ask for the updated config.
   Future<void> test_configChange() async {
     setDidChangeConfigurationDynamicRegistration();
-    await provideConfig(
-      initialize,
-      {'dart.foo': false},
-    );
+    await provideConfig(initialize, {'dart.foo': false});
 
     // The updateConfig helper will only complete after the server requests the config.
     await updateConfig({'dart.foo': true});
@@ -37,13 +34,12 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
     setTextSyncDynamicRegistration();
 
     var registrations = <Registration>[];
-    await monitorDynamicRegistrations(
-      registrations,
-      () => initialize(),
-    );
+    await monitorDynamicRegistrations(registrations, () => initialize());
 
-    var registration =
-        registrationFor(registrations, Method.workspace_didChangeConfiguration);
+    var registration = registrationFor(
+      registrations,
+      Method.workspace_didChangeConfiguration,
+    );
     expect(registration, isNull);
   }
 
@@ -62,7 +58,7 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
     // Notify the server of updated config that includes an excluded path.
     var excludedFolderPath = join(projectFolderPath, 'excluded');
     await updateConfig({
-      'analysisExcludedFolders': [excludedFolderPath]
+      'analysisExcludedFolders': [excludedFolderPath],
     });
 
     // Ensure the roots were updated by the config change.
@@ -74,13 +70,12 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
     setDidChangeConfigurationDynamicRegistration();
 
     var registrations = <Registration>[];
-    await monitorDynamicRegistrations(
-      registrations,
-      initialize,
-    );
+    await monitorDynamicRegistrations(registrations, initialize);
 
-    var registration =
-        registrationFor(registrations, Method.workspace_didChangeConfiguration);
+    var registration = registrationFor(
+      registrations,
+      Method.workspace_didChangeConfiguration,
+    );
     expect(registration, isNotNull);
   }
 
@@ -99,8 +94,9 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_configurationRequest_supported() async {
     setConfigurationSupport();
 
-    var configRequest = requestsFromServer
-        .firstWhere((n) => n.method == Method.workspace_configuration);
+    var configRequest = requestsFromServer.firstWhere(
+      (n) => n.method == Method.workspace_configuration,
+    );
     expect(configRequest, completes);
 
     await initialize();

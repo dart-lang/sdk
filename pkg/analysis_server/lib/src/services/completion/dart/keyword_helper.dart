@@ -26,11 +26,12 @@ class KeywordHelper {
   final CompletionState state;
 
   /// Initialize a newly created helper to add suggestions to the [collector].
-  KeywordHelper(
-      {required this.collector,
-      required this.featureSet,
-      required this.offset,
-      required this.state});
+  KeywordHelper({
+    required this.collector,
+    required this.featureSet,
+    required this.offset,
+    required this.state,
+  });
 
   /// Add the keywords that are appropriate when the selection is in a class
   /// declaration between the name of the class and the body. The [node] is the
@@ -107,8 +108,11 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an element in a collection [literal].
   void addCollectionElementKeywords(
-      TypedLiteral literal, NodeList<CollectionElement> elements,
-      {bool mustBeConst = false, bool mustBeStatic = false}) {
+    TypedLiteral literal,
+    NodeList<CollectionElement> elements, {
+    bool mustBeConst = false,
+    bool mustBeStatic = false,
+  }) {
     // TODO(brianwilkerson): Consider determining whether there is a comma before
     //  the selection and inserting the comma if there isn't one.
     addKeyword(Keyword.FOR);
@@ -131,8 +135,11 @@ class KeywordHelper {
         }
       }
     }
-    addExpressionKeywords(literal,
-        mustBeConstant: mustBeConst, mustBeStatic: mustBeStatic);
+    addExpressionKeywords(
+      literal,
+      mustBeConstant: mustBeConst,
+      mustBeStatic: mustBeStatic,
+    );
   }
 
   /// Add the keywords that are appropriate when the selection is after the
@@ -180,7 +187,9 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is in the
   /// [initializer] list of the given [constructor].
   void addConstructorInitializerKeywords(
-      ConstructorDeclaration constructor, ConstructorInitializer? initializer) {
+    ConstructorDeclaration constructor,
+    ConstructorInitializer? initializer,
+  ) {
     addKeyword(Keyword.ASSERT);
     var initializers = constructor.initializers;
     if (initializer == null || initializers.last == initializer) {
@@ -252,8 +261,11 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an expression. The [node] provides context to determine which
   /// keywords to include.
-  void addExpressionKeywords(AstNode? node,
-      {bool mustBeConstant = false, bool mustBeStatic = false}) {
+  void addExpressionKeywords(
+    AstNode? node, {
+    bool mustBeConstant = false,
+    bool mustBeStatic = false,
+  }) {
     /// Return `true` if `const` should be suggested for the given [node].
     bool constIsValid(AstNode? node) {
       if (node is CollectionElement && node is! Expression) {

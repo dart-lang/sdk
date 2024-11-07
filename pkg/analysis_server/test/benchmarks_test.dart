@@ -37,9 +37,10 @@ void defineTests() {
     // variable.
     var runBenchmarks =
         Platform.environment['TEST_SERVER_BENCHMARKS'] != 'false';
-    var skipReason = runBenchmarks
-        ? null
-        : 'Skipped by TEST_SERVER_BENCHMARKS environment variable';
+    var skipReason =
+        runBenchmarks
+            ? null
+            : 'Skipped by TEST_SERVER_BENCHMARKS environment variable';
 
     for (var benchmarkId in benchmarks) {
       if (benchmarkIdsToSkip.contains(benchmarkId)) {
@@ -47,30 +48,29 @@ void defineTests() {
       }
 
       test(benchmarkId, () {
-        var r = Process.runSync(
-          Platform.resolvedExecutable,
-          [
-            path.join('benchmark', 'benchmarks.dart'),
-            'run',
-            '--repeat=1',
-            '--quick',
-            benchmarkId
-          ],
-          workingDirectory: _serverSourcePath,
+        var r = Process.runSync(Platform.resolvedExecutable, [
+          path.join('benchmark', 'benchmarks.dart'),
+          'run',
+          '--repeat=1',
+          '--quick',
+          benchmarkId,
+        ], workingDirectory: _serverSourcePath);
+        expect(
+          r.exitCode,
+          0,
+          reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}',
         );
-        expect(r.exitCode, 0,
-            reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
       }, skip: skipReason);
     }
   });
 }
 
 List<String> _listBenchmarks() {
-  var result = Process.runSync(
-    Platform.resolvedExecutable,
-    [path.join('benchmark', 'benchmarks.dart'), 'list', '--machine'],
-    workingDirectory: _serverSourcePath,
-  );
+  var result = Process.runSync(Platform.resolvedExecutable, [
+    path.join('benchmark', 'benchmarks.dart'),
+    'list',
+    '--machine',
+  ], workingDirectory: _serverSourcePath);
   var output = json.decode(result.stdout as String) as Map<Object?, Object?>;
   var benchmarks = (output['benchmarks'] as List).cast<Map<Object?, Object?>>();
   return benchmarks.map((b) => b['id']).cast<String>().toList();

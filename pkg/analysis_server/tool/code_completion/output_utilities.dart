@@ -98,7 +98,8 @@ extension OutputUtilities on StringSink {
       if (rowLength > 0) {
         if (rowLength != columnCount) {
           throw ArgumentError(
-              'non-empty rows must contain the same number of columns');
+            'non-empty rows must contain the same number of columns',
+          );
         }
         for (var i = 0; i < rowLength; i++) {
           var cellWidth = row[i].length;

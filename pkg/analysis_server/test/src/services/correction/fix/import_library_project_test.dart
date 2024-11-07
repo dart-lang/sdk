@@ -391,7 +391,7 @@ class D extends C {
   }
 
   Future<void>
-      test_extension_notImported_method_onThisType_fromExtension() async {
+  test_extension_notImported_method_onThisType_fromExtension() async {
     newFile('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
 
@@ -477,8 +477,8 @@ extension IntExtension on int {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: pkgRootPath),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: pkgRootPath),
     );
 
     updateTestPubspecFile('''
@@ -548,7 +548,8 @@ void f() {
   Test();
 }
 ''');
-    await assertHasFix(r'''
+    await assertHasFix(
+      r'''
 import 'package:test/lib.dart';
 
 import 'package:$foo/foo.dart';
@@ -557,8 +558,9 @@ void f() {
   Test();
 }
 ''',
-        errorFilter: (e) =>
-            e.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION);
+      errorFilter:
+          (e) => e.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION,
+    );
   }
 
   Future<void> test_lib() async {
@@ -567,8 +569,9 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -601,8 +604,9 @@ extension E on int {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -631,8 +635,9 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -668,41 +673,45 @@ class Foo {}
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'a.dart'");
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessage: "Import library 'a.dart'",
+    );
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Import library 'package:test/a.dart'",
-          "Import library 'a.dart'",
-        ]);
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Import library 'package:test/a.dart'",
+        "Import library 'a.dart'",
+      ],
+    );
   }
 
   Future<void> test_relativeDirective_alwaysUsePackageImports() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.always_use_package_imports,
-    ]);
+    createAnalysisOptionsFile(lints: [LintNames.always_use_package_imports]);
     newFile('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:test/a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 1,
-        matchFixMessage: "Import library 'package:test/a.dart'");
+      expectedNumberOfFixesForKind: 1,
+      matchFixMessage: "Import library 'package:test/a.dart'",
+    );
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 1,
-        matchFixMessages: ["Import library 'package:test/a.dart'"]);
+      expectedNumberOfFixesForKind: 1,
+      matchFixMessages: ["Import library 'package:test/a.dart'"],
+    );
   }
 
   Future<void> test_relativeDirective_downOneDirectory() async {
@@ -712,13 +721,15 @@ class Foo {}
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'dir/a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'dir/a.dart'");
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessage: "Import library 'dir/a.dart'",
+    );
   }
 
   Future<void> test_relativeDirective_noLint() async {
@@ -728,41 +739,45 @@ class Foo {}
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:test/a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'package:test/a.dart'");
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessage: "Import library 'package:test/a.dart'",
+    );
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Import library 'package:test/a.dart'",
-          "Import library 'a.dart'",
-        ]);
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Import library 'package:test/a.dart'",
+        "Import library 'a.dart'",
+      ],
+    );
   }
 
   Future<void> test_relativeDirective_preferRelativeImports() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.prefer_relative_imports,
-    ]);
+    createAnalysisOptionsFile(lints: [LintNames.prefer_relative_imports]);
     newFile('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 1,
-        matchFixMessage: "Import library 'a.dart'");
+      expectedNumberOfFixesForKind: 1,
+      matchFixMessage: "Import library 'a.dart'",
+    );
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 1,
-        matchFixMessages: ["Import library 'a.dart'"]);
+      expectedNumberOfFixesForKind: 1,
+      matchFixMessages: ["Import library 'a.dart'"],
+    );
   }
 
   Future<void> test_relativeDirective_upOneDirectory() async {
@@ -773,13 +788,15 @@ class Foo {}
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import '../a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library '../a.dart'");
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessage: "Import library '../a.dart'",
+    );
   }
 
   Future<void> test_withClass_annotation() async {
@@ -1057,8 +1074,8 @@ dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await resolveTestCode('''
@@ -1085,8 +1102,8 @@ dev_dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await resolveTestCode('''
@@ -1107,8 +1124,8 @@ name: test
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await resolveTestCode('''
@@ -1132,8 +1149,8 @@ dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     var b = newFile('$testPackageTestPath/b.dart', r'''
@@ -1162,8 +1179,8 @@ dev_dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     var b = newFile('$testPackageTestPath/b.dart', r'''
@@ -1752,8 +1769,9 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -1785,8 +1803,9 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -1820,8 +1839,9 @@ extension E on int {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''

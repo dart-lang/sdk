@@ -29,8 +29,10 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var decoded = AnalysisErrorsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       String format(AnalysisError e) => '${e.location.startLine}: ${e.message}';
       filesErrors[getFile(decoded.file)] = decoded.errors.map(format).toList();
     }
@@ -49,9 +51,7 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
     var response = await handleRequest(
       AnalysisUpdateContentParams({
-        testFile.path: ChangeContentOverlay([
-          SourceEdit(0, 0, ''),
-        ]),
+        testFile.path: ChangeContentOverlay([SourceEdit(0, 0, '')]),
       }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     assertResponseFailure(
@@ -88,8 +88,9 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
   Future<void> test_multiple_contexts() async {
     writePackageConfig(
       workspaceRootPath,
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
     var aaa = newFile('$workspaceRootPath/aaa/lib/aaa.dart', r'''
@@ -110,10 +111,7 @@ void g() {
 }
 ''');
 
-    await setRoots(included: [
-      foo.parent.path,
-      bar.parent.path,
-    ], excluded: []);
+    await setRoots(included: [foo.parent.path, bar.parent.path], excluded: []);
 
     {
       await waitForTasksFinished();
@@ -123,9 +121,9 @@ void g() {
       expect(filesErrors[bar], hasLength(1));
       // Overlay the content of baz.dart to eliminate the errors.
       await handleSuccessfulRequest(
-        AnalysisUpdateContentParams(
-                {aaa.path: AddContentOverlay('void f() {}')})
-            .toRequest('0', clientUriConverter: server.uriConverter),
+        AnalysisUpdateContentParams({
+          aaa.path: AddContentOverlay('void f() {}'),
+        }).toRequest('0', clientUriConverter: server.uriConverter),
       );
     }
 
@@ -152,19 +150,19 @@ void g() {
     await waitForTasksFinished();
     expect(filesErrors, {
       '/project/main.dart': ["1: Target of URI doesn't exist: 'target.dart'."],
-      '/project/target.dart': []
+      '/project/target.dart': [],
     });
 
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        '/project/target.dart': AddContentOverlay('import "none.dart";')
+        '/project/target.dart': AddContentOverlay('import "none.dart";'),
       }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     expect(filesErrors, {
       '/project/main.dart': ['1: Unused import.'],
       '/project/target.dart': ["1: Target of URI doesn't exist: 'none.dart'."],
-      '/project/none.dart': []
+      '/project/none.dart': [],
     });
   }
 
@@ -216,9 +214,7 @@ void g() {
     filesErrors.clear();
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFile.path: ChangeContentOverlay([
-          SourceEdit(5, 1, 'f'),
-        ]),
+        testFile.path: ChangeContentOverlay([SourceEdit(5, 1, 'f')]),
       }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
@@ -243,9 +239,7 @@ void g() {
     filesErrors.clear();
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFile.path: ChangeContentOverlay([
-          SourceEdit(5, 1, 'f'),
-        ]),
+        testFile.path: ChangeContentOverlay([SourceEdit(5, 1, 'f')]),
       }).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();

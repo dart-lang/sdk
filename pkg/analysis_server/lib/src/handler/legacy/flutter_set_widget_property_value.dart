@@ -13,12 +13,18 @@ class FlutterSetWidgetPropertyValueHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   FlutterSetWidgetPropertyValueHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = FlutterSetWidgetPropertyValueParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = FlutterSetWidgetPropertyValueParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
 
     var result = await server.flutterWidgetDescriptions.setPropertyValue(
       params.id,
@@ -27,16 +33,9 @@ class FlutterSetWidgetPropertyValueHandler extends LegacyHandler {
 
     var errorCode = result.errorCode;
     if (errorCode != null) {
-      sendResponse(
-        Response(
-          request.id,
-          error: RequestError(errorCode, ''),
-        ),
-      );
+      sendResponse(Response(request.id, error: RequestError(errorCode, '')));
     }
 
-    sendResult(FlutterSetWidgetPropertyValueResult(
-      result.change!,
-    ));
+    sendResult(FlutterSetWidgetPropertyValueResult(result.change!));
   }
 }

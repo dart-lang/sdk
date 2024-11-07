@@ -138,7 +138,7 @@ Delete 1:27-1:29
   }
 
   Future<void>
-      test_minimalEdits_comma_delete_betweenBlockComments_withWrapping() async {
+  test_minimalEdits_comma_delete_betweenBlockComments_withWrapping() async {
     const startContent = '''
 void f(veryLongArgument, argument /* before */ , /* after */ argument);
 ''';
@@ -235,7 +235,7 @@ Insert "," at 1:14
   }
 
   Future<void>
-      test_minimalEdits_comma_insertWithLeadingAndTrailingWhitespace() async {
+  test_minimalEdits_comma_insertWithLeadingAndTrailingWhitespace() async {
     const startContent = '''
 void f(int a) {}
 ''';
@@ -345,11 +345,7 @@ int? a;
 Replace 2:33-3:34 with "\n * line with trailing whitespace"
 ''';
 
-    await _assertMinimalEdits(
-      startContent,
-      endContent,
-      expectedEdits,
-    );
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
   /// The formatter removes trailing whitespace from comments which results in
@@ -369,11 +365,7 @@ Replace 2:33-3:34 with "\n * line with trailing whitespace"
 Delete 1:18-1:19
 ''';
 
-    await _assertMinimalEdits(
-      startContent,
-      endContent,
-      expectedEdits,
-    );
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
   /// Empty collections that are unwrapped produce different tokens. This should
@@ -395,11 +387,7 @@ var b = '';
 Delete 1:18-2:1
 ''';
 
-    await _assertMinimalEdits(
-      startContent,
-      endContent,
-      expectedEdits,
-    );
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
   Future<void> test_minimalEdits_formatting_shortStyle() async {
@@ -689,8 +677,8 @@ extension on TextEdit {
     return range.start == range.end
         ? 'Insert ${jsonEncode(newText)} at ${range.start.toText()}'
         : newText.isEmpty
-            ? 'Delete ${range.toText()}'
-            : 'Replace ${range.toText()} with ${jsonEncode(newText)}';
+        ? 'Delete ${range.toText()}'
+        : 'Replace ${range.toText()} with ${jsonEncode(newText)}';
   }
 }
 
@@ -712,8 +700,6 @@ extension on Position {
 /// Does not include actual content - resulting content should be verified
 /// separately.
 extension on ErrorOr<List<TextEdit>> {
-  String toText() => map(
-        (error) => 'Error: ${error.message}',
-        (result) => result.toText(),
-      );
+  String toText() =>
+      map((error) => 'Error: ${error.message}', (result) => result.toText());
 }

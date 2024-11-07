@@ -221,7 +221,7 @@ void f(int x) {
   }
 
   Future<void>
-      test_ifElement_alwaysFalse_noElse_insideList_withComments() async {
+  test_ifElement_alwaysFalse_noElse_insideList_withComments() async {
     await resolveTestCode('''
 void f(int x) {
   [

@@ -31,11 +31,12 @@ class ElementDescriptor {
   /// accessible via any of the [libraryUris] where the path to the element
   /// within the library is given by the list of [components]. The [kind] of the
   /// element is represented by the key used in the data file.
-  ElementDescriptor(
-      {required this.libraryUris,
-      required this.kind,
-      required this.isStatic,
-      required this.components});
+  ElementDescriptor({
+    required this.libraryUris,
+    required this.kind,
+    required this.isStatic,
+    required this.components,
+  });
 
   /// Return `true` if the described element is a constructor.
   bool get isConstructor => kind == ElementKind.constructorKind;
@@ -78,7 +79,7 @@ class ElementDescriptor {
         false,
       ElementKind.variableKind =>
         // TODO(brianwilkerson): Handle this case.
-        false
+        false,
     };
   }
 
@@ -173,6 +174,7 @@ class ElementDescriptor {
       return identifier.identifier.name;
     }
     throw StateError(
-        'Unexpected class of identifier: ${identifier.runtimeType}');
+      'Unexpected class of identifier: ${identifier.runtimeType}',
+    );
   }
 }

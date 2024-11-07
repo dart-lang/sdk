@@ -14,8 +14,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
-typedef StaticOptions
-    = Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
+typedef StaticOptions =
+    Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
 
 class ImplementationHandler
     extends SharedMessageHandler<TextDocumentPositionParams, List<Location>> {
@@ -32,8 +32,11 @@ class ImplementationHandler
   bool get requiresTrustedCaller => false;
 
   @override
-  Future<ErrorOr<List<Location>>> handle(TextDocumentPositionParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<Location>>> handle(
+    TextDocumentPositionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -46,16 +49,19 @@ class ImplementationHandler
     );
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
-        '_getImplementations',
-        (performance) async => (unit, offset).mapResults((unit, offset) =>
-            _getImplementations(unit, offset, token, performance)));
+      '_getImplementations',
+      (performance) async => (unit, offset).mapResults(
+        (unit, offset) => _getImplementations(unit, offset, token, performance),
+      ),
+    );
   }
 
   Future<ErrorOr<List<Location>>> _getImplementations(
-      ResolvedUnitResult result,
-      int offset,
-      CancellationToken token,
-      OperationPerformanceImpl performance) async {
+    ResolvedUnitResult result,
+    int offset,
+    CancellationToken token,
+    OperationPerformanceImpl performance,
+  ) async {
     var node = NodeLocator(offset).searchWithin(result.unit);
     var element = server.getElementOfNode(node);
     if (element == null) {
@@ -71,40 +77,46 @@ class ImplementationHandler
 
     var allSubtypes = <InterfaceElement>{};
     await performance.runAsync(
-        'appendAllSubtypes',
-        (performance) => server.searchEngine
-            .appendAllSubtypes(interfaceElement, allSubtypes, performance));
+      'appendAllSubtypes',
+      (performance) => server.searchEngine.appendAllSubtypes(
+        interfaceElement,
+        allSubtypes,
+        performance,
+      ),
+    );
 
     var locations = performance.run(
-        'filter and get location',
-        (_) => allSubtypes
-            .map((element) {
-              return needsMember
-                  // Filter based on type, so when searching for members we don't
-                  // include any intermediate classes that don't have
-                  // implementations for the method.
-                  ? helper.findMemberElement(element)?.nonSynthetic
-                  : element;
-            })
-            .nonNulls
-            .toSet()
-            .map((element) {
-              var unitElement =
-                  element.thisOrAncestorOfType<CompilationUnitElement>();
-              if (unitElement == null) {
-                return null;
-              }
-              return Location(
-                uri: uriConverter.toClientUri(unitElement.source.fullName),
-                range: toRange(
-                  unitElement.lineInfo,
-                  element.nameOffset,
-                  element.nameLength,
-                ),
-              );
-            })
-            .nonNulls
-            .toList());
+      'filter and get location',
+      (_) =>
+          allSubtypes
+              .map((element) {
+                return needsMember
+                    // Filter based on type, so when searching for members we don't
+                    // include any intermediate classes that don't have
+                    // implementations for the method.
+                    ? helper.findMemberElement(element)?.nonSynthetic
+                    : element;
+              })
+              .nonNulls
+              .toSet()
+              .map((element) {
+                var unitElement =
+                    element.thisOrAncestorOfType<CompilationUnitElement>();
+                if (unitElement == null) {
+                  return null;
+                }
+                return Location(
+                  uri: uriConverter.toClientUri(unitElement.source.fullName),
+                  range: toRange(
+                    unitElement.lineInfo,
+                    element.nameOffset,
+                    element.nameLength,
+                  ),
+                );
+              })
+              .nonNulls
+              .toList(),
+    );
 
     return success(locations);
   }

@@ -31,9 +31,7 @@ class RemoveEmptyElse extends ResolvedCorrectionProducer {
       if (elseKeyword != null && elseStatement != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addDeletion(
-            utils.getLinesRange(
-              range.startEnd(elseKeyword, elseStatement),
-            ),
+            utils.getLinesRange(range.startEnd(elseKeyword, elseStatement)),
           );
         });
       }

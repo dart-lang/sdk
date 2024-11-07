@@ -16,10 +16,7 @@ mixin TestMacros on ConfigurationFilesMixin {
   /// `macros.dart` file that defines the given [macros]. The macros should not
   /// include imports, the imports for macros will be added automatically.
   void addMacros(List<String> macros, {bool isFlutter = false}) {
-    writeTestPackageConfig(
-      flutter: isFlutter,
-      macro: true,
-    );
+    writeTestPackageConfig(flutter: isFlutter, macro: true);
 
     newFile(
       '$testPackageRootPath/lib/macros.dart',
@@ -28,7 +25,7 @@ mixin TestMacros on ConfigurationFilesMixin {
 // There is no public API exposed yet, the in-progress API lives here.
 import 'package:macros/macros.dart';
 ''',
-        ...macros
+        ...macros,
       ].join('\n'),
     );
   }

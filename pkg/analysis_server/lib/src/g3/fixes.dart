@@ -122,19 +122,12 @@ class LintFixTester {
   ///
   /// This method should not be used after any analysis is performed, such
   /// as invocation of [fixesForSingleLint], will throw [StateError].
-  void updateFile({
-    required String path,
-    required String content,
-  }) {
+  void updateFile({required String path, required String content}) {
     if (!_canUpdateResourceProvider) {
       throw StateError('Diagnostics were already computed.');
     }
 
-    _resourceProvider.setOverlay(
-      path,
-      content: content,
-      modificationStamp: 0,
-    );
+    _resourceProvider.setOverlay(path, content: content, modificationStamp: 0);
   }
 }
 
@@ -142,10 +135,8 @@ class LintFixTesterWithFixes {
   final LintFixTester _parent;
   final List<Fix> fixes;
 
-  LintFixTesterWithFixes({
-    required LintFixTester parent,
-    required this.fixes,
-  }) : _parent = parent;
+  LintFixTesterWithFixes({required LintFixTester parent, required this.fixes})
+    : _parent = parent;
 
   void assertNoFixes() {
     if (fixes.isNotEmpty) {
@@ -158,10 +149,7 @@ class LintFixTesterWithFixes {
       throw StateError('Must have exactly one fix: $fixes');
     }
 
-    return LintFixTesterWithSingleFix(
-      parent: this,
-      fix: fixes.single,
-    );
+    return LintFixTesterWithSingleFix(parent: this, fix: fixes.single);
   }
 }
 
@@ -179,9 +167,7 @@ class LintFixTesterWithSingleFix {
     required String fixedContent,
   }) {
     var fileEdits = fix.change.edits;
-    var fileEdit = fileEdits.singleWhere(
-      (fileEdit) => fileEdit.file == path,
-    );
+    var fileEdit = fileEdits.singleWhere((fileEdit) => fileEdit.file == path);
 
     var resourceProvider = _parent._parent._resourceProvider;
     var file = resourceProvider.getFile(path);
@@ -208,9 +194,7 @@ $actualFixedContent
 
   void assertNoFileEdit({required String path}) {
     var fileEdits = fix.change.edits;
-    var filtered = fileEdits.where(
-      (fileEdit) => fileEdit.file == path,
-    );
+    var filtered = fileEdits.where((fileEdit) => fileEdit.file == path);
     if (filtered.isNotEmpty) {
       throw StateError('Expected no edit for $path: $fix');
     }

@@ -15,7 +15,7 @@ class ChangeWorkspaceFoldersHandler
   bool updateAnalysisRoots;
 
   ChangeWorkspaceFoldersHandler(super.server)
-      : updateAnalysisRoots = !server.onlyAnalyzeProjectsWithOpenFiles;
+    : updateAnalysisRoots = !server.onlyAnalyzeProjectsWithOpenFiles;
 
   @override
   Method get handlesMessage => Method.workspace_didChangeWorkspaceFolders;
@@ -25,8 +25,11 @@ class ChangeWorkspaceFoldersHandler
       DidChangeWorkspaceFoldersParams.jsonHandler;
 
   @override
-  Future<ErrorOr<void>> handle(DidChangeWorkspaceFoldersParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<void>> handle(
+    DidChangeWorkspaceFoldersParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     // Don't do anything if our analysis roots are not based on open workspaces.
     if (!updateAnalysisRoots) {
       return success(null);
@@ -35,8 +38,10 @@ class ChangeWorkspaceFoldersHandler
     var added = _convertWorkspaceFolders(params.event.added);
     var removed = _convertWorkspaceFolders(params.event.removed);
 
-    server.analyticsManager
-        .changedWorkspaceFolders(added: added, removed: removed);
+    server.analyticsManager.changedWorkspaceFolders(
+      added: added,
+      removed: removed,
+    );
 
     await server.updateWorkspaceFolders(added, removed);
 

@@ -39,8 +39,11 @@ Future<void> main(List<String> args) async {
   var options = CompletionMetricsOptions(result);
   var stopwatch = Stopwatch()..start();
   var client = _AnalysisServerClient(Directory(_sdk.sdkPath), targets);
-  await _CompletionClientMetricsComputer(rootPath, options, client)
-      .computeMetrics();
+  await _CompletionClientMetricsComputer(
+    rootPath,
+    options,
+    client,
+  ).computeMetrics();
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -60,12 +63,9 @@ Map<String, dynamic> _castStringKeyedMap(dynamic untyped) {
 /// Creates a parser that can be used to parse the command-line arguments.
 ArgParser _createArgParser() {
   return ArgParser(
-      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : 80)
-    ..addFlag(
-      'help',
-      abbr: 'h',
-      help: 'Print this help message.',
+      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : 80,
     )
+    ..addFlag('help', abbr: 'h', help: 'Print this help message.')
     ..addOption(
       CompletionMetricsOptions.OVERLAY,
       allowed: [
@@ -74,7 +74,8 @@ ArgParser _createArgParser() {
         OverlayMode.removeToken.flag,
       ],
       defaultsTo: OverlayMode.none.flag,
-      help: 'Before attempting a completion at the location of each token, the '
+      help:
+          'Before attempting a completion at the location of each token, the '
           'token can be removed, or the rest of the file can be removed to '
           'test code completion with diverse methods. The default mode is to '
           'complete at the start of the token without modifying the file.',
@@ -82,13 +83,15 @@ ArgParser _createArgParser() {
     ..addOption(
       CompletionMetricsOptions.PREFIX_LENGTH,
       defaultsTo: '0',
-      help: 'The number of characters to include in the prefix. Each '
+      help:
+          'The number of characters to include in the prefix. Each '
           'completion will be requested this many characters in from the '
           'start of the token being completed.',
     )
     ..addFlag(
       CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
-      help: 'Print information about the completion requests that were the '
+      help:
+          'Print information about the completion requests that were the '
           'slowest to return suggestions.',
       negatable: false,
     );
@@ -132,8 +135,10 @@ class CompletionMetrics {
   /// A percentile computer which tracks the total time to create and send a
   /// completion request, and receive and decode a completion response, using
   /// 2.000 seconds as the max value to use in percentile calculations.
-  final PercentileComputer totalPercentileComputer =
-      PercentileComputer('ms for total duration', valueLimit: 2000);
+  final PercentileComputer totalPercentileComputer = PercentileComputer(
+    'ms for total duration',
+    valueLimit: 2000,
+  );
 
   /// A percentile computer which tracks the time to send a completion request,
   /// and receive a completion response, not including any time to encode or
@@ -145,14 +150,18 @@ class CompletionMetrics {
   /// A percentile computer which tracks the time to decode each completion
   /// response into JSON, using 2.000 seconds as the max value to use in
   /// percentile calculations.
-  final PercentileComputer decodePercentileComputer =
-      PercentileComputer('ms for decode duration', valueLimit: 2000);
+  final PercentileComputer decodePercentileComputer = PercentileComputer(
+    'ms for decode duration',
+    valueLimit: 2000,
+  );
 
   /// A percentile computer which tracks the time to deserialize each completion
   /// response JSON into Dart objects, using 2.000 seconds as the max value to
   /// use in percentile calculations.
-  final PercentileComputer deserializePercentileComputer =
-      PercentileComputer('ms for deserialize duration', valueLimit: 2000);
+  final PercentileComputer deserializePercentileComputer = PercentileComputer(
+    'ms for deserialize duration',
+    valueLimit: 2000,
+  );
 }
 
 /// A client for communicating with the analysis server over stdin/stdout.
@@ -191,8 +200,7 @@ class _AnalysisServerClient {
 
   Stream<bool> get onAnalyzing {
     // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
-    return _streamController('server.status')
-        .stream
+    return _streamController('server.status').stream
         .where((event) => event!['analysis'] != null)
         .map((event) => event!['analysis']['isAnalyzing']! as bool);
   }
@@ -203,13 +211,15 @@ class _AnalysisServerClient {
   Future<int> get onExit => _process!.exitCode;
 
   Future<AnalysisUpdateContentResult> addOverlay(
-      String file, String content) async {
+    String file,
+    String content,
+  ) async {
     var response = await _sendCommand(
       'analysis.updateContent',
       params: {
         'files': {
           file: {'type': 'add', 'content': content},
-        }
+        },
       },
     );
     var result = response['result'] as Map<String, dynamic>;
@@ -232,7 +242,7 @@ class _AnalysisServerClient {
       params: {
         'files': {
           file: {'type': 'remove'},
-        }
+        },
       },
     );
     var result = response['result'] as Map<String, dynamic>;
@@ -247,12 +257,14 @@ class _AnalysisServerClient {
 
   /// Requests a completion for [file] at [offset].
   Future<_SuggestionsData> requestCompletion(
-      String file, int offset, int maxResults) async {
-    var response = await _sendCommand('completion.getSuggestions2', params: {
-      'file': file,
-      'offset': offset,
-      'maxResults': maxResults,
-    });
+    String file,
+    int offset,
+    int maxResults,
+  ) async {
+    var response = await _sendCommand(
+      'completion.getSuggestions2',
+      params: {'file': file, 'offset': offset, 'maxResults': maxResults},
+    );
     var result = response['result'] as Map<String, dynamic>;
     var metadata = _requestMetadata[response['id']]!;
 
@@ -271,15 +283,21 @@ class _AnalysisServerClient {
 
   Future<void> shutdown({Duration timeout = const Duration(seconds: 5)}) async {
     // Request shutdown.
-    await _sendCommand('server.shutdown').then((value) {
-      _shutdownResponseReceived = true;
-      return null;
-    }).timeout(timeout, onTimeout: () async {
-      logger.stderr('The analysis server timed out while shutting down.');
-      await dispose();
-    }).then((value) async {
-      await dispose();
-    });
+    await _sendCommand('server.shutdown')
+        .then((value) {
+          _shutdownResponseReceived = true;
+          return null;
+        })
+        .timeout(
+          timeout,
+          onTimeout: () async {
+            logger.stderr('The analysis server timed out while shutting down.');
+            await dispose();
+          },
+        )
+        .then((value) async {
+          await dispose();
+        });
   }
 
   Future<void> start({bool setAnalysisRoots = true}) async {
@@ -293,30 +311,32 @@ class _AnalysisServerClient {
     _process = process;
     _shutdownResponseReceived = false;
     // This callback hookup can't throw.
-    unawaited(process.exitCode.whenComplete(() {
-      _process = null;
+    unawaited(
+      process.exitCode.whenComplete(() {
+        _process = null;
 
-      if (!_shutdownResponseReceived) {
-        // The process exited unexpectedly. Report the crash.
-        // If `server.error` reported an error, that has been logged by
-        // `_handleServerError`.
+        if (!_shutdownResponseReceived) {
+          // The process exited unexpectedly. Report the crash.
+          // If `server.error` reported an error, that has been logged by
+          // `_handleServerError`.
 
-        var error = StateError('The analysis server crashed unexpectedly');
+          var error = StateError('The analysis server crashed unexpectedly');
 
-        var analysisFinished = _analysisFinished;
-        if (analysisFinished != null && !analysisFinished.isCompleted) {
-          // Complete this completer in order to unstick the process.
-          analysisFinished.completeError(error);
+          var analysisFinished = _analysisFinished;
+          if (analysisFinished != null && !analysisFinished.isCompleted) {
+            // Complete this completer in order to unstick the process.
+            analysisFinished.completeError(error);
+          }
+
+          // Complete these completers in order to unstick the process.
+          for (var completer in _requestCompleters.values) {
+            completer.completeError(error);
+          }
+
+          _onCrash.complete();
         }
-
-        // Complete these completers in order to unstick the process.
-        for (var completer in _requestCompleters.values) {
-          completer.completeError(error);
-        }
-
-        _onCrash.complete();
-      }
-    }));
+      }),
+    );
 
     var errorStream = process.stderr
         .transform<String>(utf8.decoder)
@@ -330,9 +350,12 @@ class _AnalysisServerClient {
 
     _streamController('server.error').stream.listen(_handleServerError);
 
-    await _sendCommand('server.setSubscriptions', params: <String, dynamic>{
-      'subscriptions': <String>['STATUS'],
-    });
+    await _sendCommand(
+      'server.setSubscriptions',
+      params: <String, dynamic>{
+        'subscriptions': <String>['STATUS'],
+      },
+    );
 
     // Reference and trim off any trailing slash, the Dart Analysis Server
     // protocol throws an error (INVALID_FILE_PATH_FORMAT) if there is a
@@ -343,7 +366,9 @@ class _AnalysisServerClient {
     var analysisRootPaths = [
       for (final root in analysisRoots)
         _trimEnd(
-            root.absolute.resolveSymbolicLinksSync(), path.context.separator),
+          root.absolute.resolveSymbolicLinksSync(),
+          path.context.separator,
+        ),
     ];
 
     onAnalyzing.listen((isAnalyzing) {
@@ -360,10 +385,10 @@ class _AnalysisServerClient {
     });
 
     if (setAnalysisRoots) {
-      await _sendCommand('analysis.setAnalysisRoots', params: {
-        'included': analysisRootPaths,
-        'excluded': [],
-      });
+      await _sendCommand(
+        'analysis.setAnalysisRoots',
+        params: {'included': analysisRootPaths, 'excluded': []},
+      );
     }
   }
 
@@ -412,16 +437,19 @@ class _AnalysisServerClient {
     }
   }
 
-  Future<Map<String, dynamic>> _sendCommand(String method,
-      {Map<String, dynamic>? params}) {
+  Future<Map<String, dynamic>> _sendCommand(
+    String method, {
+    Map<String, dynamic>? params,
+  }) {
     String id = (++_id).toString();
     String message = json.encode({
       'id': id,
       'method': method,
       'params': params,
     });
-    _requestMetadata[id] =
-        _RequestMetadata(DateTime.now().millisecondsSinceEpoch);
+    _requestMetadata[id] = _RequestMetadata(
+      DateTime.now().millisecondsSinceEpoch,
+    );
     _requestCompleters[id] = Completer();
     _process!.stdin.writeln(message);
     logger.trace('==> $message');
@@ -443,7 +471,9 @@ class _AnalysisServerClient {
 
   StreamController<Map<String, dynamic>?> _streamController(String streamId) {
     return _streamControllers.putIfAbsent(
-        streamId, () => StreamController<Map<String, dynamic>>.broadcast());
+      streamId,
+      () => StreamController<Map<String, dynamic>>.broadcast(),
+    );
   }
 }
 
@@ -487,11 +517,11 @@ class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
 
     // A row containing the name, median, p90, and p95 scores in [computer].
     List<String> m9095Row(PercentileComputer computer) => [
-          computer.name,
-          computer.median.toString(),
-          computer.p90.toString(),
-          computer.p95.toString(),
-        ];
+      computer.name,
+      computer.median.toString(),
+      computer.p90.toString(),
+      computer.p95.toString(),
+    ];
 
     var table = [
       ['', 'median', 'p90', 'p95'],
@@ -512,16 +542,21 @@ class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
   ) async {
     var stopwatch = Stopwatch()..start();
     var suggestionsData = await client.requestCompletion(
-        expectedCompletion.filePath, expectedCompletion.offset, 1000);
+      expectedCompletion.filePath,
+      expectedCompletion.offset,
+      1000,
+    );
     stopwatch.stop();
     var metadata = suggestionsData.metadata;
 
     metrics.totalPercentileComputer.addValue(stopwatch.elapsedMilliseconds);
-    metrics.requestResponsePercentileComputer
-        .addValue(metadata.requestResponseDuration);
+    metrics.requestResponsePercentileComputer.addValue(
+      metadata.requestResponseDuration,
+    );
     metrics.decodePercentileComputer.addValue(metadata.decodeDuration);
-    metrics.deserializePercentileComputer
-        .addValue(metadata.deserializeDuration);
+    metrics.deserializePercentileComputer.addValue(
+      metadata.deserializeDuration,
+    );
   }
 
   @override
@@ -530,8 +565,9 @@ class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
       await client.removeOverlay(filePath);
       context.changeFile(filePath);
       await context.applyPendingFileChanges();
-      resolvedUnitResult = await context.currentSession
-          .getResolvedUnit(filePath) as ResolvedUnitResult;
+      resolvedUnitResult =
+          await context.currentSession.getResolvedUnit(filePath)
+              as ResolvedUnitResult;
     }
   }
 
@@ -596,11 +632,11 @@ class _Sdk {
   _Sdk._(this.sdkPath);
 
   String get analysisServerSnapshot => path.absolute(
-        sdkPath,
-        'bin',
-        'snapshots',
-        'analysis_server.dart.snapshot',
-      );
+    sdkPath,
+    'bin',
+    'snapshots',
+    'analysis_server.dart.snapshot',
+  );
 
   // Assume that we want to use the same Dart executable that we used to spawn
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
@@ -613,8 +649,9 @@ class _Sdk {
     // The common case, and how cli_util.dart computes the Dart SDK directory,
     // [path.dirname] called twice on Platform.resolvedExecutable. We confirm by
     // asserting that the directory `./bin/snapshots/` exists in this directory:
-    var sdkPath =
-        path.absolute(path.dirname(path.dirname(Platform.resolvedExecutable)));
+    var sdkPath = path.absolute(
+      path.dirname(path.dirname(Platform.resolvedExecutable)),
+    );
     var snapshotsDir = path.join(sdkPath, 'bin', 'snapshots');
     if (!Directory(snapshotsDir).existsSync()) {
       // This is the less common case where the user is in
@@ -622,8 +659,10 @@ class _Sdk {
       // ./out/ReleaseX64/dart ...
       // We confirm in a similar manner with the snapshot directory existence
       // and then return the correct sdk path:
-      var altPath =
-          path.absolute(path.dirname(Platform.resolvedExecutable), 'dart-sdk');
+      var altPath = path.absolute(
+        path.dirname(Platform.resolvedExecutable),
+        'dart-sdk',
+      );
       var snapshotsDir = path.join(altPath, 'bin', 'snapshots');
       if (Directory(snapshotsDir).existsSync()) {
         sdkPath = altPath;

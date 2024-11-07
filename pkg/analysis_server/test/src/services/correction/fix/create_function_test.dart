@@ -351,7 +351,7 @@ void f2(int Function(int) f) {}
   }
 
   Future<void>
-      test_functionType_inside_conditional_operator_condition_FunctionCall() async {
+  test_functionType_inside_conditional_operator_condition_FunctionCall() async {
     await resolveTestCode('''
 void f1(int i) {
   f2(f3() ? (v) => v : (v) => v);
@@ -392,7 +392,7 @@ int f3(int p1) {
   }
 
   Future<void>
-      test_functionType_inside_conditional_operator_else_FunctionCall() async {
+  test_functionType_inside_conditional_operator_else_FunctionCall() async {
     await resolveTestCode('''
 void f1(int i) {
   f2(i == 0 ? i : f3());
@@ -413,7 +413,7 @@ void f2(int p) {}
   }
 
   Future<void>
-      test_functionType_inside_conditional_operator_then_FunctionCall() async {
+  test_functionType_inside_conditional_operator_then_FunctionCall() async {
     await resolveTestCode('''
 void f1(int i) {
   f2(i == 0 ? f3() : i);
@@ -465,10 +465,14 @@ void process(List<int> items) {
 }
 ''');
     assertLinkedGroup(
-        change.linkedEditGroups[2],
-        ['List<int> items) {'],
-        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
-            ['List<int>', 'Iterable<int>', 'Object']));
+      change.linkedEditGroups[2],
+      ['List<int> items) {'],
+      expectedSuggestions(LinkedEditSuggestionKind.TYPE, [
+        'List<int>',
+        'Iterable<int>',
+        'Object',
+      ]),
+    );
   }
 
   Future<void> test_generic_typeParameter() async {

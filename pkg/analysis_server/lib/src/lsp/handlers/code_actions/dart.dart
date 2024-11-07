@@ -73,7 +73,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             'path': path,
             if (triggerKind == CodeActionTriggerKind.Automatic)
               'autoTriggered': true,
-          }
+          },
         ],
       ),
     );
@@ -94,22 +94,23 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     );
 
     return _commandOrCodeAction(
-        actionKind,
-        Command(
-          title: name,
-          command: command,
-          arguments: [
-            // TODO(dantup): Change this to a single entry that is a Map once
-            //  enough time has passed that old versions of Dart-Code prior to
-            //  to June 2022 need not be supported against newer SDKs.
-            refactorKind.toJson(clientUriConverter: server.uriConverter),
-            path,
-            docIdentifier.version,
-            offset,
-            length,
-            options,
-          ],
-        ));
+      actionKind,
+      Command(
+        title: name,
+        command: command,
+        arguments: [
+          // TODO(dantup): Change this to a single entry that is a Map once
+          //  enough time has passed that old versions of Dart-Code prior to
+          //  to June 2022 need not be supported against newer SDKs.
+          refactorKind.toJson(clientUriConverter: server.uriConverter),
+          path,
+          docIdentifier.version,
+          offset,
+          length,
+          options,
+        ],
+      ),
+    );
   }
 
   @override
@@ -133,8 +134,11 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       var assists = await processor.compute();
 
       return assists.map((assist) {
-        var action =
-            createAssistAction(assist.change, unit.path, unit.lineInfo);
+        var action = createAssistAction(
+          assist.change,
+          unit.path,
+          unit.lineInfo,
+        );
         return (action: action, priority: assist.kind.priority);
       }).toList();
     } on InconsistentAnalysisException {
@@ -186,8 +190,12 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           );
           codeActions.addAll(
             fixes.map((fix) {
-              var action =
-                  createFixAction(fix.change, diagnostic, path, lineInfo);
+              var action = createFixAction(
+                fix.change,
+                diagnostic,
+                path,
+                lineInfo,
+              );
               return (action: action, priority: fix.kind.priority);
             }),
           );
@@ -233,42 +241,79 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       // Extracts
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
         // Extract Method
-        if (ExtractMethodRefactoring(server.searchEngine, unit, offset, length)
-            .isAvailable()) {
-          refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
-              'Extract Method', RefactoringKind.EXTRACT_METHOD));
+        if (ExtractMethodRefactoring(
+          server.searchEngine,
+          unit,
+          offset,
+          length,
+        ).isAvailable()) {
+          refactorActions.add(
+            createRefactor(
+              CodeActionKind.RefactorExtract,
+              'Extract Method',
+              RefactoringKind.EXTRACT_METHOD,
+            ),
+          );
         }
 
         // Extract Local Variable
         if (ExtractLocalRefactoring(unit, offset, length).isAvailable()) {
-          refactorActions.add(createRefactor(
+          refactorActions.add(
+            createRefactor(
               CodeActionKind.RefactorExtract,
               'Extract Local Variable',
-              RefactoringKind.EXTRACT_LOCAL_VARIABLE));
+              RefactoringKind.EXTRACT_LOCAL_VARIABLE,
+            ),
+          );
         }
 
         // Extract Widget
-        if (ExtractWidgetRefactoring(server.searchEngine, unit, offset, length)
-            .isAvailable()) {
-          refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
-              'Extract Widget', RefactoringKind.EXTRACT_WIDGET));
+        if (ExtractWidgetRefactoring(
+          server.searchEngine,
+          unit,
+          offset,
+          length,
+        ).isAvailable()) {
+          refactorActions.add(
+            createRefactor(
+              CodeActionKind.RefactorExtract,
+              'Extract Widget',
+              RefactoringKind.EXTRACT_WIDGET,
+            ),
+          );
         }
       }
 
       // Inlines
       if (shouldIncludeKind(CodeActionKind.RefactorInline)) {
         // Inline Local Variable
-        if (InlineLocalRefactoring(server.searchEngine, unit, offset)
-            .isAvailable()) {
-          refactorActions.add(createRefactor(CodeActionKind.RefactorInline,
-              'Inline Local Variable', RefactoringKind.INLINE_LOCAL_VARIABLE));
+        if (InlineLocalRefactoring(
+          server.searchEngine,
+          unit,
+          offset,
+        ).isAvailable()) {
+          refactorActions.add(
+            createRefactor(
+              CodeActionKind.RefactorInline,
+              'Inline Local Variable',
+              RefactoringKind.INLINE_LOCAL_VARIABLE,
+            ),
+          );
         }
 
         // Inline Method
-        if (InlineMethodRefactoring(server.searchEngine, unit, offset)
-            .isAvailable()) {
-          refactorActions.add(createRefactor(CodeActionKind.RefactorInline,
-              'Inline Method', RefactoringKind.INLINE_METHOD));
+        if (InlineMethodRefactoring(
+          server.searchEngine,
+          unit,
+          offset,
+        ).isAvailable()) {
+          refactorActions.add(
+            createRefactor(
+              CodeActionKind.RefactorInline,
+              'Inline Method',
+              RefactoringKind.INLINE_METHOD,
+            ),
+          );
         }
       }
 
@@ -280,23 +325,33 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         // Getter to Method
         if (element is PropertyAccessorElement &&
             ConvertGetterToMethodRefactoring(
-                    server.refactoringWorkspace, unit.session, element)
-                .isAvailable()) {
-          refactorActions.add(createRefactor(
+              server.refactoringWorkspace,
+              unit.session,
+              element,
+            ).isAvailable()) {
+          refactorActions.add(
+            createRefactor(
               CodeActionKind.RefactorRewrite,
               'Convert Getter to Method',
-              RefactoringKind.CONVERT_GETTER_TO_METHOD));
+              RefactoringKind.CONVERT_GETTER_TO_METHOD,
+            ),
+          );
         }
 
         // Method to Getter
         if (element is ExecutableElement &&
             ConvertMethodToGetterRefactoring(
-                    server.refactoringWorkspace, unit.session, element)
-                .isAvailable()) {
-          refactorActions.add(createRefactor(
+              server.refactoringWorkspace,
+              unit.session,
+              element,
+            ).isAvailable()) {
+          refactorActions.add(
+            createRefactor(
               CodeActionKind.RefactorRewrite,
               'Convert Method to Getter',
-              RefactoringKind.CONVERT_METHOD_TO_GETTER));
+              RefactoringKind.CONVERT_METHOD_TO_GETTER,
+            ),
+          );
         }
       }
 
@@ -333,11 +388,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           Commands.organizeImports,
         ),
       if (shouldIncludeKind(DartCodeActionKind.FixAll))
-        createCommand(
-          DartCodeActionKind.FixAll,
-          'Fix All',
-          Commands.fixAll,
-        ),
+        createCommand(DartCodeActionKind.FixAll, 'Fix All', Commands.fixAll),
     ];
   }
 
@@ -349,8 +400,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
   ) {
     return supportsLiterals
         ? Either2<CodeAction, Command>.t1(
-            CodeAction(title: command.title, kind: kind, command: command),
-          )
+          CodeAction(title: command.title, kind: kind, command: command),
+        )
         : Either2<CodeAction, Command>.t2(command);
   }
 }

@@ -11,7 +11,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// Produces a [Snippet] that creates a Flutter StatefulWidget with an
 /// AnimationController and related State class.
 class FlutterStatefulWidgetWithAnimationController
-    extends FlutterSnippetProducer with FlutterWidgetSnippetProducerMixin {
+    extends FlutterSnippetProducer
+    with FlutterWidgetSnippetProducerMixin {
   static const prefix = 'stanim';
   static const label = 'Flutter Widget with AnimationController';
 
@@ -24,8 +25,10 @@ class FlutterStatefulWidgetWithAnimationController
   late ClassElement2? classAnimationController;
   late MixinElement2? classSingleTickerProviderStateMixin;
 
-  FlutterStatefulWidgetWithAnimationController(super.request,
-      {required super.elementImportCache});
+  FlutterStatefulWidgetWithAnimationController(
+    super.request, {
+    required super.elementImportCache,
+  });
 
   @override
   String get snippetPrefix => prefix;
@@ -137,8 +140,9 @@ class FlutterStatefulWidgetWithAnimationController
         (classKey = await getClass('Key')) == null ||
         (classAnimationController = await getClass('AnimationController')) ==
             null ||
-        (classSingleTickerProviderStateMixin =
-                await getMixin('SingleTickerProviderStateMixin')) ==
+        (classSingleTickerProviderStateMixin = await getMixin(
+              'SingleTickerProviderStateMixin',
+            )) ==
             null) {
       return false;
     }

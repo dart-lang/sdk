@@ -26,21 +26,26 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// Add the file containing the data used by the data-driven fix with the
   /// given [content].
   void addPackageDataFile(String content) {
-    newFile('$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
-        content);
+    newFile(
+      '$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
+      content,
+    );
   }
 
   /// Add the file in the SDK containing the data used by the data-driven fix
   /// with the given [content].
   void addSdkDataFile(String content) {
-    newFile('${sdkRoot.path}/lib/_internal/${TransformSetManager.dataFileName}',
-        content);
+    newFile(
+      '${sdkRoot.path}/lib/_internal/${TransformSetManager.dataFileName}',
+      content,
+    );
   }
 
   /// Return a code template that will produce the given [text].
   CodeTemplate codeTemplate(String text) {
-    return CodeTemplate(
-        CodeTemplateKind.expression, [TemplateText(text)], null);
+    return CodeTemplate(CodeTemplateKind.expression, [
+      TemplateText(text),
+    ], null);
   }
 
   /// A method that can be used as an error filter to ignore any unused_import
@@ -53,15 +58,16 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   void setPackageContent(String content) {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
   }
 
   /// Set the data on which this test is based.
   void setPackageData(Transform transform) {
     DataDriven.transformSetsForTests = [
-      TransformSet()..addTransform(transform)
+      TransformSet()..addTransform(transform),
     ];
   }
 

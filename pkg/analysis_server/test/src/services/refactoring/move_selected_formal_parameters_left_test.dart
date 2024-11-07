@@ -350,8 +350,6 @@ void f() {
   Future<void> _assertNoRefactoring() async {
     await initializeServer();
 
-    await expectNoCodeAction(
-      MoveSelectedFormalParametersLeft.constTitle,
-    );
+    await expectNoCodeAction(MoveSelectedFormalParametersLeft.constTitle);
   }
 }

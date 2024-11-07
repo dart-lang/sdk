@@ -21,16 +21,25 @@ import 'package:analyzer/src/utilities/extensions/flutter.dart';
 /// Checks if creating a top-level function with the given [name] in [library]
 /// will cause any conflicts.
 Future<RefactoringStatus> validateCreateFunction(
-    SearchEngine searchEngine, LibraryElement library, String name) {
+  SearchEngine searchEngine,
+  LibraryElement library,
+  String name,
+) {
   return _CreateUnitMemberValidator(
-          searchEngine, library, ElementKind.FUNCTION, name)
-      .validate();
+    searchEngine,
+    library,
+    ElementKind.FUNCTION,
+    name,
+  ).validate();
 }
 
 /// Checks if creating a top-level function with the given [name] in [element]
 /// will cause any conflicts.
 Future<RefactoringStatus> validateRenameTopLevel(
-    SearchEngine searchEngine, Element element, String name) {
+  SearchEngine searchEngine,
+  Element element,
+  String name,
+) {
   return _RenameUnitMemberValidator(searchEngine, element, name).validate();
 }
 
@@ -45,9 +54,12 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   /// If [_flutterWidgetState] is set, this is the new name of it.
   String? _flutterWidgetStateNewName;
 
-  RenameUnitMemberRefactoringImpl(RefactoringWorkspace workspace,
-      AnalysisSessionHelper sessionHelper, this.resolvedUnit, Element element)
-      : super(workspace, sessionHelper, element);
+  RenameUnitMemberRefactoringImpl(
+    RefactoringWorkspace workspace,
+    AnalysisSessionHelper sessionHelper,
+    this.resolvedUnit,
+    Element element,
+  ) : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
@@ -185,7 +197,11 @@ class _BaseUnitMemberValidator {
   final RefactoringStatus result = RefactoringStatus();
 
   _BaseUnitMemberValidator(
-      this.searchEngine, this.library, this.elementKind, this.name);
+    this.searchEngine,
+    this.library,
+    this.elementKind,
+    this.name,
+  );
 
   /// Returns `true` if [element] is visible at the given [SearchMatch].
   bool _isVisibleAt(Element element, SearchMatch at) {
@@ -215,8 +231,11 @@ class _BaseUnitMemberValidator {
   void _validateWillConflict() {
     visitLibraryTopLevelElements(library, (element) {
       if (hasDisplayName(element, name)) {
-        var message = format("Library already declares {0} with name '{1}'.",
-            getElementKindName(element), name);
+        var message = format(
+          "Library already declares {0} with name '{1}'.",
+          getElementKindName(element),
+          name,
+        );
         result.addError(message, newLocation_fromElement(element));
       }
     });
@@ -246,12 +265,13 @@ class _BaseUnitMemberValidator {
         }
         // OK, reference will be shadowed be the element being renamed
         var message = format(
-            element != null
-                ? "Renamed {0} will shadow {1} '{2}'."
-                : "Created {0} will shadow {1} '{2}'.",
-            elementKind.displayName,
-            getElementKindName(member),
-            getElementQualifiedName(member));
+          element != null
+              ? "Renamed {0} will shadow {1} '{2}'."
+              : "Created {0} will shadow {1} '{2}'.",
+          elementKind.displayName,
+          getElementKindName(member),
+          getElementQualifiedName(member),
+        );
         result.addError(message, newLocation_fromMatch(memberReference));
       }
     }
@@ -303,8 +323,11 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
       var refElement = reference.element;
       var refLibrary = refElement.library!;
       if (refLibrary != library) {
-        var message = format("Renamed {0} will be invisible in '{1}'.",
-            getElementKindName(element), getElementQualifiedName(refLibrary));
+        var message = format(
+          "Renamed {0} will be invisible in '{1}'.",
+          getElementKindName(element),
+          getElementQualifiedName(refLibrary),
+        );
         result.addError(message, newLocation_fromMatch(reference));
       }
     }
@@ -319,10 +342,11 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
         visitChildren(refClass, (shadow) {
           if (hasDisplayName(shadow, name)) {
             var message = format(
-                "Reference to renamed {0} will be shadowed by {1} '{2}'.",
-                getElementKindName(element),
-                getElementKindName(shadow),
-                getElementQualifiedName(shadow));
+              "Reference to renamed {0} will be shadowed by {1} '{2}'.",
+              getElementKindName(element),
+              getElementKindName(shadow),
+              getElementQualifiedName(shadow),
+            );
             result.addError(message, newLocation_fromElement(shadow));
           }
           return false;

@@ -25,20 +25,27 @@ class AddMissingParameter extends MultiCorrectionProducer {
       return const [];
     }
 
-    var executableParameters =
-        ExecutableParameters.forInvocation(sessionHelper, invocation);
+    var executableParameters = ExecutableParameters.forInvocation(
+      sessionHelper,
+      invocation,
+    );
     if (executableParameters == null) {
       return const [];
     }
 
-    var includeOptional = executableParameters.optionalPositional.isEmpty &&
+    var includeOptional =
+        executableParameters.optionalPositional.isEmpty &&
         executableParameters.named.isEmpty;
     return <ResolvedCorrectionProducer>[
-      _AddMissingRequiredPositionalParameter(executableParameters,
-          context: context),
+      _AddMissingRequiredPositionalParameter(
+        executableParameters,
+        context: context,
+      ),
       if (includeOptional)
-        _AddMissingOptionalPositionalParameter(executableParameters,
-            context: context),
+        _AddMissingOptionalPositionalParameter(
+          executableParameters,
+          context: context,
+        ),
     ];
   }
 }
@@ -59,8 +66,9 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
     var prefix = _executableParameters.required.isNotEmpty ? ', [' : '[';
     if (_executableParameters.required.isNotEmpty) {
       var lastElement = _executableParameters.required.last;
-      var prevNode = await _executableParameters
-          .getParameterNode2(lastElement.firstFragment);
+      var prevNode = await _executableParameters.getParameterNode2(
+        lastElement.firstFragment,
+      );
       await _addParameter(builder, prevNode?.end, prefix, ']');
     } else {
       var parameterList = await _executableParameters.getParameterList();
@@ -79,11 +87,16 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   Future<void> _addParameter(
-      ChangeBuilder builder, int? offset, String prefix, String suffix) async {
+    ChangeBuilder builder,
+    int? offset,
+    String prefix,
+    String suffix,
+  ) async {
     // node is the unmatched argument.
     var argumentList = node.parent;
     if (argumentList is! ArgumentList) {
@@ -100,7 +113,10 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
         builder.addInsertion(offset, (builder) {
           builder.write(prefix);
           builder.writeParameterMatchingArgument(
-              argument, numRequired, <String>{});
+            argument,
+            numRequired,
+            <String>{},
+          );
           builder.write(suffix);
         });
       });
@@ -111,8 +127,10 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
 /// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
-  _AddMissingRequiredPositionalParameter(super._executableParameters,
-      {required super.context});
+  _AddMissingRequiredPositionalParameter(
+    super._executableParameters, {
+    required super.context,
+  });
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
@@ -121,15 +139,17 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
   Future<void> compute(ChangeBuilder builder) async {
     if (_executableParameters.required.isNotEmpty) {
       var lastElement = _executableParameters.required.last;
-      var prevNode = await _executableParameters
-          .getParameterNode2(lastElement.firstFragment);
+      var prevNode = await _executableParameters.getParameterNode2(
+        lastElement.firstFragment,
+      );
       await _addParameter(builder, prevNode?.end, ', ', '');
     } else {
       var parameterList = await _executableParameters.getParameterList();
       var offset = parameterList?.leftParenthesis.end;
-      var suffix = _executableParameters.executable.formalParameters.isNotEmpty
-          ? ', '
-          : '';
+      var suffix =
+          _executableParameters.executable.formalParameters.isNotEmpty
+              ? ', '
+              : '';
       await _addParameter(builder, offset, '', suffix);
     }
   }

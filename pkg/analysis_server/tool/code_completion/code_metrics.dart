@@ -41,11 +41,7 @@ Future<void> main(List<String> args) async {
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   var parser = ArgParser();
-  parser.addOption(
-    'help',
-    abbr: 'h',
-    help: 'Print this help message.',
-  );
+  parser.addOption('help', abbr: 'h', help: 'Print this help message.');
   return parser;
 }
 
@@ -140,7 +136,10 @@ class CodeShapeData {
   }
 
   void _recordChildData(
-      String nodeClassName, String property, String childValue) {
+    String nodeClassName,
+    String property,
+    String childValue,
+  ) {
     var classMap = childData.putIfAbsent(nodeClassName, () => {});
     var propertyMap = classMap.putIfAbsent(property, () => {});
     propertyMap[childValue] = (propertyMap[childValue] ?? 0) + 1;
@@ -168,9 +167,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    _visitChildren(node, {
-      'strings': node.strings,
-    });
+    _visitChildren(node, {'strings': node.strings});
     super.visitAdjacentStrings(node);
   }
 
@@ -186,18 +183,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    _visitChildren(node, {
-      'arguments': node.arguments,
-    });
+    _visitChildren(node, {'arguments': node.arguments});
     super.visitArgumentList(node);
   }
 
   @override
   void visitAsExpression(AsExpression node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-      'type': node.type,
-    });
+    _visitChildren(node, {'expression': node.expression, 'type': node.type});
     super.visitAsExpression(node);
   }
 
@@ -231,9 +223,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'expression': node.expression});
     super.visitAwaitExpression(node);
   }
 
@@ -249,9 +239,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    _visitChildren(node, {
-      'statement': node.statements,
-    });
+    _visitChildren(node, {'statement': node.statements});
     super.visitBlock(node);
   }
 
@@ -267,17 +255,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    _visitChildren(node, {
-      'literal': node.literal,
-    });
+    _visitChildren(node, {'literal': node.literal});
     super.visitBooleanLiteral(node);
   }
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    _visitChildren(node, {
-      'label': node.label,
-    });
+    _visitChildren(node, {'label': node.label});
     super.visitBreakStatement(node);
   }
 
@@ -408,18 +392,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    _visitChildren(node, {
-      'type': node.type,
-      'name': node.name,
-    });
+    _visitChildren(node, {'type': node.type, 'name': node.name});
     super.visitConstructorName(node);
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    _visitChildren(node, {
-      'label': node.label,
-    });
+    _visitChildren(node, {'label': node.label});
     super.visitContinueStatement(node);
   }
 
@@ -444,18 +423,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    _visitChildren(node, {
-      'body': node.body,
-      'condition': node.condition,
-    });
+    _visitChildren(node, {'body': node.body, 'condition': node.condition});
     super.visitDoStatement(node);
   }
 
   @override
   void visitDottedName(DottedName node) {
-    _visitChildren(node, {
-      'components': node.components,
-    });
+    _visitChildren(node, {'components': node.components});
     super.visitDottedName(node);
   }
 
@@ -522,17 +496,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'expression': node.expression});
     super.visitExpressionStatement(node);
   }
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    _visitChildren(node, {
-      'superclass': node.superclass,
-    });
+    _visitChildren(node, {'superclass': node.superclass});
     super.visitExtendsClause(node);
   }
 
@@ -618,9 +588,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    _visitChildren(node, {
-      'parameters': node.parameters,
-    });
+    _visitChildren(node, {'parameters': node.parameters});
     super.visitFormalParameterList(node);
   }
 
@@ -670,9 +638,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    _visitChildren(node, {
-      'functionDeclaration': node.functionDeclaration,
-    });
+    _visitChildren(node, {'functionDeclaration': node.functionDeclaration});
     super.visitFunctionDeclarationStatement(node);
   }
 
@@ -747,9 +713,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitHideCombinator(HideCombinator node) {
-    _visitChildren(node, {
-      'hiddenNames': node.hiddenNames,
-    });
+    _visitChildren(node, {'hiddenNames': node.hiddenNames});
     super.visitHideCombinator(node);
   }
 
@@ -775,9 +739,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    _visitChildren(node, {
-      'interfaces': node.interfaces,
-    });
+    _visitChildren(node, {'interfaces': node.interfaces});
     super.visitImplementsClause(node);
   }
 
@@ -798,10 +760,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _visitChildren(node, {
-      'target': node.target,
-      'index': node.index,
-    });
+    _visitChildren(node, {'target': node.target, 'index': node.index});
     super.visitIndexExpression(node);
   }
 
@@ -819,9 +778,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   void visitIntegerLiteral(IntegerLiteral node) {
     var value = node.value;
     if (value == -1 || value == 0 || value == 1) {
-      _visitChildren(node, {
-        'literal': node.literal,
-      });
+      _visitChildren(node, {'literal': node.literal});
     } else {
       _visitChildren(node, {});
     }
@@ -830,9 +787,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'expression': node.expression});
     super.visitInterpolationExpression(node);
   }
 
@@ -844,26 +799,19 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-      'type': node.type,
-    });
+    _visitChildren(node, {'expression': node.expression, 'type': node.type});
     super.visitIsExpression(node);
   }
 
   @override
   void visitLabel(Label node) {
-    _visitChildren(node, {
-      'label': node.label,
-    });
+    _visitChildren(node, {'label': node.label});
     super.visitLabel(node);
   }
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    _visitChildren(node, {
-      'statement': node.statement,
-    });
+    _visitChildren(node, {'statement': node.statement});
     super.visitLabeledStatement(node);
   }
 
@@ -879,9 +827,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryIdentifier(LibraryIdentifier node) {
-    _visitChildren(node, {
-      'components': node.components,
-    });
+    _visitChildren(node, {'components': node.components});
     super.visitLibraryIdentifier(node);
   }
 
@@ -896,10 +842,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    _visitChildren(node, {
-      'key': node.key,
-      'value': node.value,
-    });
+    _visitChildren(node, {'key': node.key, 'value': node.value});
     super.visitMapLiteralEntry(node);
   }
 
@@ -947,18 +890,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinOnClause(MixinOnClause node) {
-    _visitChildren(node, {
-      'superclassConstraints': node.superclassConstraints,
-    });
+    _visitChildren(node, {'superclassConstraints': node.superclassConstraints});
     super.visitMixinOnClause(node);
   }
 
   @override
   void visitNamedExpression(NamedExpression node) {
-    _visitChildren(node, {
-      'name': node.name,
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'name': node.name, 'expression': node.expression});
     super.visitNamedExpression(node);
   }
 
@@ -975,9 +913,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitNativeClause(NativeClause node) {
-    _visitChildren(node, {
-      'name': node.name,
-    });
+    _visitChildren(node, {'name': node.name});
     super.visitNativeClause(node);
   }
 
@@ -995,9 +931,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'expression': node.expression});
     super.visitParenthesizedExpression(node);
   }
 
@@ -1024,10 +958,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _visitChildren(node, {
-      'operand': node.operand,
-      'operator': node.operator,
-    });
+    _visitChildren(node, {'operand': node.operand, 'operator': node.operator});
     super.visitPostfixExpression(node);
   }
 
@@ -1042,10 +973,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _visitChildren(node, {
-      'operator': node.operator,
-      'operand': node.operand,
-    });
+    _visitChildren(node, {'operator': node.operator, 'operand': node.operand});
     super.visitPrefixExpression(node);
   }
 
@@ -1060,7 +988,8 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
+    RedirectingConstructorInvocation node,
+  ) {
     _visitChildren(node, {
       'constructorName': node.constructorName,
       'argumentList': node.argumentList,
@@ -1076,9 +1005,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'expression': node.expression});
     super.visitReturnStatement(node);
   }
 
@@ -1099,9 +1026,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitShowCombinator(ShowCombinator node) {
-    _visitChildren(node, {
-      'shownNames': node.shownNames,
-    });
+    _visitChildren(node, {'shownNames': node.shownNames});
     super.visitShowCombinator(node);
   }
 
@@ -1126,17 +1051,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSpreadElement(SpreadElement node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'expression': node.expression});
     super.visitSpreadElement(node);
   }
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    _visitChildren(node, {
-      'elements': node.elements,
-    });
+    _visitChildren(node, {'elements': node.elements});
     super.visitStringInterpolation(node);
   }
 
@@ -1167,9 +1088,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    _visitChildren(node, {
-      'statements': node.statements,
-    });
+    _visitChildren(node, {'statements': node.statements});
     super.visitSwitchDefault(node);
   }
 
@@ -1196,9 +1115,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    _visitChildren(node, {
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'expression': node.expression});
     super.visitThrowExpression(node);
   }
 
@@ -1225,18 +1142,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
-    _visitChildren(node, {
-      'arguments': node.arguments,
-    });
+    _visitChildren(node, {'arguments': node.arguments});
     super.visitTypeArgumentList(node);
   }
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    _visitChildren(node, {
-      'name': node.name,
-      'bound': node.bound,
-    });
+    _visitChildren(node, {'name': node.name, 'bound': node.bound});
     super.visitTypeParameter(node);
   }
 
@@ -1270,35 +1182,25 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _visitChildren(node, {
-      'variables': node.variables,
-    });
+    _visitChildren(node, {'variables': node.variables});
     super.visitVariableDeclarationStatement(node);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    _visitChildren(node, {
-      'condition': node.condition,
-      'body': node.body,
-    });
+    _visitChildren(node, {'condition': node.condition, 'body': node.body});
     super.visitWhileStatement(node);
   }
 
   @override
   void visitWithClause(WithClause node) {
-    _visitChildren(node, {
-      'mixinTypes': node.mixinTypes,
-    });
+    _visitChildren(node, {'mixinTypes': node.mixinTypes});
     super.visitWithClause(node);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    _visitChildren(node, {
-      'star': node.star,
-      'expression': node.expression,
-    });
+    _visitChildren(node, {'star': node.star, 'expression': node.expression});
     super.visitYieldStatement(node);
   }
 
@@ -1383,7 +1285,9 @@ class CodeShapeMetricsComputer {
   /// should be captured in the [collector]. Include additional details in the
   /// output if [verbose] is `true`.
   Future<void> _computeInContext(
-      ContextRoot root, CodeShapeDataCollector collector) async {
+    ContextRoot root,
+    CodeShapeDataCollector collector,
+  ) async {
     // Create a new collection to avoid consuming large quantities of memory.
     var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
@@ -1395,8 +1299,9 @@ class CodeShapeMetricsComputer {
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+          var resolvedUnitResult = await context.currentSession.getResolvedUnit(
+            filePath,
+          );
           //
           // Check for errors that cause the file to be skipped.
           //
@@ -1426,10 +1331,10 @@ class CodeShapeMetricsComputer {
   /// column occupied by the map.
   List<String> _convertMap<T extends Object>(String context, Map<T, int> map) {
     var columns = <String>[];
-    var entries = map.entries.toList()
-      ..sort((first, second) {
-        return second.value.compareTo(first.value);
-      });
+    var entries =
+        map.entries.toList()..sort((first, second) {
+          return second.value.compareTo(first.value);
+        });
     var total = 0;
     for (var entry in entries) {
       total += entry.value;

@@ -28,9 +28,11 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   late SourceChange change;
 
   ConvertMethodToGetterRefactoringImpl(
-      this.workspace, AnalysisSession session, this.element)
-      : sessionHelper = AnalysisSessionHelper(session),
-        searchEngine = workspace.searchEngine;
+    this.workspace,
+    AnalysisSession session,
+    this.element,
+  ) : sessionHelper = AnalysisSessionHelper(session),
+      searchEngine = workspace.searchEngine;
 
   @override
   String get refactoringName => 'Convert Method To Getter';
@@ -76,28 +78,33 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   RefactoringStatus _checkElement() {
     if (!workspace.containsElement(element)) {
       return RefactoringStatus.fatal(
-          'Only methods in your workspace can be converted.');
+        'Only methods in your workspace can be converted.',
+      );
     }
 
     // check Element type
     if (element is FunctionElement) {
       if (element.enclosingElement3 is! CompilationUnitElement) {
         return RefactoringStatus.fatal(
-            'Only top-level functions can be converted to getters.');
+          'Only top-level functions can be converted to getters.',
+        );
       }
     } else if (element is! MethodElement) {
       return RefactoringStatus.fatal(
-          'Only class methods or top-level functions can be converted to getters.');
+        'Only class methods or top-level functions can be converted to getters.',
+      );
     }
     // returns a value
     if (element.returnType is VoidType) {
       return RefactoringStatus.fatal(
-          'Cannot convert ${element.kind.displayName} returning void.');
+        'Cannot convert ${element.kind.displayName} returning void.',
+      );
     }
     // no parameters
     if (element.parameters.isNotEmpty) {
       return RefactoringStatus.fatal(
-          'Only methods without parameters can be converted to getters.');
+        'Only methods without parameters can be converted to getters.',
+      );
     }
     // OK
     return RefactoringStatus();
@@ -144,8 +151,9 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       // prepare invocation
       MethodInvocation? invocation;
       {
-        var resolvedUnit =
-            await sessionHelper.getResolvedUnitByElement(refElement);
+        var resolvedUnit = await sessionHelper.getResolvedUnitByElement(
+          refElement,
+        );
         var refUnit = resolvedUnit?.unit;
         var refNode = NodeLocator(refRange.offset).searchWithin(refUnit);
         invocation = refNode?.thisOrAncestorOfType<MethodInvocation>();
@@ -153,7 +161,9 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       // we need invocation
       if (invocation != null) {
         var edit = newSourceEdit_range(
-            range.startOffsetEndOffset(refRange.end, invocation.end), '');
+          range.startOffsetEndOffset(refRange.end, invocation.end),
+          '',
+        );
         doSourceChange_addElementEdit(change, refElement, edit);
       }
     }

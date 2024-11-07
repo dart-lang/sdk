@@ -23,31 +23,19 @@ void main() {
 @reflectiveTest
 class CodeTemplateTest extends DataDrivenFixProcessorTest {
   Future<void> test_text_variable() async {
-    await _assertTemplateResult('a0', [
-      _text('a'),
-      _variable(0),
-    ]);
+    await _assertTemplateResult('a0', [_text('a'), _variable(0)]);
   }
 
   Future<void> test_text_variable_text() async {
-    await _assertTemplateResult('a0b', [
-      _text('a'),
-      _variable(0),
-      _text('b'),
-    ]);
+    await _assertTemplateResult('a0b', [_text('a'), _variable(0), _text('b')]);
   }
 
   Future<void> test_textOnly() async {
-    await _assertTemplateResult('a', [
-      _text('a'),
-    ]);
+    await _assertTemplateResult('a', [_text('a')]);
   }
 
   Future<void> test_variable_text() async {
-    await _assertTemplateResult('0a', [
-      _variable(0),
-      _text('a'),
-    ]);
+    await _assertTemplateResult('0a', [_variable(0), _text('a')]);
   }
 
   Future<void> test_variable_text_variable() async {
@@ -59,13 +47,13 @@ class CodeTemplateTest extends DataDrivenFixProcessorTest {
   }
 
   Future<void> test_variableOnly() async {
-    await _assertTemplateResult('0', [
-      _variable(0),
-    ]);
+    await _assertTemplateResult('0', [_variable(0)]);
   }
 
   Future<void> _assertTemplateResult(
-      String expectedResult, List<TemplateComponent> components) async {
+    String expectedResult,
+    List<TemplateComponent> components,
+  ) async {
     await resolveTestCode('''
 void f() {
   g(0, 1);
@@ -91,6 +79,7 @@ void g(int x, int y) {}
 
   TemplateText _text(String text) => TemplateText(text);
 
-  TemplateVariable _variable(int index) => TemplateVariable(CodeFragment(
-      [ArgumentAccessor(PositionalFormalParameterReference(index))]));
+  TemplateVariable _variable(int index) => TemplateVariable(
+    CodeFragment([ArgumentAccessor(PositionalFormalParameterReference(index))]),
+  );
 }

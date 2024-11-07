@@ -190,7 +190,9 @@ class LspChangeVerifier {
       editHelpers.applyTextEdits(content, changes);
 
   _Change _change(Uri fileUri) => _changes.putIfAbsent(
-      fileUri, () => _Change(_getCurrentFileContent(fileUri)));
+    fileUri,
+    () => _Change(_getCurrentFileContent(fileUri)),
+  );
 
   void _expectDocumentVersion(
     TextDocumentEdit edit,
@@ -209,8 +211,9 @@ class LspChangeVerifier {
 
   String _toChangeString() {
     var buffer = StringBuffer();
-    for (var MapEntry(key: uri, value: change)
-        in _changes.entries.sortedBy((entry) => _relativeUri(entry.key))) {
+    for (var MapEntry(key: uri, value: change) in _changes.entries.sortedBy(
+      (entry) => _relativeUri(entry.key),
+    )) {
       // Write the path in a common format for Windows/non-Windows.
       var relativePath = _relativeUri(uri);
       var content = change.content;
@@ -279,8 +282,9 @@ class TextEditWithIndex {
   TextEditWithIndex(this.index, this.edit);
 
   TextEditWithIndex.fromUnion(
-      this.index, Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit)
-      : edit = edit.map((e) => e, (e) => e, (e) => e);
+    this.index,
+    Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit,
+  ) : edit = edit.map((e) => e, (e) => e, (e) => e);
 
   /// Compares two [TextEditWithIndex] to sort them by the order in which they
   /// can be sequentially applied to a String to match the behaviour of an LSP
@@ -311,7 +315,8 @@ class _Change {
 }
 
 extension on Range {
-  String toDisplayString() => start.line == end.line
-      ? 'line ${start.line + 1}'
-      : 'lines ${start.line + 1}-${end.line + 1}';
+  String toDisplayString() =>
+      start.line == end.line
+          ? 'line ${start.line + 1}'
+          : 'lines ${start.line + 1}-${end.line + 1}';
 }

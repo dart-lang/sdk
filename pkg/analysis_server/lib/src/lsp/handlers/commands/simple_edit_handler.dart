@@ -21,9 +21,11 @@ abstract class SimpleEditCommandHandler
   String get commandName;
 
   bool hasScanParseErrors(List<engine.AnalysisError> errors) {
-    return errors.any((error) =>
-        error.errorCode is engine.ScannerErrorCode ||
-        error.errorCode is engine.ParserErrorCode);
+    return errors.any(
+      (error) =>
+          error.errorCode is engine.ScannerErrorCode ||
+          error.errorCode is engine.ParserErrorCode,
+    );
   }
 
   Future<ErrorOr<void>> sendSourceEditsToClient(
@@ -45,30 +47,30 @@ abstract class SimpleEditCommandHandler
     }
 
     var lineInfo = unit.lineInfo;
-    var workspaceEdit = toWorkspaceEdit(
-      clientCapabilities,
-      [
-        FileEditInformation(
-          docIdentifier,
-          lineInfo,
-          edits,
-          // New files are not supported from raw source edits. This is used
-          // only for Organize Imports / Sort Members which do not produce new
-          // files.
-          newFile: false,
-        )
-      ],
-    );
+    var workspaceEdit = toWorkspaceEdit(clientCapabilities, [
+      FileEditInformation(
+        docIdentifier,
+        lineInfo,
+        edits,
+        // New files are not supported from raw source edits. This is used
+        // only for Organize Imports / Sort Members which do not produce new
+        // files.
+        newFile: false,
+      ),
+    ]);
 
     return sendWorkspaceEditToClient(workspaceEdit);
   }
 
   Future<ErrorOr<void>> sendWorkspaceEditToClient(
-      WorkspaceEdit workspaceEdit) async {
+    WorkspaceEdit workspaceEdit,
+  ) async {
     // Send the edit to the client via a applyEdit request (this is a request
     // from server -> client and the client will provide a response).
-    var editResponse = await server.sendRequest(Method.workspace_applyEdit,
-        ApplyWorkspaceEditParams(label: commandName, edit: workspaceEdit));
+    var editResponse = await server.sendRequest(
+      Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams(label: commandName, edit: workspaceEdit),
+    );
 
     if (editResponse.error != null) {
       return error(
@@ -84,7 +86,8 @@ abstract class SimpleEditCommandHandler
     // execution).
     // We need to fromJson to convert the JSON map to the real types.
     var editResponseResult = ApplyWorkspaceEditResult.fromJson(
-        editResponse.result as Map<String, Object?>);
+      editResponse.result as Map<String, Object?>,
+    );
     var ApplyWorkspaceEditResult(:applied, :failureReason) = editResponseResult;
     if (applied) {
       return success(null);

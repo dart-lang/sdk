@@ -28,8 +28,8 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     var libraryElement = libraryFragment.library;
 
     var nodeName = Name(libraryElement.source.uri, node.name);
-    var extensions =
-        libraryFragment.accessibleExtensions.havingMemberWithBaseName(nodeName);
+    var extensions = libraryFragment.accessibleExtensions
+        .havingMemberWithBaseName(nodeName);
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name;
@@ -54,8 +54,9 @@ class _AddOverride extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_name];

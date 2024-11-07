@@ -22,7 +22,10 @@ class InitializeMessageHandler
 
   @override
   ErrorOr<InitializeResult> handle(
-      InitializeParams params, MessageInfo message, CancellationToken token) {
+    InitializeParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) {
     server.analyticsManager.initialize(params);
 
     server.handleClientConnection(
@@ -63,8 +66,9 @@ class InitializeMessageHandler
       workspacePaths,
     );
 
-    var capabilities = server.capabilitiesComputer
-        .computeServerCapabilities(server.editorClientCapabilities!);
+    var capabilities = server.capabilitiesComputer.computeServerCapabilities(
+      server.editorClientCapabilities!,
+    );
     server.capabilities = capabilities;
 
     var sdkVersion = Platform.version;
@@ -72,12 +76,14 @@ class InitializeMessageHandler
       sdkVersion = sdkVersion.substring(0, sdkVersion.indexOf(' '));
     }
 
-    return success(InitializeResult(
-      capabilities: capabilities,
-      serverInfo: ServerInfo(
-        name: 'Dart SDK LSP Analysis Server',
-        version: sdkVersion,
+    return success(
+      InitializeResult(
+        capabilities: capabilities,
+        serverInfo: ServerInfo(
+          name: 'Dart SDK LSP Analysis Server',
+          version: sdkVersion,
+        ),
       ),
-    ));
+    );
   }
 }

@@ -31,9 +31,11 @@ class ConvertToRawString extends ResolvedCorrectionProducer {
 
     var literal = stringLiteral.literal;
     var deletionOffsets = <int>[];
-    for (var offset = stringLiteral.contentsOffset;
-        offset < stringLiteral.contentsEnd;
-        offset++) {
+    for (
+      var offset = stringLiteral.contentsOffset;
+      offset < stringLiteral.contentsEnd;
+      offset++
+    ) {
       var character = literal.lexeme[offset - literal.offset];
       if (character == r'\') {
         deletionOffsets.add(offset);

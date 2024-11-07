@@ -28,8 +28,8 @@ class DartTypeArgumentsSignatureComputer {
     int offset,
     this.preferredFormats, {
     this.documentationPreference = DocumentationPreference.full,
-  })  : _documentationComputer = DartDocumentationComputer(dartdocInfo),
-        _node = NodeLocator(offset).searchWithin(unit);
+  }) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
+       _node = NodeLocator(offset).searchWithin(unit);
 
   /// The [TypeArgumentList] node located by [compute].
   TypeArgumentList get argumentList => _argumentList;
@@ -58,7 +58,9 @@ class DartTypeArgumentsSignatureComputer {
 
     var label = element.displayString2();
     var documentation = _documentationComputer.computePreferred2(
-        element, documentationPreference);
+      element,
+      documentationPreference,
+    );
 
     return _toSignatureHelp(
       label,
@@ -87,18 +89,21 @@ class DartTypeArgumentsSignatureComputer {
     String? documentation,
     List<TypeParameterElement2> typeParameters,
   ) {
-    var parameters = typeParameters
-        .map((param) => lsp.ParameterInformation(
-              label: param.displayString2(),
-            ))
-        .toList();
+    var parameters =
+        typeParameters
+            .map(
+              (param) =>
+                  lsp.ParameterInformation(label: param.displayString2()),
+            )
+            .toList();
 
     var signatures = [
       lsp.SignatureInformation(
         label: label,
-        documentation: documentation != null
-            ? asMarkupContentOrString(preferredFormats, documentation)
-            : null,
+        documentation:
+            documentation != null
+                ? asMarkupContentOrString(preferredFormats, documentation)
+                : null,
         parameters: parameters,
       ),
     ];

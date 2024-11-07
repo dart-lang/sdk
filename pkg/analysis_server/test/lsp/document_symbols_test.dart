@@ -247,9 +247,14 @@ class A {}
     await initialize(allowEmptyRootUri: true);
 
     await expectLater(
-        getDocumentSymbols(mainFileUri),
-        throwsA(isResponseError(ServerErrorCodes.FileNotAnalyzed,
-            message: 'File is not being analyzed')));
+      getDocumentSymbols(mainFileUri),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.FileNotAnalyzed,
+          message: 'File is not being analyzed',
+        ),
+      ),
+    );
   }
 
   Future<void> test_nonDartFile() async {

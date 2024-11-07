@@ -20,8 +20,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// using a color picker (in a location returned by textDocument/documentColor)
 /// and needs a representation of this color, including the edits to insert it
 /// into the source file.
-class DocumentColorPresentationHandler extends SharedMessageHandler<
-    ColorPresentationParams, List<ColorPresentation>> {
+class DocumentColorPresentationHandler
+    extends
+        SharedMessageHandler<ColorPresentationParams, List<ColorPresentation>> {
   /// A pattern for removing trailing zeros (and if no decimal part, the period)
   /// from numbers formatted for code.
   final _trailingZerosAndPeriodPattern = RegExp(r'\.?0+$');
@@ -92,24 +93,30 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
     // We can only apply changes to the same file, so filter any change from the
     // builder to only include this file, otherwise we may corrupt the users
     // source (although hopefully we don't produce edits for other files).
-    var editsForThisFile = builder.sourceChange.edits
-        .where((edit) => edit.file == unit.path)
-        .expand((edit) => edit.edits)
-        .toList();
+    var editsForThisFile =
+        builder.sourceChange.edits
+            .where((edit) => edit.file == unit.path)
+            .expand((edit) => edit.edits)
+            .toList();
 
     // LSP requires that we separate the main edit (changing the color code)
     // from anything else (imports).
-    var mainEdit =
-        editsForThisFile.singleWhere((edit) => edit.offset == editRange.offset);
-    var otherEdits =
-        editsForThisFile.where((edit) => edit.offset != editRange.offset);
+    var mainEdit = editsForThisFile.singleWhere(
+      (edit) => edit.offset == editRange.offset,
+    );
+    var otherEdits = editsForThisFile.where(
+      (edit) => edit.offset != editRange.offset,
+    );
 
     return ColorPresentation(
       label: '$typeName$invocationString',
       textEdit: toTextEdit(unit.lineInfo, mainEdit),
-      additionalTextEdits: otherEdits.isNotEmpty
-          ? otherEdits.map((edit) => toTextEdit(unit.lineInfo, edit)).toList()
-          : null,
+      additionalTextEdits:
+          otherEdits.isNotEmpty
+              ? otherEdits
+                  .map((edit) => toTextEdit(unit.lineInfo, edit))
+                  .toList()
+              : null,
     );
   }
 
@@ -159,8 +166,10 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         return success([]);
       }
 
-      var requiresConstKeyword =
-          _willRequireConstKeyword(editRange.offset, unit);
+      var requiresConstKeyword = _willRequireConstKeyword(
+        editRange.offset,
+        unit,
+      );
       var colorValue = _colorValueForComponents(alpha, red, green, blue);
       var colorValueHex =
           '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
@@ -203,12 +212,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         includeConstKeyword: requiresConstKeyword,
       );
 
-      return success([
-        colorFromARGB,
-        colorFromRGBO,
-        colorFrom,
-        colorDefault,
-      ]);
+      return success([colorFromARGB, colorFromRGBO, colorFrom, colorDefault]);
     });
   }
 
@@ -249,8 +253,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
           parent is PrefixedIdentifier ? parent.element : node.element;
 
       return switch (element) {
-        GetterElement(:var variable3) ||
-        SetterElement(:var variable3) =>
+        GetterElement(:var variable3) || SetterElement(:var variable3) =>
           variable3?.isConst ?? false,
         VariableElement2() => element.isConst,
         _ => false,

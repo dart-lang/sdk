@@ -18,8 +18,9 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_IF_CASE_STATEMENT;
@@ -213,10 +214,7 @@ class _StatementInBlock {
   final Block block;
   final int index;
 
-  _StatementInBlock({
-    required this.block,
-    required this.index,
-  });
+  _StatementInBlock({required this.block, required this.index});
 
   Iterable<Statement> get following {
     return statements.skip(index + 1);

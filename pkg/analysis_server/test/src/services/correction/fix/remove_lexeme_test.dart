@@ -36,13 +36,15 @@ augment abstract class A {}
 augment final class A {}
 ''');
     await assertHasFixAllFix(
-        CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA, '''
+      CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA,
+      '''
 part of 'a.dart';
 
 augment class A {}
 
 augment class A {}
-''');
+''',
+    );
   }
 }
 

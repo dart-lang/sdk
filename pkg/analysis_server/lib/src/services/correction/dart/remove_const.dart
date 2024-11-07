@@ -20,8 +20,9 @@ class RemoveConst extends _RemoveConst {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_CONST;
@@ -127,9 +128,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
         }
         return;
       case ExpressionImpl expression:
-        var constantContext = expression.constantContext(
-          includeSelf: true,
-        );
+        var constantContext = expression.constantContext(includeSelf: true);
         if (constantContext != null) {
           var constKeyword = constantContext.$2;
           if (constKeyword != null) {
@@ -137,16 +136,12 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
               case InstanceCreationExpression contextNode:
                 await builder.addDartFileEdit(file, (builder) async {
                   _deleteToken(builder, constKeyword);
-                  contextNode.accept(
-                    _PushConstVisitor(builder, expression),
-                  );
+                  contextNode.accept(_PushConstVisitor(builder, expression));
                 });
               case TypedLiteral contextNode:
                 await builder.addDartFileEdit(file, (builder) async {
                   _deleteToken(builder, constKeyword);
-                  contextNode.accept(
-                    _PushConstVisitor(builder, expression),
-                  );
+                  contextNode.accept(_PushConstVisitor(builder, expression));
                 });
               case VariableDeclarationList contextNode:
                 await builder.addDartFileEdit(file, (builder) {
@@ -158,9 +153,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
                       'var',
                     );
                   }
-                  contextNode.accept(
-                    _PushConstVisitor(builder, expression),
-                  );
+                  contextNode.accept(_PushConstVisitor(builder, expression));
                 });
             }
           }
@@ -173,12 +166,7 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
     Token constKeyword,
   ) async {
     await builder.addDartFileEdit(file, (builder) {
-      builder.addDeletion(
-        range.startStart(
-          constKeyword,
-          constKeyword.next!,
-        ),
-      );
+      builder.addDeletion(range.startStart(constKeyword, constKeyword.next!));
     });
   }
 
@@ -190,14 +178,13 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
-          // TODO(pq): consider ensuring that any extra whitespace is removed.
-          SourceRange(diagnostic.offset, diagnostic.length + 1));
+        // TODO(pq): consider ensuring that any extra whitespace is removed.
+        SourceRange(diagnostic.offset, diagnostic.length + 1),
+      );
     });
   }
 
   void _deleteToken(DartFileEditBuilder builder, Token token) {
-    builder.addDeletion(
-      range.startStart(token, token.next!),
-    );
+    builder.addDeletion(range.startStart(token, token.next!));
   }
 }

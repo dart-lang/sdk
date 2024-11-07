@@ -24,38 +24,41 @@ class UseDifferentDivisionOperator extends MultiCorrectionProducer {
     if (exp case BinaryExpression _) {
       return switch (exp.operator.type) {
         TokenType.SLASH => [
-            _UseDifferentDivisionOperator(
-                context: context,
-                fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION)
-          ],
+          _UseDifferentDivisionOperator(
+            context: context,
+            fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
+          ),
+        ],
         TokenType.TILDE_SLASH => [
-            _UseDifferentDivisionOperator(
-                context: context, fixKind: DartFixKind.USE_DIVISION)
-          ],
-        _ => const []
+          _UseDifferentDivisionOperator(
+            context: context,
+            fixKind: DartFixKind.USE_DIVISION,
+          ),
+        ],
+        _ => const [],
       };
     } else if (exp case AssignmentExpression _) {
       return switch (exp.operator.type) {
         TokenType.SLASH_EQ => [
-            _UseDifferentDivisionOperator(
-                context: context,
-                fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION)
-          ],
+          _UseDifferentDivisionOperator(
+            context: context,
+            fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
+          ),
+        ],
         TokenType.TILDE_SLASH_EQ => [
-            _UseDifferentDivisionOperator(
-                context: context, fixKind: DartFixKind.USE_DIVISION)
-          ],
-        _ => const []
+          _UseDifferentDivisionOperator(
+            context: context,
+            fixKind: DartFixKind.USE_DIVISION,
+          ),
+        ],
+        _ => const [],
       };
     }
     return const [];
   }
 }
 
-enum _DivisionOperator {
-  division,
-  effectiveIntegerDivision,
-}
+enum _DivisionOperator { division, effectiveIntegerDivision }
 
 class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
   @override
@@ -63,7 +66,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
   final CorrectionProducerContext _context;
 
   _UseDifferentDivisionOperator({required super.context, required this.fixKind})
-      : _context = context;
+    : _context = context;
 
   @override
   CorrectionApplicability get applicability =>
@@ -100,16 +103,22 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
     // All extensions available in the current scope for the left operand that
     // define the other division operator.
     var name = Name(
-        _context.dartFixContext!.resolvedResult.libraryElement.source.uri,
-        otherOperator.lexeme);
-    var hasNoExtensionWithOtherDivisionOperator = await _context.dartFixContext!
-        .librariesWithExtensions(otherOperator.lexeme)
-        .where((library) {
-      return library.exportedExtensions
-          .havingMemberWithBaseName(name)
-          .applicableTo(targetLibrary: libraryElement, targetType: leftType!)
-          .isNotEmpty;
-    }).isEmpty;
+      _context.dartFixContext!.resolvedResult.libraryElement.source.uri,
+      otherOperator.lexeme,
+    );
+    var hasNoExtensionWithOtherDivisionOperator =
+        await _context.dartFixContext!
+            .librariesWithExtensions(otherOperator.lexeme)
+            .where((library) {
+              return library.exportedExtensions
+                  .havingMemberWithBaseName(name)
+                  .applicableTo(
+                    targetLibrary: libraryElement,
+                    targetType: leftType!,
+                  )
+                  .isNotEmpty;
+            })
+            .isEmpty;
     if (hasNoExtensionWithOtherDivisionOperator && operators.isEmpty) {
       return;
     }
@@ -133,8 +142,9 @@ extension on DartType {
             _DivisionOperator.division
           else if (method.name == TokenType.TILDE_SLASH.lexeme)
             _DivisionOperator.effectiveIntegerDivision,
-        ...interfaceElement.allSupertypes
-            .expand((type) => type.divisionOperators)
+        ...interfaceElement.allSupertypes.expand(
+          (type) => type.divisionOperators,
+        ),
       };
     } else if (element case TypeParameterElement typeParameterElement) {
       return typeParameterElement.bound?.divisionOperators ?? const {};

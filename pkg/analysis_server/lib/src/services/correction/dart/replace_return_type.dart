@@ -19,8 +19,9 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_newType];
@@ -87,7 +88,9 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
   }
 
   bool _isCompatibleWithReturnType(
-      MethodDeclaration method, DartType? newType) {
+    MethodDeclaration method,
+    DartType? newType,
+  ) {
     if (newType == null) {
       return false;
     }
@@ -109,8 +112,13 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
     );
 
     if (overriddenList != null) {
-      var notSubtype = overriddenList.any((element) =>
-          !libraryElement2.typeSystem.isSubtypeOf(newType, element.returnType));
+      var notSubtype = overriddenList.any(
+        (element) =>
+            !libraryElement2.typeSystem.isSubtypeOf(
+              newType,
+              element.returnType,
+            ),
+      );
       if (notSubtype) {
         return false;
       }

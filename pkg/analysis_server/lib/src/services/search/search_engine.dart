@@ -41,20 +41,24 @@ class MatchKind {
       MatchKind.reference('REFERENCE_BY_CONSTRUCTOR_TEAR_OFF');
 
   /// A reference to an element in an extends clause.
-  static const MatchKind REFERENCE_IN_EXTENDS_CLAUSE =
-      MatchKind.reference('REFERENCE_IN_EXTENDS_CLAUSE');
+  static const MatchKind REFERENCE_IN_EXTENDS_CLAUSE = MatchKind.reference(
+    'REFERENCE_IN_EXTENDS_CLAUSE',
+  );
 
   /// A reference to an element in an implements clause.
-  static const MatchKind REFERENCE_IN_IMPLEMENTS_CLAUSE =
-      MatchKind.reference('REFERENCE_IN_IMPLEMENTS_CLAUSE');
+  static const MatchKind REFERENCE_IN_IMPLEMENTS_CLAUSE = MatchKind.reference(
+    'REFERENCE_IN_IMPLEMENTS_CLAUSE',
+  );
 
   /// A reference to an element in a with clause.
-  static const MatchKind REFERENCE_IN_WITH_CLAUSE =
-      MatchKind.reference('REFERENCE_IN_WITH_CLAUSE');
+  static const MatchKind REFERENCE_IN_WITH_CLAUSE = MatchKind.reference(
+    'REFERENCE_IN_WITH_CLAUSE',
+  );
 
   /// A reference to an element in an on clause.
-  static const MatchKind REFERENCE_IN_ON_CLAUSE =
-      MatchKind.reference('REFERENCE_IN_ON_CLAUSE');
+  static const MatchKind REFERENCE_IN_ON_CLAUSE = MatchKind.reference(
+    'REFERENCE_IN_ON_CLAUSE',
+  );
 
   final String name;
 
@@ -77,8 +81,11 @@ abstract class SearchEngine {
   /// contains the entire subtree and the element won't be search on further.
   ///
   /// [type] - the [InterfaceElement] being subtyped by the found matches.
-  Future<void> appendAllSubtypes(InterfaceElement type,
-      Set<InterfaceElement> allSubtypes, OperationPerformanceImpl performance);
+  Future<void> appendAllSubtypes(
+    InterfaceElement type,
+    Set<InterfaceElement> allSubtypes,
+    OperationPerformanceImpl performance,
+  );
 
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
@@ -100,7 +107,9 @@ abstract class SearchEngine {
   /// compilation units in the [library]. The returned set will include an empty
   /// string if the element is referenced without a prefix.
   Future<Set<String>> searchPrefixesUsedInLibrary(
-      LibraryElement library, Element element);
+    LibraryElement library,
+    Element element,
+  );
 
   /// Returns references to the given [Element].
   ///
@@ -113,8 +122,10 @@ abstract class SearchEngine {
   /// [cache] - the [SearchEngineCache] used to speeding up the computation. If
   ///    empty it will be filled out and can be used on any subsequent query.
   Future<List<SearchMatch>> searchSubtypes(
-      InterfaceElement type, SearchEngineCache cache,
-      {OperationPerformanceImpl? performance});
+    InterfaceElement type,
+    SearchEngineCache cache, {
+    OperationPerformanceImpl? performance,
+  });
 
   /// Returns all the top-level declarations matching the given pattern.
   ///

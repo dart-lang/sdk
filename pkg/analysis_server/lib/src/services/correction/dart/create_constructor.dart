@@ -22,8 +22,9 @@ class CreateConstructor extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_constructorName];
@@ -55,8 +56,11 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
   }
 
-  Future<void> _proposeFromConstructorName(ChangeBuilder builder, Token name,
-      ConstructorName constructorName) async {
+  Future<void> _proposeFromConstructorName(
+    ChangeBuilder builder,
+    Token name,
+    ConstructorName constructorName,
+  ) async {
     InstanceCreationExpression? instanceCreation;
     _constructorName = constructorName.toSource();
     if (constructorName.name?.token == name) {
@@ -85,8 +89,9 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     // prepare target ClassDeclaration
     var targetElement = targetType.element3;
     var targetFragment = targetElement.firstFragment;
-    var targetResult =
-        await sessionHelper.getElementDeclaration2(targetFragment);
+    var targetResult = await sessionHelper.getElementDeclaration2(
+      targetFragment,
+    );
     if (targetResult == null) {
       return;
     }
@@ -100,12 +105,21 @@ class CreateConstructor extends ResolvedCorrectionProducer {
       return;
     }
 
-    await _write(builder, resolvedUnit, name, targetNode,
-        constructorName: name, argumentList: instanceCreation.argumentList);
+    await _write(
+      builder,
+      resolvedUnit,
+      name,
+      targetNode,
+      constructorName: name,
+      argumentList: instanceCreation.argumentList,
+    );
   }
 
   Future<void> _proposeFromEnumConstantDeclaration(
-      ChangeBuilder builder, Token name, EnumConstantDeclaration parent) async {
+    ChangeBuilder builder,
+    Token name,
+    EnumConstantDeclaration parent,
+  ) async {
     var grandParent = parent.parent;
     if (grandParent is! EnumDeclaration) {
       return;
@@ -116,8 +130,9 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target interface type
-    var targetResult =
-        await sessionHelper.getElementDeclaration2(targetElement);
+    var targetResult = await sessionHelper.getElementDeclaration2(
+      targetElement,
+    );
     if (targetResult == null) {
       return;
     }
@@ -147,8 +162,10 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     );
   }
 
-  Future<void> _proposeFromInstanceCreation(ChangeBuilder builder,
-      InstanceCreationExpression instanceCreation) async {
+  Future<void> _proposeFromInstanceCreation(
+    ChangeBuilder builder,
+    InstanceCreationExpression instanceCreation,
+  ) async {
     var constructorName = instanceCreation.constructorName;
     _constructorName = constructorName.toSource();
     // should be synthetic default constructor
@@ -168,8 +185,9 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetResult =
-        await sessionHelper.getElementDeclaration2(targetFragment);
+    var targetResult = await sessionHelper.getElementDeclaration2(
+      targetFragment,
+    );
     if (targetResult == null) {
       return;
     }
@@ -187,8 +205,10 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertConstructor(targetNode, (builder) {
-        builder.writeConstructorDeclaration(targetElementName,
-            argumentList: instanceCreation.argumentList);
+        builder.writeConstructorDeclaration(
+          targetElementName,
+          argumentList: instanceCreation.argumentList,
+        );
       });
     });
   }
@@ -205,11 +225,13 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     var targetFile = resolvedUnit.file.path;
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertConstructor(unitMember, (builder) {
-        builder.writeConstructorDeclaration(unitMember.name.lexeme,
-            isConst: isConst,
-            argumentList: argumentList,
-            constructorName: constructorName?.lexeme,
-            constructorNameGroupName: 'NAME');
+        builder.writeConstructorDeclaration(
+          unitMember.name.lexeme,
+          isConst: isConst,
+          argumentList: argumentList,
+          constructorName: constructorName?.lexeme,
+          constructorNameGroupName: 'NAME',
+        );
       });
       if (targetFile == file) {
         builder.addLinkedPosition(range.token(name), 'NAME');

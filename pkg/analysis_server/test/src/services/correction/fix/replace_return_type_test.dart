@@ -83,16 +83,19 @@ void top() {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void top() {
   String f() {
     return '';
   }
 }
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+      },
+    );
   }
 
   Future<void> test_method() async {
@@ -122,7 +125,8 @@ class B extends A {
   int m() => this;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   A m() => this;
 }
@@ -130,10 +134,12 @@ class B extends A {
   @override
   B m() => this;
 }
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+      },
+    );
   }
 
   Future<void> test_methodOverride_multiple_subtype() async {
@@ -198,17 +204,20 @@ int f() {
   return 2.4;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 num f() {
   if (true) {
     return 3;
   }
   return 2.4;
 }
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+      },
+    );
   }
 
   Future<void> test_upperBound_method() async {
@@ -222,7 +231,8 @@ class A {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   num m() {
     if (true) {
@@ -231,9 +241,11 @@ class A {
     return 2.4;
   }
 }
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+      },
+    );
   }
 }

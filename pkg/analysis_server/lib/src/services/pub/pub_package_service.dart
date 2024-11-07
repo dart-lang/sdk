@@ -28,7 +28,7 @@ class PackageDetailsCache {
   DateTime lastUpdatedUtc;
 
   PackageDetailsCache._(this.packages, DateTime lastUpdated)
-      : lastUpdatedUtc = lastUpdated.toUtc();
+    : lastUpdatedUtc = lastUpdated.toUtc();
 
   Duration get cacheTimeRemaining {
     var cacheAge = DateTime.now().toUtc().difference(lastUpdatedUtc);
@@ -51,8 +51,12 @@ class PackageDetailsCache {
   }
 
   static PackageDetailsCache fromApiResults(List<PubApiPackage> apiPackages) {
-    var packages = Map.fromEntries(apiPackages.map((package) =>
-        MapEntry(package.packageName, PubPackage.fromName(package))));
+    var packages = Map.fromEntries(
+      apiPackages.map(
+        (package) =>
+            MapEntry(package.packageName, PubPackage.fromName(package)),
+      ),
+    );
 
     return PackageDetailsCache._(packages, DateTime.now().toUtc());
   }
@@ -83,9 +87,7 @@ class PackageDetailsCache {
     }
 
     var packageMap = Map.fromEntries(
-      packages.map(
-        (package) => MapEntry(package.packageName, package),
-      ),
+      packages.map((package) => MapEntry(package.packageName, package)),
     );
 
     var lastUpdatedJson = json['lastUpdated'];
@@ -108,17 +110,17 @@ class PubPackage {
   String? latestVersion;
 
   PubPackage.fromDetails(PubApiPackageDetails package)
-      : packageName = package.packageName,
-        description = package.description,
-        latestVersion = package.latestVersion;
+    : packageName = package.packageName,
+      description = package.description,
+      latestVersion = package.latestVersion;
 
   PubPackage.fromJson(Map<String, Object?> json)
-      : packageName = json['packageName'] as String,
-        description = json['description'] as String?,
-        latestVersion = json['latestVersion'] as String?;
+    : packageName = json['packageName'] as String,
+      description = json['description'] as String?,
+      latestVersion = json['latestVersion'] as String?;
 
   PubPackage.fromName(PubApiPackage package)
-      : packageName = package.packageName;
+    : packageName = package.packageName;
 
   Map<String, Object> toJson() {
     return {
@@ -164,8 +166,12 @@ class PubPackageService {
   final _pubspecPackageVersions =
       <String, Map<String, PubOutdatedPackageDetails>>{};
 
-  PubPackageService(this._instrumentationService, this.resourceProvider,
-      this._api, this._command);
+  PubPackageService(
+    this._instrumentationService,
+    this.resourceProvider,
+    this._api,
+    this._command,
+  );
 
   /// Gets the last set of package results from the Pub API or an empty List if
   /// no results.
@@ -182,9 +188,9 @@ class PubPackageService {
 
   @visibleForTesting
   File get packageCacheFile {
-    var cacheFolder = resourceProvider
-        .getStateLocation('.pub-package-details-cache')!
-      ..create();
+    var cacheFolder =
+        resourceProvider.getStateLocation('.pub-package-details-cache')!
+          ..create();
     return cacheFolder.getChildAssumingFile('packages.json');
   }
 
@@ -211,8 +217,10 @@ class PubPackageService {
     }
 
     // If there is no queued request, initialize one when the current cache expires.
-    _nextPackageNameListRequestTimer ??=
-        Timer(cache.cacheTimeRemaining, _fetchFromServer);
+    _nextPackageNameListRequestTimer ??= Timer(
+      cache.cacheTimeRemaining,
+      _fetchFromServer,
+    );
   }
 
   /// Gets the latest cached package version fetched from the Pub API for the
@@ -227,7 +235,9 @@ class PubPackageService {
   /// pubspec on disk. Newly-added packages in the overlay might not be
   /// available.
   PubOutdatedPackageDetails? cachedPubOutdatedVersions(
-      String pubspecPath, String packageName) {
+    String pubspecPath,
+    String packageName,
+  ) {
     var pubspecCache = _pubspecPackageVersions[pubspecPath];
     return pubspecCache != null ? pubspecCache[packageName] : null;
   }
@@ -237,8 +247,10 @@ class PubPackageService {
   ///
   /// If [pubspecWasModified] is true, the command will always be run. Otherwise it
   /// will only be run if data is not already cached.
-  Future<void> fetchPackageVersionsViaPubOutdated(String pubspecPath,
-      {required bool pubspecWasModified}) async {
+  Future<void> fetchPackageVersionsViaPubOutdated(
+    String pubspecPath, {
+    required bool pubspecWasModified,
+  }) async {
     var pubCommand = _command;
     if (pubCommand == null) {
       return;
@@ -361,8 +373,10 @@ class PubPackageService {
     } catch (e) {
       _instrumentationService.logError('Failed to fetch packages from Pub: $e');
     } finally {
-      _nextPackageNameListRequestTimer =
-          Timer(PackageDetailsCache.maxCacheAge, _fetchFromServer);
+      _nextPackageNameListRequestTimer = Timer(
+        PackageDetailsCache.maxCacheAge,
+        _fetchFromServer,
+      );
     }
   }
 
@@ -385,7 +399,9 @@ class PubPackageService {
   /// the timer each time this method is called.
   void _writeDiskCacheDebounced() {
     _nextWriteDiskCacheTimer?.cancel();
-    _nextWriteDiskCacheTimer =
-        Timer(PackageDetailsCache._writeCacheDebounceDuration, writeDiskCache);
+    _nextWriteDiskCacheTimer = Timer(
+      PackageDetailsCache._writeCacheDebounceDuration,
+      writeDiskCache,
+    );
   }
 }

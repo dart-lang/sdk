@@ -9,17 +9,20 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 /// protocol and the server protocol.
 class RequestConverter {
   plugin.AnalysisService convertAnalysisService(
-      server.AnalysisService service) {
+    server.AnalysisService service,
+  ) {
     return plugin.AnalysisService(service.name);
   }
 
   plugin.AnalysisSetPriorityFilesParams convertAnalysisSetPriorityFilesParams(
-      server.AnalysisSetPriorityFilesParams params) {
+    server.AnalysisSetPriorityFilesParams params,
+  ) {
     return plugin.AnalysisSetPriorityFilesParams(params.files);
   }
 
   plugin.AnalysisSetSubscriptionsParams convertAnalysisSetSubscriptionsParams(
-      server.AnalysisSetSubscriptionsParams params) {
+    server.AnalysisSetSubscriptionsParams params,
+  ) {
     var serverSubscriptions = params.subscriptions;
     var pluginSubscriptions = <plugin.AnalysisService, List<String>>{};
     for (var entry in serverSubscriptions.entries) {
@@ -35,7 +38,8 @@ class RequestConverter {
   }
 
   plugin.AnalysisUpdateContentParams convertAnalysisUpdateContentParams(
-      server.AnalysisUpdateContentParams params) {
+    server.AnalysisUpdateContentParams params,
+  ) {
     return plugin.AnalysisUpdateContentParams(params.files);
   }
 }

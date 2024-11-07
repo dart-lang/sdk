@@ -21,7 +21,11 @@ class RenameProcessor {
   final String newName;
 
   RenameProcessor(
-      this.workspace, this.sessionHelper, this.change, this.newName);
+    this.workspace,
+    this.sessionHelper,
+    this.change,
+    this.newName,
+  );
 
   /// Add the edit that updates the [element] declaration.
   void addDeclarationEdit(Element? element) {
@@ -79,10 +83,10 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   late String newName;
 
   RenameRefactoringImpl(this.workspace, this.sessionHelper, Element element)
-      : searchEngine = workspace.searchEngine,
-        _element = element,
-        elementKindName = element.kind.displayName,
-        oldName = _getOldName(element);
+    : searchEngine = workspace.searchEngine,
+      _element = element,
+      elementKindName = element.kind.displayName,
+      oldName = _getOldName(element);
 
   Element get element => _element;
 
@@ -91,16 +95,18 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
     if (element.library?.isInSdk == true) {
       var message = format(
-          "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
-          getElementKindName(element),
-          getElementQualifiedName(element));
+        "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
+        getElementKindName(element),
+        getElementQualifiedName(element),
+      );
       result.addFatalError(message);
     }
     if (!workspace.containsElement(element)) {
       var message = format(
-          "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
-          getElementKindName(element),
-          getElementQualifiedName(element));
+        "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
+        getElementKindName(element),
+        getElementQualifiedName(element),
+      );
       result.addFatalError(message);
     }
     return Future.value(result);
@@ -111,7 +117,8 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
     var result = RefactoringStatus();
     if (newName == oldName) {
       result.addFatalError(
-          'The new name must be different than the current name.');
+        'The new name must be different than the current name.',
+      );
     }
     return result;
   }

@@ -12,34 +12,41 @@ class LspNotificationManager extends AbstractNotificationManager {
   /// The analysis server, used to fetch LineInfo in order to map plugin
   /// data structures to LSP structures.
   late LspAnalysisServer
-      server; // Set externally immediately after construction
+  server; // Set externally immediately after construction
 
   LspNotificationManager(super.pathContext);
 
   /// Sends errors for a file to the client.
   @override
   void sendAnalysisErrors(
-      String filePath, List<protocol.AnalysisError> errors) {
+    String filePath,
+    List<protocol.AnalysisError> errors,
+  ) {
     // Currently these diagnostics are always sent to the editor client, so
     // use those client capabilities.
     var clientCapabilities = server.editorClientCapabilities;
-    var diagnostics = errors
-        .map((error) => pluginToDiagnostic(
-              server.uriConverter,
-              (path) => server.getLineInfo(path),
-              error,
-              supportedTags: clientCapabilities?.diagnosticTags,
-              clientSupportsCodeDescription:
-                  clientCapabilities?.diagnosticCodeDescription ?? false,
-            ))
-        .toList();
+    var diagnostics =
+        errors
+            .map(
+              (error) => pluginToDiagnostic(
+                server.uriConverter,
+                (path) => server.getLineInfo(path),
+                error,
+                supportedTags: clientCapabilities?.diagnosticTags,
+                clientSupportsCodeDescription:
+                    clientCapabilities?.diagnosticCodeDescription ?? false,
+              ),
+            )
+            .toList();
 
     server.publishDiagnostics(filePath, diagnostics);
   }
 
   @override
   void sendFoldingRegions(
-      String filePath, List<protocol.FoldingRegion> mergedFolding) {
+    String filePath,
+    List<protocol.FoldingRegion> mergedFolding,
+  ) {
     // In LSP, folding regions are requested by the client with
     // 'textDocument/foldingRange' rather than pushed so there's no need
     // to do anything here. Results are merged by the base class and provided
@@ -48,7 +55,9 @@ class LspNotificationManager extends AbstractNotificationManager {
 
   @override
   void sendHighlightRegions(
-      String filePath, List<protocol.HighlightRegion> mergedHighlights) {
+    String filePath,
+    List<protocol.HighlightRegion> mergedHighlights,
+  ) {
     // TODO(dantup): implement sendHighlightRegions
   }
 
@@ -62,7 +71,9 @@ class LspNotificationManager extends AbstractNotificationManager {
 
   @override
   void sendOccurrences(
-      String filePath, List<protocol.Occurrences> mergedOccurrences) {
+    String filePath,
+    List<protocol.Occurrences> mergedOccurrences,
+  ) {
     // In LSP, occurrences are requested by the client with
     // 'textDocument/documentHighlight' rather than pushed so there's no need
     // to do anything here. Results are merged by the base class and provided

@@ -26,9 +26,12 @@ List<String> getCamelWordCombinations(String name) {
 
 /// Returns possible names for a variable with the given expected type and
 /// expression assigned.
-List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
-    Expression? assignedExpression, Set<String> excluded,
-    {bool isMethod = false}) {
+List<String> getVariableNameSuggestionsForExpression(
+  DartType? expectedType,
+  Expression? assignedExpression,
+  Set<String> excluded, {
+  bool isMethod = false,
+}) {
   String? prefix;
 
   if (isMethod) {
@@ -50,8 +53,12 @@ List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
       if (nameFromExpression.startsWith('_')) {
         nameFromExpression = nameFromExpression.substring(1);
       }
-      _addAll(excluded, res, getCamelWordCombinations(nameFromExpression),
-          prefix: prefix);
+      _addAll(
+        excluded,
+        res,
+        getCamelWordCombinations(nameFromExpression),
+        prefix: prefix,
+      );
     }
     var nameFromParent = _getBaseNameFromLocationInParent(assignedExpression);
     if (nameFromParent != null) {
@@ -79,7 +86,9 @@ List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
 
 /// Returns possible names for a [String] variable with [text] value.
 List<String> getVariableNameSuggestionsForText(
-    String text, Set<String> excluded) {
+  String text,
+  Set<String> excluded,
+) {
   // filter out everything except of letters and white spaces
   {
     var sb = StringBuffer();
@@ -112,11 +121,15 @@ List<String> getVariableNameSuggestionsForText(
 }
 
 /// Adds [toAdd] items which are not excluded.
-void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
-    {String? prefix}) {
+void _addAll(
+  Set<String> excluded,
+  Set<String> result,
+  Iterable<String> toAdd, {
+  String? prefix,
+}) {
   for (var item in toAdd) {
     // add name based on "item", but not "excluded"
-    for (var suffix = 1;; suffix++) {
+    for (var suffix = 1; ; suffix++) {
       // prepare name, just "item" or "item2", "item3", etc
       var name = item;
       if (suffix > 1) {

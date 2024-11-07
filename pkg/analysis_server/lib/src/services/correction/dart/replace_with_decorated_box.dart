@@ -33,8 +33,9 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     if (instanceCreation is! InstanceCreationExpression) return;
 
     if (applyingBulkFixes) {
-      var parent = instanceCreation.parent
-          ?.thisOrAncestorOfType<InstanceCreationExpression>();
+      var parent =
+          instanceCreation.parent
+              ?.thisOrAncestorOfType<InstanceCreationExpression>();
 
       while (parent != null) {
         if (_hasLint(parent)) return;
@@ -55,8 +56,10 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
 
     /// Replace the expression if [isReplace] is `true` and it [_hasLint]
     /// and return whether it can be a `const` or not.
-    bool canExpressionBeConst(Expression expression,
-        {required bool isReplace}) {
+    bool canExpressionBeConst(
+      Expression expression, {
+      required bool isReplace,
+    }) {
       var canBeConst = expression.canBeConst;
       if (!canBeConst &&
           isReplace &&
@@ -67,8 +70,10 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
         for (var argument in expression.argumentList.arguments) {
           if (argument is NamedExpression) {
             var child = argument.expression;
-            var canChildBeConst =
-                canExpressionBeConst(child, isReplace: applyingBulkFixes);
+            var canChildBeConst = canExpressionBeConst(
+              child,
+              isReplace: applyingBulkFixes,
+            );
             canBeConst &= canChildBeConst;
             if (child is InstanceCreationExpression) {
               childrenConstMap[child] = canChildBeConst;

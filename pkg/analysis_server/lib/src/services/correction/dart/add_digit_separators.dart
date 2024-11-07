@@ -22,11 +22,11 @@ class AddDigitSeparatorEveryThreeDigits extends _AddDigitSeparators {
 
   @override
   Set<TokenType> get _tokenTypes => const {
-        TokenType.INT,
-        TokenType.INT_WITH_SEPARATORS,
-        TokenType.DOUBLE,
-        TokenType.DOUBLE_WITH_SEPARATORS,
-      };
+    TokenType.INT,
+    TokenType.INT_WITH_SEPARATORS,
+    TokenType.DOUBLE,
+    TokenType.DOUBLE_WITH_SEPARATORS,
+  };
 }
 
 class AddDigitSeparatorEveryTwoDigits extends _AddDigitSeparators {
@@ -39,8 +39,10 @@ class AddDigitSeparatorEveryTwoDigits extends _AddDigitSeparators {
   int get _minimumDigitCount => 4;
 
   @override
-  Set<TokenType> get _tokenTypes =>
-      const {TokenType.HEXADECIMAL, TokenType.HEXADECIMAL_WITH_SEPARATORS};
+  Set<TokenType> get _tokenTypes => const {
+    TokenType.HEXADECIMAL,
+    TokenType.HEXADECIMAL_WITH_SEPARATORS,
+  };
 }
 
 abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
@@ -71,7 +73,8 @@ abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
       }
       // We scrap whatever separators are in place.
       var source = stripSeparators(node.literal.lexeme);
-      var isHex = node.literal.type == TokenType.HEXADECIMAL ||
+      var isHex =
+          node.literal.type == TokenType.HEXADECIMAL ||
           node.literal.type == TokenType.HEXADECIMAL_WITH_SEPARATORS;
       if (isHex) {
         const hexPrefixLength = '0x'.length;
@@ -108,7 +111,7 @@ abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
       var eIndex = source.indexOf('e');
       if (eIndex == -1) eIndex = source.indexOf('E');
       if (eIndex > -1) {
-        if (source.codeUnitAt(eIndex + 1) == 0x2D /* '-' */) {
+        if (source.codeUnitAt(eIndex + 1) == 0x2D /* '-' */ ) {
           exponentialPartIsNegative = true;
           exponentialPart = source.substring(eIndex + 2);
         } else {
@@ -119,14 +122,16 @@ abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
       var decimalIndex = source.indexOf('.');
       if (decimalIndex > -1) {
         wholePart = source.substring(0, decimalIndex);
-        fractionalPart = eIndex > -1
-            ? source.substring(decimalIndex + 1, eIndex)
-            : source.substring(decimalIndex + 1);
+        fractionalPart =
+            eIndex > -1
+                ? source.substring(decimalIndex + 1, eIndex)
+                : source.substring(decimalIndex + 1);
       } else {
         assert(
-            eIndex > -1,
-            "There is neither a decimal point, nor an 'e', nor an 'E', in this "
-            "double literal: '${node.literal.lexeme}'");
+          eIndex > -1,
+          "There is neither a decimal point, nor an 'e', nor an 'E', in this "
+          "double literal: '${node.literal.lexeme}'",
+        );
         wholePart = source.substring(0, eIndex);
         fractionalPart = null;
       }

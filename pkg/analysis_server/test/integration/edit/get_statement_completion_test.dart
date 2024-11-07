@@ -29,8 +29,10 @@ void foo() { }''';
     expect(currentAnalysisErrors[pathname], isNotEmpty);
 
     // expect a statement completion result
-    var result =
-        await sendEditGetStatementCompletion(pathname, text.indexOf('foo('));
+    var result = await sendEditGetStatementCompletion(
+      pathname,
+      text.indexOf('foo('),
+    );
     expect(result.change.edits, isNotEmpty);
 
     // apply the edit, expect that the new code has no errors

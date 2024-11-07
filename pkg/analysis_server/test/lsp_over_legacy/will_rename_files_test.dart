@@ -35,8 +35,9 @@ class WillRenameFilesTest extends LspOverLegacyTest {
       ),
     ]);
 
-    var cancelRequest =
-        createLegacyRequest(ServerCancelRequestParams(lastSentLegacyRequestId));
+    var cancelRequest = createLegacyRequest(
+      ServerCancelRequestParams(lastSentLegacyRequestId),
+    );
     await handleRequest(cancelRequest);
 
     // Expect the cancellation was forwarded and handled by the LSP handler.

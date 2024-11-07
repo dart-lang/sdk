@@ -16,12 +16,18 @@ class EditSortMembersHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditSortMembersHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditSortMembersParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditSortMembersParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -49,12 +55,17 @@ class EditSortMembersHandler extends LegacyHandler {
     var numScanParseErrors = numberOfSyntacticErrors(errors);
     if (numScanParseErrors != 0) {
       sendResponse(
-          Response.sortMembersParseErrors(request, numScanParseErrors));
+        Response.sortMembersParseErrors(request, numScanParseErrors),
+      );
       return;
     }
     // Do sort.
     var sorter = MemberSorter(
-        code, unit, result.analysisOptions.codeStyleOptions, result.lineInfo);
+      code,
+      unit,
+      result.analysisOptions.codeStyleOptions,
+      result.lineInfo,
+    );
     var edits = sorter.sort();
     var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     sendResult(EditSortMembersResult(fileEdit));

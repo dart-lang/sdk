@@ -17,17 +17,16 @@ void main() {
 
 @reflectiveTest
 class DtdTest
-    // This is an integration test that runs with an out-of-process server.
-    // Because each test spawns a DTD instance and running this suite can be
-    // slow we don't have an in-memory copy of these tests, but the base class
-    // can temporarily be changed to `AbstractLspAnalysisServerTest` to run
-    // with an in-process (analysis) server for easier debugging. DTD always
-    // runs out-of-process.
-    extends AbstractLspAnalysisServerIntegrationTest
-    // Test implementations come from this mixin because they
-    // are shared with the legacy server integration tests.
-    with
-        SharedDtdTests {
+        // This is an integration test that runs with an out-of-process server.
+        // Because each test spawns a DTD instance and running this suite can be
+        // slow we don't have an in-memory copy of these tests, but the base class
+        // can temporarily be changed to `AbstractLspAnalysisServerTest` to run
+        // with an in-process (analysis) server for easier debugging. DTD always
+        // runs out-of-process.
+        extends AbstractLspAnalysisServerIntegrationTest
+        // Test implementations come from this mixin because they
+        // are shared with the legacy server integration tests.
+        with SharedDtdTests {
   @override
   String get testFile => mainFilePath;
 

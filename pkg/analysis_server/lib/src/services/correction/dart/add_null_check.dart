@@ -27,18 +27,19 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   //
   // > Producers used in bulk fixes must not modify the FixKind during
   // > computation.
-  FixKind fixKind = DartFixKind.ADD_NULL_CHECK;
+  FixKind
+  fixKind = DartFixKind.ADD_NULL_CHECK;
 
   @override
   List<String>? fixArguments;
 
   AddNullCheck({required super.context})
-      : skipAssignabilityCheck = false,
-        applicability = CorrectionApplicability.singleLocation;
+    : skipAssignabilityCheck = false,
+      applicability = CorrectionApplicability.singleLocation;
 
   AddNullCheck.withoutAssignabilityCheck({required super.context})
-      : skipAssignabilityCheck = true,
-        applicability = CorrectionApplicability.automaticallyButOncePerFile;
+    : skipAssignabilityCheck = true,
+      applicability = CorrectionApplicability.automaticallyButOncePerFile;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -59,7 +60,9 @@ class AddNullCheck extends ResolvedCorrectionProducer {
         target = coveringNodeParent.realTarget;
       } else if (coveringNodeParent is CascadeExpression &&
           await _isNullAware(
-              builder, coveringNodeParent.cascadeSections.first)) {
+            builder,
+            coveringNodeParent.cascadeSections.first,
+          )) {
         return;
       } else {
         target = coveringNode;
@@ -86,10 +89,13 @@ class AddNullCheck extends ResolvedCorrectionProducer {
         if (expectedType == null) return;
 
         var leftType = coveringNode.leftOperand.staticType;
-        var leftAssignable = leftType != null &&
+        var leftAssignable =
+            leftType != null &&
             typeSystem.isAssignableTo(
-                typeSystem.promoteToNonNull(leftType), expectedType,
-                strictCasts: analysisOptions.strictCasts);
+              typeSystem.promoteToNonNull(leftType),
+              expectedType,
+              strictCasts: analysisOptions.strictCasts,
+            );
         if (leftAssignable) {
           target = coveringNode.rightOperand;
         }
@@ -129,19 +135,24 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     } else if (parent is IndexExpression) {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
-      toType =
-          typeProvider.iterableType(parent.loopVariable.declaredElement2!.type);
+      toType = typeProvider.iterableType(
+        parent.loopVariable.declaredElement2!.type,
+      );
     } else if (parent is ForEachPartsWithIdentifier) {
       toType = typeProvider.iterableType(parent.identifier.typeOrThrow);
     } else if (parent is SpreadElement) {
       var literal = parent.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {
-        toType =
-            literal.typeOrThrow.asInstanceOf2(typeProvider.iterableElement2);
+        toType = literal.typeOrThrow.asInstanceOf2(
+          typeProvider.iterableElement2,
+        );
       } else if (literal is SetOrMapLiteral) {
-        toType = literal.typeOrThrow.isDartCoreSet
-            ? literal.typeOrThrow.asInstanceOf2(typeProvider.iterableElement2)
-            : literal.typeOrThrow.asInstanceOf2(typeProvider.mapElement2);
+        toType =
+            literal.typeOrThrow.isDartCoreSet
+                ? literal.typeOrThrow.asInstanceOf2(
+                  typeProvider.iterableElement2,
+                )
+                : literal.typeOrThrow.asInstanceOf2(typeProvider.mapElement2);
       }
     } else if (parent is YieldStatement) {
       var enclosingExecutable =
@@ -158,8 +169,10 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       var expectedType = parent.correspondingParameter?.type;
       if (expectedType != null &&
           !typeSystem.isAssignableTo(
-              typeSystem.promoteToNonNull(fromType), expectedType,
-              strictCasts: analysisOptions.strictCasts)) {
+            typeSystem.promoteToNonNull(fromType),
+            expectedType,
+            strictCasts: analysisOptions.strictCasts,
+          )) {
         return;
       }
     } else if ((parent is PrefixedIdentifier && target == parent.prefix) ||
@@ -177,8 +190,10 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     if (toType != null &&
         !skipAssignabilityCheck &&
         !typeSystem.isAssignableTo(
-            typeSystem.promoteToNonNull(fromType), toType,
-            strictCasts: analysisOptions.strictCasts)) {
+          typeSystem.promoteToNonNull(fromType),
+          toType,
+          strictCasts: analysisOptions.strictCasts,
+        )) {
       // The reason that `fromType` can't be assigned to `toType` is more than
       // just because it's nullable, in which case a null check won't fix the
       // problem.

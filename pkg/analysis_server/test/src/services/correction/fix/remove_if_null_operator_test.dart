@@ -24,7 +24,7 @@ class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 
   Future<void>
-      test_assignmentExpression_propertyAccess_methodInvocation() async {
+  test_assignmentExpression_propertyAccess_methodInvocation() async {
     await resolveTestCode('''
 class C {
   int a = 0;

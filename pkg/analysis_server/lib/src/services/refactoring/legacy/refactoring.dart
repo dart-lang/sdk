@@ -39,8 +39,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 abstract class ConvertGetterToMethodRefactoring implements Refactoring {
   /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
-  factory ConvertGetterToMethodRefactoring(RefactoringWorkspace workspace,
-      AnalysisSession session, PropertyAccessorElement element) {
+  factory ConvertGetterToMethodRefactoring(
+    RefactoringWorkspace workspace,
+    AnalysisSession session,
+    PropertyAccessorElement element,
+  ) {
     return ConvertGetterToMethodRefactoringImpl(workspace, session, element);
   }
 
@@ -59,8 +62,11 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
 abstract class ConvertMethodToGetterRefactoring implements Refactoring {
   /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
-  factory ConvertMethodToGetterRefactoring(RefactoringWorkspace workspace,
-      AnalysisSession session, ExecutableElement element) {
+  factory ConvertMethodToGetterRefactoring(
+    RefactoringWorkspace workspace,
+    AnalysisSession session,
+    ExecutableElement element,
+  ) {
     return ConvertMethodToGetterRefactoringImpl(workspace, session, element);
   }
 
@@ -78,8 +84,11 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
 /// [Refactoring] to extract an expression into a local variable declaration.
 abstract class ExtractLocalRefactoring implements Refactoring {
   /// Returns a new [ExtractLocalRefactoring] instance.
-  factory ExtractLocalRefactoring(ResolvedUnitResult resolveResult,
-      int selectionOffset, int selectionLength) = ExtractLocalRefactoringImpl;
+  factory ExtractLocalRefactoring(
+    ResolvedUnitResult resolveResult,
+    int selectionOffset,
+    int selectionLength,
+  ) = ExtractLocalRefactoringImpl;
 
   /// The lengths of the expressions that cover the specified selection,
   /// from the down most to the up most.
@@ -137,12 +146,17 @@ abstract class ExtractLocalRefactoring implements Refactoring {
 abstract class ExtractMethodRefactoring implements Refactoring {
   /// Returns a new [ExtractMethodRefactoring] instance.
   factory ExtractMethodRefactoring(
-      SearchEngine searchEngine,
-      ResolvedUnitResult resolveResult,
-      int selectionOffset,
-      int selectionLength) {
+    SearchEngine searchEngine,
+    ResolvedUnitResult resolveResult,
+    int selectionOffset,
+    int selectionLength,
+  ) {
     return ExtractMethodRefactoringImpl(
-        searchEngine, resolveResult, selectionOffset, selectionLength);
+      searchEngine,
+      resolveResult,
+      selectionOffset,
+      selectionLength,
+    );
   }
 
   /// True if a getter could be created rather than a method.
@@ -211,10 +225,18 @@ abstract class ExtractMethodRefactoring implements Refactoring {
 /// a widget, into a new stateless or stateful widget.
 abstract class ExtractWidgetRefactoring implements Refactoring {
   /// Returns a new [ExtractWidgetRefactoring] instance.
-  factory ExtractWidgetRefactoring(SearchEngine searchEngine,
-      ResolvedUnitResult resolveResult, int offset, int length) {
+  factory ExtractWidgetRefactoring(
+    SearchEngine searchEngine,
+    ResolvedUnitResult resolveResult,
+    int offset,
+    int length,
+  ) {
     return ExtractWidgetRefactoringImpl(
-        searchEngine, resolveResult, offset, length);
+      searchEngine,
+      resolveResult,
+      offset,
+      length,
+    );
   }
 
   /// The name that the class should be given.
@@ -244,7 +266,10 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
 abstract class InlineLocalRefactoring implements Refactoring {
   /// Returns a new [InlineLocalRefactoring] instance.
   factory InlineLocalRefactoring(
-      SearchEngine searchEngine, ResolvedUnitResult resolveResult, int offset) {
+    SearchEngine searchEngine,
+    ResolvedUnitResult resolveResult,
+    int offset,
+  ) {
     return InlineLocalRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
@@ -269,7 +294,10 @@ abstract class InlineLocalRefactoring implements Refactoring {
 abstract class InlineMethodRefactoring implements Refactoring {
   /// Returns a new [InlineMethodRefactoring] instance.
   factory InlineMethodRefactoring(
-      SearchEngine searchEngine, ResolvedUnitResult resolveResult, int offset) {
+    SearchEngine searchEngine,
+    ResolvedUnitResult resolveResult,
+    int offset,
+  ) {
     return InlineMethodRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
@@ -306,8 +334,11 @@ abstract class InlineMethodRefactoring implements Refactoring {
 /// [Refactoring] to move/rename a file or folder.
 abstract class MoveFileRefactoring implements Refactoring {
   /// Returns a new [MoveFileRefactoring] instance.
-  factory MoveFileRefactoring(ResourceProvider resourceProvider,
-      RefactoringWorkspace workspace, String oldFilePath) {
+  factory MoveFileRefactoring(
+    ResourceProvider resourceProvider,
+    RefactoringWorkspace workspace,
+    String oldFilePath,
+  ) {
     return MoveFileRefactoringImpl(resourceProvider, workspace, oldFilePath);
   }
 
@@ -408,8 +439,11 @@ abstract class RenameRefactoring implements Refactoring {
   /// Returns a new [RenameRefactoring] instance for renaming [element],
   /// maybe `null` if there is no support for renaming [Element]s of the given
   /// type.
-  static RenameRefactoring? create(RefactoringWorkspace workspace,
-      ResolvedUnitResult resolvedUnit, Element? element) {
+  static RenameRefactoring? create(
+    RefactoringWorkspace workspace,
+    ResolvedUnitResult resolvedUnit,
+    Element? element,
+  ) {
     if (element == null) {
       return null;
     }
@@ -427,11 +461,18 @@ abstract class RenameRefactoring implements Refactoring {
     var enclosingElement = element.enclosingElement3;
     if (enclosingElement is CompilationUnitElement) {
       return RenameUnitMemberRefactoringImpl(
-          workspace, sessionHelper, resolvedUnit, element);
+        workspace,
+        sessionHelper,
+        resolvedUnit,
+        element,
+      );
     }
     if (element is ConstructorElement) {
       return RenameConstructorRefactoringImpl(
-          workspace, sessionHelper, element);
+        workspace,
+        sessionHelper,
+        element,
+      );
     }
     if (element is LabelElement) {
       return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
@@ -447,15 +488,26 @@ abstract class RenameRefactoring implements Refactoring {
     }
     if (element is TypeParameterElement) {
       return RenameTypeParameterRefactoringImpl(
-          workspace, sessionHelper, element);
+        workspace,
+        sessionHelper,
+        element,
+      );
     }
     if (enclosingElement is InterfaceElement) {
       return RenameClassMemberRefactoringImpl(
-          workspace, sessionHelper, enclosingElement, element);
+        workspace,
+        sessionHelper,
+        enclosingElement,
+        element,
+      );
     }
     if (enclosingElement is ExtensionElement) {
       return RenameExtensionMemberRefactoringImpl(
-          workspace, sessionHelper, enclosingElement, element);
+        workspace,
+        sessionHelper,
+        enclosingElement,
+        element,
+      );
     }
     return null;
   }
@@ -463,7 +515,9 @@ abstract class RenameRefactoring implements Refactoring {
   /// Given a node/element, finds the best element to rename (for example
   /// the class when on the `new` keyword).
   static RenameRefactoringElement? getElementToRename(
-      AstNode node, Element? element) {
+    AstNode node,
+    Element? element,
+  ) {
     // TODO(scheglov): This is bad code.
     SyntacticEntity? nameNode;
     if (node is AssignedVariablePattern) {

@@ -16,10 +16,11 @@ class LogActionCommandHandler
 
   @override
   Future<ErrorOr<void>> handle(
-      MessageInfo message,
-      Map<String, Object?> parameters,
-      ProgressReporter progress,
-      CancellationToken cancellationToken) async {
+    MessageInfo message,
+    Map<String, Object?> parameters,
+    ProgressReporter progress,
+    CancellationToken cancellationToken,
+  ) async {
     var action = parameters['action'] as String;
     // Actions are recorded the same as commands.
     server.analyticsManager.executedCommand(action);

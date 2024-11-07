@@ -31,7 +31,11 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionGetSuggestions2Handler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   /// Compute completion results for the given request and append them to the
   /// stream. Clients should not call this method directly as it is
@@ -112,8 +116,10 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     }
 
     var requestLatency = request.timeSinceRequest;
-    var params = CompletionGetSuggestions2Params.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = CompletionGetSuggestions2Params.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
     var offset = params.offset;
 
@@ -142,118 +148,124 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
 
     if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(
-        CompletionGetSuggestions2Result(offset, 0, [], false)
-            .toResponse(request.id, clientUriConverter: server.uriConverter),
+        CompletionGetSuggestions2Result(
+          offset,
+          0,
+          [],
+          false,
+        ).toResponse(request.id, clientUriConverter: server.uriConverter),
       );
       return;
     }
 
-    await performance.runAsync(
-      'request',
-      (performance) async {
-        var resolvedUnit = await performance.runAsync(
-          'resolveForCompletion',
-          (performance) {
-            return server.resolveForCompletion(
-              path: file,
-              offset: offset,
-              performance: performance,
-            );
-          },
-        );
-        if (resolvedUnit == null) {
-          server.sendResponse(Response.fileNotAnalyzed(request, file));
-          return;
-        }
-
-        if (offset < 0 || offset > resolvedUnit.content.length) {
-          server.sendResponse(Response.invalidParameter(
-              request,
-              'params.offset',
-              'Expected offset between 0 and source length inclusive,'
-                  ' but found $offset'));
-          return;
-        }
-
-        var completionPerformance = CompletionPerformance(
-          performance: performance,
+    await performance.runAsync('request', (performance) async {
+      var resolvedUnit = await performance.runAsync('resolveForCompletion', (
+        performance,
+      ) {
+        return server.resolveForCompletion(
           path: file,
-          requestLatency: requestLatency,
-          content: resolvedUnit.content,
           offset: offset,
+          performance: performance,
         );
-        server.recentPerformance.completion.add(completionPerformance);
+      });
+      if (resolvedUnit == null) {
+        server.sendResponse(Response.fileNotAnalyzed(request, file));
+        return;
+      }
 
-        var analysisSession = resolvedUnit.analysisSession;
-        var enclosingNode = resolvedUnit.parsedUnit;
-
-        var completionRequest = DartCompletionRequest(
-          analysisSession: analysisSession,
-          fileState: resolvedUnit.fileState,
-          filePath: resolvedUnit.path,
-          fileContent: resolvedUnit.content,
-          unitElement: resolvedUnit.unitElement,
-          enclosingNode: enclosingNode,
-          offset: offset,
-          unit: resolvedUnit.parsedUnit,
-          dartdocDirectiveInfo:
-              server.getDartdocDirectiveInfoForSession(analysisSession),
+      if (offset < 0 || offset > resolvedUnit.content.length) {
+        server.sendResponse(
+          Response.invalidParameter(
+            request,
+            'params.offset',
+            'Expected offset between 0 and source length inclusive,'
+                ' but found $offset',
+          ),
         );
-        setNewRequest(completionRequest);
+        return;
+      }
 
-        var notImportedSuggestions = NotImportedSuggestions();
-        var suggestionBuilders = <CompletionSuggestionBuilder>[];
-        try {
-          suggestionBuilders = await computeSuggestions(
-            budget: budget,
-            performance: performance,
-            request: completionRequest,
-            maxSuggestions: params.maxResults,
-            notImportedSuggestions: notImportedSuggestions,
-            useFilter: true,
-          );
-        } on AbortCompletion {
-          return server.sendResponse(
-            CompletionGetSuggestions2Result(
-              completionRequest.replacementOffset,
-              completionRequest.replacementLength,
-              [],
-              true,
-            ).toResponse(request.id, clientUriConverter: server.uriConverter),
-          );
-        }
+      var completionPerformance = CompletionPerformance(
+        performance: performance,
+        path: file,
+        requestLatency: requestLatency,
+        content: resolvedUnit.content,
+        offset: offset,
+      );
+      server.recentPerformance.completion.add(completionPerformance);
 
-        performance.run('filter', (performance) {
-          performance.getDataInt('count').add(suggestionBuilders.length);
-          suggestionBuilders = fuzzyFilterSort(
-            pattern: completionRequest.targetPrefix,
-            suggestions: suggestionBuilders,
-          );
-          performance.getDataInt('matchCount').add(suggestionBuilders.length);
-        });
+      var analysisSession = resolvedUnit.analysisSession;
+      var enclosingNode = resolvedUnit.parsedUnit;
 
-        var lengthRestricted =
-            suggestionBuilders.take(params.maxResults).toList();
-        completionPerformance.computedSuggestionCount =
-            suggestionBuilders.length;
-        completionPerformance.transmittedSuggestionCount =
-            lengthRestricted.length;
+      var completionRequest = DartCompletionRequest(
+        analysisSession: analysisSession,
+        fileState: resolvedUnit.fileState,
+        filePath: resolvedUnit.path,
+        fileContent: resolvedUnit.content,
+        unitElement: resolvedUnit.unitElement,
+        enclosingNode: enclosingNode,
+        offset: offset,
+        unit: resolvedUnit.parsedUnit,
+        dartdocDirectiveInfo: server.getDartdocDirectiveInfoForSession(
+          analysisSession,
+        ),
+      );
+      setNewRequest(completionRequest);
 
-        var suggestions = lengthRestricted.map((e) => e.build()).toList();
+      var notImportedSuggestions = NotImportedSuggestions();
+      var suggestionBuilders = <CompletionSuggestionBuilder>[];
+      try {
+        suggestionBuilders = await computeSuggestions(
+          budget: budget,
+          performance: performance,
+          request: completionRequest,
+          maxSuggestions: params.maxResults,
+          notImportedSuggestions: notImportedSuggestions,
+          useFilter: true,
+        );
+      } on AbortCompletion {
+        return server.sendResponse(
+          CompletionGetSuggestions2Result(
+            completionRequest.replacementOffset,
+            completionRequest.replacementLength,
+            [],
+            true,
+          ).toResponse(request.id, clientUriConverter: server.uriConverter),
+        );
+      }
 
-        var isIncomplete = notImportedSuggestions.isIncomplete ||
-            lengthRestricted.length < suggestionBuilders.length;
+      performance.run('filter', (performance) {
+        performance.getDataInt('count').add(suggestionBuilders.length);
+        suggestionBuilders = fuzzyFilterSort(
+          pattern: completionRequest.targetPrefix,
+          suggestions: suggestionBuilders,
+        );
+        performance.getDataInt('matchCount').add(suggestionBuilders.length);
+      });
 
-        performance.run('sendResponse', (_) {
-          sendResult(CompletionGetSuggestions2Result(
+      var lengthRestricted =
+          suggestionBuilders.take(params.maxResults).toList();
+      completionPerformance.computedSuggestionCount = suggestionBuilders.length;
+      completionPerformance.transmittedSuggestionCount =
+          lengthRestricted.length;
+
+      var suggestions = lengthRestricted.map((e) => e.build()).toList();
+
+      var isIncomplete =
+          notImportedSuggestions.isIncomplete ||
+          lengthRestricted.length < suggestionBuilders.length;
+
+      performance.run('sendResponse', (_) {
+        sendResult(
+          CompletionGetSuggestions2Result(
             completionRequest.replacementOffset,
             completionRequest.replacementLength,
             suggestions,
             isIncomplete,
-          ));
-        });
-      },
-    );
+          ),
+        );
+      });
+    });
   }
 
   void setNewRequest(DartCompletionRequest request) {
@@ -287,9 +299,10 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         var completionRequest = requestToPlugins.completionRequest;
         if (completionRequest.replacementOffset != result.replacementOffset &&
             completionRequest.replacementLength != result.replacementLength) {
-          server.instrumentationService
-              .logError('Plugin completion-results dropped due to conflicting'
-                  ' replacement offset/length: ${result.toJson()}');
+          server.instrumentationService.logError(
+            'Plugin completion-results dropped due to conflicting'
+            ' replacement offset/length: ${result.toJson()}',
+          );
           continue;
         }
         suggestionBuilders.addAll(
@@ -314,12 +327,13 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     return _RequestToPlugins(
       completionRequest: completionRequest,
       parameters: pluginRequestParameters,
-      futures: AnalysisServer.supportsPlugins
-          ? server.pluginManager.broadcastRequest(
-              pluginRequestParameters,
-              contextRoot: completionRequest.analysisContext.contextRoot,
-            )
-          : <PluginInfo, Future<plugin.Response>>{},
+      futures:
+          AnalysisServer.supportsPlugins
+              ? server.pluginManager.broadcastRequest(
+                pluginRequestParameters,
+                contextRoot: completionRequest.analysisContext.contextRoot,
+              )
+              : <PluginInfo, Future<plugin.Response>>{},
     );
   }
 }

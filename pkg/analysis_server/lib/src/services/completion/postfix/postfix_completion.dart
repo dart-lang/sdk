@@ -23,66 +23,137 @@ import 'package:collection/collection.dart';
 
 /// An enumeration of possible postfix completion kinds.
 abstract final class DartPostfixCompletion {
-  static const NO_TEMPLATE =
-      PostfixCompletionKind('', 'no change', _false, _null);
+  static const NO_TEMPLATE = PostfixCompletionKind(
+    '',
+    'no change',
+    _false,
+    _null,
+  );
 
   static const List<PostfixCompletionKind> ALL_TEMPLATES = [
-    PostfixCompletionKind('assert', 'expr.assert -> assert(expr);',
-        isAssertContext, expandAssert),
     PostfixCompletionKind(
-        'fori',
-        'limit.fori -> for(var i = 0; i < limit; i++) {}',
-        isIntContext,
-        expandFori),
-    PostfixCompletionKind('for', 'values.for -> for(var value in values) {}',
-        isIterableContext, expandFor),
-    PostfixCompletionKind('iter', 'values.iter -> for(var value in values) {}',
-        isIterableContext, expandFor),
+      'assert',
+      'expr.assert -> assert(expr);',
+      isAssertContext,
+      expandAssert,
+    ),
     PostfixCompletionKind(
-        'not', 'bool.not -> !bool', isBoolContext, expandNegate),
+      'fori',
+      'limit.fori -> for(var i = 0; i < limit; i++) {}',
+      isIntContext,
+      expandFori,
+    ),
+    PostfixCompletionKind(
+      'for',
+      'values.for -> for(var value in values) {}',
+      isIterableContext,
+      expandFor,
+    ),
+    PostfixCompletionKind(
+      'iter',
+      'values.iter -> for(var value in values) {}',
+      isIterableContext,
+      expandFor,
+    ),
+    PostfixCompletionKind(
+      'not',
+      'bool.not -> !bool',
+      isBoolContext,
+      expandNegate,
+    ),
     PostfixCompletionKind('!', 'bool! -> !bool', isBoolContext, expandNegate),
     PostfixCompletionKind(
-        'else', 'bool.else -> if (!bool) {}', isBoolContext, expandElse),
+      'else',
+      'bool.else -> if (!bool) {}',
+      isBoolContext,
+      expandElse,
+    ),
     PostfixCompletionKind(
-        'if', 'bool.if -> if (bool) {}', isBoolContext, expandIf),
-    PostfixCompletionKind('nn', 'expr.nn -> if (expr != null) {}',
-        isObjectContext, expandNotNull),
-    PostfixCompletionKind('notnull', 'expr.notnull -> if (expr != null) {}',
-        isObjectContext, expandNotNull),
-    PostfixCompletionKind('null', 'expr.null -> if (expr == null) {}',
-        isObjectContext, expandNull),
+      'if',
+      'bool.if -> if (bool) {}',
+      isBoolContext,
+      expandIf,
+    ),
     PostfixCompletionKind(
-        'par', 'expr.par -> (expr)', isObjectContext, expandParen),
+      'nn',
+      'expr.nn -> if (expr != null) {}',
+      isObjectContext,
+      expandNotNull,
+    ),
     PostfixCompletionKind(
-        'return', 'expr.return -> return expr', isObjectContext, expandReturn),
-    PostfixCompletionKind('switch', 'expr.switch -> switch (expr) {}',
-        isSwitchContext, expandSwitch),
-    PostfixCompletionKind('try', 'stmt.try -> try {stmt} catch (e,s) {}',
-        isStatementContext, expandTry),
+      'notnull',
+      'expr.notnull -> if (expr != null) {}',
+      isObjectContext,
+      expandNotNull,
+    ),
     PostfixCompletionKind(
-        'tryon',
-        'stmt.try -> try {stmt} on Exception catch (e,s) {}',
-        isStatementContext,
-        expandTryon),
+      'null',
+      'expr.null -> if (expr == null) {}',
+      isObjectContext,
+      expandNull,
+    ),
     PostfixCompletionKind(
-        'while', 'expr.while -> while (expr) {}', isBoolContext, expandWhile),
+      'par',
+      'expr.par -> (expr)',
+      isObjectContext,
+      expandParen,
+    ),
+    PostfixCompletionKind(
+      'return',
+      'expr.return -> return expr',
+      isObjectContext,
+      expandReturn,
+    ),
+    PostfixCompletionKind(
+      'switch',
+      'expr.switch -> switch (expr) {}',
+      isSwitchContext,
+      expandSwitch,
+    ),
+    PostfixCompletionKind(
+      'try',
+      'stmt.try -> try {stmt} catch (e,s) {}',
+      isStatementContext,
+      expandTry,
+    ),
+    PostfixCompletionKind(
+      'tryon',
+      'stmt.try -> try {stmt} on Exception catch (e,s) {}',
+      isStatementContext,
+      expandTryon,
+    ),
+    PostfixCompletionKind(
+      'while',
+      'expr.while -> while (expr) {}',
+      isBoolContext,
+      expandWhile,
+    ),
   ];
 
   static Future<PostfixCompletion?> expandAssert(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
     return processor.expand(kind, processor.findAssertExpression, (expr) {
       return 'assert(${processor.utils.getNodeText(expr)});';
     }, withBraces: false);
   }
 
   static Future<PostfixCompletion?> expandElse(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expand(kind, processor.findBoolExpression,
-        (expr) => 'if (${processor.makeNegatedBoolExpr(expr)})');
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
+    return processor.expand(
+      kind,
+      processor.findBoolExpression,
+      (expr) => 'if (${processor.makeNegatedBoolExpr(expr)})',
+    );
   }
 
   static Future<PostfixCompletion?> expandFor(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
     return processor.expand(kind, processor.findIterableExpression, (expr) {
       var value = processor.newVariable('value');
       return 'for (var $value in ${processor.utils.getNodeText(expr)})';
@@ -90,7 +161,9 @@ abstract final class DartPostfixCompletion {
   }
 
   static Future<PostfixCompletion?> expandFori(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
     return processor.expand(kind, processor.findIntExpression, (expr) {
       var index = processor.newVariable('i');
       return 'for (int $index = 0; $index < ${processor.utils.getNodeText(expr)}; $index++)';
@@ -98,20 +171,32 @@ abstract final class DartPostfixCompletion {
   }
 
   static Future<PostfixCompletion?> expandIf(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expand(kind, processor.findBoolExpression,
-        (expr) => 'if (${processor.utils.getNodeText(expr)})');
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
+    return processor.expand(
+      kind,
+      processor.findBoolExpression,
+      (expr) => 'if (${processor.utils.getNodeText(expr)})',
+    );
   }
 
   static Future<PostfixCompletion?> expandNegate(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expand(kind, processor.findBoolExpression,
-        (expr) => processor.makeNegatedBoolExpr(expr),
-        withBraces: false);
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
+    return processor.expand(
+      kind,
+      processor.findBoolExpression,
+      (expr) => processor.makeNegatedBoolExpr(expr),
+      withBraces: false,
+    );
   }
 
   static Future<PostfixCompletion?> expandNotNull(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
     return processor.expand(kind, processor.findObjectExpression, (expr) {
       return expr is NullLiteral
           ? 'if (false)'
@@ -120,7 +205,9 @@ abstract final class DartPostfixCompletion {
   }
 
   static Future<PostfixCompletion?> expandNull(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
     return processor.expand(kind, processor.findObjectExpression, (expr) {
       return expr is NullLiteral
           ? 'if (true)'
@@ -129,39 +216,63 @@ abstract final class DartPostfixCompletion {
   }
 
   static Future<PostfixCompletion?> expandParen(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expand(kind, processor.findObjectExpression,
-        (expr) => '(${processor.utils.getNodeText(expr)})',
-        withBraces: false);
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
+    return processor.expand(
+      kind,
+      processor.findObjectExpression,
+      (expr) => '(${processor.utils.getNodeText(expr)})',
+      withBraces: false,
+    );
   }
 
   static Future<PostfixCompletion?> expandReturn(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expand(kind, processor.findObjectExpression,
-        (expr) => 'return ${processor.utils.getNodeText(expr)};',
-        withBraces: false);
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
+    return processor.expand(
+      kind,
+      processor.findObjectExpression,
+      (expr) => 'return ${processor.utils.getNodeText(expr)};',
+      withBraces: false,
+    );
   }
 
   static Future<PostfixCompletion?> expandSwitch(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expand(kind, processor.findObjectExpression,
-        (expr) => 'switch (${processor.utils.getNodeText(expr)})');
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
+    return processor.expand(
+      kind,
+      processor.findObjectExpression,
+      (expr) => 'switch (${processor.utils.getNodeText(expr)})',
+    );
   }
 
   static Future<PostfixCompletion?> expandTry(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
     return processor.expandTry(kind, processor.findStatement);
   }
 
   static Future<PostfixCompletion?> expandTryon(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
     return processor.expandTry(kind, processor.findStatement, withOn: true);
   }
 
   static Future<PostfixCompletion?> expandWhile(
-      PostfixCompletionProcessor processor, PostfixCompletionKind kind) async {
-    return processor.expand(kind, processor.findBoolExpression,
-        (expr) => 'while (${processor.utils.getNodeText(expr)})');
+    PostfixCompletionProcessor processor,
+    PostfixCompletionKind kind,
+  ) async {
+    return processor.expand(
+      kind,
+      processor.findBoolExpression,
+      (expr) => 'while (${processor.utils.getNodeText(expr)})',
+    );
   }
 
   static PostfixCompletionKind? forKey(String key) =>
@@ -234,10 +345,17 @@ class PostfixCompletionKind {
   final String name, example;
   final bool Function(PostfixCompletionProcessor) selector;
   final Future<PostfixCompletion?> Function(
-      PostfixCompletionProcessor, PostfixCompletionKind) computer;
+    PostfixCompletionProcessor,
+    PostfixCompletionKind,
+  )
+  computer;
 
   const PostfixCompletionKind(
-      this.name, this.example, this.selector, this.computer);
+    this.name,
+    this.example,
+    this.selector,
+    this.computer,
+  );
 
   String get key => name == '!' ? name : '.$name';
 
@@ -250,7 +368,9 @@ class PostfixCompletionKind {
 /// The computer for Dart postfix completions.
 final class PostfixCompletionProcessor {
   static final _noCompletion = PostfixCompletion(
-      DartPostfixCompletion.NO_TEMPLATE, SourceChange('', edits: []));
+    DartPostfixCompletion.NO_TEMPLATE,
+    SourceChange('', edits: []),
+  );
 
   final PostfixCompletionContext _completionContext;
   final CorrectionUtils utils;
@@ -258,7 +378,7 @@ final class PostfixCompletionProcessor {
   PostfixCompletion? _completion;
 
   PostfixCompletionProcessor(this._completionContext)
-      : utils = CorrectionUtils(_completionContext.resolveResult);
+    : utils = CorrectionUtils(_completionContext.resolveResult);
 
   String get _eol => utils.endOfLine;
 
@@ -289,9 +409,12 @@ final class PostfixCompletionProcessor {
     return await completer.computer(this, completer) ?? _noCompletion;
   }
 
-  Future<PostfixCompletion?> expand(PostfixCompletionKind kind,
-      Expression? Function() contexter, String Function(Expression) sourcer,
-      {bool withBraces = true}) async {
+  Future<PostfixCompletion?> expand(
+    PostfixCompletionKind kind,
+    Expression? Function() contexter,
+    String Function(Expression) sourcer, {
+    bool withBraces = true,
+  }) async {
     var expr = contexter();
     if (expr == null) {
       return null;
@@ -322,8 +445,10 @@ final class PostfixCompletionProcessor {
   }
 
   Future<PostfixCompletion?> expandTry(
-      PostfixCompletionKind kind, Statement? Function() contexter,
-      {bool withOn = false}) async {
+    PostfixCompletionKind kind,
+    Statement? Function() contexter, {
+    bool withOn = false,
+  }) async {
     var stmt = contexter();
     if (stmt == null) {
       return null;
@@ -344,31 +469,39 @@ final class PostfixCompletionProcessor {
       var endOffset = lineInfo.getOffsetOfLine(endLine);
       var src = utils.getText(startOffset, endOffset - startOffset);
       var indent = utils.getLinePrefix(stmt.offset);
-      builder.addReplacement(range.startOffsetEndOffset(startOffset, endOffset),
-          (builder) {
-        builder.write(indent);
-        builder.write('try {');
-        builder.write(_eol);
-        builder.write(utils.replaceSourceIndent(
-            src, indent, '$indent${utils.oneIndent}',
-            includeLeading: true, ensureTrailingNewline: true));
-        builder.selectHere();
-        builder.write(indent);
-        builder.write('}');
-        if (withOn) {
-          builder.write(' on ');
-          builder.addSimpleLinkedEdit('NAME', nameOfExceptionThrownBy(stmt));
-        }
-        builder.write(' catch (e, s) {');
-        builder.write(_eol);
-        builder.write(indent);
-        builder.write(utils.oneIndent);
-        builder.write('print(s);');
-        builder.write(_eol);
-        builder.write(indent);
-        builder.write('}');
-        builder.write(_eol);
-      });
+      builder.addReplacement(
+        range.startOffsetEndOffset(startOffset, endOffset),
+        (builder) {
+          builder.write(indent);
+          builder.write('try {');
+          builder.write(_eol);
+          builder.write(
+            utils.replaceSourceIndent(
+              src,
+              indent,
+              '$indent${utils.oneIndent}',
+              includeLeading: true,
+              ensureTrailingNewline: true,
+            ),
+          );
+          builder.selectHere();
+          builder.write(indent);
+          builder.write('}');
+          if (withOn) {
+            builder.write(' on ');
+            builder.addSimpleLinkedEdit('NAME', nameOfExceptionThrownBy(stmt));
+          }
+          builder.write(' catch (e, s) {');
+          builder.write(_eol);
+          builder.write(indent);
+          builder.write(utils.oneIndent);
+          builder.write('print(s);');
+          builder.write(_eol);
+          builder.write(indent);
+          builder.write('}');
+          builder.write(_eol);
+        },
+      );
     });
     _setCompletionFromBuilder(changeBuilder, kind);
     return _completion;
@@ -526,7 +659,9 @@ final class PostfixCompletionProcessor {
       NodeLocator(at ?? _selectionOffset).searchWithin(_unit);
 
   void _setCompletionFromBuilder(
-      ChangeBuilder builder, PostfixCompletionKind kind) {
+    ChangeBuilder builder,
+    PostfixCompletionKind kind,
+  ) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       _completion = null;

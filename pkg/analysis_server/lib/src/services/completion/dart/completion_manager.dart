@@ -103,7 +103,7 @@ class DartCompletionManager {
 
     var collector = SuggestionCollector(maxSuggestions: maxSuggestions);
 
-      // Don't suggest in comments.
+    // Don't suggest in comments.
     if (request.target.isCommentText) {
       return collector;
     }
@@ -118,32 +118,30 @@ class DartCompletionManager {
       var matcher =
           targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
       var state = CompletionState(request, selection, budget, matcher);
-      var operations = performance.run(
-        'InScopeCompletionPass',
-        (performance) {
-          var pass = InScopeCompletionPass(
-            state: state,
-            collector: collector,
-            skipImports: skipImports,
-            suggestOverrides: suggestOverrides,
-            suggestUris: suggestUris,
-          );
-          pass.computeSuggestions();
-          state.request.collectorLocationName = collector.completionLocation;
-          return pass.notImportedOperations;
-        },
-      );
+      var operations = performance.run('InScopeCompletionPass', (performance) {
+        var pass = InScopeCompletionPass(
+          state: state,
+          collector: collector,
+          skipImports: skipImports,
+          suggestOverrides: suggestOverrides,
+          suggestUris: suggestUris,
+        );
+        pass.computeSuggestions();
+        state.request.collectorLocationName = collector.completionLocation;
+        return pass.notImportedOperations;
+      });
 
       request.checkAborted();
       if (operations.isNotEmpty && notImportedSuggestions != null) {
-        await performance.runAsync(
-          'NotImportedCompletionPass',
-          (performance) async {
-            await NotImportedCompletionPass(
-                    state: state, collector: collector, operations: operations)
-                .computeSuggestions(performance: performance);
-          },
-        );
+        await performance.runAsync('NotImportedCompletionPass', (
+          performance,
+        ) async {
+          await NotImportedCompletionPass(
+            state: state,
+            collector: collector,
+            operations: operations,
+          ).computeSuggestions(performance: performance);
+        });
       }
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
@@ -159,11 +157,11 @@ class DartCompletionManager {
     required OperationPerformanceImpl performance,
     required DartCompletionRequest request,
   }) async {
-
     var collector = await computeCandidateSuggestions(
-        maxSuggestions: maxSuggestions,
-        performance: performance,
-        request: request);
+      maxSuggestions: maxSuggestions,
+      performance: performance,
+      request: request,
+    );
 
     var notImportedSuggestions = this.notImportedSuggestions;
 
@@ -196,16 +194,23 @@ class DartCompletionManager {
     }
 
     var collector = await computeCandidateSuggestions(
-        maxSuggestions: maxSuggestions,
-        performance: performance,
-        request: request,
-        suggestOverrides: enableOverrideContributor,
-        suggestUris: enableUriContributor);
+      maxSuggestions: maxSuggestions,
+      performance: performance,
+      request: request,
+      suggestOverrides: enableOverrideContributor,
+      suggestUris: enableUriContributor,
+    );
 
-    var builder =
-        SuggestionBuilder(request, useFilter: useFilter, listener: listener);
-    await builder.suggestFromCandidates(collector.suggestions,
-        collector.preferConstants, collector.completionLocation);
+    var builder = SuggestionBuilder(
+      request,
+      useFilter: useFilter,
+      listener: listener,
+    );
+    await builder.suggestFromCandidates(
+      collector.suggestions,
+      collector.preferConstants,
+      collector.completionLocation,
+    );
 
     var notImportedSuggestions = this.notImportedSuggestions;
 
@@ -322,7 +327,8 @@ class DartCompletionRequest {
       content: fileContent,
       contextType: contextType,
       documentationComputer: DartDocumentationComputer(
-          dartdocDirectiveInfo ?? DartdocDirectiveInfo()),
+        dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      ),
       featureComputer: featureComputer,
       libraryElement: libraryElement,
       libraryFragment: unitElement,

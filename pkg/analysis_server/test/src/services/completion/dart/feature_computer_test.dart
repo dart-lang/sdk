@@ -22,7 +22,9 @@ class ContextTypeTest extends FeatureComputerTest {
     var result = testAnalysisResult;
     var computer = FeatureComputer(result.typeSystem, result.typeProvider);
     var type = computer.computeContextType(
-        completionTarget.containingNode, cursorIndex);
+      completionTarget.containingNode,
+      cursorIndex,
+    );
 
     if (expectedType == null) {
       expect(type, null);
@@ -79,7 +81,7 @@ void g() {
   }
 
   Future<void>
-      test_argumentList_named_beforeLabel_hasPreviousParameter() async {
+  test_argumentList_named_beforeLabel_hasPreviousParameter() async {
     await assertContextType('''
 void f(int i, {String s = ''}) {}
 void g() {
@@ -89,7 +91,7 @@ void g() {
   }
 
   Future<void>
-      test_argumentList_named_beforeLabel_hasPreviousParameter2() async {
+  test_argumentList_named_beforeLabel_hasPreviousParameter2() async {
     await assertContextType('''
 void f(int i, {String s = ''}) {}
 void g() {
@@ -149,7 +151,7 @@ void g() {
   }
 
   Future<void>
-      test_argumentList_named_with_requiredPositional_defaultValue() async {
+  test_argumentList_named_with_requiredPositional_defaultValue() async {
     await assertContextType('''
 void f(String s, {int i = 0}) {}
 void g() {
@@ -231,7 +233,7 @@ void g() {
   }
 
   Future<void>
-      test_argumentList_positional_asNamed_beforeLabel_hasPreviousParameter() async {
+  test_argumentList_positional_asNamed_beforeLabel_hasPreviousParameter() async {
     await assertContextType('''
 void f(String s, [int i = 0]) {}
 void g() {
@@ -259,7 +261,7 @@ void g() {
   }
 
   Future<void>
-      test_argumentList_positional_with_requiredPositional_defaultValue() async {
+  test_argumentList_positional_with_requiredPositional_defaultValue() async {
     await assertContextType('''
 void f(String s, bool b, [int i = 2]) {}
 void g() {
@@ -1045,7 +1047,7 @@ int i=1,j=2,k=^;
   }
 
   Future<void>
-      test_topLevelVariableDeclaration_int_multiple_whitespace() async {
+  test_topLevelVariableDeclaration_int_multiple_whitespace() async {
     await assertContextType('''
 int i = 1 , j = 2 , k =  ^  ;
 ''', 'int');

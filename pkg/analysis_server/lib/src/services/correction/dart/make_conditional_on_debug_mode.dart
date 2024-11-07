@@ -10,16 +10,18 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class MakeConditionalOnDebugMode extends ResolvedCorrectionProducer {
   /// The URI of the library in which kDebugMode is declared.
-  static final Uri _foundationUri =
-      Uri.parse('package:flutter/foundation.dart');
+  static final Uri _foundationUri = Uri.parse(
+    'package:flutter/foundation.dart',
+  );
 
   MakeConditionalOnDebugMode({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
-      // This fix isn't enabled for fix-all or bulk fix because it doesn't
-      // currently account for having multiple `print` invocations in sequence.
-      CorrectionApplicability.singleLocation;
+          // This fix isn't enabled for fix-all or bulk fix because it doesn't
+          // currently account for having multiple `print` invocations in sequence.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_CONDITIONAL_ON_DEBUG_MODE;

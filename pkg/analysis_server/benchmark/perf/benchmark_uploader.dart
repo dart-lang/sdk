@@ -35,7 +35,7 @@ void main(List<String> args) async {
           'machineType': 'windows-x64',
           'target': 'dart-analysis-server-external',
           ...result,
-        }
+        },
     ];
     await uploadResults(targetResults);
   } catch (e, st) {
@@ -58,10 +58,12 @@ Future<List<Map<String, dynamic>>> runBenchmarks({required bool warm}) async {
   if (benchmarkResults.exitCode != 0) {
     throw 'Failed to run $temperature benchmarks';
   }
-  var result = jsonDecode(LineSplitter()
-      .convert(benchmarkResults.stdout as String)
-      .where((line) => line.startsWith('{"benchmark":'))
-      .single);
+  var result = jsonDecode(
+    LineSplitter()
+        .convert(benchmarkResults.stdout as String)
+        .where((line) => line.startsWith('{"benchmark":'))
+        .single,
+  );
 
   return <Map<String, dynamic>>[
     {
@@ -72,8 +74,8 @@ Future<List<Map<String, dynamic>>> runBenchmarks({required bool warm}) async {
     {
       'benchmark': 'analysis-server-$temperature-analysis',
       'metric': 'RunTimeRaw',
-      'score': result['result']['analysis-server-$temperature-analysis']
-          ['micros'],
+      'score':
+          result['result']['analysis-server-$temperature-analysis']['micros'],
     },
     if (warm)
       {
@@ -86,15 +88,16 @@ Future<List<Map<String, dynamic>>> runBenchmarks({required bool warm}) async {
         'benchmark': 'analysis-server-completion',
         'metric': 'RunTimeRaw',
         'score': result['result']['analysis-server-completion']['micros'],
-      }
+      },
   ];
 }
 
 Future<void> uploadResults(List<Map<String, dynamic>> results) async {
   // Create JSON results in the desired format
   // Write results file to cloud storage.
-  var tempDir =
-      await Directory.systemTemp.createTemp('analysis-server-benchmarks');
+  var tempDir = await Directory.systemTemp.createTemp(
+    'analysis-server-benchmarks',
+  );
   try {
     var resultsJson = jsonEncode(results);
     var resultsFile = File.fromUri(tempDir.uri.resolve('results.json'));
@@ -110,7 +113,7 @@ Future<void> uploadResults(List<Map<String, dynamic>> results) async {
       'third_party/gsutil/gsutil',
       'cp',
       resultsFile.path,
-      cloudStoragePath
+      cloudStoragePath,
     ];
     var python = 'python3.exe';
     print('Running $python ${args.join(' ')}');

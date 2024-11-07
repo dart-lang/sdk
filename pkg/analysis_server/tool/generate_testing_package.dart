@@ -18,30 +18,33 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 void main(List<String> args) async {
   // TODO(srawlins): Support multiple packages which depend on each other, in a
   // DAG similar to the import graph.
-  var argParser = ArgParser()
-    ..addOption(
-      'library-count',
-      defaultsTo: '1',
-      help: 'the number of libraries',
-    )
-    ..addOption(
-      'class-count',
-      defaultsTo: '1',
-      help: 'the number of classes per library',
-    )
-    ..addOption(
-      'method-count',
-      defaultsTo: '1',
-      help: 'the number of methods per class',
-    )
-    ..addOption(
-      'parameter-count',
-      defaultsTo: '1',
-      help: 'the number of parameters per method',
-    )
-    ..addFlag('use-barrel-file', help: 'Whether to add a barrel import')
-    ..addFlag('use-json-serializable',
-        help: 'Whether to declare @JsonSerializable classes');
+  var argParser =
+      ArgParser()
+        ..addOption(
+          'library-count',
+          defaultsTo: '1',
+          help: 'the number of libraries',
+        )
+        ..addOption(
+          'class-count',
+          defaultsTo: '1',
+          help: 'the number of classes per library',
+        )
+        ..addOption(
+          'method-count',
+          defaultsTo: '1',
+          help: 'the number of methods per class',
+        )
+        ..addOption(
+          'parameter-count',
+          defaultsTo: '1',
+          help: 'the number of parameters per method',
+        )
+        ..addFlag('use-barrel-file', help: 'Whether to add a barrel import')
+        ..addFlag(
+          'use-json-serializable',
+          help: 'Whether to declare @JsonSerializable classes',
+        );
   var argResults = argParser.parse(args);
   var libraryCount = int.parse(argResults['library-count'] as String);
   var classCount = int.parse(argResults['class-count'] as String);
@@ -115,8 +118,9 @@ void main(List<String> args) async {
         // We instantiate a class which is guaranteed to be found in
         // `lib$importIndex.dart`.
         var classReferenceIndex = classCount * importIndex;
-        content
-            .writeln('var x$topLevelVariableIndex = C$classReferenceIndex();');
+        content.writeln(
+          'var x$topLevelVariableIndex = C$classReferenceIndex();',
+        );
         topLevelVariableIndex++;
       }
       content.writeln();
@@ -131,15 +135,19 @@ void main(List<String> args) async {
       if (useJsonSerializable) {
         content.writeln('  C$classCounter();');
         content.writeln(
-            '  factory C$classCounter.fromJson(Map<String, dynamic> json) => '
-            '_\$C${classCounter}FromJson(json);');
-        content.writeln('  Map<String, dynamic> toJson() => '
-            '_\$C${classCounter}ToJson(this);');
+          '  factory C$classCounter.fromJson(Map<String, dynamic> json) => '
+          '_\$C${classCounter}FromJson(json);',
+        );
+        content.writeln(
+          '  Map<String, dynamic> toJson() => '
+          '_\$C${classCounter}ToJson(this);',
+        );
       }
       for (var mIndex = 1; mIndex <= methodCount; mIndex++) {
         content.write('  void m$methodCounter(');
-        content.write(List.generate(parameterCount, (pIndex) => 'int p$pIndex')
-            .join(', '));
+        content.write(
+          List.generate(parameterCount, (pIndex) => 'int p$pIndex').join(', '),
+        );
         content.writeln(') {}');
         methodCounter++;
       }
@@ -174,19 +182,21 @@ String import(String uri) => "import '$uri';";
 /// With [useJsonSerializable], several packages are added to the dependencies
 /// in order to test using build_runner.
 String pubspec({required bool useJsonSerializable}) {
-  var dependencies = useJsonSerializable
-      ? '''
+  var dependencies =
+      useJsonSerializable
+          ? '''
 dependencies:
   json_annotation: any
   json_serializable: any
 '''
-      : '';
-  var devDependencies = useJsonSerializable
-      ? '''
+          : '';
+  var devDependencies =
+      useJsonSerializable
+          ? '''
 dev_dependencies:
   build_runner: any
 '''
-      : '';
+          : '';
   return '''
 name: test_package
 version: 0.0.1

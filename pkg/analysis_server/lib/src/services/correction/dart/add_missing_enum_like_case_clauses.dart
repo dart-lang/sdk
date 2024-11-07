@@ -16,8 +16,9 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
@@ -52,28 +53,30 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
         // TODO(brianwilkerson): Consider inserting the names in order into the
         //  switch statement.
         builder.insertCaseClauseAtEnd(
-            switchKeyword: node.switchKeyword,
-            rightParenthesis: node.rightParenthesis,
-            leftBracket: node.leftBracket,
-            rightBracket: node.rightBracket, (builder) {
-          for (var name in missingNames) {
-            builder.write(statementIndent);
-            builder.write(singleIndent);
-            builder.write('case ');
-            builder.write(className);
-            builder.write('.');
-            builder.write(name);
-            builder.writeln(':');
-            builder.write(statementIndent);
-            builder.write(singleIndent);
-            builder.write(singleIndent);
-            builder.writeln('// TODO: Handle this case.');
-            builder.write(statementIndent);
-            builder.write(singleIndent);
-            builder.write(singleIndent);
-            builder.writeln('break;');
-          }
-        });
+          switchKeyword: node.switchKeyword,
+          rightParenthesis: node.rightParenthesis,
+          leftBracket: node.leftBracket,
+          rightBracket: node.rightBracket,
+          (builder) {
+            for (var name in missingNames) {
+              builder.write(statementIndent);
+              builder.write(singleIndent);
+              builder.write('case ');
+              builder.write(className);
+              builder.write('.');
+              builder.write(name);
+              builder.writeln(':');
+              builder.write(statementIndent);
+              builder.write(singleIndent);
+              builder.write(singleIndent);
+              builder.writeln('// TODO: Handle this case.');
+              builder.write(statementIndent);
+              builder.write(singleIndent);
+              builder.write(singleIndent);
+              builder.writeln('break;');
+            }
+          },
+        );
       });
     }
   }

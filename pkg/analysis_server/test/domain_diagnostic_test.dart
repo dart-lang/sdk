@@ -23,14 +23,19 @@ class DiagnosticDomainTest extends PubPackageAnalysisServerTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
-    var request = DiagnosticGetDiagnosticsParams()
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = DiagnosticGetDiagnosticsParams().toRequest(
+      '0',
+      clientUriConverter: server.uriConverter,
+    );
     var response = await handleSuccessfulRequest(request);
-    var result = DiagnosticGetDiagnosticsResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = DiagnosticGetDiagnosticsResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
 
-    var context = result.contexts
-        .singleWhere((context) => context.name == testPackageRoot.path);
+    var context = result.contexts.singleWhere(
+      (context) => context.name == testPackageRoot.path,
+    );
     expect(context.explicitFileCount, 1); /* test.dart */
 
     expect(context.implicitFileCount, 5);
@@ -39,11 +44,15 @@ class DiagnosticDomainTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_getDiagnostics_noRoot() async {
-    var request = DiagnosticGetDiagnosticsParams()
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = DiagnosticGetDiagnosticsParams().toRequest(
+      '0',
+      clientUriConverter: server.uriConverter,
+    );
     var response = await handleSuccessfulRequest(request);
-    var result = DiagnosticGetDiagnosticsResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = DiagnosticGetDiagnosticsResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     expect(result.contexts, isEmpty);
   }
 }

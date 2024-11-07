@@ -55,7 +55,9 @@ void f() {
     var request = getDocumentHighlights(mainFileUri, pos);
 
     await expectLater(
-        request, throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)));
+      request,
+      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+    );
   }
 
   Future<void> test_localVariable() => _testMarkedContent('''
@@ -77,20 +79,21 @@ import 'macros.dart';
 class A {}
 ''';
     newFile(mainFilePath, content);
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await Future.wait([waitForAnalysisComplete(), initialize()]);
 
     // Fetch the content and locate the two references to `f` we will test.
     var generatedFile = await getDartTextDocumentContent(mainFileMacroUri);
     var generatedContent = generatedFile!.content!;
     var functionDefinitionOffset = generatedContent.indexOf('f() {');
     var functionCallOffset = generatedContent.indexOf('f();');
-    var functionDefinitionPosition =
-        positionFromOffset(functionDefinitionOffset, generatedContent);
-    var functionCallOffsetPosition =
-        positionFromOffset(functionCallOffset, generatedContent);
+    var functionDefinitionPosition = positionFromOffset(
+      functionDefinitionOffset,
+      generatedContent,
+    );
+    var functionCallOffsetPosition = positionFromOffset(
+      functionCallOffset,
+      generatedContent,
+    );
 
     // Request document highlights on one occurrence of `f`.
     var highlights = await getDocumentHighlights(

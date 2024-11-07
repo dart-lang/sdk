@@ -196,13 +196,9 @@ m(int n) {
 }
 ''');
 
-    assertLinkedGroup(
-        0,
-        ['n2'],
-        expectedSuggestions(
-          LinkedEditSuggestionKind.VARIABLE,
-          ['n2', '_'],
-        ));
+    assertLinkedGroup(0, [
+      'n2',
+    ], expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, ['n2', '_']));
   }
 
   Future<void> test_positionalAndNamedFields() async {
@@ -221,13 +217,9 @@ m() {
 }
 ''');
 
-    assertLinkedGroup(
-        1,
-        [':n'],
-        expectedSuggestions(
-          LinkedEditSuggestionKind.VARIABLE,
-          [':n', 'n: _'],
-        ));
+    assertLinkedGroup(1, [
+      ':n',
+    ], expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, [':n', 'n: _']));
   }
 
   Future<void> test_positionalFields() async {
@@ -245,13 +237,9 @@ m() {
   var ($1, $2) = f();
 }
 ''');
-    assertLinkedGroup(
-        0,
-        [r'$1'],
-        expectedSuggestions(
-          LinkedEditSuggestionKind.VARIABLE,
-          [r'$1', '_'],
-        ));
+    assertLinkedGroup(0, [
+      r'$1',
+    ], expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, [r'$1', '_']));
   }
 
   Future<void> test_positionalFields_nameConflict() async {

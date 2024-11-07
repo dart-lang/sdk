@@ -48,7 +48,12 @@ class StatsPage extends PageWriter {
   void writeBody(StringSink sink) {
     writeMenu(sink);
     writeTwoColumns(
-        sink, 'leftColumn', _writeLeftColumn, 'rightColumn', _writeRightColumn);
+      sink,
+      'leftColumn',
+      _writeLeftColumn,
+      'rightColumn',
+      _writeRightColumn,
+    );
   }
 
   /// Write the content of the style sheet (without the 'script' tag) for the
@@ -92,8 +97,9 @@ class StatsPage extends PageWriter {
             if (id is String) {
               var events = log.completionEventsWithId(id);
               if (events != null && events.isNotEmpty) {
-                completionResponseTimes
-                    .add(events[0].timeStamp - entry.timeStamp);
+                completionResponseTimes.add(
+                  events[0].timeStamp - entry.timeStamp,
+                );
               }
             }
           }
@@ -107,7 +113,9 @@ class StatsPage extends PageWriter {
         var response = log.pluginResponseFor(entry)!;
         var responseTime = response.timeStamp - entry.timeStamp;
         var pluginData = pluginResponseData.putIfAbsent(
-            entry.pluginId, () => <String, List<int>>{});
+          entry.pluginId,
+          () => <String, List<int>>{},
+        );
         pluginData.putIfAbsent(entry.method, () => <int>[]).add(responseTime);
       }
     }
@@ -188,7 +196,8 @@ class StatsPage extends PageWriter {
     sink.writeln('</p>');
     sink.writeln('<table>');
     sink.writeln(
-        '<tr><th>min</th><th>mean</th><th>max</th><th>method</th></tr>');
+      '<tr><th>min</th><th>mean</th><th>max</th><th>method</th></tr>',
+    );
     var methodNames = latencyData.keys.toList()..sort();
     for (var method in methodNames) {
       var latencies = latencyData[method]!..sort();
@@ -217,8 +226,10 @@ class StatsPage extends PageWriter {
 
     if (pluginResponseData.isNotEmpty) {
       sink.writeln('<h3>Plugin response times</h3>');
-      pluginResponseData
-          .forEach((String pluginId, Map<String, List<int>> responseData) {
+      pluginResponseData.forEach((
+        String pluginId,
+        Map<String, List<int>> responseData,
+      ) {
         sink.write('<p>');
         sink.write(pluginId);
         sink.writeln('</p>');
