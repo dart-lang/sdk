@@ -82,6 +82,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 6),
   ),
 
+  enumShorthands(
+    name: 'enum-shorthands',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   extensionMethods(
     name: 'extension-methods',
     isEnabledByDefault: true,

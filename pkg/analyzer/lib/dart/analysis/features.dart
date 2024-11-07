@@ -37,6 +37,9 @@ abstract class Feature {
   /// Feature information for enhanced parts.
   static final enhanced_parts = ExperimentalFeatures.enhanced_parts;
 
+  /// Feature information for enum shorthands.
+  static final enum_shorthands = ExperimentalFeatures.enum_shorthands;
+
   /// Feature information for extension methods.
   static final extension_methods = ExperimentalFeatures.extension_methods;
 
