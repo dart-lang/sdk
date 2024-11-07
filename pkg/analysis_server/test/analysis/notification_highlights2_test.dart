@@ -2693,7 +2693,7 @@ class HighlightTypeTest {
   void test_constructor() {
     expect(
       HighlightRegionType.CLASS,
-      HighlightRegionType(HighlightRegionType.CLASS.name),
+      HighlightRegionType.values.byName(HighlightRegionType.CLASS.name),
     );
   }
 
@@ -2703,7 +2703,7 @@ class HighlightTypeTest {
 
   void test_valueOf_unknown() {
     expect(() {
-      HighlightRegionType('no-such-type');
-    }, throwsException);
+      HighlightRegionType.values.byName('no-such-type');
+    }, throwsArgumentError);
   }
 }

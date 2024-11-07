@@ -64,34 +64,6 @@ class SearchResultKindTest {
     );
   }
 
-  void test_fromName() {
-    expect(
-      SearchResultKind(SearchResultKind.DECLARATION.name),
-      SearchResultKind.DECLARATION,
-    );
-    expect(SearchResultKind(SearchResultKind.READ.name), SearchResultKind.READ);
-    expect(
-      SearchResultKind(SearchResultKind.READ_WRITE.name),
-      SearchResultKind.READ_WRITE,
-    );
-    expect(
-      SearchResultKind(SearchResultKind.WRITE.name),
-      SearchResultKind.WRITE,
-    );
-    expect(
-      SearchResultKind(SearchResultKind.REFERENCE.name),
-      SearchResultKind.REFERENCE,
-    );
-    expect(
-      SearchResultKind(SearchResultKind.INVOCATION.name),
-      SearchResultKind.INVOCATION,
-    );
-    expect(
-      SearchResultKind(SearchResultKind.UNKNOWN.name),
-      SearchResultKind.UNKNOWN,
-    );
-  }
-
   void test_toString() {
     expect(
       SearchResultKind.DECLARATION.toString(),

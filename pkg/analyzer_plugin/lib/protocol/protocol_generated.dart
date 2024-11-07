@@ -1228,46 +1228,16 @@ class AnalysisOutlineParams implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class AnalysisService implements Enum {
-  static const AnalysisService FOLDING = AnalysisService._('FOLDING');
+enum AnalysisService {
+  FOLDING,
 
-  static const AnalysisService HIGHLIGHTS = AnalysisService._('HIGHLIGHTS');
+  HIGHLIGHTS,
 
-  static const AnalysisService NAVIGATION = AnalysisService._('NAVIGATION');
+  NAVIGATION,
 
-  static const AnalysisService OCCURRENCES = AnalysisService._('OCCURRENCES');
+  OCCURRENCES,
 
-  static const AnalysisService OUTLINE = AnalysisService._('OUTLINE');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<AnalysisService> VALUES = <AnalysisService>[
-    FOLDING,
-    HIGHLIGHTS,
-    NAVIGATION,
-    OCCURRENCES,
-    OUTLINE,
-  ];
-
-  @override
-  final String name;
-
-  const AnalysisService._(this.name);
-
-  factory AnalysisService(String name) {
-    switch (name) {
-      case 'FOLDING':
-        return FOLDING;
-      case 'HIGHLIGHTS':
-        return HIGHLIGHTS;
-      case 'NAVIGATION':
-        return NAVIGATION;
-      case 'OCCURRENCES':
-        return OCCURRENCES;
-      case 'OUTLINE':
-        return OUTLINE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  OUTLINE;
 
   factory AnalysisService.fromJson(
     JsonDecoder jsonDecoder,
@@ -1277,7 +1247,7 @@ class AnalysisService implements Enum {
   }) {
     if (json is String) {
       try {
-        return AnalysisService(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -5148,7 +5118,7 @@ class RequestError implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class RequestErrorCode implements Enum {
+enum RequestErrorCode {
   /// An "analysis.updateContent" request contained a ChangeContentOverlay
   /// object that can't be applied. This can happen for two reasons:
   ///
@@ -5156,54 +5126,19 @@ class RequestErrorCode implements Enum {
   ///   the edits could be applied, or
   /// - one or more of the specified edits have an offset or length that is out
   ///   of range.
-  static const RequestErrorCode INVALID_OVERLAY_CHANGE = RequestErrorCode._(
-    'INVALID_OVERLAY_CHANGE',
-  );
+  INVALID_OVERLAY_CHANGE,
 
   /// One of the method parameters was invalid.
-  static const RequestErrorCode INVALID_PARAMETER = RequestErrorCode._(
-    'INVALID_PARAMETER',
-  );
+  INVALID_PARAMETER,
 
   /// An internal error occurred in the plugin while attempting to respond to a
   /// request. Also see the plugin.error notification for errors that occur
   /// outside of handling a request.
-  static const RequestErrorCode PLUGIN_ERROR = RequestErrorCode._(
-    'PLUGIN_ERROR',
-  );
+  PLUGIN_ERROR,
 
   /// A request was received that the plugin does not recognize, or cannot
   /// handle in its current configuration.
-  static const RequestErrorCode UNKNOWN_REQUEST = RequestErrorCode._(
-    'UNKNOWN_REQUEST',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<RequestErrorCode> VALUES = <RequestErrorCode>[
-    INVALID_OVERLAY_CHANGE,
-    INVALID_PARAMETER,
-    PLUGIN_ERROR,
-    UNKNOWN_REQUEST,
-  ];
-
-  @override
-  final String name;
-
-  const RequestErrorCode._(this.name);
-
-  factory RequestErrorCode(String name) {
-    switch (name) {
-      case 'INVALID_OVERLAY_CHANGE':
-        return INVALID_OVERLAY_CHANGE;
-      case 'INVALID_PARAMETER':
-        return INVALID_PARAMETER;
-      case 'PLUGIN_ERROR':
-        return PLUGIN_ERROR;
-      case 'UNKNOWN_REQUEST':
-        return UNKNOWN_REQUEST;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  UNKNOWN_REQUEST;
 
   factory RequestErrorCode.fromJson(
     JsonDecoder jsonDecoder,
@@ -5213,7 +5148,7 @@ class RequestErrorCode implements Enum {
   }) {
     if (json is String) {
       try {
-        return RequestErrorCode(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -5311,39 +5246,15 @@ class WatchEvent implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class WatchEventType implements Enum {
+enum WatchEventType {
   /// An indication that the file or directory was added.
-  static const WatchEventType ADD = WatchEventType._('ADD');
+  ADD,
 
   /// An indication that the file was modified.
-  static const WatchEventType MODIFY = WatchEventType._('MODIFY');
+  MODIFY,
 
   /// An indication that the file or directory was removed.
-  static const WatchEventType REMOVE = WatchEventType._('REMOVE');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<WatchEventType> VALUES = <WatchEventType>[
-    ADD,
-    MODIFY,
-    REMOVE,
-  ];
-
-  @override
-  final String name;
-
-  const WatchEventType._(this.name);
-
-  factory WatchEventType(String name) {
-    switch (name) {
-      case 'ADD':
-        return ADD;
-      case 'MODIFY':
-        return MODIFY;
-      case 'REMOVE':
-        return REMOVE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  REMOVE;
 
   factory WatchEventType.fromJson(
     JsonDecoder jsonDecoder,
@@ -5353,7 +5264,7 @@ class WatchEventType implements Enum {
   }) {
     if (json is String) {
       try {
-        return WatchEventType(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }

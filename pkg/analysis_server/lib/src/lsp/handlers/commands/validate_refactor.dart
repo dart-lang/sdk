@@ -49,7 +49,7 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
     var result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
       var refactoring = await getRefactoring(
-        RefactoringKind(kind),
+        RefactoringKind.values.byName(kind),
         result,
         offset,
         length,

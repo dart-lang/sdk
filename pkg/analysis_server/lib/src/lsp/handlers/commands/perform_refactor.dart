@@ -50,7 +50,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
 
     return result.mapResult((result) async {
       var refactoring = await getRefactoring(
-        RefactoringKind(kind),
+        RefactoringKind.values.byName(kind),
         result,
         offset,
         length,

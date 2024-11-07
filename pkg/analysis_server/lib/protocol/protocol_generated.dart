@@ -3318,70 +3318,26 @@ class AnalysisReanalyzeResult implements ResponseResult {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class AnalysisService implements Enum {
-  static const AnalysisService CLOSING_LABELS = AnalysisService._(
-    'CLOSING_LABELS',
-  );
+enum AnalysisService {
+  CLOSING_LABELS,
 
-  static const AnalysisService FOLDING = AnalysisService._('FOLDING');
+  FOLDING,
 
-  static const AnalysisService HIGHLIGHTS = AnalysisService._('HIGHLIGHTS');
+  HIGHLIGHTS,
 
-  static const AnalysisService IMPLEMENTED = AnalysisService._('IMPLEMENTED');
+  IMPLEMENTED,
 
   /// This service is not currently implemented and will become a
   /// GeneralAnalysisService in a future release.
-  static const AnalysisService INVALIDATE = AnalysisService._('INVALIDATE');
+  INVALIDATE,
 
-  static const AnalysisService NAVIGATION = AnalysisService._('NAVIGATION');
+  NAVIGATION,
 
-  static const AnalysisService OCCURRENCES = AnalysisService._('OCCURRENCES');
+  OCCURRENCES,
 
-  static const AnalysisService OUTLINE = AnalysisService._('OUTLINE');
+  OUTLINE,
 
-  static const AnalysisService OVERRIDES = AnalysisService._('OVERRIDES');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<AnalysisService> VALUES = <AnalysisService>[
-    CLOSING_LABELS,
-    FOLDING,
-    HIGHLIGHTS,
-    IMPLEMENTED,
-    INVALIDATE,
-    NAVIGATION,
-    OCCURRENCES,
-    OUTLINE,
-    OVERRIDES,
-  ];
-
-  @override
-  final String name;
-
-  const AnalysisService._(this.name);
-
-  factory AnalysisService(String name) {
-    switch (name) {
-      case 'CLOSING_LABELS':
-        return CLOSING_LABELS;
-      case 'FOLDING':
-        return FOLDING;
-      case 'HIGHLIGHTS':
-        return HIGHLIGHTS;
-      case 'IMPLEMENTED':
-        return IMPLEMENTED;
-      case 'INVALIDATE':
-        return INVALIDATE;
-      case 'NAVIGATION':
-        return NAVIGATION;
-      case 'OCCURRENCES':
-        return OCCURRENCES;
-      case 'OUTLINE':
-        return OUTLINE;
-      case 'OVERRIDES':
-        return OVERRIDES;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  OVERRIDES;
 
   factory AnalysisService.fromJson(
     JsonDecoder jsonDecoder,
@@ -3391,7 +3347,7 @@ class AnalysisService implements Enum {
   }) {
     if (json is String) {
       try {
-        return AnalysisService(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -5094,41 +5050,16 @@ class ClosingLabel implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class CompletionCaseMatchingMode implements Enum {
+enum CompletionCaseMatchingMode {
   /// Match the first character case only when filtering completions, the
   /// default for this enumeration.
-  static const CompletionCaseMatchingMode FIRST_CHAR =
-      CompletionCaseMatchingMode._('FIRST_CHAR');
+  FIRST_CHAR,
 
   /// Match all character cases when filtering completion lists.
-  static const CompletionCaseMatchingMode ALL_CHARS =
-      CompletionCaseMatchingMode._('ALL_CHARS');
+  ALL_CHARS,
 
   /// Do not match character cases when filtering completion lists.
-  static const CompletionCaseMatchingMode NONE = CompletionCaseMatchingMode._(
-    'NONE',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<CompletionCaseMatchingMode> VALUES =
-      <CompletionCaseMatchingMode>[FIRST_CHAR, ALL_CHARS, NONE];
-
-  @override
-  final String name;
-
-  const CompletionCaseMatchingMode._(this.name);
-
-  factory CompletionCaseMatchingMode(String name) {
-    switch (name) {
-      case 'FIRST_CHAR':
-        return FIRST_CHAR;
-      case 'ALL_CHARS':
-        return ALL_CHARS;
-      case 'NONE':
-        return NONE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  NONE;
 
   factory CompletionCaseMatchingMode.fromJson(
     JsonDecoder jsonDecoder,
@@ -5138,7 +5069,7 @@ class CompletionCaseMatchingMode implements Enum {
   }) {
     if (json is String) {
       try {
-        return CompletionCaseMatchingMode(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -5902,31 +5833,13 @@ class CompletionGetSuggestions2Result implements ResponseResult {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class CompletionMode implements Enum {
+enum CompletionMode {
   /// Basic code completion invocation type, and the default for this
   /// enumeration.
-  static const CompletionMode BASIC = CompletionMode._('BASIC');
+  BASIC,
 
   /// Smart code completion, currently not implemented.
-  static const CompletionMode SMART = CompletionMode._('SMART');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<CompletionMode> VALUES = <CompletionMode>[BASIC, SMART];
-
-  @override
-  final String name;
-
-  const CompletionMode._(this.name);
-
-  factory CompletionMode(String name) {
-    switch (name) {
-      case 'BASIC':
-        return BASIC;
-      case 'SMART':
-        return SMART;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  SMART;
 
   factory CompletionMode.fromJson(
     JsonDecoder jsonDecoder,
@@ -5936,7 +5849,7 @@ class CompletionMode implements Enum {
   }) {
     if (json is String) {
       try {
-        return CompletionMode(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -9951,43 +9864,14 @@ class ExecutableFile implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ExecutableKind implements Enum {
-  static const ExecutableKind CLIENT = ExecutableKind._('CLIENT');
+enum ExecutableKind {
+  CLIENT,
 
-  static const ExecutableKind EITHER = ExecutableKind._('EITHER');
+  EITHER,
 
-  static const ExecutableKind NOT_EXECUTABLE = ExecutableKind._(
-    'NOT_EXECUTABLE',
-  );
+  NOT_EXECUTABLE,
 
-  static const ExecutableKind SERVER = ExecutableKind._('SERVER');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<ExecutableKind> VALUES = <ExecutableKind>[
-    CLIENT,
-    EITHER,
-    NOT_EXECUTABLE,
-    SERVER,
-  ];
-
-  @override
-  final String name;
-
-  const ExecutableKind._(this.name);
-
-  factory ExecutableKind(String name) {
-    switch (name) {
-      case 'CLIENT':
-        return CLIENT;
-      case 'EITHER':
-        return EITHER;
-      case 'NOT_EXECUTABLE':
-        return NOT_EXECUTABLE;
-      case 'SERVER':
-        return SERVER;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  SERVER;
 
   factory ExecutableKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -9997,7 +9881,7 @@ class ExecutableKind implements Enum {
   }) {
     if (json is String) {
       try {
-        return ExecutableKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -11035,24 +10919,8 @@ class ExecutionMapUriResult implements ResponseResult {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ExecutionService implements Enum {
-  static const ExecutionService LAUNCH_DATA = ExecutionService._('LAUNCH_DATA');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<ExecutionService> VALUES = <ExecutionService>[LAUNCH_DATA];
-
-  @override
-  final String name;
-
-  const ExecutionService._(this.name);
-
-  factory ExecutionService(String name) {
-    switch (name) {
-      case 'LAUNCH_DATA':
-        return LAUNCH_DATA;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+enum ExecutionService {
+  LAUNCH_DATA;
 
   factory ExecutionService.fromJson(
     JsonDecoder jsonDecoder,
@@ -11062,7 +10930,7 @@ class ExecutionService implements Enum {
   }) {
     if (json is String) {
       try {
-        return ExecutionService(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -12143,28 +12011,10 @@ class ExtractWidgetOptions extends RefactoringOptions {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class FileKind implements Enum {
-  static const FileKind LIBRARY = FileKind._('LIBRARY');
+enum FileKind {
+  LIBRARY,
 
-  static const FileKind PART = FileKind._('PART');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<FileKind> VALUES = <FileKind>[LIBRARY, PART];
-
-  @override
-  final String name;
-
-  const FileKind._(this.name);
-
-  factory FileKind(String name) {
-    switch (name) {
-      case 'LIBRARY':
-        return LIBRARY;
-      case 'PART':
-        return PART;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  PART;
 
   factory FileKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -12174,7 +12024,7 @@ class FileKind implements Enum {
   }) {
     if (json is String) {
       try {
-        return FileKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -12903,67 +12753,26 @@ class FlutterOutlineAttribute implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class FlutterOutlineKind implements Enum {
+enum FlutterOutlineKind {
   /// A dart element declaration.
-  static const FlutterOutlineKind DART_ELEMENT = FlutterOutlineKind._(
-    'DART_ELEMENT',
-  );
+  DART_ELEMENT,
 
   /// A generic Flutter element, without additional information.
-  static const FlutterOutlineKind GENERIC = FlutterOutlineKind._('GENERIC');
+  GENERIC,
 
   /// A new instance creation.
-  static const FlutterOutlineKind NEW_INSTANCE = FlutterOutlineKind._(
-    'NEW_INSTANCE',
-  );
+  NEW_INSTANCE,
 
   /// An invocation of a method, a top-level function, a function expression,
   /// etc.
-  static const FlutterOutlineKind INVOCATION = FlutterOutlineKind._(
-    'INVOCATION',
-  );
+  INVOCATION,
 
   /// A reference to a local variable, or a field.
-  static const FlutterOutlineKind VARIABLE = FlutterOutlineKind._('VARIABLE');
+  VARIABLE,
 
   /// The parent node has a required Widget. The node works as a placeholder
   /// child to drop a new Widget to.
-  static const FlutterOutlineKind PLACEHOLDER = FlutterOutlineKind._(
-    'PLACEHOLDER',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<FlutterOutlineKind> VALUES = <FlutterOutlineKind>[
-    DART_ELEMENT,
-    GENERIC,
-    NEW_INSTANCE,
-    INVOCATION,
-    VARIABLE,
-    PLACEHOLDER,
-  ];
-
-  @override
-  final String name;
-
-  const FlutterOutlineKind._(this.name);
-
-  factory FlutterOutlineKind(String name) {
-    switch (name) {
-      case 'DART_ELEMENT':
-        return DART_ELEMENT;
-      case 'GENERIC':
-        return GENERIC;
-      case 'NEW_INSTANCE':
-        return NEW_INSTANCE;
-      case 'INVOCATION':
-        return INVOCATION;
-      case 'VARIABLE':
-        return VARIABLE;
-      case 'PLACEHOLDER':
-        return PLACEHOLDER;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  PLACEHOLDER;
 
   factory FlutterOutlineKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -12973,7 +12782,7 @@ class FlutterOutlineKind implements Enum {
   }) {
     if (json is String) {
       try {
-        return FlutterOutlineKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -13092,24 +12901,8 @@ class FlutterOutlineParams implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class FlutterService implements Enum {
-  static const FlutterService OUTLINE = FlutterService._('OUTLINE');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<FlutterService> VALUES = <FlutterService>[OUTLINE];
-
-  @override
-  final String name;
-
-  const FlutterService._(this.name);
-
-  factory FlutterService(String name) {
-    switch (name) {
-      case 'OUTLINE':
-        return OUTLINE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+enum FlutterService {
+  OUTLINE;
 
   factory FlutterService.fromJson(
     JsonDecoder jsonDecoder,
@@ -13119,7 +12912,7 @@ class FlutterService implements Enum {
   }) {
     if (json is String) {
       try {
-        return FlutterService(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -13834,67 +13627,27 @@ class FlutterWidgetPropertyEditor implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class FlutterWidgetPropertyEditorKind implements Enum {
+enum FlutterWidgetPropertyEditorKind {
   /// The editor for a property of type bool.
-  static const FlutterWidgetPropertyEditorKind BOOL =
-      FlutterWidgetPropertyEditorKind._('BOOL');
+  BOOL,
 
   /// The editor for a property of the type double.
-  static const FlutterWidgetPropertyEditorKind DOUBLE =
-      FlutterWidgetPropertyEditorKind._('DOUBLE');
+  DOUBLE,
 
   /// The editor for choosing an item of an enumeration, see the enumItems
   /// field of FlutterWidgetPropertyEditor.
-  static const FlutterWidgetPropertyEditorKind ENUM =
-      FlutterWidgetPropertyEditorKind._('ENUM');
+  ENUM,
 
   /// The editor for either choosing a pre-defined item from a list of provided
   /// static field references (like ENUM), or specifying a free-form
   /// expression.
-  static const FlutterWidgetPropertyEditorKind ENUM_LIKE =
-      FlutterWidgetPropertyEditorKind._('ENUM_LIKE');
+  ENUM_LIKE,
 
   /// The editor for a property of type int.
-  static const FlutterWidgetPropertyEditorKind INT =
-      FlutterWidgetPropertyEditorKind._('INT');
+  INT,
 
   /// The editor for a property of the type String.
-  static const FlutterWidgetPropertyEditorKind STRING =
-      FlutterWidgetPropertyEditorKind._('STRING');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<FlutterWidgetPropertyEditorKind> VALUES =
-      <FlutterWidgetPropertyEditorKind>[
-        BOOL,
-        DOUBLE,
-        ENUM,
-        ENUM_LIKE,
-        INT,
-        STRING,
-      ];
-
-  @override
-  final String name;
-
-  const FlutterWidgetPropertyEditorKind._(this.name);
-
-  factory FlutterWidgetPropertyEditorKind(String name) {
-    switch (name) {
-      case 'BOOL':
-        return BOOL;
-      case 'DOUBLE':
-        return DOUBLE;
-      case 'ENUM':
-        return ENUM;
-      case 'ENUM_LIKE':
-        return ENUM_LIKE;
-      case 'INT':
-        return INT;
-      case 'STRING':
-        return STRING;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  STRING;
 
   factory FlutterWidgetPropertyEditorKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -13904,7 +13657,7 @@ class FlutterWidgetPropertyEditorKind implements Enum {
   }) {
     if (json is String) {
       try {
-        return FlutterWidgetPropertyEditorKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -14212,28 +13965,8 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class GeneralAnalysisService implements Enum {
-  static const GeneralAnalysisService ANALYZED_FILES = GeneralAnalysisService._(
-    'ANALYZED_FILES',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<GeneralAnalysisService> VALUES = <GeneralAnalysisService>[
-    ANALYZED_FILES,
-  ];
-
-  @override
-  final String name;
-
-  const GeneralAnalysisService._(this.name);
-
-  factory GeneralAnalysisService(String name) {
-    switch (name) {
-      case 'ANALYZED_FILES':
-        return ANALYZED_FILES;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+enum GeneralAnalysisService {
+  ANALYZED_FILES;
 
   factory GeneralAnalysisService.fromJson(
     JsonDecoder jsonDecoder,
@@ -14243,7 +13976,7 @@ class GeneralAnalysisService implements Enum {
   }) {
     if (json is String) {
       try {
-        return GeneralAnalysisService(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -15543,45 +15276,18 @@ class MessageAction implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class MessageType implements Enum {
+enum MessageType {
   /// The message is an error message.
-  static const MessageType ERROR = MessageType._('ERROR');
+  ERROR,
 
   /// The message is a warning message.
-  static const MessageType WARNING = MessageType._('WARNING');
+  WARNING,
 
   /// The message is an informational message.
-  static const MessageType INFO = MessageType._('INFO');
+  INFO,
 
   /// The message is a log message.
-  static const MessageType LOG = MessageType._('LOG');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<MessageType> VALUES = <MessageType>[
-    ERROR,
-    WARNING,
-    INFO,
-    LOG,
-  ];
-
-  @override
-  final String name;
-
-  const MessageType._(this.name);
-
-  factory MessageType(String name) {
-    switch (name) {
-      case 'ERROR':
-        return ERROR;
-      case 'WARNING':
-        return WARNING;
-      case 'INFO':
-        return INFO;
-      case 'LOG':
-        return LOG;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  LOG;
 
   factory MessageType.fromJson(
     JsonDecoder jsonDecoder,
@@ -15591,7 +15297,7 @@ class MessageType implements Enum {
   }) {
     if (json is String) {
       try {
-        return MessageType(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -16454,153 +16160,108 @@ class RequestError implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class RequestErrorCode implements Enum {
+enum RequestErrorCode {
   /// An "analysis.getErrors" or "analysis.getNavigation" request could not be
   /// satisfied because the content of the file changed before the requested
   /// results could be computed.
-  static const RequestErrorCode CONTENT_MODIFIED = RequestErrorCode._(
-    'CONTENT_MODIFIED',
-  );
+  CONTENT_MODIFIED,
 
   /// The server was unable to open a port for the diagnostic server.
-  static const RequestErrorCode DEBUG_PORT_COULD_NOT_BE_OPENED =
-      RequestErrorCode._('DEBUG_PORT_COULD_NOT_BE_OPENED');
+  DEBUG_PORT_COULD_NOT_BE_OPENED,
 
   /// A request specified a FilePath which does not match a file in an analysis
   /// root, or the requested operation is not available for the file.
-  static const RequestErrorCode FILE_NOT_ANALYZED = RequestErrorCode._(
-    'FILE_NOT_ANALYZED',
-  );
+  FILE_NOT_ANALYZED,
 
   /// A file was change while widget descriptions were being computed.
-  static const RequestErrorCode
-  FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED = RequestErrorCode._(
-    'FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED',
-  );
+  FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED,
 
   /// The given location does not have a supported widget.
-  static const RequestErrorCode FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET =
-      RequestErrorCode._('FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET');
+  FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
 
   /// The given property expression is invalid, e.g. has a syntax error.
-  static const RequestErrorCode
-  FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION = RequestErrorCode._(
-    'FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION',
-  );
+  FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
 
   /// The given property identifier is not valid. It might have never been
   /// valid, or a change to code invalidated it, or its TTL was exceeded.
-  static const RequestErrorCode FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID =
-      RequestErrorCode._('FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID');
+  FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
 
   /// The value of the property cannot be removed, for example because the
   /// corresponding constructor argument is required, and the server does not
   /// know what default value to use.
-  static const RequestErrorCode FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED =
-      RequestErrorCode._('FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED');
+  FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
 
   /// An "edit.format" request specified a FilePath which does not match a Dart
   /// file in an analysis root.
-  static const RequestErrorCode FORMAT_INVALID_FILE = RequestErrorCode._(
-    'FORMAT_INVALID_FILE',
-  );
+  FORMAT_INVALID_FILE,
 
   /// An "edit.format" request specified a file that contains syntax errors.
-  static const RequestErrorCode FORMAT_WITH_ERRORS = RequestErrorCode._(
-    'FORMAT_WITH_ERRORS',
-  );
+  FORMAT_WITH_ERRORS,
 
   /// An "analysis.getErrors" request specified a FilePath which does not match
   /// a file currently subject to analysis.
-  static const RequestErrorCode GET_ERRORS_INVALID_FILE = RequestErrorCode._(
-    'GET_ERRORS_INVALID_FILE',
-  );
+  GET_ERRORS_INVALID_FILE,
 
   /// An "edit.getFixes" request specified a FilePath which does not match a
   /// file currently subject to analysis.
-  static const RequestErrorCode GET_FIXES_INVALID_FILE = RequestErrorCode._(
-    'GET_FIXES_INVALID_FILE',
-  );
+  GET_FIXES_INVALID_FILE,
 
   /// An "analysis.getImportedElements" request specified a FilePath that does
   /// not match a file currently subject to analysis.
-  static const RequestErrorCode GET_IMPORTED_ELEMENTS_INVALID_FILE =
-      RequestErrorCode._('GET_IMPORTED_ELEMENTS_INVALID_FILE');
+  GET_IMPORTED_ELEMENTS_INVALID_FILE,
 
   /// An "analysis.getNavigation" request specified a FilePath which does not
   /// match a file currently subject to analysis.
-  static const RequestErrorCode GET_NAVIGATION_INVALID_FILE =
-      RequestErrorCode._('GET_NAVIGATION_INVALID_FILE');
+  GET_NAVIGATION_INVALID_FILE,
 
   /// An "analysis.getReachableSources" request specified a FilePath which does
   /// not match a file currently subject to analysis.
-  static const RequestErrorCode GET_REACHABLE_SOURCES_INVALID_FILE =
-      RequestErrorCode._('GET_REACHABLE_SOURCES_INVALID_FILE');
+  GET_REACHABLE_SOURCES_INVALID_FILE,
 
   /// An "analysis.getSignature" request specified a FilePath which does not
   /// match a file currently subject to analysis.
-  static const RequestErrorCode GET_SIGNATURE_INVALID_FILE = RequestErrorCode._(
-    'GET_SIGNATURE_INVALID_FILE',
-  );
+  GET_SIGNATURE_INVALID_FILE,
 
   /// An "analysis.getSignature" request specified an offset which is not a
   /// valid location within for the contents of the file specified FilePath.
-  static const RequestErrorCode GET_SIGNATURE_INVALID_OFFSET =
-      RequestErrorCode._('GET_SIGNATURE_INVALID_OFFSET');
+  GET_SIGNATURE_INVALID_OFFSET,
 
   /// An "analysis.getSignature" request specified an offset that could not be
   /// matched to a function call.
-  static const RequestErrorCode GET_SIGNATURE_UNKNOWN_FUNCTION =
-      RequestErrorCode._('GET_SIGNATURE_UNKNOWN_FUNCTION');
+  GET_SIGNATURE_UNKNOWN_FUNCTION,
 
   /// An "edit.importElements" request specified a FilePath that does not match
   /// a file currently subject to analysis.
-  static const RequestErrorCode IMPORT_ELEMENTS_INVALID_FILE =
-      RequestErrorCode._('IMPORT_ELEMENTS_INVALID_FILE');
+  IMPORT_ELEMENTS_INVALID_FILE,
 
   /// A path passed as an argument to a request (such as analysis.reanalyze) is
   /// required to be an analysis root, but isn't.
-  static const RequestErrorCode INVALID_ANALYSIS_ROOT = RequestErrorCode._(
-    'INVALID_ANALYSIS_ROOT',
-  );
+  INVALID_ANALYSIS_ROOT,
 
   /// The context root used to create an execution context does not exist.
-  static const RequestErrorCode INVALID_EXECUTION_CONTEXT = RequestErrorCode._(
-    'INVALID_EXECUTION_CONTEXT',
-  );
+  INVALID_EXECUTION_CONTEXT,
 
   /// The format of the given file path is invalid, e.g. is not absolute and
   /// normalized.
-  static const RequestErrorCode INVALID_FILE_PATH_FORMAT = RequestErrorCode._(
-    'INVALID_FILE_PATH_FORMAT',
-  );
+  INVALID_FILE_PATH_FORMAT,
 
   /// An "analysis.updateContent" request contained a ChangeContentOverlay
   /// object which can't be applied, due to an edit having an offset or length
   /// that is out of range.
-  static const RequestErrorCode INVALID_OVERLAY_CHANGE = RequestErrorCode._(
-    'INVALID_OVERLAY_CHANGE',
-  );
+  INVALID_OVERLAY_CHANGE,
 
   /// One of the method parameters was invalid.
-  static const RequestErrorCode INVALID_PARAMETER = RequestErrorCode._(
-    'INVALID_PARAMETER',
-  );
+  INVALID_PARAMETER,
 
   /// A malformed request was received.
-  static const RequestErrorCode INVALID_REQUEST = RequestErrorCode._(
-    'INVALID_REQUEST',
-  );
+  INVALID_REQUEST,
 
   /// An "edit.organizeDirectives" request specified a Dart file that cannot be
   /// analyzed. The reason is described in the message.
-  static const RequestErrorCode ORGANIZE_DIRECTIVES_ERROR = RequestErrorCode._(
-    'ORGANIZE_DIRECTIVES_ERROR',
-  );
+  ORGANIZE_DIRECTIVES_ERROR,
 
   /// Another refactoring request was received during processing of this one.
-  static const RequestErrorCode REFACTORING_REQUEST_CANCELLED =
-      RequestErrorCode._('REFACTORING_REQUEST_CANCELLED');
+  REFACTORING_REQUEST_CANCELLED,
 
   /// The analysis server has already been started (and hence won't accept new
   /// connections).
@@ -16608,156 +16269,30 @@ class RequestErrorCode implements Enum {
   /// This error is included for future expansion; at present the analysis
   /// server can only speak to one client at a time so this error will never
   /// occur.
-  static const RequestErrorCode SERVER_ALREADY_STARTED = RequestErrorCode._(
-    'SERVER_ALREADY_STARTED',
-  );
+  SERVER_ALREADY_STARTED,
 
   /// An internal error occurred in the analysis server. Also see the
   /// server.error notification.
-  static const RequestErrorCode SERVER_ERROR = RequestErrorCode._(
-    'SERVER_ERROR',
-  );
+  SERVER_ERROR,
 
   /// An "edit.sortMembers" request specified a FilePath which does not match a
   /// Dart file in an analysis root.
-  static const RequestErrorCode SORT_MEMBERS_INVALID_FILE = RequestErrorCode._(
-    'SORT_MEMBERS_INVALID_FILE',
-  );
+  SORT_MEMBERS_INVALID_FILE,
 
   /// An "edit.sortMembers" request specified a Dart file that has scan or
   /// parse errors.
-  static const RequestErrorCode SORT_MEMBERS_PARSE_ERRORS = RequestErrorCode._(
-    'SORT_MEMBERS_PARSE_ERRORS',
-  );
+  SORT_MEMBERS_PARSE_ERRORS,
 
   /// A request was received which the analysis server does not recognize, or
   /// cannot handle in its current configuration.
-  static const RequestErrorCode UNKNOWN_REQUEST = RequestErrorCode._(
-    'UNKNOWN_REQUEST',
-  );
+  UNKNOWN_REQUEST,
 
   /// The analysis server was requested to perform an action which is not
   /// supported.
   ///
   /// This is a legacy error; it will be removed before the API reaches version
   /// 1.0.
-  static const RequestErrorCode UNSUPPORTED_FEATURE = RequestErrorCode._(
-    'UNSUPPORTED_FEATURE',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<RequestErrorCode> VALUES = <RequestErrorCode>[
-    CONTENT_MODIFIED,
-    DEBUG_PORT_COULD_NOT_BE_OPENED,
-    FILE_NOT_ANALYZED,
-    FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED,
-    FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
-    FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
-    FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
-    FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
-    FORMAT_INVALID_FILE,
-    FORMAT_WITH_ERRORS,
-    GET_ERRORS_INVALID_FILE,
-    GET_FIXES_INVALID_FILE,
-    GET_IMPORTED_ELEMENTS_INVALID_FILE,
-    GET_NAVIGATION_INVALID_FILE,
-    GET_REACHABLE_SOURCES_INVALID_FILE,
-    GET_SIGNATURE_INVALID_FILE,
-    GET_SIGNATURE_INVALID_OFFSET,
-    GET_SIGNATURE_UNKNOWN_FUNCTION,
-    IMPORT_ELEMENTS_INVALID_FILE,
-    INVALID_ANALYSIS_ROOT,
-    INVALID_EXECUTION_CONTEXT,
-    INVALID_FILE_PATH_FORMAT,
-    INVALID_OVERLAY_CHANGE,
-    INVALID_PARAMETER,
-    INVALID_REQUEST,
-    ORGANIZE_DIRECTIVES_ERROR,
-    REFACTORING_REQUEST_CANCELLED,
-    SERVER_ALREADY_STARTED,
-    SERVER_ERROR,
-    SORT_MEMBERS_INVALID_FILE,
-    SORT_MEMBERS_PARSE_ERRORS,
-    UNKNOWN_REQUEST,
-    UNSUPPORTED_FEATURE,
-  ];
-
-  @override
-  final String name;
-
-  const RequestErrorCode._(this.name);
-
-  factory RequestErrorCode(String name) {
-    switch (name) {
-      case 'CONTENT_MODIFIED':
-        return CONTENT_MODIFIED;
-      case 'DEBUG_PORT_COULD_NOT_BE_OPENED':
-        return DEBUG_PORT_COULD_NOT_BE_OPENED;
-      case 'FILE_NOT_ANALYZED':
-        return FILE_NOT_ANALYZED;
-      case 'FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED':
-        return FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED;
-      case 'FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET':
-        return FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET;
-      case 'FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION':
-        return FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION;
-      case 'FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID':
-        return FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID;
-      case 'FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED':
-        return FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED;
-      case 'FORMAT_INVALID_FILE':
-        return FORMAT_INVALID_FILE;
-      case 'FORMAT_WITH_ERRORS':
-        return FORMAT_WITH_ERRORS;
-      case 'GET_ERRORS_INVALID_FILE':
-        return GET_ERRORS_INVALID_FILE;
-      case 'GET_FIXES_INVALID_FILE':
-        return GET_FIXES_INVALID_FILE;
-      case 'GET_IMPORTED_ELEMENTS_INVALID_FILE':
-        return GET_IMPORTED_ELEMENTS_INVALID_FILE;
-      case 'GET_NAVIGATION_INVALID_FILE':
-        return GET_NAVIGATION_INVALID_FILE;
-      case 'GET_REACHABLE_SOURCES_INVALID_FILE':
-        return GET_REACHABLE_SOURCES_INVALID_FILE;
-      case 'GET_SIGNATURE_INVALID_FILE':
-        return GET_SIGNATURE_INVALID_FILE;
-      case 'GET_SIGNATURE_INVALID_OFFSET':
-        return GET_SIGNATURE_INVALID_OFFSET;
-      case 'GET_SIGNATURE_UNKNOWN_FUNCTION':
-        return GET_SIGNATURE_UNKNOWN_FUNCTION;
-      case 'IMPORT_ELEMENTS_INVALID_FILE':
-        return IMPORT_ELEMENTS_INVALID_FILE;
-      case 'INVALID_ANALYSIS_ROOT':
-        return INVALID_ANALYSIS_ROOT;
-      case 'INVALID_EXECUTION_CONTEXT':
-        return INVALID_EXECUTION_CONTEXT;
-      case 'INVALID_FILE_PATH_FORMAT':
-        return INVALID_FILE_PATH_FORMAT;
-      case 'INVALID_OVERLAY_CHANGE':
-        return INVALID_OVERLAY_CHANGE;
-      case 'INVALID_PARAMETER':
-        return INVALID_PARAMETER;
-      case 'INVALID_REQUEST':
-        return INVALID_REQUEST;
-      case 'ORGANIZE_DIRECTIVES_ERROR':
-        return ORGANIZE_DIRECTIVES_ERROR;
-      case 'REFACTORING_REQUEST_CANCELLED':
-        return REFACTORING_REQUEST_CANCELLED;
-      case 'SERVER_ALREADY_STARTED':
-        return SERVER_ALREADY_STARTED;
-      case 'SERVER_ERROR':
-        return SERVER_ERROR;
-      case 'SORT_MEMBERS_INVALID_FILE':
-        return SORT_MEMBERS_INVALID_FILE;
-      case 'SORT_MEMBERS_PARSE_ERRORS':
-        return SORT_MEMBERS_PARSE_ERRORS;
-      case 'UNKNOWN_REQUEST':
-        return UNKNOWN_REQUEST;
-      case 'UNSUPPORTED_FEATURE':
-        return UNSUPPORTED_FEATURE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  UNSUPPORTED_FEATURE;
 
   factory RequestErrorCode.fromJson(
     JsonDecoder jsonDecoder,
@@ -16767,7 +16302,7 @@ class RequestErrorCode implements Enum {
   }) {
     if (json is String) {
       try {
-        return RequestErrorCode(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -17128,36 +16663,12 @@ class RuntimeCompletionExpressionType implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class RuntimeCompletionExpressionTypeKind implements Enum {
-  static const RuntimeCompletionExpressionTypeKind DYNAMIC =
-      RuntimeCompletionExpressionTypeKind._('DYNAMIC');
+enum RuntimeCompletionExpressionTypeKind {
+  DYNAMIC,
 
-  static const RuntimeCompletionExpressionTypeKind FUNCTION =
-      RuntimeCompletionExpressionTypeKind._('FUNCTION');
+  FUNCTION,
 
-  static const RuntimeCompletionExpressionTypeKind INTERFACE =
-      RuntimeCompletionExpressionTypeKind._('INTERFACE');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<RuntimeCompletionExpressionTypeKind> VALUES =
-      <RuntimeCompletionExpressionTypeKind>[DYNAMIC, FUNCTION, INTERFACE];
-
-  @override
-  final String name;
-
-  const RuntimeCompletionExpressionTypeKind._(this.name);
-
-  factory RuntimeCompletionExpressionTypeKind(String name) {
-    switch (name) {
-      case 'DYNAMIC':
-        return DYNAMIC;
-      case 'FUNCTION':
-        return FUNCTION;
-      case 'INTERFACE':
-        return INTERFACE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  INTERFACE;
 
   factory RuntimeCompletionExpressionTypeKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -17167,7 +16678,7 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
   }) {
     if (json is String) {
       try {
-        return RuntimeCompletionExpressionTypeKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -18621,64 +18132,28 @@ class SearchResult implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class SearchResultKind implements Enum {
+enum SearchResultKind {
   /// The declaration of an element.
-  static const SearchResultKind DECLARATION = SearchResultKind._('DECLARATION');
+  DECLARATION,
 
   /// The invocation of a function or method.
-  static const SearchResultKind INVOCATION = SearchResultKind._('INVOCATION');
+  INVOCATION,
 
   /// A reference to a field, parameter or variable where it is being read.
-  static const SearchResultKind READ = SearchResultKind._('READ');
+  READ,
 
   /// A reference to a field, parameter or variable where it is being read and
   /// written.
-  static const SearchResultKind READ_WRITE = SearchResultKind._('READ_WRITE');
+  READ_WRITE,
 
   /// A reference to an element.
-  static const SearchResultKind REFERENCE = SearchResultKind._('REFERENCE');
+  REFERENCE,
 
   /// Some other kind of search result.
-  static const SearchResultKind UNKNOWN = SearchResultKind._('UNKNOWN');
+  UNKNOWN,
 
   /// A reference to a field, parameter or variable where it is being written.
-  static const SearchResultKind WRITE = SearchResultKind._('WRITE');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<SearchResultKind> VALUES = <SearchResultKind>[
-    DECLARATION,
-    INVOCATION,
-    READ,
-    READ_WRITE,
-    REFERENCE,
-    UNKNOWN,
-    WRITE,
-  ];
-
-  @override
-  final String name;
-
-  const SearchResultKind._(this.name);
-
-  factory SearchResultKind(String name) {
-    switch (name) {
-      case 'DECLARATION':
-        return DECLARATION;
-      case 'INVOCATION':
-        return INVOCATION;
-      case 'READ':
-        return READ;
-      case 'READ_WRITE':
-        return READ_WRITE;
-      case 'REFERENCE':
-        return REFERENCE;
-      case 'UNKNOWN':
-        return UNKNOWN;
-      case 'WRITE':
-        return WRITE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  WRITE;
 
   factory SearchResultKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -18688,7 +18163,7 @@ class SearchResultKind implements Enum {
   }) {
     if (json is String) {
       try {
-        return SearchResultKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -19332,24 +18807,22 @@ class ServerLogEntry implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ServerLogEntryKind implements Enum {
+enum ServerLogEntryKind {
   /// A notification from the server, such as "analysis.highlights". The "data"
   /// field contains a JSON object with abbreviated notification.
-  static const ServerLogEntryKind NOTIFICATION = ServerLogEntryKind._(
-    'NOTIFICATION',
-  );
+  NOTIFICATION,
 
   /// Arbitrary string, describing some event that happened in the server, e.g.
   /// starting a file analysis, and details which files were accessed. These
   /// entries are not structured, but provide context information about
   /// requests and notification, and can be related by "time" for further
   /// manual analysis.
-  static const ServerLogEntryKind RAW = ServerLogEntryKind._('RAW');
+  RAW,
 
   /// A request from the client, as the server views it, e.g.
   /// "edit.getAssists". The "data" field contains a JSON object with
   /// abbreviated request.
-  static const ServerLogEntryKind REQUEST = ServerLogEntryKind._('REQUEST');
+  REQUEST,
 
   /// Various counters and measurements related to execution of a request. The
   /// "data" field contains a JSON object with following fields:
@@ -19363,34 +18836,7 @@ class ServerLogEntryKind implements Enum {
   /// - "responseTime" - the time (milliseconds since epoch) at which the
   ///   server created the response to be encoded into JSON and sent to the
   ///   client.
-  static const ServerLogEntryKind RESPONSE = ServerLogEntryKind._('RESPONSE');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<ServerLogEntryKind> VALUES = <ServerLogEntryKind>[
-    NOTIFICATION,
-    RAW,
-    REQUEST,
-    RESPONSE,
-  ];
-
-  @override
-  final String name;
-
-  const ServerLogEntryKind._(this.name);
-
-  factory ServerLogEntryKind(String name) {
-    switch (name) {
-      case 'NOTIFICATION':
-        return NOTIFICATION;
-      case 'RAW':
-        return RAW;
-      case 'REQUEST':
-        return REQUEST;
-      case 'RESPONSE':
-        return RESPONSE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  RESPONSE;
 
   factory ServerLogEntryKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -19400,7 +18846,7 @@ class ServerLogEntryKind implements Enum {
   }) {
     if (json is String) {
       try {
-        return ServerLogEntryKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -19613,28 +19059,10 @@ class ServerOpenUrlRequestResult implements ResponseResult {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ServerService implements Enum {
-  static const ServerService LOG = ServerService._('LOG');
+enum ServerService {
+  LOG,
 
-  static const ServerService STATUS = ServerService._('STATUS');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<ServerService> VALUES = <ServerService>[LOG, STATUS];
-
-  @override
-  final String name;
-
-  const ServerService._(this.name);
-
-  factory ServerService(String name) {
-    switch (name) {
-      case 'LOG':
-        return LOG;
-      case 'STATUS':
-        return STATUS;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  STATUS;
 
   factory ServerService.fromJson(
     JsonDecoder jsonDecoder,
@@ -19644,7 +19072,7 @@ class ServerService implements Enum {
   }) {
     if (json is String) {
       try {
-        return ServerService(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }

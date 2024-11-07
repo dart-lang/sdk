@@ -124,7 +124,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         emitObjectClass(dartTypeName, type, impliedType);
       } else if (type is TypeEnum) {
         writeln();
-        emitEnumClass(dartTypeName, type, impliedType);
+        emitEnum(dartTypeName, type, impliedType);
       }
     }
   }
@@ -263,8 +263,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('Map<String, Object> toJson($namedParameters) => {};');
   }
 
-  /// Emit a class to encapsulate an enum.
-  void emitEnumClass(String className, TypeEnum type, ImpliedType impliedType) {
+  /// Emit an enum to encapsulate an enum.
+  void emitEnum(String className, TypeEnum type, ImpliedType impliedType) {
     var namedParameters = clientUriConverterKind != CodegenUriConverterKind.none
         ? '{ ${clientUriConverterKind.namedParameterString} }'
         : '';
@@ -280,7 +280,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         toHtmlVisitor.write(disclaimer);
       });
     }));
-    writeln('class $className implements Enum {');
+    writeln('enum $className {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();
@@ -289,36 +289,14 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         docComment(toHtmlVisitor.collectHtml(() {
           toHtmlVisitor.translateHtml(value.html);
         }));
-        var valueString = literalString(value.value);
-        writeln(
-            'static const $className ${value.value} = $className._($valueString);');
+        if (value != type.values.last) {
+          writeln('${value.value},');
+        } else {
+          writeln('${value.value};');
+        }
         writeln();
       }
 
-      writeln('/// A list containing all of the enum values that are defined.');
-      write('static const List<');
-      write(className);
-      write('> VALUES = <');
-      write(className);
-      write('>[');
-      var first = true;
-      for (var value in type.values) {
-        if (first) {
-          first = false;
-        } else {
-          write(', ');
-        }
-        write(value.value);
-      }
-      writeln('];');
-      writeln();
-
-      writeln('@override');
-      writeln('final String name;');
-      writeln();
-      writeln('const $className._(this.name);');
-      writeln();
-      emitEnumClassConstructor(className, type);
       writeln();
       emitEnumFromJsonConstructor(className, type, impliedType);
       writeln();
@@ -339,26 +317,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /// Emit the constructor for an enum class.
-  void emitEnumClassConstructor(String className, TypeEnum type) {
-    writeln('factory $className(String name) {');
-    indent(() {
-      writeln('switch (name) {');
-      indent(() {
-        for (var value in type.values) {
-          var valueString = literalString(value.value);
-          writeln('case $valueString:');
-          indent(() {
-            writeln('return ${value.value};');
-          });
-        }
-      });
-      writeln('}');
-      writeln(r"throw Exception('Illegal enum value: $name');");
-    });
-    writeln('}');
-  }
-
   /// Emit the method for decoding an enum from JSON.
   void emitEnumFromJsonConstructor(
       String className, TypeEnum type, ImpliedType impliedType) {
@@ -372,7 +330,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       indent(() {
         writeln('try {');
         indent(() {
-          writeln('return $className(json);');
+          writeln('return values.byName(json);');
         });
         writeln('} catch(_) {');
         indent(() {

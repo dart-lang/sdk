@@ -527,61 +527,6 @@ class ElementKindTest {
     );
   }
 
-  void test_string_constructor() {
-    expect(ElementKind(ElementKind.CLASS.name), ElementKind.CLASS);
-    expect(
-      ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
-      ElementKind.CLASS_TYPE_ALIAS,
-    );
-    expect(
-      ElementKind(ElementKind.COMPILATION_UNIT.name),
-      ElementKind.COMPILATION_UNIT,
-    );
-    expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
-    expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
-    expect(ElementKind(ElementKind.EXTENSION.name), ElementKind.EXTENSION);
-    expect(
-      ElementKind(ElementKind.EXTENSION_TYPE.name),
-      ElementKind.EXTENSION_TYPE,
-    );
-    expect(ElementKind(ElementKind.FIELD.name), ElementKind.FIELD);
-    expect(ElementKind(ElementKind.FUNCTION.name), ElementKind.FUNCTION);
-    expect(
-      ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
-      ElementKind.FUNCTION_TYPE_ALIAS,
-    );
-    expect(ElementKind(ElementKind.GETTER.name), ElementKind.GETTER);
-    expect(ElementKind(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
-    expect(
-      ElementKind(ElementKind.LOCAL_VARIABLE.name),
-      ElementKind.LOCAL_VARIABLE,
-    );
-    expect(ElementKind(ElementKind.METHOD.name), ElementKind.METHOD);
-    expect(ElementKind(ElementKind.PARAMETER.name), ElementKind.PARAMETER);
-    expect(ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
-    expect(
-      ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
-      ElementKind.TOP_LEVEL_VARIABLE,
-    );
-    expect(ElementKind(ElementKind.TYPE_ALIAS.name), ElementKind.TYPE_ALIAS);
-    expect(
-      ElementKind(ElementKind.TYPE_PARAMETER.name),
-      ElementKind.TYPE_PARAMETER,
-    );
-    expect(
-      ElementKind(ElementKind.UNIT_TEST_TEST.name),
-      ElementKind.UNIT_TEST_TEST,
-    );
-    expect(
-      ElementKind(ElementKind.UNIT_TEST_GROUP.name),
-      ElementKind.UNIT_TEST_GROUP,
-    );
-    expect(ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
-    expect(() {
-      ElementKind('no-such-kind');
-    }, throwsException);
-  }
-
   void test_toString() {
     expect(ElementKind.CLASS.toString(), 'ElementKind.CLASS');
     expect(

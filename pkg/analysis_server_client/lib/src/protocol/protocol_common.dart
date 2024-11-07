@@ -8,7 +8,6 @@
 
 import 'dart:convert' hide JsonDecoder;
 
-import 'package:analysis_server_client/src/protocol/protocol_base.dart';
 import 'package:analysis_server_client/src/protocol/protocol_internal.dart';
 
 // ignore_for_file: flutter_style_todos
@@ -310,38 +309,12 @@ class AnalysisError implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class AnalysisErrorSeverity implements Enum {
-  static const AnalysisErrorSeverity INFO = AnalysisErrorSeverity._('INFO');
+enum AnalysisErrorSeverity {
+  INFO,
 
-  static const AnalysisErrorSeverity WARNING = AnalysisErrorSeverity._(
-    'WARNING',
-  );
+  WARNING,
 
-  static const AnalysisErrorSeverity ERROR = AnalysisErrorSeverity._('ERROR');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<AnalysisErrorSeverity> VALUES = <AnalysisErrorSeverity>[
-    INFO,
-    WARNING,
-    ERROR,
-  ];
-
-  @override
-  final String name;
-
-  const AnalysisErrorSeverity._(this.name);
-
-  factory AnalysisErrorSeverity(String name) {
-    switch (name) {
-      case 'INFO':
-        return INFO;
-      case 'WARNING':
-        return WARNING;
-      case 'ERROR':
-        return ERROR;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  ERROR;
 
   factory AnalysisErrorSeverity.fromJson(
     JsonDecoder jsonDecoder,
@@ -350,7 +323,7 @@ class AnalysisErrorSeverity implements Enum {
   ) {
     if (json is String) {
       try {
-        return AnalysisErrorSeverity(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -378,70 +351,22 @@ class AnalysisErrorSeverity implements Enum {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class AnalysisErrorType implements Enum {
-  static const AnalysisErrorType CHECKED_MODE_COMPILE_TIME_ERROR =
-      AnalysisErrorType._('CHECKED_MODE_COMPILE_TIME_ERROR');
+enum AnalysisErrorType {
+  CHECKED_MODE_COMPILE_TIME_ERROR,
 
-  static const AnalysisErrorType COMPILE_TIME_ERROR = AnalysisErrorType._(
-    'COMPILE_TIME_ERROR',
-  );
+  COMPILE_TIME_ERROR,
 
-  static const AnalysisErrorType HINT = AnalysisErrorType._('HINT');
+  HINT,
 
-  static const AnalysisErrorType LINT = AnalysisErrorType._('LINT');
+  LINT,
 
-  static const AnalysisErrorType STATIC_TYPE_WARNING = AnalysisErrorType._(
-    'STATIC_TYPE_WARNING',
-  );
+  STATIC_TYPE_WARNING,
 
-  static const AnalysisErrorType STATIC_WARNING = AnalysisErrorType._(
-    'STATIC_WARNING',
-  );
+  STATIC_WARNING,
 
-  static const AnalysisErrorType SYNTACTIC_ERROR = AnalysisErrorType._(
-    'SYNTACTIC_ERROR',
-  );
+  SYNTACTIC_ERROR,
 
-  static const AnalysisErrorType TODO = AnalysisErrorType._('TODO');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<AnalysisErrorType> VALUES = <AnalysisErrorType>[
-    CHECKED_MODE_COMPILE_TIME_ERROR,
-    COMPILE_TIME_ERROR,
-    HINT,
-    LINT,
-    STATIC_TYPE_WARNING,
-    STATIC_WARNING,
-    SYNTACTIC_ERROR,
-    TODO,
-  ];
-
-  @override
-  final String name;
-
-  const AnalysisErrorType._(this.name);
-
-  factory AnalysisErrorType(String name) {
-    switch (name) {
-      case 'CHECKED_MODE_COMPILE_TIME_ERROR':
-        return CHECKED_MODE_COMPILE_TIME_ERROR;
-      case 'COMPILE_TIME_ERROR':
-        return COMPILE_TIME_ERROR;
-      case 'HINT':
-        return HINT;
-      case 'LINT':
-        return LINT;
-      case 'STATIC_TYPE_WARNING':
-        return STATIC_TYPE_WARNING;
-      case 'STATIC_WARNING':
-        return STATIC_WARNING;
-      case 'SYNTACTIC_ERROR':
-        return SYNTACTIC_ERROR;
-      case 'TODO':
-        return TODO;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  TODO;
 
   factory AnalysisErrorType.fromJson(
     JsonDecoder jsonDecoder,
@@ -450,7 +375,7 @@ class AnalysisErrorType implements Enum {
   ) {
     if (json is String) {
       try {
-        return AnalysisErrorType(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -1130,107 +1055,45 @@ class CompletionSuggestion implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class CompletionSuggestionKind implements Enum {
+enum CompletionSuggestionKind {
   /// A list of arguments for the method or function that is being invoked. For
   /// this suggestion kind, the completion field is a textual representation of
   /// the invocation and the parameterNames, parameterTypes, and
   /// requiredParameterCount attributes are defined.
-  static const CompletionSuggestionKind ARGUMENT_LIST =
-      CompletionSuggestionKind._('ARGUMENT_LIST');
+  ARGUMENT_LIST,
 
-  static const CompletionSuggestionKind IMPORT = CompletionSuggestionKind._(
-    'IMPORT',
-  );
+  IMPORT,
 
   /// The element identifier should be inserted at the completion location. For
   /// example "someMethod" in import 'myLib.dart' show someMethod;. For
   /// suggestions of this kind, the element attribute is defined and the
   /// completion field is the element's identifier.
-  static const CompletionSuggestionKind IDENTIFIER = CompletionSuggestionKind._(
-    'IDENTIFIER',
-  );
+  IDENTIFIER,
 
   /// The element is being invoked at the completion location. For example,
   /// 'someMethod' in x.someMethod();. For suggestions of this kind, the
   /// element attribute is defined and the completion field is the element's
   /// identifier.
-  static const CompletionSuggestionKind INVOCATION = CompletionSuggestionKind._(
-    'INVOCATION',
-  );
+  INVOCATION,
 
   /// A keyword is being suggested. For suggestions of this kind, the
   /// completion is the keyword.
-  static const CompletionSuggestionKind KEYWORD = CompletionSuggestionKind._(
-    'KEYWORD',
-  );
+  KEYWORD,
 
   /// A named argument for the current call site is being suggested. For
   /// suggestions of this kind, the completion is the named argument identifier
   /// including a trailing ':' and a space.
-  static const CompletionSuggestionKind NAMED_ARGUMENT =
-      CompletionSuggestionKind._('NAMED_ARGUMENT');
+  NAMED_ARGUMENT,
 
-  static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
-      CompletionSuggestionKind._('OPTIONAL_ARGUMENT');
+  OPTIONAL_ARGUMENT,
 
   /// An overriding implementation of a class member is being suggested.
-  static const CompletionSuggestionKind OVERRIDE = CompletionSuggestionKind._(
-    'OVERRIDE',
-  );
+  OVERRIDE,
 
-  static const CompletionSuggestionKind PARAMETER = CompletionSuggestionKind._(
-    'PARAMETER',
-  );
+  PARAMETER,
 
   /// The name of a pub package is being suggested.
-  static const CompletionSuggestionKind PACKAGE_NAME =
-      CompletionSuggestionKind._('PACKAGE_NAME');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<CompletionSuggestionKind> VALUES =
-      <CompletionSuggestionKind>[
-        ARGUMENT_LIST,
-        IMPORT,
-        IDENTIFIER,
-        INVOCATION,
-        KEYWORD,
-        NAMED_ARGUMENT,
-        OPTIONAL_ARGUMENT,
-        OVERRIDE,
-        PARAMETER,
-        PACKAGE_NAME,
-      ];
-
-  @override
-  final String name;
-
-  const CompletionSuggestionKind._(this.name);
-
-  factory CompletionSuggestionKind(String name) {
-    switch (name) {
-      case 'ARGUMENT_LIST':
-        return ARGUMENT_LIST;
-      case 'IMPORT':
-        return IMPORT;
-      case 'IDENTIFIER':
-        return IDENTIFIER;
-      case 'INVOCATION':
-        return INVOCATION;
-      case 'KEYWORD':
-        return KEYWORD;
-      case 'NAMED_ARGUMENT':
-        return NAMED_ARGUMENT;
-      case 'OPTIONAL_ARGUMENT':
-        return OPTIONAL_ARGUMENT;
-      case 'OVERRIDE':
-        return OVERRIDE;
-      case 'PARAMETER':
-        return PARAMETER;
-      case 'PACKAGE_NAME':
-        return PACKAGE_NAME;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  PACKAGE_NAME;
 
   factory CompletionSuggestionKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -1239,7 +1102,7 @@ class CompletionSuggestionKind implements Enum {
   ) {
     if (json is String) {
       try {
-        return CompletionSuggestionKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -1599,174 +1462,64 @@ class Element implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ElementKind implements Enum {
-  static const ElementKind CLASS = ElementKind._('CLASS');
+enum ElementKind {
+  CLASS,
 
-  static const ElementKind CLASS_TYPE_ALIAS = ElementKind._('CLASS_TYPE_ALIAS');
+  CLASS_TYPE_ALIAS,
 
-  static const ElementKind COMPILATION_UNIT = ElementKind._('COMPILATION_UNIT');
+  COMPILATION_UNIT,
 
-  static const ElementKind CONSTRUCTOR = ElementKind._('CONSTRUCTOR');
+  CONSTRUCTOR,
 
-  static const ElementKind CONSTRUCTOR_INVOCATION = ElementKind._(
-    'CONSTRUCTOR_INVOCATION',
-  );
+  CONSTRUCTOR_INVOCATION,
 
-  static const ElementKind ENUM = ElementKind._('ENUM');
+  ENUM,
 
-  static const ElementKind ENUM_CONSTANT = ElementKind._('ENUM_CONSTANT');
+  ENUM_CONSTANT,
 
-  static const ElementKind EXTENSION = ElementKind._('EXTENSION');
+  EXTENSION,
 
-  static const ElementKind EXTENSION_TYPE = ElementKind._('EXTENSION_TYPE');
+  EXTENSION_TYPE,
 
-  static const ElementKind FIELD = ElementKind._('FIELD');
+  FIELD,
 
-  static const ElementKind FILE = ElementKind._('FILE');
+  FILE,
 
-  static const ElementKind FUNCTION = ElementKind._('FUNCTION');
+  FUNCTION,
 
-  static const ElementKind FUNCTION_INVOCATION = ElementKind._(
-    'FUNCTION_INVOCATION',
-  );
+  FUNCTION_INVOCATION,
 
-  static const ElementKind FUNCTION_TYPE_ALIAS = ElementKind._(
-    'FUNCTION_TYPE_ALIAS',
-  );
+  FUNCTION_TYPE_ALIAS,
 
-  static const ElementKind GETTER = ElementKind._('GETTER');
+  GETTER,
 
-  static const ElementKind LABEL = ElementKind._('LABEL');
+  LABEL,
 
-  static const ElementKind LIBRARY = ElementKind._('LIBRARY');
+  LIBRARY,
 
-  static const ElementKind LOCAL_VARIABLE = ElementKind._('LOCAL_VARIABLE');
+  LOCAL_VARIABLE,
 
-  static const ElementKind METHOD = ElementKind._('METHOD');
+  METHOD,
 
-  static const ElementKind MIXIN = ElementKind._('MIXIN');
+  MIXIN,
 
-  static const ElementKind PARAMETER = ElementKind._('PARAMETER');
+  PARAMETER,
 
-  static const ElementKind PREFIX = ElementKind._('PREFIX');
+  PREFIX,
 
-  static const ElementKind SETTER = ElementKind._('SETTER');
+  SETTER,
 
-  static const ElementKind TOP_LEVEL_VARIABLE = ElementKind._(
-    'TOP_LEVEL_VARIABLE',
-  );
+  TOP_LEVEL_VARIABLE,
 
-  static const ElementKind TYPE_ALIAS = ElementKind._('TYPE_ALIAS');
+  TYPE_ALIAS,
 
-  static const ElementKind TYPE_PARAMETER = ElementKind._('TYPE_PARAMETER');
+  TYPE_PARAMETER,
 
-  static const ElementKind UNIT_TEST_GROUP = ElementKind._('UNIT_TEST_GROUP');
+  UNIT_TEST_GROUP,
 
-  static const ElementKind UNIT_TEST_TEST = ElementKind._('UNIT_TEST_TEST');
+  UNIT_TEST_TEST,
 
-  static const ElementKind UNKNOWN = ElementKind._('UNKNOWN');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<ElementKind> VALUES = <ElementKind>[
-    CLASS,
-    CLASS_TYPE_ALIAS,
-    COMPILATION_UNIT,
-    CONSTRUCTOR,
-    CONSTRUCTOR_INVOCATION,
-    ENUM,
-    ENUM_CONSTANT,
-    EXTENSION,
-    EXTENSION_TYPE,
-    FIELD,
-    FILE,
-    FUNCTION,
-    FUNCTION_INVOCATION,
-    FUNCTION_TYPE_ALIAS,
-    GETTER,
-    LABEL,
-    LIBRARY,
-    LOCAL_VARIABLE,
-    METHOD,
-    MIXIN,
-    PARAMETER,
-    PREFIX,
-    SETTER,
-    TOP_LEVEL_VARIABLE,
-    TYPE_ALIAS,
-    TYPE_PARAMETER,
-    UNIT_TEST_GROUP,
-    UNIT_TEST_TEST,
-    UNKNOWN,
-  ];
-
-  @override
-  final String name;
-
-  const ElementKind._(this.name);
-
-  factory ElementKind(String name) {
-    switch (name) {
-      case 'CLASS':
-        return CLASS;
-      case 'CLASS_TYPE_ALIAS':
-        return CLASS_TYPE_ALIAS;
-      case 'COMPILATION_UNIT':
-        return COMPILATION_UNIT;
-      case 'CONSTRUCTOR':
-        return CONSTRUCTOR;
-      case 'CONSTRUCTOR_INVOCATION':
-        return CONSTRUCTOR_INVOCATION;
-      case 'ENUM':
-        return ENUM;
-      case 'ENUM_CONSTANT':
-        return ENUM_CONSTANT;
-      case 'EXTENSION':
-        return EXTENSION;
-      case 'EXTENSION_TYPE':
-        return EXTENSION_TYPE;
-      case 'FIELD':
-        return FIELD;
-      case 'FILE':
-        return FILE;
-      case 'FUNCTION':
-        return FUNCTION;
-      case 'FUNCTION_INVOCATION':
-        return FUNCTION_INVOCATION;
-      case 'FUNCTION_TYPE_ALIAS':
-        return FUNCTION_TYPE_ALIAS;
-      case 'GETTER':
-        return GETTER;
-      case 'LABEL':
-        return LABEL;
-      case 'LIBRARY':
-        return LIBRARY;
-      case 'LOCAL_VARIABLE':
-        return LOCAL_VARIABLE;
-      case 'METHOD':
-        return METHOD;
-      case 'MIXIN':
-        return MIXIN;
-      case 'PARAMETER':
-        return PARAMETER;
-      case 'PREFIX':
-        return PREFIX;
-      case 'SETTER':
-        return SETTER;
-      case 'TOP_LEVEL_VARIABLE':
-        return TOP_LEVEL_VARIABLE;
-      case 'TYPE_ALIAS':
-        return TYPE_ALIAS;
-      case 'TYPE_PARAMETER':
-        return TYPE_PARAMETER;
-      case 'UNIT_TEST_GROUP':
-        return UNIT_TEST_GROUP;
-      case 'UNIT_TEST_TEST':
-        return UNIT_TEST_TEST;
-      case 'UNKNOWN':
-        return UNKNOWN;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  UNKNOWN;
 
   factory ElementKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -1775,7 +1528,7 @@ class ElementKind implements Enum {
   ) {
     if (json is String) {
       try {
-        return ElementKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -1806,78 +1559,28 @@ class ElementKind implements Enum {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class FoldingKind implements Enum {
-  static const FoldingKind ANNOTATIONS = FoldingKind._('ANNOTATIONS');
+enum FoldingKind {
+  ANNOTATIONS,
 
-  static const FoldingKind BLOCK = FoldingKind._('BLOCK');
+  BLOCK,
 
-  static const FoldingKind CLASS_BODY = FoldingKind._('CLASS_BODY');
+  CLASS_BODY,
 
-  static const FoldingKind COMMENT = FoldingKind._('COMMENT');
+  COMMENT,
 
-  static const FoldingKind DIRECTIVES = FoldingKind._('DIRECTIVES');
+  DIRECTIVES,
 
-  static const FoldingKind DOCUMENTATION_COMMENT = FoldingKind._(
-    'DOCUMENTATION_COMMENT',
-  );
+  DOCUMENTATION_COMMENT,
 
-  static const FoldingKind FILE_HEADER = FoldingKind._('FILE_HEADER');
+  FILE_HEADER,
 
-  static const FoldingKind FUNCTION_BODY = FoldingKind._('FUNCTION_BODY');
+  FUNCTION_BODY,
 
-  static const FoldingKind INVOCATION = FoldingKind._('INVOCATION');
+  INVOCATION,
 
-  static const FoldingKind LITERAL = FoldingKind._('LITERAL');
+  LITERAL,
 
-  static const FoldingKind PARAMETERS = FoldingKind._('PARAMETERS');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<FoldingKind> VALUES = <FoldingKind>[
-    ANNOTATIONS,
-    BLOCK,
-    CLASS_BODY,
-    COMMENT,
-    DIRECTIVES,
-    DOCUMENTATION_COMMENT,
-    FILE_HEADER,
-    FUNCTION_BODY,
-    INVOCATION,
-    LITERAL,
-    PARAMETERS,
-  ];
-
-  @override
-  final String name;
-
-  const FoldingKind._(this.name);
-
-  factory FoldingKind(String name) {
-    switch (name) {
-      case 'ANNOTATIONS':
-        return ANNOTATIONS;
-      case 'BLOCK':
-        return BLOCK;
-      case 'CLASS_BODY':
-        return CLASS_BODY;
-      case 'COMMENT':
-        return COMMENT;
-      case 'DIRECTIVES':
-        return DIRECTIVES;
-      case 'DOCUMENTATION_COMMENT':
-        return DOCUMENTATION_COMMENT;
-      case 'FILE_HEADER':
-        return FILE_HEADER;
-      case 'FUNCTION_BODY':
-        return FUNCTION_BODY;
-      case 'INVOCATION':
-        return INVOCATION;
-      case 'LITERAL':
-        return LITERAL;
-      case 'PARAMETERS':
-        return PARAMETERS;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  PARAMETERS;
 
   factory FoldingKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -1886,7 +1589,7 @@ class FoldingKind implements Enum {
   ) {
     if (json is String) {
       try {
-        return FoldingKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -2153,559 +1856,186 @@ class HighlightRegion implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class HighlightRegionType implements Enum {
-  static const HighlightRegionType ANNOTATION = HighlightRegionType._(
-    'ANNOTATION',
-  );
+enum HighlightRegionType {
+  ANNOTATION,
 
-  static const HighlightRegionType BUILT_IN = HighlightRegionType._('BUILT_IN');
+  BUILT_IN,
 
-  static const HighlightRegionType CLASS = HighlightRegionType._('CLASS');
+  CLASS,
 
-  static const HighlightRegionType COMMENT_BLOCK = HighlightRegionType._(
-    'COMMENT_BLOCK',
-  );
+  COMMENT_BLOCK,
 
-  static const HighlightRegionType COMMENT_DOCUMENTATION =
-      HighlightRegionType._('COMMENT_DOCUMENTATION');
+  COMMENT_DOCUMENTATION,
 
-  static const HighlightRegionType COMMENT_END_OF_LINE = HighlightRegionType._(
-    'COMMENT_END_OF_LINE',
-  );
+  COMMENT_END_OF_LINE,
 
-  static const HighlightRegionType CONSTRUCTOR = HighlightRegionType._(
-    'CONSTRUCTOR',
-  );
+  CONSTRUCTOR,
 
-  static const HighlightRegionType CONSTRUCTOR_TEAR_OFF = HighlightRegionType._(
-    'CONSTRUCTOR_TEAR_OFF',
-  );
+  CONSTRUCTOR_TEAR_OFF,
 
-  static const HighlightRegionType DIRECTIVE = HighlightRegionType._(
-    'DIRECTIVE',
-  );
+  DIRECTIVE,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType DYNAMIC_TYPE = HighlightRegionType._(
-    'DYNAMIC_TYPE',
-  );
+  DYNAMIC_TYPE,
 
-  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION =
-      HighlightRegionType._('DYNAMIC_LOCAL_VARIABLE_DECLARATION');
+  DYNAMIC_LOCAL_VARIABLE_DECLARATION,
 
-  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE =
-      HighlightRegionType._('DYNAMIC_LOCAL_VARIABLE_REFERENCE');
+  DYNAMIC_LOCAL_VARIABLE_REFERENCE,
 
-  static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION =
-      HighlightRegionType._('DYNAMIC_PARAMETER_DECLARATION');
+  DYNAMIC_PARAMETER_DECLARATION,
 
-  static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE =
-      HighlightRegionType._('DYNAMIC_PARAMETER_REFERENCE');
+  DYNAMIC_PARAMETER_REFERENCE,
 
-  static const HighlightRegionType ENUM = HighlightRegionType._('ENUM');
+  ENUM,
 
-  static const HighlightRegionType ENUM_CONSTANT = HighlightRegionType._(
-    'ENUM_CONSTANT',
-  );
+  ENUM_CONSTANT,
 
-  static const HighlightRegionType EXTENSION = HighlightRegionType._(
-    'EXTENSION',
-  );
+  EXTENSION,
 
-  static const HighlightRegionType EXTENSION_TYPE = HighlightRegionType._(
-    'EXTENSION_TYPE',
-  );
+  EXTENSION_TYPE,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType FIELD = HighlightRegionType._('FIELD');
+  FIELD,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType FIELD_STATIC = HighlightRegionType._(
-    'FIELD_STATIC',
-  );
+  FIELD_STATIC,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType FUNCTION = HighlightRegionType._('FUNCTION');
+  FUNCTION,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType FUNCTION_DECLARATION = HighlightRegionType._(
-    'FUNCTION_DECLARATION',
-  );
+  FUNCTION_DECLARATION,
 
-  static const HighlightRegionType FUNCTION_TYPE_ALIAS = HighlightRegionType._(
-    'FUNCTION_TYPE_ALIAS',
-  );
+  FUNCTION_TYPE_ALIAS,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType GETTER_DECLARATION = HighlightRegionType._(
-    'GETTER_DECLARATION',
-  );
+  GETTER_DECLARATION,
 
-  static const HighlightRegionType IDENTIFIER_DEFAULT = HighlightRegionType._(
-    'IDENTIFIER_DEFAULT',
-  );
+  IDENTIFIER_DEFAULT,
 
-  static const HighlightRegionType IMPORT_PREFIX = HighlightRegionType._(
-    'IMPORT_PREFIX',
-  );
+  IMPORT_PREFIX,
 
-  static const HighlightRegionType INSTANCE_FIELD_DECLARATION =
-      HighlightRegionType._('INSTANCE_FIELD_DECLARATION');
+  INSTANCE_FIELD_DECLARATION,
 
-  static const HighlightRegionType INSTANCE_FIELD_REFERENCE =
-      HighlightRegionType._('INSTANCE_FIELD_REFERENCE');
+  INSTANCE_FIELD_REFERENCE,
 
-  static const HighlightRegionType INSTANCE_GETTER_DECLARATION =
-      HighlightRegionType._('INSTANCE_GETTER_DECLARATION');
+  INSTANCE_GETTER_DECLARATION,
 
-  static const HighlightRegionType INSTANCE_GETTER_REFERENCE =
-      HighlightRegionType._('INSTANCE_GETTER_REFERENCE');
+  INSTANCE_GETTER_REFERENCE,
 
-  static const HighlightRegionType INSTANCE_METHOD_DECLARATION =
-      HighlightRegionType._('INSTANCE_METHOD_DECLARATION');
+  INSTANCE_METHOD_DECLARATION,
 
-  static const HighlightRegionType INSTANCE_METHOD_REFERENCE =
-      HighlightRegionType._('INSTANCE_METHOD_REFERENCE');
+  INSTANCE_METHOD_REFERENCE,
 
-  static const HighlightRegionType INSTANCE_METHOD_TEAR_OFF =
-      HighlightRegionType._('INSTANCE_METHOD_TEAR_OFF');
+  INSTANCE_METHOD_TEAR_OFF,
 
-  static const HighlightRegionType INSTANCE_SETTER_DECLARATION =
-      HighlightRegionType._('INSTANCE_SETTER_DECLARATION');
+  INSTANCE_SETTER_DECLARATION,
 
-  static const HighlightRegionType INSTANCE_SETTER_REFERENCE =
-      HighlightRegionType._('INSTANCE_SETTER_REFERENCE');
+  INSTANCE_SETTER_REFERENCE,
 
-  static const HighlightRegionType INVALID_STRING_ESCAPE =
-      HighlightRegionType._('INVALID_STRING_ESCAPE');
+  INVALID_STRING_ESCAPE,
 
-  static const HighlightRegionType KEYWORD = HighlightRegionType._('KEYWORD');
+  KEYWORD,
 
-  static const HighlightRegionType LABEL = HighlightRegionType._('LABEL');
+  LABEL,
 
-  static const HighlightRegionType LIBRARY_NAME = HighlightRegionType._(
-    'LIBRARY_NAME',
-  );
+  LIBRARY_NAME,
 
-  static const HighlightRegionType LITERAL_BOOLEAN = HighlightRegionType._(
-    'LITERAL_BOOLEAN',
-  );
+  LITERAL_BOOLEAN,
 
-  static const HighlightRegionType LITERAL_DOUBLE = HighlightRegionType._(
-    'LITERAL_DOUBLE',
-  );
+  LITERAL_DOUBLE,
 
-  static const HighlightRegionType LITERAL_INTEGER = HighlightRegionType._(
-    'LITERAL_INTEGER',
-  );
+  LITERAL_INTEGER,
 
-  static const HighlightRegionType LITERAL_LIST = HighlightRegionType._(
-    'LITERAL_LIST',
-  );
+  LITERAL_LIST,
 
-  static const HighlightRegionType LITERAL_MAP = HighlightRegionType._(
-    'LITERAL_MAP',
-  );
+  LITERAL_MAP,
 
-  static const HighlightRegionType LITERAL_RECORD = HighlightRegionType._(
-    'LITERAL_RECORD',
-  );
+  LITERAL_RECORD,
 
-  static const HighlightRegionType LITERAL_STRING = HighlightRegionType._(
-    'LITERAL_STRING',
-  );
+  LITERAL_STRING,
 
-  static const HighlightRegionType LOCAL_FUNCTION_DECLARATION =
-      HighlightRegionType._('LOCAL_FUNCTION_DECLARATION');
+  LOCAL_FUNCTION_DECLARATION,
 
-  static const HighlightRegionType LOCAL_FUNCTION_REFERENCE =
-      HighlightRegionType._('LOCAL_FUNCTION_REFERENCE');
+  LOCAL_FUNCTION_REFERENCE,
 
-  static const HighlightRegionType LOCAL_FUNCTION_TEAR_OFF =
-      HighlightRegionType._('LOCAL_FUNCTION_TEAR_OFF');
+  LOCAL_FUNCTION_TEAR_OFF,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType LOCAL_VARIABLE = HighlightRegionType._(
-    'LOCAL_VARIABLE',
-  );
+  LOCAL_VARIABLE,
 
-  static const HighlightRegionType LOCAL_VARIABLE_DECLARATION =
-      HighlightRegionType._('LOCAL_VARIABLE_DECLARATION');
+  LOCAL_VARIABLE_DECLARATION,
 
-  static const HighlightRegionType LOCAL_VARIABLE_REFERENCE =
-      HighlightRegionType._('LOCAL_VARIABLE_REFERENCE');
+  LOCAL_VARIABLE_REFERENCE,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType METHOD = HighlightRegionType._('METHOD');
+  METHOD,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType METHOD_DECLARATION = HighlightRegionType._(
-    'METHOD_DECLARATION',
-  );
+  METHOD_DECLARATION,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType METHOD_DECLARATION_STATIC =
-      HighlightRegionType._('METHOD_DECLARATION_STATIC');
+  METHOD_DECLARATION_STATIC,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType METHOD_STATIC = HighlightRegionType._(
-    'METHOD_STATIC',
-  );
+  METHOD_STATIC,
 
-  static const HighlightRegionType MIXIN = HighlightRegionType._('MIXIN');
+  MIXIN,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType PARAMETER = HighlightRegionType._(
-    'PARAMETER',
-  );
+  PARAMETER,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType SETTER_DECLARATION = HighlightRegionType._(
-    'SETTER_DECLARATION',
-  );
+  SETTER_DECLARATION,
 
   /// Deprecated - no longer sent.
-  static const HighlightRegionType TOP_LEVEL_VARIABLE = HighlightRegionType._(
-    'TOP_LEVEL_VARIABLE',
-  );
+  TOP_LEVEL_VARIABLE,
 
-  static const HighlightRegionType PARAMETER_DECLARATION =
-      HighlightRegionType._('PARAMETER_DECLARATION');
+  PARAMETER_DECLARATION,
 
-  static const HighlightRegionType PARAMETER_REFERENCE = HighlightRegionType._(
-    'PARAMETER_REFERENCE',
-  );
+  PARAMETER_REFERENCE,
 
-  static const HighlightRegionType STATIC_FIELD_DECLARATION =
-      HighlightRegionType._('STATIC_FIELD_DECLARATION');
+  STATIC_FIELD_DECLARATION,
 
-  static const HighlightRegionType STATIC_GETTER_DECLARATION =
-      HighlightRegionType._('STATIC_GETTER_DECLARATION');
+  STATIC_GETTER_DECLARATION,
 
-  static const HighlightRegionType STATIC_GETTER_REFERENCE =
-      HighlightRegionType._('STATIC_GETTER_REFERENCE');
+  STATIC_GETTER_REFERENCE,
 
-  static const HighlightRegionType STATIC_METHOD_DECLARATION =
-      HighlightRegionType._('STATIC_METHOD_DECLARATION');
+  STATIC_METHOD_DECLARATION,
 
-  static const HighlightRegionType STATIC_METHOD_REFERENCE =
-      HighlightRegionType._('STATIC_METHOD_REFERENCE');
+  STATIC_METHOD_REFERENCE,
 
-  static const HighlightRegionType STATIC_METHOD_TEAR_OFF =
-      HighlightRegionType._('STATIC_METHOD_TEAR_OFF');
+  STATIC_METHOD_TEAR_OFF,
 
-  static const HighlightRegionType STATIC_SETTER_DECLARATION =
-      HighlightRegionType._('STATIC_SETTER_DECLARATION');
+  STATIC_SETTER_DECLARATION,
 
-  static const HighlightRegionType STATIC_SETTER_REFERENCE =
-      HighlightRegionType._('STATIC_SETTER_REFERENCE');
+  STATIC_SETTER_REFERENCE,
 
-  static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION =
-      HighlightRegionType._('TOP_LEVEL_FUNCTION_DECLARATION');
+  TOP_LEVEL_FUNCTION_DECLARATION,
 
-  static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE =
-      HighlightRegionType._('TOP_LEVEL_FUNCTION_REFERENCE');
+  TOP_LEVEL_FUNCTION_REFERENCE,
 
-  static const HighlightRegionType TOP_LEVEL_FUNCTION_TEAR_OFF =
-      HighlightRegionType._('TOP_LEVEL_FUNCTION_TEAR_OFF');
+  TOP_LEVEL_FUNCTION_TEAR_OFF,
 
-  static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION =
-      HighlightRegionType._('TOP_LEVEL_GETTER_DECLARATION');
+  TOP_LEVEL_GETTER_DECLARATION,
 
-  static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE =
-      HighlightRegionType._('TOP_LEVEL_GETTER_REFERENCE');
+  TOP_LEVEL_GETTER_REFERENCE,
 
-  static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION =
-      HighlightRegionType._('TOP_LEVEL_SETTER_DECLARATION');
+  TOP_LEVEL_SETTER_DECLARATION,
 
-  static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE =
-      HighlightRegionType._('TOP_LEVEL_SETTER_REFERENCE');
+  TOP_LEVEL_SETTER_REFERENCE,
 
-  static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION =
-      HighlightRegionType._('TOP_LEVEL_VARIABLE_DECLARATION');
+  TOP_LEVEL_VARIABLE_DECLARATION,
 
-  static const HighlightRegionType TYPE_ALIAS = HighlightRegionType._(
-    'TYPE_ALIAS',
-  );
+  TYPE_ALIAS,
 
-  static const HighlightRegionType TYPE_NAME_DYNAMIC = HighlightRegionType._(
-    'TYPE_NAME_DYNAMIC',
-  );
+  TYPE_NAME_DYNAMIC,
 
-  static const HighlightRegionType TYPE_PARAMETER = HighlightRegionType._(
-    'TYPE_PARAMETER',
-  );
+  TYPE_PARAMETER,
 
-  static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE =
-      HighlightRegionType._('UNRESOLVED_INSTANCE_MEMBER_REFERENCE');
+  UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
 
-  static const HighlightRegionType VALID_STRING_ESCAPE = HighlightRegionType._(
-    'VALID_STRING_ESCAPE',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<HighlightRegionType> VALUES = <HighlightRegionType>[
-    ANNOTATION,
-    BUILT_IN,
-    CLASS,
-    COMMENT_BLOCK,
-    COMMENT_DOCUMENTATION,
-    COMMENT_END_OF_LINE,
-    CONSTRUCTOR,
-    CONSTRUCTOR_TEAR_OFF,
-    DIRECTIVE,
-    DYNAMIC_TYPE,
-    DYNAMIC_LOCAL_VARIABLE_DECLARATION,
-    DYNAMIC_LOCAL_VARIABLE_REFERENCE,
-    DYNAMIC_PARAMETER_DECLARATION,
-    DYNAMIC_PARAMETER_REFERENCE,
-    ENUM,
-    ENUM_CONSTANT,
-    EXTENSION,
-    EXTENSION_TYPE,
-    FIELD,
-    FIELD_STATIC,
-    FUNCTION,
-    FUNCTION_DECLARATION,
-    FUNCTION_TYPE_ALIAS,
-    GETTER_DECLARATION,
-    IDENTIFIER_DEFAULT,
-    IMPORT_PREFIX,
-    INSTANCE_FIELD_DECLARATION,
-    INSTANCE_FIELD_REFERENCE,
-    INSTANCE_GETTER_DECLARATION,
-    INSTANCE_GETTER_REFERENCE,
-    INSTANCE_METHOD_DECLARATION,
-    INSTANCE_METHOD_REFERENCE,
-    INSTANCE_METHOD_TEAR_OFF,
-    INSTANCE_SETTER_DECLARATION,
-    INSTANCE_SETTER_REFERENCE,
-    INVALID_STRING_ESCAPE,
-    KEYWORD,
-    LABEL,
-    LIBRARY_NAME,
-    LITERAL_BOOLEAN,
-    LITERAL_DOUBLE,
-    LITERAL_INTEGER,
-    LITERAL_LIST,
-    LITERAL_MAP,
-    LITERAL_RECORD,
-    LITERAL_STRING,
-    LOCAL_FUNCTION_DECLARATION,
-    LOCAL_FUNCTION_REFERENCE,
-    LOCAL_FUNCTION_TEAR_OFF,
-    LOCAL_VARIABLE,
-    LOCAL_VARIABLE_DECLARATION,
-    LOCAL_VARIABLE_REFERENCE,
-    METHOD,
-    METHOD_DECLARATION,
-    METHOD_DECLARATION_STATIC,
-    METHOD_STATIC,
-    MIXIN,
-    PARAMETER,
-    SETTER_DECLARATION,
-    TOP_LEVEL_VARIABLE,
-    PARAMETER_DECLARATION,
-    PARAMETER_REFERENCE,
-    STATIC_FIELD_DECLARATION,
-    STATIC_GETTER_DECLARATION,
-    STATIC_GETTER_REFERENCE,
-    STATIC_METHOD_DECLARATION,
-    STATIC_METHOD_REFERENCE,
-    STATIC_METHOD_TEAR_OFF,
-    STATIC_SETTER_DECLARATION,
-    STATIC_SETTER_REFERENCE,
-    TOP_LEVEL_FUNCTION_DECLARATION,
-    TOP_LEVEL_FUNCTION_REFERENCE,
-    TOP_LEVEL_FUNCTION_TEAR_OFF,
-    TOP_LEVEL_GETTER_DECLARATION,
-    TOP_LEVEL_GETTER_REFERENCE,
-    TOP_LEVEL_SETTER_DECLARATION,
-    TOP_LEVEL_SETTER_REFERENCE,
-    TOP_LEVEL_VARIABLE_DECLARATION,
-    TYPE_ALIAS,
-    TYPE_NAME_DYNAMIC,
-    TYPE_PARAMETER,
-    UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
-    VALID_STRING_ESCAPE,
-  ];
-
-  @override
-  final String name;
-
-  const HighlightRegionType._(this.name);
-
-  factory HighlightRegionType(String name) {
-    switch (name) {
-      case 'ANNOTATION':
-        return ANNOTATION;
-      case 'BUILT_IN':
-        return BUILT_IN;
-      case 'CLASS':
-        return CLASS;
-      case 'COMMENT_BLOCK':
-        return COMMENT_BLOCK;
-      case 'COMMENT_DOCUMENTATION':
-        return COMMENT_DOCUMENTATION;
-      case 'COMMENT_END_OF_LINE':
-        return COMMENT_END_OF_LINE;
-      case 'CONSTRUCTOR':
-        return CONSTRUCTOR;
-      case 'CONSTRUCTOR_TEAR_OFF':
-        return CONSTRUCTOR_TEAR_OFF;
-      case 'DIRECTIVE':
-        return DIRECTIVE;
-      case 'DYNAMIC_TYPE':
-        return DYNAMIC_TYPE;
-      case 'DYNAMIC_LOCAL_VARIABLE_DECLARATION':
-        return DYNAMIC_LOCAL_VARIABLE_DECLARATION;
-      case 'DYNAMIC_LOCAL_VARIABLE_REFERENCE':
-        return DYNAMIC_LOCAL_VARIABLE_REFERENCE;
-      case 'DYNAMIC_PARAMETER_DECLARATION':
-        return DYNAMIC_PARAMETER_DECLARATION;
-      case 'DYNAMIC_PARAMETER_REFERENCE':
-        return DYNAMIC_PARAMETER_REFERENCE;
-      case 'ENUM':
-        return ENUM;
-      case 'ENUM_CONSTANT':
-        return ENUM_CONSTANT;
-      case 'EXTENSION':
-        return EXTENSION;
-      case 'EXTENSION_TYPE':
-        return EXTENSION_TYPE;
-      case 'FIELD':
-        return FIELD;
-      case 'FIELD_STATIC':
-        return FIELD_STATIC;
-      case 'FUNCTION':
-        return FUNCTION;
-      case 'FUNCTION_DECLARATION':
-        return FUNCTION_DECLARATION;
-      case 'FUNCTION_TYPE_ALIAS':
-        return FUNCTION_TYPE_ALIAS;
-      case 'GETTER_DECLARATION':
-        return GETTER_DECLARATION;
-      case 'IDENTIFIER_DEFAULT':
-        return IDENTIFIER_DEFAULT;
-      case 'IMPORT_PREFIX':
-        return IMPORT_PREFIX;
-      case 'INSTANCE_FIELD_DECLARATION':
-        return INSTANCE_FIELD_DECLARATION;
-      case 'INSTANCE_FIELD_REFERENCE':
-        return INSTANCE_FIELD_REFERENCE;
-      case 'INSTANCE_GETTER_DECLARATION':
-        return INSTANCE_GETTER_DECLARATION;
-      case 'INSTANCE_GETTER_REFERENCE':
-        return INSTANCE_GETTER_REFERENCE;
-      case 'INSTANCE_METHOD_DECLARATION':
-        return INSTANCE_METHOD_DECLARATION;
-      case 'INSTANCE_METHOD_REFERENCE':
-        return INSTANCE_METHOD_REFERENCE;
-      case 'INSTANCE_METHOD_TEAR_OFF':
-        return INSTANCE_METHOD_TEAR_OFF;
-      case 'INSTANCE_SETTER_DECLARATION':
-        return INSTANCE_SETTER_DECLARATION;
-      case 'INSTANCE_SETTER_REFERENCE':
-        return INSTANCE_SETTER_REFERENCE;
-      case 'INVALID_STRING_ESCAPE':
-        return INVALID_STRING_ESCAPE;
-      case 'KEYWORD':
-        return KEYWORD;
-      case 'LABEL':
-        return LABEL;
-      case 'LIBRARY_NAME':
-        return LIBRARY_NAME;
-      case 'LITERAL_BOOLEAN':
-        return LITERAL_BOOLEAN;
-      case 'LITERAL_DOUBLE':
-        return LITERAL_DOUBLE;
-      case 'LITERAL_INTEGER':
-        return LITERAL_INTEGER;
-      case 'LITERAL_LIST':
-        return LITERAL_LIST;
-      case 'LITERAL_MAP':
-        return LITERAL_MAP;
-      case 'LITERAL_RECORD':
-        return LITERAL_RECORD;
-      case 'LITERAL_STRING':
-        return LITERAL_STRING;
-      case 'LOCAL_FUNCTION_DECLARATION':
-        return LOCAL_FUNCTION_DECLARATION;
-      case 'LOCAL_FUNCTION_REFERENCE':
-        return LOCAL_FUNCTION_REFERENCE;
-      case 'LOCAL_FUNCTION_TEAR_OFF':
-        return LOCAL_FUNCTION_TEAR_OFF;
-      case 'LOCAL_VARIABLE':
-        return LOCAL_VARIABLE;
-      case 'LOCAL_VARIABLE_DECLARATION':
-        return LOCAL_VARIABLE_DECLARATION;
-      case 'LOCAL_VARIABLE_REFERENCE':
-        return LOCAL_VARIABLE_REFERENCE;
-      case 'METHOD':
-        return METHOD;
-      case 'METHOD_DECLARATION':
-        return METHOD_DECLARATION;
-      case 'METHOD_DECLARATION_STATIC':
-        return METHOD_DECLARATION_STATIC;
-      case 'METHOD_STATIC':
-        return METHOD_STATIC;
-      case 'MIXIN':
-        return MIXIN;
-      case 'PARAMETER':
-        return PARAMETER;
-      case 'SETTER_DECLARATION':
-        return SETTER_DECLARATION;
-      case 'TOP_LEVEL_VARIABLE':
-        return TOP_LEVEL_VARIABLE;
-      case 'PARAMETER_DECLARATION':
-        return PARAMETER_DECLARATION;
-      case 'PARAMETER_REFERENCE':
-        return PARAMETER_REFERENCE;
-      case 'STATIC_FIELD_DECLARATION':
-        return STATIC_FIELD_DECLARATION;
-      case 'STATIC_GETTER_DECLARATION':
-        return STATIC_GETTER_DECLARATION;
-      case 'STATIC_GETTER_REFERENCE':
-        return STATIC_GETTER_REFERENCE;
-      case 'STATIC_METHOD_DECLARATION':
-        return STATIC_METHOD_DECLARATION;
-      case 'STATIC_METHOD_REFERENCE':
-        return STATIC_METHOD_REFERENCE;
-      case 'STATIC_METHOD_TEAR_OFF':
-        return STATIC_METHOD_TEAR_OFF;
-      case 'STATIC_SETTER_DECLARATION':
-        return STATIC_SETTER_DECLARATION;
-      case 'STATIC_SETTER_REFERENCE':
-        return STATIC_SETTER_REFERENCE;
-      case 'TOP_LEVEL_FUNCTION_DECLARATION':
-        return TOP_LEVEL_FUNCTION_DECLARATION;
-      case 'TOP_LEVEL_FUNCTION_REFERENCE':
-        return TOP_LEVEL_FUNCTION_REFERENCE;
-      case 'TOP_LEVEL_FUNCTION_TEAR_OFF':
-        return TOP_LEVEL_FUNCTION_TEAR_OFF;
-      case 'TOP_LEVEL_GETTER_DECLARATION':
-        return TOP_LEVEL_GETTER_DECLARATION;
-      case 'TOP_LEVEL_GETTER_REFERENCE':
-        return TOP_LEVEL_GETTER_REFERENCE;
-      case 'TOP_LEVEL_SETTER_DECLARATION':
-        return TOP_LEVEL_SETTER_DECLARATION;
-      case 'TOP_LEVEL_SETTER_REFERENCE':
-        return TOP_LEVEL_SETTER_REFERENCE;
-      case 'TOP_LEVEL_VARIABLE_DECLARATION':
-        return TOP_LEVEL_VARIABLE_DECLARATION;
-      case 'TYPE_ALIAS':
-        return TYPE_ALIAS;
-      case 'TYPE_NAME_DYNAMIC':
-        return TYPE_NAME_DYNAMIC;
-      case 'TYPE_PARAMETER':
-        return TYPE_PARAMETER;
-      case 'UNRESOLVED_INSTANCE_MEMBER_REFERENCE':
-        return UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
-      case 'VALID_STRING_ESCAPE':
-        return VALID_STRING_ESCAPE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  VALID_STRING_ESCAPE;
 
   factory HighlightRegionType.fromJson(
     JsonDecoder jsonDecoder,
@@ -2714,7 +2044,7 @@ class HighlightRegionType implements Enum {
   ) {
     if (json is String) {
       try {
-        return HighlightRegionType(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -2927,45 +2257,14 @@ class LinkedEditSuggestion implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class LinkedEditSuggestionKind implements Enum {
-  static const LinkedEditSuggestionKind METHOD = LinkedEditSuggestionKind._(
-    'METHOD',
-  );
+enum LinkedEditSuggestionKind {
+  METHOD,
 
-  static const LinkedEditSuggestionKind PARAMETER = LinkedEditSuggestionKind._(
-    'PARAMETER',
-  );
+  PARAMETER,
 
-  static const LinkedEditSuggestionKind TYPE = LinkedEditSuggestionKind._(
-    'TYPE',
-  );
+  TYPE,
 
-  static const LinkedEditSuggestionKind VARIABLE = LinkedEditSuggestionKind._(
-    'VARIABLE',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<LinkedEditSuggestionKind> VALUES =
-      <LinkedEditSuggestionKind>[METHOD, PARAMETER, TYPE, VARIABLE];
-
-  @override
-  final String name;
-
-  const LinkedEditSuggestionKind._(this.name);
-
-  factory LinkedEditSuggestionKind(String name) {
-    switch (name) {
-      case 'METHOD':
-        return METHOD;
-      case 'PARAMETER':
-        return PARAMETER;
-      case 'TYPE':
-        return TYPE;
-      case 'VARIABLE':
-        return VARIABLE;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  VARIABLE;
 
   factory LinkedEditSuggestionKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -2974,7 +2273,7 @@ class LinkedEditSuggestionKind implements Enum {
   ) {
     if (json is String) {
       try {
-        return LinkedEditSuggestionKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -3778,49 +3077,18 @@ class ParameterInfo implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ParameterKind implements Enum {
+enum ParameterKind {
   /// An optional named parameter.
-  static const ParameterKind OPTIONAL_NAMED = ParameterKind._('OPTIONAL_NAMED');
+  OPTIONAL_NAMED,
 
   /// An optional positional parameter.
-  static const ParameterKind OPTIONAL_POSITIONAL = ParameterKind._(
-    'OPTIONAL_POSITIONAL',
-  );
+  OPTIONAL_POSITIONAL,
 
   /// A required named parameter.
-  static const ParameterKind REQUIRED_NAMED = ParameterKind._('REQUIRED_NAMED');
+  REQUIRED_NAMED,
 
   /// A required positional parameter.
-  static const ParameterKind REQUIRED_POSITIONAL = ParameterKind._(
-    'REQUIRED_POSITIONAL',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<ParameterKind> VALUES = <ParameterKind>[
-    OPTIONAL_NAMED,
-    OPTIONAL_POSITIONAL,
-    REQUIRED_NAMED,
-    REQUIRED_POSITIONAL,
-  ];
-
-  @override
-  final String name;
-
-  const ParameterKind._(this.name);
-
-  factory ParameterKind(String name) {
-    switch (name) {
-      case 'OPTIONAL_NAMED':
-        return OPTIONAL_NAMED;
-      case 'OPTIONAL_POSITIONAL':
-        return OPTIONAL_POSITIONAL;
-      case 'REQUIRED_NAMED':
-        return REQUIRED_NAMED;
-      case 'REQUIRED_POSITIONAL':
-        return REQUIRED_POSITIONAL;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  REQUIRED_POSITIONAL;
 
   factory ParameterKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -3829,7 +3097,7 @@ class ParameterKind implements Enum {
   ) {
     if (json is String) {
       try {
-        return ParameterKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -3923,80 +3191,24 @@ class Position implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class RefactoringKind implements Enum {
-  static const RefactoringKind CONVERT_GETTER_TO_METHOD = RefactoringKind._(
-    'CONVERT_GETTER_TO_METHOD',
-  );
+enum RefactoringKind {
+  CONVERT_GETTER_TO_METHOD,
 
-  static const RefactoringKind CONVERT_METHOD_TO_GETTER = RefactoringKind._(
-    'CONVERT_METHOD_TO_GETTER',
-  );
+  CONVERT_METHOD_TO_GETTER,
 
-  static const RefactoringKind EXTRACT_LOCAL_VARIABLE = RefactoringKind._(
-    'EXTRACT_LOCAL_VARIABLE',
-  );
+  EXTRACT_LOCAL_VARIABLE,
 
-  static const RefactoringKind EXTRACT_METHOD = RefactoringKind._(
-    'EXTRACT_METHOD',
-  );
+  EXTRACT_METHOD,
 
-  static const RefactoringKind EXTRACT_WIDGET = RefactoringKind._(
-    'EXTRACT_WIDGET',
-  );
+  EXTRACT_WIDGET,
 
-  static const RefactoringKind INLINE_LOCAL_VARIABLE = RefactoringKind._(
-    'INLINE_LOCAL_VARIABLE',
-  );
+  INLINE_LOCAL_VARIABLE,
 
-  static const RefactoringKind INLINE_METHOD = RefactoringKind._(
-    'INLINE_METHOD',
-  );
+  INLINE_METHOD,
 
-  static const RefactoringKind MOVE_FILE = RefactoringKind._('MOVE_FILE');
+  MOVE_FILE,
 
-  static const RefactoringKind RENAME = RefactoringKind._('RENAME');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<RefactoringKind> VALUES = <RefactoringKind>[
-    CONVERT_GETTER_TO_METHOD,
-    CONVERT_METHOD_TO_GETTER,
-    EXTRACT_LOCAL_VARIABLE,
-    EXTRACT_METHOD,
-    EXTRACT_WIDGET,
-    INLINE_LOCAL_VARIABLE,
-    INLINE_METHOD,
-    MOVE_FILE,
-    RENAME,
-  ];
-
-  @override
-  final String name;
-
-  const RefactoringKind._(this.name);
-
-  factory RefactoringKind(String name) {
-    switch (name) {
-      case 'CONVERT_GETTER_TO_METHOD':
-        return CONVERT_GETTER_TO_METHOD;
-      case 'CONVERT_METHOD_TO_GETTER':
-        return CONVERT_METHOD_TO_GETTER;
-      case 'EXTRACT_LOCAL_VARIABLE':
-        return EXTRACT_LOCAL_VARIABLE;
-      case 'EXTRACT_METHOD':
-        return EXTRACT_METHOD;
-      case 'EXTRACT_WIDGET':
-        return EXTRACT_WIDGET;
-      case 'INLINE_LOCAL_VARIABLE':
-        return INLINE_LOCAL_VARIABLE;
-      case 'INLINE_METHOD':
-        return INLINE_METHOD;
-      case 'MOVE_FILE':
-        return MOVE_FILE;
-      case 'RENAME':
-        return RENAME;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  RENAME;
 
   factory RefactoringKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -4005,7 +3217,7 @@ class RefactoringKind implements Enum {
   ) {
     if (json is String) {
       try {
-        return RefactoringKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -4155,36 +3367,12 @@ class RefactoringMethodParameter implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class RefactoringMethodParameterKind implements Enum {
-  static const RefactoringMethodParameterKind REQUIRED =
-      RefactoringMethodParameterKind._('REQUIRED');
+enum RefactoringMethodParameterKind {
+  REQUIRED,
 
-  static const RefactoringMethodParameterKind POSITIONAL =
-      RefactoringMethodParameterKind._('POSITIONAL');
+  POSITIONAL,
 
-  static const RefactoringMethodParameterKind NAMED =
-      RefactoringMethodParameterKind._('NAMED');
-
-  /// A list containing all of the enum values that are defined.
-  static const List<RefactoringMethodParameterKind> VALUES =
-      <RefactoringMethodParameterKind>[REQUIRED, POSITIONAL, NAMED];
-
-  @override
-  final String name;
-
-  const RefactoringMethodParameterKind._(this.name);
-
-  factory RefactoringMethodParameterKind(String name) {
-    switch (name) {
-      case 'REQUIRED':
-        return REQUIRED;
-      case 'POSITIONAL':
-        return POSITIONAL;
-      case 'NAMED':
-        return NAMED;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  NAMED;
 
   factory RefactoringMethodParameterKind.fromJson(
     JsonDecoder jsonDecoder,
@@ -4193,7 +3381,7 @@ class RefactoringMethodParameterKind implements Enum {
   ) {
     if (json is String) {
       try {
-        return RefactoringMethodParameterKind(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }
@@ -4313,18 +3501,15 @@ class RefactoringProblem implements HasToJson {
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
-class RefactoringProblemSeverity implements Enum {
+enum RefactoringProblemSeverity {
   /// A minor code problem. No example, because it is not used yet.
-  static const RefactoringProblemSeverity INFO = RefactoringProblemSeverity._(
-    'INFO',
-  );
+  INFO,
 
   /// A minor code problem. For example names of local variables should be
   /// camel case and start with a lower case letter. Staring the name of a
   /// variable with an upper case is OK from the language point of view, but it
   /// is nice to warn the user.
-  static const RefactoringProblemSeverity WARNING =
-      RefactoringProblemSeverity._('WARNING');
+  WARNING,
 
   /// The refactoring technically can be performed, but there is a logical
   /// problem. For example the name of a local variable being extracted
@@ -4335,39 +3520,12 @@ class RefactoringProblemSeverity implements Enum {
   /// the user decide whether they want to perform the refactoring. For example
   /// the name conflict might be expected, and the user wants to fix it
   /// afterwards.
-  static const RefactoringProblemSeverity ERROR = RefactoringProblemSeverity._(
-    'ERROR',
-  );
+  ERROR,
 
   /// A fatal error, which prevents performing the refactoring. For example the
   /// name of a local variable being extracted is not a valid identifier, or
   /// selection is not a valid expression.
-  static const RefactoringProblemSeverity FATAL = RefactoringProblemSeverity._(
-    'FATAL',
-  );
-
-  /// A list containing all of the enum values that are defined.
-  static const List<RefactoringProblemSeverity> VALUES =
-      <RefactoringProblemSeverity>[INFO, WARNING, ERROR, FATAL];
-
-  @override
-  final String name;
-
-  const RefactoringProblemSeverity._(this.name);
-
-  factory RefactoringProblemSeverity(String name) {
-    switch (name) {
-      case 'INFO':
-        return INFO;
-      case 'WARNING':
-        return WARNING;
-      case 'ERROR':
-        return ERROR;
-      case 'FATAL':
-        return FATAL;
-    }
-    throw Exception('Illegal enum value: $name');
-  }
+  FATAL;
 
   factory RefactoringProblemSeverity.fromJson(
     JsonDecoder jsonDecoder,
@@ -4376,7 +3534,7 @@ class RefactoringProblemSeverity implements Enum {
   ) {
     if (json is String) {
       try {
-        return RefactoringProblemSeverity(json);
+        return values.byName(json);
       } catch (_) {
         // Fall through
       }

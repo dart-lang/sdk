@@ -159,7 +159,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         emitObjectClass(dartTypeName, type, impliedType);
       } else if (type is TypeEnum) {
         writeln();
-        emitEnumClass(dartTypeName, type, impliedType);
+        emitEnum(dartTypeName, type, impliedType);
       }
     }
   }
@@ -225,7 +225,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       'factory $className.$constructorName(${args.join(', ')}$namedParameters) {',
     );
     indent(() {
-      var fieldNameString = literalString(
+      var fieldNameString = _literalString(
         fieldName.replaceFirst(RegExp('^_'), ''),
       );
       if (className == 'EditGetRefactoringParams') {
@@ -305,7 +305,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /// Emit a class to encapsulate an enum.
-  void emitEnumClass(String className, TypeEnum type, ImpliedType impliedType) {
+  void emitEnum(String className, TypeEnum type, ImpliedType impliedType) {
     var namedParameters =
         clientUriConverterKind != CodegenUriConverterKind.none
             ? '{ ${clientUriConverterKind.namedParameterString} }'
@@ -325,7 +325,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         });
       }),
     );
-    writeln('class $className implements Enum {');
+    writeln('enum $className {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();
@@ -336,37 +336,14 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             toHtmlVisitor.translateHtml(value.html);
           }),
         );
-        var valueString = literalString(value.value);
-        writeln(
-          'static const $className ${value.value} = $className._($valueString);',
-        );
+        if (value != type.values.last) {
+          writeln('${value.value},');
+        } else {
+          writeln('${value.value};');
+        }
         writeln();
       }
 
-      writeln('/// A list containing all of the enum values that are defined.');
-      write('static const List<');
-      write(className);
-      write('> VALUES = <');
-      write(className);
-      write('>[');
-      var first = true;
-      for (var value in type.values) {
-        if (first) {
-          first = false;
-        } else {
-          write(', ');
-        }
-        write(value.value);
-      }
-      writeln('];');
-      writeln();
-
-      writeln('@override');
-      writeln('final String name;');
-      writeln();
-      writeln('const $className._(this.name);');
-      writeln();
-      emitEnumClassConstructor(className, type);
       writeln();
       emitEnumFromJsonConstructor(className, type, impliedType);
       writeln();
@@ -383,26 +360,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln("String toString() => '$className.\$name';");
       writeln();
       writeln('String toJson($namedParameters) => name;');
-    });
-    writeln('}');
-  }
-
-  /// Emit the constructor for an enum class.
-  void emitEnumClassConstructor(String className, TypeEnum type) {
-    writeln('factory $className(String name) {');
-    indent(() {
-      writeln('switch (name) {');
-      indent(() {
-        for (var value in type.values) {
-          var valueString = literalString(value.value);
-          writeln('case $valueString:');
-          indent(() {
-            writeln('return ${value.value};');
-          });
-        }
-      });
-      writeln('}');
-      writeln(r"throw Exception('Illegal enum value: $name');");
     });
     writeln('}');
   }
@@ -425,7 +382,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       indent(() {
         writeln('try {');
         indent(() {
-          writeln('return $className(json);');
+          writeln('return values.byName(json);');
         });
         writeln('} catch(_) {');
         indent(() {
@@ -434,7 +391,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln('}');
       });
       writeln('}');
-      var humanReadableNameString = literalString(
+      var humanReadableNameString = _literalString(
         impliedType.humanReadableName,
       );
       writeln(
@@ -649,7 +606,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             ? ', ${clientUriConverterKind.namedArgumentString}'
             : '';
 
-    var humanReadableNameString = literalString(impliedType.humanReadableName);
+    var humanReadableNameString = _literalString(impliedType.humanReadableName);
     if (className == 'RefactoringFeedback') {
       writeln(
         'static RefactoringFeedback? fromJson(JsonDecoder jsonDecoder, '
@@ -691,12 +648,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         var args = <String>[];
         var optionalArgs = <String>[];
         for (var field in type.fields) {
-          var fieldNameString = literalString(field.name);
+          var fieldNameString = _literalString(field.name);
           var fieldAccessor = 'json[$fieldNameString]';
-          var jsonPath = literalString('\$jsonPath.${field.name}');
+          var jsonPath = _literalString('\$jsonPath.${field.name}');
           var fieldValue = field.value;
           if (fieldValue is String) {
-            var valueString = literalString(fieldValue);
+            var valueString = _literalString(fieldValue);
             writeln('if ($fieldAccessor != $valueString) {');
             indent(() {
               writeln(
@@ -971,10 +928,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
               : 'result';
       writeln('var $resultMapName = <String, Object>{};');
       for (var field in type.fields) {
-        var fieldNameString = literalString(field.name);
+        var fieldNameString = _literalString(field.name);
         var fieldValue = field.value;
         if (fieldValue is String) {
-          var valueString = literalString(fieldValue);
+          var valueString = _literalString(fieldValue);
           writeln('$resultMapName[$fieldNameString] = $valueString;');
           continue;
         }
@@ -1012,7 +969,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     if (impliedType.kind == 'notificationParams') {
       writeln('Notification toNotification($namedParameters) {');
       indent(() {
-        var eventString = literalString(
+        var eventString = _literalString(
           (impliedType.apiNode as Notification).longEvent,
         );
         var jsonPart =
@@ -1041,7 +998,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln('@override');
       writeln('Request toRequest(String id$namedParameters) {');
       indent(() {
-        var methodString = literalString(
+        var methodString = _literalString(
           (impliedType.apiNode as Request).longMethod,
         );
         if (impliedType.type != null) {
@@ -1210,15 +1167,17 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             );
           }
           var closure = fromJsonCode(choice).asClosure;
-          decoders.add('${literalString(field.value as String)}: $closure');
+          decoders.add('${_literalString(field.value as String)}: $closure');
         } else {
           throw Exception('Union types must be unions of objects.');
         }
       }
-      return FromJsonSnippet(
-        (String jsonPath, String json) =>
-            'jsonDecoder.decodeUnion($jsonPath, $json, ${literalString(type.field)}, {${decoders.join(', ')}})',
-      );
+      return FromJsonSnippet((String jsonPath, String json) {
+        var field = _literalString(type.field);
+        var decodersString = decoders.join(', ');
+        return 'jsonDecoder.decodeUnion('
+            '$jsonPath, $json, $field, {$decodersString})';
+      });
     } else {
       throw Exception("Can't convert $type from JSON");
     }
@@ -1248,17 +1207,6 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       return true;
     }
     return false;
-  }
-
-  /// Create a string literal that evaluates to [s].
-  String literalString(String s) {
-    if (s.contains("'")) {
-      if (s.contains('"')) {
-        return json.encode(s);
-      }
-      return '"$s"';
-    }
-    return "'$s'";
   }
 
   /// Compute the code necessary to convert [type] to JSON.
@@ -1342,6 +1290,17 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln();
     emitImports();
     emitClasses(getClassesToEmit());
+  }
+
+  /// Create a string literal that evaluates to [s].
+  String _literalString(String s) {
+    if (s.contains("'")) {
+      if (s.contains('"')) {
+        return json.encode(s);
+      }
+      return '"$s"';
+    }
+    return "'$s'";
   }
 }
 
