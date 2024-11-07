@@ -20,17 +20,16 @@ bool _isOldModelElement(Element2? element) {
     return false;
   }
 
-  // Skip synthetic formal parameters.
-  if (element is FormalParameterElement && element.enclosingElement2 == null) {
-    return false;
-  }
-
   var firstFragment = element.firstFragment;
   if (firstFragment == null) {
     return false;
   }
 
   var libraryFragment = firstFragment.libraryFragment;
+  if (libraryFragment == null) {
+    return false;
+  }
+
   var uriStr = libraryFragment.source.uri.toString();
 
   if (element is InstanceElement2) {

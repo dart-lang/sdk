@@ -334,7 +334,7 @@ class LintRuleUnitContext {
 
   /// The library fragment representing the compilation unit.
   @experimental
-  LibraryFragment get libraryFragment => unit as LibraryFragment;
+  LibraryFragment get libraryFragment => unit.declaredFragment!;
 }
 
 /// An error listener that only records whether any constant related errors have

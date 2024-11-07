@@ -8547,8 +8547,8 @@ class ParameterElementImpl extends VariableElementImpl
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
-  LibraryFragment get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElementImpl>() as LibraryFragment;
+  LibraryFragment? get libraryFragment =>
+      thisOrAncestorOfType<CompilationUnitElementImpl>();
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
@@ -9386,7 +9386,7 @@ abstract class PropertyInducingElementImpl
 
   @override
   LibraryFragment get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElement>() as LibraryFragment;
+      thisOrAncestorOfType<CompilationUnitElementImpl>()!;
 
   @override
   PropertyInducingFragment? get nextFragment =>
@@ -10301,8 +10301,8 @@ class TypeParameterElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
-  LibraryFragment get libraryFragment =>
-      thisOrAncestorOfType<CompilationUnitElementImpl>() as LibraryFragment;
+  LibraryFragment? get libraryFragment =>
+      thisOrAncestorOfType<CompilationUnitElementImpl>();
 
   @override
   String get name {

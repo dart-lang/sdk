@@ -62,7 +62,7 @@ class AnalysisSessionHelper {
   /// that is not a part of a library.
   Future<ElementDeclarationResult?> getElementDeclaration2(
       Fragment fragment) async {
-    var libraryPath = fragment.libraryFragment.source.fullName;
+    var libraryPath = fragment.libraryFragment!.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
     return resolvedLibrary?.getElementDeclaration2(fragment);
   }

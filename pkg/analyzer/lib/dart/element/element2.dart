@@ -647,6 +647,9 @@ abstract class ExecutableFragment implements FunctionTypedFragment {
   bool get isSynchronous;
 
   @override
+  LibraryFragment get libraryFragment;
+
+  @override
   ExecutableFragment? get nextFragment;
 
   @override
@@ -929,7 +932,7 @@ abstract class Fragment {
   /// The library fragment that contains this fragment.
   ///
   /// This will be the fragment itself if it is a library fragment.
-  LibraryFragment get libraryFragment;
+  LibraryFragment? get libraryFragment;
 
   /// The name of the fragment.
   ///
@@ -1156,6 +1159,9 @@ abstract class InstanceFragment
   ///
   /// If `true`, the declaration has the explicit `augment` modifier.
   bool get isAugmentation;
+
+  @override
+  LibraryFragment get libraryFragment;
 
   /// The methods declared in this fragment.
   List<MethodFragment> get methods2;
@@ -2125,6 +2131,9 @@ abstract class PropertyInducingFragment
   /// constructor for a class that does not explicitly define any constructors.
   // TODO(brianwilkerson): Should synthetic elements have a fragment?
   bool get isSynthetic;
+
+  @override
+  LibraryFragment get libraryFragment;
 
   @override
   PropertyInducingFragment? get nextFragment;

@@ -456,7 +456,7 @@ Location _locationForArgs(
 
 /// Creates a new [Location].
 Location _locationForArgs2(engine.Fragment fragment, engine.SourceRange range) {
-  var lineInfo = fragment.libraryFragment.lineInfo;
+  var lineInfo = fragment.libraryFragment!.lineInfo;
 
   var startLocation = lineInfo.getLocation(range.offset);
   var endLocation = lineInfo.getLocation(range.end);
@@ -467,7 +467,7 @@ Location _locationForArgs2(engine.Fragment fragment, engine.SourceRange range) {
   var endColumn = endLocation.columnNumber;
 
   return Location(
-    fragment.libraryFragment.source.fullName,
+    fragment.libraryFragment!.source.fullName,
     range.offset,
     range.length,
     startLine,

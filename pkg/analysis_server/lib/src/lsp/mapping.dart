@@ -506,7 +506,7 @@ lsp.Location? fragmentToLocation(
     return null;
   }
 
-  var libraryFragment = fragment.libraryFragment;
+  var libraryFragment = fragment.libraryFragment!;
   var sourcePath = libraryFragment.source.fullName;
 
   var nameOffset = fragment.nameOffset2;
