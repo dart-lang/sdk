@@ -4980,6 +4980,54 @@ LintCode:
     addedIn: "3.5"
     categories: [errorProne, web]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `is` test has either:
+      - a JS interop type on the right-hand side, whether directly or as a type
+        argument to another type, or
+      - a JS interop value on the left-hand side.
+
+      #### Examples
+
+      The following code produces this diagnostic because the JS interop type
+      `JSBoolean` is on the right-hand side of an `is` test:
+
+      ```dart
+      import 'dart:js_interop';
+
+      bool f(Object b) => [!b is JSBoolean!];
+      ```
+
+      The following code produces this diagnostic because the JS interop type
+      `JSString` is used as a type argument on the right-hand side of an `is`
+      test:
+
+      ```dart
+      import 'dart:js_interop';
+
+      bool f(List<Object> l) => [!l is List<JSString>!];
+      ```
+
+      The following code produces this diagnostic because the JS interop value
+      `a` is on the left-hand side of an `is` test:
+
+      ```dart
+      import 'dart:js_interop';
+
+      bool f(JSAny a) => [!a is String!];
+      ```
+
+      #### Common fixes
+
+      Use a JS interop helper, such as `isA`, to check the underlying type of
+      JS interop values:
+
+      ```dart
+      import 'dart:js_interop';
+
+      void f(Object b) => b.jsify()?.isA<JSBoolean>();
+      ```
     deprecatedDetails: |-
       **DON'T** use `is` checks where the type is a JS interop type.
 
@@ -5368,6 +5416,39 @@ LintCode:
     addedIn: "2.19"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an annotation that applies to
+      a whole library isn't associated with a `library` directive.
+
+      #### Example
+
+      The following code produces this diagnostic because the `TestOn`
+      annotation, which applies to the whole library, is associated with an
+      `import` directive rather than a `library` directive:
+
+      ```dart
+      [!@TestOn('browser')!]
+
+      import 'package:test/test.dart';
+
+      void main() {}
+      ```
+
+      #### Common fixes
+
+      Associate the annotation with a `library` directive, adding one if
+      necessary:
+
+      ```dart
+      @TestOn('browser')
+      library;
+
+      import 'package:test/test.dart';
+
+      void main() {}
+      ```
     deprecatedDetails: |-
       Attach library annotations to library directives, rather than
       some other library-level element.
@@ -11181,6 +11262,55 @@ LintCode:
     addedIn: "3.5"
     categories: [errorProne]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation comment
+      contains angle bracketed text (`<...>`) that isn't one of the allowed
+      exceptions.
+
+      Such text is interpreted by markdown to be an HTML tag, which is rarely
+      what was intended.
+
+      See the [lint rule description](https://dart.dev/tools/linter-rules/unintended_html_in_doc_comment)
+      for the list of allowed exceptions.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      comment contains the text `<int>`, which isn't one of the allowed
+      exceptions:
+
+      ```dart
+      /// Converts a List[!<int>!] to a comma-separated String.
+      String f(List<int> l) => '';
+      ```
+
+      #### Common fixes
+
+      If the text was intended to be part of a code span, then add backticks
+      around the code:
+
+      ```dart
+      /// Converts a `List<int>` to a comma-separated String.
+      String f(List<int> l) => '';
+      ```
+
+      If the text was intended to be part of a link, then add square brackets
+      around the code:
+
+      ```dart
+      /// Converts a [List<int>] to a comma-separated String.
+      String f(List<int> l) => '';
+      ```
+
+      If the text was intended to be printed as-is, including the angle
+      brackets, then add backslash escapes before the angle brackets:
+
+      ```dart
+      /// Converts a List\<int\> to a comma-separated String.
+      String f(List<int> l) => '';
+      ```
     deprecatedDetails: |-
       **DON'T** use angle-bracketed text, `<…>`, in a doc comment unless you want to
       write an HTML tag or link.
@@ -11777,6 +11907,35 @@ LintCode:
     addedIn: "3.4"
     categories: [brevity, languageFeatureUsage, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `library` directive specifies
+      a name.
+
+      #### Example
+
+      The following code produces this diagnostic because the `library`
+      directive includes a name:
+
+      ```dart
+      library [!some.name!];
+
+      class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the name from the `library` directive:
+
+      ```dart
+      library;
+
+      class C {}
+      ```
+
+      If the library has any parts, then any `part of` declarations that use
+      the library name should be updated to use the URI of the library instead.
     deprecatedDetails: |-
       **DON'T** have a library name in a `library` declaration.
 
@@ -13904,6 +14063,31 @@ LintCode:
     addedIn: "3.6"
     categories: [languageFeatureUsage]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the result of dividing two
+      numbers is converted to an integer using `toInt`.
+
+      Dart has a built-in integer division operator that is both more efficient
+      and more concise.
+
+      #### Example
+
+      The following code produces this diagnostic because the result of dividing
+      `x` and `y` is converted to an integer using `toInt`:
+
+      ```dart
+      int divide(int x, int y) => [!(x / y).toInt()!];
+      ```
+
+      #### Common fixes
+
+      Use the integer division operator (`~/`):
+
+      ```dart
+      int divide(int x, int y) => x ~/ y;
+      ```
     deprecatedDetails: |-
       **DO** use truncating division, '~/', instead of regular division ('/') followed
       by 'toInt()'.
