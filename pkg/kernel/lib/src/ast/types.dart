@@ -2248,8 +2248,12 @@ class RecordType extends DartType
             "Named field types aren't sorted lexicographically "
             "in a RecordType: ${named}");
 
-  @override
   List<SharedNamedTypeStructure<DartType>> get namedTypes => named;
+
+  @override
+  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypes {
+    return namedTypes;
+  }
 
   @override
   Nullability get nullability => declaredNullability;

@@ -299,8 +299,10 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
   @override
   final List<Type> positionalTypes;
 
-  @override
   final List<NamedType> namedTypes;
+
+  @override
+  List<NamedType> get sortedNamedTypes => namedTypes;
 
   RecordType({
     required this.positionalTypes,

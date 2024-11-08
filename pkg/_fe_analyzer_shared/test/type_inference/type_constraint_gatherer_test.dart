@@ -232,6 +232,155 @@ main() {
     });
   });
 
+  group('performSubtypeConstraintGenerationForRecordTypes:', () {
+    test('Matching empty records', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+              Type('()'), Type('()'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .equals(true);
+      check(tcg._constraints).isEmpty();
+    });
+
+    group('Matching records:', () {
+      test('Without named parameters', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(int, String)'), Type('(T, U)'),
+                leftSchema: true, astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+      });
+
+      test('With named parameters', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(int, {String foo})'), Type('(T, {U foo})'),
+                leftSchema: true, astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+      });
+    });
+
+    group('Non-matching records without named parameters:', () {
+      test('Non-matching due to positional types', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(int,)'), Type('(String,)'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to parameter numbers', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('()'), Type('(int,)'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to more parameters on LHS', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('(int,)'), Type('()'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+    });
+
+    group('Matching records with named parameters:', () {
+      test('No type parameter occurrences', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({int x, String y})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals([]);
+      });
+
+      test('Type parameters in RHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({int x, String y})'), Type('({T x, U y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+      });
+
+      test('Type parameters in LHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({T x, U y})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      });
+    });
+
+    group('Matching records with named parameters:', () {
+      test('No type parameter occurrences', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({int x, String y})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals([]);
+      });
+
+      test('Type parameters in RHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({int x, String y})'), Type('({T x, U y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+      });
+
+      test('Type parameters in LHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({T x, U y})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      });
+    });
+
+    group('Non-matching records with named parameters:', () {
+      test('Non-matching due to positional parameter numbers', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(num, num, {T x, U y})'),
+                Type('(num, {int x, String y})'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to named parameter numbers', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({T x, U y, num z})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to named parameter names', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(num, {T x, U y})'), Type('(num, {int x, String x2})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+    });
+  });
+
   group('performSubtypeConstraintGenerationForFutureOr:', () {
     test('FutureOr matches FutureOr with constraints based on arguments', () {
       // `FutureOr<T> <# FutureOr<int>` reduces to `T <# int`
@@ -624,6 +773,11 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
         leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
     if (result != null) {
       return result;
+    }
+
+    if (performSubtypeConstraintGenerationForRecordTypes(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
     }
 
     // Assume for the moment that nothing else matches.

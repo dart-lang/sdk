@@ -1199,8 +1199,10 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
   @override
   String? get name => null;
 
-  @override
   List<SharedNamedTypeStructure<DartType>> get namedTypes => namedFields;
+
+  @override
+  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypes => namedTypes;
 
   @override
   bool operator ==(Object other) {

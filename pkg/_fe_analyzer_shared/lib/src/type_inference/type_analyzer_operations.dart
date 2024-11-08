@@ -1065,6 +1065,58 @@ abstract class TypeConstraintGenerator<
     return false;
   }
 
+  /// Matches [p] against [q], where [p] and [q] are both record types.
+  ///
+  /// If [p] is a subtype of [q] under some constraints, the constraints making
+  /// the relation possible are recorded, and `true` is returned. Otherwise,
+  /// the constraint state is unchanged (or rolled back), and `false` is
+  /// returned.
+  bool performSubtypeConstraintGenerationForRecordTypes(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    if (p is! SharedRecordTypeStructure<TypeStructure> ||
+        q is! SharedRecordTypeStructure<TypeStructure>) {
+      return false;
+    }
+
+    // A record type `(M0,..., Mk, {M{k+1} d{k+1}, ..., Mm dm])` is a subtype
+    // match for a record type `(N0,..., Nk, {N{k+1} d{k+1}, ..., Nm dm])`
+    // with respect to `L` under constraints `C0 + ... + Cm`
+    // If for `i` in `0...m`, `Mi` is a subtype match for `Ni` with respect
+    // to `L` under constraints `Ci`.
+    if (p.positionalTypes.length != q.positionalTypes.length ||
+        p.sortedNamedTypes.length != q.sortedNamedTypes.length) {
+      return false;
+    }
+
+    final TypeConstraintGeneratorState state = currentState;
+
+    for (int i = 0; i < p.positionalTypes.length; ++i) {
+      if (!performSubtypeConstraintGenerationInternal(
+          p.positionalTypes[i], q.positionalTypes[i],
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        restoreState(state);
+        return false;
+      }
+    }
+
+    // Since record types don't allow optional positional or named
+    // parameters, and the named parameters are sorted, it's sufficient to
+    // check that the named parameters at the same index have the same name
+    // and matching types.
+    for (int i = 0; i < p.sortedNamedTypes.length; ++i) {
+      if (p.sortedNamedTypes[i].name != q.sortedNamedTypes[i].name ||
+          !performSubtypeConstraintGenerationInternal(
+              p.sortedNamedTypes[i].type, q.sortedNamedTypes[i].type,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        restoreState(state);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /// Matches [p] against [q].
   ///
   /// If [q] is of the form `FutureOr<q0>` for some `q0`, and [p] is a subtype
