@@ -119,6 +119,10 @@ class MapExtensionTest {
     expect({0: 1, 2: 3}.firstKey, 0);
     expect(<int, int>{}.firstKey, isNull);
   }
+
+  test_mapValue() {
+    expect({0: 1, 2: 3}.mapValue((v) => 'v$v'), {0: 'v1', 2: 'v3'});
+  }
 }
 
 @reflectiveTest

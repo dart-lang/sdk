@@ -184,6 +184,12 @@ extension ExecutableElementExtension on ExecutableElement {
   }
 }
 
+extension ExecutableElementOrNullExtension on ExecutableElement? {
+  ExecutableElement2? get asElement2 {
+    return this?.asElement2;
+  }
+}
+
 extension FormalParameterExtension on FormalParameterElement {
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
@@ -202,6 +208,12 @@ extension FormalParameterExtension on FormalParameterElement {
       buffer.write(' = ');
       buffer.write(defaultValueCode);
     }
+  }
+}
+
+extension InterfaceElement2Extension on InterfaceElement2 {
+  InterfaceElement get asElement {
+    return firstFragment as InterfaceElement;
   }
 }
 

@@ -153,10 +153,7 @@ class InheritanceManager3 {
   @experimental
   ExecutableElement2? getInherited3(InterfaceType type, Name name) {
     var element = getInherited(type, name);
-    if (element is ExecutableMember) {
-      return element as ExecutableElement2;
-    }
-    return (element as ExecutableFragment?)?.element;
+    return element.asElement2;
   }
 
   /// Returns the most specific signature of the member with the given [name]
@@ -169,9 +166,8 @@ class InheritanceManager3 {
   // This is a replacement for `getInherited2`.
   @experimental
   ExecutableElement2? getInherited4(InterfaceElement2 element, Name name) {
-    var oldElement = getInheritedMap2(
-        (element as AugmentedInterfaceElement).firstFragment)[name];
-    return (oldElement as ExecutableFragment?)?.element;
+    var oldElement = getInheritedMap2(element.asElement)[name];
+    return oldElement.asElement2;
   }
 
   /// Returns signatures of all concrete members that the given [element]
@@ -179,10 +175,8 @@ class InheritanceManager3 {
   @experimental
   Map<Name, ExecutableElement2> getInheritedConcreteMap(
       InterfaceElement2 element) {
-    var map = getInheritedConcreteMap2(
-        (element as AugmentedInterfaceElement).firstFragment);
-    return map.map((name, element) =>
-        MapEntry(name, (element as ExecutableFragment).element));
+    var map = getInheritedConcreteMap2(element.asElement);
+    return map.mapValue((element) => element.asElement2);
   }
 
   /// Return signatures of all concrete members that the given [element] inherits
@@ -205,10 +199,8 @@ class InheritanceManager3 {
   /// will not be included.
   @experimental
   Map<Name, ExecutableElement2> getInheritedMap(InterfaceElement2 element) {
-    var map =
-        getInheritedMap2((element as AugmentedInterfaceElement).firstFragment);
-    return map.map((name, element) =>
-        MapEntry(name, (element as ExecutableFragment).element));
+    var map = getInheritedMap2(element.asElement);
+    return map.mapValue((element) => element.asElement2);
   }
 
   /// Return the mapping from names to most specific signatures of members
@@ -271,7 +263,7 @@ class InheritanceManager3 {
   /// all libraries.
   @experimental
   Interface getInterface2(InterfaceElement2 element) {
-    return getInterface((element as AugmentedInterfaceElement).firstFragment);
+    return getInterface(element.asElement);
   }
 
   /// Return the result of [getMember2] with [type] substitution.
@@ -378,7 +370,7 @@ class InheritanceManager3 {
     bool forSuper = false,
   }) {
     var oldElement = getMember2(
-      (element as AugmentedInterfaceElement).firstFragment,
+      element.asElement,
       name,
       concrete: concrete,
       forMixinIndex: forMixinIndex,
@@ -395,7 +387,7 @@ class InheritanceManager3 {
   List<ExecutableElement2>? getOverridden(
       InterfaceElement2 element, Name name) {
     var elements = getOverridden2(
-      (element as AugmentedInterfaceElement).firstFragment,
+      element.asElement,
       name,
     );
     if (elements == null) {
@@ -1274,14 +1266,13 @@ class Interface {
   /// The map of declared names to their signatures.
   @experimental
   Map<Name, ExecutableElement2> get declared2 {
-    return declared.map((name, element) =>
-        MapEntry(name, (element as ExecutableFragment).element));
+    return declared.mapValue((element) => element.asElement2);
   }
 
   /// The map of names to their signature in the interface.
   @experimental
   Map<Name, ExecutableElement2> get map2 {
-    return map.map((name, element) => MapEntry(name, element.asElement2));
+    return map.mapValue((element) => element.asElement2);
   }
 
   /// Return `true` if the [name] is implemented in the supertype.
