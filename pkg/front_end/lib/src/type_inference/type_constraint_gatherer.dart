@@ -557,41 +557,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return true;
     }
 
-    // A record type `(M0,..., Mk, {M{k+1} d{k+1}, ..., Mm dm])` is a subtype
-    // match for a record type `(N0,..., Nk, {N{k+1} d{k+1}, ..., Nm dm])` with
-    // respect to `L` under constraints `C0 + ... + Cm`
-    // If for `i` in `0...m`, `Mi` is a subtype match for `Ni` with respect to
-    // `L` under constraints `Ci`.
-    if (p is SharedRecordTypeStructure<DartType> &&
-        q is SharedRecordTypeStructure<DartType> &&
-        (p as RecordType).positional.length ==
-            (q as RecordType).positional.length &&
-        p.named.length == q.named.length) {
-      bool sameNames = true;
-      for (int i = 0; sameNames && i < p.named.length; i++) {
-        if (p.named[i].name != q.named[i].name) {
-          sameNames = false;
-        }
-      }
-      if (sameNames) {
-        final int baseConstraintCount = _protoConstraints.length;
-        bool isMatch = true;
-        for (int i = 0; isMatch && i < p.positional.length; i++) {
-          isMatch = isMatch &&
-              _isNullabilityAwareSubtypeMatch(p.positional[i], q.positional[i],
-                  constrainSupertype: constrainSupertype,
-                  treeNodeForTesting: treeNodeForTesting);
-        }
-        for (int i = 0; isMatch && i < p.named.length; i++) {
-          isMatch = isMatch &&
-              _isNullabilityAwareSubtypeMatch(p.named[i].type, q.named[i].type,
-                  constrainSupertype: constrainSupertype,
-                  treeNodeForTesting: treeNodeForTesting);
-        }
-        // Coverage-ignore-block(suite): Not run.
-        if (isMatch) return true;
-        _protoConstraints.length = baseConstraintCount;
-      }
+    if (performSubtypeConstraintGenerationForRecordTypes(p, q,
+        leftSchema: constrainSupertype,
+        astNodeForTesting: treeNodeForTesting)) {
+      return true;
     }
 
     return false;

@@ -368,10 +368,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       }
     }
 
-    if (P is SharedRecordTypeStructure<DartType> &&
-        Q is SharedRecordTypeStructure<DartType>) {
-      return _recordType(P as RecordTypeImpl, Q as RecordTypeImpl, leftSchema,
-          nodeForTesting: nodeForTesting);
+    if (performSubtypeConstraintGenerationForRecordTypes(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
+      return true;
     }
 
     return false;
@@ -463,67 +462,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // And `C2` is `C1` with each constraint replaced with its closure
     // with respect to `[Z0, ..., Zn]`.
     // TODO(scheglov): do closure
-
-    return true;
-  }
-
-  /// Matches [P] against [Q], where [P] and [Q] are both record types.
-  ///
-  /// If [P] is a subtype of [Q] under some constraints, the constraints making
-  /// the relation possible are recorded to [_constraints], and `true` is
-  /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
-  /// and `false` is returned.
-  bool _recordType(RecordTypeImpl P, RecordTypeImpl Q, bool leftSchema,
-      {required AstNode? nodeForTesting}) {
-    // If `P` is `(M0, ..., Mk)` and `Q` is `(N0, ..., Nk)`, then the match
-    // holds under constraints `C0 + ... + Ck`:
-    //   If `Mi` is a subtype match for `Ni` with respect to L under
-    //   constraints `Ci`.
-    if (P.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    if (Q.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    var positionalP = P.positionalFields;
-    var positionalQ = Q.positionalFields;
-    if (positionalP.length != positionalQ.length) {
-      return false;
-    }
-
-    var namedP = P.namedFields;
-    var namedQ = Q.namedFields;
-    if (namedP.length != namedQ.length) {
-      return false;
-    }
-
-    var rewind = _constraints.length;
-
-    for (var i = 0; i < positionalP.length; i++) {
-      var fieldP = positionalP[i];
-      var fieldQ = positionalQ[i];
-      if (!trySubtypeMatch(fieldP.type, fieldQ.type, leftSchema,
-          nodeForTesting: nodeForTesting)) {
-        _constraints.length = rewind;
-        return false;
-      }
-    }
-
-    for (var i = 0; i < namedP.length; i++) {
-      var fieldP = namedP[i];
-      var fieldQ = namedQ[i];
-      if (fieldP.name != fieldQ.name) {
-        _constraints.length = rewind;
-        return false;
-      }
-      if (!trySubtypeMatch(fieldP.type, fieldQ.type, leftSchema,
-          nodeForTesting: nodeForTesting)) {
-        _constraints.length = rewind;
-        return false;
-      }
-    }
 
     return true;
   }
