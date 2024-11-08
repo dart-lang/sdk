@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -69,8 +69,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var valueType = node.matchedValueType;
-    var element = node.element;
-    if (element is! VariableElement) return;
+    var element = node.element2;
+    if (element is! VariableElement2) return;
     _check(element.type, valueType, node);
   }
 
@@ -84,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var args = node.argumentList.arguments;
-    var parameters = node.constructorName.staticElement?.parameters;
+    var parameters = node.constructorName.element?.formalParameters;
     if (parameters != null) {
       _checkArgs(args, parameters);
     }
@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = node.staticInvokeType;
     if (type is FunctionType) {
       var args = node.argumentList.arguments;
-      var parameters = type.parameters;
+      var parameters = type.formalParameters;
       _checkArgs(args, parameters);
     }
   }
@@ -113,12 +113,12 @@ class _Visitor extends SimpleAstVisitor<void> {
             checkedNode: node.expression);
       }
     } else if (parent is MethodDeclaration) {
-      _check(
-          parent.declaredElement?.returnType, node.expression?.staticType, node,
+      _check(parent.declaredFragment?.element.returnType,
+          node.expression?.staticType, node,
           checkedNode: node.expression);
     } else if (parent is FunctionDeclaration) {
-      _check(
-          parent.declaredElement?.returnType, node.expression?.staticType, node,
+      var parentElement = parent.declaredFragment?.element;
+      _check(parentElement?.returnType, node.expression?.staticType, node,
           checkedNode: node.expression);
     }
   }
@@ -150,9 +150,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkArgs(
-      NodeList<Expression> args, List<ParameterElement> parameters) {
+      NodeList<Expression> args, List<FormalParameterElement> parameters) {
     for (var arg in args) {
-      var parameterElement = arg.staticParameterElement;
+      var parameterElement = arg.correspondingParameter;
       if (parameterElement != null) {
         var type = parameterElement.type;
         var expression = arg is NamedExpression ? arg.expression : arg;
