@@ -155,8 +155,7 @@ extension ElementOrNullExtension on Element? {
     } else if (self is NeverElementImpl) {
       return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
-      // TODO(scheglov): we lose types here
-      return self.declaration.asElement2;
+      return self;
     } else if (self is PrefixElementImpl) {
       return self.element2;
     } else if (self is ExecutableMember) {

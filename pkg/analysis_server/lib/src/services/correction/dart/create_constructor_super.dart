@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -20,17 +20,18 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
       return const [];
     }
 
-    var targetClassElement = targetClassNode.declaredElement!;
-    var superType = targetClassElement.supertype;
+    var targetClassElement = targetClassNode.declaredFragment?.element;
+    var superType = targetClassElement?.supertype;
     if (superType == null) {
       return const [];
     }
 
     var producers = <ResolvedCorrectionProducer>[];
     // add proposals for all super constructors
-    for (var constructor in superType.constructors) {
+    for (var constructor in superType.constructors2) {
       // Only propose public constructors.
-      if (!Identifier.isPrivateName(constructor.name)) {
+      var name = constructor.name3;
+      if (name != null && !Identifier.isPrivateName(name)) {
         producers.add(
           _CreateConstructor(constructor, targetClassNode, context: context),
         );
@@ -44,7 +45,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
 /// the [CreateConstructorSuper] producer.
 class _CreateConstructor extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement _constructor;
+  final ConstructorElement2 _constructor;
 
   /// The class in which the constructor will be added.
   final ClassDeclaration _targetClass;
@@ -65,9 +66,9 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = _constructor.name;
-    if (libraryElement.featureSet.isEnabled(Feature.super_parameters)) {
-      if (constructorName.isNotEmpty) {
+    var constructorName = _constructor.name3;
+    if (libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
+      if (constructorName != null && constructorName != 'new') {
         buffer.write('.');
         buffer.write(constructorName);
         buffer.write('()');
@@ -75,7 +76,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
         buffer.write('.');
       }
     } else {
-      if (constructorName.isNotEmpty) {
+      if (constructorName != null && constructorName != 'new') {
         buffer.write('.');
         buffer.write(constructorName);
       }
@@ -89,7 +90,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (libraryElement.featureSet.isEnabled(Feature.super_parameters)) {
+    if (libraryElement2.featureSet.isEnabled(Feature.super_parameters)) {
       await _computeWithSuperParameters(builder);
     } else {
       await _computeWithoutSuperParameters(builder);
@@ -97,11 +98,11 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeWithoutSuperParameters(ChangeBuilder builder) async {
-    var constructorName = _constructor.name;
-    var requiredPositionalParameters = _constructor.parameters.where(
+    var constructorName = _constructor.name3;
+    var requiredPositionalParameters = _constructor.formalParameters.where(
       (parameter) => parameter.isRequiredPositional,
     );
-    var requiredNamedParameters = _constructor.parameters.where(
+    var requiredNamedParameters = _constructor.formalParameters.where(
       (parameter) => parameter.isRequiredNamed,
     );
     await builder.addDartFileEdit(file, (builder) {
@@ -109,7 +110,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
         void writeParameters(bool isDefinition) {
-          void writeParameter(ParameterElement parameter) {
+          void writeParameter(FormalParameterElement parameter) {
             var parameterName = parameter.displayName;
             var includeType = isDefinition;
             var includeRequired = isDefinition && parameter.isRequiredNamed;
@@ -161,14 +162,14 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
         }
 
         builder.write(_targetClass.name.lexeme);
-        if (constructorName.isNotEmpty) {
+        if (constructorName != null && constructorName != 'new') {
           builder.write('.');
           builder.addSimpleLinkedEdit('NAME', constructorName);
         }
         builder.write('(');
         writeParameters(true);
         builder.write(') : super');
-        if (constructorName.isNotEmpty) {
+        if (constructorName != null && constructorName != 'new') {
           builder.write('.');
           builder.addSimpleLinkedEdit('NAME', constructorName);
         }
@@ -180,18 +181,18 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   }
 
   Future<void> _computeWithSuperParameters(ChangeBuilder builder) async {
-    var constructorName = _constructor.name;
-    var requiredPositionalParameters = _constructor.parameters.where(
+    var constructorName = _constructor.name3;
+    var requiredPositionalParameters = _constructor.formalParameters.where(
       (parameter) => parameter.isRequiredPositional,
     );
-    var requiredNamedParameters = _constructor.parameters.where(
+    var requiredNamedParameters = _constructor.formalParameters.where(
       (parameter) => parameter.isRequiredNamed,
     );
     await builder.addDartFileEdit(file, (builder) {
       builder.insertConstructor(_targetClass, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
-        void writeParameter(ParameterElement parameter) {
+        void writeParameter(FormalParameterElement parameter) {
           var parameterName = parameter.displayName;
 
           if (parameterName.length > 1 && parameterName.startsWith('_')) {
@@ -207,7 +208,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
         }
 
         builder.write(_targetClass.name.lexeme);
-        if (constructorName.isNotEmpty) {
+        if (constructorName != null && constructorName != 'new') {
           builder.write('.');
           builder.addSimpleLinkedEdit('NAME', constructorName);
         }
@@ -237,7 +238,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
           builder.write('}');
         }
 
-        if (constructorName.isNotEmpty) {
+        if (constructorName != null && constructorName != 'new') {
           builder.write(') : super.');
           builder.addSimpleLinkedEdit('NAME', constructorName);
           builder.write('(');

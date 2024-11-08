@@ -150,6 +150,17 @@ class TopLevelDeclarations {
     }
   }
 
+  static void addElement2(
+    Map<LibraryElement2, Element2> result,
+    LibraryElement2 libraryElement,
+    String baseName,
+  ) {
+    var element = _findElement2(libraryElement, baseName);
+    if (element != null) {
+      result[libraryElement] = element;
+    }
+  }
+
   static Element? _findElement(LibraryElement libraryElement, String name) {
     var element = libraryElement.exportNamespace.get(name) ??
         libraryElement.exportNamespace.get('$name=');

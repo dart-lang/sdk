@@ -5,9 +5,8 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -26,8 +25,8 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       return const [];
     }
 
-    var targetClassElement = targetClassNode.declaredElement!;
-    var superType = targetClassElement.supertype;
+    var targetClassElement = targetClassNode.declaredFragment?.element;
+    var superType = targetClassElement?.supertype;
     if (superType == null) {
       return const [];
     }
@@ -44,9 +43,10 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       prefix = ', ';
     }
     var producers = <ResolvedCorrectionProducer>[];
-    for (var constructor in superType.constructors) {
+    for (var constructor in superType.constructors2) {
       // Only propose public constructors.
-      if (!Identifier.isPrivateName(constructor.name)) {
+      var name = constructor.name3;
+      if (name != null && !Identifier.isPrivateName(name)) {
         producers.add(
           _AddInvocation(constructor, insertOffset, prefix, context: context),
         );
@@ -60,7 +60,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
 /// the [AddSuperConstructorInvocation] producer.
 class _AddInvocation extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
-  final ConstructorElement _constructor;
+  final ConstructorElement2 _constructor;
 
   /// The offset at which the initializer is to be inserted.
   final int _insertOffset;
@@ -85,8 +85,8 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = _constructor.name;
-    if (constructorName.isNotEmpty) {
+    var constructorName = _constructor.name3;
+    if (constructorName != null && constructorName != 'new') {
       buffer.write('.');
       buffer.write(constructorName);
     }
@@ -99,20 +99,24 @@ class _AddInvocation extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var constructorName = _constructor.name;
+    var constructorName = _constructor.name3;
+    if (constructorName == null ||
+        _constructor.formalParameters.any((p) => p.name3 == null)) {
+      return;
+    }
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(_insertOffset, (builder) {
         builder.write(_prefix);
         // add super constructor name
         builder.write('super');
-        if (!isEmpty(constructorName)) {
+        if (constructorName != 'new') {
           builder.write('.');
           builder.addSimpleLinkedEdit('NAME', constructorName);
         }
         // add arguments
         builder.write('(');
         var firstParameter = true;
-        for (var parameter in _constructor.parameters) {
+        for (var parameter in _constructor.formalParameters) {
           // skip non-required parameters
           if (parameter.isOptional) {
             break;
@@ -125,11 +129,11 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           }
 
           if (parameter.isNamed) {
-            builder.write('${parameter.name}: ');
+            builder.write('${parameter.name3}: ');
           }
           // A default value to pass as an argument.
           builder.addSimpleLinkedEdit(
-            parameter.name,
+            parameter.name3!,
             parameter.type.defaultArgumentCode,
           );
         }

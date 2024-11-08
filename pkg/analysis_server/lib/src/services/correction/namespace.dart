@@ -4,7 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Returns the [Element] exported from the given [LibraryElement].
 Element? getExportedElement(LibraryElement? library, String name) {
@@ -12,6 +14,16 @@ Element? getExportedElement(LibraryElement? library, String name) {
     return null;
   }
   return _getExportNamespaceForLibrary(library)[name];
+}
+
+/// Returns the [Element] exported from the given [LibraryElement].
+Element2? getExportedElement2(LibraryElement2? library, String name) {
+  if (library == null) {
+    return null;
+  }
+  return _getExportNamespaceForLibrary(
+    library as LibraryElement,
+  )[name].asElement2;
 }
 
 /// Return the [LibraryImportElement] that is referenced by [prefixNode], or

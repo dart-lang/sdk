@@ -51,12 +51,7 @@ lib/src/services/completion/postfix/postfix_completion.dart
 lib/src/services/completion/statement/statement_completion.dart
 lib/src/services/correction/bulk_fix_processor.dart
 lib/src/services/correction/dart/add_extension_override.dart
-lib/src/services/correction/dart/add_missing_enum_case_clauses.dart
-lib/src/services/correction/dart/add_super_constructor_invocation.dart
-lib/src/services/correction/dart/convert_to_if_case_statement.dart
-lib/src/services/correction/dart/create_constructor_super.dart
 lib/src/services/correction/dart/create_extension_member.dart
-lib/src/services/correction/dart/create_missing_overrides.dart
 lib/src/services/correction/dart/import_library.dart
 lib/src/services/correction/dart/use_different_division_operator.dart
 lib/src/services/correction/fix/data_driven/element_matcher.dart

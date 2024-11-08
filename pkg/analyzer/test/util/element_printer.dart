@@ -144,6 +144,13 @@ class ElementPrinter {
         _sink.write('#element');
       case MultiplyDefinedElementImpl2():
         _sink.write('<null>');
+      case NeverElementImpl():
+        _sink.write('Never@-1');
+      case ParameterMember():
+        var firstFragment = element.firstFragment;
+        var referenceStr = _elementToReferenceString(firstFragment as Element);
+        _sink.write(referenceStr);
+        _sink.write('#element');
       case PrefixElementImpl2 element:
         writeReference(element.reference);
       case SetterElement element:
