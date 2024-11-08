@@ -3,98 +3,151 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/custom/abstract_go_to.dart';
+import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
-typedef _ImportRecord =
-    ({ImportDirective directive, LibraryImportElement import});
+typedef _ImportRecord = ({CompilationUnit unit, ImportDirective directive});
 
-class ImportsHandler extends AbstractGoToHandler {
+class ImportsHandler
+    extends SharedMessageHandler<TextDocumentPositionParams, List<Location>?> {
   ImportsHandler(super.server);
 
   @override
   Method get handlesMessage => CustomMethods.imports;
 
   @override
+  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
+      TextDocumentPositionParams.jsonHandler;
+
+  @override
   bool get requiresTrustedCaller => false;
 
-  /// Returns the import directives that import the given [element].
-  /// Although the base class supports returning a single element?, this
-  /// handler is documented to return a list of elements.
-  /// If no element is found, an empty list is returned.
-  /// Changing this to return a single element could be a breaking change for
-  /// clients.
   @override
-  Either2<Location?, List<Location>> findRelatedLocations(
-    Element element,
+  Future<ErrorOr<List<Location>?>> handle(
+    TextDocumentPositionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(null);
+    }
+
+    var pos = params.position;
+    var path = pathOfDoc(params.textDocument);
+    var library = await path.mapResult(requireResolvedLibrary);
+    var unit = (path, library).mapResultsSync<ResolvedUnitResult>((
+      path,
+      library,
+    ) {
+      var unit = library.unitWithPath(path);
+      return unit != null
+          ? success(unit)
+          : error(
+            ErrorCodes.InternalError,
+            'The library containing a path did not contain the path.',
+          );
+    });
+    var offset = unit.mapResultSync(
+      (unit) => toOffset(unit.unit.lineInfo, pos),
+    );
+
+    return (library, unit, offset).mapResults((library, unit, offset) async {
+      var node = NodeLocator(offset).searchWithin(unit.unit);
+      if (node == null) {
+        return success(null);
+      }
+
+      var element = ElementLocator.locate2(node);
+      if (element == null) {
+        return success(null);
+      }
+
+      String? prefix;
+      if (node is NamedType) {
+        prefix = node.importPrefix?.name.lexeme;
+      } else if (node.thisOrAncestorOfType<PrefixedIdentifier>()
+          case PrefixedIdentifier identifier) {
+        prefix = identifier.prefix.name;
+      } else if (node is SimpleIdentifier) {
+        if (node.parent case MethodInvocation(
+          target: SimpleIdentifier target?,
+        )) {
+          prefix = target.toString();
+        }
+      }
+
+      var enclosingElement = element.enclosingElement2;
+      if (enclosingElement is ExtensionElement2) {
+        element = enclosingElement;
+      }
+
+      var locations = _getImportLocations(element, library, unit, prefix);
+
+      return success(nullIfEmpty(locations));
+    });
+  }
+
+  /// Returns [Location]s for imports that import the given [element] into
+  /// [unit].
+  List<Location> _getImportLocations(
+    Element2 element,
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult unit,
     String? prefix,
   ) {
-    var elementName = element.name;
+    var elementName = element.name3;
     if (elementName == null) {
-      return Either2.t1(null);
+      return [];
     }
 
     var imports = _getImports(libraryResult);
+    var results = <Location>[];
 
-    var directives = <ImportDirective>[];
-    for (var (:directive, :import) in imports) {
-      Element? namespaceElement;
+    for (var (:unit, :directive) in imports) {
+      var import = directive.libraryImport;
+      if (import == null) continue;
 
-      if (prefix == null) {
-        namespaceElement = import.namespace.get(elementName);
-      } else {
-        namespaceElement = import.namespace.getPrefixed(prefix, elementName);
-      }
+      var importedElement =
+          prefix == null
+              ? import.namespace.get2(elementName)
+              : import.namespace.getPrefixed2(prefix, elementName);
 
-      if (element is MultiplyDefinedElement) {
-        if (element.conflictingElements.contains(namespaceElement)) {
-          directives.add(directive);
-        }
-      } else if (namespaceElement == element) {
-        directives.add(directive);
+      var isMatch =
+          element is MultiplyDefinedElement2
+              ? element.conflictingElements2.contains(importedElement)
+              : element == importedElement;
+
+      if (isMatch) {
+        var uri = uriConverter.toClientUri(
+          unit.declaredFragment!.source.fullName,
+        );
+        var lineInfo = unit.lineInfo;
+        var range = toRange(lineInfo, directive.offset, directive.length);
+        results.add(Location(uri: uri, range: range));
       }
     }
-    return Either2.t2(directives.map(_importToLocation).nonNulls.toList());
+
+    return results;
   }
 
   List<_ImportRecord> _getImports(ResolvedLibraryResult libraryResult) {
-    // TODO(dantup): Confirm that `units.first` is always the containing
-    // library.
-    var containingUnit = libraryResult.units.firstOrNull?.unit;
-    if (containingUnit == null) {
-      return const [];
-    }
-    var directives = containingUnit.directives.whereType<ImportDirective>();
     var imports = <_ImportRecord>[];
-    for (var directive in directives) {
-      if (directive.element case var import?) {
-        imports.add((directive: directive, import: import));
-      }
+
+    // TODO(dantup): With enhanced parts, we may need to look at more than
+    //  just the first fragment.
+    var unit = libraryResult.units.first.unit;
+    for (var directive in unit.directives.whereType<ImportDirective>()) {
+      imports.add((unit: unit, directive: directive));
     }
+
     return imports;
-  }
-
-  Location? _importToLocation(ImportDirective directive) {
-    var sourcePath = directive.element?.declaration.source?.fullName;
-    if (sourcePath == null) {
-      return null;
-    }
-
-    // TODO(FMorschel): Remove this when migrating to the new element model.
-    var locationLineInfo = server.getLineInfo(sourcePath);
-    if (locationLineInfo == null) {
-      return null;
-    }
-
-    return Location(
-      uri: uriConverter.toClientUri(sourcePath),
-      range: toRange(locationLineInfo, directive.offset, directive.length),
-    );
   }
 }
