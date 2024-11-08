@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool hasTypeDouble(Expression expression) {
     var parent = expression.parent;
     if (parent is ArgumentList) {
-      return _isDartCoreDouble(expression.staticParameterElement?.type);
+      return _isDartCoreDouble(expression.correspondingParameter?.type);
     } else if (parent is ListLiteral) {
       var typeArguments = parent.typeArguments?.arguments;
       return typeArguments?.length == 1 &&
@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (parent is NamedExpression) {
       var argList = parent.parent;
       if (argList is ArgumentList) {
-        return _isDartCoreDouble(parent.staticParameterElement?.type);
+        return _isDartCoreDouble(parent.correspondingParameter?.type);
       }
     } else if (parent is ExpressionFunctionBody) {
       return hasReturnTypeDouble(parent.parent);
