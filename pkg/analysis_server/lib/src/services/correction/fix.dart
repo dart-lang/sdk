@@ -899,6 +899,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Insert body',
   );
+  static const INSERT_ON_KEYWORD = FixKind(
+    'dart.fix.insertOnKeyword',
+    DartFixKindPriority.standard,
+    "Insert 'on' keyword",
+  );
+  static const INSERT_ON_KEYWORD_MULTI = FixKind(
+    'dart.fix.insertOnKeyword.multi',
+    DartFixKindPriority.inFile,
+    "Insert 'on' keyword in file",
+  );
   static const INSERT_SEMICOLON = FixKind(
     'dart.fix.insertSemicolon',
     DartFixKindPriority.standard,
