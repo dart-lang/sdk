@@ -1913,15 +1913,16 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
-  /// Return the unique instance of this class.
-  static DynamicElementImpl get instance => DynamicTypeImpl.instance.element;
+class DynamicElementImpl extends ElementImpl
+    implements TypeDefiningElement, TypeDefiningFragment {
+  /// The unique instance of this class.
+  static final DynamicElementImpl instance = DynamicElementImpl._();
 
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
   /// accessed through the method [instance].
-  DynamicElementImpl() : super(Keyword.DYNAMIC.lexeme, -1) {
+  DynamicElementImpl._() : super(Keyword.DYNAMIC.lexeme, -1) {
     setModifier(Modifier.SYNTHETIC, true);
   }
 
@@ -1929,10 +1930,70 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   List<Element2> get children2 => const [];
 
   @override
+  List<Fragment> get children3 => const [];
+
+  @override
+  DynamicElementImpl2 get element => DynamicElementImpl2.instance;
+
+  @override
+  Null get enclosingFragment => null;
+
+  @override
   ElementKind get kind => ElementKind.DYNAMIC;
 
   @override
+  Null get libraryFragment => null;
+
+  @override
+  String get name2 => 'dynamic';
+
+  @override
+  Null get nameOffset2 => null;
+
+  @override
+  Null get nextFragment => null;
+
+  @override
+  Null get previousFragment => null;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) => null;
+}
+
+/// The synthetic element representing the declaration of the type `dynamic`.
+class DynamicElementImpl2 extends TypeDefiningElementImpl2 {
+  /// The unique instance of this class.
+  static final DynamicElementImpl2 instance = DynamicElementImpl2._();
+
+  DynamicElementImpl2._();
+
+  @override
+  Null get documentationComment => null;
+
+  @override
+  DynamicElementImpl get firstFragment => DynamicElementImpl.instance;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  ElementKind get kind => ElementKind.DYNAMIC;
+
+  @override
+  Null get library2 => null;
+
+  @override
+  Metadata get metadata2 {
+    return MetadataImpl(0, const [], () => null);
+  }
+
+  @override
+  String get name3 => 'dynamic';
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return null;
+  }
 }
 
 /// A concrete implementation of an [ElementAnnotation].
@@ -8451,9 +8512,6 @@ class NeverElementImpl2 extends TypeDefiningElementImpl2 {
   static final instance = NeverElementImpl2._();
 
   NeverElementImpl2._();
-
-  @override
-  List<Element2> get children2 => const [];
 
   @override
   Null get documentationComment => null;

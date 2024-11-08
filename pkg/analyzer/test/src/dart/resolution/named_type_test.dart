@@ -109,7 +109,7 @@ dynamic a;
 NamedType
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }
@@ -131,7 +131,7 @@ NamedType
     element2: <testLibraryFragment>::@prefix2::myCore
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }
@@ -165,7 +165,7 @@ dynamic a;
 NamedType
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }

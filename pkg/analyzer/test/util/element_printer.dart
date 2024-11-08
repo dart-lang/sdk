@@ -91,8 +91,8 @@ class ElementPrinter {
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.write('#element');
-      case DynamicElementImpl():
-        _sink.write('dynamic@-1');
+      case DynamicElementImpl2():
+        _sink.write('dynamic');
       case FormalParameterElementImpl():
         var firstFragment = element.firstFragment;
         var referenceStr = _elementToReferenceString(firstFragment as Element);
@@ -144,8 +144,6 @@ class ElementPrinter {
         _sink.write('#element');
       case MultiplyDefinedElementImpl2():
         _sink.write('<null>');
-      case NeverElementImpl():
-        _sink.write('Never@-1');
       case PrefixElementImpl2 element:
         writeReference(element.reference);
       case SetterElement element:
