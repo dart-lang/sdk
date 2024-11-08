@@ -10,8 +10,10 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Information about a code completion suggestion that might or might not be
 /// sent to the client (that is, one that is a candidate for being sent).
@@ -797,12 +799,12 @@ final class OverrideSuggestion extends CandidateSuggestion
   /// Initialize a newly created candidate suggestion to suggest the [element]
   /// by inserting the [shouldInvokeSuper].
   OverrideSuggestion({
-    required this.element,
+    required ExecutableElement2 element,
     required this.shouldInvokeSuper,
     required this.skipAt,
     required this.replacementRange,
     required super.matcherScore,
-  });
+  }) : element = element.asElement;
 
   @override
   String get completion =>

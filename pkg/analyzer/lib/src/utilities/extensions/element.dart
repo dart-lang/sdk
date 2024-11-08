@@ -168,6 +168,22 @@ extension ElementOrNullExtension on Element? {
   }
 }
 
+extension ExecutableElement2Extension on ExecutableElement2 {
+  ExecutableElement get asElement {
+    return firstFragment as ExecutableElement;
+  }
+}
+
+extension ExecutableElementExtension on ExecutableElement {
+  ExecutableElement2 get asElement2 {
+    return switch (this) {
+      ExecutableFragment(:var element) => element,
+      ExecutableMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+}
+
 extension FormalParameterExtension on FormalParameterElement {
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
@@ -186,6 +202,12 @@ extension FormalParameterExtension on FormalParameterElement {
       buffer.write(' = ');
       buffer.write(defaultValueCode);
     }
+  }
+}
+
+extension InterfaceElementExtension on InterfaceElement {
+  InterfaceElement2 get asElement2 {
+    return (this as InterfaceElementImpl).element;
   }
 }
 

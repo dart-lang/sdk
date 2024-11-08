@@ -407,11 +407,7 @@ class FeatureComputer {
   ) {
     // This method is only visible for the metrics computation and might be made
     // private at some future date.
-    return _inheritanceDistance(
-      subclass.asElement2 as InterfaceElement2?,
-      superclass.asElement2 as InterfaceElement2,
-      {},
-    );
+    return _inheritanceDistance(subclass.asElement2, superclass.asElement2, {});
   }
 
   /// Return the inheritance distance between the [subclass] and the
@@ -437,8 +433,8 @@ class FeatureComputer {
     InterfaceElement superclass,
   ) {
     var distance = _inheritanceDistance(
-      subclass.asElement2 as InterfaceElement2,
-      superclass.asElement2 as InterfaceElement2,
+      subclass.asElement2,
+      superclass.asElement2,
       {},
     );
     return distanceToPercent(distance);

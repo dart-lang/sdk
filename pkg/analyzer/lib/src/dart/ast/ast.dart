@@ -8596,8 +8596,9 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @experimental
   @override
-  ExecutableElement2? get element =>
-      staticElement?.asElement2 as ExecutableElement2?;
+  ExecutableElement2? get element {
+    return staticElement?.asElement2;
+  }
 
   @override
   Token get endToken => _argumentList.endToken;

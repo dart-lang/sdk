@@ -42,7 +42,6 @@ lib/src/services/completion/dart/feature_computer.dart
 lib/src/services/completion/dart/identifier_helper.dart
 lib/src/services/completion/dart/in_scope_completion_pass.dart
 lib/src/services/completion/dart/not_imported_completion_pass.dart
-lib/src/services/completion/dart/override_helper.dart
 lib/src/services/completion/dart/relevance_computer.dart
 lib/src/services/completion/dart/suggestion_builder.dart
 lib/src/services/completion/dart/utilities.dart

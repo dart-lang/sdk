@@ -1091,9 +1091,6 @@ class _ClassVerifier {
 
 extension on List<ExecutableElement>? {
   List<ExecutableElement2> get asElement2 {
-    return this
-            ?.map((element) => element.asElement2 as ExecutableElement2)
-            .toList() ??
-        const [];
+    return this?.map((element) => element.asElement2).toList() ?? const [];
   }
 }

@@ -312,8 +312,7 @@ abstract class ExecutableMember extends Member
       .nonNulls
       .toList();
 
-  ExecutableElement2 get _element2 =>
-      declaration.asElement2 as ExecutableElement2;
+  ExecutableElement2 get _element2 => declaration.asElement2;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

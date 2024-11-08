@@ -354,7 +354,7 @@ class InheritanceManager3 {
       forMixinIndex: forMixinIndex,
       forSuper: forSuper,
     );
-    return element?.asElement2 as ExecutableElement2?;
+    return element?.asElement2;
   }
 
   /// Returns the member with the given [name].
@@ -384,7 +384,7 @@ class InheritanceManager3 {
       forMixinIndex: forMixinIndex,
       forSuper: forSuper,
     );
-    return oldElement?.asElement2 as ExecutableElement2?;
+    return oldElement?.asElement2;
   }
 
   /// Returns all members of mixins, superclasses, and interfaces that a member
@@ -401,7 +401,7 @@ class InheritanceManager3 {
     if (elements == null) {
       return null;
     }
-    return elements.map((fragment) => fragment.asExecutableElement2).toList();
+    return elements.map((fragment) => fragment.asElement2).toList();
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -419,9 +419,7 @@ class InheritanceManager3 {
       InterfaceElement2 element, Name name) {
     var interface = getInterface2(element);
     var fragments = interface.overridden[name];
-    return fragments
-        ?.map((fragment) => fragment.asElement2 as ExecutableElement2)
-        .toList();
+    return fragments?.map((fragment) => fragment.asElement2).toList();
   }
 
   /// Remove interfaces for classes defined in specified libraries.
@@ -920,8 +918,7 @@ class InheritanceManager3 {
     var uniqueRedeclared2 = <Name, List<ExecutableElement2>>{};
     for (var entry in redeclared.entries) {
       var name = entry.key;
-      var fragments =
-          entry.value.map((fragment) => fragment.asExecutableElement2);
+      var fragments = entry.value.map((fragment) => fragment.asElement2);
       if (fragments.length == 1) {
         uniqueRedeclared2[name] = fragments.toFixedList();
       } else {
@@ -1284,8 +1281,7 @@ class Interface {
   /// The map of names to their signature in the interface.
   @experimental
   Map<Name, ExecutableElement2> get map2 {
-    return map
-        .map((name, element) => MapEntry(name, element.asExecutableElement2));
+    return map.map((name, element) => MapEntry(name, element.asElement2));
   }
 
   /// Return `true` if the [name] is implemented in the supertype.
@@ -1434,12 +1430,4 @@ class _ParameterDesc {
         other.index == index &&
         other.name == name;
   }
-}
-
-extension on ExecutableElement {
-  ExecutableElement2 get asExecutableElement2 => switch (this) {
-        ExecutableFragment(:var element) => element,
-        ExecutableMember member => member,
-        _ => throw UnsupportedError('Unsupported type: $runtimeType'),
-      };
 }
