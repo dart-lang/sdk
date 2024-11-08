@@ -290,7 +290,6 @@ class _RuleBuilder {
     if (!data.containsKey(propertyName)) return;
 
     var value = data[propertyName];
-    if (_removedIn != null) _alreadySpecified(propertyName);
 
     var removedInValue = _requireType<String>(propertyName, value);
     if (removedInValue.split('.').length != 2) {
