@@ -66,6 +66,7 @@ autofocus
 automatic
 averaged
 averages
+avg
 ax
 axis
 ba
@@ -159,6 +160,7 @@ cnn
 coded
 codepath
 coincidences
+cold
 collisions
 columns
 commented
@@ -375,6 +377,7 @@ ge
 gesture
 gi
 gm
+golem
 goo
 google
 graphic
@@ -562,6 +565,7 @@ nums
 ob
 obool
 observable
+october
 offers
 oh
 okay
@@ -598,6 +602,7 @@ paused
 pays
 pb
 pc
+percentile
 periodic
 periodically
 perm
@@ -617,6 +622,7 @@ population
 portions
 pp
 pr
+practise
 preliminary
 prematurely
 prerequisite
@@ -694,6 +700,7 @@ revisions
 risky
 rk
 rnone
+routines
 row
 rows
 rr
@@ -882,6 +889,7 @@ waited
 waits
 walt
 warmup
+warmups
 week
 weekly
 went

@@ -1908,7 +1908,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+  Future<Uint8List> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<String> readAsString() async {

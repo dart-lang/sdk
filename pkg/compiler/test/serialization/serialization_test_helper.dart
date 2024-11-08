@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
@@ -273,7 +274,7 @@ JClosedWorld cloneClosedWorld(Compiler compiler, JClosedWorld closedWorld,
     SerializationStrategy strategy) {
   SerializationIndices indices = SerializationIndices();
   ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
-  List<int> irData = strategy.serializeComponent(component);
+  Uint8List irData = strategy.serializeComponent(component);
   final closedWorldData = strategy.serializeClosedWorld(
       closedWorld, compiler.options, indices) as List<int>;
   print('data size: ${closedWorldData.length}');
@@ -302,7 +303,7 @@ JClosedWorld cloneClosedWorld(Compiler compiler, JClosedWorld closedWorld,
 GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
     GlobalTypeInferenceResults results, SerializationStrategy strategy) {
   SerializationIndices indices = SerializationIndices(testMode: true);
-  List<int> irData = strategy.unpackAndSerializeComponent(results);
+  Uint8List irData = strategy.unpackAndSerializeComponent(results);
   final closedWorldData = strategy.serializeClosedWorld(
       results.closedWorld, compiler.options, indices) as List<int>;
   ir.Component newComponent = strategy.deserializeComponent(irData);

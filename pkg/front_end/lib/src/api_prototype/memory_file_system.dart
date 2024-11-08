@@ -105,7 +105,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+  Future<Uint8List> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   // Coverage-ignore(suite): Not run.

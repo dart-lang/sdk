@@ -5,18 +5,19 @@
 // This files contains methods for benchmarking Kernel binary serialization
 // and deserialization routines.
 
-import 'package:kernel/ast.dart';
-import 'package:kernel/binary/ast_from_binary.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
-
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:kernel/ast.dart';
+import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/src/printer.dart';
 
+import '../tool/_fasta/compile.dart' as compile;
+
 final String usage = '''
-Usage: binary_bench2.dart [--golem|--raw] {--metadata|--onlyCold}<Benchmark> <SourceDill>
+Usage: kernel_binary_bench.dart [--golem|--raw] {--metadata|--onlyCold} <Benchmark> <SourceDill>
 
 Benchmark can be one of: ${benchmarks.keys.join(', ')}
 ''';
@@ -43,6 +44,12 @@ bool metadataAware = false;
 bool onlyCold = false;
 
 void main(List<String> args) async {
+  if (args.length == 1 && args[0] == "--compile") {
+    // Allow - although in practise unused - to go to a bigger target (in this
+    // case the compile target) - in order to get a more real polymorphic
+    // potential (especially for AOT compiles).
+    return await compile.main(args);
+  }
   if (!_parseArgs(args)) {
     print(usage);
     exit(-1);
@@ -189,7 +196,7 @@ bool _parseArgs(List<String> argsOrg) {
   return true;
 }
 
-Component _fromBinary(List<int> bytes,
+Component _fromBinary(Uint8List bytes,
     {required bool eager, bool verbose = false}) {
   Component component = new Component();
   if (metadataAware) {

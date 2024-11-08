@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
@@ -52,7 +53,7 @@ main(List<String> arguments) async {
   component.addMetadataRepository(new LoadingUnitsMetadataRepository());
   component.addMetadataRepository(new ClosureIdMetadataRepository());
 
-  final List<int> bytes = new File(input).readAsBytesSync();
+  final Uint8List bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readComponent(component);
 
   writeComponentToText(component, path: output, showMetadata: true);

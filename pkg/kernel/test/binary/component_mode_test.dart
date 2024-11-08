@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/binary/ast_from_binary.dart';
 
 import 'utils.dart';
@@ -33,7 +35,7 @@ void main() {
           ")");
 
       // Try individually.
-      List<int> c1Serialized;
+      Uint8List c1Serialized;
       {
         Uri uri = Uri.parse("foo://bar.dart");
         Library lib1 = new Library(uri, fileUri: uri)
@@ -45,7 +47,7 @@ void main() {
         verifyMode(c1RoundTrip, c1Mode);
       }
 
-      List<int> c2Serialized;
+      Uint8List c2Serialized;
       {
         Uri uri = Uri.parse("foo://baz.dart");
         Library lib2 = new Library(uri, fileUri: uri)
@@ -59,9 +61,8 @@ void main() {
 
       // Try with combined binary.
       try {
-        List<int> combined = [];
-        combined.addAll(c1Serialized);
-        combined.addAll(c2Serialized);
+        Uint8List combined =
+            Uint8List.fromList([...c1Serialized, ...c2Serialized]);
         Component combinedRoundTrip = loadComponentFromBytes(combined);
         verifyMode(combinedRoundTrip, verifyOK(c1Mode, c2Mode));
         print(" -> OK with $c1Mode and $c2Mode");
@@ -71,9 +72,8 @@ void main() {
       }
       // Try other order.
       try {
-        List<int> combined = [];
-        combined.addAll(c2Serialized);
-        combined.addAll(c1Serialized);
+        Uint8List combined =
+            Uint8List.fromList([...c2Serialized, ...c1Serialized]);
         Component combinedRoundTrip = loadComponentFromBytes(combined);
         verifyMode(combinedRoundTrip, verifyOK(c1Mode, c2Mode));
         print(" -> OK with $c1Mode and $c2Mode");

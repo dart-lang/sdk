@@ -488,7 +488,7 @@ class MatchExpectation
       }
       BinaryPrinter binaryPrinter = new BinaryPrinter(sink);
       binaryPrinter.writeComponentFile(writeMe);
-      List<int> bytes = sink.builder.takeBytes();
+      Uint8List bytes = sink.builder.takeBytes();
 
       BinaryBuilder binaryBuilder = new BinaryBuilder(bytes);
       componentToText = new Component(libraries: sdkLibraries);

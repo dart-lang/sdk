@@ -171,7 +171,7 @@ bool _parseArgs(List<String> args) {
   return true;
 }
 
-Component _fromBinary(List<int> bytes, {eager = true}) {
+Component _fromBinary(Uint8List bytes, {eager = true}) {
   var component = new Component();
   new BinaryBuilder(bytes, filename: 'filename', disableLazyReading: eager)
       .readSingleFileComponent(component);

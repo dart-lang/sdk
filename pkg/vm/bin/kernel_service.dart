@@ -515,7 +515,7 @@ Future _processExpressionCompilationRequest(request) async {
   final bool isStatic = request[13];
   final int offset = request[14];
   final String? scriptUri = request[15];
-  final List<List<int>> dillData = request[16].cast<List<int>>();
+  final List<Uint8List> dillData = request[16].cast<Uint8List>();
   final int blobLoadCount = request[17];
   final bool enableAsserts = request[18];
   final List<String>? experimentalFlags =
@@ -550,7 +550,7 @@ Future _processExpressionCompilationRequest(request) async {
       // First try to just load all "dillData". This *might* include the
       // platform (and we might have the (same) platform both here and in
       // dart_platform_kernel).
-      for (List<int> bytes in dillData) {
+      for (Uint8List bytes in dillData) {
         // TODO(jensj): There might be an issue if main has changed.
         new BinaryBuilderWithMetadata(bytes, alwaysCreateNewNamedNodes: true)
             .readComponent(component);
@@ -568,8 +568,8 @@ Future _processExpressionCompilationRequest(request) async {
         }
       }
       if (!foundDartCore) {
-        List<int> platformKernel;
-        if (dartPlatformKernel is List<int>) {
+        Uint8List platformKernel;
+        if (dartPlatformKernel is Uint8List) {
           platformKernel = dartPlatformKernel;
         } else {
           final Uri platformUri = computePlatformBinariesLocation()

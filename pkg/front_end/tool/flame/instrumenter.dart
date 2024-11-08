@@ -5,6 +5,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:front_end/src/base/file_system_dependency_tracker.dart';
@@ -300,7 +301,7 @@ Future<void> compileInstrumentationLibrary(Directory tmpDir,
 
   print("Reading the compiled dill.");
   Component component = new Component();
-  List<int> bytes = new File.fromUri(output).readAsBytesSync();
+  Uint8List bytes = new File.fromUri(output).readAsBytesSync();
   new BinaryBuilder(bytes).readComponent(component);
 
   bytes = File.fromUri(instrumentationLibDill).readAsBytesSync();
