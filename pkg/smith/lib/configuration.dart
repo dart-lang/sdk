@@ -251,7 +251,7 @@ class Configuration {
           .pathSegments
           .lastWhere((e) => e.isNotEmpty);
       final executableNoExtension = executableName.split('.').first;
-      if (executableNoExtension == 'dart_precompiled_runtime') {
+      if (executableNoExtension == 'dartaotruntime') {
         runtime = Runtime.dartPrecompiled;
       } else if (executableNoExtension == 'dart') {
         runtime = Runtime.vm;

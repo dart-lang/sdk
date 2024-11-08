@@ -1073,6 +1073,7 @@ class FrontendCompiler implements CompilerInterface {
       int offset,
       String? scriptUri,
       bool isStatic) async {
+    errors.clear();
     final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
     Procedure? procedure = await _generator.compileExpression(

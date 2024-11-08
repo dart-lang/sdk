@@ -34,7 +34,7 @@
 #include <limits>
 
 // TODO(dartbug.com/40579): This requires static linking to either link
-// dart.exe or dart_precompiled_runtime.exe on Windows.
+// dart.exe or dartaotruntime.exe on Windows.
 // The sample currently fails on Windows in AOT mode.
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"

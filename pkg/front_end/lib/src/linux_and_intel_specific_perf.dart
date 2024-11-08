@@ -41,7 +41,7 @@ int _perfPid = -1;
 /// You might also want the dartaotruntime to include debug symbols:
 ///
 /// ```
-/// cp out/ReleaseX64/dart_precompiled_runtime_product \
+/// cp out/ReleaseX64/dartaotruntime_product \
 ///   out/ReleaseX64/dart-sdk/bin/dartaotruntime
 /// ```
 ///

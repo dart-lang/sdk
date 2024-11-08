@@ -80,7 +80,7 @@ List<String> _selectBuildTargets(Configuration inner) {
   final compiler = inner.compiler;
   const targetsForCompilers = {
     Compiler.dartk: ['runtime'],
-    Compiler.dartkp: ['runtime', 'dart_precompiled_runtime'],
+    Compiler.dartkp: ['runtime', 'runtime_precompiled'],
     Compiler.appJitk: ['runtime'],
     Compiler.fasta: ['create_sdk', 'ddc_stable_test', 'kernel_platform_files'],
     Compiler.ddc: ['ddc_stable_test'],
