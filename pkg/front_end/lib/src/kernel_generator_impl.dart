@@ -5,6 +5,8 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator_impl;
 
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -177,7 +179,7 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
   BuildResult buildResult =
       await kernelTarget.buildOutlines(nameRoot: nameRoot);
   Component summaryComponent = buildResult.component!;
-  List<int>? summary = null;
+  Uint8List? summary = null;
   if (buildSummary) {
     // Coverage-ignore-block(suite): Not run.
     if (options.verify) {
@@ -278,7 +280,7 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
 class InternalCompilerResult implements CompilerResult {
   /// The generated summary bytes, if it was requested.
   @override
-  final List<int>? summary;
+  final Uint8List? summary;
 
   /// The generated component, if it was requested.
   @override

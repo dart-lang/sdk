@@ -5,6 +5,8 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator;
 
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain, noLength;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -109,7 +111,7 @@ Future<CompilerResult> kernelForModule(
 /// Result object for [kernelForProgram] and [kernelForModule].
 abstract class CompilerResult {
   /// The generated summary bytes, if it was requested.
-  List<int>? get summary;
+  Uint8List? get summary;
 
   /// The generated component, if it was requested.
   Component? get component;

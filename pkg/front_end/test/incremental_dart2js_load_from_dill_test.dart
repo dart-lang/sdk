@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File;
+import 'dart:typed_data';
 
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
@@ -86,8 +87,8 @@ Future<void> testDart2jsCompile() async {
         "took ${stopwatch.elapsedMilliseconds} ms");
 
     // Compare the two files.
-    List<int> normalDillData = new File.fromUri(normalDill).readAsBytesSync();
-    List<int> initializedDillData =
+    Uint8List normalDillData = new File.fromUri(normalDill).readAsBytesSync();
+    Uint8List initializedDillData =
         new File.fromUri(fullDillFromInitialized).readAsBytesSync();
 
     Component component1 = new Component();

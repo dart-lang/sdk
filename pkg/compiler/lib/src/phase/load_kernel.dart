@@ -417,7 +417,7 @@ Future<Output?> run(Input input) async {
   if (component == null) return null;
   if (input.forceSerialization) {
     // TODO(johnniwinther): Remove this when #34942 is fixed.
-    List<int> data = fe.serializeComponent(component);
+    Uint8List data = fe.serializeComponent(component);
     component = ir.Component();
     BinaryBuilder(data).readComponent(component);
     // Ensure we use the new deserialized entry point library.

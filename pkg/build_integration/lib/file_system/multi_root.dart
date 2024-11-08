@@ -85,7 +85,7 @@ class MultiRootFileSystemEntity implements FileSystemEntity {
   Future<Uint8List> readAsBytes() async => (await delegate).readAsBytes();
 
   @override
-  Future<List<int>> readAsBytesAsyncIfPossible() async =>
+  Future<Uint8List> readAsBytesAsyncIfPossible() async =>
       (await delegate).readAsBytes();
 
   @override
@@ -109,7 +109,7 @@ class MissingFileSystemEntity implements FileSystemEntity {
       Future.error(FileSystemException(uri, 'File not found'));
 
   @override
-  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+  Future<Uint8List> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<String> readAsString() =>

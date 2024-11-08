@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/binary/ast_from_binary.dart' show ParseError;
 
 import 'utils.dart';
@@ -10,7 +12,7 @@ void main() {
   Uri uri = Uri.parse("foo://bar.dart");
   Library lib1 = new Library(uri, fileUri: uri);
   Component c1 = new Component(libraries: [lib1]);
-  List<int> serialized = serializeComponent(c1);
+  Uint8List serialized = serializeComponent(c1);
   // The last 4 bytes is the size entry in the index. Overwrite that with 0's.
   for (int i = serialized.length - 4; i < serialized.length; i++) {
     serialized[i] = 0;

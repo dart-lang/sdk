@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/src/tool/find_referenced_libraries.dart';
@@ -24,10 +26,10 @@ void main() {
 
   ByteSink sink = new ByteSink();
   new BinaryPrinter(sink).writeComponentFile(component1);
-  List<int> writtenBytes1 = sink.builder.takeBytes();
+  Uint8List writtenBytes1 = sink.builder.takeBytes();
   sink = new ByteSink();
   new BinaryPrinter(sink).writeComponentFile(component2);
-  List<int> writtenBytes2 = sink.builder.takeBytes();
+  Uint8List writtenBytes2 = sink.builder.takeBytes();
 
   // Loading a single one works as one would expect: It's linked to itself.
   Component component1Prime = new Component();

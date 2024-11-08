@@ -5,6 +5,8 @@
 /// Common compiler options and helper functions used for testing.
 library front_end.testing.compiler_options_common;
 
+import 'dart:typed_data';
+
 import 'package:kernel/ast.dart' show Library, Component;
 
 import '../api_prototype/front_end.dart'
@@ -61,7 +63,7 @@ Future<Component?> compileUnit(
 /// Generate a summary for a modular compilation unit.
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
-Future<List<int>?> summarize(List<String> inputs, Map<String, dynamic> sources,
+Future<Uint8List?> summarize(List<String> inputs, Map<String, dynamic> sources,
     {List<String> additionalDills = const [],
     CompilerOptions? options,
     bool truncate = false}) async {

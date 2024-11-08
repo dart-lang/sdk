@@ -73,7 +73,7 @@ class SingleRootFileSystemEntity implements FileSystemEntity {
   Future<Uint8List> readAsBytes() async => delegate.readAsBytes();
 
   @override
-  Future<List<int>> readAsBytesAsyncIfPossible() async =>
+  Future<Uint8List> readAsBytesAsyncIfPossible() async =>
       delegate.readAsBytesAsyncIfPossible();
 
   @override

@@ -70,7 +70,7 @@ class HybridFileSystemEntity implements FileSystemEntity {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Future<List<int>> readAsBytesAsyncIfPossible() async =>
+  Future<Uint8List> readAsBytesAsyncIfPossible() async =>
       (await delegate).readAsBytesAsyncIfPossible();
 
   @override

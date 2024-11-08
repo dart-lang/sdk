@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File, Platform;
+import 'dart:typed_data';
 
 import 'package:expect/async_helper.dart' show asyncEnd, asyncStart;
 import 'package:front_end/src/base/command_line_options.dart';
@@ -63,8 +64,8 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
 }
 
 Future compare(Uri a, Uri b, {bool silent = false}) async {
-  List<int> bytesA = await new File.fromUri(a).readAsBytes();
-  List<int> bytesB = await new File.fromUri(b).readAsBytes();
+  Uint8List bytesA = await new File.fromUri(a).readAsBytes();
+  Uint8List bytesB = await new File.fromUri(b).readAsBytes();
   if (bytesA.length == bytesB.length) {
     bool same = true;
     for (int i = 0; i < bytesA.length; i++) {

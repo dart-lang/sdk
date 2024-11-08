@@ -134,7 +134,7 @@ class BinaryBuilder {
   final List< /* TypeParameter | StructuralParameter */ Object>
       typeParameterStack = <Object>[];
   final String? filename;
-  final List<int> _bytes;
+  final Uint8List _bytes;
   int _byteOffset = 0;
   List<String> _stringTable = const [];
   late Map<int, Name?> _nameCache;
@@ -4165,7 +4165,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   List<int>? _allKnownMetadataKeys;
   int? _previousMetadataLookupKey;
 
-  BinaryBuilderWithMetadata(List<int> bytes,
+  BinaryBuilderWithMetadata(Uint8List bytes,
       {String? filename,
       bool disableLazyReading = false,
       bool disableLazyClassReading = false,

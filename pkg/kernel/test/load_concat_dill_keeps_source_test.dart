@@ -5,6 +5,7 @@
 // Test that 79cc54e51924cd5a6bdc2bd1771f2d0ee7af8899 works as intended.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -41,7 +42,7 @@ void main() {
       new Source([42, 2 * 42], utf8.encode("source #1"), uri1, uri1);
   cPartial1.uriToSource[uri2] =
       new Source.emptySource([43, 3 * 43], uri1, uri1);
-  List<int> partial1Serialized = serialize(cPartial1);
+  Uint8List partial1Serialized = serialize(cPartial1);
   expectSource(partial1Serialized, true, false);
 
   Component cPartial2 = new Component(nameRoot: component.root)
@@ -51,16 +52,15 @@ void main() {
       new Source.emptySource([42, 2 * 42], uri1, uri1);
   cPartial2.uriToSource[uri2] =
       new Source([43, 3 * 43], utf8.encode("source #2"), uri1, uri1);
-  List<int> partial2Serialized = serialize(cPartial2);
+  Uint8List partial2Serialized = serialize(cPartial2);
   expectSource(partial2Serialized, false, true);
 
-  List<int> combined = <int>[];
-  combined.addAll(partial1Serialized);
-  combined.addAll(partial2Serialized);
+  Uint8List combined =
+      new Uint8List.fromList([...partial1Serialized, ...partial2Serialized]);
   expectSource(combined, true, true);
 }
 
-void expectSource(List<int> data, bool expect1, bool expect2) {
+void expectSource(Uint8List data, bool expect1, bool expect2) {
   BinaryBuilder builder = new BinaryBuilder(data);
   Component tmp = new Component();
   builder.readComponent(tmp);
@@ -80,23 +80,19 @@ void expectSource(List<int> data, bool expect1, bool expect2) {
   }
 }
 
-List<int> serialize(Component c) {
+Uint8List serialize(Component c) {
   SimpleSink sink = new SimpleSink();
   BinaryPrinter printerWhole = new BinaryPrinter(sink);
   printerWhole.writeComponentFile(c);
-  List<int> result = <int>[];
-  for (List<int> chunk in sink.chunks) {
-    result.addAll(chunk);
-  }
-  return result;
+  return sink.builder.takeBytes();
 }
 
 class SimpleSink implements Sink<List<int>> {
-  final List<List<int>> chunks = <List<int>>[];
+  final BytesBuilder builder = new BytesBuilder();
 
   @override
   void add(List<int> chunk) {
-    chunks.add(chunk);
+    builder.add(chunk);
   }
 
   @override

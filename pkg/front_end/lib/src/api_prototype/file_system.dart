@@ -81,7 +81,7 @@ abstract class FileSystemEntity {
   /// If an error occurs while attempting to read the file (e.g. because no such
   /// file exists, or the entity is a directory), the future is completed with
   /// [FileSystemException].
-  Future<List<int>> readAsBytesAsyncIfPossible();
+  Future<Uint8List> readAsBytesAsyncIfPossible();
 
   /// Attempts to access this file system entity as a file and read its contents
   /// as a string.

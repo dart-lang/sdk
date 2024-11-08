@@ -7,6 +7,7 @@
 
 import "dart:async";
 import "dart:io";
+import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 // ignore: import_of_legacy_library_into_null_safe
@@ -47,7 +48,7 @@ Future main(List<String> args) async {
     // libraries.
 
     final component = Component();
-    final List<int> bytes = File(helloDillFile).readAsBytesSync();
+    final Uint8List bytes = File(helloDillFile).readAsBytesSync();
     new BinaryBuilderWithMetadata(bytes).readComponent(component);
 
     final libVmService = component.libraries

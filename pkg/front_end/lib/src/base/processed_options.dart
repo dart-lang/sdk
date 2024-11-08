@@ -143,12 +143,12 @@ class ProcessedOptions {
     return _sdkSummary;
   }
 
-  List<int>? _sdkSummaryBytes;
+  Uint8List? _sdkSummaryBytes;
   bool _triedLoadingSdkSummary = false;
 
   // Coverage-ignore(suite): Not run.
   /// Get the bytes of the SDK outline, if any.
-  Future<List<int>?> loadSdkSummaryBytes() async {
+  Future<Uint8List?> loadSdkSummaryBytes() async {
     if (_sdkSummaryBytes == null && !_triedLoadingSdkSummary) {
       if (sdkSummary == null) return null;
       FileSystemEntity entry = fileSystem.entityForUri(sdkSummary!);
@@ -537,7 +537,7 @@ class ProcessedOptions {
     if (_sdkSummaryComponent == null) {
       // Coverage-ignore-block(suite): Not run.
       if (sdkSummary == null) return null;
-      List<int>? bytes = await loadSdkSummaryBytes();
+      Uint8List? bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
         _sdkSummaryComponent =
             loadComponent(bytes, nameRoot, fileUri: sdkSummary);
@@ -563,11 +563,11 @@ class ProcessedOptions {
       List<Uri> uris = _raw.additionalDills;
       if (uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent operations.
-      List<List<int>?> allBytes = await Future.wait(
+      List<Uint8List?> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       List<Component> result = [];
       for (int i = 0; i < uris.length; i++) {
-        List<int>? bytes = allBytes[i];
+        Uint8List? bytes = allBytes[i];
         if (bytes == null) continue;
         result.add(loadComponent(bytes, nameRoot, fileUri: uris[i]));
       }
@@ -578,7 +578,7 @@ class ProcessedOptions {
 
   // Coverage-ignore(suite): Not run.
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
-  Component loadComponent(List<int> bytes, CanonicalName? nameRoot,
+  Component loadComponent(Uint8List bytes, CanonicalName? nameRoot,
       {bool? alwaysCreateNewNamedNodes, Uri? fileUri}) {
     Component component =
         target.configureComponent(new Component(nameRoot: nameRoot));
@@ -950,7 +950,7 @@ class ProcessedOptions {
   }
 
   // Coverage-ignore(suite): Not run.
-  Future<List<int>?> _readAsBytes(FileSystemEntity file) async {
+  Future<Uint8List?> _readAsBytes(FileSystemEntity file) async {
     try {
       return await file.readAsBytes();
     } on FileSystemException catch (error) {
