@@ -454,7 +454,7 @@ extension E on dynamic {}
 NamedType
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }
@@ -573,7 +573,7 @@ extension on dynamic {}
 NamedType
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }

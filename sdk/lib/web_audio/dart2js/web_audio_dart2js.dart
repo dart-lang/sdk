@@ -105,11 +105,17 @@ class AudioBuffer extends JavaScriptObject {
 
   num? get sampleRate native;
 
-  void copyFromChannel(Float32List destination, int channelNumber,
-      [int? startInChannel]) native;
+  void copyFromChannel(
+    Float32List destination,
+    int channelNumber, [
+    int? startInChannel,
+  ]) native;
 
-  void copyToChannel(Float32List source, int channelNumber,
-      [int? startInChannel]) native;
+  void copyToChannel(
+    Float32List source,
+    int channelNumber, [
+    int? startInChannel,
+  ]) native;
 
   Float32List getChannelData(int channelIndex) native;
 }
@@ -134,10 +140,11 @@ class AudioBufferSourceNode extends AudioScheduledSourceNode {
     return AudioBufferSourceNode._create_2(context);
   }
   static AudioBufferSourceNode _create_1(context, options) => JS(
-      'AudioBufferSourceNode',
-      'new AudioBufferSourceNode(#,#)',
-      context,
-      options);
+    'AudioBufferSourceNode',
+    'new AudioBufferSourceNode(#,#)',
+    context,
+    options,
+  );
   static AudioBufferSourceNode _create_2(context) =>
       JS('AudioBufferSourceNode', 'new AudioBufferSourceNode(#)', context);
 
@@ -193,8 +200,10 @@ class AudioContext extends BaseAudioContext {
 
   Future suspend() => promiseToFuture(JS("", "#.suspend()", this));
 
-  factory AudioContext() => JS('AudioContext',
-      'new (window.AudioContext || window.webkitAudioContext)()');
+  factory AudioContext() => JS(
+    'AudioContext',
+    'new (window.AudioContext || window.webkitAudioContext)()',
+  );
 
   GainNode createGain() {
     if (JS('bool', '#.createGain !== undefined', this)) {
@@ -204,33 +213,55 @@ class AudioContext extends BaseAudioContext {
     }
   }
 
-  ScriptProcessorNode createScriptProcessor(
-      [int? bufferSize,
-      int? numberOfInputChannels,
-      int? numberOfOutputChannels]) {
+  ScriptProcessorNode createScriptProcessor([
+    int? bufferSize,
+    int? numberOfInputChannels,
+    int? numberOfOutputChannels,
+  ]) {
     var function = JS(
-        '=Object',
-        '#.createScriptProcessor || '
-            '#.createJavaScriptNode',
-        this,
-        this);
+      '=Object',
+      '#.createScriptProcessor || '
+          '#.createJavaScriptNode',
+      this,
+      this,
+    );
     if (numberOfOutputChannels != null) {
-      return JS('ScriptProcessorNode', '#.call(#, #, #, #)', function, this,
-          bufferSize, numberOfInputChannels, numberOfOutputChannels);
+      return JS(
+        'ScriptProcessorNode',
+        '#.call(#, #, #, #)',
+        function,
+        this,
+        bufferSize,
+        numberOfInputChannels,
+        numberOfOutputChannels,
+      );
     } else if (numberOfInputChannels != null) {
-      return JS('ScriptProcessorNode', '#.call(#, #, #)', function, this,
-          bufferSize, numberOfInputChannels);
+      return JS(
+        'ScriptProcessorNode',
+        '#.call(#, #, #)',
+        function,
+        this,
+        bufferSize,
+        numberOfInputChannels,
+      );
     } else if (bufferSize != null) {
       return JS(
-          'ScriptProcessorNode', '#.call(#, #)', function, this, bufferSize);
+        'ScriptProcessorNode',
+        '#.call(#, #)',
+        function,
+        this,
+        bufferSize,
+      );
     } else {
       return JS('ScriptProcessorNode', '#.call(#)', function, this);
     }
   }
 
-  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
-      [DecodeSuccessCallback? successCallback,
-      DecodeErrorCallback? errorCallback]) {
+  Future<AudioBuffer> decodeAudioData(
+    ByteBuffer audioData, [
+    DecodeSuccessCallback? successCallback,
+    DecodeErrorCallback? errorCallback,
+  ]) {
     // Both callbacks need to be provided if they're being used.
     assert((successCallback == null) == (errorCallback == null));
     // `decodeAudioData` can exist either in the older callback syntax or the
@@ -274,16 +305,21 @@ class AudioContext extends BaseAudioContext {
 
     var decodeResult;
     if (successCallback == null) {
-      decodeResult =
-          JS("creates:AudioBuffer;", "#.decodeAudioData(#)", this, audioData);
+      decodeResult = JS(
+        "creates:AudioBuffer;",
+        "#.decodeAudioData(#)",
+        this,
+        audioData,
+      );
     } else {
       decodeResult = JS(
-          "creates:AudioBuffer;",
-          "#.decodeAudioData(#, #, #)",
-          this,
-          audioData,
-          convertDartClosureToJS(success, 1),
-          convertDartClosureToJS(error, 1));
+        "creates:AudioBuffer;",
+        "#.decodeAudioData(#, #, #)",
+        this,
+        audioData,
+        convertDartClosureToJS(success, 1),
+        convertDartClosureToJS(error, 1),
+      );
     }
 
     if (decodeResult != null) {
@@ -434,8 +470,11 @@ class AudioParam extends JavaScriptObject {
 
   AudioParam setValueAtTime(num value, num time) native;
 
-  AudioParam setValueCurveAtTime(List<num> values, num time, num duration)
-      native;
+  AudioParam setValueCurveAtTime(
+    List<num> values,
+    num time,
+    num duration,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -466,8 +505,10 @@ class AudioParamMap extends JavaScriptObject with MapMixin<String, dynamic> {
     while (true) {
       var entry = JS('', '#.next()', entries);
       if (JS('bool', '#.done', entry)) return;
-      f(JS('String', '#.value[0]', entry),
-          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+      f(
+        JS('String', '#.value[0]', entry),
+        convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)),
+      );
     }
   }
 
@@ -521,10 +562,11 @@ class AudioProcessingEvent extends Event {
     return AudioProcessingEvent._create_1(type, eventInitDict_1);
   }
   static AudioProcessingEvent _create_1(type, eventInitDict) => JS(
-      'AudioProcessingEvent',
-      'new AudioProcessingEvent(#,#)',
-      type,
-      eventInitDict);
+    'AudioProcessingEvent',
+    'new AudioProcessingEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   AudioBuffer? get inputBuffer native;
 
@@ -628,8 +670,11 @@ class AudioWorkletNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AudioWorkletNode(BaseAudioContext context, String name,
-      [Map? options]) {
+  factory AudioWorkletNode(
+    BaseAudioContext context,
+    String name, [
+    Map? options,
+  ]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return AudioWorkletNode._create_1(context, name, options_1);
@@ -637,11 +682,12 @@ class AudioWorkletNode extends AudioNode {
     return AudioWorkletNode._create_2(context, name);
   }
   static AudioWorkletNode _create_1(context, name, options) => JS(
-      'AudioWorkletNode',
-      'new AudioWorkletNode(#,#,#)',
-      context,
-      name,
-      options);
+    'AudioWorkletNode',
+    'new AudioWorkletNode(#,#,#)',
+    context,
+    name,
+    options,
+  );
   static AudioWorkletNode _create_2(context, name) =>
       JS('AudioWorkletNode', 'new AudioWorkletNode(#,#)', context, name);
 
@@ -684,7 +730,10 @@ class BaseAudioContext extends EventTarget {
   BiquadFilterNode createBiquadFilter() native;
 
   AudioBuffer createBuffer(
-      int numberOfChannels, int numberOfFrames, num sampleRate) native;
+    int numberOfChannels,
+    int numberOfFrames,
+    num sampleRate,
+  ) native;
 
   AudioBufferSourceNode createBufferSource() native;
 
@@ -703,23 +752,30 @@ class BaseAudioContext extends EventTarget {
   GainNode createGain() native;
 
   @JSName('createIIRFilter')
-  IirFilterNode createIirFilter(List<num> feedForward, List<num> feedBack)
-      native;
+  IirFilterNode createIirFilter(
+    List<num> feedForward,
+    List<num> feedBack,
+  ) native;
 
   MediaElementAudioSourceNode createMediaElementSource(
-      MediaElement mediaElement) native;
+    MediaElement mediaElement,
+  ) native;
 
   MediaStreamAudioDestinationNode createMediaStreamDestination() native;
 
-  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream)
-      native;
+  MediaStreamAudioSourceNode createMediaStreamSource(
+    MediaStream mediaStream,
+  ) native;
 
   OscillatorNode createOscillator() native;
 
   PannerNode createPanner() native;
 
-  PeriodicWave createPeriodicWave(List<num> real, List<num> imag,
-      [Map? options]) {
+  PeriodicWave createPeriodicWave(
+    List<num> real,
+    List<num> imag, [
+    Map? options,
+  ]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _createPeriodicWave_1(real, imag, options_1);
@@ -728,30 +784,38 @@ class BaseAudioContext extends EventTarget {
   }
 
   @JSName('createPeriodicWave')
-  PeriodicWave _createPeriodicWave_1(List<num> real, List<num> imag, options)
-      native;
+  PeriodicWave _createPeriodicWave_1(
+    List<num> real,
+    List<num> imag,
+    options,
+  ) native;
   @JSName('createPeriodicWave')
   PeriodicWave _createPeriodicWave_2(List<num> real, List<num> imag) native;
 
-  ScriptProcessorNode createScriptProcessor(
-      [int? bufferSize,
-      int? numberOfInputChannels,
-      int? numberOfOutputChannels]) native;
+  ScriptProcessorNode createScriptProcessor([
+    int? bufferSize,
+    int? numberOfInputChannels,
+    int? numberOfOutputChannels,
+  ]) native;
 
   StereoPannerNode createStereoPanner() native;
 
   WaveShaperNode createWaveShaper() native;
 
-  Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
-          [DecodeSuccessCallback? successCallback,
-          DecodeErrorCallback? errorCallback]) =>
-      promiseToFuture<AudioBuffer>(JS(
-          "creates:AudioBuffer;",
-          "#.decodeAudioData(#, #, #)",
-          this,
-          audioData,
-          successCallback,
-          errorCallback));
+  Future<AudioBuffer> decodeAudioData(
+    ByteBuffer audioData, [
+    DecodeSuccessCallback? successCallback,
+    DecodeErrorCallback? errorCallback,
+  ]) => promiseToFuture<AudioBuffer>(
+    JS(
+      "creates:AudioBuffer;",
+      "#.decodeAudioData(#, #, #)",
+      this,
+      audioData,
+      successCallback,
+      errorCallback,
+    ),
+  );
 
   Future resume() => promiseToFuture(JS("", "#.resume()", this));
 }
@@ -790,8 +854,11 @@ class BiquadFilterNode extends AudioNode {
 
   set type(String? value) native;
 
-  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse,
-      Float32List phaseResponse) native;
+  void getFrequencyResponse(
+    Float32List frequencyHz,
+    Float32List magResponse,
+    Float32List phaseResponse,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -835,7 +902,11 @@ class ChannelSplitterNode extends AudioNode {
     return ChannelSplitterNode._create_2(context);
   }
   static ChannelSplitterNode _create_1(context, options) => JS(
-      'ChannelSplitterNode', 'new ChannelSplitterNode(#,#)', context, options);
+    'ChannelSplitterNode',
+    'new ChannelSplitterNode(#,#)',
+    context,
+    options,
+  );
   static ChannelSplitterNode _create_2(context) =>
       JS('ChannelSplitterNode', 'new ChannelSplitterNode(#)', context);
 }
@@ -939,10 +1010,11 @@ class DynamicsCompressorNode extends AudioNode {
     return DynamicsCompressorNode._create_2(context);
   }
   static DynamicsCompressorNode _create_1(context, options) => JS(
-      'DynamicsCompressorNode',
-      'new DynamicsCompressorNode(#,#)',
-      context,
-      options);
+    'DynamicsCompressorNode',
+    'new DynamicsCompressorNode(#,#)',
+    context,
+    options,
+  );
   static DynamicsCompressorNode _create_2(context) =>
       JS('DynamicsCompressorNode', 'new DynamicsCompressorNode(#)', context);
 
@@ -1001,8 +1073,11 @@ class IirFilterNode extends AudioNode {
   static IirFilterNode _create_1(context, options) =>
       JS('IirFilterNode', 'new IIRFilterNode(#,#)', context, options);
 
-  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse,
-      Float32List phaseResponse) native;
+  void getFrequencyResponse(
+    Float32List frequencyHz,
+    Float32List magResponse,
+    Float32List phaseResponse,
+  ) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1020,10 +1095,11 @@ class MediaElementAudioSourceNode extends AudioNode {
     return MediaElementAudioSourceNode._create_1(context, options_1);
   }
   static MediaElementAudioSourceNode _create_1(context, options) => JS(
-      'MediaElementAudioSourceNode',
-      'new MediaElementAudioSourceNode(#,#)',
-      context,
-      options);
+    'MediaElementAudioSourceNode',
+    'new MediaElementAudioSourceNode(#,#)',
+    context,
+    options,
+  );
 
   MediaElement? get mediaElement native;
 }
@@ -1038,8 +1114,10 @@ class MediaStreamAudioDestinationNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaStreamAudioDestinationNode(BaseAudioContext context,
-      [Map? options]) {
+  factory MediaStreamAudioDestinationNode(
+    BaseAudioContext context, [
+    Map? options,
+  ]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return MediaStreamAudioDestinationNode._create_1(context, options_1);
@@ -1047,14 +1125,16 @@ class MediaStreamAudioDestinationNode extends AudioNode {
     return MediaStreamAudioDestinationNode._create_2(context);
   }
   static MediaStreamAudioDestinationNode _create_1(context, options) => JS(
-      'MediaStreamAudioDestinationNode',
-      'new MediaStreamAudioDestinationNode(#,#)',
-      context,
-      options);
+    'MediaStreamAudioDestinationNode',
+    'new MediaStreamAudioDestinationNode(#,#)',
+    context,
+    options,
+  );
   static MediaStreamAudioDestinationNode _create_2(context) => JS(
-      'MediaStreamAudioDestinationNode',
-      'new MediaStreamAudioDestinationNode(#)',
-      context);
+    'MediaStreamAudioDestinationNode',
+    'new MediaStreamAudioDestinationNode(#)',
+    context,
+  );
 
   MediaStream? get stream native;
 }
@@ -1074,10 +1154,11 @@ class MediaStreamAudioSourceNode extends AudioNode {
     return MediaStreamAudioSourceNode._create_1(context, options_1);
   }
   static MediaStreamAudioSourceNode _create_1(context, options) => JS(
-      'MediaStreamAudioSourceNode',
-      'new MediaStreamAudioSourceNode(#,#)',
-      context,
-      options);
+    'MediaStreamAudioSourceNode',
+    'new MediaStreamAudioSourceNode(#,#)',
+    context,
+    options,
+  );
 
   MediaStream? get mediaStream native;
 }
@@ -1097,10 +1178,11 @@ class OfflineAudioCompletionEvent extends Event {
     return OfflineAudioCompletionEvent._create_1(type, eventInitDict_1);
   }
   static OfflineAudioCompletionEvent _create_1(type, eventInitDict) => JS(
-      'OfflineAudioCompletionEvent',
-      'new OfflineAudioCompletionEvent(#,#)',
-      type,
-      eventInitDict);
+    'OfflineAudioCompletionEvent',
+    'new OfflineAudioCompletionEvent(#,#)',
+    type,
+    eventInitDict,
+  );
 
   AudioBuffer? get renderedBuffer native;
 }
@@ -1115,36 +1197,52 @@ class OfflineAudioContext extends BaseAudioContext {
     throw new UnsupportedError("Not supported");
   }
 
-  factory OfflineAudioContext(numberOfChannels_OR_options,
-      [int? numberOfFrames, num? sampleRate]) {
+  factory OfflineAudioContext(
+    numberOfChannels_OR_options, [
+    int? numberOfFrames,
+    num? sampleRate,
+  ]) {
     if ((sampleRate is num) &&
         (numberOfFrames is int) &&
         (numberOfChannels_OR_options is int)) {
       return OfflineAudioContext._create_1(
-          numberOfChannels_OR_options, numberOfFrames, sampleRate);
+        numberOfChannels_OR_options,
+        numberOfFrames,
+        sampleRate,
+      );
     }
     if ((numberOfChannels_OR_options is Map) &&
         numberOfFrames == null &&
         sampleRate == null) {
-      var options_1 =
-          convertDartToNative_Dictionary(numberOfChannels_OR_options);
+      var options_1 = convertDartToNative_Dictionary(
+        numberOfChannels_OR_options,
+      );
       return OfflineAudioContext._create_2(options_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   static OfflineAudioContext _create_1(
-          numberOfChannels_OR_options, numberOfFrames, sampleRate) =>
-      JS('OfflineAudioContext', 'new OfflineAudioContext(#,#,#)',
-          numberOfChannels_OR_options, numberOfFrames, sampleRate);
+    numberOfChannels_OR_options,
+    numberOfFrames,
+    sampleRate,
+  ) => JS(
+    'OfflineAudioContext',
+    'new OfflineAudioContext(#,#,#)',
+    numberOfChannels_OR_options,
+    numberOfFrames,
+    sampleRate,
+  );
   static OfflineAudioContext _create_2(numberOfChannels_OR_options) => JS(
-      'OfflineAudioContext',
-      'new OfflineAudioContext(#)',
-      numberOfChannels_OR_options);
+    'OfflineAudioContext',
+    'new OfflineAudioContext(#)',
+    numberOfChannels_OR_options,
+  );
 
   int? get length native;
 
   Future<AudioBuffer> startRendering() => promiseToFuture<AudioBuffer>(
-      JS("creates:AudioBuffer;", "#.startRendering()", this));
+    JS("creates:AudioBuffer;", "#.startRendering()", this),
+  );
 
   @JSName('suspend')
   Future suspendFor(num suspendTime) =>
@@ -1302,7 +1400,7 @@ class ScriptProcessorNode extends AudioNode {
   void setEventListener(EventListener eventListener) native;
 
   /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
-/**
+  /**
    * Get a Stream that fires events when AudioProcessingEvents occur.
    * This particular stream is special in that it only allows one listener to a
    * given stream. Converting the returned [Stream.asBroadcastStream] will

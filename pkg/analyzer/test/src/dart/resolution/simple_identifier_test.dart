@@ -179,7 +179,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: dynamic@-1
-  element: dynamic@-1
+  element: dynamic
   staticType: Type
 ''');
   }
@@ -217,7 +217,7 @@ main() {
 SimpleIdentifier
   token: dynamic
   staticElement: dynamic@-1
-  element: dynamic@-1
+  element: dynamic
   staticType: Type
 ''');
   }

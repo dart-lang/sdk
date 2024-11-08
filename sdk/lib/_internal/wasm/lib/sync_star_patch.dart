@@ -8,8 +8,8 @@ import 'dart:_wasm';
 // object and a pending exception to be thrown (only for `yield*`).
 // The function returns `true` if it is suspended by a `yield` or `yield*`, or
 // `false` if it reaches the end of the function or a `return` statement.
-typedef _ResumeFun
-    = WasmFunction<bool Function(_SuspendState, Object?, StackTrace?)>;
+typedef _ResumeFun =
+    WasmFunction<bool Function(_SuspendState, Object?, StackTrace?)>;
 
 // The CFG target index of the entry point to the `sync*` body.
 const int _initialTargetIndex = 0;
@@ -47,9 +47,9 @@ class _SuspendState {
   StackTrace? _currentExceptionStackTrace = null;
 
   _SuspendState(_SyncStarIterable iterable, _SuspendState? parent)
-      : _resume = iterable._resume,
-        _parent = parent,
-        _context = iterable._context;
+    : _resume = iterable._resume,
+      _parent = parent,
+      _context = iterable._context;
 }
 
 /// An [Iterable] returned from a `sync*` function.
@@ -94,7 +94,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
   T get current => _current as T;
 
   _SyncStarIterator(_SyncStarIterable iterable)
-      : _state = _SuspendState(iterable, null) {
+    : _state = _SuspendState(iterable, null) {
     _state._iterator = this;
   }
 
@@ -130,8 +130,11 @@ class _SyncStarIterator<T> implements Iterator<T> {
 
       try {
         // Resume current sync* method in order to move to the next value.
-        final bool hasMore =
-            _state._resume.call(_state, pendingException, pendingStackTrace);
+        final bool hasMore = _state._resume.call(
+          _state,
+          pendingException,
+          pendingStackTrace,
+        );
         pendingException = null;
         pendingStackTrace = null;
         if (!hasMore) {

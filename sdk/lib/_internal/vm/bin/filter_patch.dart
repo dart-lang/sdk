@@ -15,39 +15,71 @@ base class _FilterImpl extends NativeFieldWrapperClass1
 
 base class _ZLibInflateFilter extends _FilterImpl {
   _ZLibInflateFilter(
-      bool gzip, int windowBits, List<int>? dictionary, bool raw) {
+    bool gzip,
+    int windowBits,
+    List<int>? dictionary,
+    bool raw,
+  ) {
     _init(gzip, windowBits, dictionary, raw);
   }
   @pragma("vm:external-name", "Filter_CreateZLibInflate")
   external void _init(
-      bool gzip, int windowBits, List<int>? dictionary, bool raw);
+    bool gzip,
+    int windowBits,
+    List<int>? dictionary,
+    bool raw,
+  );
 }
 
 base class _ZLibDeflateFilter extends _FilterImpl {
-  _ZLibDeflateFilter(bool gzip, int level, int windowBits, int memLevel,
-      int strategy, List<int>? dictionary, bool raw) {
+  _ZLibDeflateFilter(
+    bool gzip,
+    int level,
+    int windowBits,
+    int memLevel,
+    int strategy,
+    List<int>? dictionary,
+    bool raw,
+  ) {
     _init(gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   }
   @pragma("vm:external-name", "Filter_CreateZLibDeflate")
-  external void _init(bool gzip, int level, int windowBits, int memLevel,
-      int strategy, List<int>? dictionary, bool raw);
+  external void _init(
+    bool gzip,
+    int level,
+    int windowBits,
+    int memLevel,
+    int strategy,
+    List<int>? dictionary,
+    bool raw,
+  );
 }
 
 @patch
 class RawZLibFilter {
   @patch
   static RawZLibFilter _makeZLibDeflateFilter(
-          bool gzip,
-          int level,
-          int windowBits,
-          int memLevel,
-          int strategy,
-          List<int>? dictionary,
-          bool raw) =>
-      new _ZLibDeflateFilter(
-          gzip, level, windowBits, memLevel, strategy, dictionary, raw);
+    bool gzip,
+    int level,
+    int windowBits,
+    int memLevel,
+    int strategy,
+    List<int>? dictionary,
+    bool raw,
+  ) => new _ZLibDeflateFilter(
+    gzip,
+    level,
+    windowBits,
+    memLevel,
+    strategy,
+    dictionary,
+    raw,
+  );
   @patch
   static RawZLibFilter _makeZLibInflateFilter(
-          bool gzip, int windowBits, List<int>? dictionary, bool raw) =>
-      new _ZLibInflateFilter(gzip, windowBits, dictionary, raw);
+    bool gzip,
+    int windowBits,
+    List<int>? dictionary,
+    bool raw,
+  ) => new _ZLibInflateFilter(gzip, windowBits, dictionary, raw);
 }

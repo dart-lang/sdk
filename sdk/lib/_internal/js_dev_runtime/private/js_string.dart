@@ -25,8 +25,10 @@ final class JSString extends Interceptor
   }
 
   @notNull
-  Iterable<Match> allMatches(@nullCheck String string,
-      [@nullCheck int start = 0]) {
+  Iterable<Match> allMatches(
+    @nullCheck String string, [
+    @nullCheck int start = 0,
+  ]) {
     final len = string.length;
     if (0 > start || start > len) {
       throw RangeError.range(start, 0, len);
@@ -73,22 +75,30 @@ final class JSString extends Interceptor
   }
 
   @notNull
-  String splitMapJoin(Pattern from,
-      {String Function(Match)? onMatch, String Function(String)? onNonMatch}) {
+  String splitMapJoin(
+    Pattern from, {
+    String Function(Match)? onMatch,
+    String Function(String)? onNonMatch,
+  }) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
   @notNull
-  String replaceFirst(Pattern from, @nullCheck String to,
-      [@nullCheck int startIndex = 0]) {
+  String replaceFirst(
+    Pattern from,
+    @nullCheck String to, [
+    @nullCheck int startIndex = 0,
+  ]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     return stringReplaceFirstUnchecked(this, from, to, startIndex);
   }
 
   @notNull
   String replaceFirstMapped(
-      Pattern from, @nullCheck String replace(Match match),
-      [@nullCheck int startIndex = 0]) {
+    Pattern from,
+    @nullCheck String replace(Match match), [
+    @nullCheck int startIndex = 0,
+  ]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     return stringReplaceFirstMappedUnchecked(this, from, replace, startIndex);
   }
@@ -107,7 +117,10 @@ final class JSString extends Interceptor
 
   @notNull
   String replaceRange(
-      @nullCheck int start, int? end, @nullCheck String replacement) {
+    @nullCheck int start,
+    int? end,
+    @nullCheck String replacement,
+  ) {
     var e = RangeError.checkValidRange(start, end, this.length);
     return stringReplaceRangeUnchecked(this, start, e, replacement);
   }
@@ -433,8 +446,8 @@ final class JSString extends Interceptor
     return this == other
         ? 0
         : JS<bool>('!', r'# < #', this, other)
-            ? -1
-            : 1;
+        ? -1
+        : 1;
   }
 
   // Note: if you change this, also change the function [S].

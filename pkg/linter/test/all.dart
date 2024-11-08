@@ -15,7 +15,6 @@ import 'mocks.dart';
 import 'pubspec_test.dart' as pubspec;
 import 'rule_test.dart' as rule;
 import 'rules/all.dart' as rules;
-import 'unmocked_sdk_rule_test.dart' as unmocked_sdk_rule;
 import 'utils_test.dart' as utils;
 import 'validate_incompatible_rules_test.dart' as validate_incompatible_rules;
 import 'validate_no_rule_description_references_test.dart'
@@ -41,7 +40,6 @@ void main() {
   pubspec.main();
   rule.main();
   rules.main();
-  unmocked_sdk_rule.main();
   utils.main();
   validate_incompatible_rules.main();
   validate_no_rule_description_references.main();

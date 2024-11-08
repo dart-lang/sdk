@@ -28,9 +28,10 @@ import 'dart:typed_data' show Endian, Uint8List, Uint16List;
 // These are the additional parts of this patch library:
 part 'bigint_patch.dart';
 
-String _symbolToString(Symbol symbol) => symbol is PrivateSymbol
-    ? PrivateSymbol.getName(symbol)
-    : _symbol_dev.Symbol.getName(symbol as _symbol_dev.Symbol);
+String _symbolToString(Symbol symbol) =>
+    symbol is PrivateSymbol
+        ? PrivateSymbol.getName(symbol)
+        : _symbol_dev.Symbol.getName(symbol as _symbol_dev.Symbol);
 
 @patch
 int identityHashCode(Object? object) {
@@ -78,8 +79,11 @@ class Null {
 @patch
 class Function {
   @patch
-  static apply(Function function, List<dynamic>? positionalArguments,
-      [Map<Symbol, dynamic>? namedArguments]) {
+  static apply(
+    Function function,
+    List<dynamic>? positionalArguments, [
+    Map<Symbol, dynamic>? namedArguments,
+  ]) {
     // Whether positionalArguments needs to be copied to ensure
     // dcall doesn't modify the original list of positional arguments
     // (currently only true when named arguments are provided too).
@@ -104,7 +108,8 @@ class Function {
   }
 
   static Map<String, dynamic> _toMangledNames(
-      Map<Symbol, dynamic> namedArguments) {
+    Map<Symbol, dynamic> namedArguments,
+  ) {
     Map<String, dynamic> result = {};
     namedArguments.forEach((symbol, value) {
       result[_symbolToString(symbol)] = value;
@@ -131,9 +136,10 @@ class Expando<T extends Object> {
         object is String ||
         object is Record) {
       throw ArgumentError.value(
-          object,
-          "Expandos are not allowed on strings, numbers, booleans, records,"
-          " or null");
+        object,
+        "Expandos are not allowed on strings, numbers, booleans, records,"
+        " or null",
+      );
     }
     return JS('', '#.get(#)', _jsWeakMap, object);
   }
@@ -144,9 +150,10 @@ class Expando<T extends Object> {
     // we can rely on the underlying behavior for all non-Records.
     if (object is Record) {
       throw ArgumentError.value(
-          object,
-          "Expandos are not allowed on strings, numbers, booleans, records,"
-          " or null");
+        object,
+        "Expandos are not allowed on strings, numbers, booleans, records,"
+        " or null",
+      );
     }
     JS('void', '#.set(#, #)', _jsWeakMap, object, value);
   }
@@ -165,7 +172,7 @@ class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
   final Object _weakRef;
 
   _WeakReferenceWrapper(T object)
-      : _weakRef = JS('!', 'new WeakRef(#)', object);
+    : _weakRef = JS('!', 'new WeakRef(#)', object);
 
   T? get target {
     var target = JS<T?>('', '#.deref()', _weakRef);
@@ -188,8 +195,11 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
   final Object _registry;
 
   _FinalizationRegistryWrapper(void Function(T) callback)
-      : _registry = JS('!', 'new FinalizationRegistry(#)',
-            wrapZoneUnaryCallback(callback));
+    : _registry = JS(
+        '!',
+        'new FinalizationRegistry(#)',
+        wrapZoneUnaryCallback(callback),
+      );
 
   void attach(Object value, T token, {Object? detach}) {
     if (detach != null) {
@@ -207,8 +217,11 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
 @patch
 class int {
   @patch
-  static int parse(String source,
-      {int? radix, @deprecated int onError(String source)?}) {
+  static int parse(
+    String source, {
+    int? radix,
+    @deprecated int onError(String source)?,
+  }) {
     var value = tryParse(source, radix: radix);
     if (value != null) return value;
     if (onError != null) return onError(source);
@@ -224,15 +237,18 @@ class int {
   factory int.fromEnvironment(String name, {int defaultValue = 0}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
-        'int.fromEnvironment can only be used as a const constructor');
+      'int.fromEnvironment can only be used as a const constructor',
+    );
   }
 }
 
 @patch
 class double {
   @patch
-  static double parse(String source,
-      [@deprecated double onError(String source)?]) {
+  static double parse(
+    String source, [
+    @deprecated double onError(String source)?,
+  ]) {
     var value = tryParse(source);
     if (value != null) return value;
     if (onError != null) return onError(source);
@@ -349,8 +365,11 @@ class List<E> {
   }
 
   @patch
-  factory List.generate(int length, E generator(int index),
-      {bool growable = true}) {
+  factory List.generate(
+    int length,
+    E generator(int index), {
+    bool growable = true,
+  }) {
     final result = JSArray<E>.of(JS('', 'new Array(#)', length));
     if (!growable) JSArray.markFixedList(result);
     for (int i = 0; i < length; i++) {
@@ -383,8 +402,11 @@ class Map<K, V> {
 @patch
 class String {
   @patch
-  factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]) {
+  factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]) {
     RangeError.checkNotNegative(start, "start");
     if (end != null) {
       var maxLength = end - start;
@@ -413,11 +435,15 @@ class String {
   factory String.fromEnvironment(String name, {String defaultValue = ""}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
-        'String.fromEnvironment can only be used as a const constructor');
+      'String.fromEnvironment can only be used as a const constructor',
+    );
   }
 
   static String _stringFromJSArray(
-      JSArray<int> list, int start, int? endOrNull) {
+    JSArray<int> list,
+    int start,
+    int? endOrNull,
+  ) {
     int len = list.length;
     int end = endOrNull ?? len;
     if (start > 0 || end < len) {
@@ -431,7 +457,10 @@ class String {
   }
 
   static String _stringFromUint8List(
-      NativeUint8List charCodes, int start, int? endOrNull) {
+    NativeUint8List charCodes,
+    int start,
+    int? endOrNull,
+  ) {
     int len = charCodes.length;
     if (start >= len) return "";
     int end = (endOrNull == null || endOrNull > len) ? len : endOrNull;
@@ -439,7 +468,10 @@ class String {
   }
 
   static String _stringFromIterable(
-      Iterable<int> charCodes, int start, int? end) {
+    Iterable<int> charCodes,
+    int start,
+    int? end,
+  ) {
     if (end != null) charCodes = charCodes.take(end);
     if (start > 0) charCodes = charCodes.skip(start);
     final list = List<int>.of(charCodes);
@@ -454,14 +486,16 @@ class bool {
   factory bool.fromEnvironment(String name, {bool defaultValue = false}) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
-        'bool.fromEnvironment can only be used as a const constructor');
+      'bool.fromEnvironment can only be used as a const constructor',
+    );
   }
 
   @patch
   factory bool.hasEnvironment(String name) {
     // ignore: const_constructor_throws_exception
     throw UnsupportedError(
-        'bool.hasEnvironment can only be used as a const constructor');
+      'bool.hasEnvironment can only be used as a const constructor',
+    );
   }
 
   @patch
@@ -481,16 +515,19 @@ class bool {
 @patch
 class RegExp {
   @patch
-  factory RegExp(String source,
-          {bool multiLine = false,
-          bool caseSensitive = true,
-          bool unicode = false,
-          bool dotAll = false}) =>
-      JSSyntaxRegExp(source,
-          multiLine: multiLine,
-          caseSensitive: caseSensitive,
-          unicode: unicode,
-          dotAll: dotAll);
+  factory RegExp(
+    String source, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool unicode = false,
+    bool dotAll = false,
+  }) => JSSyntaxRegExp(
+    source,
+    multiLine: multiLine,
+    caseSensitive: caseSensitive,
+    unicode: unicode,
+    dotAll: dotAll,
+  );
 
   @patch
   static String escape(String text) => quoteStringForRegExp(text);
@@ -581,24 +618,28 @@ class NoSuchMethodError {
   final Map<Symbol, dynamic>? _namedArguments;
   final Invocation? _invocation;
 
-  NoSuchMethodError(Object? receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments)
-      : _receiver = receiver,
-        _memberName = memberName,
-        _arguments = positionalArguments,
-        _namedArguments = namedArguments,
-        _invocation = null;
+  NoSuchMethodError(
+    Object? receiver,
+    Symbol memberName,
+    List? positionalArguments,
+    Map<Symbol, dynamic>? namedArguments,
+  ) : _receiver = receiver,
+      _memberName = memberName,
+      _arguments = positionalArguments,
+      _namedArguments = namedArguments,
+      _invocation = null;
 
   @patch
   factory NoSuchMethodError.withInvocation(
-          Object? receiver, Invocation invocation) =
-      NoSuchMethodError._withInvocation;
+    Object? receiver,
+    Invocation invocation,
+  ) = NoSuchMethodError._withInvocation;
 
   NoSuchMethodError._withInvocation(this._receiver, Invocation invocation)
-      : _memberName = invocation.memberName,
-        _arguments = invocation.positionalArguments,
-        _namedArguments = invocation.namedArguments,
-        _invocation = invocation;
+    : _memberName = invocation.memberName,
+      _arguments = invocation.positionalArguments,
+      _namedArguments = invocation.namedArguments,
+      _invocation = invocation;
 
   @patch
   String toString() {
@@ -626,9 +667,10 @@ class NoSuchMethodError {
     String receiverText = Error.safeToString(_receiver);
     String actualParameters = '$sb';
     var invocation = _invocation;
-    var failureMessage = (invocation is dart.InvocationImpl)
-        ? invocation.failureMessage
-        : 'method not found';
+    var failureMessage =
+        (invocation is dart.InvocationImpl)
+            ? invocation.failureMessage
+            : 'method not found';
     return "NoSuchMethodError: '$memberName'\n"
         "$failureMessage\n"
         "Receiver: ${receiverText}\n"
@@ -661,8 +703,12 @@ class _Uri {
   /// It encodes all characters in the string [text] except for those
   /// that appear in [canonicalTable], and returns the escaped string.
   @patch
-  static String _uriEncode(List<int> canonicalTable, String text,
-      Encoding encoding, bool spaceToPlus) {
+  static String _uriEncode(
+    List<int> canonicalTable,
+    String text,
+    Encoding encoding,
+    bool spaceToPlus,
+  ) {
     if (identical(encoding, utf8) && _needsNoEncoding.hasMatch(text)) {
       return text;
     }
@@ -690,7 +736,8 @@ class _Uri {
 
   @patch
   static String _makeQueryFromParameters(
-      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
+    Map<String, dynamic /*String?|Iterable<String>*/> queryParameters,
+  ) {
     return _makeQueryFromParametersDefault(queryParameters);
   }
 }

@@ -244,7 +244,11 @@ extension WasmArrayExt<T> on WasmArray<T> {
   external T operator [](int index);
   external void operator []=(int index, T value);
   external void copy(
-      int offset, WasmArray<T> source, int sourceOffset, int size);
+    int offset,
+    WasmArray<T> source,
+    int sourceOffset,
+    int size,
+  );
   external void fill(int offset, T value, int size);
   external WasmArray<T> clone();
 }

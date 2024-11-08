@@ -38,8 +38,9 @@ bool _weakNullSafetyWarnings = false;
 void weakNullSafetyWarnings(bool showWarnings) {
   if (showWarnings && JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     _throwInvalidFlagError(
-        'Null safety violations cannot be shown as warnings when running with '
-        'sound null safety.');
+      'Null safety violations cannot be shown as warnings when running with '
+      'sound null safety.',
+    );
   }
 
   _weakNullSafetyWarnings = showWarnings;
@@ -55,14 +56,16 @@ bool _weakNullSafetyErrors = false;
 void weakNullSafetyErrors(bool showErrors) {
   if (showErrors && JS_GET_FLAG('SOUND_NULL_SAFETY')) {
     _throwInvalidFlagError(
-        'Null safety violations are already thrown as errors when running with '
-        'sound null safety.');
+      'Null safety violations are already thrown as errors when running with '
+      'sound null safety.',
+    );
   }
 
   if (showErrors && _weakNullSafetyWarnings) {
     _throwInvalidFlagError(
-        'Null safety violations can be shown as warnings or thrown as errors, '
-        'not both.');
+      'Null safety violations can be shown as warnings or thrown as errors, '
+      'not both.',
+    );
   }
 
   _weakNullSafetyErrors = showErrors;
@@ -91,8 +94,10 @@ bool _nativeNonNullAsserts = JS_GET_FLAG('SOUND_NULL_SAFETY');
 /// added in sound null-safety only.
 void nativeNonNullAsserts(bool enable) {
   if (enable && !JS_GET_FLAG('SOUND_NULL_SAFETY')) {
-    _warn('Enabling `native-null-assertions` is only supported when sound null '
-        'safety is enabled.');
+    _warn(
+      'Enabling `native-null-assertions` is only supported when sound null '
+      'safety is enabled.',
+    );
   }
   // This value is only read from `checkNativeNonNull` and calls to that method
   // are only generated in sound null safe code.
@@ -126,9 +131,10 @@ final _functionRti = JS('', r'Symbol("$signatureRti")');
 @NoReifyGeneric()
 F assertInterop<F extends Function?>(F f) {
   assert(
-      f is LegacyJavaScriptObject ||
-          !JS<bool>('bool', '# instanceof #.Function', f, global_),
-      'Dart function requires `allowInterop` to be passed to JavaScript.');
+    f is LegacyJavaScriptObject ||
+        !JS<bool>('bool', '# instanceof #.Function', f, global_),
+    'Dart function requires `allowInterop` to be passed to JavaScript.',
+  );
   return f;
 }
 
@@ -156,7 +162,11 @@ bool isDartFunction(Object? obj) {
   // property would be `undefined`, and therefore `!== null` would be true,
   // which is not what we want.
   return JS<bool>(
-      '!', '#[#] != null', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
+    '!',
+    '#[#] != null',
+    obj,
+    JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+  );
 }
 
 Expando<Function> _assertInteropExpando = Expando<Function>();
@@ -168,24 +178,27 @@ F tearoffInterop<F extends Function?>(F f, bool checkReturnType) {
   if (f is! LegacyJavaScriptObject || f == null) return f;
   var ret = _assertInteropExpando[f];
   if (ret == null) {
-    ret = checkReturnType
-        ? JS(
-            '',
-            'function (...arguments) {'
-                ' var args = arguments.map(#);'
-                ' return #(#.apply(this, args));'
-                '}',
-            assertInterop,
-            jsInteropNullCheck,
-            f)
-        : JS(
-            '',
-            'function (...arguments) {'
-                ' var args = arguments.map(#);'
-                ' return #.apply(this, args);'
-                '}',
-            assertInterop,
-            f);
+    ret =
+        checkReturnType
+            ? JS(
+              '',
+              'function (...arguments) {'
+                  ' var args = arguments.map(#);'
+                  ' return #(#.apply(this, args));'
+                  '}',
+              assertInterop,
+              jsInteropNullCheck,
+              f,
+            )
+            : JS(
+              '',
+              'function (...arguments) {'
+                  ' var args = arguments.map(#);'
+                  ' return #.apply(this, args);'
+                  '}',
+              assertInterop,
+              f,
+            );
     _assertInteropExpando[f] = ret;
   }
   // Suppress a cast back to F.
@@ -198,8 +211,10 @@ void _warn(arg) {
 
 void _nullWarn(message) {
   if (_weakNullSafetyWarnings) {
-    _warn('$message\n'
-        'This will become a failure when runtime null safety is enabled.');
+    _warn(
+      '$message\n'
+      'This will become a failure when runtime null safety is enabled.',
+    );
   } else if (_weakNullSafetyErrors) {
     throw TypeErrorImpl(message);
   }
@@ -226,9 +241,15 @@ void _nullWarnOnType(type) {
 }
 
 void checkTypeBound(
-    @notNull Object type, @notNull Object bound, @notNull String name) {
-  var validSubtype = rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
-      JS<rti.Rti>('!', '#', type), JS<rti.Rti>('!', '#', bound));
+  @notNull Object type,
+  @notNull Object bound,
+  @notNull String name,
+) {
+  var validSubtype = rti.isSubtype(
+    JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
+    JS<rti.Rti>('!', '#', type),
+    JS<rti.Rti>('!', '#', bound),
+  );
   if (!validSubtype) {
     throwTypeError('type `$type` does not extend `$bound` of `$name`.');
   }

@@ -109,6 +109,7 @@ extension DynamicLibraryExtension on DynamicLibrary {
   /// perform a GC and a second isolate is blocked in a leaf call, then the
   /// first isolate will have to pause and wait until this leaf call returns.
   external F lookupFunction<T extends Function, F extends Function>(
-      String symbolName,
-      {bool isLeaf = false});
+    String symbolName, {
+    bool isLeaf = false,
+  });
 }

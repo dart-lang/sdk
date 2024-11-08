@@ -16,30 +16,28 @@ class LateError extends Error {
   /// Variable written while evaluating its initializer expression.
   @pragma("vm:entry-point")
   LateError.fieldADI(String fieldName)
-      : _message =
-            "Field '$fieldName' has been assigned during initialization.";
+    : _message = "Field '$fieldName' has been assigned during initialization.";
 
   /// Local variable written while evaluating its initializer expression.
   LateError.localADI(String localName)
-      : _message =
-            "Local '$localName' has been assigned during initialization.";
+    : _message = "Local '$localName' has been assigned during initialization.";
 
   /// Variable read before it was initialized.
   @pragma("vm:entry-point")
   LateError.fieldNI(String fieldName)
-      : _message = "Field '${fieldName}' has not been initialized.";
+    : _message = "Field '${fieldName}' has not been initialized.";
 
   /// Local variable read before it was initialized.
   LateError.localNI(String localName)
-      : _message = "Local '${localName}' has not been initialized.";
+    : _message = "Local '${localName}' has not been initialized.";
 
   /// Final variable written more than once.
   LateError.fieldAI(String fieldName)
-      : _message = "Field '${fieldName}' has already been initialized.";
+    : _message = "Field '${fieldName}' has already been initialized.";
 
   /// Final local variable written more than once.
   LateError.localAI(String localName)
-      : _message = "Local '${localName}' has already been initialized.";
+    : _message = "Local '${localName}' has already been initialized.";
 
   String toString() {
     var message = _message;

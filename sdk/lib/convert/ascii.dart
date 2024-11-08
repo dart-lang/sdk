@@ -58,9 +58,10 @@ final class AsciiCodec extends Encoding {
 
   AsciiEncoder get encoder => const AsciiEncoder();
 
-  AsciiDecoder get decoder => _allowInvalid
-      ? const AsciiDecoder(allowInvalid: true)
-      : const AsciiDecoder(allowInvalid: false);
+  AsciiDecoder get decoder =>
+      _allowInvalid
+          ? const AsciiDecoder(allowInvalid: true)
+          : const AsciiDecoder(allowInvalid: false);
 }
 
 // Superclass for [AsciiEncoder] and [Latin1Encoder].
@@ -83,7 +84,10 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
       var codeUnit = string.codeUnitAt(start + i);
       if ((codeUnit & ~_subsetMask) != 0) {
         throw ArgumentError.value(
-            string, "string", "Contains invalid characters.");
+          string,
+          "string",
+          "Contains invalid characters.",
+        );
       }
       result[i] = codeUnit;
     }
@@ -95,8 +99,10 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
   /// The converter works more efficiently if the given [sink] is a
   /// [ByteConversionSink].
   StringConversionSink startChunkedConversion(Sink<List<int>> sink) {
-    return _UnicodeSubsetEncoderSink(_subsetMask,
-        sink is ByteConversionSink ? sink : ByteConversionSink.from(sink));
+    return _UnicodeSubsetEncoderSink(
+      _subsetMask,
+      sink is ByteConversionSink ? sink : ByteConversionSink.from(sink),
+    );
   }
 
   // Override the base-class' bind, to provide a better type.
@@ -134,7 +140,8 @@ class _UnicodeSubsetEncoderSink extends StringConversionSink {
       var codeUnit = source.codeUnitAt(i);
       if ((codeUnit & ~_subsetMask) != 0) {
         throw ArgumentError(
-            "Source contains invalid character with code point: $codeUnit.");
+          "Source contains invalid character with code point: $codeUnit.",
+        );
       }
     }
     _sink.add(source.codeUnits.sublist(start, end));
@@ -228,7 +235,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// ```
 final class AsciiDecoder extends _UnicodeSubsetDecoder {
   const AsciiDecoder({bool allowInvalid = false})
-      : super(allowInvalid, _asciiMask);
+    : super(allowInvalid, _asciiMask);
 
   /// Starts a chunked conversion.
   ///

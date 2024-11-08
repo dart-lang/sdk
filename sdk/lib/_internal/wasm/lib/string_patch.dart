@@ -8,8 +8,11 @@ import "dart:_string";
 @patch
 class String {
   @patch
-  factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]) {
+  factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]) {
     RangeError.checkNotNegative(start, "start");
     if (end != null) {
       if (end < start) {
@@ -47,8 +50,10 @@ class String {
   }
 
   @patch
-  external const factory String.fromEnvironment(String name,
-      {String defaultValue = ""});
+  external const factory String.fromEnvironment(
+    String name, {
+    String defaultValue = "",
+  });
 }
 
 extension _StringExt on String {

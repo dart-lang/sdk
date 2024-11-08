@@ -70,10 +70,13 @@ gFn(Object closure, Object type, JSArray<Object> defaultTypeArgs) {
 /// resulting function is compatible with [fn] and the type can be set again
 /// safely.
 lazyFn(closure, Object Function() computeType) {
-  defineAccessor(closure, _runtimeType,
-      get: () => defineValue(closure, _runtimeType, computeType()),
-      set: (value) => defineValue(closure, _runtimeType, value),
-      configurable: true);
+  defineAccessor(
+    closure,
+    _runtimeType,
+    get: () => defineValue(closure, _runtimeType, computeType()),
+    set: (value) => defineValue(closure, _runtimeType, value),
+    configurable: true,
+  );
   return closure;
 }
 
@@ -92,17 +95,28 @@ Object getInterceptorForRti(obj) {
   } else {
     switch (JS<String>('!', 'typeof #', obj)) {
       case 'number':
-        classRef = JS('', 'Math.floor(#) == # ? # : #', obj, obj,
-            JS_CLASS_REF(JSInt), JS_CLASS_REF(JSNumNotInt));
+        classRef = JS(
+          '',
+          'Math.floor(#) == # ? # : #',
+          obj,
+          obj,
+          JS_CLASS_REF(JSInt),
+          JS_CLASS_REF(JSNumNotInt),
+        );
         break;
       case 'function':
-        var signature =
-            JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
-        classRef = signature != null
-            ? JS_CLASS_REF(Function)
-            // Dart functions should always be tagged with a signature, assume
-            // this must be a JavaScript function.
-            : JS_CLASS_REF(JavaScriptFunction);
+        var signature = JS(
+          '',
+          '#[#]',
+          obj,
+          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+        );
+        classRef =
+            signature != null
+                ? JS_CLASS_REF(Function)
+                // Dart functions should always be tagged with a signature,
+                // assume this must be a JavaScript function.
+                : JS_CLASS_REF(JavaScriptFunction);
         break;
       default:
         // The interceptors for native JavaScript types like bool, string, etc.
@@ -145,15 +159,25 @@ getReifiedType(obj) {
       return TYPE_REF<LegacyJavaScriptObject>();
     case "function":
       // Dart functions are tagged with a signature.
-      var signature =
-          JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
+      var signature = JS(
+        '',
+        '#[#]',
+        obj,
+        JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+      );
       if (signature != null) return signature;
       return TYPE_REF<JavaScriptFunction>();
     case "undefined":
       return TYPE_REF<Null>();
     case "number":
-      return JS('', 'Math.floor(#) == # ? # : #', obj, obj, TYPE_REF<int>(),
-          TYPE_REF<double>());
+      return JS(
+        '',
+        'Math.floor(#) == # ? # : #',
+        obj,
+        obj,
+        TYPE_REF<int>(),
+        TYPE_REF<double>(),
+      );
     case "boolean":
       return TYPE_REF<bool>();
     case "string":
@@ -213,7 +237,11 @@ getModulePartMap(String name) => JS('', '#.get(#)', _loadedPartMaps, name);
 /// done from bootstapping scripts that set up the stack trace mapper.
 // TODO(39630): move these public facing APIs to a dedicated public interface.
 void trackLibraries(
-    String moduleName, Object libraries, Object parts, String? sourceMap) {
+  String moduleName,
+  Object libraries,
+  Object parts,
+  String? sourceMap,
+) {
   if (parts is String) {
     // Added for backwards compatibility.
     // package:build_web_compilers currently invokes this without [parts]

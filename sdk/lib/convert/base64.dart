@@ -156,8 +156,14 @@ final class Base64Codec extends Codec<List<int>, String> {
         // There was padding in the source. Check that it is valid:
         // * result length a multiple of four
         // * one or two padding characters at the end.
-        _checkPadding(source, firstPaddingSourceIndex, end, firstPadding,
-            paddingCount, buffer.length);
+        _checkPadding(
+          source,
+          firstPaddingSourceIndex,
+          end,
+          firstPadding,
+          paddingCount,
+          buffer.length,
+        );
       } else {
         // Length of last chunk (1-4 chars) in the encoding.
         var endLength = ((buffer.length - 1) % 4) + 1;
@@ -175,8 +181,14 @@ final class Base64Codec extends Codec<List<int>, String> {
     // Original was already normalized, only check padding.
     var length = end - start;
     if (firstPadding >= 0) {
-      _checkPadding(source, firstPaddingSourceIndex, end, firstPadding,
-          paddingCount, length);
+      _checkPadding(
+        source,
+        firstPaddingSourceIndex,
+        end,
+        firstPadding,
+        paddingCount,
+        length,
+      );
     } else {
       // No padding given, so add some if needed it.
       var endLength = length % 4;
@@ -192,24 +204,35 @@ final class Base64Codec extends Codec<List<int>, String> {
     return source;
   }
 
-  static void _checkPadding(String source, int sourceIndex, int sourceEnd,
-      int firstPadding, int paddingCount, int length) {
+  static void _checkPadding(
+    String source,
+    int sourceIndex,
+    int sourceEnd,
+    int firstPadding,
+    int paddingCount,
+    int length,
+  ) {
     if (length % 4 != 0) {
       throw FormatException(
-          "Invalid base64 padding, padded length must be multiple of four, "
-          "is $length",
-          source,
-          sourceEnd);
+        "Invalid base64 padding, padded length must be multiple of four, "
+        "is $length",
+        source,
+        sourceEnd,
+      );
     }
     if (firstPadding + paddingCount != length) {
       throw FormatException(
-          "Invalid base64 padding, '=' not at the end", source, sourceIndex);
+        "Invalid base64 padding, '=' not at the end",
+        source,
+        sourceIndex,
+      );
     }
     if (paddingCount > 2) {
       throw FormatException(
-          "Invalid base64 padding, more than two '=' characters",
-          source,
-          sourceIndex);
+        "Invalid base64 padding, more than two '=' characters",
+        source,
+        sourceIndex,
+      );
     }
   }
 }
@@ -281,7 +304,7 @@ class _Base64Encoder {
   final String _alphabet;
 
   _Base64Encoder(bool urlSafe)
-      : _alphabet = urlSafe ? _base64UrlAlphabet : _base64Alphabet;
+    : _alphabet = urlSafe ? _base64UrlAlphabet : _base64Alphabet;
 
   /// Encode count and bits into a value to be stored in [_state].
   static int _encodeState(int count, int bits) {
@@ -324,16 +347,32 @@ class _Base64Encoder {
       bufferLength += 4; // Room for padding.
     }
     var output = createBuffer(bufferLength);
-    _state =
-        encodeChunk(_alphabet, bytes, start, end, isLast, output, 0, _state);
+    _state = encodeChunk(
+      _alphabet,
+      bytes,
+      start,
+      end,
+      isLast,
+      output,
+      0,
+      _state,
+    );
     if (bufferLength > 0) return output;
     // If the input plus the data in state is still less than three bytes,
     // there may not be any output.
     return null;
   }
 
-  static int encodeChunk(String alphabet, List<int> bytes, int start, int end,
-      bool isLast, Uint8List output, int outputIndex, int state) {
+  static int encodeChunk(
+    String alphabet,
+    List<int> bytes,
+    int start,
+    int end,
+    bool isLast,
+    Uint8List output,
+    int outputIndex,
+    int state,
+  ) {
     var bits = _stateBits(state);
     // Count number of missing bytes in three-byte chunk.
     var expectedChars = 3 - _stateCount(state);
@@ -372,7 +411,9 @@ class _Base64Encoder {
       i++;
     }
     throw ArgumentError.value(
-        bytes, "Not a byte value at index $i: 0x${bytes[i].toRadixString(16)}");
+      bytes,
+      "Not a byte value at index $i: 0x${bytes[i].toRadixString(16)}",
+    );
   }
 
   /// Writes a final encoded four-character chunk.
@@ -380,7 +421,12 @@ class _Base64Encoder {
   /// Only used when the [_state] contains a partial (1 or 2 byte)
   /// input.
   static void writeFinalChunk(
-      String alphabet, Uint8List output, int outputIndex, int count, int bits) {
+    String alphabet,
+    Uint8List output,
+    int outputIndex,
+    int count,
+    int bits,
+  ) {
     assert(count > 0);
     if (count == 1) {
       output[outputIndex++] = alphabet.codeUnitAt((bits >> 2) & _sixBitMask);
@@ -439,7 +485,7 @@ class _AsciiBase64EncoderSink extends _Base64EncoderSink {
   final _Base64Encoder _encoder;
 
   _AsciiBase64EncoderSink(this._sink, bool urlSafe)
-      : _encoder = _BufferCachingBase64Encoder(urlSafe);
+    : _encoder = _BufferCachingBase64Encoder(urlSafe);
 
   void _add(List<int> source, int start, int end, bool isLast) {
     var buffer = _encoder.encode(source, start, end, isLast);
@@ -458,7 +504,7 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
   final _Base64Encoder _encoder;
 
   _Utf8Base64EncoderSink(this._sink, bool urlSafe)
-      : _encoder = _Base64Encoder(urlSafe);
+    : _encoder = _Base64Encoder(urlSafe);
 
   void _add(List<int> source, int start, int end, bool isLast) {
     var buffer = _encoder.encode(source, start, end, isLast);
@@ -637,7 +683,10 @@ class _Base64Decoder {
     }
     if (_state > 0) {
       throw FormatException(
-          "Invalid length, must be multiple of four", input, end);
+        "Invalid length, must be multiple of four",
+        input,
+        end,
+      );
     }
     _state = _encodePaddingState(0);
   }
@@ -647,8 +696,14 @@ class _Base64Decoder {
   /// Includes the state returned by a previous call in the decoding.
   /// Writes the decoding to [output] at [outIndex], and there must
   /// be room in the output.
-  static int decodeChunk(String input, int start, int end, Uint8List output,
-      int outIndex, int state) {
+  static int decodeChunk(
+    String input,
+    int start,
+    int end,
+    Uint8List output,
+    int outIndex,
+    int state,
+  ) {
     assert(!_hasSeenPadding(state));
     const asciiMask = 127;
     const asciiMax = 127;
@@ -722,7 +777,11 @@ class _Base64Decoder {
   ///
   /// Includes room for the characters in [state], and handles padding correctly.
   static Uint8List _allocateBuffer(
-      String input, int start, int end, int state) {
+    String input,
+    int start,
+    int end,
+    int state,
+  ) {
     assert(state >= 0);
     var paddingStart = _trimPaddingChars(input, start, end);
     var length = _stateCount(state) + (paddingStart - start);

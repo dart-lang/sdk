@@ -76,9 +76,10 @@ extension DoubleToExternRef on double? {
 }
 
 extension StringToExternRef on String? {
-  WasmExternRef? get toExternRef => this == null
-      ? WasmExternRef.nullRef
-      : jsStringFromDartString(this!).toExternRef;
+  WasmExternRef? get toExternRef =>
+      this == null
+          ? WasmExternRef.nullRef
+          : jsStringFromDartString(this!).toExternRef;
 }
 
 extension ListOfObjectToExternRef on List<Object?>? {
@@ -195,8 +196,9 @@ bool isJSDataView(WasmExternRef? o) =>
 bool isJSArray(WasmExternRef? o) => JS<bool>("o => o instanceof Array", o);
 
 bool isJSWrappedDartFunction(WasmExternRef? o) => JS<bool>(
-    "o => typeof o === 'function' && o[jsWrappedDartFunctionSymbol] === true",
-    o);
+  "o => typeof o === 'function' && o[jsWrappedDartFunctionSymbol] === true",
+  o,
+);
 
 bool isJSObject(WasmExternRef? o) => JS<bool>("o => o instanceof Object", o);
 
@@ -241,7 +243,8 @@ external WasmExternRef jsInt8ArrayFromDartInt8List(Int8List l);
 external WasmExternRef jsUint8ArrayFromDartUint8List(Uint8List l);
 
 external WasmExternRef jsUint8ClampedArrayFromDartUint8ClampedList(
-    Uint8ClampedList l);
+  Uint8ClampedList l,
+);
 
 external WasmExternRef jsInt16ArrayFromDartInt16List(Int16List l);
 
@@ -273,15 +276,21 @@ WasmExternRef? newArrayFromLengthRaw(int length) =>
 WasmExternRef? globalThisRaw() => JS<WasmExternRef?>('() => globalThis');
 
 WasmExternRef? callConstructorVarArgsRaw(
-        WasmExternRef? o, WasmExternRef? args) =>
-    // Apply bind to the constructor. We pass `null` as the first argument
-    // to `bind.apply` because this is `bind`'s unused context
-    // argument(`new` will explicitly create a new context).
-    JS<WasmExternRef?>("""(constructor, args) => {
+  WasmExternRef? o,
+  WasmExternRef? args,
+) =>
+// Apply bind to the constructor. We pass `null` as the first argument
+// to `bind.apply` because this is `bind`'s unused context
+// argument(`new` will explicitly create a new context).
+JS<WasmExternRef?>(
+  """(constructor, args) => {
       const factoryFunction = constructor.bind.apply(
           constructor, [null, ...args]);
       return new factoryFunction();
-    }""", o, args);
+    }""",
+  o,
+  args,
+);
 
 bool hasPropertyRaw(WasmExternRef? o, WasmExternRef? p) =>
     JS<bool>("(o, p) => p in o", o, p);
@@ -290,12 +299,16 @@ WasmExternRef? getPropertyRaw(WasmExternRef? o, WasmExternRef? p) =>
     JS<WasmExternRef?>("(o, p) => o[p]", o, p);
 
 WasmExternRef? setPropertyRaw(
-        WasmExternRef? o, WasmExternRef? p, WasmExternRef? v) =>
-    JS<WasmExternRef?>("(o, p, v) => o[p] = v", o, p, v);
+  WasmExternRef? o,
+  WasmExternRef? p,
+  WasmExternRef? v,
+) => JS<WasmExternRef?>("(o, p, v) => o[p] = v", o, p, v);
 
 WasmExternRef? callMethodVarArgsRaw(
-        WasmExternRef? o, WasmExternRef? method, WasmExternRef? args) =>
-    JS<WasmExternRef?>("(o, m, a) => o[m].apply(o, a)", o, method, args);
+  WasmExternRef? o,
+  WasmExternRef? method,
+  WasmExternRef? args,
+) => JS<WasmExternRef?>("(o, m, a) => o[m].apply(o, a)", o, method, args);
 
 String typeof(WasmExternRef? object) =>
     JSStringImpl(JS<WasmExternRef?>("o => typeof o", object));
@@ -303,9 +316,11 @@ String typeof(WasmExternRef? object) =>
 String stringify(WasmExternRef? object) =>
     JSStringImpl(JS<WasmExternRef?>("o => String(o)", object));
 
-void promiseThen(WasmExternRef? promise, WasmExternRef? successFunc,
-        WasmExternRef? failureFunc) =>
-    JS<void>("(p, s, f) => p.then(s, f)", promise, successFunc, failureFunc);
+void promiseThen(
+  WasmExternRef? promise,
+  WasmExternRef? successFunc,
+  WasmExternRef? failureFunc,
+) => JS<void>("(p, s, f) => p.then(s, f)", promise, successFunc, failureFunc);
 
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
@@ -317,8 +332,10 @@ final Map<Function, JSValue> functionToJSWrapper = Map.identity();
 
 WasmExternRef? jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
   ByteData byteData = ByteData.view(buffer);
-  WasmExternRef? dataView =
-      jsDataViewFromDartByteData(byteData, byteData.lengthInBytes);
+  WasmExternRef? dataView = jsDataViewFromDartByteData(
+    byteData,
+    byteData.lengthInBytes,
+  );
   return getPropertyRaw(dataView, 'buffer'.toExternRef);
 }
 
@@ -361,8 +378,10 @@ WasmExternRef? jsifyRaw(Object? o) {
     if (o is js_types.JSArrayBufferImpl) return o.toExternRef;
     return jsArrayBufferFromDartByteBuffer(o);
   } else if (o is Function) {
-    assert(functionToJSWrapper.containsKey(o),
-        'Must call `allowInterop` on functions before they flow to JS');
+    assert(
+      functionToJSWrapper.containsKey(o),
+      'Must call `allowInterop` on functions before they flow to JS',
+    );
     return functionToJSWrapper[o]!.toExternRef;
   } else {
     return jsObjectFromDartObject(o);
@@ -405,7 +424,8 @@ class ExternRefType {
 /// should be updated as well.
 int externRefType(WasmExternRef? ref) {
   if (ref.isNull) return ExternRefType.null_;
-  final val = JS<WasmI32>('''
+  final val =
+      JS<WasmI32>('''
   o => {
     if (o === undefined) return 1;
     var type = typeof o;
@@ -448,8 +468,8 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     ExternRefType.array => toDartList(ref),
     ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromJSArray(ref),
     ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromJSArray(ref),
-    ExternRefType.uint8ClampedArray =>
-      js_types.JSUint8ClampedArrayImpl.fromJSArray(ref),
+    ExternRefType.uint8ClampedArray => js_types
+        .JSUint8ClampedArrayImpl.fromJSArray(ref),
     ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromJSArray(ref),
     ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromJSArray(ref),
     ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromJSArray(ref),
@@ -458,16 +478,17 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromJSArray(ref),
     ExternRefType.arrayBuffer => js_types.JSArrayBufferImpl.fromRef(ref),
     ExternRefType.dataView => js_types.JSDataViewImpl.fromRef(ref),
-    ExternRefType.unknown => isJSWrappedDartFunction(ref)
-        ? unwrapJSWrappedDartFunction(ref)
-        : isWasmGCStruct(ref)
-            ? jsObjectToDartObject(ref)
-            : JSValue(ref),
+    ExternRefType.unknown =>
+      isJSWrappedDartFunction(ref)
+          ? unwrapJSWrappedDartFunction(ref)
+          : isWasmGCStruct(ref)
+          ? jsObjectToDartObject(ref)
+          : JSValue(ref),
     _ => () {
-        // Assert that we've handled everything in the range.
-        assert(refType! >= 0 && refType >= ExternRefType.unknown);
-        throw 'Unhandled dartifyRaw type case: $refType';
-      }()
+      // Assert that we've handled everything in the range.
+      assert(refType! >= 0 && refType >= ExternRefType.unknown);
+      throw 'Unhandled dartifyRaw type case: $refType';
+    }(),
   };
 }
 
@@ -508,9 +529,12 @@ Float64List toDartFloat64List(WasmExternRef? ref) =>
         as Float64List;
 
 ByteBuffer toDartByteBuffer(WasmExternRef? ref) =>
-    toDartByteData(callConstructorVarArgsRaw(
-            getConstructorString('DataView'), [JSValue(ref)].toExternRef))
-        .buffer;
+    toDartByteData(
+      callConstructorVarArgsRaw(
+        getConstructorString('DataView'),
+        [JSValue(ref)].toExternRef,
+      ),
+    ).buffer;
 
 ByteData toDartByteData(WasmExternRef? ref) {
   int length = byteLength(ref).toInt();
@@ -522,7 +546,9 @@ ByteData toDartByteData(WasmExternRef? ref) {
 }
 
 List<double> jsFloatTypedArrayToDartFloatTypedData(
-    WasmExternRef? ref, List<double> makeTypedData(int size)) {
+  WasmExternRef? ref,
+  List<double> makeTypedData(int size),
+) {
   int length = objectLength(ref);
   List<double> list = makeTypedData(length);
   for (int i = 0; i < length; i++) {
@@ -532,7 +558,9 @@ List<double> jsFloatTypedArrayToDartFloatTypedData(
 }
 
 List<int> jsIntTypedArrayToDartIntTypedData(
-    WasmExternRef? ref, List<int> makeTypedData(int size)) {
+  WasmExternRef? ref,
+  List<int> makeTypedData(int size),
+) {
   int length = objectLength(ref);
   List<int> list = makeTypedData(length);
   for (int i = 0; i < length; i++) {
@@ -551,10 +579,14 @@ JSArray<T> toJSArray<T extends JSAny?>(List<T> list) {
 }
 
 List<JSAny?> toDartListJSAny(WasmExternRef? ref) => List<JSAny?>.generate(
-    objectLength(ref), (int n) => JSValue(objectReadIndex(ref, n)) as JSAny?);
+  objectLength(ref),
+  (int n) => JSValue(objectReadIndex(ref, n)) as JSAny?,
+);
 
 List<Object?> toDartList(WasmExternRef? ref) => List<Object?>.generate(
-    objectLength(ref), (int n) => dartifyRaw(objectReadIndex(ref, n)));
+  objectLength(ref),
+  (int n) => dartifyRaw(objectReadIndex(ref, n)),
+);
 
 // These two trivial helpers are needed to work around an issue with tearing off
 // functions that take / return [WasmExternRef].
@@ -580,36 +612,39 @@ WasmExternRef? getConstructorRaw(String name) =>
 ///   2) The enclosing procedure has a body with a single statement, and that
 ///      statement is just the `StaticInvocation` of [JS] itself.
 ///   3) All of the arguments to [JS] are `VariableGet`s.
-external T JS<T>(String codeTemplate,
-    [arg0,
-    arg1,
-    arg2,
-    arg3,
-    arg4,
-    arg5,
-    arg6,
-    arg7,
-    arg8,
-    arg9,
-    arg10,
-    arg11,
-    arg12,
-    arg13,
-    arg14,
-    arg51,
-    arg16,
-    arg17,
-    arg18,
-    arg19]);
+external T JS<T>(
+  String codeTemplate, [
+  arg0,
+  arg1,
+  arg2,
+  arg3,
+  arg4,
+  arg5,
+  arg6,
+  arg7,
+  arg8,
+  arg9,
+  arg10,
+  arg11,
+  arg12,
+  arg13,
+  arg14,
+  arg51,
+  arg16,
+  arg17,
+  arg18,
+  arg19,
+]);
 
 /// Methods used by the wasm runtime.
 @pragma("wasm:export", "\$listLength")
 WasmI32 _listLength(WasmExternRef? ref) =>
-    unsafeCastOpaque<List>(unsafeCast<WasmExternRef>(ref).internalize())
-        .length
-        .toWasmI32();
+    unsafeCastOpaque<List>(
+      unsafeCast<WasmExternRef>(ref).internalize(),
+    ).length.toWasmI32();
 
 @pragma("wasm:export", "\$listRead")
-WasmExternRef? _listRead(WasmExternRef? ref, WasmI32 index) =>
-    jsifyRaw(unsafeCastOpaque<List>(
-        unsafeCast<WasmExternRef>(ref).internalize())[index.toIntSigned()]);
+WasmExternRef? _listRead(WasmExternRef? ref, WasmI32 index) => jsifyRaw(
+  unsafeCastOpaque<List>(unsafeCast<WasmExternRef>(ref).internalize())[index
+      .toIntSigned()],
+);

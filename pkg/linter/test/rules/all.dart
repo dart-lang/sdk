@@ -288,7 +288,6 @@ import 'unnecessary_to_list_in_spreads_test.dart'
 import 'unreachable_from_main_test.dart' as unreachable_from_main;
 import 'unrelated_type_equality_checks_test.dart'
     as unrelated_type_equality_checks;
-import 'unsafe_html_test.dart' as unsafe_html;
 import 'use_build_context_synchronously_test.dart'
     as use_build_context_synchronously;
 import 'use_colored_box_test.dart' as use_colored_box;
@@ -530,7 +529,6 @@ void main() {
   unnecessary_to_list_in_spreads.main();
   unreachable_from_main.main();
   unrelated_type_equality_checks.main();
-  unsafe_html.main();
   use_build_context_synchronously.main();
   use_colored_box.main();
   use_decorated_box.main();

@@ -110,8 +110,10 @@ abstract interface class InternetAddress {
   /// path.
   /// If [type] is omitted, [address] must be either a numeric IPv4 or IPv6
   /// address and the type is inferred from the format.
-  external factory InternetAddress(String address,
-      {@Since("2.8") InternetAddressType? type});
+  external factory InternetAddress(
+    String address, {
+    @Since("2.8") InternetAddressType? type,
+  });
 
   /// Creates a new [InternetAddress] from the provided raw address bytes.
   ///
@@ -125,8 +127,10 @@ abstract interface class InternetAddress {
   /// If [type] is omitted, the [rawAddress] must have a length of either 4 or
   /// 16, in which case the type defaults to [InternetAddressType.IPv4] or
   /// [InternetAddressType.IPv6] respectively.
-  external factory InternetAddress.fromRawAddress(Uint8List rawAddress,
-      {@Since("2.8") InternetAddressType? type});
+  external factory InternetAddress.fromRawAddress(
+    Uint8List rawAddress, {
+    @Since("2.8") InternetAddressType? type,
+  });
 
   /// Performs a reverse DNS lookup on this [address]
   ///
@@ -145,15 +149,19 @@ abstract interface class InternetAddress {
   /// [InternetAddressType.IPv6] it will only lookup addresses of the
   /// specified type. The order of the list can, and most likely will,
   /// change over time.
-  external static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type = InternetAddressType.any});
+  external static Future<List<InternetAddress>> lookup(
+    String host, {
+    InternetAddressType type = InternetAddressType.any,
+  });
 
   /// Clones the given [address] with the new [host].
   ///
   /// The [address] must be an [InternetAddress] that was created with one
   /// of the static methods of this class.
   external static InternetAddress _cloneWithNewHost(
-      InternetAddress address, String host);
+    InternetAddress address,
+    String host,
+  );
 
   /// Attempts to parse [address] as a numeric address.
   ///
@@ -194,10 +202,11 @@ abstract interface class NetworkInterface {
   /// If [type] is either [InternetAddressType.IPv4] or
   /// [InternetAddressType.IPv6] it will only lookup addresses of the
   /// specified type. Default is [InternetAddressType.any].
-  external static Future<List<NetworkInterface>> list(
-      {bool includeLoopback = false,
-      bool includeLinkLocal = false,
-      InternetAddressType type = InternetAddressType.any});
+  external static Future<List<NetworkInterface>> list({
+    bool includeLoopback = false,
+    bool includeLinkLocal = false,
+    InternetAddressType type = InternetAddressType.any,
+  });
 }
 
 /// A listening socket.
@@ -243,8 +252,13 @@ abstract interface class RawServerSocket implements Stream<RawSocket> {
   /// other isolates are bound to the port, then the incoming connections will be
   /// distributed among all the bound [RawServerSocket]s. Connections can be
   /// distributed over multiple isolates this way.
-  external static Future<RawServerSocket> bind(address, int port,
-      {int backlog = 0, bool v6Only = false, bool shared = false});
+  external static Future<RawServerSocket> bind(
+    address,
+    int port, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool shared = false,
+  });
 
   /// The port used by this socket.
   int get port;
@@ -302,19 +316,39 @@ abstract interface class ServerSocket implements ServerSocketBase<Socket> {
   /// isolate or other isolates are bound to the port, then the incoming
   /// connections will be distributed among all the bound server sockets.
   /// Connections can be distributed over multiple isolates this way.
-  static Future<ServerSocket> bind(address, int port,
-      {int backlog = 0, bool v6Only = false, bool shared = false}) {
+  static Future<ServerSocket> bind(
+    address,
+    int port, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool shared = false,
+  }) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
-      return ServerSocket._bind(address, port,
-          backlog: backlog, v6Only: v6Only, shared: shared);
+      return ServerSocket._bind(
+        address,
+        port,
+        backlog: backlog,
+        v6Only: v6Only,
+        shared: shared,
+      );
     }
-    return overrides.serverSocketBind(address, port,
-        backlog: backlog, v6Only: v6Only, shared: shared);
+    return overrides.serverSocketBind(
+      address,
+      port,
+      backlog: backlog,
+      v6Only: v6Only,
+      shared: shared,
+    );
   }
 
-  external static Future<ServerSocket> _bind(address, int port,
-      {int backlog = 0, bool v6Only = false, bool shared = false});
+  external static Future<ServerSocket> _bind(
+    address,
+    int port, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool shared = false,
+  });
 
   /// The port used by this socket.
   int get port;
@@ -521,7 +555,7 @@ class RawSocketEvent {
       'RawSocketEvent.read',
       'RawSocketEvent.write',
       'RawSocketEvent.readClosed',
-      'RawSocketEvent.closed'
+      'RawSocketEvent.closed',
     ][_value];
   }
 }
@@ -540,7 +574,7 @@ final class ConnectionTask<S> {
   final void Function() _onCancel;
 
   ConnectionTask._(Future<S> this.socket, void Function() onCancel)
-      : _onCancel = onCancel;
+    : _onCancel = onCancel;
 
   /// Create a `ConnectionTask` from an existing `Future<Socket>`.
   ///
@@ -559,8 +593,9 @@ final class ConnectionTask<S> {
   /// final response = await client.getUrl(serverUri);
   /// ```
   static ConnectionTask<T> fromSocket<T extends Socket>(
-          Future<T> socket, void Function() onCancel) =>
-      ConnectionTask<T>._(socket, onCancel);
+    Future<T> socket,
+    void Function() onCancel,
+  ) => ConnectionTask<T>._(socket, onCancel);
 
   /// Cancels the connection attempt.
   ///
@@ -618,14 +653,23 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// level timeout duration, a timeout may occur sooner than specified in
   /// [timeout]. On timeout, a [SocketException] is thrown and all ongoing
   /// connection attempts to [host] are cancelled.
-  external static Future<RawSocket> connect(host, int port,
-      {sourceAddress, int sourcePort = 0, Duration? timeout});
+  external static Future<RawSocket> connect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  });
 
   /// Like [connect], but returns a [Future] that completes with a
   /// [ConnectionTask] that can be cancelled if the [RawSocket] is no
   /// longer needed.
-  external static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
-      {sourceAddress, int sourcePort = 0});
+  external static Future<ConnectionTask<RawSocket>> startConnect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+  });
 
   /// The number of received and non-read bytes in the socket that can be read.
   int available();
@@ -701,8 +745,12 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   ///
   /// Unsupported on Android, Fuchsia, Windows.
   @Since("2.15")
-  int sendMessage(List<SocketControlMessage> controlMessages, List<int> data,
-      [int offset = 0, int? count]);
+  int sendMessage(
+    List<SocketControlMessage> controlMessages,
+    List<int> data, [
+    int offset = 0,
+    int? count,
+  ]);
 
   /// The port used by this socket.
   ///
@@ -802,38 +850,72 @@ abstract interface class Socket implements Stream<Uint8List>, IOSink {
   /// level timeout duration, a timeout may occur sooner than specified in
   /// [timeout]. On timeout, a [SocketException] is thrown and all ongoing
   /// connection attempts to [host] are cancelled.
-  static Future<Socket> connect(host, int port,
-      {sourceAddress, int sourcePort = 0, Duration? timeout}) {
+  static Future<Socket> connect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  }) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
-      return Socket._connect(host, port,
-          sourceAddress: sourceAddress,
-          sourcePort: sourcePort,
-          timeout: timeout);
+      return Socket._connect(
+        host,
+        port,
+        sourceAddress: sourceAddress,
+        sourcePort: sourcePort,
+        timeout: timeout,
+      );
     }
-    return overrides.socketConnect(host, port,
-        sourceAddress: sourceAddress, sourcePort: sourcePort, timeout: timeout);
+    return overrides.socketConnect(
+      host,
+      port,
+      sourceAddress: sourceAddress,
+      sourcePort: sourcePort,
+      timeout: timeout,
+    );
   }
 
   /// Like [connect], but returns a [Future] that completes with a
   /// [ConnectionTask] that can be cancelled if the [Socket] is no
   /// longer needed.
-  static Future<ConnectionTask<Socket>> startConnect(host, int port,
-      {sourceAddress, int sourcePort = 0}) {
+  static Future<ConnectionTask<Socket>> startConnect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+  }) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
-      return Socket._startConnect(host, port,
-          sourceAddress: sourceAddress, sourcePort: sourcePort);
+      return Socket._startConnect(
+        host,
+        port,
+        sourceAddress: sourceAddress,
+        sourcePort: sourcePort,
+      );
     }
-    return overrides.socketStartConnect(host, port,
-        sourceAddress: sourceAddress, sourcePort: sourcePort);
+    return overrides.socketStartConnect(
+      host,
+      port,
+      sourceAddress: sourceAddress,
+      sourcePort: sourcePort,
+    );
   }
 
-  external static Future<Socket> _connect(host, int port,
-      {sourceAddress, int sourcePort = 0, Duration? timeout});
+  external static Future<Socket> _connect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  });
 
-  external static Future<ConnectionTask<Socket>> _startConnect(host, int port,
-      {sourceAddress, int sourcePort = 0});
+  external static Future<ConnectionTask<Socket>> _startConnect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+  });
 
   Future<List<Object?>> _detachRaw();
 
@@ -929,7 +1011,8 @@ abstract interface class ResourceHandle {
 
   /// Creates wrapper around opened raw datagram socket.
   external factory ResourceHandle.fromRawDatagramSocket(
-      RawDatagramSocket socket);
+    RawDatagramSocket socket,
+  );
 
   /// Creates wrapper around current stdin.
   external factory ResourceHandle.fromStdin(Stdin stdin);
@@ -1025,7 +1108,8 @@ abstract interface class SocketControlMessage {
   /// This is used by the sender when it sends handles across the socket.
   /// Receiver can extract the handles from the message using [extractHandles].
   external factory SocketControlMessage.fromHandles(
-      List<ResourceHandle> handles);
+    List<ResourceHandle> handles,
+  );
 
   /// Extracts the list of handles embedded in this message.
   ///
@@ -1160,8 +1244,10 @@ abstract interface class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// interface to use.
   ///
   /// By default this value is `null`
-  @Deprecated("This property is not implemented. Use getRawOption and "
-      "setRawOption instead.")
+  @Deprecated(
+    "This property is not implemented. Use getRawOption and "
+    "setRawOption instead.",
+  )
   NetworkInterface? multicastInterface;
 
   /// Whether IPv4 broadcast is enabled.
@@ -1193,8 +1279,13 @@ abstract interface class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// The [reusePort] specifies whether the port can be reused.
   ///
   /// The [ttl] sets `time to live` of a datagram sent on the socket.
-  external static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress = true, bool reusePort = false, int ttl = 1});
+  external static Future<RawDatagramSocket> bind(
+    host,
+    int port, {
+    bool reuseAddress = true,
+    bool reusePort = false,
+    int ttl = 1,
+  });
 
   /// The port used by this socket.
   int get port;
@@ -1296,10 +1387,10 @@ class SocketException implements IOException {
 
   /// Creates an exception reporting that a socket was used after it was closed.
   const SocketException.closed()
-      : message = 'Socket has been closed',
-        osError = null,
-        address = null,
-        port = null;
+    : message = 'Socket has been closed',
+      osError = null,
+      address = null,
+      port = null;
 
   String toString() {
     StringBuffer sb = new StringBuffer();

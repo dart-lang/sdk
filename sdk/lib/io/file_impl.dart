@@ -49,21 +49,30 @@ class _FileStream extends Stream<List<int>> {
   _FileStream.forStdin() : _position = 0;
 
   _FileStream.forRandomAccessFile(RandomAccessFile f)
-      : _position = 0,
-        _openedFile = f;
+    : _position = 0,
+      _openedFile = f;
 
-  StreamSubscription<Uint8List> listen(void onData(Uint8List event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<Uint8List> listen(
+    void onData(Uint8List event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
     _controller = new StreamController<Uint8List>(
-        sync: true,
-        onListen: _start,
-        onResume: _readBlock,
-        onCancel: () {
-          _unsubscribed = true;
-          return _closeFile();
-        });
-    return _controller.stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+      sync: true,
+      onListen: _start,
+      onResume: _readBlock,
+      onCancel: () {
+        _unsubscribed = true;
+        return _closeFile();
+      },
+    );
+    return _controller.stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 
   Future _closeFile() {
@@ -103,37 +112,40 @@ class _FileStream extends Stream<List<int>> {
         return;
       }
     }
-    _openedFile!.read(readBytes).then((block) {
-      _readInProgress = false;
-      if (_unsubscribed) {
-        _closeFile();
-        return;
-      }
-      _position += block.length;
-      // read() may return less than `readBytes` if `_openFile` is a pipe or
-      // terminal or if a signal is received. Only a empty return indicates
-      // that the write side of the pipe is closed or that we are at the end
-      // of a file.
-      // See https://man7.org/linux/man-pages/man2/read.2.html
-      if (block.length == 0 || (_end != null && _position == _end)) {
-        _atEnd = true;
-      }
-      if (!_atEnd && !_controller.isPaused) {
-        _readBlock();
-      }
-      if (block.length > 0) {
-        _controller.add(block);
-      }
-      if (_atEnd) {
-        _closeFile();
-      }
-    }).catchError((e, s) {
-      if (!_unsubscribed) {
-        _controller.addError(e, s);
-        _closeFile();
-        _unsubscribed = true;
-      }
-    });
+    _openedFile!
+        .read(readBytes)
+        .then((block) {
+          _readInProgress = false;
+          if (_unsubscribed) {
+            _closeFile();
+            return;
+          }
+          _position += block.length;
+          // read() may return less than `readBytes` if `_openFile` is a pipe or
+          // terminal or if a signal is received. Only a empty return indicates
+          // that the write side of the pipe is closed or that we are at the end
+          // of a file.
+          // See https://man7.org/linux/man-pages/man2/read.2.html
+          if (block.length == 0 || (_end != null && _position == _end)) {
+            _atEnd = true;
+          }
+          if (!_atEnd && !_controller.isPaused) {
+            _readBlock();
+          }
+          if (block.length > 0) {
+            _controller.add(block);
+          }
+          if (_atEnd) {
+            _closeFile();
+          }
+        })
+        .catchError((e, s) {
+          if (!_unsubscribed) {
+            _controller.addError(e, s);
+            _closeFile();
+            _unsubscribed = true;
+          }
+        });
   }
 
   void _start() {
@@ -152,11 +164,16 @@ class _FileStream extends Stream<List<int>> {
 
     void onOpenFile(RandomAccessFile file) {
       if (_position > 0) {
-        file.setPosition(_position).then(onReady, onError: (e, s) {
-          _controller.addError(e, s);
-          _readInProgress = false;
-          _closeFile();
-        });
+        file
+            .setPosition(_position)
+            .then(
+              onReady,
+              onError: (e, s) {
+                _controller.addError(e, s);
+                _readInProgress = false;
+                _closeFile();
+              },
+            );
       } else {
         onReady(file);
       }
@@ -173,9 +190,9 @@ class _FileStream extends Stream<List<int>> {
     if (openedFile != null) {
       onOpenFile(openedFile);
     } else if (path != null) {
-      new File(path)
-          .open(mode: FileMode.read)
-          .then(onOpenFile, onError: openFailed);
+      new File(
+        path,
+      ).open(mode: FileMode.read).then(onOpenFile, onError: openFailed);
     } else {
       try {
         onOpenFile(_File._openStdioSync(0));
@@ -191,38 +208,45 @@ class _FileStreamConsumer implements StreamConsumer<List<int>> {
   Future<RandomAccessFile> _openFuture;
 
   _FileStreamConsumer(File file, FileMode mode)
-      : _file = file,
-        _openFuture = file.open(mode: mode);
+    : _file = file,
+      _openFuture = file.open(mode: mode);
 
   _FileStreamConsumer.fromStdio(int fd)
-      : _openFuture = new Future.value(_File._openStdioSync(fd));
+    : _openFuture = new Future.value(_File._openStdioSync(fd));
 
   _FileStreamConsumer.fromRandomAccessFile(RandomAccessFile f)
-      : _openFuture = Future.value(f);
+    : _openFuture = Future.value(f);
 
   Future<File?> addStream(Stream<List<int>> stream) {
     Completer<File?> completer = new Completer<File?>.sync();
-    _openFuture.then((openedFile) {
-      late StreamSubscription<List<int>> _subscription;
-      void error(e, StackTrace stackTrace) {
-        _subscription.cancel();
-        openedFile.close();
-        completer.completeError(e, stackTrace);
-      }
+    _openFuture
+        .then((openedFile) {
+          late StreamSubscription<List<int>> _subscription;
+          void error(e, StackTrace stackTrace) {
+            _subscription.cancel();
+            openedFile.close();
+            completer.completeError(e, stackTrace);
+          }
 
-      _subscription = stream.listen((d) {
-        _subscription.pause();
-        try {
-          openedFile
-              .writeFrom(d, 0, d.length)
-              .then((_) => _subscription.resume(), onError: error);
-        } catch (e, stackTrace) {
-          error(e, stackTrace);
-        }
-      }, onDone: () {
-        completer.complete(_file);
-      }, onError: error, cancelOnError: true);
-    }).catchError(completer.completeError);
+          _subscription = stream.listen(
+            (d) {
+              _subscription.pause();
+              try {
+                openedFile
+                    .writeFrom(d, 0, d.length)
+                    .then((_) => _subscription.resume(), onError: error);
+              } catch (e, stackTrace) {
+                error(e, stackTrace);
+              }
+            },
+            onDone: () {
+              completer.complete(_file);
+            },
+            onError: error,
+            cancelOnError: true,
+          );
+        })
+        .catchError(completer.completeError);
     return completer.future;
   }
 
@@ -236,13 +260,14 @@ class _File extends FileSystemEntity implements File {
   final Uint8List _rawPath;
 
   _File(String path)
-      : _path = _checkNotNull(path, "path"),
-        _rawPath = FileSystemEntity._toUtf8Array(path);
+    : _path = _checkNotNull(path, "path"),
+      _rawPath = FileSystemEntity._toUtf8Array(path);
 
   _File.fromRawPath(Uint8List rawPath)
-      : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(
-            _checkNotNull(rawPath, "rawPath")),
-        _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
+    : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(
+        _checkNotNull(rawPath, "rawPath"),
+      ),
+      _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
 
   String get path => _path;
 
@@ -259,11 +284,12 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<bool> exists() {
-    return _dispatchWithNamespace(_IOService.fileExists, [null, _rawPath])
-        .then((response) {
-      _checkForErrorResponse(response, "Cannot check existence", path);
-      return response as bool;
-    });
+    return _dispatchWithNamespace(_IOService.fileExists, [null, _rawPath]).then(
+      (response) {
+        _checkForErrorResponse(response, "Cannot check existence", path);
+        return response as bool;
+      },
+    );
   }
 
   external static _exists(_Namespace namespace, Uint8List rawPath);
@@ -280,19 +306,30 @@ class _File extends FileSystemEntity implements File {
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
-        .then((_) => _dispatchWithNamespace(
-            _IOService.fileCreate, [null, _rawPath, exclusive]))
+        .then(
+          (_) => _dispatchWithNamespace(_IOService.fileCreate, [
+            null,
+            _rawPath,
+            exclusive,
+          ]),
+        )
         .then((response) {
-      _checkForErrorResponse(response, "Cannot create file", path);
-      return this;
-    });
+          _checkForErrorResponse(response, "Cannot create file", path);
+          return this;
+        });
   }
 
   external static _create(
-      _Namespace namespace, Uint8List rawPath, bool exclusive);
+    _Namespace namespace,
+    Uint8List rawPath,
+    bool exclusive,
+  );
 
   external static _createLink(
-      _Namespace namespace, Uint8List rawPath, String target);
+    _Namespace namespace,
+    Uint8List rawPath,
+    String target,
+  );
 
   external static List<dynamic> _createPipe(_Namespace namespace);
 
@@ -310,11 +347,12 @@ class _File extends FileSystemEntity implements File {
     if (recursive) {
       return new Directory(path).delete(recursive: true).then((_) => this);
     }
-    return _dispatchWithNamespace(_IOService.fileDelete, [null, _rawPath])
-        .then((response) {
-      _checkForErrorResponse(response, "Cannot delete file", path);
-      return this;
-    });
+    return _dispatchWithNamespace(_IOService.fileDelete, [null, _rawPath]).then(
+      (response) {
+        _checkForErrorResponse(response, "Cannot delete file", path);
+        return this;
+      },
+    );
   }
 
   external static _deleteNative(_Namespace namespace, Uint8List rawPath);
@@ -330,19 +368,31 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<File> rename(String newPath) {
-    return _dispatchWithNamespace(
-        _IOService.fileRename, [null, _rawPath, newPath]).then((response) {
+    return _dispatchWithNamespace(_IOService.fileRename, [
+      null,
+      _rawPath,
+      newPath,
+    ]).then((response) {
       _checkForErrorResponse(
-          response, "Cannot rename file to '$newPath'", path);
+        response,
+        "Cannot rename file to '$newPath'",
+        path,
+      );
       return new File(newPath);
     });
   }
 
   external static _rename(
-      _Namespace namespace, Uint8List oldPath, String newPath);
+    _Namespace namespace,
+    Uint8List oldPath,
+    String newPath,
+  );
 
   external static _renameLink(
-      _Namespace namespace, Uint8List oldPath, String newPath);
+    _Namespace namespace,
+    Uint8List oldPath,
+    String newPath,
+  );
 
   File renameSync(String newPath) {
     var result = _rename(_Namespace._namespace, _rawPath, newPath);
@@ -351,15 +401,21 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<File> copy(String newPath) {
-    return _dispatchWithNamespace(
-        _IOService.fileCopy, [null, _rawPath, newPath]).then((response) {
+    return _dispatchWithNamespace(_IOService.fileCopy, [
+      null,
+      _rawPath,
+      newPath,
+    ]).then((response) {
       _checkForErrorResponse(response, "Cannot copy file to '$newPath'", path);
       return new File(newPath);
     });
   }
 
   external static _copy(
-      _Namespace namespace, Uint8List oldPath, String newPath);
+    _Namespace namespace,
+    Uint8List oldPath,
+    String newPath,
+  );
 
   File copySync(String newPath) {
     var result = _copy(_Namespace._namespace, _rawPath, newPath);
@@ -374,18 +430,24 @@ class _File extends FileSystemEntity implements File {
         mode != FileMode.writeOnly &&
         mode != FileMode.writeOnlyAppend) {
       return new Future.error(
-          new ArgumentError('Invalid file mode for this operation'));
+        new ArgumentError('Invalid file mode for this operation'),
+      );
     }
-    return _dispatchWithNamespace(
-        _IOService.fileOpen, [null, _rawPath, mode._mode]).then((response) {
+    return _dispatchWithNamespace(_IOService.fileOpen, [
+      null,
+      _rawPath,
+      mode._mode,
+    ]).then((response) {
       _checkForErrorResponse(response, "Cannot open file", path);
       return _RandomAccessFile(response as int, path);
     });
   }
 
   Future<int> length() {
-    return _dispatchWithNamespace(
-        _IOService.fileLengthFromPath, [null, _rawPath]).then((response) {
+    return _dispatchWithNamespace(_IOService.fileLengthFromPath, [
+      null,
+      _rawPath,
+    ]).then((response) {
       _checkForErrorResponse(response, "Cannot retrieve length of file", path);
       return response as int;
     });
@@ -400,8 +462,10 @@ class _File extends FileSystemEntity implements File {
   }
 
   Future<DateTime> lastAccessed() {
-    return _dispatchWithNamespace(_IOService.fileLastAccessed, [null, _rawPath])
-        .then((response) {
+    return _dispatchWithNamespace(_IOService.fileLastAccessed, [
+      null,
+      _rawPath,
+    ]).then((response) {
       _checkForErrorResponse(response, "Cannot retrieve access time", path);
       return DateTime.fromMillisecondsSinceEpoch(response as int);
     });
@@ -417,31 +481,44 @@ class _File extends FileSystemEntity implements File {
 
   Future setLastAccessed(DateTime time) {
     int millis = time.millisecondsSinceEpoch;
-    return _dispatchWithNamespace(
-            _IOService.fileSetLastAccessed, [null, _rawPath, millis])
-        .then((response) {
+    return _dispatchWithNamespace(_IOService.fileSetLastAccessed, [
+      null,
+      _rawPath,
+      millis,
+    ]).then((response) {
       _checkForErrorResponse(response, "Cannot set access time", path);
       return null;
     });
   }
 
   external static _setLastAccessed(
-      _Namespace namespace, Uint8List rawPath, int millis);
+    _Namespace namespace,
+    Uint8List rawPath,
+    int millis,
+  );
 
   void setLastAccessedSync(DateTime time) {
     int millis = time.millisecondsSinceEpoch;
     var result = _setLastAccessed(_Namespace._namespace, _rawPath, millis);
     if (result is OSError) {
       throw new FileSystemException(
-          "Failed to set file access time", path, result);
+        "Failed to set file access time",
+        path,
+        result,
+      );
     }
   }
 
   Future<DateTime> lastModified() {
-    return _dispatchWithNamespace(_IOService.fileLastModified, [null, _rawPath])
-        .then((response) {
+    return _dispatchWithNamespace(_IOService.fileLastModified, [
+      null,
+      _rawPath,
+    ]).then((response) {
       _checkForErrorResponse(
-          response, "Cannot retrieve modification time", path);
+        response,
+        "Cannot retrieve modification time",
+        path,
+      );
       return DateTime.fromMillisecondsSinceEpoch(response as int);
     });
   }
@@ -456,23 +533,31 @@ class _File extends FileSystemEntity implements File {
 
   Future setLastModified(DateTime time) {
     int millis = time.millisecondsSinceEpoch;
-    return _dispatchWithNamespace(
-            _IOService.fileSetLastModified, [null, _rawPath, millis])
-        .then((response) {
+    return _dispatchWithNamespace(_IOService.fileSetLastModified, [
+      null,
+      _rawPath,
+      millis,
+    ]).then((response) {
       _checkForErrorResponse(response, "Cannot set modification time", path);
       return null;
     });
   }
 
   external static _setLastModified(
-      _Namespace namespace, Uint8List rawPath, int millis);
+    _Namespace namespace,
+    Uint8List rawPath,
+    int millis,
+  );
 
   void setLastModifiedSync(DateTime time) {
     int millis = time.millisecondsSinceEpoch;
     var result = _setLastModified(_Namespace._namespace, _rawPath, millis);
     if (result is OSError) {
       throw new FileSystemException(
-          "Failed to set file modification time", path, result);
+        "Failed to set file modification time",
+        path,
+        result,
+      );
     }
   }
 
@@ -540,8 +625,9 @@ class _File extends FileSystemEntity implements File {
       var offset = 0;
       var completer = new Completer<Uint8List>();
       void read() {
-        file.readInto(data, offset, min(offset + _maxReadSize, length)).then(
-            (readSize) {
+        file.readInto(data, offset, min(offset + _maxReadSize, length)).then((
+          readSize,
+        ) {
           if (readSize > 0) {
             offset += readSize;
             read();
@@ -560,13 +646,16 @@ class _File extends FileSystemEntity implements File {
     }
 
     return open().then((file) {
-      return file.length().then((length) {
-        if (length == 0) {
-          // May be character device, try to read it in chunks.
-          return readUnsized(file);
-        }
-        return readSized(file, length);
-      }).whenComplete(file.close);
+      return file
+          .length()
+          .then((length) {
+            if (length == 0) {
+              // May be character device, try to read it in chunks.
+              return readUnsized(file);
+            }
+            return readSized(file, length);
+          })
+          .whenComplete(file.close);
     });
   }
 
@@ -591,7 +680,10 @@ class _File extends FileSystemEntity implements File {
 
         while (offset < length) {
           final readSize = opened.readIntoSync(
-              data, offset, min(offset + _maxReadSize, length));
+            data,
+            offset,
+            min(offset + _maxReadSize, length),
+          );
           if (readSize == 0) {
             break;
           }
@@ -613,7 +705,9 @@ class _File extends FileSystemEntity implements File {
       return encoding.decode(bytes);
     } catch (_) {
       throw new FileSystemException(
-          "Failed to decode data using encoding '${encoding.name}'", path);
+        "Failed to decode data using encoding '${encoding.name}'",
+        path,
+      );
     }
   }
 
@@ -629,18 +723,27 @@ class _File extends FileSystemEntity implements File {
   List<String> readAsLinesSync({Encoding encoding = utf8}) =>
       const LineSplitter().convert(readAsStringSync(encoding: encoding));
 
-  Future<File> writeAsBytes(List<int> bytes,
-      {FileMode mode = FileMode.write, bool flush = false}) {
+  Future<File> writeAsBytes(
+    List<int> bytes, {
+    FileMode mode = FileMode.write,
+    bool flush = false,
+  }) {
     return open(mode: mode).then((file) {
-      return file.writeFrom(bytes, 0, bytes.length).then<File>((_) {
-        if (flush) return file.flush().then((_) => this);
-        return this;
-      }).whenComplete(file.close);
+      return file
+          .writeFrom(bytes, 0, bytes.length)
+          .then<File>((_) {
+            if (flush) return file.flush().then((_) => this);
+            return this;
+          })
+          .whenComplete(file.close);
     });
   }
 
-  void writeAsBytesSync(List<int> bytes,
-      {FileMode mode = FileMode.write, bool flush = false}) {
+  void writeAsBytesSync(
+    List<int> bytes, {
+    FileMode mode = FileMode.write,
+    bool flush = false,
+  }) {
     RandomAccessFile opened = openSync(mode: mode);
     try {
       opened.writeFromSync(bytes, 0, bytes.length);
@@ -650,10 +753,12 @@ class _File extends FileSystemEntity implements File {
     }
   }
 
-  Future<File> writeAsString(String contents,
-      {FileMode mode = FileMode.write,
-      Encoding encoding = utf8,
-      bool flush = false}) {
+  Future<File> writeAsString(
+    String contents, {
+    FileMode mode = FileMode.write,
+    Encoding encoding = utf8,
+    bool flush = false,
+  }) {
     try {
       return writeAsBytes(encoding.encode(contents), mode: mode, flush: flush);
     } catch (e) {
@@ -661,10 +766,12 @@ class _File extends FileSystemEntity implements File {
     }
   }
 
-  void writeAsStringSync(String contents,
-      {FileMode mode = FileMode.write,
-      Encoding encoding = utf8,
-      bool flush = false}) {
+  void writeAsStringSync(
+    String contents, {
+    FileMode mode = FileMode.write,
+    Encoding encoding = utf8,
+    bool flush = false,
+  }) {
     writeAsBytesSync(encoding.encode(contents), mode: mode, flush: flush);
   }
 
@@ -715,7 +822,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   @pragma("vm:entry-point")
   _RandomAccessFile(int pointer, this.path)
-      : _ops = new _RandomAccessFileOps(pointer) {
+    : _ops = new _RandomAccessFileOps(pointer) {
     _resourceInfo = new _FileResourceInfo(this);
     _maybeConnectHandler();
   }
@@ -734,16 +841,21 @@ class _RandomAccessFile implements RandomAccessFile {
       // observatory even if no files (or sockets for the socket ones) are
       // open.
       registerExtension(
-          'ext.dart.io.getOpenFiles', _FileResourceInfo.getOpenFiles);
-      registerExtension('ext.dart.io.getOpenFileById',
-          _FileResourceInfo.getOpenFileInfoMapByID);
+        'ext.dart.io.getOpenFiles',
+        _FileResourceInfo.getOpenFiles,
+      );
+      registerExtension(
+        'ext.dart.io.getOpenFileById',
+        _FileResourceInfo.getOpenFileInfoMapByID,
+      );
       _connectedResourceHandler = true;
     }
   }
 
   Future<void> close() {
-    return _dispatch(_IOService.fileClose, [null], markClosed: true)
-        .then((result) {
+    return _dispatch(_IOService.fileClose, [null], markClosed: true).then((
+      result,
+    ) {
       if (result == -1) {
         throw new FileSystemException("Cannot close file", path);
       }
@@ -860,8 +972,11 @@ class _RandomAccessFile implements RandomAccessFile {
     return result;
   }
 
-  Future<RandomAccessFile> writeFrom(List<int> buffer,
-      [int start = 0, int? end]) {
+  Future<RandomAccessFile> writeFrom(
+    List<int> buffer, [
+    int start = 0,
+    int? end,
+  ]) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(buffer, "buffer");
     ArgumentError.checkNotNull(start, "start");
@@ -897,18 +1012,26 @@ class _RandomAccessFile implements RandomAccessFile {
     if (end == start) {
       return;
     }
-    _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableByteData(buffer, start, end);
-    var result = _ops.writeFrom(bufferAndStart.buffer, bufferAndStart.start,
-        end - (start - bufferAndStart.start));
+    _BufferAndStart bufferAndStart = _ensureFastAndSerializableByteData(
+      buffer,
+      start,
+      end,
+    );
+    var result = _ops.writeFrom(
+      bufferAndStart.buffer,
+      bufferAndStart.start,
+      end - (start - bufferAndStart.start),
+    );
     if (result is OSError) {
       throw new FileSystemException("writeFrom failed", path, result);
     }
     _resourceInfo.addWrite(end - (start - bufferAndStart.start));
   }
 
-  Future<RandomAccessFile> writeString(String string,
-      {Encoding encoding = utf8}) {
+  Future<RandomAccessFile> writeString(
+    String string, {
+    Encoding encoding = utf8,
+  }) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(encoding, "encoding");
     var data = encoding.encode(string);
@@ -939,8 +1062,9 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> setPosition(int position) {
-    return _dispatch(_IOService.fileSetPosition, [null, position])
-        .then((response) {
+    return _dispatch(_IOService.fileSetPosition, [null, position]).then((
+      response,
+    ) {
       _checkForErrorResponse(response, "setPosition failed", path);
       return this;
     });
@@ -1008,8 +1132,11 @@ class _RandomAccessFile implements RandomAccessFile {
 
   int _fileLockValue(FileLock fl) => fl._type;
 
-  Future<RandomAccessFile> lock(
-      [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]) {
+  Future<RandomAccessFile> lock([
+    FileLock mode = FileLock.exclusive,
+    int start = 0,
+    int end = -1,
+  ]) {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(mode, "mode");
     ArgumentError.checkNotNull(start, "start");
@@ -1018,8 +1145,9 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new ArgumentError();
     }
     int lock = _fileLockValue(mode);
-    return _dispatch(_IOService.fileLock, [null, lock, start, end])
-        .then((response) {
+    return _dispatch(_IOService.fileLock, [null, lock, start, end]).then((
+      response,
+    ) {
       _checkForErrorResponse(response, 'lock failed', path);
       return this;
     });
@@ -1032,15 +1160,19 @@ class _RandomAccessFile implements RandomAccessFile {
     if (start == end) {
       throw new ArgumentError();
     }
-    return _dispatch(_IOService.fileLock, [null, lockUnlock, start, end])
-        .then((response) {
+    return _dispatch(_IOService.fileLock, [null, lockUnlock, start, end]).then((
+      response,
+    ) {
       _checkForErrorResponse(response, 'unlock failed', path);
       return this;
     });
   }
 
-  void lockSync(
-      [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]) {
+  void lockSync([
+    FileLock mode = FileLock.exclusive,
+    int start = 0,
+    int end = -1,
+  ]) {
     _checkAvailable();
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(mode, "mode");
@@ -1104,7 +1236,9 @@ class _RandomAccessFile implements RandomAccessFile {
   void _checkAvailable() {
     if (_asyncDispatched) {
       throw new FileSystemException(
-          "An async operation is currently pending", path);
+        "An async operation is currently pending",
+        path,
+      );
     }
     if (closed) {
       throw new FileSystemException("File closed", path);
@@ -1119,8 +1253,8 @@ class _ReadPipe extends _FileStream implements ReadPipe {
 class _WritePipe extends _IOSinkImpl implements WritePipe {
   RandomAccessFile _file;
   _WritePipe(file)
-      : this._file = file,
-        super(_FileStreamConsumer.fromRandomAccessFile(file), utf8);
+    : this._file = file,
+      super(_FileStreamConsumer.fromRandomAccessFile(file), utf8);
 }
 
 class _Pipe implements Pipe {
@@ -1135,19 +1269,25 @@ class _Pipe implements Pipe {
   static Future<_Pipe> create() {
     final completer = Completer<_Pipe>.sync();
 
-    _File._dispatchWithNamespace(_IOService.fileCreatePipe, [null])
-        .then((response) {
+    _File._dispatchWithNamespace(_IOService.fileCreatePipe, [null]).then((
+      response,
+    ) {
       final filePointers = (response as List).cast<int>();
-      completer.complete(_Pipe(
+      completer.complete(
+        _Pipe(
           _ReadPipe(_RandomAccessFile(filePointers[0], '')),
-          _WritePipe(_RandomAccessFile(filePointers[1], ''))));
+          _WritePipe(_RandomAccessFile(filePointers[1], '')),
+        ),
+      );
     });
     return completer.future;
   }
 
   factory _Pipe.createSync() {
     final filePointers = _File._createPipe(_Namespace._namespace);
-    return _Pipe(_ReadPipe(_RandomAccessFile(filePointers[0] as int, '')),
-        _WritePipe(_RandomAccessFile(filePointers[1] as int, '')));
+    return _Pipe(
+      _ReadPipe(_RandomAccessFile(filePointers[0] as int, '')),
+      _WritePipe(_RandomAccessFile(filePointers[1] as int, '')),
+    );
   }
 }

@@ -13,7 +13,8 @@ part of dart.convert;
 abstract interface class ChunkedConversionSink<T> implements Sink<T> {
   ChunkedConversionSink();
   factory ChunkedConversionSink.withCallback(
-      void callback(List<T> accumulated)) = _SimpleCallbackSink<T>;
+    void callback(List<T> accumulated),
+  ) = _SimpleCallbackSink<T>;
 
   /// Adds chunked data to this sink.
   ///
@@ -62,8 +63,8 @@ class _ConverterStreamEventSink<S, T> implements EventSink<S> {
   final Sink<S> _chunkedSink;
 
   _ConverterStreamEventSink(Converter<S, T> converter, EventSink<T> sink)
-      : _eventSink = sink,
-        _chunkedSink = converter.startChunkedConversion(sink);
+    : _eventSink = sink,
+      _chunkedSink = converter.startChunkedConversion(sink);
 
   void add(S o) {
     _chunkedSink.add(o);

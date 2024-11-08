@@ -11,15 +11,18 @@ part 'timer_patch.dart';
 @patch
 external void _trySetStackTrace(Object error, StackTrace stackTrace);
 
-typedef _AsyncResumeFun = WasmFunction<
-    void Function(
+typedef _AsyncResumeFun =
+    WasmFunction<
+      void Function(
         _AsyncSuspendState,
         // Value of the last `await`
         Object?,
         // If the last `await` threw an error, the error value
         Object?,
         // If the last `await` threw an error, the stack trace
-        StackTrace?)>;
+        StackTrace?,
+      )
+    >;
 
 @pragma("wasm:entry-point")
 class _AsyncSuspendState {
@@ -61,10 +64,10 @@ class _AsyncSuspendState {
 
   @pragma("wasm:entry-point")
   _AsyncSuspendState(this._resume, this._context, this._completer)
-      : _targetIndex = WasmI32.fromInt(0),
-        _currentException = null,
-        _currentExceptionStackTrace = null,
-        _currentReturnValue = null;
+    : _targetIndex = WasmI32.fromInt(0),
+      _currentException = null,
+      _currentExceptionStackTrace = null,
+      _currentReturnValue = null;
 }
 
 // Note: [_AsyncCompleter] is taken as an argument to be able to pass the type
@@ -72,9 +75,11 @@ class _AsyncSuspendState {
 // [_AsyncSuspendState]. Completer type parameter is passed to the completer's
 // future, which the outer function returns to the caller.
 @pragma("wasm:entry-point")
-_AsyncSuspendState _newAsyncSuspendState(_AsyncResumeFun resume,
-        WasmStructRef? context, _AsyncCompleter completer) =>
-    _AsyncSuspendState(resume, context, completer);
+_AsyncSuspendState _newAsyncSuspendState(
+  _AsyncResumeFun resume,
+  WasmStructRef? context,
+  _AsyncCompleter completer,
+) => _AsyncSuspendState(resume, context, completer);
 
 @pragma("wasm:entry-point")
 _AsyncCompleter<T> _makeAsyncCompleter<T>() => _AsyncCompleter<T>();
@@ -83,25 +88,35 @@ _AsyncCompleter<T> _makeAsyncCompleter<T>() => _AsyncCompleter<T>();
 void _awaitHelper(_AsyncSuspendState suspendState, Object? operand) {
   if (operand is! Future) {
     return scheduleMicrotask(
-        () => suspendState._resume.call(suspendState, operand, null, null));
+      () => suspendState._resume.call(suspendState, operand, null, null),
+    );
   }
-  operand.then((value) {
-    suspendState._resume.call(suspendState, value, null, null);
-  }, onError: (exception, stackTrace) {
-    suspendState._resume.call(suspendState, null, exception, stackTrace);
-  });
+  operand.then(
+    (value) {
+      suspendState._resume.call(suspendState, value, null, null);
+    },
+    onError: (exception, stackTrace) {
+      suspendState._resume.call(suspendState, null, exception, stackTrace);
+    },
+  );
 }
 
 @pragma("wasm:entry-point")
 void _awaitHelperWithTypeCheck<T>(
-    _AsyncSuspendState suspendState, Object? operand) {
+  _AsyncSuspendState suspendState,
+  Object? operand,
+) {
   if (operand is! Future<T>) {
     return scheduleMicrotask(
-        () => suspendState._resume.call(suspendState, operand, null, null));
+      () => suspendState._resume.call(suspendState, operand, null, null),
+    );
   }
-  operand.then((Object? value) {
-    suspendState._resume.call(suspendState, value, null, null);
-  }, onError: (exception, stackTrace) {
-    suspendState._resume.call(suspendState, null, exception, stackTrace);
-  });
+  operand.then(
+    (Object? value) {
+      suspendState._resume.call(suspendState, value, null, null);
+    },
+    onError: (exception, stackTrace) {
+      suspendState._resume.call(suspendState, null, exception, stackTrace);
+    },
+  );
 }

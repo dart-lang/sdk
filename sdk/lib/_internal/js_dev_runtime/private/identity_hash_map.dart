@@ -111,12 +111,17 @@ class _JSMapIterable<E> extends EfficientLengthIterable<E>
   @JSExportName('Symbol.iterator')
   _jsIterator() {
     var map = _map;
-    var iterator =
-        JS('', '# ? #.keys() : #.values()', _isKeys, map._map, map._map);
+    var iterator = JS(
+      '',
+      '# ? #.keys() : #.values()',
+      _isKeys,
+      map._map,
+      map._map,
+    );
     int modifications = map._modifications;
     return JS(
-        '',
-        '''{
+      '',
+      '''{
       next() {
         if (# != #) {
           throw #;
@@ -124,10 +129,11 @@ class _JSMapIterable<E> extends EfficientLengthIterable<E>
         return #.next();
       }
     }''',
-        modifications,
-        map._modifications,
-        ConcurrentModificationError(map),
-        iterator);
+      modifications,
+      map._modifications,
+      ConcurrentModificationError(map),
+      iterator,
+    );
   }
 
   Iterator<E> get iterator => DartIterator<E>(_jsIterator());

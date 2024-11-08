@@ -247,9 +247,9 @@ void _registerSignalHandler() {
     // Cannot register for signals on Windows or Fuchsia.
     return;
   }
-  _signalSubscription = signalWatch(ProcessSignal.sigquit).listen(
-    (_) => _toggleWebServer(),
-  );
+  _signalSubscription = signalWatch(
+    ProcessSignal.sigquit,
+  ).listen((_) => _toggleWebServer());
 }
 
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))

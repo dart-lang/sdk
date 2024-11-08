@@ -208,7 +208,12 @@ class _Random implements Random {
     const limit = 0x3FFFFFFF;
     if ((max <= 0) || ((max > limit) && (max > _POW2_32))) {
       throw new RangeError.range(
-          max, 1, _POW2_32, "max", "Must be positive and <= 2^32");
+        max,
+        1,
+        _POW2_32,
+        "max",
+        "Must be positive and <= 2^32",
+      );
     }
     if ((max & -max) == max) {
       // Fast case for powers of two.
@@ -282,7 +287,12 @@ class _SecureRandom implements Random {
 
   int nextInt(int max) {
     RangeError.checkValueInInterval(
-        max, 1, _POW2_32, "max", "Must be positive and <= 2^32");
+      max,
+      1,
+      _POW2_32,
+      "max",
+      "Must be positive and <= 2^32",
+    );
     final byteCount = ((max - 1).bitLength + 7) >> 3;
     if (byteCount == 0) {
       return 0; // Not random if max == 1.

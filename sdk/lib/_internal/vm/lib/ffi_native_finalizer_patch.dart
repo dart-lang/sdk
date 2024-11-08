@@ -105,9 +105,10 @@ final class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
 }
 
 @Native<Pointer<NativeFinalizerFunction> Function()>(
-    symbol: 'Pointer_asTypedListFinalizerCallbackPointer')
+  symbol: 'Pointer_asTypedListFinalizerCallbackPointer',
+)
 external Pointer<NativeFinalizerFunction>
-    _asTypedListFinalizerCallbackPointer();
+_asTypedListFinalizerCallbackPointer();
 
 final Pointer<NativeFinalizerFunction> _asTypedListFinalizerCallback =
     _asTypedListFinalizerCallbackPointer();

@@ -108,12 +108,13 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   ///
   /// If the stream is canceled before the controller needs data the
   /// [onResume] call might not be executed.
-  factory StreamController(
-      {void onListen()?,
-      void onPause()?,
-      void onResume()?,
-      FutureOr<void> onCancel()?,
-      bool sync = false}) {
+  factory StreamController({
+    void onListen()?,
+    void onPause()?,
+    void onResume()?,
+    FutureOr<void> onCancel()?,
+    bool sync = false,
+  }) {
     return sync
         ? _SyncStreamController<T>(onListen, onPause, onResume, onCancel)
         : _AsyncStreamController<T>(onListen, onPause, onResume, onCancel);
@@ -168,8 +169,11 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   /// and the [onCancel] is called when there are no longer any active listeners.
   /// If a listener is added again later, after the [onCancel] was called,
   /// the [onListen] will be called again.
-  factory StreamController.broadcast(
-      {void onListen()?, void onCancel()?, bool sync = false}) {
+  factory StreamController.broadcast({
+    void onListen()?,
+    void onCancel()?,
+    bool sync = false,
+  }) {
     return sync
         ? _SyncBroadcastStreamController<T>(onListen, onCancel)
         : _AsyncBroadcastStreamController<T>(onListen, onCancel);
@@ -399,8 +403,12 @@ abstract interface class SynchronousStreamController<T>
 }
 
 abstract class _StreamControllerLifecycle<T> {
-  StreamSubscription<T> _subscribe(void onData(T data)?, Function? onError,
-      void onDone()?, bool cancelOnError);
+  StreamSubscription<T> _subscribe(
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  );
   void _recordPause(StreamSubscription<T> subscription) {}
   void _recordResume(StreamSubscription<T> subscription) {}
   Future<void>? _recordCancel(StreamSubscription<T> subscription) => null;
@@ -584,7 +592,11 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     if (_isCanceled) return _Future.immediate(null);
     _StreamControllerAddStreamState<T> addState =
         _StreamControllerAddStreamState<T>(
-            this, _varData, source, cancelOnError ?? false);
+          this,
+          _varData,
+          source,
+          cancelOnError ?? false,
+        );
     _varData = addState;
     _state |= _STATE_ADDSTREAM;
     return addState.addStreamFuture;
@@ -673,13 +685,22 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
   // _StreamControllerLifeCycle interface
 
-  StreamSubscription<T> _subscribe(void onData(T data)?, Function? onError,
-      void onDone()?, bool cancelOnError) {
+  StreamSubscription<T> _subscribe(
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) {
     if (!_isInitialState) {
       throw StateError("Stream has already been listened to.");
     }
     _ControllerSubscription<T> subscription = _ControllerSubscription<T>(
-        this, onData, onError, onDone, cancelOnError);
+      this,
+      onData,
+      onError,
+      onDone,
+      cancelOnError,
+    );
 
     _PendingEvents<T>? pendingEvents = _pendingEvents;
     _state |= _STATE_SUBSCRIBED;
@@ -825,9 +846,12 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 
   _ControllerStream(this._controller);
 
-  StreamSubscription<T> _createSubscription(void onData(T data)?,
-          Function? onError, void onDone()?, bool cancelOnError) =>
-      _controller._subscribe(onData, onError, onDone, cancelOnError);
+  StreamSubscription<T> _createSubscription(
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) => _controller._subscribe(onData, onError, onDone, cancelOnError);
 
   // Override == and hashCode so that new streams returned by the same
   // controller are considered equal. The controller returns a new stream
@@ -845,9 +869,13 @@ class _ControllerStream<T> extends _StreamImpl<T> {
 class _ControllerSubscription<T> extends _BufferingStreamSubscription<T> {
   final _StreamControllerLifecycle<T> _controller;
 
-  _ControllerSubscription(this._controller, void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError)
-      : super(onData, onError, onDone, cancelOnError);
+  _ControllerSubscription(
+    this._controller,
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) : super(onData, onError, onDone, cancelOnError);
 
   Future<void>? _onCancel() {
     return _controller._recordCancel(this);
@@ -891,19 +919,22 @@ class _AddStreamState<T> {
   final StreamSubscription addSubscription;
 
   _AddStreamState(
-      _EventSink<T> controller, Stream<T> source, bool cancelOnError)
-      : addStreamFuture = _Future(),
-        addSubscription = source.listen(controller._add,
-            onError: cancelOnError
-                ? makeErrorHandler(controller)
-                : controller._addError,
-            onDone: controller._close,
-            cancelOnError: cancelOnError);
+    _EventSink<T> controller,
+    Stream<T> source,
+    bool cancelOnError,
+  ) : addStreamFuture = _Future(),
+      addSubscription = source.listen(
+        controller._add,
+        onError:
+            cancelOnError ? makeErrorHandler(controller) : controller._addError,
+        onDone: controller._close,
+        cancelOnError: cancelOnError,
+      );
 
   static makeErrorHandler(_EventSink controller) => (Object e, StackTrace s) {
-        controller._addError(e, s);
-        controller._close();
-      };
+    controller._addError(e, s);
+    controller._close();
+  };
 
   void pause() {
     addSubscription.pause();
@@ -942,9 +973,12 @@ class _StreamControllerAddStreamState<T> extends _AddStreamState<T> {
   @pragma('vm:entry-point')
   var _varData;
 
-  _StreamControllerAddStreamState(_StreamController<T> controller,
-      this._varData, Stream<T> source, bool cancelOnError)
-      : super(controller, source, cancelOnError) {
+  _StreamControllerAddStreamState(
+    _StreamController<T> controller,
+    this._varData,
+    Stream<T> source,
+    bool cancelOnError,
+  ) : super(controller, source, cancelOnError) {
     if (controller.isPaused) {
       addSubscription.pause();
     }

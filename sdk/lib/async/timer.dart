@@ -45,8 +45,10 @@ abstract interface class Timer {
       // be invoked in the root zone.
       return Zone.current.createTimer(duration, callback);
     }
-    return Zone.current
-        .createTimer(duration, Zone.current.bindCallbackGuarded(callback));
+    return Zone.current.createTimer(
+      duration,
+      Zone.current.bindCallbackGuarded(callback),
+    );
   }
 
   /// Creates a new repeating timer.
@@ -161,7 +163,11 @@ abstract interface class Timer {
   bool get isActive;
 
   external static Timer _createTimer(
-      Duration duration, void Function() callback);
+    Duration duration,
+    void Function() callback,
+  );
   external static Timer _createPeriodicTimer(
-      Duration duration, void callback(Timer timer));
+    Duration duration,
+    void callback(Timer timer),
+  );
 }

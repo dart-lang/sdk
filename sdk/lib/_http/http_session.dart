@@ -188,8 +188,10 @@ class _HttpSessionManager {
     var head = _head;
     if (head != null) {
       int seconds = DateTime.now().difference(head.lastSeen).inSeconds;
-      _timer =
-          Timer(Duration(seconds: _sessionTimeout - seconds), _timerTimeout);
+      _timer = Timer(
+        Duration(seconds: _sessionTimeout - seconds),
+        _timerTimeout,
+      );
     }
   }
 

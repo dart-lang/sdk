@@ -62,8 +62,9 @@ final class Pointer<T extends NativeType> implements SizedNativeType {
   /// [NativeCallable.isolateLocal] to create callbacks from any Dart function
   /// or closure.
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-      @DartRepresentationOf('T') Function f,
-      [Object? exceptionalReturn]);
+    @DartRepresentationOf('T') Function f, [
+    Object? exceptionalReturn,
+  ]);
 
   /// Access to the raw pointer value.
   /// On 32-bit systems, the upper 32-bits of the result are 0.
@@ -101,11 +102,13 @@ final class Array<T extends NativeType> extends _Compound {
   /// ```
   ///
   /// Do not invoke in normal code.
-  const factory Array(int dimension1,
-      [int dimension2,
-      int dimension3,
-      int dimension4,
-      int dimension5]) = _ArraySize<T>;
+  const factory Array(
+    int dimension1, [
+    int dimension2,
+    int dimension3,
+    int dimension4,
+    int dimension5,
+  ]) = _ArraySize<T>;
 
   /// Annotation to specify [Array] dimensions in [Struct]s.
   ///
@@ -233,16 +236,16 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimensions = null,
-        variableLength = false;
+  ]) : dimensions = null,
+       variableLength = false;
 
   const _ArraySize.multi(this.dimensions)
-      : dimension1 = null,
-        dimension2 = null,
-        dimension3 = null,
-        dimension4 = null,
-        dimension5 = null,
-        variableLength = false;
+    : dimension1 = null,
+      dimension2 = null,
+      dimension3 = null,
+      dimension4 = null,
+      dimension5 = null,
+      variableLength = false;
 
   // Inline arrays in C of length 0 are undefined.
   //
@@ -264,18 +267,18 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimension1 = variableLengthLength,
-        dimensions = null,
-        variableLength = true;
+  ]) : dimension1 = variableLengthLength,
+       dimensions = null,
+       variableLength = true;
 
   const _ArraySize.variableMulti(List<int> nestedDimensions)
-      : dimensions = nestedDimensions, // Should be `[0, ...nestedDimensions]`.
-        dimension1 = null,
-        dimension2 = null,
-        dimension3 = null,
-        dimension4 = null,
-        dimension5 = null,
-        variableLength = true;
+    : dimensions = nestedDimensions, // Should be `[0, ...nestedDimensions]`.
+      dimension1 = null,
+      dimension2 = null,
+      dimension3 = null,
+      dimension4 = null,
+      dimension5 = null,
+      variableLength = true;
 }
 
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].
@@ -296,8 +299,9 @@ extension NativeFunctionPointer<NF extends Function>
   /// function returns. For example, if one isolate in a group is trying to
   /// perform a GC and a second isolate is blocked in a leaf call, then the
   /// first isolate will have to pause and wait until this leaf call returns.
-  external DF asFunction<@DartRepresentationOf('NF') DF extends Function>(
-      {bool isLeaf = false});
+  external DF asFunction<@DartRepresentationOf('NF') DF extends Function>({
+    bool isLeaf = false,
+  });
 }
 
 /// A native callable which listens for calls to a native function.
@@ -327,8 +331,9 @@ abstract final class NativeCallable<T extends Function> {
   /// After [NativeCallable.close] is called, invoking the [nativeFunction] from
   /// native code will cause undefined behavior.
   factory NativeCallable.isolateLocal(
-      @DartRepresentationOf("T") Function callback,
-      {Object? exceptionalReturn}) {
+    @DartRepresentationOf("T") Function callback, {
+    Object? exceptionalReturn,
+  }) {
     throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
   }
 
@@ -399,7 +404,8 @@ abstract final class NativeCallable<T extends Function> {
   ///         'http_get');
   /// ```
   factory NativeCallable.listener(
-      @DartRepresentationOf("T") Function callback) {
+    @DartRepresentationOf("T") Function callback,
+  ) {
     throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
   }
 
@@ -2214,8 +2220,9 @@ abstract final class NativeApi {
   /// `bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message)`
   /// in `dart_native_api.h`.
   external static Pointer<
-          NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
-      get postCObject;
+    NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>
+  >
+  get postCObject;
 
   /// A function pointer to
   /// ```c
@@ -2225,17 +2232,21 @@ abstract final class NativeApi {
   /// ```
   /// in `dart_native_api.h`.
   external static Pointer<
-      NativeFunction<
-          Int64 Function(
-              Pointer<Uint8>,
-              Pointer<NativeFunction<Dart_NativeMessageHandler>>,
-              Int8)>> get newNativePort;
+    NativeFunction<
+      Int64 Function(
+        Pointer<Uint8>,
+        Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+        Int8,
+      )
+    >
+  >
+  get newNativePort;
 
   /// A function pointer to
   /// `bool Dart_CloseNativePort(Dart_Port native_port_id)`
   /// in `dart_native_api.h`.
   external static Pointer<NativeFunction<Int8 Function(Int64)>>
-      get closeNativePort;
+  get closeNativePort;
 
   /// Pass this to `Dart_InitializeApiDL` in your native code to enable using the
   /// symbols in `dart_api_dl.h`.
@@ -2391,11 +2402,7 @@ final class Native<T> {
   /// This value has no meaning for native fields.
   final bool isLeaf;
 
-  const Native({
-    this.assetId,
-    this.isLeaf = false,
-    this.symbol,
-  });
+  const Native({this.assetId, this.isLeaf = false, this.symbol});
 
   /// The native address of the implementation of [native].
   ///
@@ -2454,7 +2461,8 @@ final class Native<T> {
   /// ```
   @Since('3.3')
   external static Pointer<T> addressOf<T extends NativeType>(
-      @DartRepresentationOf('T') Object native);
+    @DartRepresentationOf('T') Object native,
+  );
 }
 
 /// Annotation specifying the default asset ID for the current library.
@@ -2504,7 +2512,5 @@ final class DefaultAsset {
   /// The default asset name for [Native] external functions in this library.
   final String id;
 
-  const DefaultAsset(
-    this.id,
-  );
+  const DefaultAsset(this.id);
 }

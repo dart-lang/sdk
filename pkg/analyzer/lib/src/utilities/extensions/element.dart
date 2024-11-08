@@ -32,14 +32,14 @@ extension Element2OrNullExtension on Element2? {
   Element? get asElement {
     var self = this;
     switch (self) {
-      case DynamicElementImpl():
-        return self;
+      case DynamicElementImpl2():
+        return DynamicElementImpl.instance;
       case GetterElement():
         return self.firstFragment as Element;
       case MultiplyDefinedElementImpl2 element2:
         return element2.asElement;
-      case NeverElementImpl():
-        return self;
+      case NeverElementImpl2():
+        return NeverElementImpl.instance;
       case PrefixElementImpl():
         return self;
       case TopLevelFunctionElementImpl():
@@ -135,7 +135,7 @@ extension ElementOrNullExtension on Element? {
     if (self == null) {
       return null;
     } else if (self is DynamicElementImpl) {
-      return self;
+      return DynamicElementImpl2.instance;
     } else if (self is FunctionElementImpl) {
       return self.element;
     } else if (self is InterfaceElementImpl) {

@@ -13,8 +13,10 @@ import "dart:typed_data" show Int64List;
 class int {
   @patch
   @pragma("vm:external-name", "Integer_fromEnvironment")
-  external const factory int.fromEnvironment(String name,
-      {int defaultValue = 0});
+  external const factory int.fromEnvironment(
+    String name, {
+    int defaultValue = 0,
+  });
 
   static int? _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
@@ -62,7 +64,10 @@ class int {
   }
 
   static int? _parse(
-      _StringBase source, int? radix, int? Function(String)? onError) {
+    _StringBase source,
+    int? radix,
+    int? Function(String)? onError,
+  ) {
     int end = source._lastNonWhitespace() + 1;
     if (end == 0) {
       return _handleFormatError(onError, source, source.length, radix, null);
@@ -71,7 +76,7 @@ class int {
 
     int first = source.codeUnitAt(start);
     int sign = 1;
-    if (first == 0x2b /* + */ || first == 0x2d /* - */) {
+    if (first == 0x2b /* + */ || first == 0x2d /* - */ ) {
       sign = 0x2c - first; // -1 if '-', +1 if '+'.
       start++;
       if (start == end) {
@@ -82,11 +87,11 @@ class int {
     if (radix == null) {
       // check for 0x prefix.
       int index = start;
-      if (first == 0x30 /* 0 */) {
+      if (first == 0x30 /* 0 */ ) {
         index++;
         if (index == end) return 0;
         first = source.codeUnitAt(index);
-        if ((first | 0x20) == 0x78 /* x */) {
+        if ((first | 0x20) == 0x78 /* x */ ) {
           index++;
           if (index == end) {
             return _handleFormatError(onError, source, index, null, null);
@@ -115,8 +120,13 @@ class int {
 
   static Null _kNull(_) => null;
 
-  static int? _handleFormatError(int? Function(String)? onError, String source,
-      int? index, int? radix, String? message) {
+  static int? _handleFormatError(
+    int? Function(String)? onError,
+    String source,
+    int? index,
+    int? radix,
+    String? message,
+  ) {
     if (onError != null) return onError(source);
     if (message != null) {
       throw new FormatException(message, source, index);
@@ -127,8 +137,15 @@ class int {
     throw new FormatException("Invalid radix-$radix number", source, index);
   }
 
-  static int? _parseRadix(String source, int radix, int start, int end,
-      int sign, bool allowU64, int? Function(String)? onError) {
+  static int? _parseRadix(
+    String source,
+    int radix,
+    int start,
+    int end,
+    int sign,
+    bool allowU64,
+    int? Function(String)? onError,
+  ) {
     int tableIndex = (radix - 2) * 4 + (has63BitSmis ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
@@ -184,14 +201,24 @@ class int {
               blockEnd + blockSize > end) {
             return (result * multiplier) + smi;
           }
-          return _handleFormatError(onError, source, null, radix,
-              "Positive input exceeds the limit of integer");
+          return _handleFormatError(
+            onError,
+            source,
+            null,
+            radix,
+            "Positive input exceeds the limit of integer",
+          );
         }
       } else if (result <= negativeOverflowLimit) {
         if ((result < negativeOverflowLimit) ||
             (smi > _int64OverflowLimits[tableIndex + 3])) {
-          return _handleFormatError(onError, source, null, radix,
-              "Negative input exceeds the limit of integer");
+          return _handleFormatError(
+            onError,
+            source,
+            null,
+            radix,
+            "Negative input exceeds the limit of integer",
+          );
         }
       }
       result = (result * multiplier) + (sign * smi);
@@ -271,7 +298,7 @@ class int {
   static const _int64UnsignedOverflowLimits = const [0xfffffffff, 0xf];
   static const _int64UnsignedSmiOverflowLimits = const [
     0xfffffff,
-    0xfffffffffffffff
+    0xfffffffffffffff,
   ];
 
   /// Calculation of the expression
@@ -289,14 +316,16 @@ class int {
   /// * `[tableIndex*2 + 1]` = negative limit for result
   /// * `[tableIndex*2 + 2]` = limit for smi if result is exactly at positive limit
   /// * `[tableIndex*2 + 3]` = limit for smi if result is exactly at negative limit
-  static final Int64List _int64OverflowLimits =
-      new Int64List(_PARSE_LIMITS.length * 2);
+  static final Int64List _int64OverflowLimits = new Int64List(
+    _PARSE_LIMITS.length * 2,
+  );
 
   static int _initInt64OverflowLimits(int tableIndex, int multiplier) {
     _int64OverflowLimits[tableIndex] = _maxInt64 ~/ multiplier;
     _int64OverflowLimits[tableIndex + 1] = _minInt64 ~/ multiplier;
-    _int64OverflowLimits[tableIndex + 2] =
-        unsafeCast<int>(_maxInt64.remainder(multiplier));
+    _int64OverflowLimits[tableIndex + 2] = unsafeCast<int>(
+      _maxInt64.remainder(multiplier),
+    );
     _int64OverflowLimits[tableIndex + 3] =
         -unsafeCast<int>(_minInt64.remainder(multiplier));
     return _int64OverflowLimits[tableIndex];

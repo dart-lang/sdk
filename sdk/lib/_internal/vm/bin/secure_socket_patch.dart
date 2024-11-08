@@ -30,10 +30,11 @@ class _SecureSocket extends _Socket implements SecureSocket {
 
   _SecureSocket(RawSecureSocket raw) : super(raw);
 
-  void renegotiate(
-      {bool useSessionCache = true,
-      bool requestClientCertificate = false,
-      bool requireClientCertificate = false}) {}
+  void renegotiate({
+    bool useSessionCache = true,
+    bool requestClientCertificate = false,
+    bool requireClientCertificate = false,
+  }) {}
 
   X509Certificate? get peerCertificate {
     if (_raw == null) {
@@ -74,18 +75,20 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
     buffers = <_ExternalBuffer>[
       for (int i = 0; i < _RawSecureSocket.bufferCount; ++i)
         new _ExternalBuffer(
-            _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE),
+          _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE,
+        ),
     ];
   }
 
   @pragma("vm:external-name", "SecureSocket_Connect")
   external void connect(
-      String hostName,
-      SecurityContext context,
-      bool isServer,
-      bool requestClientCertificate,
-      bool requireClientCertificate,
-      Uint8List protocols);
+    String hostName,
+    SecurityContext context,
+    bool isServer,
+    bool requestClientCertificate,
+    bool requireClientCertificate,
+    Uint8List protocols,
+  );
 
   void destroy() {
     buffers = null;
@@ -103,7 +106,8 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   @pragma("vm:external-name", "SecureSocket_NewX509CertificateWrapper")
   external static X509Certificate _newX509CertificateWrapper(
-      int certificatePtr);
+    int certificatePtr,
+  );
 
   Future<bool> handshake() {
     Completer<bool> evaluatorCompleter = Completer<bool>();
@@ -169,7 +173,8 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   @pragma("vm:external-name", "SecureSocket_RegisterBadCertificateCallback")
   external void _registerBadCertificateCallback(
-      bool Function(X509Certificate) callback);
+    bool Function(X509Certificate) callback,
+  );
 
   bool Function(X509Certificate)? badCertificateCallback;
 
@@ -180,7 +185,8 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   @pragma("vm:external-name", "SecureSocket_RegisterHandshakeCompleteCallback")
   external void registerHandshakeCompleteCallback(
-      Function handshakeCompleteHandler);
+    Function handshakeCompleteHandler,
+  );
 
   @pragma("vm:external-name", "SecureSocket_RegisterKeyLogPort")
   external void registerKeyLogPort(SendPort port);
@@ -233,7 +239,8 @@ base class _SecurityContext extends NativeFieldWrapperClass1
 
   TlsProtocolVersion get minimumTlsProtocolVersion =>
       TlsProtocolVersion._fromProtocolVersionConstant(
-          _getMinimumProtocolVersion());
+        _getMinimumProtocolVersion(),
+      );
 
   @pragma("vm:external-name", "SecurityContext_Allocate")
   external void _createNativeContext();
@@ -254,8 +261,10 @@ base class _SecurityContext extends NativeFieldWrapperClass1
   }
 
   @pragma("vm:external-name", "SecurityContext_SetTrustedCertificatesBytes")
-  external void setTrustedCertificatesBytes(List<int> certBytes,
-      {String? password});
+  external void setTrustedCertificatesBytes(
+    List<int> certBytes, {
+    String? password,
+  });
 
   void useCertificateChain(String file, {String? password}) {
     List<int> bytes = (new File(file)).readAsBytesSync();
@@ -263,8 +272,10 @@ base class _SecurityContext extends NativeFieldWrapperClass1
   }
 
   @pragma("vm:external-name", "SecurityContext_UseCertificateChainBytes")
-  external void useCertificateChainBytes(List<int> chainBytes,
-      {String? password});
+  external void useCertificateChainBytes(
+    List<int> chainBytes, {
+    String? password,
+  });
 
   void setClientAuthorities(String file, {String? password}) {
     List<int> bytes = (new File(file)).readAsBytesSync();
@@ -272,12 +283,15 @@ base class _SecurityContext extends NativeFieldWrapperClass1
   }
 
   @pragma("vm:external-name", "SecurityContext_SetClientAuthoritiesBytes")
-  external void setClientAuthoritiesBytes(List<int> authCertBytes,
-      {String? password});
+  external void setClientAuthoritiesBytes(
+    List<int> authCertBytes, {
+    String? password,
+  });
 
   void setAlpnProtocols(List<String> protocols, bool isServer) {
-    Uint8List encodedProtocols =
-        SecurityContext._protocolsToLengthEncoding(protocols);
+    Uint8List encodedProtocols = SecurityContext._protocolsToLengthEncoding(
+      protocols,
+    );
     _setAlpnProtocols(encodedProtocols, isServer);
   }
 
@@ -320,8 +334,10 @@ base class _X509CertificateImpl extends NativeFieldWrapperClass1
   @pragma("vm:external-name", "X509_Issuer")
   external String get issuer;
   DateTime get startValidity {
-    return new DateTime.fromMillisecondsSinceEpoch(_startValidity(),
-        isUtc: true);
+    return new DateTime.fromMillisecondsSinceEpoch(
+      _startValidity(),
+      isUtc: true,
+    );
   }
 
   DateTime get endValidity {

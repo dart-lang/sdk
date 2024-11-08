@@ -24,7 +24,8 @@ const Map<Type, int> _knownSizes = {
 // Keep consistent with pkg/vm/lib/transformations/ffi/abi.dart.
 @pragma("vm:prefer-inline")
 @pragma("wasm:prefer-inline")
-int get _intPtrSize => (const [
+int get _intPtrSize =>
+    (const [
       4, // androidArm,
       8, // androidArm64,
       4, // androidIA32,
@@ -67,8 +68,10 @@ void _checkExternalTypedDataLength(int length, int elementSize) {
 @pragma("vm:prefer-inline")
 void _checkPointerAlignment(int address, int elementSize) {
   if (address & (elementSize - 1) != 0) {
-    throw ArgumentError("Pointer address must be aligned to a multiple of "
-        "the element size ($elementSize).");
+    throw ArgumentError(
+      "Pointer address must be aligned to a multiple of "
+      "the element size ($elementSize).",
+    );
   }
 }
 
@@ -148,7 +151,9 @@ external Float32List _asExternalTypedDataFloat(Pointer<Float> ptr, int length);
 @pragma("vm:idempotent")
 @pragma("vm:exact-result-type", "dart:typed_data#_ExternalFloat64Array")
 external Float64List _asExternalTypedDataDouble(
-    Pointer<Double> ptr, int length);
+  Pointer<Double> ptr,
+  int length,
+);
 
 // Returns a Function object for a native callback.
 //
@@ -169,7 +174,9 @@ external Float64List _asExternalTypedDataDouble(
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_nativeCallbackFunction")
 external dynamic _nativeCallbackFunction<NS extends Function>(
-    Function target, Object? exceptionalReturn);
+  Function target,
+  Object? exceptionalReturn,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_nativeAsyncCallbackFunction")
@@ -177,26 +184,30 @@ external dynamic _nativeAsyncCallbackFunction<NS extends Function>();
 
 @pragma("vm:external-name", "Ffi_createNativeCallableListener")
 external Pointer<NS> _createNativeCallableListener<NS extends NativeFunction>(
-    dynamic function, RawReceivePort port);
+  dynamic function,
+  RawReceivePort port,
+);
 
 @pragma("vm:external-name", "Ffi_createNativeCallableIsolateLocal")
-external Pointer<NS>
-    _createNativeCallableIsolateLocal<NS extends NativeFunction>(
-        dynamic trampoline, dynamic target, bool keepIsolateAlive);
+external Pointer<NS> _createNativeCallableIsolateLocal<
+  NS extends NativeFunction
+>(dynamic trampoline, dynamic target, bool keepIsolateAlive);
 
 @pragma("vm:external-name", "Ffi_deleteNativeCallable")
 external void _deleteNativeCallable<NS extends NativeFunction>(
-    Pointer<NS> pointer);
+  Pointer<NS> pointer,
+);
 
 @pragma("vm:external-name", "Ffi_updateNativeCallableKeepIsolateAliveCounter")
-external void
-    _updateNativeCallableKeepIsolateAliveCounter<NS extends NativeFunction>(
-        int delta);
+external void _updateNativeCallableKeepIsolateAliveCounter<
+  NS extends NativeFunction
+>(int delta);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_nativeIsolateLocalCallbackFunction")
 external dynamic _nativeIsolateLocalCallbackFunction<NS extends Function>(
-    dynamic exceptionalReturn);
+  dynamic exceptionalReturn,
+);
 
 @patch
 @pragma('vm:deeply-immutable')
@@ -212,10 +223,12 @@ final class Pointer<T extends NativeType> implements SizedNativeType {
   // through tearoffs or reflective calls.
   @patch
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-      @DartRepresentationOf("T") Function f,
-      [Object? exceptionalReturn]) {
+    @DartRepresentationOf("T") Function f, [
+    Object? exceptionalReturn,
+  ]) {
     throw UnsupportedError(
-        "Pointer.fromFunction cannot be called dynamically.");
+      "Pointer.fromFunction cannot be called dynamically.",
+    );
   }
 
   @patch
@@ -296,9 +309,11 @@ final class _NativeCallableListener<T extends Function>
   final RawReceivePort _port;
 
   _NativeCallableListener(void Function(List) handler, String portDebugName)
-      : _port = RawReceivePort(
-            Zone.current.bindUnaryCallbackGuarded(handler), portDebugName),
-        super(nullptr);
+    : _port = RawReceivePort(
+        Zone.current.bindUnaryCallbackGuarded(handler),
+        portDebugName,
+      ),
+      super(nullptr);
 
   @override
   void _close() {
@@ -337,7 +352,9 @@ final class Array<T extends NativeType> extends _Compound {
 
   int get _nestedDimensionsFlattened =>
       _nestedDimensionsFlattenedCache ??= _nestedDimensions.fold<int>(
-          1, (accumulator, element) => accumulator * element);
+        1,
+        (accumulator, element) => accumulator * element,
+      );
 
   int get _nestedDimensionsFirst =>
       _nestedDimensionsFirstCache ??= _nestedDimensions.first;
@@ -393,8 +410,13 @@ final class _FfiAbiSpecificMapping {
 /// [source] and [target] should either be [Pointer] or [TypedData].
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
-external void _memCopy(Object target, int targetOffsetInBytes, Object source,
-    int sourceOffsetInBytes, int lengthInBytes);
+external void _memCopy(
+  Object target,
+  int targetOffsetInBytes,
+  Object source,
+  int sourceOffsetInBytes,
+  int lengthInBytes,
+);
 
 // The following functions are implemented in the method recognizer.
 @pragma("vm:entry-point")
@@ -449,13 +471,18 @@ external int _loadUint64(Object typedDataBase, int offsetInBytes);
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
-    Object typedDataBase, int offsetInBytes);
+  Object typedDataBase,
+  int offsetInBytes,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
-    Object typedDataBase, int offsetInBytes, int index);
+  Object typedDataBase,
+  int offsetInBytes,
+  int index,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
@@ -481,7 +508,9 @@ external double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes);
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external Pointer<S> _loadPointer<S extends NativeType>(
-    Object typedDataBase, int offsetInBytes);
+  Object typedDataBase,
+  int offsetInBytes,
+);
 
 @pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
@@ -535,43 +564,65 @@ external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
-    Object typedDataBase, int offsetInBytes, int value);
+  Object typedDataBase,
+  int offsetInBytes,
+  int value,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
-    Object typedDataBase, int offsetInBytes, int index, int value);
+  Object typedDataBase,
+  int offsetInBytes,
+  int index,
+  int value,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external void _storeFloat(
-    Object typedDataBase, int offsetInBytes, double value);
+  Object typedDataBase,
+  int offsetInBytes,
+  double value,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external void _storeDouble(
-    Object typedDataBase, int offsetInBytes, double value);
+  Object typedDataBase,
+  int offsetInBytes,
+  double value,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external void _storeFloatUnaligned(
-    Object typedDataBase, int offsetInBytes, double value);
+  Object typedDataBase,
+  int offsetInBytes,
+  double value,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external void _storeDoubleUnaligned(
-    Object typedDataBase, int offsetInBytes, double value);
+  Object typedDataBase,
+  int offsetInBytes,
+  double value,
+);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
 external void _storePointer<S extends NativeType>(
-    Object typedDataBase, int offsetInBytes, Pointer<S> value);
+  Object typedDataBase,
+  int offsetInBytes,
+  Pointer<S> value,
+);
 
 @pragma("vm:prefer-inline")
 bool _loadBool(Object typedDataBase, int offsetInBytes) =>
@@ -586,7 +637,8 @@ void _storeBool(Object typedDataBase, int offsetInBytes, bool value) =>
 T _checkAbiSpecificIntegerMapping<T>(T? object) {
   if (object == null) {
     throw ArgumentError(
-        'AbiSpecificInteger is missing mapping for "${Abi.current()}".');
+      'AbiSpecificInteger is missing mapping for "${Abi.current()}".',
+    );
   }
   return object;
 }
@@ -1000,21 +1052,14 @@ extension Int8Array on Array<Int8> {
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
-    return _loadInt8(
-      _typedDataBase,
-      _offsetInBytes + index,
-    );
+    return _loadInt8(_typedDataBase, _offsetInBytes + index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeInt8(
-      _typedDataBase,
-      _offsetInBytes + index,
-      value,
-    );
+    return _storeInt8(_typedDataBase, _offsetInBytes + index, value);
   }
 }
 
@@ -1024,21 +1069,14 @@ extension Int16Array on Array<Int16> {
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
-    return _loadInt16(
-      _typedDataBase,
-      _offsetInBytes + 2 * index,
-    );
+    return _loadInt16(_typedDataBase, _offsetInBytes + 2 * index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeInt16(
-      _typedDataBase,
-      _offsetInBytes + 2 * index,
-      value,
-    );
+    return _storeInt16(_typedDataBase, _offsetInBytes + 2 * index, value);
   }
 }
 
@@ -1048,21 +1086,14 @@ extension Int32Array on Array<Int32> {
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
-    return _loadInt32(
-      _typedDataBase,
-      _offsetInBytes + 4 * index,
-    );
+    return _loadInt32(_typedDataBase, _offsetInBytes + 4 * index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeInt32(
-      _typedDataBase,
-      _offsetInBytes + 4 * index,
-      value,
-    );
+    return _storeInt32(_typedDataBase, _offsetInBytes + 4 * index, value);
   }
 }
 
@@ -1072,21 +1103,14 @@ extension Int64Array on Array<Int64> {
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
-    return _loadInt64(
-      _typedDataBase,
-      _offsetInBytes + 8 * index,
-    );
+    return _loadInt64(_typedDataBase, _offsetInBytes + 8 * index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeInt64(
-      _typedDataBase,
-      _offsetInBytes + 8 * index,
-      value,
-    );
+    return _storeInt64(_typedDataBase, _offsetInBytes + 8 * index, value);
   }
 }
 
@@ -1096,21 +1120,14 @@ extension Uint8Array on Array<Uint8> {
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
-    return _loadUint8(
-      _typedDataBase,
-      _offsetInBytes + index,
-    );
+    return _loadUint8(_typedDataBase, _offsetInBytes + index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeUint8(
-      _typedDataBase,
-      _offsetInBytes + index,
-      value,
-    );
+    return _storeUint8(_typedDataBase, _offsetInBytes + index, value);
   }
 }
 
@@ -1120,21 +1137,14 @@ extension Uint16Array on Array<Uint16> {
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
-    return _loadUint16(
-      _typedDataBase,
-      _offsetInBytes + 2 * index,
-    );
+    return _loadUint16(_typedDataBase, _offsetInBytes + 2 * index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeUint16(
-      _typedDataBase,
-      _offsetInBytes + 2 * index,
-      value,
-    );
+    return _storeUint16(_typedDataBase, _offsetInBytes + 2 * index, value);
   }
 }
 
@@ -1144,21 +1154,14 @@ extension Uint32Array on Array<Uint32> {
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
-    return _loadUint32(
-      _typedDataBase,
-      _offsetInBytes + 4 * index,
-    );
+    return _loadUint32(_typedDataBase, _offsetInBytes + 4 * index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeUint32(
-      _typedDataBase,
-      _offsetInBytes + 4 * index,
-      value,
-    );
+    return _storeUint32(_typedDataBase, _offsetInBytes + 4 * index, value);
   }
 }
 
@@ -1168,21 +1171,14 @@ extension Uint64Array on Array<Uint64> {
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     _checkIndex(index);
-    return _loadUint64(
-      _typedDataBase,
-      _offsetInBytes + 8 * index,
-    );
+    return _loadUint64(_typedDataBase, _offsetInBytes + 8 * index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, int value) {
     _checkIndex(index);
-    return _storeUint64(
-      _typedDataBase,
-      _offsetInBytes + 8 * index,
-      value,
-    );
+    return _storeUint64(_typedDataBase, _offsetInBytes + 8 * index, value);
   }
 }
 
@@ -1192,21 +1188,14 @@ extension FloatArray on Array<Float> {
   @pragma("vm:prefer-inline")
   double operator [](int index) {
     _checkIndex(index);
-    return _loadFloat(
-      _typedDataBase,
-      _offsetInBytes + 4 * index,
-    );
+    return _loadFloat(_typedDataBase, _offsetInBytes + 4 * index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, double value) {
     _checkIndex(index);
-    return _storeFloat(
-      _typedDataBase,
-      _offsetInBytes + 4 * index,
-      value,
-    );
+    return _storeFloat(_typedDataBase, _offsetInBytes + 4 * index, value);
   }
 }
 
@@ -1216,21 +1205,14 @@ extension DoubleArray on Array<Double> {
   @pragma("vm:prefer-inline")
   double operator [](int index) {
     _checkIndex(index);
-    return _loadDouble(
-      _typedDataBase,
-      _offsetInBytes + 8 * index,
-    );
+    return _loadDouble(_typedDataBase, _offsetInBytes + 8 * index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, double value) {
     _checkIndex(index);
-    return _storeDouble(
-      _typedDataBase,
-      _offsetInBytes + 8 * index,
-      value,
-    );
+    return _storeDouble(_typedDataBase, _offsetInBytes + 8 * index, value);
   }
 }
 
@@ -1240,21 +1222,14 @@ extension BoolArray on Array<Bool> {
   @pragma("vm:prefer-inline")
   bool operator [](int index) {
     _checkIndex(index);
-    return _loadBool(
-      _typedDataBase,
-      _offsetInBytes + index,
-    );
+    return _loadBool(_typedDataBase, _offsetInBytes + index);
   }
 
   @patch
   @pragma("vm:prefer-inline")
   operator []=(int index, bool value) {
     _checkIndex(index);
-    return _storeBool(
-      _typedDataBase,
-      _offsetInBytes + index,
-      value,
-    );
+    return _storeBool(_typedDataBase, _offsetInBytes + index, value);
   }
 }
 
@@ -1389,10 +1364,7 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   @patch
   Pointer<T> operator [](int index) {
     _checkIndex(index);
-    return _loadPointer(
-      _typedDataBase,
-      _offsetInBytes + _intPtrSize * index,
-    );
+    return _loadPointer(_typedDataBase, _offsetInBytes + _intPtrSize * index);
   }
 
   @patch
@@ -1422,7 +1394,8 @@ extension StructArray<T extends Struct> on Array<T> {
   @patch
   T operator [](int index) {
     throw ArgumentError(
-        "T ($T) should be a subtype of Struct at compile-time.");
+      "T ($T) should be a subtype of Struct at compile-time.",
+    );
   }
 }
 
@@ -1439,13 +1412,15 @@ extension AbiSpecificIntegerArray<T extends AbiSpecificInteger> on Array<T> {
   @patch
   int operator [](int index) {
     throw ArgumentError(
-        "Receiver should be a subtype of AbiSpecificInteger at compile-time.");
+      "Receiver should be a subtype of AbiSpecificInteger at compile-time.",
+    );
   }
 
   @patch
   void operator []=(int index, int value) {
     throw ArgumentError(
-        "Receiver should be a subtype of AbiSpecificInteger at compile-time.");
+      "Receiver should be a subtype of AbiSpecificInteger at compile-time.",
+    );
   }
 }
 
@@ -1472,16 +1447,20 @@ external int _dartApiMinorVersion();
 abstract final class NativeApi {
   @patch
   static Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
-      get postCObject =>
-          Pointer.fromAddress(_nativeApiFunctionPointer("Dart_PostCObject"));
+  get postCObject =>
+      Pointer.fromAddress(_nativeApiFunctionPointer("Dart_PostCObject"));
 
   @patch
   static Pointer<
-      NativeFunction<
-          Int64 Function(
-              Pointer<Uint8>,
-              Pointer<NativeFunction<Dart_NativeMessageHandler>>,
-              Int8)>> get newNativePort =>
+    NativeFunction<
+      Int64 Function(
+        Pointer<Uint8>,
+        Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+        Int8,
+      )
+    >
+  >
+  get newNativePort =>
       Pointer.fromAddress(_nativeApiFunctionPointer("Dart_NewNativePort"));
 
   @patch
@@ -1552,26 +1531,31 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 class Native<T> {
   @patch
   static Pointer<T> addressOf<T extends NativeType>(
-      @DartRepresentationOf('T') Object native) {
+    @DartRepresentationOf('T') Object native,
+  ) {
     throw 'UNREACHABLE: This case should have been rewritten in the CFE.';
   }
 
   @pragma('vm:recognized', 'other')
   external static Pointer<T> _addressOf<T extends NativeType>(
-      Native<T> annotation);
+    Native<T> annotation,
+  );
 
   // Bootstrapping native for getting the FFI native C function pointer to look
   // up the FFI resolver.
   @pragma('vm:external-name', 'Ffi_GetFfiNativeResolver')
   external static Pointer<
-          NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>
-      _get_ffi_native_resolver<T extends NativeFunction>();
+    NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>
+  >
+  _get_ffi_native_resolver<T extends NativeFunction>();
 
   // Resolver for FFI Native C function pointers.
   @pragma('vm:entry-point')
-  static final _ffi_resolver = _get_ffi_native_resolver<
-          NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>()
-      .asFunction<int Function(Object, Object, int)>();
+  static final _ffi_resolver =
+      _get_ffi_native_resolver<
+            NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>
+          >()
+          .asFunction<int Function(Object, Object, int)>();
 
   @pragma('vm:entry-point')
   static int _ffi_resolver_function(Object a, Object s, int n) =>

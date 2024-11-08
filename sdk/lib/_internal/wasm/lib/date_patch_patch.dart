@@ -17,7 +17,8 @@ class DateTime {
   @patch
   static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch) =>
       jsStringToDartString(
-          JSStringImpl(JS<WasmExternRef>(r"""secondsSinceEpoch => {
+        JSStringImpl(
+          JS<WasmExternRef>(r"""secondsSinceEpoch => {
         const date = new Date(secondsSinceEpoch * 1000);
         const match = /\((.*)\)/.exec(date.toString());
         if (match == null) {
@@ -25,14 +26,17 @@ class DateTime {
             return '';
         }
         return match[1];
-      }""", secondsSinceEpoch.toDouble())));
+      }""", secondsSinceEpoch.toDouble()),
+        ),
+      );
 
   // In Dart, the offset is the difference between local time and UTC,
   // while in JS, the offset is the difference between UTC and local time.
   // As a result, the signs are opposite, so we negate the value returned by JS.
   @patch
   static int _timeZoneOffsetInSecondsForClampedSeconds(int secondsSinceEpoch) =>
-      -JS<double>("s => new Date(s * 1000).getTimezoneOffset() * 60 ",
-              secondsSinceEpoch.toDouble())
-          .toInt();
+      -JS<double>(
+        "s => new Date(s * 1000).getTimezoneOffset() * 60 ",
+        secondsSinceEpoch.toDouble(),
+      ).toInt();
 }

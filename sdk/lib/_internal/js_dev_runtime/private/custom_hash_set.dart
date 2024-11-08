@@ -7,7 +7,7 @@ part of dart._js_helper;
 base class CustomKeyHashSet<E> extends CustomHashSet<E> {
   final _Predicate<Object?> _validKey;
   CustomKeyHashSet(_Equality<E> equals, _Hasher<E> hashCode, this._validKey)
-      : super(equals, hashCode);
+    : super(equals, hashCode);
 
   Set<E> _newSet() => CustomKeyHashSet<E>(_equals, _hashCode, _validKey);
 

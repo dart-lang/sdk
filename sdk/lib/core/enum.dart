@@ -176,6 +176,7 @@ extension EnumByName<T extends Enum> on Iterable<T> {
   /// so if two or more enum values have the same name (either being the
   /// same value, or being values of different enum type), at most one of
   /// them will be represented in the returned map.
-  Map<String, T> asNameMap() =>
-      <String, T>{for (var value in this) value._name: value};
+  Map<String, T> asNameMap() => <String, T>{
+    for (var value in this) value._name: value,
+  };
 }

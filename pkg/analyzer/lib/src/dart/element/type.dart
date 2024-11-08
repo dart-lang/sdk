@@ -36,17 +36,14 @@ class DynamicTypeImpl extends TypeImpl
   /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
-  @override
-  final DynamicElementImpl element = DynamicElementImpl();
-
   /// Prevent the creation of instances of this class.
   DynamicTypeImpl._();
 
   @override
-  Element2? get element3 => switch (element) {
-        Fragment(:var element) => element,
-        _ => null,
-      };
+  DynamicElementImpl get element => DynamicElementImpl.instance;
+
+  @override
+  DynamicElementImpl2 get element3 => DynamicElementImpl2.instance;
 
   @override
   int get hashCode => 1;

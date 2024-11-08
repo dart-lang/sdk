@@ -70,12 +70,16 @@ T unsafeCast<T>(dynamic v) => v;
 @patch
 Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
   if (bytes != null) {
-    throw ArgumentError('DDC implementation of dynamic modules doesn\'t'
-        ' accept bytes as input');
+    throw ArgumentError(
+      'DDC implementation of dynamic modules doesn\'t'
+      ' accept bytes as input',
+    );
   }
   if (uri == null) {
-    throw ArgumentError('DDC implementation of dynamic modules expects a'
-        'non-null Uri input.');
+    throw ArgumentError(
+      'DDC implementation of dynamic modules expects a'
+      'non-null Uri input.',
+    );
   }
   if (dart.dynamicModuleLoader == null) {
     throw StateError('Dynamic module loader has not be configured.');

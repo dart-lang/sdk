@@ -53,7 +53,11 @@ class Sort {
    * Sorts the list in the interval [:left:] to [:right:] (both inclusive).
    */
   static void _doSort<E>(
-      List<E> a, int left, int right, int compare(E a, E b)) {
+    List<E> a,
+    int left,
+    int right,
+    int compare(E a, E b),
+  ) {
     if ((right - left) <= _INSERTION_SORT_THRESHOLD) {
       _insertionSort(a, left, right, compare);
     } else {
@@ -62,7 +66,11 @@ class Sort {
   }
 
   static void _insertionSort<E>(
-      List<E> a, int left, int right, int compare(E a, E b)) {
+    List<E> a,
+    int left,
+    int right,
+    int compare(E a, E b),
+  ) {
     for (int i = left + 1; i <= right; i++) {
       var el = a[i];
       int j = i;
@@ -75,7 +83,11 @@ class Sort {
   }
 
   static void _dualPivotQuicksort<E>(
-      List<E> a, int left, int right, int compare(E a, E b)) {
+    List<E> a,
+    int left,
+    int right,
+    int compare(E a, E b),
+  ) {
     assert(right - left > _INSERTION_SORT_THRESHOLD);
 
     // Compute the two pivots by looking at 5 elements.

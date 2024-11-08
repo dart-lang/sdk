@@ -25,7 +25,9 @@ import "dart:typed_data" show Uint8List, Uint16List;
 
 @patch
 dynamic _parseJson(
-    String source, Object? Function(Object? key, Object? value)? reviver) {
+  String source,
+  Object? Function(Object? key, Object? value)? reviver,
+) {
   _JsonListener listener = new _JsonListener(reviver);
   var parser = new _JsonStringParser(listener);
   parser.chunk = source;
@@ -41,8 +43,10 @@ class Utf8Decoder {
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
       return new _JsonUtf8Decoder(
-              (next as JsonDecoder)._reviver, this._allowMalformed)
-          as dynamic/*=Converter<List<int>, T>*/;
+            (next as JsonDecoder)._reviver,
+            this._allowMalformed,
+          )
+          as dynamic /*=Converter<List<int>, T>*/;
     }
     return super.fuse<T>(next);
   }
@@ -150,7 +154,8 @@ class _JsonListener {
   void endObject() {
     popContainer();
     value = createMapFromKeyValueListUnsafe<String, dynamic>(
-        unsafeCast<List>(value));
+      unsafeCast<List>(value),
+    );
   }
 
   void beginArray() {
@@ -201,7 +206,7 @@ class _NumberBuffer {
   Uint8List list;
   int length = 0;
   _NumberBuffer(int initialCapacity)
-      : list = new Uint8List(_initialCapacity(initialCapacity));
+    : list = new Uint8List(_initialCapacity(initialCapacity));
 
   int get capacity => list.length;
 
@@ -1106,7 +1111,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Returns [chunkEnd] so it can be used as part of a return statement.
    */
   int chunkStringEscapeU(int count, int value) {
-    partialState = PARTIAL_STRING |
+    partialState =
+        PARTIAL_STRING |
         STR_U |
         (count << STR_U_COUNT_SHIFT) |
         (value << STR_U_VALUE_SHIFT);
@@ -1384,7 +1390,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       char = _getCharUnsafe(position);
       int expSign = 1;
       int exponent = 0;
-      if (((char + 1) | 2) == 0x2e /*+ or -*/) {
+      if (((char + 1) | 2) == 0x2e /*+ or -*/ ) {
         expSign = 0x2C - char; // -1 for MINUS, +1 for PLUS
         position++;
         if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
@@ -1408,7 +1414,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
           listener.handleNumber(sign < 0 ? -0.0 : 0.0);
         } else {
           listener.handleNumber(
-              sign < 0 ? double.negativeInfinity : double.infinity);
+            sign < 0 ? double.negativeInfinity : double.infinity,
+          );
         }
         return position;
       }
@@ -1530,10 +1537,11 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   final Sink<Object?> _sink;
 
   _JsonStringDecoderSink(this._reviver, this._sink)
-      : _parser = _createParser(_reviver);
+    : _parser = _createParser(_reviver);
 
   static _JsonStringParser _createParser(
-      Object? Function(Object? key, Object? value)? reviver) {
+    Object? Function(Object? key, Object? value)? reviver,
+  ) {
     return new _JsonStringParser(new _JsonListener(reviver));
   }
 
@@ -1572,8 +1580,8 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   int chunkEnd = 0;
 
   _JsonUtf8Parser(_JsonListener listener, bool allowMalformed)
-      : decoder = new _Utf8Decoder(allowMalformed),
-        super(listener) {
+    : decoder = new _Utf8Decoder(allowMalformed),
+      super(listener) {
     // Starts out checking for an optional BOM (KWD_BOM, count = 0).
     partialState =
         _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
@@ -1657,11 +1665,12 @@ class _JsonUtf8DecoderSink extends ByteConversionSink {
   final Sink<Object?> _sink;
 
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
-      : _parser = _createParser(reviver, allowMalformed);
+    : _parser = _createParser(reviver, allowMalformed);
 
   static _JsonUtf8Parser _createParser(
-      Object? Function(Object? key, Object? value)? reviver,
-      bool allowMalformed) {
+    Object? Function(Object? key, Object? value)? reviver,
+    bool allowMalformed,
+  ) {
     return new _JsonUtf8Parser(new _JsonListener(reviver), allowMalformed);
   }
 
@@ -1729,7 +1738,8 @@ class _Utf8Decoder {
   // Non-BMP   'R' = 64 + (2 | flagNonLatin1);
   // Illegal   'a' = 64 + (1 | flagIllegal);
   // Illegal   'b' = 64 + (2 | flagIllegal);
-  static const String scanTable = ""
+  static const String scanTable =
+      ""
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 00-1F
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 20-3F
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 40-5F
@@ -2039,9 +2049,11 @@ class _Utf8Decoder {
     }
     // Output size must match, unless we are doing single conversion and are
     // inside an unfinished sequence (which will trigger an error later).
-    assert(_bomIndex == 0 && _state != accept
-        ? (j == size - 1 || j == size - 2)
-        : (j == size));
+    assert(
+      _bomIndex == 0 && _state != accept
+          ? (j == size - 1 || j == size - 2)
+          : (j == size),
+    );
     return result;
   }
 
@@ -2109,9 +2121,11 @@ class _Utf8Decoder {
     _charOrIndex = char;
     // Output size must match, unless we are doing single conversion and are
     // inside an unfinished sequence (which will trigger an error later).
-    assert(_bomIndex == 0 && _state != accept
-        ? (j == size - 1 || j == size - 2)
-        : (j == size));
+    assert(
+      _bomIndex == 0 && _state != accept
+          ? (j == size - 1 || j == size - 2)
+          : (j == size),
+    );
     return result;
   }
 }

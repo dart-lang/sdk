@@ -35,8 +35,8 @@ abstract base class InternalSet<E> extends SetBase<E>
     var iterator = JS('', '#.values()', self._map);
     int modifications = self._modifications;
     return JS(
-        '',
-        '''{
+      '',
+      '''{
       next() {
         if (# != #) {
           throw #;
@@ -44,10 +44,11 @@ abstract base class InternalSet<E> extends SetBase<E>
         return #.next();
       }
     }''',
-        modifications,
-        self._modifications,
-        ConcurrentModificationError(self),
-        iterator);
+      modifications,
+      self._modifications,
+      ConcurrentModificationError(self),
+      iterator,
+    );
   }
 
   Set<E> _newSet() => LinkedSet<E>();
@@ -109,8 +110,13 @@ base class LinkedSet<E> extends InternalSet<E> {
     if (key == null) {
       // Convert undefined to null, if needed.
       key = null;
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       @notNull
       Object? k = key;
       var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, k.hashCode);
@@ -127,8 +133,13 @@ base class LinkedSet<E> extends InternalSet<E> {
 
   E? lookup(Object? key) {
     if (key == null) return null;
-    if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       @notNull
       Object? k = key;
       var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, k.hashCode);
@@ -149,8 +160,13 @@ base class LinkedSet<E> extends InternalSet<E> {
       if (JS<bool>('!', '#.has(null)', map)) return false;
       // Convert undefined to null, if needed.
       JS('', '# = null', key);
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       var keyMap = _keyMap;
       @notNull
       var k = key;
@@ -180,8 +196,13 @@ base class LinkedSet<E> extends InternalSet<E> {
       if (key == null) {
         // Convert undefined to null, if needed.
         JS('', '# = null', key);
-      } else if (JS<bool>('!', '#[#] !== #', key,
-          dart.extensionSymbol('_equals'), dart.identityEquals)) {
+      } else if (JS<bool>(
+        '!',
+        '#[#] !== #',
+        key,
+        dart.extensionSymbol('_equals'),
+        dart.identityEquals,
+      )) {
         key = putLinkedMapKey(key, _keyMap);
       }
       JS('', '#.add(#)', map, key);
@@ -195,14 +216,19 @@ base class LinkedSet<E> extends InternalSet<E> {
     if (key == null) {
       // Convert undefined to null, if needed.
       key = null;
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       @notNull
       Object? k = key;
       int hash = JS('!', '# & 0x3fffffff', k.hashCode);
       var buckets = JS('', '#.get(#)', _keyMap, hash);
       if (buckets == null) return false; // not found
-      for (int i = 0, n = JS('!', '#.length', buckets);;) {
+      for (int i = 0, n = JS('!', '#.length', buckets); ;) {
         k = JS('', '#[#]', buckets, i);
         if (k == key) {
           key = k;
@@ -242,8 +268,13 @@ base class ImmutableSet<E> extends LinkedSet<E> {
       if (key == null) {
         // Convert undefined to null, if needed.
         JS('', '# = null', key);
-      } else if (JS<bool>('!', '#[#] !== #', key,
-          dart.extensionSymbol('_equals'), dart.identityEquals)) {
+      } else if (JS<bool>(
+        '!',
+        '#[#] !== #',
+        key,
+        dart.extensionSymbol('_equals'),
+        dart.identityEquals,
+      )) {
         key = putLinkedMapKey(key, _keyMap);
       }
       JS('', '#.add(#)', map, key);

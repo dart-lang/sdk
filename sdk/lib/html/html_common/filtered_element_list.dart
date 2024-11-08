@@ -20,9 +20,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
    *     var filteredElements = new FilteredElementList(query("#container"));
    *     // filteredElements is [a, b, c].
    */
-  FilteredElementList(Node node)
-      : _childNodes = node.nodes,
-        _node = node;
+  FilteredElementList(Node node) : _childNodes = node.nodes, _node = node;
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
@@ -74,8 +72,12 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
     throw new UnsupportedError('Cannot sort filtered list');
   }
 
-  void setRange(int start, int end, Iterable<Element> iterable,
-      [int skipCount = 0]) {
+  void setRange(
+    int start,
+    int end,
+    Iterable<Element> iterable, [
+    int skipCount = 0,
+  ]) {
     throw new UnsupportedError('Cannot setRange on filtered list');
   }
 
@@ -88,8 +90,9 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
   }
 
   void removeRange(int start, int end) {
-    new List<Element>.from(_iterable.skip(start).take(end - start))
-        .forEach((el) => el.remove());
+    new List<Element>.from(
+      _iterable.skip(start).take(end - start),
+    ).forEach((el) => el.remove());
   }
 
   void clear() {

@@ -12925,6 +12925,7 @@ LintCode:
     addedIn: "2.4"
     categories: [errorProne]
     hasPublishedDocs: false
+    removedIn: "3.7"
     deprecatedDetails: |-
       **NOTE:** This lint is deprecated and will be removed in a future release.
       Remove all inclusions of this lint from your analysis options.
@@ -12946,16 +12947,20 @@ LintCode:
       ```dart
       var script = ScriptElement()..src = 'foo.js';
       ```
+
+      This rule has been removed.
   unsafe_html_constructor:
     sharedName: unsafe_html
     problemMessage: "Invoking the constructor '{0}' is unsafe."
     correctionMessage: "Try finding a different way to implement the page."
     hasPublishedDocs: false
+    removedIn: "3.7"
   unsafe_html_method:
     sharedName: unsafe_html
     problemMessage: "Invoking the method '{0}' is unsafe."
     correctionMessage: "Try finding a different way to implement the page."
     hasPublishedDocs: false
+    removedIn: "3.7"
   use_build_context_synchronously_async_use:
     sharedName: use_build_context_synchronously
     problemMessage: "Don't use 'BuildContext's across async gaps."

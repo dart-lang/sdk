@@ -64,8 +64,10 @@ final class bool {
   /// It may work as a non-constant invocation on some platforms which
   /// have access to compiler options at run-time, but most ahead-of-time
   /// compiled platforms will not have this information.
-  external const factory bool.fromEnvironment(String name,
-      {bool defaultValue = false});
+  external const factory bool.fromEnvironment(
+    String name, {
+    bool defaultValue = false,
+  });
 
   /// Whether [name] is declared in the compilation configuration environment.
   ///

@@ -11,8 +11,10 @@ import "dart:_internal" show patch, checkNotNullable;
 class bool {
   @patch
   @pragma("vm:external-name", "Bool_fromEnvironment")
-  external const factory bool.fromEnvironment(String name,
-      {bool defaultValue = false});
+  external const factory bool.fromEnvironment(
+    String name, {
+    bool defaultValue = false,
+  });
 
   @patch
   @pragma("vm:external-name", "Bool_hasEnvironment")
@@ -46,14 +48,14 @@ class bool {
       return source == "true"
           ? true
           : source == "false"
-              ? false
-              : null;
+          ? false
+          : null;
     }
     return _compareIgnoreCase(source, "true")
         ? true
         : _compareIgnoreCase(source, "false")
-            ? false
-            : null;
+        ? false
+        : null;
   }
 
   /// Compares a string against an ASCII lower-case letter-only string.

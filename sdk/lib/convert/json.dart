@@ -24,8 +24,11 @@ class JsonUnsupportedObjectError extends Error {
   /// May be null.
   final String? partialResult;
 
-  JsonUnsupportedObjectError(this.unsupportedObject,
-      {this.cause, this.partialResult});
+  JsonUnsupportedObjectError(
+    this.unsupportedObject, {
+    this.cause,
+    this.partialResult,
+  });
 
   String toString() {
     var safeString = Error.safeToString(unsupportedObject);
@@ -109,9 +112,10 @@ const JsonCodec json = JsonCodec();
 ///   print(jsonText); // {"cc":{"text":"Dart","value":123}}
 /// }
 /// ```
-String jsonEncode(Object? object,
-        {Object? toEncodable(Object? nonEncodable)?}) =>
-    json.encode(object, toEncodable: toEncodable);
+String jsonEncode(
+  Object? object, {
+  Object? toEncodable(Object? nonEncodable)?,
+}) => json.encode(object, toEncodable: toEncodable);
 
 /// Parses the string and returns the resulting Json object.
 ///
@@ -150,9 +154,10 @@ String jsonEncode(Object? object,
 /// print(item['value']); // 1
 /// print(item['status']); // false
 /// ```
-dynamic jsonDecode(String source,
-        {Object? reviver(Object? key, Object? value)?}) =>
-    json.decode(source, reviver: reviver);
+dynamic jsonDecode(
+  String source, {
+  Object? reviver(Object? key, Object? value)?,
+}) => json.decode(source, reviver: reviver);
 
 /// A [JsonCodec] encodes JSON objects to strings and decodes strings to
 /// JSON objects.
@@ -187,11 +192,11 @@ final class JsonCodec extends Codec<Object?, String> {
   ///
   /// If [toEncodable] is omitted, it defaults to a function that returns the
   /// result of calling `.toJson()` on the unencodable object.
-  const JsonCodec(
-      {Object? reviver(Object? key, Object? value)?,
-      Object? toEncodable(dynamic object)?})
-      : _reviver = reviver,
-        _toEncodable = toEncodable;
+  const JsonCodec({
+    Object? reviver(Object? key, Object? value)?,
+    Object? toEncodable(dynamic object)?,
+  }) : _reviver = reviver,
+       _toEncodable = toEncodable;
 
   /// Creates a `JsonCodec` with the given reviver.
   ///
@@ -200,7 +205,7 @@ final class JsonCodec extends Codec<Object?, String> {
   /// integer list index for a list property, the string map key for object
   /// properties, or `null` for the final result.
   JsonCodec.withReviver(dynamic reviver(Object? key, Object? value))
-      : this(reviver: reviver);
+    : this(reviver: reviver);
 
   /// Parses the string and returns the resulting Json object.
   ///
@@ -210,8 +215,10 @@ final class JsonCodec extends Codec<Object?, String> {
   /// properties, or `null` for the final result.
   ///
   /// The default [reviver] (when not provided) is the identity function.
-  dynamic decode(String source,
-      {Object? reviver(Object? key, Object? value)?}) {
+  dynamic decode(
+    String source, {
+    Object? reviver(Object? key, Object? value)?,
+  }) {
     reviver ??= _reviver;
     if (reviver == null) return decoder.convert(source);
     return JsonDecoder(reviver).convert(source);
@@ -292,8 +299,8 @@ final class JsonEncoder extends Converter<Object?, String> {
   /// If [toEncodable] is omitted, it defaults to calling `.toJson()` on
   /// the object.
   const JsonEncoder([Object? toEncodable(dynamic object)?])
-      : indent = null,
-        _toEncodable = toEncodable;
+    : indent = null,
+      _toEncodable = toEncodable;
 
   /// Creates a JSON encoder that creates multi-line JSON.
   ///
@@ -311,9 +318,10 @@ final class JsonEncoder extends Converter<Object?, String> {
   ///
   /// If [toEncodable] is omitted, it defaults to calling `.toJson()` on
   /// the object.
-  const JsonEncoder.withIndent(this.indent,
-      [Object? toEncodable(dynamic object)?])
-      : _toEncodable = toEncodable;
+  const JsonEncoder.withIndent(
+    this.indent, [
+    Object? toEncodable(dynamic object)?,
+  ]) : _toEncodable = toEncodable;
 
   /// Converts [object] to a JSON [String].
   ///
@@ -354,15 +362,17 @@ final class JsonEncoder extends Converter<Object?, String> {
   ChunkedConversionSink<Object?> startChunkedConversion(Sink<String> sink) {
     if (sink is _Utf8EncoderSink) {
       return _JsonUtf8EncoderSink(
-          sink._sink,
-          _toEncodable,
-          JsonUtf8Encoder._utf8Encode(indent),
-          JsonUtf8Encoder._defaultBufferSize);
+        sink._sink,
+        _toEncodable,
+        JsonUtf8Encoder._utf8Encode(indent),
+        JsonUtf8Encoder._defaultBufferSize,
+      );
     }
     return _JsonEncoderSink(
-        sink is StringConversionSink ? sink : StringConversionSink.from(sink),
-        _toEncodable,
-        indent);
+      sink is StringConversionSink ? sink : StringConversionSink.from(sink),
+      _toEncodable,
+      indent,
+    );
   }
 
   // Override the base class's bind, to provide a better type.
@@ -419,11 +429,13 @@ final class JsonUtf8Encoder extends Converter<Object?, List<int>> {
   ///
   /// If [toEncodable] is omitted, it defaults to calling `.toJson()` on the
   /// object.
-  JsonUtf8Encoder(
-      [String? indent, dynamic toEncodable(dynamic object)?, int? bufferSize])
-      : _indent = _utf8Encode(indent),
-        _toEncodable = toEncodable,
-        _bufferSize = bufferSize ?? _defaultBufferSize;
+  JsonUtf8Encoder([
+    String? indent,
+    dynamic toEncodable(dynamic object)?,
+    int? bufferSize,
+  ]) : _indent = _utf8Encode(indent),
+       _toEncodable = toEncodable,
+       _bufferSize = bufferSize ?? _defaultBufferSize;
 
   static List<int>? _utf8Encode(String? string) {
     if (string == null) return null;
@@ -446,14 +458,22 @@ final class JsonUtf8Encoder extends Converter<Object?, List<int>> {
     void addChunk(Uint8List chunk, int start, int end) {
       if (start > 0 || end < chunk.length) {
         var length = end - start;
-        chunk =
-            Uint8List.view(chunk.buffer, chunk.offsetInBytes + start, length);
+        chunk = Uint8List.view(
+          chunk.buffer,
+          chunk.offsetInBytes + start,
+          length,
+        );
       }
       bytes.add(chunk);
     }
 
     _JsonUtf8Stringifier.stringify(
-        object, _indent, _toEncodable, _bufferSize, addChunk);
+      object,
+      _indent,
+      _toEncodable,
+      _bufferSize,
+      addChunk,
+    );
     if (bytes.length == 1) return bytes[0];
     var length = 0;
     for (var i = 0; i < bytes.length; i++) {
@@ -517,7 +537,9 @@ class _JsonEncoderSink extends ChunkedConversionSink<Object?> {
     stringSink.close();
   }
 
-  void close() {/* do nothing */}
+  void close() {
+    /* do nothing */
+  }
 }
 
 /// Sink returned when starting a chunked conversion from object to bytes.
@@ -529,7 +551,11 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
   final int _bufferSize;
   bool _isDone = false;
   _JsonUtf8EncoderSink(
-      this._sink, this._toEncodable, this._indent, this._bufferSize);
+    this._sink,
+    this._toEncodable,
+    this._indent,
+    this._bufferSize,
+  );
 
   /// Callback called for each slice of result bytes.
   void _addChunk(Uint8List chunk, int start, int end) {
@@ -542,7 +568,12 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
     }
     _isDone = true;
     _JsonUtf8Stringifier.stringify(
-        object, _indent, _toEncodable, _bufferSize, _addChunk);
+      object,
+      _indent,
+      _toEncodable,
+      _bufferSize,
+      _addChunk,
+    );
     _sink.close();
   }
 
@@ -592,7 +623,7 @@ final class JsonDecoder extends Converter<String, Object?> {
   ///
   /// The [reviver] may be `null`.
   const JsonDecoder([Object? reviver(Object? key, Object? value)?])
-      : _reviver = reviver;
+    : _reviver = reviver;
 
   /// Converts the given JSON-string [input] to its corresponding object.
   ///
@@ -659,7 +690,7 @@ abstract class _JsonStringifier {
   final Function(dynamic) _toEncodable;
 
   _JsonStringifier(dynamic toEncodable(dynamic o)?)
-      : _toEncodable = toEncodable ?? _defaultToEncodable;
+    : _toEncodable = toEncodable ?? _defaultToEncodable;
 
   String? get _partialResult;
 
@@ -790,8 +821,11 @@ abstract class _JsonStringifier {
       }
       _removeSeen(object);
     } catch (e) {
-      throw JsonUnsupportedObjectError(object,
-          cause: e, partialResult: _partialResult);
+      throw JsonUnsupportedObjectError(
+        object,
+        cause: e,
+        partialResult: _partialResult,
+      );
     }
   }
 
@@ -949,8 +983,9 @@ class _JsonStringStringifier extends _JsonStringifier {
   final StringSink _sink;
 
   _JsonStringStringifier(
-      this._sink, dynamic Function(dynamic object)? _toEncodable)
-      : super(_toEncodable);
+    this._sink,
+    dynamic Function(dynamic object)? _toEncodable,
+  ) : super(_toEncodable);
 
   /// Convert object to a string.
   ///
@@ -962,7 +997,10 @@ class _JsonStringStringifier extends _JsonStringifier {
   /// for each indentation level. It should only contain valid JSON whitespace
   /// characters (space, tab, carriage return or line feed).
   static String stringify(
-      Object? object, dynamic toEncodable(dynamic object)?, String? indent) {
+    Object? object,
+    dynamic toEncodable(dynamic object)?,
+    String? indent,
+  ) {
     var output = StringBuffer();
     printOn(object, output, toEncodable, indent);
     return output.toString();
@@ -971,8 +1009,12 @@ class _JsonStringStringifier extends _JsonStringifier {
   /// Convert object to a string, and write the result to the [output] sink.
   ///
   /// The result is written piecemally to the sink.
-  static void printOn(Object? object, StringSink output,
-      dynamic toEncodable(dynamic o)?, String? indent) {
+  static void printOn(
+    Object? object,
+    StringSink output,
+    dynamic toEncodable(dynamic o)?,
+    String? indent,
+  ) {
     _JsonStringifier stringifier;
     if (indent == null) {
       stringifier = _JsonStringStringifier(output, toEncodable);
@@ -1006,8 +1048,10 @@ class _JsonStringStringifierPretty extends _JsonStringStringifier
   final String _indent;
 
   _JsonStringStringifierPretty(
-      StringSink sink, dynamic toEncodable(dynamic o)?, this._indent)
-      : super(sink, toEncodable);
+    StringSink sink,
+    dynamic toEncodable(dynamic o)?,
+    this._indent,
+  ) : super(sink, toEncodable);
 
   void writeIndentation(int count) {
     for (var i = 0; i < count; i++) writeString(_indent);
@@ -1025,9 +1069,11 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
   int index = 0;
 
   _JsonUtf8Stringifier(
-      dynamic toEncodable(dynamic o)?, this.bufferSize, this.addChunk)
-      : buffer = Uint8List(bufferSize),
-        super(toEncodable);
+    dynamic toEncodable(dynamic o)?,
+    this.bufferSize,
+    this.addChunk,
+  ) : buffer = Uint8List(bufferSize),
+      super(toEncodable);
 
   /// Convert [object] to UTF-8 encoded JSON.
   ///
@@ -1039,15 +1085,20 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
   /// If [indent] is non-`null`, the result will be "pretty-printed" with extra
   /// newlines and indentation, using [indent] as the indentation.
   static void stringify(
-      Object? object,
-      List<int>? indent,
-      dynamic toEncodable(dynamic o)?,
-      int bufferSize,
-      void addChunk(Uint8List chunk, int start, int end)) {
+    Object? object,
+    List<int>? indent,
+    dynamic toEncodable(dynamic o)?,
+    int bufferSize,
+    void addChunk(Uint8List chunk, int start, int end),
+  ) {
     _JsonUtf8Stringifier stringifier;
     if (indent != null) {
-      stringifier =
-          _JsonUtf8StringifierPretty(toEncodable, indent, bufferSize, addChunk);
+      stringifier = _JsonUtf8StringifierPretty(
+        toEncodable,
+        indent,
+        bufferSize,
+        addChunk,
+      );
     } else {
       stringifier = _JsonUtf8Stringifier(toEncodable, bufferSize, addChunk);
     }
@@ -1163,9 +1214,12 @@ class _JsonUtf8Stringifier extends _JsonStringifier {
 class _JsonUtf8StringifierPretty extends _JsonUtf8Stringifier
     with _JsonPrettyPrintMixin {
   final List<int> indent;
-  _JsonUtf8StringifierPretty(dynamic toEncodable(dynamic o)?, this.indent,
-      int bufferSize, void addChunk(Uint8List buffer, int start, int end))
-      : super(toEncodable, bufferSize, addChunk);
+  _JsonUtf8StringifierPretty(
+    dynamic toEncodable(dynamic o)?,
+    this.indent,
+    int bufferSize,
+    void addChunk(Uint8List buffer, int start, int end),
+  ) : super(toEncodable, bufferSize, addChunk);
 
   void writeIndentation(int count) {
     var indent = this.indent;

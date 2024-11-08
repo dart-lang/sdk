@@ -23,7 +23,8 @@ const int _flowEndPatch = 11;
 
 var _issuedRegisterExtensionWarning = false;
 var _issuedPostEventWarning = false;
-final _developerSupportWarning = 'from dart:developer is only supported in '
+final _developerSupportWarning =
+    'from dart:developer is only supported in '
     'build/run/test environments where the developer event method hooks have '
     'been set by package:dwds v11.1.0 or higher.';
 
@@ -49,16 +50,23 @@ Object? inspect(Object? object) {
 }
 
 @patch
-void log(String message,
-    {DateTime? time,
-    int? sequenceNumber,
-    int level = 0,
-    String name = '',
-    Zone? zone,
-    Object? error,
-    StackTrace? stackTrace}) {
-  Object items =
-      JS('!', '{ message: #, name: #, level: # }', message, name, level);
+void log(
+  String message, {
+  DateTime? time,
+  int? sequenceNumber,
+  int level = 0,
+  String name = '',
+  Zone? zone,
+  Object? error,
+  StackTrace? stackTrace,
+}) {
+  Object items = JS(
+    '!',
+    '{ message: #, name: #, level: # }',
+    message,
+    name,
+    level,
+  );
   if (time != null) JS('', '#.time = #', items, time);
   if (sequenceNumber != null) {
     JS('', '#.sequenceNumber = #', items, sequenceNumber);
@@ -112,8 +120,10 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
 @ReifyFunctionTypes(false)
 _invokeExtension(String methodName, String encodedJson) {
   // TODO(vsm): We should factor this out as future<->promise.
-  return JS('', 'new #.Promise(#)', dart.global_,
-      (Function(Object) resolve, Function(Object) reject) async {
+  return JS('', 'new #.Promise(#)', dart.global_, (
+    Function(Object) resolve,
+    Function(Object) reject,
+  ) async {
     try {
       var method = _lookupExtension(methodName)!;
       var parameters = (json.decode(encodedJson) as Map).cast<String, String>();
@@ -225,7 +235,12 @@ bool get _areAllBeginEventsPaired => _eventNameToCount.isEmpty;
 
 @patch
 void _reportTaskEvent(
-    int taskId, int flowId, int type, String name, String argumentsAsJson) {
+  int taskId,
+  int flowId,
+  int type,
+  String name,
+  String argumentsAsJson,
+) {
   // Ignore any unsupported events.
   if (_isUnsupportedEvent(type)) return;
 
@@ -272,7 +287,11 @@ void _reportTaskEvent(
   // event with the same name.
   if (isEndEvent) {
     final beginEventName = _createEventName(
-        taskId: taskId, name: name, isBeginEvent: true, isEndEvent: false);
+      taskId: taskId,
+      name: name,
+      isBeginEvent: true,
+      isEndEvent: false,
+    );
     JS(
       '',
       'performance.measure(#, #, #)',
@@ -339,7 +358,8 @@ final class _FakeUserTag implements UserTag {
     // Throw an exception if we've reached the maximum number of user tags.
     if (_instances.length == UserTag.maxUserTags) {
       throw UnsupportedError(
-          'UserTag instance limit (${UserTag.maxUserTags}) reached.');
+        'UserTag instance limit (${UserTag.maxUserTags}) reached.',
+      );
     }
     return _instances[label] = _FakeUserTag.real(label);
   }
@@ -368,5 +388,6 @@ abstract final class NativeRuntime {
   @patch
   static void writeHeapSnapshotToFile(String filepath) =>
       throw UnsupportedError(
-          "Generating heap snapshots is not supported on the web.");
+        "Generating heap snapshots is not supported on the web.",
+      );
 }

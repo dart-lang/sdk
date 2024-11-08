@@ -258,8 +258,9 @@ final class Isolate {
       if (response == null) {
         // onExit handler message, isolate terminated without sending result.
         result.completeError(
-            RemoteError("Computation ended without result", ""),
-            StackTrace.empty);
+          RemoteError("Computation ended without result", ""),
+          StackTrace.empty,
+        );
         return;
       }
       var list = response as List<Object?>;
@@ -272,8 +273,10 @@ final class Isolate {
         } else {
           // onError handler message, uncaught async error.
           // Both values are strings, so calling `toString` is efficient.
-          var error =
-              RemoteError(remoteError.toString(), remoteStack.toString());
+          var error = RemoteError(
+            remoteError.toString(),
+            remoteStack.toString(),
+          );
           result.completeError(error, error.stackTrace);
         }
       } else {
@@ -282,18 +285,22 @@ final class Isolate {
       }
     };
     try {
-      Isolate.spawn(_RemoteRunner._remoteExecute,
-              _RemoteRunner<R>(computation, resultPort.sendPort),
-              onError: resultPort.sendPort,
-              onExit: resultPort.sendPort,
-              errorsAreFatal: true,
-              debugName: debugName)
-          .then<void>((_) {}, onError: (error, stack) {
-        // Sending the computation failed asynchronously.
-        // Do not expect a response, report the error asynchronously.
-        resultPort.close();
-        result.completeError(error, stack);
-      });
+      Isolate.spawn(
+        _RemoteRunner._remoteExecute,
+        _RemoteRunner<R>(computation, resultPort.sendPort),
+        onError: resultPort.sendPort,
+        onExit: resultPort.sendPort,
+        errorsAreFatal: true,
+        debugName: debugName,
+      ).then<void>(
+        (_) {},
+        onError: (error, stack) {
+          // Sending the computation failed asynchronously.
+          // Do not expect a response, report the error asynchronously.
+          resultPort.close();
+          result.completeError(error, stack);
+        },
+      );
     } on Object {
       // Sending the computation failed synchronously.
       // This is not expected to happen, but if it does,
@@ -449,12 +456,14 @@ final class Isolate {
   /// One can expect the base memory overhead of an isolate to be in the order
   /// of 30 kb.
   external static Future<Isolate> spawn<T>(
-      void entryPoint(T message), T message,
-      {bool paused = false,
-      bool errorsAreFatal = true,
-      SendPort? onExit,
-      SendPort? onError,
-      @Since("2.3") String? debugName});
+    void entryPoint(T message),
+    T message, {
+    bool paused = false,
+    bool errorsAreFatal = true,
+    SendPort? onExit,
+    SendPort? onError,
+    @Since("2.3") String? debugName,
+  });
 
   /// Spawns an isolate running the script file specified by [uri].
   ///
@@ -535,18 +544,21 @@ final class Isolate {
   /// Returns a future that will complete with an [Isolate] instance if the
   /// spawning succeeded. It will complete with an error otherwise.
   external static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message,
-      {bool paused = false,
-      SendPort? onExit,
-      SendPort? onError,
-      bool errorsAreFatal = true,
-      bool? checked,
-      Map<String, String>? environment,
-      @Deprecated('The packages/ dir is not supported in Dart 2')
-      Uri? packageRoot,
-      Uri? packageConfig,
-      bool automaticPackageResolution = false,
-      @Since("2.3") String? debugName});
+    Uri uri,
+    List<String> args,
+    var message, {
+    bool paused = false,
+    SendPort? onExit,
+    SendPort? onError,
+    bool errorsAreFatal = true,
+    bool? checked,
+    Map<String, String>? environment,
+    @Deprecated('The packages/ dir is not supported in Dart 2')
+    Uri? packageRoot,
+    Uri? packageConfig,
+    bool automaticPackageResolution = false,
+    @Since("2.3") String? debugName,
+  });
 
   /// Requests the isolate to pause.
   ///
@@ -712,8 +724,11 @@ final class Isolate {
   ///     control returns to the event loop of the receiving isolate,
   ///     after the current event, and any already scheduled control events,
   ///     are completed.
-  external void ping(SendPort responsePort,
-      {Object? response, int priority = immediate});
+  external void ping(
+    SendPort responsePort, {
+    Object? response,
+    int priority = immediate,
+  });
 
   /// Requests that uncaught errors of the isolate are sent back to [port].
   ///
@@ -939,8 +954,12 @@ abstract interface class ReceivePort implements Stream<dynamic> {
   ///
   /// The [onDone] handler will be called when the stream closes.
   /// The stream closes when [close] is called.
-  StreamSubscription<dynamic> listen(void onData(var message)?,
-      {Function? onError, void onDone()?, bool? cancelOnError});
+  StreamSubscription<dynamic> listen(
+    void onData(var message)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  });
 
   /// Closes the receive port.
   ///
@@ -1025,8 +1044,8 @@ final class RemoteError implements Error {
   final String _description;
   final StackTrace stackTrace;
   RemoteError(String description, String stackDescription)
-      : _description = description,
-        stackTrace = StackTrace.fromString(stackDescription);
+    : _description = description,
+      stackTrace = StackTrace.fromString(stackDescription);
   String toString() => _description;
 }
 

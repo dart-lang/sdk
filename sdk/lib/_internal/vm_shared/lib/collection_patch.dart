@@ -10,10 +10,11 @@ import "dart:_internal" show unsafeCast, patch, IterableElementError, TypeTest;
 class HashMap<K, V> {
   @patch
   @pragma("vm:prefer-inline")
-  factory HashMap(
-      {bool equals(K key1, K key2)?,
-      int hashCode(K key)?,
-      bool isValidKey(potentialKey)?}) {
+  factory HashMap({
+    bool equals(K key1, K key2)?,
+    int hashCode(K key)?,
+    bool isValidKey(potentialKey)?,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -185,7 +186,10 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   void _removeEntry(
-      _HashMapEntry entry, _HashMapEntry? previousInBucket, int bucketIndex) {
+    _HashMapEntry entry,
+    _HashMapEntry? previousInBucket,
+    int bucketIndex,
+  ) {
     if (previousInBucket == null) {
       _buckets[bucketIndex] = entry.next;
     } else {
@@ -193,8 +197,14 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  void _addEntry(List<_HashMapEntry?> buckets, int index, int length, K key,
-      V value, int hashCode) {
+  void _addEntry(
+    List<_HashMapEntry?> buckets,
+    int index,
+    int length,
+    K key,
+    V value,
+    int hashCode,
+  ) {
     final entry = new _HashMapEntry(key, value, hashCode, buckets[index]);
     buckets[index] = entry;
     final newElements = _elementCount + 1;
@@ -254,7 +264,7 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
   _CustomHashMap(this._equals, this._hashCode, _Predicate? validKey)
-      : _validKey = (validKey != null) ? validKey : TypeTest<K>().test;
+    : _validKey = (validKey != null) ? validKey : TypeTest<K>().test;
 
   bool containsKey(Object? key) {
     if (!_validKey(key)) return false;
@@ -559,10 +569,11 @@ class _HashMapValueIterator<K, V> extends _HashMapIterator<K, V, V> {
 @patch
 class HashSet<E> {
   @patch
-  factory HashSet(
-      {bool equals(E e1, E e2)?,
-      int hashCode(E e)?,
-      bool isValidKey(potentialKey)?}) {
+  factory HashSet({
+    bool equals(E e1, E e2)?,
+    int hashCode(E e)?,
+    bool isValidKey(potentialKey)?,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -798,7 +809,7 @@ base class _CustomHashSet<E> extends _HashSet<E> {
   final _Hasher<E> _hasher;
   final _Predicate _validKey;
   _CustomHashSet(this._equality, this._hasher, _Predicate? validKey)
-      : _validKey = (validKey != null) ? validKey : TypeTest<E>().test;
+    : _validKey = (validKey != null) ? validKey : TypeTest<E>().test;
 
   bool remove(Object? element) {
     if (!_validKey(element)) return false;

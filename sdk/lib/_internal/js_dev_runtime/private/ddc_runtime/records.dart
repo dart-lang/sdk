@@ -56,7 +56,13 @@ final class RecordImpl implements Record {
     // Shapes are canonicalized and stored in a map so there will only ever be
     // one instance of the same shape.
     if (JS<bool>(
-        '!', '#[#] !== #[#]', this, shapeProperty, other, shapeProperty))
+      '!',
+      '#[#] !== #[#]',
+      this,
+      shapeProperty,
+      other,
+      shapeProperty,
+    ))
       return false;
     // If the shapes are identical then the two records have the same number of
     // positional elements and the same named elements.
@@ -141,7 +147,10 @@ final _records = JS('!', 'new Map()');
 /// The [shapeKey] must agree with the number of [positionals] and the [named]
 /// elements list. See [shapes] for a description of the shape key format.
 Shape registerShape(
-    @notNull String shapeKey, @notNull int positionals, List<String>? named) {
+  @notNull String shapeKey,
+  @notNull int positionals,
+  List<String>? named,
+) {
   var cached = JS<Shape?>('', '#.get(#)', shapes, shapeKey);
   if (cached != null) {
     return cached;
@@ -158,38 +167,53 @@ Shape registerShape(
 /// The [shapeKey] must agree with the number of [positionals] and the [named]
 /// elements list. See [shapes] for a description of the shape key format.
 Object registerRecord(
-    @notNull String shapeKey, @notNull int positionals, List<String>? named) {
+  @notNull String shapeKey,
+  @notNull int positionals,
+  List<String>? named,
+) {
   var cached = JS('', '#.get(#)', _records, shapeKey);
   if (cached != null) {
     return cached;
   }
 
-  Object recordClass =
-      JS('!', 'class _Record extends # {}', JS_CLASS_REF(RecordImpl));
+  Object recordClass = JS(
+    '!',
+    'class _Record extends # {}',
+    JS_CLASS_REF(RecordImpl),
+  );
   // Add a 'new' function to be used instead of a constructor
   // (which is disallowed on dart objects).
   Object newRecord = JS(
-      '!',
-      '''
+    '!',
+    '''
     #.new = function (shape, values) {
       Object.getPrototypeOf(#).new.call(this, shape, values);
     }
   ''',
-      recordClass,
-      recordClass);
+    recordClass,
+    recordClass,
+  );
 
   JS('!', '#.prototype = #.prototype', newRecord, recordClass);
   var recordPrototype = JS('', '#.prototype', recordClass);
 
   _recordGet(@notNull int index) => JS(
-      '!', 'function recordGet() {return this[#][#];}', valuesProperty, index);
+    '!',
+    'function recordGet() {return this[#][#];}',
+    valuesProperty,
+    index,
+  );
 
   // Add convenience getters for accessing the record's field values.
   var count = 0;
   while (count < positionals) {
     var name = '\$${count + 1}';
-    defineAccessor(recordPrototype, name,
-        get: _recordGet(count), enumerable: true);
+    defineAccessor(
+      recordPrototype,
+      name,
+      get: _recordGet(count),
+      enumerable: true,
+    );
     count++;
   }
   if (named != null) {
@@ -199,8 +223,12 @@ Object registerRecord(
         // time in js_names.dart `.memberNameForDartMember()`.
         name = '_$name';
       }
-      defineAccessor(recordPrototype, name,
-          get: _recordGet(count), enumerable: true);
+      defineAccessor(
+        recordPrototype,
+        name,
+        get: _recordGet(count),
+        enumerable: true,
+      );
       count++;
     }
   }
@@ -214,8 +242,12 @@ Object registerRecord(
 ///
 /// The [shapeKey] must agree with the number of [positionals] and the [named]
 /// elements list. See [shapes] for a description of the shape key format.
-Object recordLiteral(@notNull String shapeKey, @notNull int positionals,
-    List<String>? named, @notNull List values) {
+Object recordLiteral(
+  @notNull String shapeKey,
+  @notNull int positionals,
+  List<String>? named,
+  @notNull List values,
+) {
   var shape = registerShape(shapeKey, positionals, named);
   var record = registerRecord(shapeKey, positionals, named);
   return JS('!', 'new #(#, #)', record, shape, values);

@@ -179,8 +179,11 @@ abstract interface class Directory implements FileSystemEntity {
     overrides.setCurrentDirectory(switch (path) {
       String s => s,
       Directory d => d.path,
-      _ => throw ArgumentError('${Error.safeToString(path)} is not a String or'
-          ' Directory'),
+      _ =>
+        throw ArgumentError(
+          '${Error.safeToString(path)} is not a String or'
+          ' Directory',
+        ),
     });
   }
 
@@ -345,8 +348,10 @@ abstract interface class Directory implements FileSystemEntity {
   /// The result is a [Stream] of [FileSystemEntity] objects for the
   /// directories, files, and links. The [Stream] will be in an arbitrary
   /// order and does not include the special entries `'.'` and `'..'`.
-  Stream<FileSystemEntity> list(
-      {bool recursive = false, bool followLinks = true});
+  Stream<FileSystemEntity> list({
+    bool recursive = false,
+    bool followLinks = true,
+  });
 
   /// Lists the sub-directories and files of this [Directory].
   /// Optionally recurses into sub-directories.
@@ -369,8 +374,10 @@ abstract interface class Directory implements FileSystemEntity {
   /// Returns a [List] containing [FileSystemEntity] objects for the
   /// directories, files, and links. The [List] will be in an arbitrary order
   /// and does not include the special entries `'.'` and `'..'`.
-  List<FileSystemEntity> listSync(
-      {bool recursive = false, bool followLinks = true});
+  List<FileSystemEntity> listSync({
+    bool recursive = false,
+    bool followLinks = true,
+  });
 
   /// Returns a human readable representation of this [Directory].
   String toString();

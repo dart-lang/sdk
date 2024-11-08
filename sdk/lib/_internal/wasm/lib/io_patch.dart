@@ -52,11 +52,12 @@ class _Directory {
 
   @patch
   static void _fillWithDirectoryListing(
-      _Namespace namespace,
-      List<FileSystemEntity> list,
-      Uint8List path,
-      bool recursive,
-      bool followLinks) {
+    _Namespace namespace,
+    List<FileSystemEntity> list,
+    Uint8List path,
+    bool recursive,
+    bool followLinks,
+  ) {
     throw new UnsupportedError("Directory._fillWithDirectoryListing");
   }
 }
@@ -89,7 +90,10 @@ class FileStat {
 class FileSystemEntity {
   @patch
   static _getTypeNative(
-      _Namespace namespace, Uint8List path, bool followLinks) {
+    _Namespace namespace,
+    Uint8List path,
+    bool followLinks,
+  ) {
     throw new UnsupportedError("FileSystemEntity._getType");
   }
 
@@ -343,34 +347,43 @@ class ProcessInfo {
 @patch
 class Process {
   @patch
-  static Future<Process> start(String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      ProcessStartMode mode = ProcessStartMode.normal}) {
+  static Future<Process> start(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    ProcessStartMode mode = ProcessStartMode.normal,
+  }) {
     throw new UnsupportedError("Process.start");
   }
 
   @patch
-  static Future<ProcessResult> run(String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      Encoding? stdoutEncoding = systemEncoding,
-      Encoding? stderrEncoding = systemEncoding}) {
+  static Future<ProcessResult> run(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    Encoding? stdoutEncoding = systemEncoding,
+    Encoding? stderrEncoding = systemEncoding,
+  }) {
     throw new UnsupportedError("Process.run");
   }
 
   @patch
-  static ProcessResult runSync(String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      Encoding? stdoutEncoding = systemEncoding,
-      Encoding? stderrEncoding = systemEncoding}) {
+  static ProcessResult runSync(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    Encoding? stdoutEncoding = systemEncoding,
+    Encoding? stderrEncoding = systemEncoding,
+  }) {
     throw new UnsupportedError("Process.runSync");
   }
 
@@ -408,20 +421,26 @@ class InternetAddress {
   }
 
   @patch
-  factory InternetAddress.fromRawAddress(Uint8List rawAddress,
-      {InternetAddressType? type}) {
+  factory InternetAddress.fromRawAddress(
+    Uint8List rawAddress, {
+    InternetAddressType? type,
+  }) {
     throw new UnsupportedError("InternetAddress.fromRawAddress");
   }
 
   @patch
-  static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type = InternetAddressType.any}) {
+  static Future<List<InternetAddress>> lookup(
+    String host, {
+    InternetAddressType type = InternetAddressType.any,
+  }) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
 
   @patch
   static InternetAddress _cloneWithNewHost(
-      InternetAddress address, String host) {
+    InternetAddress address,
+    String host,
+  ) {
     throw new UnsupportedError("InternetAddress._cloneWithNewHost");
   }
 
@@ -439,10 +458,11 @@ class NetworkInterface {
   }
 
   @patch
-  static Future<List<NetworkInterface>> list(
-      {bool includeLoopback = false,
-      bool includeLinkLocal = false,
-      InternetAddressType type = InternetAddressType.any}) {
+  static Future<List<NetworkInterface>> list({
+    bool includeLoopback = false,
+    bool includeLinkLocal = false,
+    InternetAddressType type = InternetAddressType.any,
+  }) {
     throw new UnsupportedError("NetworkInterface.list");
   }
 }
@@ -450,8 +470,13 @@ class NetworkInterface {
 @patch
 class RawServerSocket {
   @patch
-  static Future<RawServerSocket> bind(address, int port,
-      {int backlog = 0, bool v6Only = false, bool shared = false}) {
+  static Future<RawServerSocket> bind(
+    address,
+    int port, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool shared = false,
+  }) {
     throw new UnsupportedError("RawServerSocket.bind");
   }
 }
@@ -459,8 +484,13 @@ class RawServerSocket {
 @patch
 class ServerSocket {
   @patch
-  static Future<ServerSocket> _bind(address, int port,
-      {int backlog = 0, bool v6Only = false, bool shared = false}) {
+  static Future<ServerSocket> _bind(
+    address,
+    int port, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool shared = false,
+  }) {
     throw new UnsupportedError("ServerSocket.bind");
   }
 }
@@ -468,14 +498,23 @@ class ServerSocket {
 @patch
 class RawSocket {
   @patch
-  static Future<RawSocket> connect(dynamic host, int port,
-      {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) {
+  static Future<RawSocket> connect(
+    dynamic host,
+    int port, {
+    dynamic sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  }) {
     throw new UnsupportedError("RawSocket constructor");
   }
 
   @patch
-  static Future<ConnectionTask<RawSocket>> startConnect(dynamic host, int port,
-      {dynamic sourceAddress, int sourcePort = 0}) {
+  static Future<ConnectionTask<RawSocket>> startConnect(
+    dynamic host,
+    int port, {
+    dynamic sourceAddress,
+    int sourcePort = 0,
+  }) {
     throw new UnsupportedError("RawSocket constructor");
   }
 }
@@ -483,14 +522,23 @@ class RawSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> _connect(dynamic host, int port,
-      {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) {
+  static Future<Socket> _connect(
+    dynamic host,
+    int port, {
+    dynamic sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  }) {
     throw new UnsupportedError("Socket constructor");
   }
 
   @patch
-  static Future<ConnectionTask<Socket>> _startConnect(dynamic host, int port,
-      {dynamic sourceAddress, int sourcePort = 0}) {
+  static Future<ConnectionTask<Socket>> _startConnect(
+    dynamic host,
+    int port, {
+    dynamic sourceAddress,
+    int sourcePort = 0,
+  }) {
     throw new UnsupportedError("Socket constructor");
   }
 }
@@ -522,7 +570,8 @@ class ResourceHandle {
 
   @patch
   factory ResourceHandle.fromRawDatagramSocket(
-      RawDatagramSocket rawDatagramSocket) {
+    RawDatagramSocket rawDatagramSocket,
+  ) {
     throw UnsupportedError("ResourceHandle.fromRawDatagramSocket constructor");
   }
 
@@ -600,8 +649,13 @@ class X509Certificate {
 @patch
 class RawDatagramSocket {
   @patch
-  static Future<RawDatagramSocket> bind(dynamic host, int port,
-      {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) {
+  static Future<RawDatagramSocket> bind(
+    dynamic host,
+    int port, {
+    bool reuseAddress = true,
+    bool reusePort = false,
+    int ttl = 1,
+  }) {
     throw new UnsupportedError("RawDatagramSocket.bind");
   }
 }
@@ -657,19 +711,24 @@ class _WindowsCodePageEncoder {
 class RawZLibFilter {
   @patch
   static RawZLibFilter _makeZLibDeflateFilter(
-      bool gzip,
-      int level,
-      int windowBits,
-      int memLevel,
-      int strategy,
-      List<int>? dictionary,
-      bool raw) {
+    bool gzip,
+    int level,
+    int windowBits,
+    int memLevel,
+    int strategy,
+    List<int>? dictionary,
+    bool raw,
+  ) {
     throw new UnsupportedError("_newZLibDeflateFilter");
   }
 
   @patch
   static RawZLibFilter _makeZLibInflateFilter(
-      bool gzip, int windowBits, List<int>? dictionary, bool raw) {
+    bool gzip,
+    int windowBits,
+    List<int>? dictionary,
+    bool raw,
+  ) {
     throw new UnsupportedError("_newZLibInflateFilter");
   }
 }
@@ -744,7 +803,10 @@ class Stdout {
 class _FileSystemWatcher {
   @patch
   static Stream<FileSystemEvent> _watch(
-      String path, int events, bool recursive) {
+    String path,
+    int events,
+    bool recursive,
+  ) {
     throw new UnsupportedError("_FileSystemWatcher.watch");
   }
 

@@ -21,58 +21,85 @@ class DateTime {
   /// Constructs a new [DateTime] instance with the given value.
   ///
   /// If [isUtc] is false, then the date is in the local time zone.
-  DateTime._withValueChecked(int millisecondsSinceEpoch, int microsecond,
-      {required bool isUtc})
-      : _value = _validate(millisecondsSinceEpoch, microsecond, isUtc),
-        _microsecond = microsecond,
-        this.isUtc = isUtc;
+  DateTime._withValueChecked(
+    int millisecondsSinceEpoch,
+    int microsecond, {
+    required bool isUtc,
+  }) : _value = _validate(millisecondsSinceEpoch, microsecond, isUtc),
+       _microsecond = microsecond,
+       this.isUtc = isUtc;
 
   @patch
-  DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc = false})
-      : this._withValueChecked(millisecondsSinceEpoch, 0, isUtc: isUtc);
+  DateTime.fromMillisecondsSinceEpoch(
+    int millisecondsSinceEpoch, {
+    bool isUtc = false,
+  }) : this._withValueChecked(millisecondsSinceEpoch, 0, isUtc: isUtc);
 
   @patch
-  DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc = false})
-      : this._withValueChecked(
-            (microsecondsSinceEpoch - microsecondsSinceEpoch % 1000) ~/ 1000,
-            microsecondsSinceEpoch % 1000,
-            isUtc: isUtc);
+  DateTime.fromMicrosecondsSinceEpoch(
+    int microsecondsSinceEpoch, {
+    bool isUtc = false,
+  }) : this._withValueChecked(
+         (microsecondsSinceEpoch - microsecondsSinceEpoch % 1000) ~/ 1000,
+         microsecondsSinceEpoch % 1000,
+         isUtc: isUtc,
+       );
 
   @patch
-  DateTime._internal(int year, int month, int day, int hour, int minute,
-      int second, int millisecond, int microsecond, bool isUtc)
-      // checkBool is manually inlined here because dart2js doesn't inline it
-      // and [isUtc] is usually a constant.
-      : this.isUtc =
-            isUtc is bool ? isUtc : throw ArgumentError.value(isUtc, 'isUtc'),
-        _value = Primitives.valueFromDecomposedDate(year, month, day, hour,
-                minute, second, millisecond, microsecond, isUtc) ??
-            _sentinel,
-        _microsecond = microsecond % 1000 {
+  DateTime._internal(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+    int second,
+    int millisecond,
+    int microsecond,
+    bool isUtc,
+  )
+    // checkBool is manually inlined here because dart2js doesn't inline it
+    // and [isUtc] is usually a constant.
+    : this.isUtc =
+          isUtc is bool ? isUtc : throw ArgumentError.value(isUtc, 'isUtc'),
+      _value =
+          Primitives.valueFromDecomposedDate(
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+            millisecond,
+            microsecond,
+            isUtc,
+          ) ??
+          _sentinel,
+      _microsecond = microsecond % 1000 {
     if (_value == _sentinel) {
-      throw ArgumentError('($year, $month, $day,'
-          ' $hour, $minute, $second, $millisecond, $microsecond)');
+      throw ArgumentError(
+        '($year, $month, $day,'
+        ' $hour, $minute, $second, $millisecond, $microsecond)',
+      );
     }
   }
 
   static const _sentinel = _maxMillisecondsSinceEpoch * 10;
-  static const _sentinelConstraint = _sentinel < -_maxMillisecondsSinceEpoch ||
+  static const _sentinelConstraint =
+      _sentinel < -_maxMillisecondsSinceEpoch ||
       _sentinel > _maxMillisecondsSinceEpoch;
   static const _sentinelAssertion = 1 ~/ (_sentinelConstraint ? 1 : 0);
 
   @patch
   DateTime._now()
-      : isUtc = false,
-        _value = Primitives.dateNow(),
-        _microsecond = 0;
+    : isUtc = false,
+      _value = Primitives.dateNow(),
+      _microsecond = 0;
 
   @patch
   DateTime._nowUtc()
-      : isUtc = true,
-        _value = Primitives.dateNow(),
-        _microsecond = 0;
+    : isUtc = true,
+      _value = Primitives.dateNow(),
+      _microsecond = 0;
 
   @patch
   DateTime _withUtc({required bool isUtc}) {
@@ -80,10 +107,28 @@ class DateTime {
   }
 
   @patch
-  static DateTime? _finishParse(int year, int month, int day, int hour,
-      int minute, int second, int millisecond, int microsecond, bool isUtc) {
-    final value = Primitives.valueFromDecomposedDate(year, month, day, hour,
-        minute, second, millisecond, microsecond, isUtc);
+  static DateTime? _finishParse(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+    int second,
+    int millisecond,
+    int microsecond,
+    bool isUtc,
+  ) {
+    final value = Primitives.valueFromDecomposedDate(
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      second,
+      millisecond,
+      microsecond,
+      isUtc,
+    );
     if (value == null) return null;
     return DateTime._withValueChecked(value, microsecond, isUtc: isUtc);
   }
@@ -123,7 +168,9 @@ class DateTime {
         millisecondsSinceEpoch - other.millisecondsSinceEpoch;
     final deltaMicroseconds = microsecond - other.microsecond;
     return Duration(
-        milliseconds: deltaMilliseconds, microseconds: deltaMicroseconds);
+      milliseconds: deltaMilliseconds,
+      microseconds: deltaMicroseconds,
+    );
   }
 
   @patch

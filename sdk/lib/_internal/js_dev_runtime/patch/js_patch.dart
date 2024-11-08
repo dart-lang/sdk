@@ -150,7 +150,8 @@ class JsObject {
 class JsFunction extends JsObject {
   @patch
   factory JsFunction.withThis(Function f) {
-    return JsFunction._fromJs(JS(
+    return JsFunction._fromJs(
+      JS(
         '',
         'function(/*...arguments*/) {'
             '  let args = [#(this)];'
@@ -162,18 +163,23 @@ class JsFunction extends JsObject {
         _convertToDart,
         _convertToDart,
         _convertToJS,
-        f));
+        f,
+      ),
+    );
   }
 
   JsFunction._fromJs(Object jsObject) : super._fromJs(jsObject);
 
   @patch
-  dynamic apply(List args, {thisArg}) => _convertToDart(JS(
+  dynamic apply(List args, {thisArg}) => _convertToDart(
+    JS(
       '',
       '#.apply(#, #)',
       _jsObject,
       _convertToJS(thisArg),
-      args == null ? null : List.from(args.map(_convertToJS))));
+      args == null ? null : List.from(args.map(_convertToJS)),
+    ),
+  );
 }
 
 // TODO(jmesserly): this is totally unnecessary in dev_compiler.
@@ -232,7 +238,12 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
     var len = JS('', '#.length', _jsObject);
     // JavaScript arrays have lengths which are unsigned 32-bit integers.
     if (JS<bool>(
-        '!', 'typeof # === "number" && (# >>> 0) === #', len, len, len)) {
+      '!',
+      'typeof # === "number" && (# >>> 0) === #',
+      len,
+      len,
+      len,
+    )) {
       return JS<int>('!', '#', len);
     }
     throw StateError('Bad JsArray length');
@@ -250,9 +261,10 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
 
   @patch
   void addAll(Iterable<E> iterable) {
-    var list = (JS<bool>('!', '# instanceof Array', iterable))
-        ? JS<List>('', '#', iterable)
-        : List.from(iterable);
+    var list =
+        (JS<bool>('!', '# instanceof Array', iterable))
+            ? JS<List>('', '#', iterable)
+            : List.from(iterable);
     callMethod('push', list);
   }
 
@@ -304,29 +316,70 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
 // cross frame windows while the instanceof Object test fails.
 bool _isBrowserType(Object o) =>
     JS('!', '# instanceof Object', o) &&
-    (JS('!', '(#.Blob && # instanceof #.Blob)', dart.global_, o,
-            dart.global_) ||
-        JS('!', '(#.Event && # instanceof #.Event)', dart.global_, o,
-            dart.global_) ||
-        JS('!', '(#.KeyRange && # instanceof #.KeyRange)', dart.global_, o,
-            dart.global_) ||
-        JS('!', '(#.IDBKeyRange && # instanceof #.IDBKeyRange)', dart.global_,
-            o, dart.global_) ||
-        JS('!', '(#.ImageData && # instanceof #.ImageData)', dart.global_, o,
-            dart.global_) ||
-        JS('!', '(#.Node && # instanceof #.Node)', dart.global_, o,
-            dart.global_) ||
-        JS('!', '(#.DataView && # instanceof #.DataView)', dart.global_, o,
-            dart.global_) ||
+    (JS(
+          '!',
+          '(#.Blob && # instanceof #.Blob)',
+          dart.global_,
+          o,
+          dart.global_,
+        ) ||
+        JS(
+          '!',
+          '(#.Event && # instanceof #.Event)',
+          dart.global_,
+          o,
+          dart.global_,
+        ) ||
+        JS(
+          '!',
+          '(#.KeyRange && # instanceof #.KeyRange)',
+          dart.global_,
+          o,
+          dart.global_,
+        ) ||
+        JS(
+          '!',
+          '(#.IDBKeyRange && # instanceof #.IDBKeyRange)',
+          dart.global_,
+          o,
+          dart.global_,
+        ) ||
+        JS(
+          '!',
+          '(#.ImageData && # instanceof #.ImageData)',
+          dart.global_,
+          o,
+          dart.global_,
+        ) ||
+        JS(
+          '!',
+          '(#.Node && # instanceof #.Node)',
+          dart.global_,
+          o,
+          dart.global_,
+        ) ||
+        JS(
+          '!',
+          '(#.DataView && # instanceof #.DataView)',
+          dart.global_,
+          o,
+          dart.global_,
+        ) ||
         // Int8Array.__proto__ is TypedArray.
         JS(
-            '!',
-            '(#.Int8Array && # instanceof Object.getPrototypeOf(#.Int8Array))',
-            dart.global_,
-            o,
-            dart.global_) ||
-        JS('!', '(#.Window && # instanceof #.Window)', dart.global_, o,
-            dart.global_));
+          '!',
+          '(#.Int8Array && # instanceof Object.getPrototypeOf(#.Int8Array))',
+          dart.global_,
+          o,
+          dart.global_,
+        ) ||
+        JS(
+          '!',
+          '(#.Window && # instanceof #.Window)',
+          dart.global_,
+          o,
+          dart.global_,
+        ));
 
 class _DartObject {
   final Object _dartObj;
@@ -351,14 +404,15 @@ Object? _convertToJS(Object? o) {
 
 Object _wrapDartFunction(Object f) {
   var wrapper = JS<Object>(
-      '',
-      'function(/*...arguments*/) {'
-          '  let args = Array.prototype.map.call(arguments, #);'
-          '  return #(#(...args));'
-          '}',
-      _convertToDart,
-      _convertToJS,
-      f);
+    '',
+    'function(/*...arguments*/) {'
+        '  let args = Array.prototype.map.call(arguments, #);'
+        '  return #(#(...args));'
+        '}',
+    _convertToDart,
+    _convertToJS,
+    f,
+  );
   JS('', '#.set(#, #)', _dartProxies, wrapper, f);
 
   return wrapper;

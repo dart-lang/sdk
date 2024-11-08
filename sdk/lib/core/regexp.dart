@@ -267,11 +267,13 @@ abstract interface class RegExp implements Pattern {
   /// Pattern keyValuePattern(String anyStringKey) =>
   ///     RegExp('${RegExp.escape(anyStringKey)}=(\\w+)');
   /// ```
-  external factory RegExp(String source,
-      {bool multiLine = false,
-      bool caseSensitive = true,
-      @Since("2.4") bool unicode = false,
-      @Since("2.4") bool dotAll = false});
+  external factory RegExp(
+    String source, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    @Since("2.4") bool unicode = false,
+    @Since("2.4") bool dotAll = false,
+  });
 
   /// Creates regular expression syntax that matches the input [text].
   ///

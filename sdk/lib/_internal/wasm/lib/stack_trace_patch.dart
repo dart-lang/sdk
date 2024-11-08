@@ -16,7 +16,9 @@ class StackTrace {
     // Note: We remove the first two frames to prevent including
     // `getCurrentStackTrace` and `StackTrace.current`. On Chrome, the first
     // line is not a frame but a line with just "Error", which we also remove.
-    return _StringStackTrace(JSStringImpl(JS<WasmExternRef?>(r"""() => {
+    return _StringStackTrace(
+      JSStringImpl(
+        JS<WasmExternRef?>(r"""() => {
           let stackString = new Error().stack.toString();
           let frames = stackString.split('\n');
           let drop = 2;
@@ -24,6 +26,8 @@ class StackTrace {
               drop += 1;
           }
           return frames.slice(drop).join('\n');
-        }""")));
+        }"""),
+      ),
+    );
   }
 }

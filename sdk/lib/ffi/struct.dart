@@ -24,21 +24,15 @@ final class _Compound implements NativeType {
   external _Compound._();
 
   @pragma('vm:prefer-inline')
-  _Compound._fromTypedDataBase(
-    this._typedDataBase,
-    this._offsetInBytes,
-  );
+  _Compound._fromTypedDataBase(this._typedDataBase, this._offsetInBytes);
 
   /// Constructs a view on [typedData].
   ///
   /// The length in bytes of [typedData] must at least be [sizeInBytes].
   @pragma('vm:prefer-inline')
-  _Compound._fromTypedData(
-    TypedData typedData,
-    int offset,
-    int sizeInBytes,
-  )   : _typedDataBase = typedData,
-        _offsetInBytes = typedData.elementSizeInBytes * offset {
+  _Compound._fromTypedData(TypedData typedData, int offset, int sizeInBytes)
+    : _typedDataBase = typedData,
+      _offsetInBytes = typedData.elementSizeInBytes * offset {
     if (typedData.lengthInBytes <
         typedData.elementSizeInBytes * offset + sizeInBytes) {
       throw RangeError.range(
@@ -161,10 +155,8 @@ abstract base class Struct extends _Compound implements SizedNativeType {
   ///
   /// Used in [StructPointer.ref], FFI calls, and FFI callbacks.
   @pragma('vm:prefer-inline')
-  Struct._fromTypedDataBase(
-    super._typedDataBase,
-    super._offsetInBytes,
-  ) : super._fromTypedDataBase();
+  Struct._fromTypedDataBase(super._typedDataBase, super._offsetInBytes)
+    : super._fromTypedDataBase();
 
   /// Creates a view on [typedData].
   ///
@@ -172,11 +164,8 @@ abstract base class Struct extends _Compound implements SizedNativeType {
   ///
   /// Used in the `external` public constructor of [Struct].
   @pragma('vm:prefer-inline')
-  Struct._fromTypedData(
-    super.typedData,
-    super.offset,
-    super.sizeInBytes,
-  ) : super._fromTypedData();
+  Struct._fromTypedData(super.typedData, super.offset, super.sizeInBytes)
+    : super._fromTypedData();
 }
 
 /// Annotation to specify on `Struct` subtypes to indicate that its members

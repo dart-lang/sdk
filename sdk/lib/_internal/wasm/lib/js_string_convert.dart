@@ -14,14 +14,20 @@ import 'dart:js_interop';
 /// Implements `_Utf8Decoder.convertSingle` hook for JS array inputs. Does not
 /// do bounds checking.
 JSStringImpl? decodeUtf8JS(
-    JSUint8ArrayImpl codeUnits, int start, int end, bool allowMalformed) {
+  JSUint8ArrayImpl codeUnits,
+  int start,
+  int end,
+  bool allowMalformed,
+) {
   final length = end - start;
   if (length >= _shortInputThreshold) {
     final JSAny? decoder = allowMalformed ? _decoderNonFatal : _decoder;
     if (decoder != null) {
       final arrayRef = codeUnits.toJSArrayExternRef(start, length);
-      final textDecoderResult =
-          _useTextDecoder(externRefForJSAny(decoder), arrayRef);
+      final textDecoderResult = _useTextDecoder(
+        externRefForJSAny(decoder),
+        arrayRef,
+      );
       if (textDecoderResult != null) {
         return textDecoderResult;
       }
@@ -37,15 +43,20 @@ JSStringImpl? decodeUtf8JS(
 const int _shortInputThreshold = 15;
 
 JSStringImpl? _useTextDecoder(
-    WasmExternRef? decoder, WasmExternRef? codeUnits) {
+  WasmExternRef? decoder,
+  WasmExternRef? codeUnits,
+) {
   // If the input is malformed, catch the exception and return `null` to fall
   // back on unintercepted decoder. The fallback will either succeed in
   // decoding, or report the problem better than `TextDecoder`.
   try {
-    return JSStringImpl(js.JS<WasmExternRef?>(
+    return JSStringImpl(
+      js.JS<WasmExternRef?>(
         '(decoder, codeUnits) => decoder.decode(codeUnits)',
         decoder,
-        codeUnits));
+        codeUnits,
+      ),
+    );
   } catch (e) {}
   return null;
 }

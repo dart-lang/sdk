@@ -9004,7 +9004,7 @@ library
             SimpleIdentifier
               token: dynamic @87
               staticElement: dynamic@-1
-              element: dynamic@-1
+              element: dynamic
               staticType: Type
         static const vNull @102
           reference: <testLibraryFragment>::@topLevelVariable::vNull
@@ -12424,7 +12424,7 @@ library
                   NamedType
                     name: dynamic @54
                     element: dynamic@-1
-                    element2: dynamic@-1
+                    element2: dynamic
                     type: dynamic
                 rightBracket: > @61
               leftBracket: [ @62
@@ -12941,7 +12941,7 @@ library
                   NamedType
                     name: dynamic @25
                     element: dynamic@-1
-                    element2: dynamic@-1
+                    element2: dynamic
                     type: dynamic
                   NamedType
                     name: int @34
@@ -12972,7 +12972,7 @@ library
                   NamedType
                     name: dynamic @72
                     element: dynamic@-1
-                    element2: dynamic@-1
+                    element2: dynamic
                     type: dynamic
                 rightBracket: > @79
               leftBracket: { @80
@@ -13150,7 +13150,7 @@ library
                   NamedType
                     name: dynamic @25
                     element: dynamic@-1
-                    element2: dynamic@-1
+                    element2: dynamic
                     type: dynamic
                 rightBracket: > @32
               leftBracket: { @33

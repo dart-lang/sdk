@@ -7,8 +7,10 @@ part of dart.developer;
 // Examples can assume:
 // void doSomething() {}
 
-const bool _hasTimeline =
-    const bool.fromEnvironment("dart.developer.timeline", defaultValue: true);
+const bool _hasTimeline = const bool.fromEnvironment(
+  "dart.developer.timeline",
+  defaultValue: true,
+);
 
 /// A typedef for the function argument to [Timeline.timeSync].
 typedef TimelineSyncFunction<T> = T Function();
@@ -124,8 +126,12 @@ abstract final class Timeline {
       _stack.add(null);
       return;
     }
-    var block = new _SyncBlock._(name, _getNextTaskId(),
-        arguments: arguments, flow: flow);
+    var block = new _SyncBlock._(
+      name,
+      _getNextTaskId(),
+      arguments: arguments,
+      flow: flow,
+    );
     _stack.add(block);
     block._startSync();
   }
@@ -160,14 +166,23 @@ abstract final class Timeline {
     // Instant events don't have an id because they don't need to be paired with
     // other events.
     int taskId = 0;
-    _reportTaskEvent(taskId, /*flowId=*/ _noFlowId, _instant, name,
-        _argumentsAsJson(arguments));
+    _reportTaskEvent(
+      taskId,
+      /*flowId=*/ _noFlowId,
+      _instant,
+      name,
+      _argumentsAsJson(arguments),
+    );
   }
 
   /// A utility method to time a synchronous [function]. Internally calls
   /// [function] bracketed by calls to [startSync] and [finishSync].
-  static T timeSync<T>(String name, TimelineSyncFunction<T> function,
-      {Map? arguments, Flow? flow}) {
+  static T timeSync<T>(
+    String name,
+    TimelineSyncFunction<T> function, {
+    Map? arguments,
+    Flow? flow,
+  }) {
     startSync(name, arguments: arguments, flow: flow);
     try {
       return function();
@@ -201,9 +216,9 @@ final class TimelineTask {
   /// into the arguments of each event associated with this task. The
   /// `filterKey` will be set to the value of [filterKey].
   TimelineTask({TimelineTask? parent, String? filterKey})
-      : _parent = parent,
-        _filterKey = filterKey,
-        _taskId = _getNextTaskId() {}
+    : _parent = parent,
+      _filterKey = filterKey,
+      _taskId = _getNextTaskId() {}
 
   /// Create a task with an explicit [taskId]. This is useful if you are
   /// passing a task from one isolate to another.
@@ -216,9 +231,9 @@ final class TimelineTask {
   /// into the arguments of each event associated with this task. The
   /// `filterKey` will be set to the value of [filterKey].
   TimelineTask.withTaskId(int taskId, {String? filterKey})
-      : _parent = null,
-        _filterKey = filterKey,
-        _taskId = taskId {
+    : _parent = null,
+      _filterKey = filterKey,
+      _taskId = taskId {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(taskId, 'taskId');
   }
@@ -257,8 +272,13 @@ final class TimelineTask {
       ...?arguments,
       if (_filterKey != null) _kFilterKey: _filterKey,
     };
-    _reportTaskEvent(_taskId, /*flowId=*/ _noFlowId, _asyncInstant, name,
-        _argumentsAsJson(instantArguments));
+    _reportTaskEvent(
+      _taskId,
+      /*flowId=*/ _noFlowId,
+      _asyncInstant,
+      name,
+      _argumentsAsJson(instantArguments),
+    );
   }
 
   /// Finish the last synchronous operation that was started.
@@ -288,8 +308,9 @@ final class TimelineTask {
   int pass() {
     if (_stack.length > 0) {
       throw new StateError(
-          'You cannot pass a TimelineTask without finishing all started '
-          'operations');
+        'You cannot pass a TimelineTask without finishing all started '
+        'operations',
+      );
     }
     int r = _taskId;
     return r;
@@ -315,14 +336,24 @@ final class _AsyncBlock {
 
   // Emit the start event.
   void _start(Map arguments) {
-    _reportTaskEvent(_taskId, /*flowId=*/ _noFlowId, _asyncBegin, name,
-        _argumentsAsJson(arguments));
+    _reportTaskEvent(
+      _taskId,
+      /*flowId=*/ _noFlowId,
+      _asyncBegin,
+      name,
+      _argumentsAsJson(arguments),
+    );
   }
 
   // Emit the finish event.
   void _finish(Map? arguments) {
-    _reportTaskEvent(_taskId, /*flowId=*/ _noFlowId, _asyncEnd, name,
-        _argumentsAsJson(arguments));
+    _reportTaskEvent(
+      _taskId,
+      /*flowId=*/ _noFlowId,
+      _asyncEnd,
+      name,
+      _argumentsAsJson(arguments),
+    );
   }
 }
 
@@ -349,7 +380,12 @@ final class _SyncBlock {
   /// Start this block of time.
   void _startSync() {
     _reportTaskEvent(
-        taskId, flow?.id ?? _noFlowId, _begin, name, _jsonArguments);
+      taskId,
+      flow?.id ?? _noFlowId,
+      _begin,
+      name,
+      _jsonArguments,
+    );
   }
 
   /// Finish this block of time. At this point, this block can no longer be
@@ -358,8 +394,13 @@ final class _SyncBlock {
     // Report event to runtime.
     final Flow? tempFlow = flow;
     if (tempFlow != null) {
-      _reportTaskEvent(tempFlow.id, /*flowId=*/ _noFlowId, tempFlow._type,
-          "${tempFlow.id}", _argumentsAsJson(null));
+      _reportTaskEvent(
+        tempFlow.id,
+        /*flowId=*/ _noFlowId,
+        tempFlow._type,
+        "${tempFlow.id}",
+        _argumentsAsJson(null),
+      );
     }
     _reportTaskEvent(taskId, /*flowId=*/ _noFlowId, _end, name, _jsonArguments);
   }
@@ -386,4 +427,9 @@ external int _getTraceClock();
 
 /// Reports an event for a task.
 external void _reportTaskEvent(
-    int taskId, int flowId, int type, String name, String argumentsAsJson);
+  int taskId,
+  int flowId,
+  int type,
+  String name,
+  String argumentsAsJson,
+);

@@ -19,9 +19,10 @@ abstract class WasmListBase<E> extends ListBase<E> {
   WasmArray<Object?> _data;
 
   WasmListBase(int length, int capacity)
-      : _length = length,
-        _data = WasmArray<Object?>(
-            RangeError.checkValueInInterval(capacity, 0, _maxWasmArrayLength));
+    : _length = length,
+      _data = WasmArray<Object?>(
+        RangeError.checkValueInInterval(capacity, 0, _maxWasmArrayLength),
+      );
 
   WasmListBase._withData(this._length, this._data);
 
@@ -64,7 +65,7 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
   _ModifiableList(int length, int capacity) : super(length, capacity);
 
   _ModifiableList._withData(int length, WasmArray<Object?> data)
-      : super._withData(length, data);
+    : super._withData(length, data);
 
   @pragma('wasm:prefer-inline')
   @override
@@ -194,7 +195,7 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
   ModifiableFixedLengthList._(int length) : super(length, length);
 
   ModifiableFixedLengthList._withData(WasmArray<Object?> data)
-      : super._withData(data.length, data) {
+    : super._withData(data.length, data) {
     assert((() => _elementsHaveType<E>(this))());
   }
 
@@ -218,7 +219,9 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
   // Specialization of List.generate constructor for growable == false.
   // Used by pkg/dart2wasm/lib/list_factory_specializer.dart.
   factory ModifiableFixedLengthList.generate(
-      int length, E generator(int index)) {
+    int length,
+    E generator(int index),
+  ) {
     final result = ModifiableFixedLengthList<E>(length);
     for (int i = 0; i < result.length; ++i) {
       result._data[i] = generator(i);
@@ -237,14 +240,16 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
     // arrays.
     if (elements is EfficientLengthIterable) {
       return ModifiableFixedLengthList._ofUntypedEfficientLengthIterable(
-          elements);
+        elements,
+      );
     }
 
     return ModifiableFixedLengthList._fromUntypedIterable(elements);
   }
 
   factory ModifiableFixedLengthList._ofUntypedEfficientLengthIterable(
-      EfficientLengthIterable elements) {
+    EfficientLengthIterable elements,
+  ) {
     final length = elements.length;
     final data = WasmArray<Object?>(length);
     int i = 0;
@@ -255,8 +260,9 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
 
   @pragma('wasm:prefer-inline')
   factory ModifiableFixedLengthList._fromUntypedIterable(Iterable elements) {
-    return GrowableList<E>._fromUntypedIterable(elements)
-        ._toModifiableFixedLengthList();
+    return GrowableList<E>._fromUntypedIterable(
+      elements,
+    )._toModifiableFixedLengthList();
   }
 
   // Specialization of List.of constructor for growable == false.
@@ -267,7 +273,8 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
     }
     if (elements is EfficientLengthIterable) {
       return ModifiableFixedLengthList._ofEfficientLengthIterable(
-          unsafeCast(elements));
+        unsafeCast(elements),
+      );
     }
     return ModifiableFixedLengthList._fromIterable(elements);
   }
@@ -280,7 +287,8 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
   }
 
   factory ModifiableFixedLengthList._ofEfficientLengthIterable(
-      EfficientLengthIterable<E> elements) {
+    EfficientLengthIterable<E> elements,
+  ) {
     final int length = elements.length;
     final list = ModifiableFixedLengthList<E>(length);
     if (length > 0) {
@@ -294,15 +302,16 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
   }
 
   factory ModifiableFixedLengthList._fromIterable(Iterable<E> elements) {
-    return GrowableList<E>._fromIterable(elements)
-        ._toModifiableFixedLengthList();
+    return GrowableList<E>._fromIterable(
+      elements,
+    )._toModifiableFixedLengthList();
   }
 }
 
 @pragma("wasm:entry-point")
 class ImmutableList<E> extends WasmListBase<E> with UnmodifiableListMixin<E> {
   ImmutableList._withData(WasmArray<Object?> data)
-      : super._withData(data.length, data) {
+    : super._withData(data.length, data) {
     assert((() => _elementsHaveType<E>(this))());
   }
 
@@ -348,7 +357,8 @@ class ImmutableList<E> extends WasmListBase<E> with UnmodifiableListMixin<E> {
   }
 
   factory ImmutableList._ofEfficientLengthIterable(
-      EfficientLengthIterable<E> elements) {
+    EfficientLengthIterable<E> elements,
+  ) {
     final length = elements.length;
     final data = WasmArray<Object?>(length);
     int i = 0;
@@ -371,8 +381,8 @@ class _FixedSizeListIterator<E> implements Iterator<E> {
 
   @pragma("wasm:prefer-inline")
   _FixedSizeListIterator(WasmListBase<E> list)
-      : _data = list._data,
-        _index = 0 {
+    : _data = list._data,
+      _index = 0 {
     assert(list is ModifiableFixedLengthList<E> || list is ImmutableList<E>);
     assert(list.length == list._data.length);
   }
@@ -398,13 +408,13 @@ class GrowableList<E> extends _ModifiableList<E> {
 
   @pragma("wasm:entry-point")
   GrowableList._withData(WasmArray<Object?> data)
-      : super._withData(data.length, data) {
+    : super._withData(data.length, data) {
     assert((() => _elementsHaveType<E>(this))());
   }
 
   @pragma("wasm:prefer-inline")
   GrowableList.withDataAndLength(WasmArray<Object?> data, int length)
-      : super._withData(length, data) {
+    : super._withData(length, data) {
     assert((() => _elementsHaveType<E>(this))());
   }
 
@@ -465,7 +475,8 @@ class GrowableList<E> extends _ModifiableList<E> {
   }
 
   factory GrowableList._ofUntypedEfficientLengthIterable(
-      EfficientLengthIterable elements) {
+    EfficientLengthIterable elements,
+  ) {
     final length = elements.length;
     final data = WasmArray<Object?>(length);
     int i = 0;
@@ -493,7 +504,8 @@ class GrowableList<E> extends _ModifiableList<E> {
   }
 
   factory GrowableList._ofEfficientLengthIterable(
-      EfficientLengthIterable<E> elements) {
+    EfficientLengthIterable<E> elements,
+  ) {
     final int length = elements.length;
     final list = GrowableList<E>(length);
     if (length > 0) {
@@ -722,17 +734,19 @@ class GrowableList<E> extends _ModifiableList<E> {
 
   // NOTE: May use the same backing store.
   ModifiableFixedLengthList<E> _toModifiableFixedLengthList() {
-    final fixedData = data.length == length
-        ? data
-        : (WasmArray<Object?>(length)..copy(0, data, 0, length));
+    final fixedData =
+        data.length == length
+            ? data
+            : (WasmArray<Object?>(length)..copy(0, data, 0, length));
     return ModifiableFixedLengthList<E>._withData(fixedData);
   }
 
   // NOTE: May use the same backing store.
   ImmutableList<E> _toUnmodifiableList() {
-    final fixedData = data.length == length
-        ? data
-        : (WasmArray<Object?>(length)..copy(0, data, 0, length));
+    final fixedData =
+        data.length == length
+            ? data
+            : (WasmArray<Object?>(length)..copy(0, data, 0, length));
     return ImmutableList<E>._withData(fixedData);
   }
 }
@@ -746,9 +760,9 @@ class _GrowableListIterator<E> implements Iterator<E> {
 
   @pragma("wasm:prefer-inline")
   _GrowableListIterator(GrowableList<E> list)
-      : _list = list,
-        _length = list.length,
-        _index = 0;
+    : _list = list,
+      _length = list.length,
+      _index = 0;
 
   @pragma("wasm:prefer-inline")
   E get current => _current as E;

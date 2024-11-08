@@ -12,11 +12,17 @@ class _File {
   @patch
   @pragma("vm:external-name", "File_Create")
   external static _create(
-      _Namespace namespace, Uint8List rawPath, bool exclusive);
+    _Namespace namespace,
+    Uint8List rawPath,
+    bool exclusive,
+  );
   @patch
   @pragma("vm:external-name", "File_CreateLink")
   external static _createLink(
-      _Namespace namespace, Uint8List rawPath, String target);
+    _Namespace namespace,
+    Uint8List rawPath,
+    String target,
+  );
   @patch
   @pragma("vm:external-name", "File_CreatePipe")
   external static List<dynamic> _createPipe(_Namespace namespace);
@@ -32,15 +38,24 @@ class _File {
   @patch
   @pragma("vm:external-name", "File_Rename")
   external static _rename(
-      _Namespace namespace, Uint8List oldPath, String newPath);
+    _Namespace namespace,
+    Uint8List oldPath,
+    String newPath,
+  );
   @patch
   @pragma("vm:external-name", "File_RenameLink")
   external static _renameLink(
-      _Namespace namespace, Uint8List oldPath, String newPath);
+    _Namespace namespace,
+    Uint8List oldPath,
+    String newPath,
+  );
   @patch
   @pragma("vm:external-name", "File_Copy")
   external static _copy(
-      _Namespace namespace, Uint8List oldPath, String newPath);
+    _Namespace namespace,
+    Uint8List oldPath,
+    String newPath,
+  );
   @patch
   @pragma("vm:external-name", "File_LengthFromPath")
   external static _lengthFromPath(_Namespace namespace, Uint8List rawPath);
@@ -50,14 +65,20 @@ class _File {
   @patch
   @pragma("vm:external-name", "File_SetLastModified")
   external static _setLastModified(
-      _Namespace namespace, Uint8List rawPath, int millis);
+    _Namespace namespace,
+    Uint8List rawPath,
+    int millis,
+  );
   @patch
   @pragma("vm:external-name", "File_LastAccessed")
   external static _lastAccessed(_Namespace namespace, Uint8List rawPath);
   @patch
   @pragma("vm:external-name", "File_SetLastAccessed")
   external static _setLastAccessed(
-      _Namespace namespace, Uint8List rawPath, int millis);
+    _Namespace namespace,
+    Uint8List rawPath,
+    int millis,
+  );
   @patch
   @pragma("vm:external-name", "File_Open")
   external static _open(_Namespace namespace, Uint8List rawPath, int mode);
@@ -145,7 +166,10 @@ abstract class _FileSystemWatcher {
 
   @patch
   static Stream<FileSystemEvent> _watch(
-      String path, int events, bool recursive) {
+    String path,
+    int events,
+    bool recursive,
+  ) {
     if (Platform.isLinux || Platform.isAndroid) {
       return new _InotifyFileSystemWatcher(path, events, recursive)._stream;
     }
@@ -153,17 +177,23 @@ abstract class _FileSystemWatcher {
       return new _Win32FileSystemWatcher(path, events, recursive)._stream;
     }
     if (Platform.isMacOS) {
-      return new _FSEventStreamFileSystemWatcher(path, events, recursive)
-          ._stream;
+      return new _FSEventStreamFileSystemWatcher(
+        path,
+        events,
+        recursive,
+      )._stream;
     }
     throw new FileSystemException(
-        "File system watching is not supported on this platform");
+      "File system watching is not supported on this platform",
+    );
   }
 
   _FileSystemWatcher._(this._path, this._events, this._recursive) {
     if (!isSupported) {
       throw new FileSystemException(
-          "File system watching is not supported on this platform", _path);
+        "File system watching is not supported on this platform",
+        _path,
+      );
     }
     _broadcastController
       ..onListen = _listen
@@ -178,19 +208,30 @@ abstract class _FileSystemWatcher {
         _id = _initWatcher();
         _newWatcher();
       } on dynamic catch (e) {
-        _broadcastController.addError(FileSystemException._fromOSError(
-            e, "Failed to initialize file system entity watcher", _path));
+        _broadcastController.addError(
+          FileSystemException._fromOSError(
+            e,
+            "Failed to initialize file system entity watcher",
+            _path,
+          ),
+        );
         _broadcastController.close();
         return;
       }
     }
     var pathId;
     try {
-      pathId =
-          _watchPath(_id!, _Namespace._namespace, _path, _events, _recursive);
+      pathId = _watchPath(
+        _id!,
+        _Namespace._namespace,
+        _path,
+        _events,
+        _recursive,
+      );
     } on dynamic catch (e) {
       _broadcastController.addError(
-          FileSystemException._fromOSError(e, "Failed to watch path", _path));
+        FileSystemException._fromOSError(e, "Failed to watch path", _path),
+      );
       _broadcastController.close();
       return;
     }
@@ -199,9 +240,11 @@ abstract class _FileSystemWatcher {
     }
     _watcherPath = _idMap[pathId];
     _watcherPath!.count++;
-    _sourceSubscription = _pathWatched().listen(_broadcastController.add,
-        onError: _broadcastController.addError,
-        onDone: _broadcastController.close);
+    _sourceSubscription = _pathWatched().listen(
+      _broadcastController.add,
+      onError: _broadcastController.addError,
+      onDone: _broadcastController.close,
+    );
   }
 
   void _cancel() {
@@ -315,9 +358,13 @@ abstract class _FileSystemWatcher {
                 pair.putIfAbsent(pathId, () => {});
                 if (pair[pathId].containsKey(link)) {
                   add(
-                      event[4],
-                      new FileSystemMoveEvent(
-                          getPath(pair[pathId][link]), isDir, path));
+                    event[4],
+                    new FileSystemMoveEvent(
+                      getPath(pair[pathId][link]),
+                      isDir,
+                      path,
+                    ),
+                  );
                   pair[pathId].remove(link);
                 } else {
                   pair[pathId][link] = event;
@@ -366,7 +413,9 @@ abstract class _FileSystemWatcher {
             _id = null;
           }
           throw FileSystemException(
-              'Directory watcher closed unexpectedly', path);
+            'Directory watcher closed unexpectedly',
+            path,
+          );
         }
       } else {
         assert(false);
@@ -387,7 +436,12 @@ abstract class _FileSystemWatcher {
 
   @pragma("vm:external-name", "FileSystemWatcher_WatchPath")
   external static int _watchPath(
-      int id, _Namespace namespace, String path, int events, bool recursive);
+    int id,
+    _Namespace namespace,
+    String path,
+    int events,
+    bool recursive,
+  );
   @pragma("vm:external-name", "FileSystemWatcher_UnwatchPath")
   external static void _unwatchPath(int id, int path_id);
   @pragma("vm:external-name", "FileSystemWatcher_ReadEvents")
@@ -401,12 +455,13 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   static late StreamSubscription _subscription;
 
   _InotifyFileSystemWatcher(path, events, recursive)
-      : super._(path, events, recursive);
+    : super._(path, events, recursive);
 
   void _newWatcher() {
     int id = _FileSystemWatcher._id!;
-    _subscription =
-        _FileSystemWatcher._listenOnSocket(id, id, 0).listen((event) {
+    _subscription = _FileSystemWatcher._listenOnSocket(id, id, 0).listen((
+      event,
+    ) {
       if (_idMap.containsKey(event[0])) {
         if (event[1] != null) {
           _idMap[event[0]]!.add(event[1]);
@@ -442,13 +497,16 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
   late StreamController<FileSystemEvent> _controller;
 
   _Win32FileSystemWatcher(path, events, recursive)
-      : super._(path, events, recursive);
+    : super._(path, events, recursive);
 
   Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
     _controller = new StreamController<FileSystemEvent>();
-    _subscription =
-        _FileSystemWatcher._listenOnSocket(pathId, 0, pathId).listen((event) {
+    _subscription = _FileSystemWatcher._listenOnSocket(
+      pathId,
+      0,
+      pathId,
+    ).listen((event) {
       assert(event[0] == pathId);
       if (event[1] != null) {
         _controller.add(event[1]);
@@ -470,14 +528,17 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
   late StreamController<FileSystemEvent> _controller;
 
   _FSEventStreamFileSystemWatcher(path, events, recursive)
-      : super._(path, events, recursive);
+    : super._(path, events, recursive);
 
   Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
     var socketId = _FileSystemWatcher._getSocketId(0, pathId);
     _controller = new StreamController<FileSystemEvent>();
-    _subscription =
-        _FileSystemWatcher._listenOnSocket(socketId, 0, pathId).listen((event) {
+    _subscription = _FileSystemWatcher._listenOnSocket(
+      socketId,
+      0,
+      pathId,
+    ).listen((event) {
       if (event[1] != null) {
         _controller.add(event[1]);
       } else {

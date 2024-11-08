@@ -96,8 +96,13 @@ final class HtmlEscapeMode {
   /// The escaping only works for elements with normal HTML content,
   /// and not, for example, for script or style element content,
   /// which require escapes matching their particular content syntax.
-  static const HtmlEscapeMode unknown =
-      HtmlEscapeMode._('unknown', true, true, true, true);
+  static const HtmlEscapeMode unknown = HtmlEscapeMode._(
+    'unknown',
+    true,
+    true,
+    true,
+    true,
+  );
 
   /// Escaping mode for text going into double-quoted HTML attribute values.
   ///
@@ -107,8 +112,13 @@ final class HtmlEscapeMode {
   /// Escapes double quotes (`"`) but not single quotes (`'`),
   /// and escapes `<` and `>` characters because they are not allowed
   /// in strict XHTML attributes
-  static const HtmlEscapeMode attribute =
-      HtmlEscapeMode._('attribute', true, true, false, false);
+  static const HtmlEscapeMode attribute = HtmlEscapeMode._(
+    'attribute',
+    true,
+    true,
+    false,
+    false,
+  );
 
   /// Escaping mode for text going into single-quoted HTML attribute values.
   ///
@@ -118,8 +128,13 @@ final class HtmlEscapeMode {
   /// Escapes single quotes (`'`) but not double quotes (`"`),
   /// and escapes `<` and `>` characters because they are not allowed
   /// in strict XHTML attributes.
-  static const HtmlEscapeMode sqAttribute =
-      HtmlEscapeMode._('attribute', true, false, true, false);
+  static const HtmlEscapeMode sqAttribute = HtmlEscapeMode._(
+    'attribute',
+    true,
+    false,
+    true,
+    false,
+  );
 
   /// Escaping mode for text going into HTML element content.
   ///
@@ -128,24 +143,34 @@ final class HtmlEscapeMode {
   /// which require escapes matching their particular content syntax.
   ///
   /// Escapes `<` and `>` characters.
-  static const HtmlEscapeMode element =
-      HtmlEscapeMode._('element', true, false, false, false);
+  static const HtmlEscapeMode element = HtmlEscapeMode._(
+    'element',
+    true,
+    false,
+    false,
+    false,
+  );
 
-  const HtmlEscapeMode._(this._name, this.escapeLtGt, this.escapeQuot,
-      this.escapeApos, this.escapeSlash);
+  const HtmlEscapeMode._(
+    this._name,
+    this.escapeLtGt,
+    this.escapeQuot,
+    this.escapeApos,
+    this.escapeSlash,
+  );
 
   /// Create a custom escaping mode.
   ///
   /// All modes escape `&`.
   /// The mode can further be set to escape `<` and `>` ([escapeLtGt]),
   /// `"` ([escapeQuot]), `'` ([escapeApos]), and/or `/` ([escapeSlash]).
-  const HtmlEscapeMode(
-      {String name = "custom",
-      this.escapeLtGt = false,
-      this.escapeQuot = false,
-      this.escapeApos = false,
-      this.escapeSlash = false})
-      : _name = name;
+  const HtmlEscapeMode({
+    String name = "custom",
+    this.escapeLtGt = false,
+    this.escapeQuot = false,
+    this.escapeApos = false,
+    this.escapeSlash = false,
+  }) : _name = name;
 
   String toString() => _name;
 }
@@ -252,8 +277,10 @@ final class HtmlEscape extends Converter<String, String> {
   }
 
   StringConversionSink startChunkedConversion(Sink<String> sink) {
-    return _HtmlEscapeSink(this,
-        sink is StringConversionSink ? sink : StringConversionSink.from(sink));
+    return _HtmlEscapeSink(
+      this,
+      sink is StringConversionSink ? sink : StringConversionSink.from(sink),
+    );
   }
 }
 

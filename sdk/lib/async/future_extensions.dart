@@ -37,9 +37,14 @@ extension FutureIterable<T> on Iterable<Future<T>> {
         c.complete([for (var r in results) r.value]);
       } else {
         var errorList = [for (var r in results) r.errorOrNull];
-        c.completeError(ParallelWaitError<List<T?>, List<AsyncError?>>(
-            [for (var r in results) r.valueOrNull], errorList,
-            errorCount: errors, defaultError: errorList.firstWhere(_notNull)));
+        c.completeError(
+          ParallelWaitError<List<T?>, List<AsyncError?>>(
+            [for (var r in results) r.valueOrNull],
+            errorList,
+            errorCount: errors,
+            defaultError: errorList.firstWhere(_notNull),
+          ),
+        );
       }
     });
     return c.future;
@@ -80,12 +85,14 @@ extension FutureRecord2<T1, T2> on (Future<T1>, Future<T2>) {
       if (errors == 0) {
         c.complete((v1.value, v2.value));
       } else {
-        c.completeError(ParallelWaitError(
-          (v1.valueOrNull, v2.valueOrNull),
-          (v1.errorOrNull, v2.errorOrNull),
+        c.completeError(
+          ParallelWaitError(
+            (v1.valueOrNull, v2.valueOrNull),
+            (v1.errorOrNull, v2.errorOrNull),
             errorCount: errors,
-            defaultError: v1.errorOrNull ?? v2.errorOrNull
-        ));
+            defaultError: v1.errorOrNull ?? v2.errorOrNull,
+          ),
+        );
       }
     });
     return c.future;
@@ -106,12 +113,14 @@ extension FutureRecord3<T1, T2, T3> on (Future<T1>, Future<T2>, Future<T3>) {
       if (errors == 0) {
         c.complete((v1.value, v2.value, v3.value));
       } else {
-        c.completeError(ParallelWaitError(
-          (v1.valueOrNull, v2.valueOrNull, v3.valueOrNull),
-          (v1.errorOrNull, v2.errorOrNull, v3.errorOrNull),
-          errorCount: errors,
-          defaultError: v1.errorOrNull ?? v2.errorOrNull ?? v3.errorOrNull,
-        ));
+        c.completeError(
+          ParallelWaitError(
+            (v1.valueOrNull, v2.valueOrNull, v3.valueOrNull),
+            (v1.errorOrNull, v2.errorOrNull, v3.errorOrNull),
+            errorCount: errors,
+            defaultError: v1.errorOrNull ?? v2.errorOrNull ?? v3.errorOrNull,
+          ),
+        );
       }
     });
     return c.future;
@@ -120,12 +129,8 @@ extension FutureRecord3<T1, T2, T3> on (Future<T1>, Future<T2>, Future<T3>) {
 
 /// Parallel operations on a record of futures.
 @Since("3.0")
-extension FutureRecord4<T1, T2, T3, T4> on (
-  Future<T1>,
-  Future<T2>,
-  Future<T3>,
-  Future<T4>
-) {
+extension FutureRecord4<T1, T2, T3, T4>
+    on (Future<T1>, Future<T2>, Future<T3>, Future<T4>) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4)> get wait {
     final c = Completer<(T1, T2, T3, T4)>.sync();
@@ -138,15 +143,18 @@ extension FutureRecord4<T1, T2, T3, T4> on (
       if (errors == 0) {
         c.complete((v1.value, v2.value, v3.value, v4.value));
       } else {
-        c.completeError(ParallelWaitError(
-          (v1.valueOrNull, v2.valueOrNull, v3.valueOrNull, v4.valueOrNull),
-          (v1.errorOrNull, v2.errorOrNull, v3.errorOrNull, v4.errorOrNull),
-          errorCount: errors,
-          defaultError: v1.errorOrNull ??
-              v2.errorOrNull ??
-              v3.errorOrNull ??
-              v4.errorOrNull,
-        ));
+        c.completeError(
+          ParallelWaitError(
+            (v1.valueOrNull, v2.valueOrNull, v3.valueOrNull, v4.valueOrNull),
+            (v1.errorOrNull, v2.errorOrNull, v3.errorOrNull, v4.errorOrNull),
+            errorCount: errors,
+            defaultError:
+                v1.errorOrNull ??
+                v2.errorOrNull ??
+                v3.errorOrNull ??
+                v4.errorOrNull,
+          ),
+        );
       }
     });
     return c.future;
@@ -155,13 +163,8 @@ extension FutureRecord4<T1, T2, T3, T4> on (
 
 /// Parallel operations on a record of futures.
 @Since("3.0")
-extension FutureRecord5<T1, T2, T3, T4, T5> on (
-  Future<T1>,
-  Future<T2>,
-  Future<T3>,
-  Future<T4>,
-  Future<T5>
-) {
+extension FutureRecord5<T1, T2, T3, T4, T5>
+    on (Future<T1>, Future<T2>, Future<T3>, Future<T4>, Future<T5>) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5)> get wait {
     final c = Completer<(T1, T2, T3, T4, T5)>.sync();
@@ -175,28 +178,31 @@ extension FutureRecord5<T1, T2, T3, T4, T5> on (
       if (errors == 0) {
         c.complete((v1.value, v2.value, v3.value, v4.value, v5.value));
       } else {
-        c.completeError(ParallelWaitError(
-          (
-            v1.valueOrNull,
-            v2.valueOrNull,
-            v3.valueOrNull,
-            v4.valueOrNull,
-            v5.valueOrNull
-          ),
-          (
-            v1.errorOrNull,
-            v2.errorOrNull,
-            v3.errorOrNull,
-            v4.errorOrNull,
-            v5.errorOrNull
-          ),
+        c.completeError(
+          ParallelWaitError(
+            (
+              v1.valueOrNull,
+              v2.valueOrNull,
+              v3.valueOrNull,
+              v4.valueOrNull,
+              v5.valueOrNull,
+            ),
+            (
+              v1.errorOrNull,
+              v2.errorOrNull,
+              v3.errorOrNull,
+              v4.errorOrNull,
+              v5.errorOrNull,
+            ),
             errorCount: errors,
-            defaultError: v1.errorOrNull ??
+            defaultError:
+                v1.errorOrNull ??
                 v2.errorOrNull ??
                 v3.errorOrNull ??
                 v4.errorOrNull ??
-                v5.errorOrNull
-        ));
+                v5.errorOrNull,
+          ),
+        );
       }
     });
     return c.future;
@@ -205,14 +211,16 @@ extension FutureRecord5<T1, T2, T3, T4, T5> on (
 
 /// Parallel operations on a record of futures.
 @Since("3.0")
-extension FutureRecord6<T1, T2, T3, T4, T5, T6> on (
-  Future<T1>,
-  Future<T2>,
-  Future<T3>,
-  Future<T4>,
-  Future<T5>,
-  Future<T6>
-) {
+extension FutureRecord6<T1, T2, T3, T4, T5, T6>
+    on
+        (
+          Future<T1>,
+          Future<T2>,
+          Future<T3>,
+          Future<T4>,
+          Future<T5>,
+          Future<T6>,
+        ) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5, T6)> get wait {
     final c = Completer<(T1, T2, T3, T4, T5, T6)>.sync();
@@ -225,34 +233,43 @@ extension FutureRecord6<T1, T2, T3, T4, T5, T6> on (
 
     _FutureResult._waitAll([v1, v2, v3, v4, v5, v6], (int errors) {
       if (errors == 0) {
-        c.complete(
-            (v1.value, v2.value, v3.value, v4.value, v5.value, v6.value));
+        c.complete((
+          v1.value,
+          v2.value,
+          v3.value,
+          v4.value,
+          v5.value,
+          v6.value,
+        ));
       } else {
-        c.completeError(ParallelWaitError(
-          (
-            v1.valueOrNull,
-            v2.valueOrNull,
-            v3.valueOrNull,
-            v4.valueOrNull,
-            v5.valueOrNull,
-            v6.valueOrNull
-          ),
-          (
-            v1.errorOrNull,
-            v2.errorOrNull,
-            v3.errorOrNull,
-            v4.errorOrNull,
-            v5.errorOrNull,
-            v6.errorOrNull
-        ),
+        c.completeError(
+          ParallelWaitError(
+            (
+              v1.valueOrNull,
+              v2.valueOrNull,
+              v3.valueOrNull,
+              v4.valueOrNull,
+              v5.valueOrNull,
+              v6.valueOrNull,
+            ),
+            (
+              v1.errorOrNull,
+              v2.errorOrNull,
+              v3.errorOrNull,
+              v4.errorOrNull,
+              v5.errorOrNull,
+              v6.errorOrNull,
+            ),
             errorCount: errors,
-            defaultError: v1.errorOrNull ??
+            defaultError:
+                v1.errorOrNull ??
                 v2.errorOrNull ??
                 v3.errorOrNull ??
                 v4.errorOrNull ??
                 v5.errorOrNull ??
-                v6.errorOrNull
-        ));
+                v6.errorOrNull,
+          ),
+        );
       }
     });
     return c.future;
@@ -261,15 +278,17 @@ extension FutureRecord6<T1, T2, T3, T4, T5, T6> on (
 
 /// Parallel operations on a record of futures.
 @Since("3.0")
-extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7> on (
-  Future<T1>,
-  Future<T2>,
-  Future<T3>,
-  Future<T4>,
-  Future<T5>,
-  Future<T6>,
-  Future<T7>
-) {
+extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7>
+    on
+        (
+          Future<T1>,
+          Future<T2>,
+          Future<T3>,
+          Future<T4>,
+          Future<T5>,
+          Future<T6>,
+          Future<T7>,
+        ) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5, T6, T7)> get wait {
     final c = Completer<(T1, T2, T3, T4, T5, T6, T7)>.sync();
@@ -290,37 +309,40 @@ extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7> on (
           v4.value,
           v5.value,
           v6.value,
-          v7.value
+          v7.value,
         ));
       } else {
-        c.completeError(ParallelWaitError(
-          (
-            v1.valueOrNull,
-            v2.valueOrNull,
-            v3.valueOrNull,
-            v4.valueOrNull,
-            v5.valueOrNull,
-            v6.valueOrNull,
-            v7.valueOrNull
-          ),
-          (
-            v1.errorOrNull,
-            v2.errorOrNull,
-            v3.errorOrNull,
-            v4.errorOrNull,
-            v5.errorOrNull,
-            v6.errorOrNull,
-            v7.errorOrNull
-          ),
+        c.completeError(
+          ParallelWaitError(
+            (
+              v1.valueOrNull,
+              v2.valueOrNull,
+              v3.valueOrNull,
+              v4.valueOrNull,
+              v5.valueOrNull,
+              v6.valueOrNull,
+              v7.valueOrNull,
+            ),
+            (
+              v1.errorOrNull,
+              v2.errorOrNull,
+              v3.errorOrNull,
+              v4.errorOrNull,
+              v5.errorOrNull,
+              v6.errorOrNull,
+              v7.errorOrNull,
+            ),
             errorCount: errors,
-            defaultError: v1.errorOrNull ??
+            defaultError:
+                v1.errorOrNull ??
                 v2.errorOrNull ??
                 v3.errorOrNull ??
                 v4.errorOrNull ??
                 v5.errorOrNull ??
                 v6.errorOrNull ??
-                v7.errorOrNull
-        ));
+                v7.errorOrNull,
+          ),
+        );
       }
     });
     return c.future;
@@ -329,16 +351,18 @@ extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7> on (
 
 /// Parallel operations on a record of futures.
 @Since("3.0")
-extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8> on (
-  Future<T1>,
-  Future<T2>,
-  Future<T3>,
-  Future<T4>,
-  Future<T5>,
-  Future<T6>,
-  Future<T7>,
-  Future<T8>
-) {
+extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8>
+    on
+        (
+          Future<T1>,
+          Future<T2>,
+          Future<T3>,
+          Future<T4>,
+          Future<T5>,
+          Future<T6>,
+          Future<T7>,
+          Future<T8>,
+        ) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5, T6, T7, T8)> get wait {
     final c = Completer<(T1, T2, T3, T4, T5, T6, T7, T8)>.sync();
@@ -361,40 +385,43 @@ extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8> on (
           v5.value,
           v6.value,
           v7.value,
-          v8.value
+          v8.value,
         ));
       } else {
-        c.completeError(ParallelWaitError(
-          (
-            v1.valueOrNull,
-            v2.valueOrNull,
-            v3.valueOrNull,
-            v4.valueOrNull,
-            v5.valueOrNull,
-            v6.valueOrNull,
-            v7.valueOrNull,
-            v8.valueOrNull
-          ),
-          (
-            v1.errorOrNull,
-            v2.errorOrNull,
-            v3.errorOrNull,
-            v4.errorOrNull,
-            v5.errorOrNull,
-            v6.errorOrNull,
-            v7.errorOrNull,
-            v8.errorOrNull
-          ),
+        c.completeError(
+          ParallelWaitError(
+            (
+              v1.valueOrNull,
+              v2.valueOrNull,
+              v3.valueOrNull,
+              v4.valueOrNull,
+              v5.valueOrNull,
+              v6.valueOrNull,
+              v7.valueOrNull,
+              v8.valueOrNull,
+            ),
+            (
+              v1.errorOrNull,
+              v2.errorOrNull,
+              v3.errorOrNull,
+              v4.errorOrNull,
+              v5.errorOrNull,
+              v6.errorOrNull,
+              v7.errorOrNull,
+              v8.errorOrNull,
+            ),
             errorCount: errors,
-            defaultError: v1.errorOrNull ??
+            defaultError:
+                v1.errorOrNull ??
                 v2.errorOrNull ??
                 v3.errorOrNull ??
                 v4.errorOrNull ??
                 v5.errorOrNull ??
                 v6.errorOrNull ??
                 v7.errorOrNull ??
-                v8.errorOrNull
-        ));
+                v8.errorOrNull,
+          ),
+        );
       }
     });
     return c.future;
@@ -403,17 +430,19 @@ extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8> on (
 
 /// Parallel operations on a record of futures.
 @Since("3.0")
-extension FutureRecord9<T1, T2, T3, T4, T5, T6, T7, T8, T9> on (
-  Future<T1>,
-  Future<T2>,
-  Future<T3>,
-  Future<T4>,
-  Future<T5>,
-  Future<T6>,
-  Future<T7>,
-  Future<T8>,
-  Future<T9>
-) {
+extension FutureRecord9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
+    on
+        (
+          Future<T1>,
+          Future<T2>,
+          Future<T3>,
+          Future<T4>,
+          Future<T5>,
+          Future<T6>,
+          Future<T7>,
+          Future<T8>,
+          Future<T9>,
+        ) {
   /// {@macro record-parallel-wait}
   Future<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> get wait {
     final c = Completer<(T1, T2, T3, T4, T5, T6, T7, T8, T9)>.sync();
@@ -438,34 +467,36 @@ extension FutureRecord9<T1, T2, T3, T4, T5, T6, T7, T8, T9> on (
           v6.value,
           v7.value,
           v8.value,
-          v9.value
+          v9.value,
         ));
       } else {
-        c.completeError(ParallelWaitError(
-          (
-            v1.valueOrNull,
-            v2.valueOrNull,
-            v3.valueOrNull,
-            v4.valueOrNull,
-            v5.valueOrNull,
-            v6.valueOrNull,
-            v7.valueOrNull,
-            v8.valueOrNull,
-            v9.valueOrNull
-          ),
-          (
-            v1.errorOrNull,
-            v2.errorOrNull,
-            v3.errorOrNull,
-            v4.errorOrNull,
-            v5.errorOrNull,
-            v6.errorOrNull,
-            v7.errorOrNull,
-            v8.errorOrNull,
-            v9.errorOrNull
-          ),
+        c.completeError(
+          ParallelWaitError(
+            (
+              v1.valueOrNull,
+              v2.valueOrNull,
+              v3.valueOrNull,
+              v4.valueOrNull,
+              v5.valueOrNull,
+              v6.valueOrNull,
+              v7.valueOrNull,
+              v8.valueOrNull,
+              v9.valueOrNull,
+            ),
+            (
+              v1.errorOrNull,
+              v2.errorOrNull,
+              v3.errorOrNull,
+              v4.errorOrNull,
+              v5.errorOrNull,
+              v6.errorOrNull,
+              v7.errorOrNull,
+              v8.errorOrNull,
+              v9.errorOrNull,
+            ),
             errorCount: errors,
-            defaultError: v1.errorOrNull ??
+            defaultError:
+                v1.errorOrNull ??
                 v2.errorOrNull ??
                 v3.errorOrNull ??
                 v4.errorOrNull ??
@@ -473,8 +504,9 @@ extension FutureRecord9<T1, T2, T3, T4, T5, T6, T7, T8, T9> on (
                 v6.errorOrNull ??
                 v7.errorOrNull ??
                 v8.errorOrNull ??
-                v9.errorOrNull
-        ));
+                v9.errorOrNull,
+          ),
+        );
       }
     });
     return c.future;
@@ -529,10 +561,13 @@ class ParallelWaitError<V, E> extends Error {
   ///
   /// If [errorCount] is provided, and it's greater than one,
   /// the number is reported in the [toString].
-  ParallelWaitError(this.values, this.errors,
-      {@Since("3.4") int? errorCount, @Since("3.4") AsyncError? defaultError})
-      : _defaultError = defaultError,
-        _errorCount = errorCount;
+  ParallelWaitError(
+    this.values,
+    this.errors, {
+    @Since("3.4") int? errorCount,
+    @Since("3.4") AsyncError? defaultError,
+  }) : _defaultError = defaultError,
+       _errorCount = errorCount;
 
   String toString() {
     if (_defaultError == null) {
@@ -542,7 +577,7 @@ class ParallelWaitError<V, E> extends Error {
       return "ParallelWaitError($_errorCount errors)";
     }
     return "ParallelWaitError${_errorCount != null && _errorCount > 1 //
-        ? "($_errorCount errors)" : ""}: ${_defaultError.error}";
+                ? "($_errorCount errors)" : ""}: ${_defaultError.error}";
   }
 
   StackTrace? get stackTrace => _defaultError?.stackTrace ?? super.stackTrace;
@@ -595,7 +630,9 @@ class _FutureResult<T> {
   ///
   /// List must not be empty.
   static void _waitAll(
-      List<_FutureResult> results, void Function(int) whenReady) {
+    List<_FutureResult> results,
+    void Function(int) whenReady,
+  ) {
     assert(results.isNotEmpty);
     var ready = 0;
     var errors = 0;

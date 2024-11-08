@@ -4,17 +4,25 @@
 
 part of dart._vmservice;
 
-String _encodeDevFSDisabledError(Message message) =>
-    encodeRpcError(message, kFeatureDisabled,
-        details: 'DevFS is not supported by this Dart implementation');
+String _encodeDevFSDisabledError(Message message) => encodeRpcError(
+  message,
+  kFeatureDisabled,
+  details: 'DevFS is not supported by this Dart implementation',
+);
 
 String _encodeFileSystemAlreadyExistsError(Message message, String fsName) =>
-    encodeRpcError(message, kFileSystemAlreadyExists,
-        details: "${message.method}: file system '${fsName}' already exists");
+    encodeRpcError(
+      message,
+      kFileSystemAlreadyExists,
+      details: "${message.method}: file system '${fsName}' already exists",
+    );
 
 String _encodeFileSystemDoesNotExistError(Message message, String fsName) =>
-    encodeRpcError(message, kFileSystemDoesNotExist,
-        details: "${message.method}: file system '${fsName}' does not exist");
+    encodeRpcError(
+      message,
+      kFileSystemDoesNotExist,
+      details: "${message.method}: file system '${fsName}' does not exist",
+    );
 
 class _FileSystem {
   _FileSystem(this.name, this.uri);
@@ -58,10 +66,10 @@ class _FileSystem {
   }
 
   Map<String, String> toMap() => {
-        'type': 'FileSystem',
-        'name': name,
-        'uri': uri.toString(),
-      };
+    'type': 'FileSystem',
+    'name': name,
+    'uri': uri.toString(),
+  };
 }
 
 class DevFS {
@@ -111,13 +119,20 @@ class DevFS {
       case '_listDevFSFiles':
         return _listDevFSFiles(message);
       default:
-        return encodeRpcError(message, kInternalError,
-            details: 'Unexpected rpc ${message.method}');
+        return encodeRpcError(
+          message,
+          kInternalError,
+          details: 'Unexpected rpc ${message.method}',
+        );
     }
   }
 
   Future<String> handlePutStream(
-      Object? fsName, Object? path, Uri? fsUri, Stream<List<int>> bytes) async {
+    Object? fsName,
+    Object? path,
+    Uri? fsUri,
+    Stream<List<int>> bytes,
+  ) async {
     // A dummy Message for error message construction.
     final message = Message.forMethod('_writeDevFSFile');
     final writeStreamFile = VMServiceEmbedderHooks.writeStreamFile;
@@ -254,8 +269,11 @@ class DevFS {
       final result = {'type': 'FSFile', 'fileContents': base64.encode(bytes)};
       return encodeResult(message, result);
     } catch (e) {
-      return encodeRpcError(message, kFileDoesNotExist,
-          details: '_readDevFSFile: $e');
+      return encodeRpcError(
+        message,
+        kFileDoesNotExist,
+        details: '_readDevFSFile: $e',
+      );
     }
   }
 
@@ -346,15 +364,23 @@ class DevFS {
           fileInfo.length != 2 ||
           fileInfo[0] is! String ||
           fileInfo[1] is! String) {
-        return encodeRpcError(message, kInvalidParams,
-            details: "${message.method}: invalid 'files' parameter "
-                "at index ${i}: ${fileInfo}");
+        return encodeRpcError(
+          message,
+          kInvalidParams,
+          details:
+              "${message.method}: invalid 'files' parameter "
+              "at index ${i}: ${fileInfo}",
+        );
       }
       final uri = fs.resolvePath(fileInfo[0] as String);
       if (uri == null) {
-        return encodeRpcError(message, kInvalidParams,
-            details: "${message.method}: invalid 'files' parameter "
-                "at index ${i}: ${fileInfo}");
+        return encodeRpcError(
+          message,
+          kInvalidParams,
+          details:
+              "${message.method}: invalid 'files' parameter "
+              "at index ${i}: ${fileInfo}",
+        );
       }
       uris.add(uri);
     }

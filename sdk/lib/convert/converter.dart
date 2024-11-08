@@ -38,12 +38,15 @@ abstract mixin class Converter<S, T> implements StreamTransformerBase<S, T> {
   /// given [sink] serves as output.
   Sink<S> startChunkedConversion(Sink<T> sink) {
     throw UnsupportedError(
-        "This converter does not support chunked conversions: $this");
+      "This converter does not support chunked conversions: $this",
+    );
   }
 
   Stream<T> bind(Stream<S> stream) {
     return Stream<T>.eventTransformed(
-        stream, (EventSink sink) => _ConverterStreamEventSink(this, sink));
+      stream,
+      (EventSink sink) => _ConverterStreamEventSink(this, sink),
+    );
   }
 
   /// Provides a `Converter<RS, RT>` view of this stream transformer.

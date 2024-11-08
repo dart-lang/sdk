@@ -40,7 +40,10 @@ class int {
   }
 
   static int? _parse(
-      String source, int? radix, int? Function(String)? onError) {
+    String source,
+    int? radix,
+    int? Function(String)? onError,
+  ) {
     int end = source.lastNonWhitespace() + 1;
     if (end == 0) {
       return _handleFormatError(onError, source, source.length, radix, null);
@@ -49,7 +52,7 @@ class int {
 
     int first = source.codeUnitAtUnchecked(start);
     int sign = 1;
-    if (first == 0x2b /* + */ || first == 0x2d /* - */) {
+    if (first == 0x2b /* + */ || first == 0x2d /* - */ ) {
       sign = 0x2c - first; // -1 if '-', +1 if '+'.
       start++;
       if (start == end) {
@@ -60,11 +63,11 @@ class int {
     if (radix == null) {
       // check for 0x prefix.
       int index = start;
-      if (first == 0x30 /* 0 */) {
+      if (first == 0x30 /* 0 */ ) {
         index++;
         if (index == end) return 0;
         first = source.codeUnitAtUnchecked(index);
-        if ((first | 0x20) == 0x78 /* x */) {
+        if ((first | 0x20) == 0x78 /* x */ ) {
           index++;
           if (index == end) {
             return _handleFormatError(onError, source, index, null, null);
@@ -79,8 +82,13 @@ class int {
 
   static Null _kNull(_) => null;
 
-  static int? _handleFormatError(int? Function(String)? onError, String source,
-      int? index, int? radix, String? message) {
+  static int? _handleFormatError(
+    int? Function(String)? onError,
+    String source,
+    int? index,
+    int? radix,
+    String? message,
+  ) {
     if (onError != null) return onError(source);
     if (message != null) {
       throw FormatException(message, source, index);
@@ -91,10 +99,17 @@ class int {
     throw FormatException("Invalid radix-$radix number", source, index);
   }
 
-  static int? _parseRadix(String source, int radix, int start, int end,
-      int sign, bool allowOverflow, int? Function(String)? onError) {
+  static int? _parseRadix(
+    String source,
+    int radix,
+    int start,
+    int end,
+    int sign,
+    bool allowOverflow,
+    int? Function(String)? onError,
+  ) {
     // Skip leading zeroes.
-    while (start < end && source.codeUnitAtUnchecked(start) == 0x30 /* 0 */) {
+    while (start < end && source.codeUnitAtUnchecked(start) == 0x30 /* 0 */ ) {
       start += 1;
     }
 
@@ -103,8 +118,12 @@ class int {
 
     // Parse at most `blockSize` characters without overflows.
     final parseBlockLength = length < blockSize ? length : blockSize;
-    int? blockResult =
-        _parseBlock(source, radix, start, start + parseBlockLength);
+    int? blockResult = _parseBlock(
+      source,
+      radix,
+      start,
+      start + parseBlockLength,
+    );
     if (blockResult == null) {
       return _handleFormatError(onError, source, start, radix, null);
     }
@@ -133,8 +152,13 @@ class int {
         const max = 9223372036854775807;
 
         if (!allowOverflow && (result > (max - digit) ~/ radix)) {
-          return _handleFormatError(onError, source, null, radix,
-              "Positive input exceeds the limit of integer");
+          return _handleFormatError(
+            onError,
+            source,
+            null,
+            radix,
+            "Positive input exceeds the limit of integer",
+          );
         }
 
         result = (radix * result) + digit;
@@ -144,8 +168,13 @@ class int {
         // We don't need to check `allowOverflow` as overflows are only allowed
         // in positive numbers.
         if (result < (min + digit) ~/ radix) {
-          return _handleFormatError(onError, source, null, radix,
-              "Negative input exceeds the limit of integer");
+          return _handleFormatError(
+            onError,
+            source,
+            null,
+            radix,
+            "Negative input exceeds the limit of integer",
+          );
         }
 
         result = (radix * result) - digit;

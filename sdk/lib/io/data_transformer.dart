@@ -106,14 +106,15 @@ final class ZLibCodec extends Codec<List<int>, List<int>> {
   /// than with the default empty dictionary.
   final List<int>? dictionary;
 
-  ZLibCodec(
-      {this.level = ZLibOption.defaultLevel,
-      this.windowBits = ZLibOption.defaultWindowBits,
-      this.memLevel = ZLibOption.defaultMemLevel,
-      this.strategy = ZLibOption.strategyDefault,
-      this.dictionary,
-      this.raw = false,
-      this.gzip = false}) {
+  ZLibCodec({
+    this.level = ZLibOption.defaultLevel,
+    this.windowBits = ZLibOption.defaultWindowBits,
+    this.memLevel = ZLibOption.defaultMemLevel,
+    this.strategy = ZLibOption.strategyDefault,
+    this.dictionary,
+    this.raw = false,
+    this.gzip = false,
+  }) {
     _validateZLibeLevel(level);
     _validateZLibMemLevel(memLevel);
     _validateZLibStrategy(strategy);
@@ -121,23 +122,24 @@ final class ZLibCodec extends Codec<List<int>, List<int>> {
   }
 
   const ZLibCodec._default()
-      : level = ZLibOption.defaultLevel,
-        windowBits = ZLibOption.defaultWindowBits,
-        memLevel = ZLibOption.defaultMemLevel,
-        strategy = ZLibOption.strategyDefault,
-        raw = false,
-        gzip = false,
-        dictionary = null;
+    : level = ZLibOption.defaultLevel,
+      windowBits = ZLibOption.defaultWindowBits,
+      memLevel = ZLibOption.defaultMemLevel,
+      strategy = ZLibOption.strategyDefault,
+      raw = false,
+      gzip = false,
+      dictionary = null;
 
   /// Get a [ZLibEncoder] for encoding to `ZLib` compressed data.
   ZLibEncoder get encoder => new ZLibEncoder(
-      gzip: false,
-      level: level,
-      windowBits: windowBits,
-      memLevel: memLevel,
-      strategy: strategy,
-      dictionary: dictionary,
-      raw: raw);
+    gzip: false,
+    level: level,
+    windowBits: windowBits,
+    memLevel: memLevel,
+    strategy: strategy,
+    dictionary: dictionary,
+    raw: raw,
+  );
 
   /// Get a [ZLibDecoder] for decoding `ZLib` compressed data.
   ZLibDecoder get decoder =>
@@ -197,14 +199,15 @@ final class GZipCodec extends Codec<List<int>, List<int>> {
   /// will not compute an adler32 check value
   final bool raw;
 
-  GZipCodec(
-      {this.level = ZLibOption.defaultLevel,
-      this.windowBits = ZLibOption.defaultWindowBits,
-      this.memLevel = ZLibOption.defaultMemLevel,
-      this.strategy = ZLibOption.strategyDefault,
-      this.dictionary,
-      this.raw = false,
-      this.gzip = true}) {
+  GZipCodec({
+    this.level = ZLibOption.defaultLevel,
+    this.windowBits = ZLibOption.defaultWindowBits,
+    this.memLevel = ZLibOption.defaultMemLevel,
+    this.strategy = ZLibOption.strategyDefault,
+    this.dictionary,
+    this.raw = false,
+    this.gzip = true,
+  }) {
     _validateZLibeLevel(level);
     _validateZLibMemLevel(memLevel);
     _validateZLibStrategy(strategy);
@@ -212,27 +215,32 @@ final class GZipCodec extends Codec<List<int>, List<int>> {
   }
 
   const GZipCodec._default()
-      : level = ZLibOption.defaultLevel,
-        windowBits = ZLibOption.defaultWindowBits,
-        memLevel = ZLibOption.defaultMemLevel,
-        strategy = ZLibOption.strategyDefault,
-        raw = false,
-        gzip = true,
-        dictionary = null;
+    : level = ZLibOption.defaultLevel,
+      windowBits = ZLibOption.defaultWindowBits,
+      memLevel = ZLibOption.defaultMemLevel,
+      strategy = ZLibOption.strategyDefault,
+      raw = false,
+      gzip = true,
+      dictionary = null;
 
   /// Get a [ZLibEncoder] for encoding to `GZip` compressed data.
   ZLibEncoder get encoder => new ZLibEncoder(
-      gzip: true,
-      level: level,
-      windowBits: windowBits,
-      memLevel: memLevel,
-      strategy: strategy,
-      dictionary: dictionary,
-      raw: raw);
+    gzip: true,
+    level: level,
+    windowBits: windowBits,
+    memLevel: memLevel,
+    strategy: strategy,
+    dictionary: dictionary,
+    raw: raw,
+  );
 
   /// Get a [ZLibDecoder] for decoding `GZip` compressed data.
   ZLibDecoder get decoder => new ZLibDecoder(
-      gzip: true, windowBits: windowBits, dictionary: dictionary, raw: raw);
+    gzip: true,
+    windowBits: windowBits,
+    dictionary: dictionary,
+    raw: raw,
+  );
 }
 
 /// The [ZLibEncoder] encoder is used by [ZLibCodec] and [GZipCodec] to compress
@@ -285,14 +293,15 @@ final class ZLibEncoder extends Converter<List<int>, List<int>> {
   /// will not compute an adler32 check value
   final bool raw;
 
-  ZLibEncoder(
-      {this.gzip = false,
-      this.level = ZLibOption.defaultLevel,
-      this.windowBits = ZLibOption.defaultWindowBits,
-      this.memLevel = ZLibOption.defaultMemLevel,
-      this.strategy = ZLibOption.strategyDefault,
-      this.dictionary,
-      this.raw = false}) {
+  ZLibEncoder({
+    this.gzip = false,
+    this.level = ZLibOption.defaultLevel,
+    this.windowBits = ZLibOption.defaultWindowBits,
+    this.memLevel = ZLibOption.defaultMemLevel,
+    this.strategy = ZLibOption.strategyDefault,
+    this.dictionary,
+    this.raw = false,
+  }) {
     _validateZLibeLevel(level);
     _validateZLibMemLevel(memLevel);
     _validateZLibStrategy(strategy);
@@ -320,7 +329,15 @@ final class ZLibEncoder extends Converter<List<int>, List<int>> {
       sink = new ByteConversionSink.from(sink);
     }
     return new _ZLibEncoderSink._(
-        sink, gzip, level, windowBits, memLevel, strategy, dictionary, raw);
+      sink,
+      gzip,
+      level,
+      windowBits,
+      memLevel,
+      strategy,
+      dictionary,
+      raw,
+    );
   }
 }
 
@@ -349,11 +366,12 @@ final class ZLibDecoder extends Converter<List<int>, List<int>> {
   /// will not compute an adler32 check value
   final bool raw;
 
-  ZLibDecoder(
-      {this.gzip = false,
-      this.windowBits = ZLibOption.defaultWindowBits,
-      this.dictionary,
-      this.raw = false}) {
+  ZLibDecoder({
+    this.gzip = false,
+    this.windowBits = ZLibOption.defaultWindowBits,
+    this.dictionary,
+    this.raw = false,
+  }) {
     _validateZLibWindowBits(windowBits);
   }
 
@@ -394,7 +412,14 @@ abstract interface class RawZLibFilter {
     bool raw = false,
   }) {
     return _makeZLibDeflateFilter(
-        gzip, level, windowBits, memLevel, strategy, dictionary, raw);
+      gzip,
+      level,
+      windowBits,
+      memLevel,
+      strategy,
+      dictionary,
+      raw,
+    );
   }
 
   /// Returns a [RawZLibFilter] whose [process] and [processed] methods
@@ -425,16 +450,21 @@ abstract interface class RawZLibFilter {
   List<int>? processed({bool flush = true, bool end = false});
 
   external static RawZLibFilter _makeZLibDeflateFilter(
-      bool gzip,
-      int level,
-      int windowBits,
-      int memLevel,
-      int strategy,
-      List<int>? dictionary,
-      bool raw);
+    bool gzip,
+    int level,
+    int windowBits,
+    int memLevel,
+    int strategy,
+    List<int>? dictionary,
+    bool raw,
+  );
 
   external static RawZLibFilter _makeZLibInflateFilter(
-      bool gzip, int windowBits, List<int>? dictionary, bool raw);
+    bool gzip,
+    int windowBits,
+    List<int>? dictionary,
+    bool raw,
+  );
 }
 
 class _BufferSink extends ByteConversionSink {
@@ -447,8 +477,13 @@ class _BufferSink extends ByteConversionSink {
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     if (chunk is Uint8List) {
       Uint8List list = chunk;
-      builder.add(new Uint8List.view(
-          list.buffer, list.offsetInBytes + start, end - start));
+      builder.add(
+        new Uint8List.view(
+          list.buffer,
+          list.offsetInBytes + start,
+          end - start,
+        ),
+      );
     } else {
       builder.add(chunk.sublist(start, end));
     }
@@ -459,27 +494,39 @@ class _BufferSink extends ByteConversionSink {
 
 class _ZLibEncoderSink extends _FilterSink {
   _ZLibEncoderSink._(
-      ByteConversionSink sink,
-      bool gzip,
-      int level,
-      int windowBits,
-      int memLevel,
-      int strategy,
-      List<int>? dictionary,
-      bool raw)
-      : super(
-            sink,
-            RawZLibFilter._makeZLibDeflateFilter(
-                gzip, level, windowBits, memLevel, strategy, dictionary, raw));
+    ByteConversionSink sink,
+    bool gzip,
+    int level,
+    int windowBits,
+    int memLevel,
+    int strategy,
+    List<int>? dictionary,
+    bool raw,
+  ) : super(
+        sink,
+        RawZLibFilter._makeZLibDeflateFilter(
+          gzip,
+          level,
+          windowBits,
+          memLevel,
+          strategy,
+          dictionary,
+          raw,
+        ),
+      );
 }
 
 class _ZLibDecoderSink extends _FilterSink {
-  _ZLibDecoderSink._(ByteConversionSink sink, bool gzip, int windowBits,
-      List<int>? dictionary, bool raw)
-      : super(
-            sink,
-            RawZLibFilter._makeZLibInflateFilter(
-                gzip, windowBits, dictionary, raw));
+  _ZLibDecoderSink._(
+    ByteConversionSink sink,
+    bool gzip,
+    int windowBits,
+    List<int>? dictionary,
+    bool raw,
+  ) : super(
+        sink,
+        RawZLibFilter._makeZLibInflateFilter(gzip, windowBits, dictionary, raw),
+      );
 }
 
 class _FilterSink extends ByteConversionSink {
@@ -499,10 +546,16 @@ class _FilterSink extends ByteConversionSink {
     RangeError.checkValidRange(start, end, data.length);
     try {
       _empty = false;
-      _BufferAndStart bufferAndStart =
-          _ensureFastAndSerializableByteData(data, start, end);
-      _filter.process(bufferAndStart.buffer, bufferAndStart.start,
-          end - (start - bufferAndStart.start));
+      _BufferAndStart bufferAndStart = _ensureFastAndSerializableByteData(
+        data,
+        start,
+        end,
+      );
+      _filter.process(
+        bufferAndStart.buffer,
+        bufferAndStart.start,
+        end - (start - bufferAndStart.start),
+      );
       List<int>? out;
       while (true) {
         final out = _filter.processed(flush: false);
@@ -542,7 +595,10 @@ void _validateZLibWindowBits(int windowBits) {
   if (ZLibOption.minWindowBits > windowBits ||
       ZLibOption.maxWindowBits < windowBits) {
     throw new RangeError.range(
-        windowBits, ZLibOption.minWindowBits, ZLibOption.maxWindowBits);
+      windowBits,
+      ZLibOption.minWindowBits,
+      ZLibOption.maxWindowBits,
+    );
   }
 }
 
@@ -555,7 +611,10 @@ void _validateZLibeLevel(int level) {
 void _validateZLibMemLevel(int memLevel) {
   if (ZLibOption.minMemLevel > memLevel || ZLibOption.maxMemLevel < memLevel) {
     throw new RangeError.range(
-        memLevel, ZLibOption.minMemLevel, ZLibOption.maxMemLevel);
+      memLevel,
+      ZLibOption.minMemLevel,
+      ZLibOption.maxMemLevel,
+    );
   }
 }
 
@@ -565,7 +624,7 @@ void _validateZLibStrategy(int strategy) {
     ZLibOption.strategyHuffmanOnly,
     ZLibOption.strategyRle,
     ZLibOption.strategyFixed,
-    ZLibOption.strategyDefault
+    ZLibOption.strategyDefault,
   ];
   if (strategies.indexOf(strategy) == -1) {
     throw new ArgumentError("Unsupported 'strategy'");

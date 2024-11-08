@@ -56,7 +56,12 @@ external void writeIntoOneByteString(String string, int index, int codePoint);
 @pragma("vm:prefer-inline")
 @pragma("vm:idempotent")
 void copyRangeFromUint8ListToOneByteString(
-    Uint8List from, String to, int fromStart, int toStart, int length) {
+  Uint8List from,
+  String to,
+  int fromStart,
+  int toStart,
+  int length,
+) {
   for (int i = 0; i < length; i++) {
     writeIntoOneByteString(to, toStart + i, from[fromStart + i]);
   }
@@ -119,9 +124,11 @@ class Lists {
   @pragma("vm:prefer-inline")
   static void copy(List src, int srcStart, List dst, int dstStart, int count) {
     if (srcStart < dstStart) {
-      for (int i = srcStart + count - 1, j = dstStart + count - 1;
-          i >= srcStart;
-          i--, j--) {
+      for (
+        int i = srcStart + count - 1, j = dstStart + count - 1;
+        i >= srcStart;
+        i--, j--
+      ) {
         dst[j] = src[i];
       }
     } else {
@@ -139,7 +146,11 @@ class Lists {
 @pragma("vm:entry-point", "call")
 @pragma("vm:external-name", "Internal_prependTypeArguments")
 external _prependTypeArguments(
-    functionTypeArguments, parentTypeArguments, parentLen, totalLen);
+  functionTypeArguments,
+  parentTypeArguments,
+  parentLen,
+  totalLen,
+);
 
 // Check that a set of type arguments satisfy the type parameter bounds on a
 // closure.
@@ -223,8 +234,11 @@ void checkValidWeakTarget(object, name) {
       (object is Pointer) ||
       (object is Struct) ||
       (object is Union)) {
-    throw new ArgumentError.value(object, name,
-        "Cannot be a string, number, boolean, record, null, Pointer, Struct or Union");
+    throw new ArgumentError.value(
+      object,
+      name,
+      "Cannot be a string, number, boolean, record, null, Pointer, Struct or Union",
+    );
   }
 }
 
@@ -242,7 +256,8 @@ class FinalizerBase {
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
   external static set _isolateFinalizers(
-      List<WeakReference<FinalizerBase>>? value);
+    List<WeakReference<FinalizerBase>>? value,
+  );
 
   static int _isolateFinalizersPurgeCollectedAt = 1;
 
@@ -396,7 +411,11 @@ class FinalizerEntry {
   @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "FinalizerEntry_allocate")
   external static FinalizerEntry allocate(
-      Object value, Object? token, Object? detach, FinalizerBase finalizer);
+    Object value,
+    Object? token,
+    Object? detach,
+    FinalizerBase finalizer,
+  );
 
   /// The [value] the [FinalizerBase] is attached to.
   ///
@@ -436,7 +455,8 @@ class FinalizerEntry {
 
   /// Update the external size.
   @Native<Void Function(Handle, IntPtr)>(
-      symbol: 'FinalizerEntry_SetExternalSize')
+    symbol: 'FinalizerEntry_SetExternalSize',
+  )
   external void setExternalSize(int externalSize);
 }
 

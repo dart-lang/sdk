@@ -58,15 +58,18 @@ TypeMirror reflectType(Type key, [List<Type>? typeArguments]) {
 class MirrorSystem {
   @patch
   LibraryMirror findLibrary(Symbol libraryName) {
-    var candidates =
-        libraries.values.where((lib) => lib.simpleName == libraryName);
+    var candidates = libraries.values.where(
+      (lib) => lib.simpleName == libraryName,
+    );
     if (candidates.length == 1) {
       return candidates.single;
     }
     if (candidates.length > 1) {
       var uris = candidates.map((lib) => lib.uri.toString()).toList();
-      throw new Exception("There are multiple libraries named "
-          "'${getName(libraryName)}': $uris");
+      throw new Exception(
+        "There are multiple libraries named "
+        "'${getName(libraryName)}': $uris",
+      );
     }
     throw new Exception("There is no library named '${getName(libraryName)}'");
   }
@@ -96,7 +99,10 @@ class MirrorSystem {
 class AbstractClassInstantiationError {
   @pragma("vm:entry-point")
   AbstractClassInstantiationError._create(
-      this._className, this._url, this._line);
+    this._className,
+    this._url,
+    this._line,
+  );
 
   @patch
   String toString() {

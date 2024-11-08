@@ -142,10 +142,11 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
   /// This method is used by [Map] classes in the named constructor
   /// `fromIterable`.
   static void _fillMapWithMappedIterable(
-      Map<Object?, Object?> map,
-      Iterable<Object?> iterable,
-      Object? Function(Object? element)? key,
-      Object? Function(Object? element)? value) {
+    Map<Object?, Object?> map,
+    Iterable<Object?> iterable,
+    Object? Function(Object? element)? key,
+    Object? Function(Object? element)? value,
+  ) {
     key ??= _id;
     value ??= _id;
 
@@ -160,8 +161,11 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
   ///
   /// This method is used by [Map] classes in the named constructor
   /// `fromIterables`.
-  static void _fillMapWithIterables(Map<Object?, Object?> map,
-      Iterable<Object?> keys, Iterable<Object?> values) {
+  static void _fillMapWithIterables(
+    Map<Object?, Object?> map,
+    Iterable<Object?> keys,
+    Iterable<Object?> values,
+  ) {
     Iterator<Object?> keyIterator = keys.iterator;
     Iterator<Object?> valueIterator = values.iterator;
 
@@ -248,9 +252,7 @@ class _MapBaseValueIterator<K, V> implements Iterator<V> {
   final Map<K, V> _map;
   V? _current;
 
-  _MapBaseValueIterator(Map<K, V> map)
-      : _map = map,
-        _keys = map.keys.iterator;
+  _MapBaseValueIterator(Map<K, V> map) : _map = map, _keys = map.keys.iterator;
 
   bool moveNext() {
     if (_keys.moveNext()) {

@@ -17,24 +17,34 @@ class InvocationImpl extends Invocation {
   final bool isSetter;
   final String failureMessage;
 
-  InvocationImpl(memberName, List<Object?> positionalArguments,
-      {namedArguments,
-      List typeArguments = const [],
-      this.isMethod = false,
-      this.isGetter = false,
-      this.isSetter = false,
-      this.failureMessage = 'method not found'})
-      : memberName =
-            isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
-        positionalArguments = List.unmodifiable(positionalArguments),
-        namedArguments = _namedArgsToSymbols(namedArguments),
-        typeArguments = List.unmodifiable(typeArguments
-            .map((t) => rti.createRuntimeType(JS<rti.Rti>('!', '#', t))));
+  InvocationImpl(
+    memberName,
+    List<Object?> positionalArguments, {
+    namedArguments,
+    List typeArguments = const [],
+    this.isMethod = false,
+    this.isGetter = false,
+    this.isSetter = false,
+    this.failureMessage = 'method not found',
+  }) : memberName =
+           isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
+       positionalArguments = List.unmodifiable(positionalArguments),
+       namedArguments = _namedArgsToSymbols(namedArguments),
+       typeArguments = List.unmodifiable(
+         typeArguments.map(
+           (t) => rti.createRuntimeType(JS<rti.Rti>('!', '#', t)),
+         ),
+       );
 
   static Map<Symbol, dynamic> _namedArgsToSymbols(namedArgs) {
     if (namedArgs == null) return const {};
-    return Map.unmodifiable(Map.fromIterable(getOwnPropertyNames(namedArgs),
-        key: _dartSymbol, value: (k) => JS('', '#[#]', namedArgs, k)));
+    return Map.unmodifiable(
+      Map.fromIterable(
+        getOwnPropertyNames(namedArgs),
+        key: _dartSymbol,
+        value: (k) => JS('', '#[#]', namedArgs, k),
+      ),
+    );
   }
 }
 
@@ -105,10 +115,16 @@ gbind(f, @rest List<Object> typeArgs) {
   var typeArgsAsJSArray = JS<JSArray<Object>>('!', '#', typeArgs);
   var instantiationBinding = rti.bindingRtiFromList(typeArgsAsJSArray);
   var instantiatedType = rti.instantiatedGenericFunctionType(
-      JS<rti.Rti>('!', '#', fnType), instantiationBinding);
+    JS<rti.Rti>('!', '#', fnType),
+    instantiationBinding,
+  );
   // Create a JS wrapper function that will also pass the type arguments.
-  var result =
-      JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
+  var result = JS(
+    '',
+    '(...args) => #.apply(null, #.concat(args))',
+    f,
+    typeArgs,
+  );
   // Tag the wrapper with the original function to be used for equality
   // checks.
   JS('', '#["_originalFn"] = #', result, f);
@@ -159,14 +175,23 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(obj, f);
     if (setterType != null) {
-      return JS('', '#[#] = #.#(#)', obj, f, setterType,
-          JS_GET_NAME(JsGetName.RTI_FIELD_AS), value);
+      return JS(
+        '',
+        '#[#] = #.#(#)',
+        obj,
+        f,
+        setterType,
+        JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+        value,
+      );
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
   }
   noSuchMethod(
-      obj, InvocationImpl(field, JS('', '[#]', value), isSetter: true));
+    obj,
+    InvocationImpl(field, JS('', '[#]', value), isSetter: true),
+  );
   return value;
 }
 
@@ -191,9 +216,10 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
   var optionalPositionalCount = JS<int>('!', '#.length', optionalPositional);
   if (extras > optionalPositionalCount) {
     var maxPositionalCount = requiredCount + optionalPositionalCount;
-    var expected = requiredCount == maxPositionalCount
-        ? '$maxPositionalCount'
-        : '$requiredCount - $maxPositionalCount';
+    var expected =
+        requiredCount == maxPositionalCount
+            ? '$maxPositionalCount'
+            : '$requiredCount - $maxPositionalCount';
     return 'Dynamic call with too many positional arguments. '
         'Expected: $expected '
         'Actual: $actualsCount';
@@ -205,8 +231,14 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
   if (namedActuals != null) {
     names = getOwnPropertyNames(namedActuals);
     for (var name in names) {
-      if (!JS<bool>('!', '#.hasOwnProperty(#) || #.hasOwnProperty(#)',
-          requiredNamed, name, optionalNamed, name)) {
+      if (!JS<bool>(
+        '!',
+        '#.hasOwnProperty(#) || #.hasOwnProperty(#)',
+        requiredNamed,
+        name,
+        optionalNamed,
+        name,
+      )) {
         return "Dynamic call with unexpected named argument '$name'.";
       }
     }
@@ -214,13 +246,17 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
   // Verify that all required named parameters are provided an argument.
   Iterable requiredNames = getOwnPropertyNames(requiredNamed);
   if (JS<int>('!', '#.length', requiredNames) > 0) {
-    var missingRequired = namedActuals == null
-        ? requiredNames
-        : requiredNames.where((name) =>
-            !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name));
+    var missingRequired =
+        namedActuals == null
+            ? requiredNames
+            : requiredNames.where(
+              (name) =>
+                  !JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name),
+            );
     if (missingRequired.isNotEmpty) {
       var argNames = JS<String>('!', '#.join(", ")', missingRequired);
-      var error = "Dynamic call with missing required named arguments: "
+      var error =
+          "Dynamic call with missing required named arguments: "
           "$argNames.";
       if (!JS_GET_FLAG('SOUND_NULL_SAFETY')) {
         _nullWarn(error);
@@ -233,22 +269,43 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
   for (var i = 0; i < requiredCount; ++i) {
     var requiredRti = JS<rti.Rti>('!', '#[#]', requiredPositional, i);
     var passedValue = JS('', '#[#]', actuals, i);
-    JS('', '#.#(#)', requiredRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
-        passedValue);
+    JS(
+      '',
+      '#.#(#)',
+      requiredRti,
+      JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+      passedValue,
+    );
   }
   for (var i = 0; i < extras; ++i) {
     var optionalRti = JS<rti.Rti>('!', '#[#]', optionalPositional, i);
     var passedValue = JS('', '#[#]', actuals, i + requiredCount);
-    JS('', '#.#(#)', optionalRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
-        passedValue);
+    JS(
+      '',
+      '#.#(#)',
+      optionalRti,
+      JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+      passedValue,
+    );
   }
   if (names != null) {
     for (var name in names) {
       var namedRti = JS<rti.Rti>(
-          '!', '#[#] || #[#]', requiredNamed, name, optionalNamed, name);
+        '!',
+        '#[#] || #[#]',
+        requiredNamed,
+        name,
+        optionalNamed,
+        name,
+      );
       var passedValue = JS('', '#[#]', namedActuals, name);
-      JS('', '#.#(#)', namedRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
-          passedValue);
+      JS(
+        '',
+        '#.#(#)',
+        namedRti,
+        JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+        passedValue,
+      );
     }
   }
   return null;
@@ -282,18 +339,40 @@ _toDisplayName(name) => JS('', '''(() => {
 
 Symbol _dartSymbol(name) {
   return (JS<bool>('!', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(#, #))', const_, JS_CLASS_REF(PrivateSymbol),
-          _toSymbolName(name), name)
-      : JS('Symbol', '#(new #.new(#))', const_, JS_CLASS_REF(internal.Symbol),
-          _toDisplayName(name));
+      ? JS(
+        'Symbol',
+        '#(new #.new(#, #))',
+        const_,
+        JS_CLASS_REF(PrivateSymbol),
+        _toSymbolName(name),
+        name,
+      )
+      : JS(
+        'Symbol',
+        '#(new #.new(#))',
+        const_,
+        JS_CLASS_REF(internal.Symbol),
+        _toDisplayName(name),
+      );
 }
 
 Symbol _setterSymbol(name) {
   return (JS<bool>('!', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(# + "=", #))', const_,
-          JS_CLASS_REF(PrivateSymbol), _toSymbolName(name), name)
-      : JS('Symbol', '#(new #.new(# + "="))', const_,
-          JS_CLASS_REF(internal.Symbol), _toDisplayName(name));
+      ? JS(
+        'Symbol',
+        '#(new #.new(# + "=", #))',
+        const_,
+        JS_CLASS_REF(PrivateSymbol),
+        _toSymbolName(name),
+        name,
+      )
+      : JS(
+        'Symbol',
+        '#(new #.new(# + "="))',
+        const_,
+        JS_CLASS_REF(internal.Symbol),
+        _toDisplayName(name),
+      );
 }
 
 /// Checks for a valid function, receiver and arguments before calling [f].
@@ -309,14 +388,18 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
 
   callNSM(@notNull String errorMessage) {
     return noSuchMethod(
-        originalTarget,
-        InvocationImpl(displayName, JS<List<Object?>>('!', '#', args),
-            namedArguments: named,
-            // Repeated the default value here in JS to preserve the historic
-            // behavior.
-            typeArguments: JS('!', '# || []', typeArgs),
-            isMethod: true,
-            failureMessage: errorMessage));
+      originalTarget,
+      InvocationImpl(
+        displayName,
+        JS<List<Object?>>('!', '#', args),
+        namedArguments: named,
+        // Repeated the default value here in JS to preserve the historic
+        // behavior.
+        typeArguments: JS('!', '# || []', typeArgs),
+        isMethod: true,
+        failureMessage: errorMessage,
+      ),
+    );
   }
 
   if (f == null) return callNSM('Dynamic call of null.');
@@ -347,15 +430,17 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
     // TODO(leafp): Allow JS objects to go through?
     if (typeArgs != null) {
       // TODO(jmesserly): is there a sensible way to handle these?
-      throwTypeError('call to JS object `' +
-          // Not a String but historically relying on the default JavaScript
-          // behavior.
-          JS<String>('!', '#', obj) +
-          '` with type arguments <' +
-          // Not a String but historically relying on the default JavaScript
-          // behavior.
-          JS<String>('!', '#', typeArgs) +
-          '> is not supported.');
+      throwTypeError(
+        'call to JS object `' +
+            // Not a String but historically relying on the default JavaScript
+            // behavior.
+            JS<String>('!', '#', obj) +
+            '` with type arguments <' +
+            // Not a String but historically relying on the default JavaScript
+            // behavior.
+            JS<String>('!', '#', typeArgs) +
+            '> is not supported.',
+      );
     }
 
     if (named != null) JS('', '#.push(#)', args, named);
@@ -381,8 +466,10 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
     }
     var typeArgCount = JS<int>('!', '#.length', typeArgs);
     if (typeArgCount != typeParameterCount) {
-      return callNSM('Dynamic call with incorrect number of type arguments. '
-          'Expected: $typeParameterCount Actual: $typeArgCount');
+      return callNSM(
+        'Dynamic call with incorrect number of type arguments. '
+        'Expected: $typeParameterCount Actual: $typeArgCount',
+      );
     } else {
       // Check the provided type arguments against the instantiated bounds.
       for (var i = 0; i < typeParameterCount; i++) {
@@ -393,24 +480,34 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
         if (bound != typeArg) {
           var instantiatedBound = rti.substitute(bound, typeArgs);
           var validSubtype = rti.isSubtype(
-              JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), typeArg, instantiatedBound);
+            JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
+            typeArg,
+            instantiatedBound,
+          );
           if (!validSubtype) {
-            throwTypeError("The type '${rti.rtiToString(typeArg)}' "
-                "is not a subtype of the type variable bound "
-                "'${rti.rtiToString(instantiatedBound)}' "
-                "of type variable 'T${i + 1}' "
-                "in '${rti.rtiToString(ftype)}'.");
+            throwTypeError(
+              "The type '${rti.rtiToString(typeArg)}' "
+              "is not a subtype of the type variable bound "
+              "'${rti.rtiToString(instantiatedBound)}' "
+              "of type variable 'T${i + 1}' "
+              "in '${rti.rtiToString(ftype)}'.",
+            );
           }
         }
       }
     }
-    var instantiationBinding =
-        rti.bindingRtiFromList(JS<JSArray>('!', '#', typeArgs));
+    var instantiationBinding = rti.bindingRtiFromList(
+      JS<JSArray>('!', '#', typeArgs),
+    );
     ftype = rti.instantiatedGenericFunctionType(
-        JS<rti.Rti>('!', '#', ftype), instantiationBinding);
+      JS<rti.Rti>('!', '#', ftype),
+      instantiationBinding,
+    );
   } else if (typeArgs != null) {
-    return callNSM('Dynamic call with unexpected type arguments. '
-        'Expected: 0 Actual: ${JS<int>('!', '#.length', typeArgs)}');
+    return callNSM(
+      'Dynamic call with unexpected type arguments. '
+      'Expected: 0 Actual: ${JS<int>('!', '#.length', typeArgs)}',
+    );
   }
   var errorMessage = _argumentErrors(ftype, JS<List>('!', '#', args), named);
   if (errorMessage == null) {
@@ -429,23 +526,43 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
 /// specific error otherwise.
 validateFunctionToJSArgs(f, List args) {
   var errorMessage = _argumentErrors(
-      JS<Object>('', '#[#]', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME)),
-      args,
-      null);
+    JS<Object>('', '#[#]', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME)),
+    args,
+    null,
+  );
   if (errorMessage != null) {
     return noSuchMethod(
-        f,
-        InvocationImpl(JS('', 'f.name'), args,
-            isMethod: true, failureMessage: errorMessage));
+      f,
+      InvocationImpl(
+        JS('', 'f.name'),
+        args,
+        isMethod: true,
+        failureMessage: errorMessage,
+      ),
+    );
   }
   return null;
 }
 
 dcall(f, args, [named]) => _checkAndCall(
-    f, null, JS('', 'void 0'), null, args, named, JS('', 'f.name'));
+  f,
+  null,
+  JS('', 'void 0'),
+  null,
+  args,
+  named,
+  JS('', 'f.name'),
+);
 
-dgcall(f, typeArgs, args, [named]) => _checkAndCall(f, null, JS('', 'void 0'),
-    typeArgs, args, named, JS('', "f.name || 'call'"));
+dgcall(f, typeArgs, args, [named]) => _checkAndCall(
+  f,
+  null,
+  JS('', 'void 0'),
+  typeArgs,
+  args,
+  named,
+  JS('', "f.name || 'call'"),
+);
 
 /// Helper for REPL dynamic invocation variants that make a best effort to
 /// enable accessing private members across library boundaries.
@@ -826,16 +943,18 @@ String str(obj) {
   if (obj == null) return "null";
   var probe = JS('', '#[#]', obj, extensionSymbol('toString'));
   // TODO(40614): Declare `result` as String once non-nullability is sound.
-  final result = JS<bool>('!', '# !== void 0', probe)
-      // If this object has a Dart toString method, call it.
-      ? JS('', '#.call(#)', probe, obj)
-      // Otherwise call the native JavaScript toString method.
-      // This differs from dart2js to provide a more useful toString at
-      // development time if one is available.
-      // If obj does not have a native toString method this will throw but that
-      // matches the behavior of dart2js and it would be misleading to make this
-      // work at development time but allow it to fail in production.
-      : JS('', '#.toString()', obj);
+  final result =
+      JS<bool>('!', '# !== void 0', probe)
+          // If this object has a Dart toString method, call it.
+          ? JS('', '#.call(#)', probe, obj)
+          // Otherwise call the native JavaScript toString method.
+          // This differs from dart2js to provide a more useful toString at
+          // development time if one is available.
+          // If obj does not have a native toString method this will throw but
+          // that matches the behavior of dart2js and it would be misleading to
+          // make this work at development time but allow it to fail in
+          // production.
+          : JS('', '#.toString()', obj);
   if (result is String) return result;
   // Since Dart 2.0, `null` is the only other option.
   throw ArgumentError.value(obj, 'object', "toString method returned 'null'");
@@ -885,10 +1004,15 @@ dynamic Function(Invocation) noSuchMethodTearoff(obj) {
   // Otherwise, manually pass the Dart Core Object noSuchMethod to the bind
   // helper.
   return bind(
-      obj,
+    obj,
+    extensionSymbol('noSuchMethod'),
+    JS(
+      '!',
+      '#.prototype[#]',
+      JS_CLASS_REF(Object),
       extensionSymbol('noSuchMethod'),
-      JS('!', '#.prototype[#]', JS_CLASS_REF(Object),
-          extensionSymbol('noSuchMethod')));
+    ),
+  );
 }
 
 /// The default implementation of `noSuchMethod` to match `Object.noSuchMethod`.
@@ -980,8 +1104,11 @@ final deferredImports = JS<Object>('!', 'new Map()');
 ///
 /// Will load any modules required by [targetModule] as a side effect.
 /// Only supported in the DDC module system.
-Future<void> loadLibrary(@notNull String libraryUri,
-    @notNull String importPrefix, @notNull String targetModule) {
+Future<void> loadLibrary(
+  @notNull String libraryUri,
+  @notNull String importPrefix,
+  @notNull String targetModule,
+) {
   if (!_ddcDeferredLoading) {
     var result = JS('', '#.get(#)', deferredImports, libraryUri);
     if (JS<bool>('!', '# === void 0', result)) {
@@ -1010,19 +1137,22 @@ Future<void> loadLibrary(@notNull String libraryUri,
     }
 
     JS(
-        '',
-        r'#.deferred_loader.loadDeferred(#, #, #, #)',
-        global_,
-        loadId,
-        targetModule,
-        internalComplete,
-        (error) => completer.completeError(error));
+      '',
+      r'#.deferred_loader.loadDeferred(#, #, #, #)',
+      global_,
+      loadId,
+      targetModule,
+      internalComplete,
+      (error) => completer.completeError(error),
+    );
     return completer.future;
   }
 }
 
 void checkDeferredIsLoaded(
-    @notNull String libraryUri, @notNull String importPrefix) {
+  @notNull String libraryUri,
+  @notNull String importPrefix,
+) {
   if (!_ddcDeferredLoading) {
     var loaded = JS('', '#.get(#)', deferredImports, libraryUri);
     if (JS<bool>('!', '# === void 0', loaded) ||
@@ -1031,8 +1161,12 @@ void checkDeferredIsLoaded(
     }
   } else {
     var loadId = '$libraryUri::$importPrefix';
-    var loaded =
-        JS<bool>('!', r'#.deferred_loader.loadIds.has(#)', global_, loadId);
+    var loaded = JS<bool>(
+      '!',
+      r'#.deferred_loader.loadIds.has(#)',
+      global_,
+      loadId,
+    );
     if (!loaded) throwDeferredIsLoadedError(libraryUri, importPrefix);
   }
 }
@@ -1126,8 +1260,10 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
 /// interop API access that is typed to be non-nullable.
 Object? jsInteropNullCheck(Object? val) {
   if (_jsInteropNonNullAsserts && val == null) {
-    throw TypeErrorImpl('Unexpected null value encountered from a '
-        'JavaScript Interop API typed as non-nullable.');
+    throw TypeErrorImpl(
+      'Unexpected null value encountered from a '
+      'JavaScript Interop API typed as non-nullable.',
+    );
   }
   return val;
 }
@@ -1151,10 +1287,11 @@ checkNativeNonNull(dynamic variable) {
 ///
 /// These are generated for all fields after a hot reload.
 bool isStateBearingSymbol(property) => JS<bool>(
-    '!',
-    'typeof # == "symbol" && #.description.startsWith("_#v_")',
-    property,
-    property);
+  '!',
+  'typeof # == "symbol" && #.description.startsWith("_#v_")',
+  property,
+  property,
+);
 
 /// Attempts to assign class [classDeclaration] as [classIdentifier] on [library].
 ///
@@ -1169,11 +1306,21 @@ declareClass(library, classIdentifier, classDeclaration) {
   } else {
     var newClassProto = JS<Object>('!', '#.prototype', classDeclaration);
     var originalClassProto = JS<Object>('!', '#.prototype', originalClass);
-    var copyWhenProto = (property) => JS<bool>('!', '# || # === void 0',
-        !isStateBearingSymbol(property), originalClassProto);
+    var copyWhenProto =
+        (property) => JS<bool>(
+          '!',
+          '# || # === void 0',
+          !isStateBearingSymbol(property),
+          originalClassProto,
+        );
     copyProperties(originalClassProto, newClassProto, copyWhen: copyWhenProto);
-    var copyWhen = (property) => JS<bool>('!', '# || # === void 0',
-        !isStateBearingSymbol(property), originalClass);
+    var copyWhen =
+        (property) => JS<bool>(
+          '!',
+          '# || # === void 0',
+          !isStateBearingSymbol(property),
+          originalClass,
+        );
     copyProperties(originalClass, classDeclaration, copyWhen: copyWhen);
   }
   return JS<Object>('!', '#.#', library, classIdentifier);
@@ -1188,8 +1335,14 @@ declareTopLevelProperties(topLevelContainer, propertiesObject) {
   if (JS<bool>('!', '# === void 0', topLevelContainer)) {
     throw Exception('$topLevelContainer does not exist.');
   }
-  var copyWhen = (property) => JS<bool>('!', '# || #.# === void 0',
-      !isStateBearingSymbol(property), topLevelContainer, property);
+  var copyWhen =
+      (property) => JS<bool>(
+        '!',
+        '# || #.# === void 0',
+        !isStateBearingSymbol(property),
+        topLevelContainer,
+        property,
+      );
   copyProperties(topLevelContainer, propertiesObject, copyWhen: copyWhen);
   return topLevelContainer;
 }

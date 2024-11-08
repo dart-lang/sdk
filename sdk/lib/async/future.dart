@@ -235,8 +235,10 @@ abstract interface class Future<T> {
   static final _Future<void> _nullFuture = nullFuture as _Future<void>;
 
   /// A `Future<bool>` completed with `false`.
-  static final _Future<bool> _falseFuture =
-      new _Future<bool>.zoneValue(false, _rootZone);
+  static final _Future<bool> _falseFuture = new _Future<bool>.zoneValue(
+    false,
+    _rootZone,
+  );
 
   /// Creates a future containing the result of calling [computation]
   /// asynchronously with [Timer.run].
@@ -405,7 +407,10 @@ abstract interface class Future<T> {
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
     if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(
-          null, "computation", "The type parameter is not nullable");
+        null,
+        "computation",
+        "The type parameter is not nullable",
+      );
     }
     _Future<T> result = _Future<T>();
     new Timer(duration, () {
@@ -470,8 +475,11 @@ abstract interface class Future<T> {
   ///   return 'result';
   /// }
   /// ```
-  static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
-      {bool eagerError = false, void cleanUp(T successValue)?}) {
+  static Future<List<T>> wait<T>(
+    Iterable<Future<T>> futures, {
+    bool eagerError = false,
+    void cleanUp(T successValue)?,
+  }) {
     @pragma('vm:awaiter-link')
     final _Future<List<T>> _future = _Future<List<T>>();
     List<T?>? values; // Collects the values. Set to null on error.
@@ -525,8 +533,9 @@ abstract interface class Future<T> {
             assert(valueList[pos] == null);
             valueList[pos] = value;
             if (remainingResults == 0) {
-              _future._completeWithValue(
-                  [for (var value in valueList) value as T]);
+              _future._completeWithValue([
+                for (var value in valueList) value as T,
+              ]);
             }
           } else {
             // Prior error, clean-up this value if necessary.
@@ -642,7 +651,9 @@ abstract interface class Future<T> {
   /// Any error from [action], synchronous or asynchronous,
   /// will stop the iteration and be reported in the returned [Future].
   static Future<void> forEach<T>(
-      Iterable<T> elements, FutureOr action(T element)) {
+    Iterable<T> elements,
+    FutureOr action(T element),
+  ) {
     var iterator = elements.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
@@ -1058,8 +1069,9 @@ extension FutureExtensions<T> on Future<T> {
   /// Because of this, the error handlers must accept
   /// the stack trace argument.
   Future<T> onError<E extends Object>(
-      FutureOr<T> handleError(E error, StackTrace stackTrace),
-      {bool test(E error)?}) {
+    FutureOr<T> handleError(E error, StackTrace stackTrace), {
+    bool test(E error)?,
+  }) {
     FutureOr<T> onError(Object error, StackTrace stackTrace) {
       if (error is! E || test != null && !test(error)) {
         // Counts as rethrow, preserves stack trace.
@@ -1325,7 +1337,10 @@ abstract interface class Completer<T> {
 // A user provided error object should use `_interceptUserError` which
 // also sets `Error.stackTrace`.
 void _completeWithErrorCallback(
-    _Future result, Object error, StackTrace stackTrace) {
+  _Future result,
+  Object error,
+  StackTrace stackTrace,
+) {
   var replacement = _interceptError(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
@@ -1336,7 +1351,10 @@ void _completeWithErrorCallback(
 
 // Like [_completeWithErrorCallback] but completes asynchronously.
 void _asyncCompleteWithErrorCallback(
-    _Future result, Object error, StackTrace stackTrace) {
+  _Future result,
+  Object error,
+  StackTrace stackTrace,
+) {
   var replacement = _interceptError(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;

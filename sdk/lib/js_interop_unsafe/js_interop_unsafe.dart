@@ -53,8 +53,13 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   /// Write the [value] of property key [property] of this [JSObject].
   external void setProperty(JSAny property, JSAny? value);
 
-  external JSAny? _callMethod(JSAny method,
-      [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]);
+  external JSAny? _callMethod(
+    JSAny method, [
+    JSAny? arg1,
+    JSAny? arg2,
+    JSAny? arg3,
+    JSAny? arg4,
+  ]);
 
   /// Calls [method] on this [JSObject] with up to four arguments.
   ///
@@ -63,18 +68,23 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   /// This helper doesn't allow passing nulls, as it determines whether an
   /// argument is passed based on whether it was null or not. Prefer
   /// [callMethodVarArgs] if you need to pass nulls.
-  R callMethod<R extends JSAny?>(JSAny method,
-          [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>
-      _callMethod(method, arg1, arg2, arg3, arg4) as R;
+  R callMethod<R extends JSAny?>(
+    JSAny method, [
+    JSAny? arg1,
+    JSAny? arg2,
+    JSAny? arg3,
+    JSAny? arg4,
+  ]) => _callMethod(method, arg1, arg2, arg3, arg4) as R;
 
   external JSAny? _callMethodVarArgs(JSAny method, [List<JSAny?>? arguments]);
 
   /// Calls [method] on this [JSObject] with a variable number of [arguments].
   ///
   /// Returns the result of calling [method], which must be an [R].
-  R callMethodVarArgs<R extends JSAny?>(JSAny method,
-          [List<JSAny?>? arguments]) =>
-      _callMethodVarArgs(method, arguments) as R;
+  R callMethodVarArgs<R extends JSAny?>(
+    JSAny method, [
+    List<JSAny?>? arguments,
+  ]) => _callMethodVarArgs(method, arguments) as R;
 
   /// Deletes the property with key [property] from this [JSObject].
   external JSBoolean delete(JSAny property);
@@ -82,8 +92,12 @@ extension JSObjectUnsafeUtilExtension on JSObject {
 
 /// Utility methods to call [JSFunction]s as constructors.
 extension JSFunctionUnsafeUtilExtension on JSFunction {
-  external JSObject _callAsConstructor(
-      [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]);
+  external JSObject _callAsConstructor([
+    JSAny? arg1,
+    JSAny? arg2,
+    JSAny? arg3,
+    JSAny? arg4,
+  ]);
 
   /// Calls this [JSFunction] as a constructor with up to four arguments.
   ///
@@ -93,9 +107,12 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
   /// argument is passed based on whether it was null or not. Prefer
   /// [callAsConstructorVarArgs] if you need to pass nulls.
   // TODO(srujzs): The type bound should extend `JSObject`.
-  R callAsConstructor<R>(
-          [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>
-      _callAsConstructor(arg1, arg2, arg3, arg4) as R;
+  R callAsConstructor<R>([
+    JSAny? arg1,
+    JSAny? arg2,
+    JSAny? arg3,
+    JSAny? arg4,
+  ]) => _callAsConstructor(arg1, arg2, arg3, arg4) as R;
 
   external JSObject _callAsConstructorVarArgs([List<JSAny?>? arguments]);
 
