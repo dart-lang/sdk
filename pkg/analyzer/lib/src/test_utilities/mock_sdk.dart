@@ -1526,6 +1526,23 @@ extension type JSArray<T extends JSAny?>._(List _) implements JSObject {}
 extension type JSTypedArray._(TypedData _) implements JSObject {}
 
 extension type JSUint8List._(Uint8List _) implements JSTypedArray {}
+
+extension JSAnyUtilityExtension on JSAny? {
+  external bool typeofEquals(String typeString);
+
+  external bool instanceof(JSFunction constructor);
+
+  bool instanceOfString(String constructorName) => false;
+
+  @Since('3.4')
+  external bool isA<T extends JSAny?>();
+
+  external Object? dartify();
+}
+
+extension NullableObjectUtilExtension on Object? {
+  external JSAny? jsify();
+}
 ''',
     )
   ],

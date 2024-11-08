@@ -39,6 +39,10 @@ class ElementDisplayStringBuilder {
     _write(element.name ?? '<unnamed $runtimeType>');
   }
 
+  void writeAbstractElement2(ElementImpl2 element) {
+    _write(element.name3 ?? '<unnamed $runtimeType>');
+  }
+
   void writeClassElement(ClassElementImpl element) {
     if (element.isAugmentation) {
       _write('augment ');

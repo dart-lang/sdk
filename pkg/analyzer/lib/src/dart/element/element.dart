@@ -3201,11 +3201,23 @@ abstract class ElementImpl2 implements Element2 {
     return enclosingElement2?.session;
   }
 
+  /// Append a textual representation of this element to the given [builder].
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeAbstractElement2(this);
+  }
+
   @override
   String displayString2({
     bool multiline = false,
     bool preferTypeAlias = false,
-  });
+  }) {
+    var builder = ElementDisplayStringBuilder(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
+    appendTo(builder);
+    return builder.toString();
+  }
 
   @override
   bool isAccessibleIn2(LibraryElement2 library) {
@@ -3239,6 +3251,15 @@ abstract class ElementImpl2 implements Element2 {
   @override
   String toString() {
     return displayString2();
+  }
+
+  /// Use the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
+  @override
+  void visitChildren2<T>(ElementVisitor2<T> visitor) {
+    for (var child in children2) {
+      child.accept2(visitor);
+    }
   }
 }
 
@@ -8198,10 +8219,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 }
 
-class MultiplyDefinedElementImpl2 implements MultiplyDefinedElement2 {
-  @override
-  final int id = ElementImpl._NEXT_ID++;
-
+class MultiplyDefinedElementImpl2 extends ElementImpl2
+    implements MultiplyDefinedElement2 {
   final CompilationUnitElementImpl libraryFragment;
 
   @override
@@ -8365,7 +8384,8 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
+class NeverElementImpl extends ElementImpl
+    implements TypeDefiningElement, TypeDefiningFragment {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 
@@ -8381,10 +8401,87 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   List<Element2> get children2 => const [];
 
   @override
+  List<Fragment> get children3 => const [];
+
+  @override
+  NeverElementImpl2 get element => NeverElementImpl2.instance;
+
+  @override
+  Null get enclosingFragment => null;
+
+  @override
   ElementKind get kind => ElementKind.NEVER;
 
   @override
+  Null get libraryFragment => null;
+
+  @override
+  String get name2 => 'Never';
+
+  @override
+  Null get nameOffset2 => null;
+
+  @override
+  Null get nextFragment => null;
+
+  @override
+  Null get previousFragment => null;
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) => null;
+
+  DartType instantiate({
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    switch (nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        return NeverTypeImpl.instanceNullable;
+      case NullabilitySuffix.star:
+        // TODO(scheglov): remove together with `star`
+        return NeverTypeImpl.instanceNullable;
+      case NullabilitySuffix.none:
+        return NeverTypeImpl.instance;
+    }
+  }
+}
+
+/// The synthetic element representing the declaration of the type `Never`.
+class NeverElementImpl2 extends TypeDefiningElementImpl2 {
+  /// The unique instance of this class.
+  static final instance = NeverElementImpl2._();
+
+  NeverElementImpl2._();
+
+  @override
+  List<Element2> get children2 => const [];
+
+  @override
+  Null get documentationComment => null;
+
+  @override
+  NeverElementImpl get firstFragment => NeverElementImpl.instance;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  ElementKind get kind => ElementKind.NEVER;
+
+  @override
+  Null get library2 => null;
+
+  @override
+  Metadata get metadata2 {
+    return MetadataImpl(0, const [], () => null);
+  }
+
+  @override
+  String get name3 => 'Never';
+
+  @override
+  T? accept2<T>(ElementVisitor2<T> visitor) {
+    return null;
+  }
 
   DartType instantiate({
     required NullabilitySuffix nullabilitySuffix,
@@ -10191,13 +10288,6 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
           required NullabilitySuffix nullabilitySuffix}) =>
       firstFragment.instantiate(
           typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
-
-  @override
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    for (var child in children2) {
-      child.accept2(visitor);
-    }
-  }
 }
 
 abstract class TypeDefiningElementImpl2 extends ElementImpl2
