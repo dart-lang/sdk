@@ -12,8 +12,14 @@ aot_snapshot("kernel_worker_aot") {
   main_dart = "kernel_worker.dart"
   name = "kernel_worker_aot"
   output = "$root_gen_dir/kernel_worker_aot.dart.snapshot"
+}
 
-  # dartaotruntime has dart_product_config applied to it,
+aot_snapshot("kernel_worker_aot_product") {
+  main_dart = "kernel_worker.dart"
+  name = "kernel_worker_aot_product"
+  output = "$root_gen_dir/kernel_worker_aot_product.dart.snapshot"
+
+  # dartaotruntime in the dart SDK has dart_product_config applied to it,
   # so it is built in product mode in both release and
   # product builds, and is only built in debug mode in debug
   # builds. The following line ensures that the dartaotruntime

@@ -49,8 +49,8 @@ late final genSnapshot = () {
   throw 'Could not find gen_snapshot for build directory $buildDir';
 }();
 final dart = path.join(buildDir, 'dart' + (Platform.isWindows ? '.exe' : ''));
-final dartPrecompiledRuntime = path.join(
-    buildDir, 'dart_precompiled_runtime' + (Platform.isWindows ? '.exe' : ''));
+final dartPrecompiledRuntime =
+    path.join(buildDir, 'dartaotruntime' + (Platform.isWindows ? '.exe' : ''));
 final checkedInDartVM = path.join('tools', 'sdks', 'dart-sdk', 'bin',
     'dart' + (Platform.isWindows ? '.exe' : ''));
 // Lazily initialize 'lipo' so that tests that don't use it on platforms

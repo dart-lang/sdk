@@ -118,7 +118,7 @@ abstract class RuntimeConfiguration {
       // cannot.
       dir = dir.replaceAll("SIMARM_X64", "SIMARM");
 
-      dartExecutable = '$dir/dart_precompiled_runtime$executableExtension';
+      dartExecutable = '$dir/dartaotruntime$executableExtension';
     }
 
     TestUtils.ensureExists(dartExecutable, _configuration);
@@ -431,7 +431,7 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (script != null &&
         type != 'application/dart-precompiled' &&
         type != 'application/dart-bytecode') {
-      throw "dart_precompiled cannot run files of type '$type'.";
+      throw "dartaotruntime cannot run files of type '$type'.";
     }
 
     var executable = dartPrecompiledBinaryFileName;
@@ -496,7 +496,7 @@ class DartPrecompiledAdbRuntimeConfiguration
     var script = artifact?.filename;
     var type = artifact?.mimeType;
     if (script != null && type != 'application/dart-precompiled') {
-      throw "dart_precompiled cannot run files of type '$type'.";
+      throw "dartaotruntime cannot run files of type '$type'.";
     }
 
     var processTest = processTestBinaryFileName;

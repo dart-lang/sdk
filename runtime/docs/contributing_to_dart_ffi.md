@@ -218,7 +218,7 @@ Unit tests
 
 Integration tests
 
-- `tests/ffi/(.*)_test.dart` Integration tests. Run for AOT on host machine with `$ tools/build.py -mdebug create_platform_sdk runtime ffi_test_functions dart_precompiled_runtime && tools/test.py -mdebug -cdartkp ffi`. Run for JIT on host machine with `$ tools/build.py -mdebug create_platform_sdk runtime ffi_test_functions && tools/test.py -mdebug ffi`.
+- `tests/ffi/(.*)_test.dart` Integration tests. Run for AOT on host machine with `$ tools/build.py -mdebug create_platform_sdk runtime ffi_test_functions runtime_precompiled && tools/test.py -mdebug -cdartkp ffi`. Run for JIT on host machine with `$ tools/build.py -mdebug create_platform_sdk runtime ffi_test_functions && tools/test.py -mdebug ffi`.
 
 Test generators
 
@@ -280,10 +280,10 @@ For Linux, use out/DebugX64 as the out directory and gdb as MIMode.
         },
       },
       {
-        "name": "ccpdbg dart_precompiled_runtime",
+        "name": "ccpdbg dartaotruntime",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${workspaceFolder}/xcodebuild/DebugARM64/dart_precompiled_runtime",
+        "program": "${workspaceFolder}/xcodebuild/DebugARM64/dartaotruntime",
         "args": [
           "/Users/dacoharkes/dart-sdk/sdk/xcodebuild/DebugARM64/generated_compilations/custom-configuration-4/runtime_tests_vm_dart_memoizable_idempotent_test/out.aotsnapshot",
         ],
