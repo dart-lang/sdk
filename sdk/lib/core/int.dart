@@ -77,8 +77,10 @@ abstract final class int extends num {
   /// It may work as a non-constant invocation on some platforms which
   /// have access to compiler options at run-time, but most ahead-of-time
   /// compiled platforms will not have this information.
-  external const factory int.fromEnvironment(String name,
-      {int defaultValue = 0});
+  external const factory int.fromEnvironment(
+    String name, {
+    int defaultValue = 0,
+  });
 
   /// Bit-wise and operator.
   ///

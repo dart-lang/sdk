@@ -148,23 +148,27 @@ class _FutureListener<S, T> {
   final Function? errorCallback;
 
   _FutureListener.then(
-      this.result, FutureOr<T> Function(S) onValue, Function? errorCallback)
-      : callback = onValue,
-        errorCallback = errorCallback,
-        state = (errorCallback == null) ? stateThen : stateThenOnerror;
+    this.result,
+    FutureOr<T> Function(S) onValue,
+    Function? errorCallback,
+  ) : callback = onValue,
+      errorCallback = errorCallback,
+      state = (errorCallback == null) ? stateThen : stateThenOnerror;
 
   _FutureListener.thenAwait(
-      this.result, FutureOr<T> Function(S) onValue, Function errorCallback)
-      : callback = onValue,
-        errorCallback = errorCallback,
-        state = stateThenAwait;
+    this.result,
+    FutureOr<T> Function(S) onValue,
+    Function errorCallback,
+  ) : callback = onValue,
+      errorCallback = errorCallback,
+      state = stateThenAwait;
 
   _FutureListener.catchError(this.result, this.errorCallback, this.callback)
-      : state = (callback == null) ? stateCatchError : stateCatchErrorTest;
+    : state = (callback == null) ? stateCatchError : stateCatchErrorTest;
 
   _FutureListener.whenComplete(this.result, this.callback)
-      : errorCallback = null,
-        state = stateWhenComplete;
+    : errorCallback = null,
+      state = stateWhenComplete;
 
   _Zone get _zone => result._zone;
 
@@ -217,10 +221,15 @@ class _FutureListener<S, T> {
     dynamic result;
     if (errorCallback is dynamic Function(Object, StackTrace)) {
       result = _zone.runBinary<dynamic, Object, StackTrace>(
-          errorCallback, asyncError.error, asyncError.stackTrace);
+        errorCallback,
+        asyncError.error,
+        asyncError.stackTrace,
+      );
     } else {
       result = _zone.runUnary<dynamic, Object>(
-          errorCallback as dynamic, asyncError.error);
+        errorCallback as dynamic,
+        asyncError.error,
+      );
     }
     // Give better error messages if the result is not a valid
     // FutureOr<T>.
@@ -230,15 +239,17 @@ class _FutureListener<S, T> {
       if (handlesValue) {
         // This is a `.then` callback with an `onError`.
         throw ArgumentError(
-            "The error handler of Future.then"
-                " must return a value of the returned future's type",
-            "onError");
+          "The error handler of Future.then"
+              " must return a value of the returned future's type",
+          "onError",
+        );
       }
       // This is a `catchError` callback.
       throw ArgumentError(
-          "The error handler of "
-              "Future.catchError must return a value of the future's type",
-          "onError");
+        "The error handler of "
+            "Future.catchError must return a value of the future's type",
+        "onError",
+      );
     }
   }
 
@@ -341,7 +352,7 @@ class _Future<T> implements Future<T> {
   }
 
   _Future.immediateError(var error, StackTrace stackTrace)
-      : _zone = Zone._current {
+    : _zone = Zone._current {
     _asyncCompleteError(error, stackTrace);
   }
 
@@ -370,10 +381,11 @@ class _Future<T> implements Future<T> {
           onError is! Function(Object, StackTrace) &&
           onError is! Function(Object)) {
         throw ArgumentError.value(
-            onError,
-            "onError",
-            "Error handler must accept one Object or one Object and a StackTrace"
-                " as arguments, and return a value of the returned future's type");
+          onError,
+          "onError",
+          "Error handler must accept one Object or one Object and a StackTrace"
+              " as arguments, and return a value of the returned future's type",
+        );
       }
     } else {
       f = currentZone.registerUnaryCallback<FutureOr<R>, T>(f);
@@ -594,18 +606,21 @@ class _Future<T> implements Future<T> {
     // Mark the target as chained (and as such half-completed).
     _setPendingComplete();
     try {
-      source.then((value) {
-        assert(_isPendingComplete);
-        _clearPendingComplete(); // Clear this first, it's set again.
-        try {
-          _completeWithValue(value as T);
-        } catch (error, stackTrace) {
+      source.then(
+        (value) {
+          assert(_isPendingComplete);
+          _clearPendingComplete(); // Clear this first, it's set again.
+          try {
+            _completeWithValue(value as T);
+          } catch (error, stackTrace) {
+            _completeError(error, stackTrace);
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          assert(_isPendingComplete);
           _completeError(error, stackTrace);
-        }
-      }, onError: (Object error, StackTrace stackTrace) {
-        assert(_isPendingComplete);
-        _completeError(error, stackTrace);
-      });
+        },
+      );
     } catch (e, s) {
       // This only happens if the `then` call threw synchronously when given
       // valid arguments.
@@ -630,9 +645,13 @@ class _Future<T> implements Future<T> {
     }
     if (identical(source, target)) {
       target._asyncCompleteError(
-          ArgumentError.value(
-              source, null, "Cannot complete a future with itself"),
-          StackTrace.current);
+        ArgumentError.value(
+          source,
+          null,
+          "Cannot complete a future with itself",
+        ),
+        StackTrace.current,
+      );
       return;
     }
     var ignoreError = target._state & _stateIgnoreError;
@@ -801,15 +820,19 @@ class _Future<T> implements Future<T> {
   /// Propagates the value/error of [source] to its [listeners], executing the
   /// listeners' callbacks.
   static void _propagateToListeners(
-      _Future source, _FutureListener? listeners) {
+    _Future source,
+    _FutureListener? listeners,
+  ) {
     while (true) {
       assert(source._isComplete);
       bool hasError = source._hasError;
       if (listeners == null) {
         if (hasError && !source._ignoreError) {
           AsyncError asyncError = source._error;
-          source._zone
-              .handleUncaughtError(asyncError.error, asyncError.stackTrace);
+          source._zone.handleUncaughtError(
+            asyncError.error,
+            asyncError.stackTrace,
+          );
         }
         return;
       }
@@ -844,8 +867,10 @@ class _Future<T> implements Future<T> {
         if (hasError && !source._zone.inSameErrorZone(zone)) {
           // Don't cross zone boundaries with errors.
           AsyncError asyncError = source._error;
-          source._zone
-              .handleUncaughtError(asyncError.error, asyncError.stackTrace);
+          source._zone.handleUncaughtError(
+            asyncError.error,
+            asyncError.stackTrace,
+          );
           return;
         }
 
@@ -889,11 +914,14 @@ class _Future<T> implements Future<T> {
             // of source.
             var originalSource = source;
             var joinedResult = source._newFutureWithSameType();
-            completeResult.then<void>((_) {
-              joinedResult._completeWithResultOf(originalSource);
-            }, onError: (Object e, StackTrace s) {
-              joinedResult._completeError(e, s);
-            });
+            completeResult.then<void>(
+              (_) {
+                joinedResult._completeWithResultOf(originalSource);
+              },
+              onError: (Object e, StackTrace s) {
+                joinedResult._completeError(e, s);
+              },
+            );
             listenerValueOrError = joinedResult;
             listenerHasError = false;
           }
@@ -993,13 +1021,15 @@ class _Future<T> implements Future<T> {
     if (onTimeout == null) {
       timer = new Timer(timeLimit, () {
         _future._completeError(
-            new TimeoutException("Future not completed", timeLimit),
-            StackTrace.current);
+          new TimeoutException("Future not completed", timeLimit),
+          StackTrace.current,
+        );
       });
     } else {
       Zone zone = Zone.current;
-      FutureOr<T> Function() onTimeoutHandler =
-          zone.registerCallback(onTimeout);
+      FutureOr<T> Function() onTimeoutHandler = zone.registerCallback(
+        onTimeout,
+      );
 
       timer = new Timer(timeLimit, () {
         try {
@@ -1009,17 +1039,20 @@ class _Future<T> implements Future<T> {
         }
       });
     }
-    this.then((T v) {
-      if (timer.isActive) {
-        timer.cancel();
-        _future._completeWithValue(v);
-      }
-    }, onError: (Object e, StackTrace s) {
-      if (timer.isActive) {
-        timer.cancel();
-        _future._completeError(e, s);
-      }
-    });
+    this.then(
+      (T v) {
+        if (timer.isActive) {
+          timer.cancel();
+          _future._completeWithValue(v);
+        }
+      },
+      onError: (Object e, StackTrace s) {
+        if (timer.isActive) {
+          timer.cancel();
+          _future._completeError(e, s);
+        }
+      },
+    );
     return _future;
   }
 }
@@ -1037,17 +1070,19 @@ class _Future<T> implements Future<T> {
 /// Throws if the type is not valid.
 Function _registerErrorHandler(Function errorHandler, Zone zone) {
   if (errorHandler is dynamic Function(Object, StackTrace)) {
-    return zone
-        .registerBinaryCallback<dynamic, Object, StackTrace>(errorHandler);
+    return zone.registerBinaryCallback<dynamic, Object, StackTrace>(
+      errorHandler,
+    );
   }
   if (errorHandler is dynamic Function(Object)) {
     return zone.registerUnaryCallback<dynamic, Object>(errorHandler);
   }
   throw ArgumentError.value(
-      errorHandler,
-      "onError",
-      "Error handler must accept one Object or one Object and a StackTrace"
-          " as arguments, and return a value of the returned future's type");
+    errorHandler,
+    "onError",
+    "Error handler must accept one Object or one Object and a StackTrace"
+        " as arguments, and return a value of the returned future's type",
+  );
 }
 
 // Names for positional arguments to _chainCoreFuture.

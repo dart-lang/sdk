@@ -236,10 +236,10 @@ class _LinkedListIterator<E extends LinkedListEntry<E>> implements Iterator<E> {
   bool _visitedFirst;
 
   _LinkedListIterator(LinkedList<E> list)
-      : _list = list,
-        _modificationCount = list._modificationCount,
-        _next = list._first,
-        _visitedFirst = false;
+    : _list = list,
+      _modificationCount = list._modificationCount,
+      _next = list._first,
+      _visitedFirst = false;
 
   E get current => _current as E;
 

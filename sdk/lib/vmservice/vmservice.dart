@@ -75,7 +75,8 @@ final _errorMessages = <int, String>{
   kServiceAlreadyRegistered: 'Service already registered',
   kServiceDisappeared: 'Service has disappeared',
   kExpressionCompilationError: 'Expression compilation error',
-  kInvalidTimelineRequest: 'The timeline related request could not be completed'
+  kInvalidTimelineRequest:
+      'The timeline related request could not be completed'
       'due to the current configuration',
 };
 
@@ -101,25 +102,26 @@ String encodeRpcError(
   return json.encode(response);
 }
 
-String encodeMissingParamError(Message message, String param) =>
-    encodeRpcError(message, kInvalidParams,
-        details: "${message.method} expects the '${param}' parameter");
+String encodeMissingParamError(Message message, String param) => encodeRpcError(
+  message,
+  kInvalidParams,
+  details: "${message.method} expects the '${param}' parameter",
+);
 
 String encodeInvalidParamError(Message message, String param) {
   final value = message.params[param];
-  return encodeRpcError(message, kInvalidParams,
-      details: "${message.method}: invalid '${param}' parameter: ${value}");
+  return encodeRpcError(
+    message,
+    kInvalidParams,
+    details: "${message.method}: invalid '${param}' parameter: ${value}",
+  );
 }
 
 String encodeCompilationError(Message message, String diagnostic) =>
     encodeRpcError(message, kExpressionCompilationError, details: diagnostic);
 
 String encodeResult(Message message, Map<String, dynamic> result) =>
-    json.encode({
-      'jsonrpc': '2.0',
-      'id': message.serial,
-      'result': result,
-    });
+    json.encode({'jsonrpc': '2.0', 'id': message.serial, 'result': result});
 
 String encodeSuccess(Message message) =>
     encodeResult(message, {'type': 'Success'});
@@ -184,7 +186,7 @@ class VMServiceEmbedderHooks {
   static ServerInformationCallback? serverInformation;
   static WebServerControlCallback? webServerControl;
   static WebServerAcceptNewWebSocketConnectionsCallback?
-      acceptNewWebSocketConnections;
+  acceptNewWebSocketConnections;
   static ServeObservatoryCallback? serveObservatory;
 }
 
@@ -230,8 +232,8 @@ class VMService extends MessageRouter {
           "message": message,
           "uri": uri,
           'timestamp': DateTime.now().millisecondsSinceEpoch,
-        }
-      }
+        },
+      },
     });
     client.post(event);
   }
@@ -240,16 +242,22 @@ class VMService extends MessageRouter {
     final acceptNewWebSocketConnections =
         VMServiceEmbedderHooks.acceptNewWebSocketConnections;
     if (acceptNewWebSocketConnections == null) {
-      return encodeRpcError(message, kFeatureDisabled,
-          details:
-              'Embedder does not support yielding to a VM service intermediary.');
+      return encodeRpcError(
+        message,
+        kFeatureDisabled,
+        details:
+            'Embedder does not support yielding to a VM service intermediary.',
+      );
     }
 
     final ddsUri = _ddsUri;
     if (ddsUri != null) {
-      return encodeRpcError(message, kFeatureDisabled,
-          details: 'A DDS instance is already connected at $ddsUri.',
-          data: {'ddsUri': ddsUri.toString()});
+      return encodeRpcError(
+        message,
+        kFeatureDisabled,
+        details: 'A DDS instance is already connected at $ddsUri.',
+        data: {'ddsUri': ddsUri.toString()},
+      );
     }
 
     final uri = message.params['uri'] as String?;
@@ -287,33 +295,35 @@ class VMService extends MessageRouter {
     }
     for (final pair in client.createdServiceIdZones) {
       runningIsolates.routeRequest(
-          this,
-          Message._fromJsonRpcRequest(client, {
-            'method': 'deleteIdZone',
-            'params': {
-              'isolateId': pair.isolateId,
-              'idZoneId': pair.serviceIdZoneId,
-            }
-          }));
+        this,
+        Message._fromJsonRpcRequest(client, {
+          'method': 'deleteIdZone',
+          'params': {
+            'isolateId': pair.isolateId,
+            'idZoneId': pair.serviceIdZoneId,
+          },
+        }),
+      );
     }
     _cleanupUnusedUserTagSubscriptions();
     for (final service in client.services.keys) {
       _eventMessageHandler(
-          'Service',
-          Response.json({
-            'jsonrpc': '2.0',
-            'method': 'streamNotify',
-            'params': {
-              'streamId': 'Service',
-              'event': {
-                'type': 'Event',
-                'kind': 'ServiceUnregistered',
-                'timestamp': DateTime.now().millisecondsSinceEpoch,
-                'service': service,
-                'method': namespace + '.' + service,
-              }
-            }
-          }));
+        'Service',
+        Response.json({
+          'jsonrpc': '2.0',
+          'method': 'streamNotify',
+          'params': {
+            'streamId': 'Service',
+            'event': {
+              'type': 'Event',
+              'kind': 'ServiceUnregistered',
+              'timestamp': DateTime.now().millisecondsSinceEpoch,
+              'service': service,
+              'method': namespace + '.' + service,
+            },
+          },
+        }),
+      );
     }
     // Complete all requests as failed
     for (final handle in client.serviceHandles.values) {
@@ -341,13 +351,13 @@ class VMService extends MessageRouter {
       return;
     }
     final cpuSamplesEvent = eventData['cpuSamples']! as Map<String, dynamic>;
-    final samples = (cpuSamplesEvent['samples']! as List<dynamic>)
-        .cast<Map<String, dynamic>>();
-    final updatedSamples = samples
-        .where(
-          (s) => client.profilerUserTagFilters.contains(s['userTag']),
-        )
-        .toList();
+    final samples =
+        (cpuSamplesEvent['samples']! as List<dynamic>)
+            .cast<Map<String, dynamic>>();
+    final updatedSamples =
+        samples
+            .where((s) => client.profilerUserTagFilters.contains(s['userTag']))
+            .toList();
     if (updatedSamples.isEmpty) {
       return;
     }
@@ -380,7 +390,11 @@ class VMService extends MessageRouter {
   }
 
   Future<void> _serverMessageHandler(
-      int code, SendPort sp, bool enable, bool? silenceOutput) async {
+    int code,
+    SendPort sp,
+    bool enable,
+    bool? silenceOutput,
+  ) async {
     switch (code) {
       case Constants.WEB_SERVER_CONTROL_MESSAGE_ID:
         final webServerControl = VMServiceEmbedderHooks.webServerControl;
@@ -404,22 +418,28 @@ class VMService extends MessageRouter {
   }
 
   Future<void> _handleNativeRpcCall(
-      List<int> message, SendPort replyPort) async {
+    List<int> message,
+    SendPort replyPort,
+  ) async {
     // Keep in sync with 'runtime/vm/service_isolate.cc:InvokeServiceRpc'.
     Response response;
 
     try {
       final rpc = Message.fromJsonRpc(
-          null, json.decode(utf8.decode(message)) as Map<String, dynamic>);
+        null,
+        json.decode(utf8.decode(message)) as Map<String, dynamic>,
+      );
       if (rpc.type != MessageType.Request) {
         response = Response.internalError(
-            'The client sent a non-request json-rpc message.');
+          'The client sent a non-request json-rpc message.',
+        );
       } else {
         response = (await routeRequest(this, rpc))!;
       }
     } catch (exception) {
       response = Response.internalError(
-          'The rpc call resulted in exception: $exception.');
+        'The rpc call resulted in exception: $exception.',
+      );
     }
     late List<int> bytes;
     switch (response.kind) {
@@ -469,8 +489,11 @@ class VMService extends MessageRouter {
         _exit();
         return;
       }
-      if (message case [int opcode, List<int> messageBytes, SendPort replyPort]
-          when opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+      if (message case [
+        int opcode,
+        List<int> messageBytes,
+        SendPort replyPort,
+      ] when opcode == Constants.METHOD_CALL_FROM_NATIVE) {
         _handleNativeRpcCall(messageBytes, replyPort);
         return;
       }
@@ -540,8 +563,11 @@ class VMService extends MessageRouter {
       final includePrivates = message.params['_includePrivateMembers'] == true;
       if (!serviceStreams.contains(streamId) &&
           !_vmListenStream(streamId, includePrivates)) {
-        return encodeRpcError(message, kInvalidParams,
-            details: "streamListen: invalid 'streamId' parameter: ${streamId}");
+        return encodeRpcError(
+          message,
+          kInvalidParams,
+          details: "streamListen: invalid 'streamId' parameter: ${streamId}",
+        );
       }
     }
 
@@ -590,12 +616,18 @@ class VMService extends MessageRouter {
     final alias = message.params['alias'];
 
     if (service is! String || service == '') {
-      return encodeRpcError(message, kInvalidParams,
-          details: "registerService: invalid 'service' parameter: ${service}");
+      return encodeRpcError(
+        message,
+        kInvalidParams,
+        details: "registerService: invalid 'service' parameter: ${service}",
+      );
     }
     if (alias is! String || alias == '') {
-      return encodeRpcError(message, kInvalidParams,
-          details: "registerService: invalid 'alias' parameter: ${alias}");
+      return encodeRpcError(
+        message,
+        kInvalidParams,
+        details: "registerService: invalid 'alias' parameter: ${alias}",
+      );
     }
     if (client.services.containsKey(service)) {
       return encodeRpcError(message, kServiceAlreadyRegistered);
@@ -614,8 +646,11 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
-  Future<void> _sendServiceRegisteredEvent(Client client, String service,
-      {Client? target}) async {
+  Future<void> _sendServiceRegisteredEvent(
+    Client client,
+    String service, {
+    Client? target,
+  }) async {
     final namespace = clients.keyOf(client);
     final alias = client.services[service];
     final event = Response.json({
@@ -629,9 +664,9 @@ class VMService extends MessageRouter {
           'timestamp': DateTime.now().millisecondsSinceEpoch,
           'service': service,
           'method': namespace + '.' + service,
-          'alias': alias
-        }
-      }
+          'alias': alias,
+        },
+      },
     });
     if (target == null) {
       _eventMessageHandler(kServiceStream, event);
@@ -656,19 +691,26 @@ class VMService extends MessageRouter {
         }
       };
       client.post(
-          Response.json(message.forwardToJson({'id': id, 'method': method})));
+        Response.json(message.forwardToJson({'id': id, 'method': method})),
+      );
       return completer.future;
     }
-    return encodeRpcError(message, kMethodNotFound,
-        details: 'Unknown service: ${message.method}');
+    return encodeRpcError(
+      message,
+      kMethodNotFound,
+      details: 'Unknown service: ${message.method}',
+    );
   }
 
   Future<String> _getSupportedProtocols(Message message) async {
-    final payload = json.decode(
-      utf8.decode(
-        (await Message.forMethod('getVersion').sendToVM()).payload as List<int>,
-      ),
-    ) as Map<String, dynamic>;
+    final payload =
+        json.decode(
+              utf8.decode(
+                (await Message.forMethod('getVersion').sendToVM()).payload
+                    as List<int>,
+              ),
+            )
+            as Map<String, dynamic>;
     final version = payload['result'] as Map<String, dynamic>;
     final protocols = {
       'type': 'ProtocolList',
@@ -705,8 +747,11 @@ class VMService extends MessageRouter {
 
   Future<String> _streamCpuSamplesWithUserTag(Message message) async {
     if (!message.params.containsKey('userTags')) {
-      return encodeRpcError(message, kInvalidParams,
-          details: "Missing required parameter 'userTags'.");
+      return encodeRpcError(
+        message,
+        kInvalidParams,
+        details: "Missing required parameter 'userTags'.",
+      );
     }
 
     // TODO(bkonyi): handle "subscribe all" case.
@@ -794,8 +839,10 @@ class VMService extends MessageRouter {
         return await _handleService(message);
       }
       if (message.params['isolateId'] != null) {
-        final Response response =
-            await runningIsolates.routeRequest(this, message);
+        final Response response = await runningIsolates.routeRequest(
+          this,
+          message,
+        );
         if (message.method == 'createIdZone') {
           _recordInformationAboutCreatedServiceIdZone(
             message.client!,
@@ -821,8 +868,10 @@ class VMService extends MessageRouter {
   }
 }
 
-@pragma('vm:entry-point',
-    const bool.fromEnvironment('dart.vm.product') ? false : 'call')
+@pragma(
+  'vm:entry-point',
+  const bool.fromEnvironment('dart.vm.product') ? false : 'call',
+)
 RawReceivePort boot() {
   // Return the port we expect isolate control messages on.
   return isolateControlPort;

@@ -8,30 +8,42 @@ part of dart._runtime;
 /// by the Dart runtime.
 // TODO(ochafik): Rewrite some of these in Dart when possible.
 
-final Function(dynamic, dynamic, dynamic) defineProperty =
-    JS('', 'Object.defineProperty');
+final Function(dynamic, dynamic, dynamic) defineProperty = JS(
+  '',
+  'Object.defineProperty',
+);
 
 defineValue(obj, name, value) {
   defineAccessor(obj, name, value: value, configurable: true, writable: true);
   return value;
 }
 
-final Function(dynamic, dynamic,
-    {dynamic get,
-    dynamic set,
-    dynamic value,
-    bool? configurable,
-    bool? enumerable,
-    bool? writable}) defineAccessor = JS('', 'Object.defineProperty');
+final Function(
+  dynamic,
+  dynamic, {
+  dynamic get,
+  dynamic set,
+  dynamic value,
+  bool? configurable,
+  bool? enumerable,
+  bool? writable,
+})
+defineAccessor = JS('', 'Object.defineProperty');
 
-final dynamic Function(dynamic, dynamic) getOwnPropertyDescriptor =
-    JS('', 'Object.getOwnPropertyDescriptor');
+final dynamic Function(dynamic, dynamic) getOwnPropertyDescriptor = JS(
+  '',
+  'Object.getOwnPropertyDescriptor',
+);
 
-final List Function(dynamic) getOwnPropertyNames =
-    JS('', 'Object.getOwnPropertyNames');
+final List Function(dynamic) getOwnPropertyNames = JS(
+  '',
+  'Object.getOwnPropertyNames',
+);
 
-final List Function(dynamic) getOwnPropertySymbols =
-    JS('', 'Object.getOwnPropertySymbols');
+final List Function(dynamic) getOwnPropertySymbols = JS(
+  '',
+  'Object.getOwnPropertySymbols',
+);
 
 final Function(dynamic) getPrototypeOf = JS('', 'Object.getPrototypeOf');
 
@@ -61,8 +73,12 @@ safeGetOwnProperty(obj, name) {
     return JS<Object>('', '#[#]', obj, name);
 }
 
-copyTheseProperties(to, from, namesAndSymbols,
-    {bool Function(Object)? copyWhen}) {
+copyTheseProperties(
+  to,
+  from,
+  namesAndSymbols, {
+  bool Function(Object)? copyWhen,
+}) {
   for (int i = 0, n = JS('!', '#.length', namesAndSymbols); i < n; ++i) {
     var nameOrSymbol = JS<Object>('!', '#[#]', namesAndSymbols, i);
     if ('constructor' == nameOrSymbol) continue;
@@ -99,6 +115,10 @@ exportProperty(to, from, name) => copyProperty(to, from, name);
 ///
 /// [copyWhen] allows you to specify when a JS property will be copied.
 copyProperties(to, from, {bool Function(Object)? copyWhen}) {
-  return copyTheseProperties(to, from, getOwnNamesAndSymbols(from),
-      copyWhen: copyWhen);
+  return copyTheseProperties(
+    to,
+    from,
+    getOwnNamesAndSymbols(from),
+    copyWhen: copyWhen,
+  );
 }

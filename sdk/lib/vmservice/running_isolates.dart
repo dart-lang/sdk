@@ -31,7 +31,9 @@ class RunningIsolates implements MessageRouter {
     int isolateId;
     if (!isolateParam.startsWith('isolates/')) {
       message.setErrorResponse(
-          kInvalidParams, "invalid 'isolateId' parameter: $isolateParam");
+        kInvalidParams,
+        "invalid 'isolateId' parameter: $isolateParam",
+      );
       return message.response;
     }
     isolateParam = isolateParam.substring('isolates/'.length);
@@ -42,7 +44,9 @@ class RunningIsolates implements MessageRouter {
         isolateId = int.parse(isolateParam);
       } catch (e) {
         message.setErrorResponse(
-            kInvalidParams, "invalid 'isolateId' parameter: $isolateParam");
+          kInvalidParams,
+          "invalid 'isolateId' parameter: $isolateParam",
+        );
         return message.response;
       }
     }
@@ -83,13 +87,15 @@ class _Evaluator {
       final error = responseJson['error'] as Map<String, dynamic>;
       final data = error['data'] as Map<String, dynamic>;
       return Response.from(
-          encodeCompilationError(_message, data['details'] as String));
+        encodeCompilationError(_message, data['details'] as String),
+      );
     }
 
     String kernelBase64;
     try {
       kernelBase64 = await _compileExpression(
-          responseJson['result'] as Map<String, dynamic>);
+        responseJson['result'] as Map<String, dynamic>,
+      );
     } catch (e) {
       return Response.from(encodeCompilationError(_message, e.toString()));
     }
@@ -112,8 +118,10 @@ class _Evaluator {
       (buildScopeParams['params'] as Map<String, dynamic>)['scope'] =
           _message.params['scope'];
     }
-    final buildScope =
-        Message._fromJsonRpcRequest(_message.client!, buildScopeParams);
+    final buildScope = Message._fromJsonRpcRequest(
+      _message.client!,
+      buildScopeParams,
+    );
 
     // Decode the JSON and insert it into the map. The map key
     // is the request Uri.
@@ -121,9 +129,11 @@ class _Evaluator {
   }
 
   Future<String> _compileExpression(
-      Map<String, dynamic> buildScopeResponseResult) {
-    Client? externalClient =
-        _service._findFirstClientThatHandlesService('compileExpression');
+    Map<String, dynamic> buildScopeResponseResult,
+  ) {
+    Client? externalClient = _service._findFirstClientThatHandlesService(
+      'compileExpression',
+    );
 
     final compileParams = <String, dynamic>{
       'isolateId': _message.params['isolateId']!,
@@ -164,8 +174,14 @@ class _Evaluator {
           completer.complete(encodeRpcError(_message, kServiceDisappeared));
         }
       };
-      externalClient.post(Response.json(compileExpression
-          .forwardToJson({'id': id, 'method': 'compileExpression'})));
+      externalClient.post(
+        Response.json(
+          compileExpression.forwardToJson({
+            'id': id,
+            'method': 'compileExpression',
+          }),
+        ),
+      );
       return completer.future.then((s) => jsonDecode(s)).then((json) {
         final jsonMap = json as Map<String, dynamic>;
         if (jsonMap.containsKey('error')) {
@@ -182,21 +198,23 @@ class _Evaluator {
         'params': compileParams,
       };
       final compileExpression = Message._fromJsonRpcRequest(
-          _message.client!, compileExpressionParams);
+        _message.client!,
+        compileExpressionParams,
+      );
 
       return _isolate
           .routeRequest(_service, compileExpression)
           .then((response) => response.decodeJson())
           .then((json) {
-        final response = json as Map<String, dynamic>;
-        if (response['result'] != null) {
-          return (response['result'] as Map<String, dynamic>)['kernelBytes']
-              as String;
-        }
-        final error = response['error'] as Map<String, dynamic>;
-        final data = error['data'] as Map<String, dynamic>;
-        throw data['details'] as Object;
-      });
+            final response = json as Map<String, dynamic>;
+            if (response['result'] != null) {
+              return (response['result'] as Map<String, dynamic>)['kernelBytes']
+                  as String;
+            }
+            final error = response['error'] as Map<String, dynamic>;
+            final data = error['data'] as Map<String, dynamic>;
+            throw data['details'] as Object;
+          });
     }
   }
 
@@ -219,8 +237,10 @@ class _Evaluator {
         (runParams['params'] as Map<String, dynamic>)['idZoneId'] =
             _message.params['idZoneId'];
       }
-      final runExpression =
-          Message._fromJsonRpcRequest(_message.client!, runParams);
+      final runExpression = Message._fromJsonRpcRequest(
+        _message.client!,
+        runParams,
+      );
       return _isolate.routeRequest(_service, runExpression); // _message
     } else {
       // empty kernel indicates dart1 mode

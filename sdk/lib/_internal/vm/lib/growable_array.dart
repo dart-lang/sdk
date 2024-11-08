@@ -181,7 +181,8 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   factory _GrowableList._ofEfficientLengthIterable(
-      EfficientLengthIterable<T> elements) {
+    EfficientLengthIterable<T> elements,
+  ) {
     final int length = elements.length;
     if (length > 0) {
       final data = _List(_adjustedCapacity(length));
@@ -206,8 +207,10 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type",
-      <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
+  @pragma("vm:exact-result-type", <dynamic>[
+    _GrowableList,
+    "result-type-uses-passed-type-arguments",
+  ])
   @pragma("vm:external-name", "GrowableList_allocate")
   external factory _GrowableList._withData(_List data);
 
@@ -287,7 +290,8 @@ class _GrowableList<T> extends ListBase<T> {
   void addAll(Iterable<T> iterable) {
     var len = length;
     final cid = ClassID.getID(iterable);
-    final isVMList = (cid == ClassID.cidArray) ||
+    final isVMList =
+        (cid == ClassID.cidArray) ||
         (cid == ClassID.cidGrowableObjectArray) ||
         (cid == ClassID.cidImmutableArray);
     if (isVMList || (iterable is EfficientLengthIterable)) {
@@ -633,7 +637,15 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   factory _GrowableList._literal8(
-      T e0, T e1, T e2, T e3, T e4, T e5, T e6, T e7) {
+    T e0,
+    T e1,
+    T e2,
+    T e3,
+    T e4,
+    T e5,
+    T e6,
+    T e7,
+  ) {
     _List elements = _List(8);
     elements[0] = e0;
     elements[1] = e1;

@@ -279,12 +279,16 @@ class _BigIntImpl implements BigInt {
     }
 
     return _parseRadix(
-        decimalMatch ?? nonDecimalMatch ?? hexMatch!, radix, isNegative);
+      decimalMatch ?? nonDecimalMatch ?? hexMatch!,
+      radix,
+      isNegative,
+    );
   }
 
   static RegExp _parseRE = RegExp(
-      r'^\s*([+-]?)((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$',
-      caseSensitive: false);
+    r'^\s*([+-]?)((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$',
+    caseSensitive: false,
+  );
 
   /// Finds the amount significant digits in the provided [digits] array.
   static int _normalize(int used, Uint16List digits) {
@@ -296,10 +300,10 @@ class _BigIntImpl implements BigInt {
   /// If the [digits] array contains leading 0s, the [used] value is adjusted
   /// accordingly. The [digits] array is not modified.
   _BigIntImpl._(bool isNegative, int used, Uint16List digits)
-      : this._normalized(isNegative, _normalize(used, digits), digits);
+    : this._normalized(isNegative, _normalize(used, digits), digits);
 
   _BigIntImpl._normalized(bool isNegative, this._used, this._digits)
-      : _isNegative = _used == 0 ? false : isNegative;
+    : _isNegative = _used == 0 ? false : isNegative;
 
   /// Whether this big integer is zero.
   bool get _isZero => _used == 0;
@@ -308,7 +312,11 @@ class _BigIntImpl implements BigInt {
   /// range [from] to [to-1], starting at index 0, followed by leading zero
   /// digits.
   static Uint16List _cloneDigits(
-      Uint16List digits, int from, int to, int length) {
+    Uint16List digits,
+    int from,
+    int to,
+    int length,
+  ) {
     var resultDigits = Uint16List(length);
     var n = to - from;
     for (var i = 0; i < n; i++) {
@@ -446,7 +454,11 @@ class _BigIntImpl implements BigInt {
   ///
   /// `resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] << n*_DIGIT_BITS`.
   static int _dlShiftDigits(
-      Uint16List xDigits, int xUsed, int n, Uint16List resultDigits) {
+    Uint16List xDigits,
+    int xUsed,
+    int n,
+    Uint16List resultDigits,
+  ) {
     if (xUsed == 0) {
       return 0;
     }
@@ -497,7 +509,11 @@ class _BigIntImpl implements BigInt {
   ///
   /// Does *not* clear digits below ds.
   static void _lsh(
-      Uint16List xDigits, int xUsed, int n, Uint16List resultDigits) {
+    Uint16List xDigits,
+    int xUsed,
+    int n,
+    Uint16List resultDigits,
+  ) {
     assert(xUsed > 0);
     final digitShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
@@ -541,7 +557,11 @@ class _BigIntImpl implements BigInt {
   // resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] << n.
   // Returns resultUsed.
   static int _lShiftDigits(
-      Uint16List xDigits, int xUsed, int n, Uint16List resultDigits) {
+    Uint16List xDigits,
+    int xUsed,
+    int n,
+    Uint16List resultDigits,
+  ) {
     final digitsShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
     if (bitShift == 0) {
@@ -561,7 +581,11 @@ class _BigIntImpl implements BigInt {
 
   // resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] >> n.
   static void _rsh(
-      Uint16List xDigits, int xUsed, int n, Uint16List resultDigits) {
+    Uint16List xDigits,
+    int xUsed,
+    int n,
+    Uint16List resultDigits,
+  ) {
     assert(xUsed > 0);
     final digitsShift = n ~/ _digitBits;
     final bitShift = n % _digitBits;
@@ -643,7 +667,11 @@ class _BigIntImpl implements BigInt {
   /// Returns 0 if equal; a positive number if larger;
   /// and a negative number if smaller.
   static int _compareDigits(
-      Uint16List digits, int used, Uint16List otherDigits, int otherUsed) {
+    Uint16List digits,
+    int used,
+    Uint16List otherDigits,
+    int otherUsed,
+  ) {
     var result = used - otherUsed;
     if (result == 0) {
       for (int i = used - 1; i >= 0; i--) {
@@ -656,8 +684,13 @@ class _BigIntImpl implements BigInt {
 
   // resultDigits[0..used] = digits[0..used-1] + otherDigits[0..otherUsed-1].
   // used >= otherUsed > 0.
-  static void _absAdd(Uint16List digits, int used, Uint16List otherDigits,
-      int otherUsed, Uint16List resultDigits) {
+  static void _absAdd(
+    Uint16List digits,
+    int used,
+    Uint16List otherDigits,
+    int otherUsed,
+    Uint16List resultDigits,
+  ) {
     assert(used >= otherUsed && otherUsed > 0);
     var carry = 0;
     for (var i = 0; i < otherUsed; i++) {
@@ -675,8 +708,13 @@ class _BigIntImpl implements BigInt {
 
   // resultDigits[0..used-1] = digits[0..used-1] - otherDigits[0..otherUsed-1].
   // used >= otherUsed > 0.
-  static void _absSub(Uint16List digits, int used, Uint16List otherDigits,
-      int otherUsed, Uint16List resultDigits) {
+  static void _absSub(
+    Uint16List digits,
+    int used,
+    Uint16List otherDigits,
+    int otherUsed,
+    Uint16List resultDigits,
+  ) {
     assert(used >= otherUsed && otherUsed > 0);
 
     var carry = 0;
@@ -994,8 +1032,14 @@ class _BigIntImpl implements BigInt {
   /// Adds the result of the multiplicand-digits * [x] to the accumulator.
   ///
   /// Concretely: `accumulatorDigits[j..j+n] += x * m_digits[i..i+n-1]`.
-  static void _mulAdd(int x, Uint16List multiplicandDigits, int i,
-      Uint16List accumulatorDigits, int j, int n) {
+  static void _mulAdd(
+    int x,
+    Uint16List multiplicandDigits,
+    int i,
+    Uint16List accumulatorDigits,
+    int j,
+    int n,
+  ) {
     if (x == 0) {
       // No-op if x is 0.
       return;
@@ -1033,13 +1077,21 @@ class _BigIntImpl implements BigInt {
       i++;
     }
     return _BigIntImpl._(
-        _isNegative != other._isNegative, resultUsed, resultDigits);
+      _isNegative != other._isNegative,
+      resultUsed,
+      resultDigits,
+    );
   }
 
   // r_digits[0..rUsed-1] = xDigits[0..xUsed-1]*otherDigits[0..otherUsed-1].
   // Return resultUsed = xUsed + otherUsed.
-  static int _mulDigits(Uint16List xDigits, int xUsed, Uint16List otherDigits,
-      int otherUsed, Uint16List resultDigits) {
+  static int _mulDigits(
+    Uint16List xDigits,
+    int xUsed,
+    Uint16List otherDigits,
+    int otherUsed,
+    Uint16List resultDigits,
+  ) {
     var resultUsed = xUsed + otherUsed;
     var i = resultUsed;
     assert(resultDigits.length >= i);
@@ -1056,7 +1108,10 @@ class _BigIntImpl implements BigInt {
 
   /// Returns an estimate of `digits[i-1..i] ~/ topDigitDivisor`.
   static int _estimateQuotientDigit(
-      int topDigitDivisor, Uint16List digits, int i) {
+    int topDigitDivisor,
+    Uint16List digits,
+    int i,
+  ) {
     if (digits[i] == topDigitDivisor) return _digitMask;
     var quotientDigit =
         (digits[i] << _digitBits | digits[i - 1]) ~/ topDigitDivisor;
@@ -1075,7 +1130,11 @@ class _BigIntImpl implements BigInt {
     // _lastQuoRem_digits[_lastRem_used.._lastQuoRem_used-1] with proper sign.
     var lastQuo_used = _lastQuoRemUsed! - _lastRemUsed!;
     var quo_digits = _cloneDigits(
-        _lastQuoRemDigits!, _lastRemUsed!, _lastQuoRemUsed!, lastQuo_used);
+      _lastQuoRemDigits!,
+      _lastRemUsed!,
+      _lastQuoRemUsed!,
+      lastQuo_used,
+    );
     var quo = _BigIntImpl._(false, lastQuo_used, quo_digits);
     if ((_isNegative != other._isNegative) && (quo._used > 0)) {
       quo = -quo;
@@ -1092,8 +1151,12 @@ class _BigIntImpl implements BigInt {
     _divRem(other);
     // Return remainder, i.e.
     // denormalized _lastQuoRem_digits[0.._lastRem_used-1] with proper sign.
-    var remDigits =
-        _cloneDigits(_lastQuoRemDigits!, 0, _lastRemUsed!, _lastRemUsed!);
+    var remDigits = _cloneDigits(
+      _lastQuoRemDigits!,
+      0,
+      _lastRemUsed!,
+      _lastRemUsed!,
+    );
     var rem = _BigIntImpl._(false, _lastRemUsed!, remDigits);
     if (_lastRem_nsh! > 0) {
       rem = rem >> _lastRem_nsh!; // Denormalize remainder.
@@ -1174,8 +1237,11 @@ class _BigIntImpl implements BigInt {
     --i;
 
     while (j > 0) {
-      var estimatedQuotientDigit =
-          _estimateQuotientDigit(topDigitDivisor, resultDigits, i);
+      var estimatedQuotientDigit = _estimateQuotientDigit(
+        topDigitDivisor,
+        resultDigits,
+        i,
+      );
       j--;
       _mulAdd(estimatedQuotientDigit, nyDigits, 0, resultDigits, j, yUsed);
       if (resultDigits[i] < estimatedQuotientDigit) {
@@ -1382,7 +1448,9 @@ class _BigIntImpl implements BigInt {
   /// The [exponent] must be non-negative and [modulus] must be
   /// positive.
   _BigIntImpl modPow(
-      covariant _BigIntImpl exponent, covariant _BigIntImpl modulus) {
+    covariant _BigIntImpl exponent,
+    covariant _BigIntImpl modulus,
+  ) {
     if (exponent._isNegative) {
       throw ArgumentError("exponent must be positive: $exponent");
     }
@@ -1410,8 +1478,13 @@ class _BigIntImpl implements BigInt {
     for (int i = exponentBitlen - 2; i >= 0; i--) {
       result2Used = z.sqr(resultDigits, resultUsed, result2Digits);
       if (!(exponent & (one << i))._isZero) {
-        resultUsed =
-            z.mul(result2Digits, result2Used, gDigits, gUsed, resultDigits);
+        resultUsed = z.mul(
+          result2Digits,
+          result2Used,
+          gDigits,
+          gUsed,
+          resultDigits,
+        );
       } else {
         // Swap result and result2.
         var tmpDigits = resultDigits;
@@ -1451,7 +1524,9 @@ class _BigIntImpl implements BigInt {
         throw ArgumentError.value(0, "other", "must not be zero");
       }
       if (((xUsed == 1) && (xDigits[0] == 1)) ||
-          ((yUsed == 1) && (yDigits[0] == 1))) return one;
+          ((yUsed == 1) && (yDigits[0] == 1))) {
+        return one;
+      }
       while (((xDigits[0] & 1) == 0) && ((yDigits[0] & 1) == 0)) {
         _rsh(xDigits, xUsed, 1, xDigits);
         _rsh(yDigits, yUsed, 1, yDigits);
@@ -1474,8 +1549,12 @@ class _BigIntImpl implements BigInt {
       }
     }
     var uDigits = _cloneDigits(xDigits, 0, xUsed, unshiftedMaxUsed);
-    var vDigits =
-        _cloneDigits(yDigits, 0, yUsed, unshiftedMaxUsed + 2); // +2 for lsh.
+    var vDigits = _cloneDigits(
+      yDigits,
+      0,
+      yUsed,
+      unshiftedMaxUsed + 2,
+    ); // +2 for lsh.
     final bool ac = (xDigits[0] & 1) == 0;
 
     // Variables a, b, c, and d require one more digit.
@@ -1998,8 +2077,13 @@ class _BigIntImpl implements BigInt {
 abstract class _BigIntReduction {
   // Return the number of digits used by r_digits.
   int convert(_BigIntImpl x, Uint16List r_digits);
-  int mul(Uint16List xDigits, int xUsed, Uint16List yDigits, int yUsed,
-      Uint16List resultDigits);
+  int mul(
+    Uint16List xDigits,
+    int xUsed,
+    Uint16List yDigits,
+    int yUsed,
+    Uint16List resultDigits,
+  );
   int sqr(Uint16List xDigits, int xUsed, Uint16List resultDigits);
 
   // Return x reverted to _BigIntImpl.
@@ -2012,9 +2096,10 @@ class _BigIntClassic implements _BigIntReduction {
   final _BigIntImpl _normalizedModulus; // Normalized _modulus.
 
   _BigIntClassic(this._modulus)
-      : _normalizedModulus = _modulus <<
-            (_BigIntImpl._digitBits -
-                _modulus._digits[_modulus._used - 1].bitLength);
+    : _normalizedModulus =
+          _modulus <<
+          (_BigIntImpl._digitBits -
+              _modulus._digits[_modulus._used - 1].bitLength);
 
   int convert(_BigIntImpl x, Uint16List resultDigits) {
     Uint16List digits;
@@ -2064,10 +2149,20 @@ class _BigIntClassic implements _BigIntReduction {
     return _reduce(resultDigits, 2 * xUsed);
   }
 
-  int mul(Uint16List xDigits, int xUsed, Uint16List yDigits, int yUsed,
-      Uint16List resultDigits) {
-    var resultUsed =
-        _BigIntImpl._mulDigits(xDigits, xUsed, yDigits, yUsed, resultDigits);
+  int mul(
+    Uint16List xDigits,
+    int xUsed,
+    Uint16List yDigits,
+    int yUsed,
+    Uint16List resultDigits,
+  ) {
+    var resultUsed = _BigIntImpl._mulDigits(
+      xDigits,
+      xUsed,
+      yDigits,
+      yUsed,
+      resultDigits,
+    );
     return _reduce(resultDigits, resultUsed);
   }
 }

@@ -138,7 +138,11 @@ void scheduleMicrotask(void Function() callback) {
   if (identical(_rootZone, implementation.zone) &&
       _rootZone.inSameErrorZone(currentZone)) {
     _rootScheduleMicrotask(
-        null, null, currentZone, currentZone.registerCallback(callback));
+      null,
+      null,
+      currentZone,
+      currentZone.registerCallback(callback),
+    );
     return;
   }
   Zone.current.scheduleMicrotask(Zone.current.bindCallbackGuarded(callback));

@@ -179,16 +179,26 @@ class DateTime implements Comparable<DateTime> {
   /// ```dart
   /// final dentistAppointment = DateTime(2017, 9, 7, 17, 30);
   /// ```
-  DateTime(int year,
-      [int month = 1,
-      int day = 1,
-      int hour = 0,
-      int minute = 0,
-      int second = 0,
-      int millisecond = 0,
-      int microsecond = 0])
-      : this._internal(year, month, day, hour, minute, second, millisecond,
-            microsecond, false);
+  DateTime(
+    int year, [
+    int month = 1,
+    int day = 1,
+    int hour = 0,
+    int minute = 0,
+    int second = 0,
+    int millisecond = 0,
+    int microsecond = 0,
+  ]) : this._internal(
+         year,
+         month,
+         day,
+         hour,
+         minute,
+         second,
+         millisecond,
+         microsecond,
+         false,
+       );
 
   /// Constructs a [DateTime] instance specified in the UTC time zone.
   ///
@@ -199,16 +209,26 @@ class DateTime implements Comparable<DateTime> {
   /// When dealing with dates or historic events, preferably use UTC DateTimes,
   /// since they are unaffected by daylight-saving changes and are unaffected
   /// by the local timezone.
-  DateTime.utc(int year,
-      [int month = 1,
-      int day = 1,
-      int hour = 0,
-      int minute = 0,
-      int second = 0,
-      int millisecond = 0,
-      int microsecond = 0])
-      : this._internal(year, month, day, hour, minute, second, millisecond,
-            microsecond, true);
+  DateTime.utc(
+    int year, [
+    int month = 1,
+    int day = 1,
+    int hour = 0,
+    int minute = 0,
+    int second = 0,
+    int millisecond = 0,
+    int microsecond = 0,
+  ]) : this._internal(
+         year,
+         month,
+         day,
+         hour,
+         minute,
+         second,
+         millisecond,
+         microsecond,
+         true,
+       );
 
   /// Constructs a [DateTime] instance with current date and time in the
   /// local time zone.
@@ -325,8 +345,9 @@ class DateTime implements Comparable<DateTime> {
       int milliAndMicroseconds = parseMilliAndMicroseconds(match[7]);
       int millisecond =
           milliAndMicroseconds ~/ Duration.microsecondsPerMillisecond;
-      int microsecond = milliAndMicroseconds
-          .remainder(Duration.microsecondsPerMillisecond) as int;
+      int microsecond =
+          milliAndMicroseconds.remainder(Duration.microsecondsPerMillisecond)
+              as int;
       bool isUtc = false;
       if (match[8] != null) {
         // timezone part
@@ -341,8 +362,17 @@ class DateTime implements Comparable<DateTime> {
           minute -= sign * minuteDifference;
         }
       }
-      DateTime? result = _finishParse(years, month, day, hour, minute, second,
-          millisecond, microsecond, isUtc);
+      DateTime? result = _finishParse(
+        years,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        millisecond,
+        microsecond,
+        isUtc,
+      );
       if (result == null) {
         throw FormatException("Time out of range", formattedString);
       }
@@ -382,8 +412,10 @@ class DateTime implements Comparable<DateTime> {
   ///     DateTime.fromMillisecondsSinceEpoch(1641031200000, isUtc:true);
   /// print(newYearsDay); // 2022-01-01 10:00:00.000Z
   /// ```
-  external DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
-      {bool isUtc = false});
+  external DateTime.fromMillisecondsSinceEpoch(
+    int millisecondsSinceEpoch, {
+    bool isUtc = false,
+  });
 
   /// Constructs a new [DateTime] instance
   /// with the given [microsecondsSinceEpoch].
@@ -398,30 +430,39 @@ class DateTime implements Comparable<DateTime> {
   ///     DateTime.fromMicrosecondsSinceEpoch(1640979000000000, isUtc:true);
   /// print(newYearsEve); // 2021-12-31 19:30:00.000Z
   /// ```
-  external DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
-      {bool isUtc = false});
+  external DateTime.fromMicrosecondsSinceEpoch(
+    int microsecondsSinceEpoch, {
+    bool isUtc = false,
+  });
 
   /// Throws an error if the millisecondsSinceEpoch and microsecond components
   /// are out of range.
   ///
   /// Returns the millisecondsSinceEpoch component.
   static int _validate(
-      int millisecondsSinceEpoch, int microsecond, bool isUtc) {
+    int millisecondsSinceEpoch,
+    int microsecond,
+    bool isUtc,
+  ) {
     if (microsecond < 0 || microsecond > 999) {
       throw RangeError.range(microsecond, 0, 999, "microsecond");
     }
     if (millisecondsSinceEpoch < -_maxMillisecondsSinceEpoch ||
         millisecondsSinceEpoch > _maxMillisecondsSinceEpoch) {
       throw RangeError.range(
-          millisecondsSinceEpoch,
-          -_maxMillisecondsSinceEpoch,
-          _maxMillisecondsSinceEpoch,
-          "millisecondsSinceEpoch");
+        millisecondsSinceEpoch,
+        -_maxMillisecondsSinceEpoch,
+        _maxMillisecondsSinceEpoch,
+        "millisecondsSinceEpoch",
+      );
     }
     if (millisecondsSinceEpoch == _maxMillisecondsSinceEpoch &&
         microsecond != 0) {
-      throw ArgumentError.value(microsecond, "microsecond",
-          "Time including microseconds is outside valid range");
+      throw ArgumentError.value(
+        microsecond,
+        "microsecond",
+        "Time including microseconds is outside valid range",
+      );
     }
 
     // For backwards compatibility with legacy mode.
@@ -719,15 +760,33 @@ class DateTime implements Comparable<DateTime> {
   /// [Duration.inDays] only returns the number of whole days.
   external Duration difference(DateTime other);
 
-  external DateTime._internal(int year, int month, int day, int hour,
-      int minute, int second, int millisecond, int microsecond, bool isUtc);
+  external DateTime._internal(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+    int second,
+    int millisecond,
+    int microsecond,
+    bool isUtc,
+  );
 
   external DateTime._now();
 
   /// Returns the [DateTime] corresponding to the given components, or `null` if
   /// the values are out of range.
-  external static DateTime? _finishParse(int year, int month, int day, int hour,
-      int minute, int second, int millisecond, int microsecond, bool isUtc);
+  external static DateTime? _finishParse(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+    int second,
+    int millisecond,
+    int microsecond,
+    bool isUtc,
+  );
 
   /// The number of milliseconds since
   /// the "Unix epoch" 1970-01-01T00:00:00Z (UTC).
@@ -887,10 +946,11 @@ class DateTime implements Comparable<DateTime> {
    * timezone ::= 'z' | 'Z' | sign digit{2} timezonemins_opt
    * timezonemins_opt ::= <empty> | colon_opt digit{2}
    */
-  static final RegExp _parseFormat =
-      RegExp(r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
-          r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d+))?)?)?' // Time part.
-          r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // Timezone part.
+  static final RegExp _parseFormat = RegExp(
+    r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)' // Day part.
+    r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:[.,](\d+))?)?)?' // Time part.
+    r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$',
+  ); // Timezone part.
 }
 
 /// Adds [copyWith] method to [DateTime] objects.

@@ -41,7 +41,10 @@ class StringBuffer {
   }
 
   static String _writeAll(
-      String string, Iterable<Object?> objects, String separator) {
+    String string,
+    Iterable<Object?> objects,
+    String separator,
+  ) {
     final iterator = objects.iterator;
     if (!iterator.moveNext()) return string;
     if (separator.isEmpty) {

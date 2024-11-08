@@ -102,7 +102,7 @@ extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
   /// This constructor is intended to allow users to avoid having to cast to and
   /// from [JSObject].
   JSObject.fromInteropObject(Object interopObject)
-      : _jsObject = interopObject as JSObjectRepType;
+    : _jsObject = interopObject as JSObjectRepType;
 
   /// Creates a new empty JavaScript object.
   ///
@@ -128,7 +128,8 @@ extension type JSFunction._(JSFunctionRepType _jsFunction)
 /// to convert a Dart function.
 @JS('Function')
 extension type JSExportedDartFunction._(
-        JSExportedDartFunctionRepType _jsExportedDartFunction)
+  JSExportedDartFunctionRepType _jsExportedDartFunction
+)
     implements JSFunction {}
 
 /// A JavaScript [`Array`](https://tc39.es/ecma262/#sec-array-objects).
@@ -274,14 +275,19 @@ extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
 /// A JavaScript `Uint8ClampedArray`.
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
-    JSUint8ClampedArrayRepType _jsUint8ClampedArray) implements JSTypedArray {
+  JSUint8ClampedArrayRepType _jsUint8ClampedArray
+)
+    implements JSTypedArray {
   /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
   /// storage, offset by [byteOffset] bytes, of size [length].
   ///
   /// If no [buffer] is provided, creates an empty `Uint8ClampedArray`.
   @Since('3.6')
-  external JSUint8ClampedArray(
-      [JSArrayBuffer buffer, int byteOffset, int length]);
+  external JSUint8ClampedArray([
+    JSArrayBuffer buffer,
+    int byteOffset,
+    int length,
+  ]);
 
   /// Creates a JavaScript `Uint8ClampedArray` of size [length] whose elements
   /// are initialized to 0.
@@ -437,7 +443,8 @@ extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
 /// See [ObjectToExternalDartReference.toExternalReference] to allow an
 /// arbitrary value of type [T] to be passed to JavaScript.
 extension type ExternalDartReference<T extends Object?>._(
-    ExternalDartReferenceRepType<T> _externalDartReference) {}
+  ExternalDartReferenceRepType<T> _externalDartReference
+) {}
 
 /// JS type equivalent for `undefined` for interop member return types.
 ///
@@ -613,8 +620,13 @@ extension JSFunctionUtilExtension on JSFunction {
   // confusion.
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
   @JS('call')
-  external JSAny? callAsFunction(
-      [JSAny? thisArg, JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]);
+  external JSAny? callAsFunction([
+    JSAny? thisArg,
+    JSAny? arg1,
+    JSAny? arg2,
+    JSAny? arg3,
+    JSAny? arg4,
+  ]);
 }
 
 // Extension members to support conversions between Dart types and JS types.
@@ -739,26 +751,32 @@ extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
   /// in the property `error` and the original stack trace as a [String] in the
   /// property `stack`.
   JSPromise<T> get toJS {
-    return JSPromise<T>((JSFunction resolve, JSFunction reject) {
-      this.then((JSAny? value) {
-        resolve.callAsFunction(resolve, value);
-        return value;
-      }, onError: (Object error, StackTrace stackTrace) {
-        // TODO(srujzs): Can we do something better here? This is pretty much
-        // useless to the user unless they call a Dart callback that consumes
-        // this value and unboxes.
-        final errorConstructor = globalContext['Error'] as JSFunction;
-        final wrapper = errorConstructor.callAsConstructor<JSObject>(
-            "Dart exception thrown from converted Future. Use the properties "
-                    "'error' to fetch the boxed error and 'stack' to recover "
-                    "the stack trace."
-                .toJS);
-        wrapper['error'] = error.toJSBox;
-        wrapper['stack'] = stackTrace.toString().toJS;
-        reject.callAsFunction(reject, wrapper);
-        return wrapper;
-      });
-    }.toJS);
+    return JSPromise<T>(
+      (JSFunction resolve, JSFunction reject) {
+        this.then(
+          (JSAny? value) {
+            resolve.callAsFunction(resolve, value);
+            return value;
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            // TODO(srujzs): Can we do something better here? This is pretty much
+            // useless to the user unless they call a Dart callback that consumes
+            // this value and unboxes.
+            final errorConstructor = globalContext['Error'] as JSFunction;
+            final wrapper = errorConstructor.callAsConstructor<JSObject>(
+              "Dart exception thrown from converted Future. Use the properties "
+                      "'error' to fetch the boxed error and 'stack' to recover "
+                      "the stack trace."
+                  .toJS,
+            );
+            wrapper['error'] = error.toJSBox;
+            wrapper['stack'] = stackTrace.toString().toJS;
+            reject.callAsFunction(reject, wrapper);
+            return wrapper;
+          },
+        );
+      }.toJS,
+    );
   }
 }
 
@@ -772,23 +790,28 @@ extension FutureOfVoidToJSPromise on Future<void> {
   /// in the property `error` and the original stack trace as a [String] in the
   /// property `stack`.
   JSPromise get toJS {
-    return JSPromise((JSFunction resolve, JSFunction reject) {
-      this.then((_) => resolve.callAsFunction(resolve),
+    return JSPromise(
+      (JSFunction resolve, JSFunction reject) {
+        this.then(
+          (_) => resolve.callAsFunction(resolve),
           onError: (Object error, StackTrace stackTrace) {
-        // TODO(srujzs): Can we do something better here? This is pretty much
-        // useless to the user unless they call a Dart callback that consumes
-        // this value and unboxes.
-        final errorConstructor = globalContext['Error'] as JSFunction;
-        final wrapper = errorConstructor.callAsConstructor<JSObject>(
-            "Dart exception thrown from converted Future. Use the properties "
-                    "'error' to fetch the boxed error and 'stack' to recover "
-                    "the stack trace."
-                .toJS);
-        wrapper['error'] = error.toJSBox;
-        wrapper['stack'] = stackTrace.toString().toJS;
-        reject.callAsFunction(reject, wrapper);
-      });
-    }.toJS);
+            // TODO(srujzs): Can we do something better here? This is pretty much
+            // useless to the user unless they call a Dart callback that consumes
+            // this value and unboxes.
+            final errorConstructor = globalContext['Error'] as JSFunction;
+            final wrapper = errorConstructor.callAsConstructor<JSObject>(
+              "Dart exception thrown from converted Future. Use the properties "
+                      "'error' to fetch the boxed error and 'stack' to recover "
+                      "the stack trace."
+                  .toJS,
+            );
+            wrapper['error'] = error.toJSBox;
+            wrapper['stack'] = stackTrace.toString().toJS;
+            reject.callAsFunction(reject, wrapper);
+          },
+        );
+      }.toJS,
+    );
   }
 }
 

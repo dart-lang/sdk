@@ -18,14 +18,21 @@ throwUnimplementedError(String message) {
 }
 
 throwDeferredIsLoadedError(
-    @notNull String enclosingLibrary, @notNull String importPrefix) {
+  @notNull String enclosingLibrary,
+  @notNull String importPrefix,
+) {
   throw DeferredNotLoadedError(enclosingLibrary, importPrefix);
 }
 
 // TODO(nshahan) Cleanup embedded strings and extract file location at runtime
 // from the stacktrace.
-assertFailed(String? message,
-    [String? fileUri, int? line, int? column, String? conditionSource]) {
+assertFailed(
+  String? message, [
+  String? fileUri,
+  int? line,
+  int? column,
+  String? conditionSource,
+]) {
   throw AssertionErrorImpl(message, fileUri, line, column, conditionSource);
 }
 
@@ -38,9 +45,11 @@ void _checkModuleNullSafetyMode(@notNull bool isModuleSound) {
     var sdkMode = JS_GET_FLAG('SOUND_NULL_SAFETY') ? 'sound' : 'unsound';
     var moduleMode = isModuleSound ? 'sound' : 'unsound';
 
-    throw AssertionError('The null safety mode of the Dart SDK module '
-        '($sdkMode) does not match the null safety mode of this module '
-        '($moduleMode).');
+    throw AssertionError(
+      'The null safety mode of the Dart SDK module '
+      '($sdkMode) does not match the null safety mode of this module '
+      '($moduleMode).',
+    );
   }
 }
 
@@ -53,8 +62,13 @@ String _nullFailedMessage(variableName) =>
 // https://github.com/dart-lang/language/blob/master/accepted/2.12/nnbd/feature-specification.md#automatic-debug-assertion-insertion
 nullFailed(String? fileUri, int? line, int? column, String? variable) {
   if (_nonNullAsserts) {
-    throw AssertionErrorImpl(_nullFailedMessage(variable), fileUri, line,
-        column, '$variable != null');
+    throw AssertionErrorImpl(
+      _nullFailedMessage(variable),
+      fileUri,
+      line,
+      column,
+      '$variable != null',
+    );
   }
   var key = '$fileUri:$line:$column';
   if (!JS('!', '#.has(#)', _nullFailedSet, key)) {
@@ -156,17 +170,19 @@ bool _isStackOverflowError(Object error) {
   var message = JS('', '#.message', error);
   if (message is! String) return false;
   if (JS<bool>(
-          '!',
-          'typeof RangeError == "function" && # instanceof RangeError',
-          error) &&
+        '!',
+        'typeof RangeError == "function" && # instanceof RangeError',
+        error,
+      ) &&
       message.contains('call stack')) {
     return true;
   }
   // Firefox stack overflow identification.
   if (JS<bool>(
-          '!',
-          'typeof InternalError == "function" && # instanceof InternalError',
-          error) &&
+        '!',
+        'typeof InternalError == "function" && # instanceof InternalError',
+        error,
+      ) &&
       message.contains('too much recursion')) {
     return true;
   }
@@ -238,8 +254,8 @@ void rethrow_(Object error) {
 ///
 /// TODO(jmesserly): Dart Errors should simply be JS Errors.
 final Object DartError = JS(
-    '!',
-    '''class DartError extends Error {
+  '!',
+  '''class DartError extends Error {
       constructor(error) {
         super();
         if (error == null) error = #;
@@ -252,12 +268,13 @@ final Object DartError = JS(
         return #(this[#]);
       }
     }''',
-    TypeErrorImpl('Throw of null.'),
-    _thrownValue,
-    _jsError,
-    _jsError,
-    _toString,
-    _thrownValue);
+  TypeErrorImpl('Throw of null.'),
+  _thrownValue,
+  _jsError,
+  _jsError,
+  _toString,
+  _thrownValue,
+);
 
 /// Subclass of [DartError] for cases where we're rethrowing with a different,
 /// original Dart StackTrace object.
@@ -265,8 +282,8 @@ final Object DartError = JS(
 /// This includes the original stack trace in the JS Error message so it doesn't
 /// get lost if the exception reaches JS.
 final Object RethrownDartError = JS(
-    '!',
-    '''class RethrownDartError extends # {
+  '!',
+  '''class RethrownDartError extends # {
       constructor(error, stackTrace) {
         super(error);
         this[#] = stackTrace;
@@ -275,10 +292,11 @@ final Object RethrownDartError = JS(
         return super.message + "\\n    " + #(this[#]) + "\\n";
       }
     }''',
-    DartError,
-    _stackTrace,
-    _toString,
-    _stackTrace);
+  DartError,
+  _stackTrace,
+  _toString,
+  _stackTrace,
+);
 
 /// Implements `throw` of [exception], allowing for throw in an expression
 /// context, and capturing the current stack trace.
@@ -325,8 +343,13 @@ Object? createErrorWithStack(Object exception, StackTrace? trace) {
 // This is a utility function: it is only intended to be called from dev
 // tools.
 void stackPrint(Object error) {
-  JS('', 'console.log(#.stack ? #.stack : "No stack trace for: " + #)', error,
-      error, error);
+  JS(
+    '',
+    'console.log(#.stack ? #.stack : "No stack trace for: " + #)',
+    error,
+    error,
+    error,
+  );
 }
 
 class _StackTrace implements StackTrace {
@@ -337,8 +360,8 @@ class _StackTrace implements StackTrace {
   _StackTrace(this._jsError) : _jsObjectMissingTrace = null;
 
   _StackTrace.missing(Object? caughtObj)
-      : _jsObjectMissingTrace = caughtObj != null ? caughtObj : 'null',
-        _jsError = JS('', 'Error()');
+    : _jsObjectMissingTrace = caughtObj != null ? caughtObj : 'null',
+      _jsError = JS('', 'Error()');
 
   String toString() {
     if (_trace != null) return _trace!;
@@ -359,7 +382,8 @@ class _StackTrace implements StackTrace {
       } catch (_) {
         jsToString = '<error converting JS object to string>';
       }
-      trace = 'Non-error `$jsToString` thrown by JS does not have stack trace.'
+      trace =
+          'Non-error `$jsToString` thrown by JS does not have stack trace.'
           '\nCaught in Dart at:\n\n$trace';
     }
     return _trace = trace;

@@ -13,8 +13,11 @@ import 'dart:typed_data';
 @patch
 class String {
   @patch
-  factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]) {
+  factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]) {
     RangeError.checkNotNegative(start, "start");
     if (end != null) {
       if (end < start) {
@@ -70,12 +73,17 @@ class String {
   @patch
   factory String.fromCharCode(int charCode) => _fromCharCode(charCode);
 
-  static String _fromOneByteCharCode(int charCode) => JSStringImpl(js
-      .JS<WasmExternRef?>('c => String.fromCharCode(c)', charCode.toDouble()));
+  static String _fromOneByteCharCode(int charCode) => JSStringImpl(
+    js.JS<WasmExternRef?>('c => String.fromCharCode(c)', charCode.toDouble()),
+  );
 
-  static String _fromTwoByteCharCode(int low, int high) =>
-      JSStringImpl(js.JS<WasmExternRef?>('(l, h) => String.fromCharCode(h, l)',
-          low.toDouble(), high.toDouble()));
+  static String _fromTwoByteCharCode(int low, int high) => JSStringImpl(
+    js.JS<WasmExternRef?>(
+      '(l, h) => String.fromCharCode(h, l)',
+      low.toDouble(),
+      high.toDouble(),
+    ),
+  );
 
   static String _fromCharCode(int charCode) {
     if (0 <= charCode) {
@@ -93,12 +101,18 @@ class String {
   }
 
   static String _fromCharCodeApplySubarray(
-      JSUint32ArrayImpl charCodes, int index, int end) {
-    return JSStringImpl(js.JS<WasmExternRef?>(
+    JSUint32ArrayImpl charCodes,
+    int index,
+    int end,
+  ) {
+    return JSStringImpl(
+      js.JS<WasmExternRef?>(
         '(c, i, e) => String.fromCharCode.apply(null, new Uint32Array(c.buffer, c.byteOffset + i, e))',
         charCodes.toExternRef,
         WasmI32.fromInt(index * 4),
-        WasmI32.fromInt(end - index)));
+        WasmI32.fromInt(end - index),
+      ),
+    );
   }
 }
 

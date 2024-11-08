@@ -21,59 +21,71 @@ class _WindowsCodePageEncoder {
 @patch
 class Process {
   @patch
-  static Future<Process> start(String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      ProcessStartMode mode = ProcessStartMode.normal}) {
+  static Future<Process> start(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    ProcessStartMode mode = ProcessStartMode.normal,
+  }) {
     _ProcessImpl process = new _ProcessImpl(
-        executable,
-        arguments,
-        workingDirectory,
-        environment,
-        includeParentEnvironment,
-        runInShell,
-        mode);
+      executable,
+      arguments,
+      workingDirectory,
+      environment,
+      includeParentEnvironment,
+      runInShell,
+      mode,
+    );
     return process._start();
   }
 
   @patch
-  static Future<ProcessResult> run(String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      Encoding? stdoutEncoding = systemEncoding,
-      Encoding? stderrEncoding = systemEncoding}) {
+  static Future<ProcessResult> run(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    Encoding? stdoutEncoding = systemEncoding,
+    Encoding? stderrEncoding = systemEncoding,
+  }) {
     return _runNonInteractiveProcess(
-        executable,
-        arguments,
-        workingDirectory,
-        environment,
-        includeParentEnvironment,
-        runInShell,
-        stdoutEncoding,
-        stderrEncoding);
+      executable,
+      arguments,
+      workingDirectory,
+      environment,
+      includeParentEnvironment,
+      runInShell,
+      stdoutEncoding,
+      stderrEncoding,
+    );
   }
 
   @patch
-  static ProcessResult runSync(String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      Encoding? stdoutEncoding = systemEncoding,
-      Encoding? stderrEncoding = systemEncoding}) {
+  static ProcessResult runSync(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    Encoding? stdoutEncoding = systemEncoding,
+    Encoding? stderrEncoding = systemEncoding,
+  }) {
     return _runNonInteractiveProcessSync(
-        executable,
-        arguments,
-        workingDirectory,
-        environment,
-        includeParentEnvironment,
-        runInShell,
-        stdoutEncoding,
-        stderrEncoding);
+      executable,
+      arguments,
+      workingDirectory,
+      environment,
+      includeParentEnvironment,
+      runInShell,
+      stdoutEncoding,
+      stderrEncoding,
+    );
   }
 
   @patch
@@ -103,8 +115,9 @@ class _SignalController {
   void _listen() {
     var id = _setSignalHandler(signal.signalNumber);
     if (id is! int) {
-      _controller
-          .addError(new SignalException("Failed to listen for $signal", id));
+      _controller.addError(
+        new SignalException("Failed to listen for $signal", id),
+      );
       return;
     }
     _id = id;
@@ -164,7 +177,8 @@ class _ProcessUtils {
                 signal != ProcessSignal.sigusr2 &&
                 signal != ProcessSignal.sigwinch))) {
       throw new SignalException(
-          "Listening for signal $signal is not supported");
+        "Listening for signal $signal is not supported",
+      );
     }
     return _watchSignalInternal(signal);
   }
@@ -219,14 +233,14 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
   static bool connectedResourceHandler = false;
 
   _ProcessImpl(
-      String path,
-      List<String> arguments,
-      this._workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment,
-      bool runInShell,
-      this._mode)
-      : super() {
+    String path,
+    List<String> arguments,
+    this._workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment,
+    bool runInShell,
+    this._mode,
+  ) : super() {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(path, "path");
     ArgumentError.checkNotNull(arguments, "arguments");
@@ -237,10 +251,14 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
 
     if (!const bool.fromEnvironment("dart.vm.product") &&
         !connectedResourceHandler) {
-      registerExtension('ext.dart.io.getSpawnedProcesses',
-          _SpawnedProcessResourceInfo.getStartedProcesses);
-      registerExtension('ext.dart.io.getSpawnedProcessById',
-          _SpawnedProcessResourceInfo.getProcessInfoMapById);
+      registerExtension(
+        'ext.dart.io.getSpawnedProcesses',
+        _SpawnedProcessResourceInfo.getStartedProcesses,
+      );
+      registerExtension(
+        'ext.dart.io.getSpawnedProcessById',
+        _SpawnedProcessResourceInfo.getProcessInfoMapById,
+      );
       connectedResourceHandler = true;
     }
 
@@ -317,7 +335,9 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
   }
 
   static List<String> _getShellArguments(
-      String executable, List<String> arguments) {
+    String executable,
+    List<String> arguments,
+  ) {
     List<String> shellArguments = [];
     if (Platform.isWindows) {
       shellArguments.add('/c');
@@ -408,22 +428,28 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     Timer.run(() {
       var status = new _ProcessStartStatus();
       bool success = _startNative(
-          _Namespace._namespace,
-          _path,
-          _arguments,
-          _workingDirectory,
-          _environment,
-          _mode._mode,
-          _modeHasStdio(_mode) ? _stdinNativeSocket : null,
-          _modeHasStdio(_mode) ? _stdoutNativeSocket : null,
-          _modeHasStdio(_mode) ? _stderrNativeSocket : null,
-          _modeIsAttached(_mode) ? _exitHandler._nativeSocket : null,
-          status);
+        _Namespace._namespace,
+        _path,
+        _arguments,
+        _workingDirectory,
+        _environment,
+        _mode._mode,
+        _modeHasStdio(_mode) ? _stdinNativeSocket : null,
+        _modeHasStdio(_mode) ? _stdoutNativeSocket : null,
+        _modeHasStdio(_mode) ? _stderrNativeSocket : null,
+        _modeIsAttached(_mode) ? _exitHandler._nativeSocket : null,
+        status,
+      );
       if (!success) {
         completer.completeError(
-            new ProcessException(
-                _path, _arguments, status._errorMessage!, status._errorCode!),
-            stackTrace);
+          new ProcessException(
+            _path,
+            _arguments,
+            status._errorMessage!,
+            status._errorCode!,
+          ),
+          stackTrace,
+        );
         return;
       }
 
@@ -455,7 +481,10 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
           }
 
           exitDataBuffer.setRange(
-              exitDataRead, exitDataRead + data.length, data);
+            exitDataRead,
+            exitDataRead + data.length,
+            data,
+          );
           exitDataRead += data.length;
           if (exitDataRead == EXIT_DATA_SIZE) {
             handleExit();
@@ -469,30 +498,41 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
   }
 
   ProcessResult _runAndWait(
-      Encoding? stdoutEncoding, Encoding? stderrEncoding) {
+    Encoding? stdoutEncoding,
+    Encoding? stderrEncoding,
+  ) {
     var status = new _ProcessStartStatus();
     _exitCode = new Completer<int>();
     bool success = _startNative(
-        _Namespace._namespace,
-        _path,
-        _arguments,
-        _workingDirectory,
-        _environment,
-        ProcessStartMode.normal._mode,
-        _stdinNativeSocket,
-        _stdoutNativeSocket,
-        _stderrNativeSocket,
-        _exitHandler._nativeSocket,
-        status);
+      _Namespace._namespace,
+      _path,
+      _arguments,
+      _workingDirectory,
+      _environment,
+      ProcessStartMode.normal._mode,
+      _stdinNativeSocket,
+      _stdoutNativeSocket,
+      _stderrNativeSocket,
+      _exitHandler._nativeSocket,
+      status,
+    );
     if (!success) {
       throw new ProcessException(
-          _path, _arguments, status._errorMessage!, status._errorCode!);
+        _path,
+        _arguments,
+        status._errorMessage!,
+        status._errorCode!,
+      );
     }
 
     final resourceInfo = new _SpawnedProcessResourceInfo(this);
 
-    var result = _wait(_stdinNativeSocket, _stdoutNativeSocket,
-        _stderrNativeSocket, _exitHandler._nativeSocket);
+    var result = _wait(
+      _stdinNativeSocket,
+      _stdoutNativeSocket,
+      _stderrNativeSocket,
+      _exitHandler._nativeSocket,
+    );
 
     getOutput(output, encoding) {
       if (encoding == null) return output;
@@ -502,29 +542,35 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     resourceInfo.stopped();
 
     return new ProcessResult(
-        result[0],
-        result[1],
-        getOutput(result[2], stdoutEncoding),
-        getOutput(result[3], stderrEncoding));
+      result[0],
+      result[1],
+      getOutput(result[2], stdoutEncoding),
+      getOutput(result[3], stderrEncoding),
+    );
   }
 
   @pragma("vm:external-name", "Process_Start")
   external bool _startNative(
-      _Namespace namespace,
-      String path,
-      List<String> arguments,
-      String? workingDirectory,
-      List<String> environment,
-      int mode,
-      _NativeSocket? stdin,
-      _NativeSocket? stdout,
-      _NativeSocket? stderr,
-      _NativeSocket? exitHandler,
-      _ProcessStartStatus status);
+    _Namespace namespace,
+    String path,
+    List<String> arguments,
+    String? workingDirectory,
+    List<String> environment,
+    int mode,
+    _NativeSocket? stdin,
+    _NativeSocket? stdout,
+    _NativeSocket? stderr,
+    _NativeSocket? exitHandler,
+    _ProcessStartStatus status,
+  );
 
   @pragma("vm:external-name", "Process_Wait")
-  external _wait(_NativeSocket? stdin, _NativeSocket? stdout,
-      _NativeSocket? stderr, _NativeSocket exitHandler);
+  external _wait(
+    _NativeSocket? stdin,
+    _NativeSocket? stdout,
+    _NativeSocket? stderr,
+    _NativeSocket exitHandler,
+  );
 
   Stream<List<int>> get stdout =>
       _stdout ?? (throw StateError("stdio is not connected"));
@@ -567,21 +613,24 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
 // _NonInteractiveProcess is used to implement the Process.run
 // method.
 Future<ProcessResult> _runNonInteractiveProcess(
-    String path,
-    List<String> arguments,
-    String? workingDirectory,
-    Map<String, String>? environment,
-    bool includeParentEnvironment,
-    bool runInShell,
-    Encoding? stdoutEncoding,
-    Encoding? stderrEncoding) {
+  String path,
+  List<String> arguments,
+  String? workingDirectory,
+  Map<String, String>? environment,
+  bool includeParentEnvironment,
+  bool runInShell,
+  Encoding? stdoutEncoding,
+  Encoding? stderrEncoding,
+) {
   // Start the underlying process.
-  return Process.start(path, arguments,
-          workingDirectory: workingDirectory,
-          environment: environment,
-          includeParentEnvironment: includeParentEnvironment,
-          runInShell: runInShell)
-      .then((Process p) {
+  return Process.start(
+    path,
+    arguments,
+    workingDirectory: workingDirectory,
+    environment: environment,
+    includeParentEnvironment: includeParentEnvironment,
+    runInShell: runInShell,
+  ).then((Process p) {
     int pid = p.pid;
 
     // Make sure the process stdin is closed.
@@ -592,15 +641,18 @@ Future<ProcessResult> _runNonInteractiveProcess(
       if (encoding == null) {
         return stream
             .fold<BytesBuilder>(
-                new BytesBuilder(), (builder, data) => builder..add(data))
+              new BytesBuilder(),
+              (builder, data) => builder..add(data),
+            )
             .then((builder) => builder.takeBytes());
       } else {
         return stream
             .transform(encoding.decoder)
             .fold<StringBuffer>(new StringBuffer(), (buf, data) {
-          buf.write(data);
-          return buf;
-        }).then((sb) => sb.toString());
+              buf.write(data);
+              return buf;
+            })
+            .then((sb) => sb.toString());
       }
     }
 
@@ -614,21 +666,23 @@ Future<ProcessResult> _runNonInteractiveProcess(
 }
 
 ProcessResult _runNonInteractiveProcessSync(
-    String executable,
-    List<String> arguments,
-    String? workingDirectory,
-    Map<String, String>? environment,
-    bool includeParentEnvironment,
-    bool runInShell,
-    Encoding? stdoutEncoding,
-    Encoding? stderrEncoding) {
+  String executable,
+  List<String> arguments,
+  String? workingDirectory,
+  Map<String, String>? environment,
+  bool includeParentEnvironment,
+  bool runInShell,
+  Encoding? stdoutEncoding,
+  Encoding? stderrEncoding,
+) {
   var process = new _ProcessImpl(
-      executable,
-      arguments,
-      workingDirectory,
-      environment,
-      includeParentEnvironment,
-      runInShell,
-      ProcessStartMode.normal);
+    executable,
+    arguments,
+    workingDirectory,
+    environment,
+    includeParentEnvironment,
+    runInShell,
+    ProcessStartMode.normal,
+  );
   return process._runAndWait(stdoutEncoding, stderrEncoding);
 }

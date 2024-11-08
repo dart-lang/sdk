@@ -82,9 +82,10 @@ class _Platform {
     if (_environmentCache == null) {
       var env = _environment();
       if (env is Iterable<Object?>) {
-        var result = Platform.isWindows
-            ? new _CaseInsensitiveStringMap<String>()
-            : new Map<String, String>();
+        var result =
+            Platform.isWindows
+                ? new _CaseInsensitiveStringMap<String>()
+                : new Map<String, String>();
         for (var environmentEntry in env) {
           if (environmentEntry == null) {
             continue;
@@ -101,8 +102,9 @@ class _Platform {
           // are discarded.
           var equalsIndex = text.indexOf('=');
           if (equalsIndex > 0) {
-            result[text.substring(0, equalsIndex)] =
-                text.substring(equalsIndex + 1);
+            result[text.substring(0, equalsIndex)] = text.substring(
+              equalsIndex + 1,
+            );
           }
         }
         _environmentCache = new UnmodifiableMapView<String, String>(result);

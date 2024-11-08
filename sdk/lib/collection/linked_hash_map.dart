@@ -157,10 +157,11 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   /// and `isValidKey` is omitted, the resulting map is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [LinkedHashMap.identity].
-  external factory LinkedHashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey});
+  external factory LinkedHashMap({
+    bool Function(K, K)? equals,
+    int Function(K)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   /// Creates an insertion-ordered identity-based map.
   ///
@@ -217,8 +218,11 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   ///     LinkedHashMap.fromIterable(numbers, key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  factory LinkedHashMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
+  factory LinkedHashMap.fromIterable(
+    Iterable iterable, {
+    K Function(dynamic element)? key,
+    V Function(dynamic element)? value,
+  }) {
     LinkedHashMap<K, V> map = LinkedHashMap<K, V>();
     MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;

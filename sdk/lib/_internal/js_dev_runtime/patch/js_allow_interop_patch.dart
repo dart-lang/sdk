@@ -16,12 +16,13 @@ F allowInterop<F extends Function>(F f) {
   var ret = _interopExpando[f] as F?;
   if (ret == null) {
     ret = JS<F>(
-        '',
-        'function (...args) {'
-            ' return #(#, args);'
-            '}',
-        dart.dcall,
-        f);
+      '',
+      'function (...args) {'
+          ' return #(#, args);'
+          '}',
+      dart.dcall,
+      f,
+    );
     _interopExpando[f] = ret;
   }
   return ret;
@@ -35,14 +36,15 @@ Function allowInteropCaptureThis(Function f) {
   var ret = _interopCaptureThisExpando[f];
   if (ret == null) {
     ret = JS<Function>(
-        '',
-        'function(...arguments) {'
-            '  let args = [this];'
-            '  args.push.apply(args, arguments);'
-            '  return #(#, args);'
-            '}',
-        dart.dcall,
-        f);
+      '',
+      'function(...arguments) {'
+          '  let args = [this];'
+          '  args.push.apply(args, arguments);'
+          '  return #(#, args);'
+          '}',
+      dart.dcall,
+      f,
+    );
     _interopCaptureThisExpando[f] = ret;
   }
   return ret;
@@ -62,14 +64,15 @@ JavaScriptFunction _functionToJS0(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final ret = JS<JavaScriptFunction>(
-      '!',
-      '''
+    '!',
+    '''
         function () {
           return #(#);
         }
       ''',
-      _callDartFunctionFast0,
-      f);
+    _callDartFunctionFast0,
+    f,
+  );
   JS('', '#[#] = #', ret, _functionToJSProperty, f);
   return ret;
 }
@@ -79,14 +82,15 @@ JavaScriptFunction _functionToJS1(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final ret = JS<JavaScriptFunction>(
-      '!',
-      '''
+    '!',
+    '''
         function (arg1) {
           return #(#, arg1, arguments.length);
         }
       ''',
-      _callDartFunctionFast1,
-      f);
+    _callDartFunctionFast1,
+    f,
+  );
   JS('', '#[#] = #', ret, _functionToJSProperty, f);
   return ret;
 }
@@ -96,14 +100,15 @@ JavaScriptFunction _functionToJS2(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final ret = JS<JavaScriptFunction>(
-      '!',
-      '''
+    '!',
+    '''
         function (arg1, arg2) {
           return #(#, arg1, arg2, arguments.length);
         }
       ''',
-      _callDartFunctionFast2,
-      f);
+    _callDartFunctionFast2,
+    f,
+  );
   JS('', '#[#] = #', ret, _functionToJSProperty, f);
   return ret;
 }
@@ -113,14 +118,15 @@ JavaScriptFunction _functionToJS3(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final ret = JS<JavaScriptFunction>(
-      '!',
-      '''
+    '!',
+    '''
         function (arg1, arg2, arg3) {
           return #(#, arg1, arg2, arg3, arguments.length);
         }
       ''',
-      _callDartFunctionFast3,
-      f);
+    _callDartFunctionFast3,
+    f,
+  );
   JS('', '#[#] = #', ret, _functionToJSProperty, f);
   return ret;
 }
@@ -130,14 +136,15 @@ JavaScriptFunction _functionToJS4(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final ret = JS<JavaScriptFunction>(
-      '!',
-      '''
+    '!',
+    '''
         function (arg1, arg2, arg3, arg4) {
           return #(#, arg1, arg2, arg3, arg4, arguments.length);
         }
       ''',
-      _callDartFunctionFast4,
-      f);
+    _callDartFunctionFast4,
+    f,
+  );
   JS('', '#[#] = #', ret, _functionToJSProperty, f);
   return ret;
 }
@@ -147,14 +154,15 @@ JavaScriptFunction _functionToJS5(Function f) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final ret = JS<JavaScriptFunction>(
-      '!',
-      '''
+    '!',
+    '''
         function (arg1, arg2, arg3, arg4, arg5) {
           return #(#, arg1, arg2, arg3, arg4, arg5, arguments.length);
         }
       ''',
-      _callDartFunctionFast5,
-      f);
+    _callDartFunctionFast5,
+    f,
+  );
   JS('', '#[#] = #', ret, _functionToJSProperty, f);
   return ret;
 }
@@ -164,16 +172,17 @@ JavaScriptFunction _functionToJSN(Function f, int maxLength) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final ret = JS<JavaScriptFunction>(
-      '!',
-      '''
+    '!',
+    '''
         function (...args) {
           return #(#, Array.prototype.slice.call(args, 0,
               Math.min(args.length, #)));
         }
       ''',
-      dart.dcall,
-      f,
-      maxLength);
+    dart.dcall,
+    f,
+    maxLength,
+  );
   JS('', '#[#] = #', ret, _functionToJSProperty, f);
   return ret;
 }
@@ -186,8 +195,8 @@ JavaScriptFunction _functionToJSCaptureThisN(Function f, int maxLength) {
     throw ArgumentError('Attempting to rewrap a JS function.');
   }
   final ret = JS<JavaScriptFunction>(
-      '!',
-      '''
+    '!',
+    '''
         function (...arguments) {
           let args = [this];
           args.push.apply(args, arguments);
@@ -195,9 +204,10 @@ JavaScriptFunction _functionToJSCaptureThisN(Function f, int maxLength) {
               Math.min(args.length, #)));
         }
       ''',
-      dart.dcall,
-      f,
-      maxLength);
+    dart.dcall,
+    f,
+    maxLength,
+  );
   JS('', '#[#] = #', ret, _functionToJSProperty, f);
   return ret;
 }
@@ -206,8 +216,10 @@ _callDartFunctionFast0(callback) => JS('', '#()', callback);
 
 _callDartFunctionFast1(callback, arg1, int length) {
   if (length >= 1) {
-    final error =
-        dart.validateFunctionToJSArgs(callback, JS<List>('!', '[#]', arg1));
+    final error = dart.validateFunctionToJSArgs(
+      callback,
+      JS<List>('!', '[#]', arg1),
+    );
     if (error != null) return error;
     return JS('', '#(#)', callback, arg1);
   } else {
@@ -220,12 +232,16 @@ _callDartFunctionFast1(callback, arg1, int length) {
 _callDartFunctionFast2(callback, arg1, arg2, int length) {
   if (length >= 2) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #]', arg1, arg2));
+      callback,
+      JS<List>('!', '[#, #]', arg1, arg2),
+    );
     if (error != null) return error;
     return JS('', '#(#, #)', callback, arg1, arg2);
   } else if (length == 1) {
-    final error =
-        dart.validateFunctionToJSArgs(callback, JS<List>('!', '[#]', arg1));
+    final error = dart.validateFunctionToJSArgs(
+      callback,
+      JS<List>('!', '[#]', arg1),
+    );
     if (error != null) return error;
     return JS('', '#(#)', callback, arg1);
   } else {
@@ -238,17 +254,23 @@ _callDartFunctionFast2(callback, arg1, arg2, int length) {
 _callDartFunctionFast3(callback, arg1, arg2, arg3, int length) {
   if (length >= 3) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #, #]', arg1, arg2, arg3));
+      callback,
+      JS<List>('!', '[#, #, #]', arg1, arg2, arg3),
+    );
     if (error != null) return error;
     return JS('', '#(#, #, #)', callback, arg1, arg2, arg3);
   } else if (length == 2) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #]', arg1, arg2));
+      callback,
+      JS<List>('!', '[#, #]', arg1, arg2),
+    );
     if (error != null) return error;
     return JS('', '#(#, #)', callback, arg1, arg2);
   } else if (length == 1) {
-    final error =
-        dart.validateFunctionToJSArgs(callback, JS<List>('!', '[#]', arg1));
+    final error = dart.validateFunctionToJSArgs(
+      callback,
+      JS<List>('!', '[#]', arg1),
+    );
     if (error != null) return error;
     return JS('', '#(#)', callback, arg1);
   } else {
@@ -261,22 +283,30 @@ _callDartFunctionFast3(callback, arg1, arg2, arg3, int length) {
 _callDartFunctionFast4(callback, arg1, arg2, arg3, arg4, int length) {
   if (length >= 4) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #, #, #]', arg1, arg2, arg3, arg4));
+      callback,
+      JS<List>('!', '[#, #, #, #]', arg1, arg2, arg3, arg4),
+    );
     if (error != null) return error;
     return JS('', '#(#, #, #, #)', callback, arg1, arg2, arg3, arg4);
   } else if (length == 3) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #, #]', arg1, arg2, arg3));
+      callback,
+      JS<List>('!', '[#, #, #]', arg1, arg2, arg3),
+    );
     if (error != null) return error;
     return JS('', '#(#, #, #)', callback, arg1, arg2, arg3);
   } else if (length == 2) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #]', arg1, arg2));
+      callback,
+      JS<List>('!', '[#, #]', arg1, arg2),
+    );
     if (error != null) return error;
     return JS('', '#(#, #)', callback, arg1, arg2);
   } else if (length == 1) {
-    final error =
-        dart.validateFunctionToJSArgs(callback, JS<List>('!', '[#]', arg1));
+    final error = dart.validateFunctionToJSArgs(
+      callback,
+      JS<List>('!', '[#]', arg1),
+    );
     if (error != null) return error;
     return JS('', '#(#)', callback, arg1);
   } else {
@@ -288,28 +318,38 @@ _callDartFunctionFast4(callback, arg1, arg2, arg3, arg4, int length) {
 
 _callDartFunctionFast5(callback, arg1, arg2, arg3, arg4, arg5, int length) {
   if (length >= 5) {
-    final error = dart.validateFunctionToJSArgs(callback,
-        JS<List>('!', '[#, #, #, #, #]', arg1, arg2, arg3, arg4, arg5));
+    final error = dart.validateFunctionToJSArgs(
+      callback,
+      JS<List>('!', '[#, #, #, #, #]', arg1, arg2, arg3, arg4, arg5),
+    );
     if (error != null) return error;
     return JS('', '#(#, #, #, #, #)', callback, arg1, arg2, arg3, arg4, arg5);
   } else if (length == 4) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #, #, #]', arg1, arg2, arg3, arg4));
+      callback,
+      JS<List>('!', '[#, #, #, #]', arg1, arg2, arg3, arg4),
+    );
     if (error != null) return error;
     return JS('', '#(#, #, #, #)', callback, arg1, arg2, arg3, arg4);
   } else if (length == 3) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #, #]', arg1, arg2, arg3));
+      callback,
+      JS<List>('!', '[#, #, #]', arg1, arg2, arg3),
+    );
     if (error != null) return error;
     return JS('', '#(#, #, #)', callback, arg1, arg2, arg3);
   } else if (length == 2) {
     final error = dart.validateFunctionToJSArgs(
-        callback, JS<List>('!', '[#, #]', arg1, arg2));
+      callback,
+      JS<List>('!', '[#, #]', arg1, arg2),
+    );
     if (error != null) return error;
     return JS('', '#(#, #)', callback, arg1, arg2);
   } else if (length == 1) {
-    final error =
-        dart.validateFunctionToJSArgs(callback, JS<List>('!', '[#]', arg1));
+    final error = dart.validateFunctionToJSArgs(
+      callback,
+      JS<List>('!', '[#]', arg1),
+    );
     if (error != null) return error;
     return JS('', '#(#)', callback, arg1);
   } else {

@@ -307,9 +307,10 @@ List _parsePackageConfig(bool traceLoading, Uri packageConfig, String data) {
     final String packageName = package['name'];
     final String? packageUri = package['packageUri'];
     final Uri resolvedRootUri = packageConfig.resolve(rootUri);
-    final Uri resolvedPackageUri = packageUri != null
-        ? resolvedRootUri.resolve(packageUri)
-        : resolvedRootUri;
+    final Uri resolvedPackageUri =
+        packageUri != null
+            ? resolvedRootUri.resolve(packageUri)
+            : resolvedRootUri;
     if (packageUri != null &&
         !'$resolvedPackageUri'.contains('$resolvedRootUri')) {
       throw 'The resolved "packageUri" is not a subdirectory of the "rootUri".';
@@ -487,7 +488,10 @@ _handlePackagesRequest(bool traceLoading, int tag, Uri resource) {
 // The embedder calls this method to initial the package resolution state.
 @pragma("vm:entry-point")
 void _Init(
-    String? packagesConfig, String workingDirectory, String? rootScript) {
+  String? packagesConfig,
+  String workingDirectory,
+  String? rootScript,
+) {
   // Register callbacks and hooks with the rest of core libraries.
   _setupHooks();
 

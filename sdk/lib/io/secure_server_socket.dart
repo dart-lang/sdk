@@ -64,30 +64,43 @@ class SecureServerSocket extends Stream<SecureSocket>
   /// `SecureServerSocket`s. Connections can be distributed over multiple
   /// isolates this way.
   static Future<SecureServerSocket> bind(
-      address, int port, SecurityContext? context,
-      {int backlog = 0,
-      bool v6Only = false,
-      bool requestClientCertificate = false,
-      bool requireClientCertificate = false,
-      List<String>? supportedProtocols,
-      bool shared = false}) {
-    return RawSecureServerSocket.bind(address, port, context,
-            backlog: backlog,
-            v6Only: v6Only,
-            requestClientCertificate: requestClientCertificate,
-            requireClientCertificate: requireClientCertificate,
-            supportedProtocols: supportedProtocols,
-            shared: shared)
-        .then((serverSocket) => new SecureServerSocket._(serverSocket));
+    address,
+    int port,
+    SecurityContext? context, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool requestClientCertificate = false,
+    bool requireClientCertificate = false,
+    List<String>? supportedProtocols,
+    bool shared = false,
+  }) {
+    return RawSecureServerSocket.bind(
+      address,
+      port,
+      context,
+      backlog: backlog,
+      v6Only: v6Only,
+      requestClientCertificate: requestClientCertificate,
+      requireClientCertificate: requireClientCertificate,
+      supportedProtocols: supportedProtocols,
+      shared: shared,
+    ).then((serverSocket) => new SecureServerSocket._(serverSocket));
   }
 
-  StreamSubscription<SecureSocket> listen(void onData(SecureSocket socket)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
-    return _socket.map((rawSocket) => new SecureSocket._(rawSocket)).listen(
-        onData,
-        onError: onError,
-        onDone: onDone,
-        cancelOnError: cancelOnError);
+  StreamSubscription<SecureSocket> listen(
+    void onData(SecureSocket socket)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
+    return _socket
+        .map((rawSocket) => new SecureSocket._(rawSocket))
+        .listen(
+          onData,
+          onError: onError,
+          onDone: onDone,
+          cancelOnError: cancelOnError,
+        );
   }
 
   /// The port used by this socket.
@@ -121,17 +134,19 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   bool _closed = false;
 
   RawSecureServerSocket._(
-      this._socket,
-      this._context,
-      this.requestClientCertificate,
-      this.requireClientCertificate,
-      this.supportedProtocols) {
+    this._socket,
+    this._context,
+    this.requestClientCertificate,
+    this.requireClientCertificate,
+    this.supportedProtocols,
+  ) {
     _controller = new StreamController<RawSecureSocket>(
-        sync: true,
-        onListen: _onSubscriptionStateChange,
-        onPause: _onPauseStateChange,
-        onResume: _onPauseStateChange,
-        onCancel: _onSubscriptionStateChange);
+      sync: true,
+      onListen: _onSubscriptionStateChange,
+      onPause: _onPauseStateChange,
+      onResume: _onPauseStateChange,
+      onCancel: _onSubscriptionStateChange,
+    );
   }
 
   /// Listens on a provided address and port.
@@ -184,27 +199,45 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   /// bound [RawSecureServerSocket]s. Connections can be distributed over
   /// multiple isolates this way.
   static Future<RawSecureServerSocket> bind(
-      address, int port, SecurityContext? context,
-      {int backlog = 0,
-      bool v6Only = false,
-      bool requestClientCertificate = false,
-      bool requireClientCertificate = false,
-      List<String>? supportedProtocols,
-      bool shared = false}) {
-    return RawServerSocket.bind(address, port,
-            backlog: backlog, v6Only: v6Only, shared: shared)
-        .then((serverSocket) => new RawSecureServerSocket._(
-            serverSocket,
-            context,
-            requestClientCertificate,
-            requireClientCertificate,
-            supportedProtocols));
+    address,
+    int port,
+    SecurityContext? context, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool requestClientCertificate = false,
+    bool requireClientCertificate = false,
+    List<String>? supportedProtocols,
+    bool shared = false,
+  }) {
+    return RawServerSocket.bind(
+      address,
+      port,
+      backlog: backlog,
+      v6Only: v6Only,
+      shared: shared,
+    ).then(
+      (serverSocket) => new RawSecureServerSocket._(
+        serverSocket,
+        context,
+        requestClientCertificate,
+        requireClientCertificate,
+        supportedProtocols,
+      ),
+    );
   }
 
-  StreamSubscription<RawSecureSocket> listen(void onData(RawSecureSocket s)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
-    return _controller.stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  StreamSubscription<RawSecureSocket> listen(
+    void onData(RawSecureSocket s)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
+    return _controller.stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 
   /// The port used by this socket.
@@ -231,22 +264,28 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
       // Do nothing - connection is closed.
       return;
     }
-    _RawSecureSocket.connect(connection.address, remotePort, true, connection,
-            context: _context,
-            requestClientCertificate: requestClientCertificate,
-            requireClientCertificate: requireClientCertificate,
-            supportedProtocols: supportedProtocols)
+    _RawSecureSocket.connect(
+          connection.address,
+          remotePort,
+          true,
+          connection,
+          context: _context,
+          requestClientCertificate: requestClientCertificate,
+          requireClientCertificate: requireClientCertificate,
+          supportedProtocols: supportedProtocols,
+        )
         .then((RawSecureSocket secureConnection) {
-      if (_closed) {
-        secureConnection.close();
-      } else {
-        _controller.add(secureConnection);
-      }
-    }).catchError((e, s) {
-      if (!_closed) {
-        _controller.addError(e, s);
-      }
-    });
+          if (_closed) {
+            secureConnection.close();
+          } else {
+            _controller.add(secureConnection);
+          }
+        })
+        .catchError((e, s) {
+          if (!_closed) {
+            _controller.addError(e, s);
+          }
+        });
   }
 
   void _onPauseStateChange() {
@@ -259,8 +298,11 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
 
   void _onSubscriptionStateChange() {
     if (_controller.hasListener) {
-      _subscription = _socket.listen(_onData,
-          onError: _controller.addError, onDone: _controller.close);
+      _subscription = _socket.listen(
+        _onData,
+        onError: _controller.addError,
+        onDone: _controller.close,
+      );
     } else {
       close();
     }

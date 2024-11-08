@@ -18,8 +18,10 @@ abstract class Invocation {
   /// If the named arguments are omitted, they default to no named arguments.
   @pragma("wasm:entry-point")
   factory Invocation.method(
-          Symbol memberName, Iterable<Object?>? positionalArguments,
-          [Map<Symbol, Object?>? namedArguments]) =>
+    Symbol memberName,
+    Iterable<Object?>? positionalArguments, [
+    Map<Symbol, Object?>? namedArguments,
+  ]) =>
       _Invocation.method(memberName, null, positionalArguments, namedArguments);
 
   /// Creates an invocation corresponding to a generic method invocation.
@@ -30,11 +32,17 @@ abstract class Invocation {
   ///
   /// If the named arguments are omitted, they default to no named arguments.
   @pragma("wasm:entry-point")
-  factory Invocation.genericMethod(Symbol memberName,
-          Iterable<Type>? typeArguments, Iterable<Object?>? positionalArguments,
-          [Map<Symbol, Object?>? namedArguments]) =>
-      _Invocation.method(
-          memberName, typeArguments, positionalArguments, namedArguments);
+  factory Invocation.genericMethod(
+    Symbol memberName,
+    Iterable<Type>? typeArguments,
+    Iterable<Object?>? positionalArguments, [
+    Map<Symbol, Object?>? namedArguments,
+  ]) => _Invocation.method(
+    memberName,
+    typeArguments,
+    positionalArguments,
+    namedArguments,
+  );
 
   /// Creates an invocation corresponding to a getter invocation.
   @pragma("wasm:entry-point")
@@ -100,25 +108,30 @@ class _Invocation implements Invocation {
   // Named arguments is `null` for accessors only.
   final Map<Symbol, Object?>? _named;
 
-  _Invocation.method(this.memberName, Iterable<Type>? types,
-      Iterable<Object?>? positional, Map<Symbol, Object?>? named)
-      : typeArguments = _ensureNonNullTypes(types),
-        _positional = positional == null
-            ? const <Object?>[]
-            : List<Object?>.unmodifiable(positional),
-        _named = (named == null || named.isEmpty)
-            ? const <Symbol, Object?>{}
-            : Map<Symbol, Object?>.unmodifiable(named);
+  _Invocation.method(
+    this.memberName,
+    Iterable<Type>? types,
+    Iterable<Object?>? positional,
+    Map<Symbol, Object?>? named,
+  ) : typeArguments = _ensureNonNullTypes(types),
+      _positional =
+          positional == null
+              ? const <Object?>[]
+              : List<Object?>.unmodifiable(positional),
+      _named =
+          (named == null || named.isEmpty)
+              ? const <Symbol, Object?>{}
+              : Map<Symbol, Object?>.unmodifiable(named);
 
   _Invocation.getter(this.memberName)
-      : typeArguments = const <Type>[],
-        _positional = null,
-        _named = null;
+    : typeArguments = const <Type>[],
+      _positional = null,
+      _named = null;
 
   _Invocation.setter(this.memberName, Object? argument)
-      : typeArguments = const <Type>[],
-        _positional = List<Object?>.unmodifiable([argument]),
-        _named = null;
+    : typeArguments = const <Type>[],
+      _positional = List<Object?>.unmodifiable([argument]),
+      _named = null;
 
   List<dynamic> get positionalArguments => _positional ?? const <Object>[];
 
@@ -135,8 +148,11 @@ class _Invocation implements Invocation {
     List<Type> typeArguments = List<Type>.unmodifiable(types);
     for (int i = 0; i < typeArguments.length; i++) {
       if (typeArguments[i] == null) {
-        throw ArgumentError.value(types, "types",
-            "Type arguments must be non-null, was null at index $i.");
+        throw ArgumentError.value(
+          types,
+          "types",
+          "Type arguments must be non-null, was null at index $i.",
+        );
       }
     }
     return typeArguments;

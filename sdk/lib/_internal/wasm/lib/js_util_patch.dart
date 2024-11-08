@@ -54,8 +54,11 @@ dynamic jsify(Object? object) {
       convertedObjects[o] = convertedMap;
       for (final key in o.keys) {
         final convertedKey = convert(key) as JSValue?;
-        setPropertyRaw(convertedMap.toExternRef, convertedKey.toExternRef,
-            (convert(o[key]) as JSValue?).toExternRef);
+        setPropertyRaw(
+          convertedMap.toExternRef,
+          convertedKey.toExternRef,
+          (convert(o[key]) as JSValue?).toExternRef,
+        );
       }
       return convertedMap;
     } else if (o is Iterable<Object?>) {
@@ -96,8 +99,11 @@ T setProperty<T>(Object o, Object name, T? value) =>
         as T;
 
 @patch
-T callMethod<T>(Object o, Object method, List<Object?> args) => dartifyRaw(
-    callMethodVarArgsRaw(jsifyRaw(o), jsifyRaw(method), jsifyRaw(args))) as T;
+T callMethod<T>(Object o, Object method, List<Object?> args) =>
+    dartifyRaw(
+          callMethodVarArgsRaw(jsifyRaw(o), jsifyRaw(method), jsifyRaw(args)),
+        )
+        as T;
 
 @patch
 bool instanceof(Object? o, Object type) =>
@@ -161,23 +167,25 @@ typedef _PromiseFailureFunc = void Function(Object? error);
 Future<T> promiseToFuture<T>(Object jsPromise) {
   Completer<T> completer = Completer<T>();
 
-  final success = ((JSAny? jsValue) {
-    final r = dartifyRaw(jsValue.toExternRef);
-    return completer.complete(r as FutureOr<T>?);
-  }).toJS;
-  final error = ((JSAny? jsError) {
-    // Note that `completeError` expects a non-nullable error regardless of
-    // whether null-safety is enabled, so a `NullRejectionException` is always
-    // provided if the error is `null` or `undefined`.
-    // TODO(joshualitt): At this point `undefined` has been replaced with `null`
-    // so we cannot tell them apart. In the future we should reify `undefined`
-    // in Dart.
-    final e = dartifyRaw(jsError.toExternRef);
-    if (e == null) {
-      return completer.completeError(NullRejectionException(false));
-    }
-    return completer.completeError(e);
-  }).toJS;
+  final success =
+      ((JSAny? jsValue) {
+        final r = dartifyRaw(jsValue.toExternRef);
+        return completer.complete(r as FutureOr<T>?);
+      }).toJS;
+  final error =
+      ((JSAny? jsError) {
+        // Note that `completeError` expects a non-nullable error regardless of
+        // whether null-safety is enabled, so a `NullRejectionException` is always
+        // provided if the error is `null` or `undefined`.
+        // TODO(joshualitt): At this point `undefined` has been replaced with `null`
+        // so we cannot tell them apart. In the future we should reify `undefined`
+        // in Dart.
+        final e = dartifyRaw(jsError.toExternRef);
+        if (e == null) {
+          return completer.completeError(NullRejectionException(false));
+        }
+        return completer.completeError(e);
+      }).toJS;
 
   promiseThen(jsifyRaw(jsPromise), success.toExternRef, error.toExternRef);
   return completer.future;
@@ -222,8 +230,9 @@ Object? dartify(Object? object) {
       for (int i = 0; i < keys.length; i++) {
         final key = keys[i];
         if (key != null) {
-          dartMap[key] =
-              convert(JSValue.box(getPropertyRaw(ref, jsifyRaw(key))));
+          dartMap[key] = convert(
+            JSValue.box(getPropertyRaw(ref, jsifyRaw(key))),
+          );
         }
       }
       return dartMap;

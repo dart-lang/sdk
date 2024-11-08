@@ -189,10 +189,10 @@ class StringBuffer {
     final localParts = _parts!;
     if (_partsCodeUnitsSinceCompaction < _PARTS_TO_COMPACT_SIZE_LIMIT) {
       String compacted = _StringBase._concatRange(
-          localParts,
-          _partsCompactionIndex, // Start
-          _partsCompactionIndex + _PARTS_TO_COMPACT // End
-          );
+        localParts,
+        _partsCompactionIndex, // Start
+        _partsCompactionIndex + _PARTS_TO_COMPACT, // End
+      );
       localParts.length = localParts.length - _PARTS_TO_COMPACT;
       localParts.add(compacted);
     }

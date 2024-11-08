@@ -51,7 +51,8 @@ import 'dart:_js_helper'
         ReifyFunctionTypes,
         TypeErrorImpl;
 import 'dart:_js_shared_embedded_names';
-import 'dart:_rti' as rti
+import 'dart:_rti'
+    as rti
     show
         bindingRtiFromList,
         constructorRtiCachePropertyName,

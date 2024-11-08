@@ -395,11 +395,11 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   Comparator<K> _compare;
   _Predicate _validKey;
 
-  SplayTreeMap(
-      [int Function(K key1, K key2)? compare,
-      bool Function(dynamic potentialKey)? isValidKey])
-      : _compare = compare ?? _defaultCompare<K>(),
-        _validKey = isValidKey ?? ((dynamic a) => a is K);
+  SplayTreeMap([
+    int Function(K key1, K key2)? compare,
+    bool Function(dynamic potentialKey)? isValidKey,
+  ]) : _compare = compare ?? _defaultCompare<K>(),
+       _validKey = isValidKey ?? ((dynamic a) => a is K);
 
   /// Creates a [SplayTreeMap] that contains all key/value pairs of [other].
   ///
@@ -411,9 +411,11 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// final fromBaseMap = SplayTreeMap<int, String>.from(baseMap);
   /// print(fromBaseMap); // {1: A, 2: B, 3: C}
   /// ```
-  factory SplayTreeMap.from(Map<dynamic, dynamic> other,
-      [int Function(K key1, K key2)? compare,
-      bool Function(dynamic potentialKey)? isValidKey]) {
+  factory SplayTreeMap.from(
+    Map<dynamic, dynamic> other, [
+    int Function(K key1, K key2)? compare,
+    bool Function(dynamic potentialKey)? isValidKey,
+  ]) {
     if (other is Map<K, V>) {
       return SplayTreeMap<K, V>.of(other, compare, isValidKey);
     }
@@ -431,10 +433,11 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// final mapOf = SplayTreeMap<num, Object>.of(baseMap);
   /// print(mapOf); // {1: C, 2: B, 3: A, 4: D}
   /// ```
-  factory SplayTreeMap.of(Map<K, V> other,
-          [int Function(K key1, K key2)? compare,
-          bool Function(dynamic potentialKey)? isValidKey]) =>
-      SplayTreeMap<K, V>(compare, isValidKey)..addAll(other);
+  factory SplayTreeMap.of(
+    Map<K, V> other, [
+    int Function(K key1, K key2)? compare,
+    bool Function(dynamic potentialKey)? isValidKey,
+  ]) => SplayTreeMap<K, V>(compare, isValidKey)..addAll(other);
 
   /// Creates a [SplayTreeMap] where the keys and values are computed from the
   /// [iterable].
@@ -455,11 +458,13 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   ///         key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  factory SplayTreeMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key,
-      V Function(dynamic element)? value,
-      int Function(K key1, K key2)? compare,
-      bool Function(dynamic potentialKey)? isValidKey}) {
+  factory SplayTreeMap.fromIterable(
+    Iterable iterable, {
+    K Function(dynamic element)? key,
+    V Function(dynamic element)? value,
+    int Function(K key1, K key2)? compare,
+    bool Function(dynamic potentialKey)? isValidKey,
+  }) {
     SplayTreeMap<K, V> map = SplayTreeMap<K, V>(compare, isValidKey);
     MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
@@ -481,9 +486,12 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// final mapFromIterables = SplayTreeMap.fromIterables(keys, values);
   /// print(mapFromIterables); // {1: A, 2: B, 3: C, 4: D}
   /// ```
-  factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
-      [int Function(K key1, K key2)? compare,
-      bool Function(dynamic potentialKey)? isValidKey]) {
+  factory SplayTreeMap.fromIterables(
+    Iterable<K> keys,
+    Iterable<V> values, [
+    int Function(K key1, K key2)? compare,
+    bool Function(dynamic potentialKey)? isValidKey,
+  ]) {
     SplayTreeMap<K, V> map = SplayTreeMap<K, V>(compare, isValidKey);
     MapBase._fillMapWithIterables(map, keys, values);
     return map;
@@ -718,8 +726,8 @@ abstract class _SplayTreeIterator<K, Node extends _SplayTreeNode<K, Node>, T>
   int _splayCount;
 
   _SplayTreeIterator(_SplayTree<K, Node> tree)
-      : _tree = tree,
-        _splayCount = tree._splayCount;
+    : _tree = tree,
+      _splayCount = tree._splayCount;
 
   T get current {
     if (_path.isEmpty) return null as T;
@@ -978,11 +986,11 @@ final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   ///
   /// If omitted, the `isValidKey` function defaults to checking against the
   /// type parameter: `other is E`.
-  SplayTreeSet(
-      [int Function(E key1, E key2)? compare,
-      bool Function(dynamic potentialKey)? isValidKey])
-      : _compare = compare ?? _defaultCompare<E>(),
-        _validKey = isValidKey ?? ((dynamic v) => v is E);
+  SplayTreeSet([
+    int Function(E key1, E key2)? compare,
+    bool Function(dynamic potentialKey)? isValidKey,
+  ]) : _compare = compare ?? _defaultCompare<E>(),
+       _validKey = isValidKey ?? ((dynamic v) => v is E);
 
   /// Creates a [SplayTreeSet] that contains all [elements].
   ///
@@ -1003,9 +1011,11 @@ final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// final setFrom = SplayTreeSet<int>.from(numbers);
   /// print(setFrom); // {10, 20, 30}
   /// ```
-  factory SplayTreeSet.from(Iterable elements,
-      [int Function(E key1, E key2)? compare,
-      bool Function(dynamic potentialKey)? isValidKey]) {
+  factory SplayTreeSet.from(
+    Iterable elements, [
+    int Function(E key1, E key2)? compare,
+    bool Function(dynamic potentialKey)? isValidKey,
+  ]) {
     if (elements is Iterable<E>) {
       return SplayTreeSet<E>.of(elements, compare, isValidKey);
     }
@@ -1027,10 +1037,11 @@ final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// final setOf = SplayTreeSet<num>.of(baseSet);
   /// print(setOf); // {1, 2, 3}
   /// ```
-  factory SplayTreeSet.of(Iterable<E> elements,
-          [int Function(E key1, E key2)? compare,
-          bool Function(dynamic potentialKey)? isValidKey]) =>
-      SplayTreeSet(compare, isValidKey)..addAll(elements);
+  factory SplayTreeSet.of(
+    Iterable<E> elements, [
+    int Function(E key1, E key2)? compare,
+    bool Function(dynamic potentialKey)? isValidKey,
+  ]) => SplayTreeSet(compare, isValidKey)..addAll(elements);
 
   Set<T> _newSet<T>() =>
       SplayTreeSet<T>((T a, T b) => _compare(a as E, b as E), _validKey);
@@ -1152,7 +1163,8 @@ final class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   // Copies the structure of a SplayTree into a new similar structure.
   // Works on _SplayTreeMapNode as well, but only copies the keys,
   _SplayTreeSetNode<E>? _copyNode<Node extends _SplayTreeNode<E, Node>>(
-      Node? node) {
+    Node? node,
+  ) {
     if (node == null) return null;
     // Given a source node and a destination node, copy the left
     // and right subtrees of the source node into the destination node.

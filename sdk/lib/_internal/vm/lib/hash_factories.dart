@@ -21,10 +21,11 @@ import "dart:typed_data" show Uint32List;
 @patch
 class LinkedHashMap<K, V> {
   @patch
-  factory LinkedHashMap(
-      {bool equals(K key1, K key2)?,
-      int hashCode(K key)?,
-      bool isValidKey(potentialKey)?}) {
+  factory LinkedHashMap({
+    bool equals(K key1, K key2)?,
+    int hashCode(K key)?,
+    bool isValidKey(potentialKey)?,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -52,10 +53,11 @@ class LinkedHashMap<K, V> {
 @patch
 class LinkedHashSet<E> {
   @patch
-  factory LinkedHashSet(
-      {bool equals(E e1, E e2)?,
-      int hashCode(E e)?,
-      bool isValidKey(potentialKey)?}) {
+  factory LinkedHashSet({
+    bool equals(E e1, E e2)?,
+    int hashCode(E e)?,
+    bool isValidKey(potentialKey)?,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {

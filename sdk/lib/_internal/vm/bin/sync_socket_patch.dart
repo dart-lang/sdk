@@ -20,7 +20,8 @@ class _RawSynchronousSocket implements RawSynchronousSocket {
   static RawSynchronousSocket connectSync(host, int port) {
     _throwOnBadPort(port);
     return new _RawSynchronousSocket(
-        _NativeSynchronousSocket.connectSync(host, port));
+      _NativeSynchronousSocket.connectSync(host, port),
+    );
   }
 
   InternetAddress get address => _socket.address;
@@ -142,8 +143,10 @@ base class _NativeSynchronousSocket
     var addr = result[0];
     var type = InternetAddressType._from(addr[0]);
     if (type == InternetAddressType.unix) {
-      return _InternetAddress.fromString(addr[1],
-          type: InternetAddressType.unix);
+      return _InternetAddress.fromString(
+        addr[1],
+        type: InternetAddressType.unix,
+      );
     }
     return _InternetAddress(type, addr[1], null, addr[2]);
   }
@@ -168,26 +171,40 @@ base class _NativeSynchronousSocket
 
   // Create the appropriate error/exception from different returned
   // error objects.
-  static createError(error, String message,
-      [InternetAddress? address, int? port]) {
+  static createError(
+    error,
+    String message, [
+    InternetAddress? address,
+    int? port,
+  ]) {
     if (error is OSError) {
-      return new SocketException(message,
-          osError: error, address: address, port: port);
+      return new SocketException(
+        message,
+        osError: error,
+        address: address,
+        port: port,
+      );
     } else {
       return new SocketException(message, address: address, port: port);
     }
   }
 
-  static List<_InternetAddress> lookup(String host,
-      {InternetAddressType type = InternetAddressType.any}) {
+  static List<_InternetAddress> lookup(
+    String host, {
+    InternetAddressType type = InternetAddressType.any,
+  }) {
     var response = _nativeLookupRequest(host, type._value);
     if (response is OSError) {
       throw response;
     }
     return <_InternetAddress>[
       for (int i = 0; i < response.length; ++i)
-        new _InternetAddress(InternetAddressType._from(response[i][0]),
-            response[i][1], host, response[i][2]),
+        new _InternetAddress(
+          InternetAddressType._from(response[i][0]),
+          response[i][1],
+          host,
+          response[i][2],
+        ),
     ];
   }
 
@@ -284,10 +301,16 @@ base class _NativeSynchronousSocket
     if (end == start) {
       return;
     }
-    _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableByteData(buffer, start, end);
-    var result = _nativeWrite(bufferAndStart.buffer, bufferAndStart.start,
-        end - (start - bufferAndStart.start));
+    _BufferAndStart bufferAndStart = _ensureFastAndSerializableByteData(
+      buffer,
+      start,
+      end,
+    );
+    var result = _nativeWrite(
+      bufferAndStart.buffer,
+      bufferAndStart.start,
+      end - (start - bufferAndStart.start),
+    );
     if (result is OSError) {
       throw new SocketException("writeFromSync failed", osError: result);
     }

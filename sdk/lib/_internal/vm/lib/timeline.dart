@@ -19,4 +19,9 @@ external int _getNextTaskId();
 @patch
 @pragma("vm:external-name", "Timeline_reportTaskEvent")
 external void _reportTaskEvent(
-    int taskId, int flowId, int type, String name, String argumentsAsJson);
+  int taskId,
+  int flowId,
+  int type,
+  String name,
+  String argumentsAsJson,
+);

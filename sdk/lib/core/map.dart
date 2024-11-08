@@ -142,9 +142,11 @@ abstract interface class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
-  factory Map.fromIterable(Iterable iterable,
-      {K key(dynamic element)?,
-      V value(dynamic element)?}) = LinkedHashMap<K, V>.fromIterable;
+  factory Map.fromIterable(
+    Iterable iterable, {
+    K key(dynamic element)?,
+    V value(dynamic element)?,
+  }) = LinkedHashMap<K, V>.fromIterable;
 
   /// Creates a map associating the given [keys] to the given [values].
   ///

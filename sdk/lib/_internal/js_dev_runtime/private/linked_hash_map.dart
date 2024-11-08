@@ -73,8 +73,13 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
       V value = JS('', '#[#]', entries, i + 1);
       if (key == null) {
         key = JS('', 'null');
-      } else if (JS<bool>('!', '#[#] !== #', key,
-          dart.extensionSymbol('_equals'), dart.identityEquals)) {
+      } else if (JS<bool>(
+        '!',
+        '#[#] !== #',
+        key,
+        dart.extensionSymbol('_equals'),
+        dart.identityEquals,
+      )) {
         key = putLinkedMapKey(key, keyMap);
       }
       JS('', '#.set(#, #)', map, key, value);
@@ -97,8 +102,13 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
   bool containsKey(Object? key) {
     if (key == null) {
       key = JS('', 'null');
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
@@ -124,8 +134,13 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
     other.forEach((K key, V value) {
       if (key == null) {
         key = JS('', 'null');
-      } else if (JS<bool>('!', '#[#] !== #', key,
-          dart.extensionSymbol('_equals'), dart.identityEquals)) {
+      } else if (JS<bool>(
+        '!',
+        '#[#] !== #',
+        key,
+        dart.extensionSymbol('_equals'),
+        dart.identityEquals,
+      )) {
         key = putLinkedMapKey(key, _keyMap);
       }
       JS('', '#.set(#, #)', _map, key, value);
@@ -138,8 +153,13 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
   V? operator [](Object? key) {
     if (key == null) {
       key = JS('', 'null');
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       var buckets = JS('', '#.get(# & 0x3fffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
@@ -157,8 +177,13 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
   void operator []=(K key, V value) {
     if (key == null) {
       key = JS('', 'null');
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       key = putLinkedMapKey(key, _keyMap);
     }
     var map = _map;
@@ -174,8 +199,13 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
     if (key == null) {
       key = JS('', 'null');
       if (JS<bool>('!', '#.has(null)', map)) return JS('', '#.get(null)', map);
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       @notNull
       K k = key;
       var hash = JS<int>('!', '# & 0x3fffffff', k.hashCode);
@@ -204,13 +234,18 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
   V? remove(Object? key) {
     if (key == null) {
       key = JS('', 'null');
-    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-        dart.identityEquals)) {
+    } else if (JS<bool>(
+      '!',
+      '#[#] !== #',
+      key,
+      dart.extensionSymbol('_equals'),
+      dart.identityEquals,
+    )) {
       @notNull
       var hash = JS<int>('!', '# & 0x3fffffff', key.hashCode);
       var buckets = JS('', '#.get(#)', _keyMap, hash);
       if (buckets == null) return null; // not found
-      for (int i = 0, n = JS('!', '#.length', buckets);;) {
+      for (int i = 0, n = JS('!', '#.length', buckets); ;) {
         K k = JS('', '#[#]', buckets, i);
         if (k == key) {
           key = k;

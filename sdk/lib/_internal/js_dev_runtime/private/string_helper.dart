@@ -52,7 +52,10 @@ class StringMatch implements Match {
 }
 
 Iterable<Match> allMatchesInStringUnchecked(
-    String pattern, String string, int startIndex) {
+  String pattern,
+  String string,
+  int startIndex,
+) {
   return _StringAllMatchesIterable(string, pattern, startIndex);
 }
 
@@ -107,7 +110,10 @@ class _StringAllMatchesIterator implements Iterator<Match> {
 
 @notNull
 bool stringContainsUnchecked(
-    @notNull String receiver, @notNull other, int startIndex) {
+  @notNull String receiver,
+  @notNull other,
+  int startIndex,
+) {
   if (other is String) {
     return stringContainsStringUnchecked(receiver, other, startIndex);
   } else if (other is JSSyntaxRegExp) {
@@ -128,8 +134,12 @@ String stringReplaceJS(String receiver, replacer, String replacement) {
 }
 
 @notNull
-String stringReplaceFirstRE(@notNull String receiver, JSSyntaxRegExp regexp,
-    String replacement, int startIndex) {
+String stringReplaceFirstRE(
+  @notNull String receiver,
+  JSSyntaxRegExp regexp,
+  String replacement,
+  int startIndex,
+) {
   var match = regexp._execGlobal(receiver, startIndex);
   if (match == null) return receiver;
   var start = match.start;
@@ -145,8 +155,11 @@ String quoteStringForRegExp(string) {
 }
 
 @notNull
-String stringReplaceAllUnchecked(@notNull String receiver,
-    @nullCheck Pattern pattern, @nullCheck String replacement) {
+String stringReplaceAllUnchecked(
+  @notNull String receiver,
+  @nullCheck Pattern pattern,
+  @nullCheck String replacement,
+) {
   if (pattern is String) {
     if (pattern == "") {
       if (receiver == "") {
@@ -163,7 +176,12 @@ String stringReplaceAllUnchecked(@notNull String receiver,
       }
     } else {
       return JS<String>(
-          '!', '#.split(#).join(#)', receiver, pattern, replacement);
+        '!',
+        '#.split(#).join(#)',
+        receiver,
+        pattern,
+        replacement,
+      );
     }
   } else if (pattern is JSSyntaxRegExp) {
     var re = regExpGetGlobalNative(pattern);
@@ -186,15 +204,20 @@ String _stringIdentity(String string) => string;
 
 @notNull
 String stringReplaceAllFuncUnchecked(
-    String receiver,
-    @nullCheck Pattern pattern,
-    String Function(Match)? onMatch,
-    String Function(String)? onNonMatch) {
+  String receiver,
+  @nullCheck Pattern pattern,
+  String Function(Match)? onMatch,
+  String Function(String)? onNonMatch,
+) {
   if (onMatch == null) onMatch = _matchString;
   if (onNonMatch == null) onNonMatch = _stringIdentity;
   if (pattern is String) {
     return stringReplaceAllStringFuncUnchecked(
-        receiver, pattern, onMatch, onNonMatch);
+      receiver,
+      pattern,
+      onMatch,
+      onNonMatch,
+    );
   }
   StringBuffer buffer = StringBuffer();
   int startIndex = 0;
@@ -208,8 +231,11 @@ String stringReplaceAllFuncUnchecked(
 }
 
 @notNull
-String stringReplaceAllEmptyFuncUnchecked(String receiver,
-    String onMatch(Match match), String onNonMatch(String nonMatch)) {
+String stringReplaceAllEmptyFuncUnchecked(
+  String receiver,
+  String onMatch(Match match),
+  String onNonMatch(String nonMatch),
+) {
   // Pattern is the empty string.
   StringBuffer buffer = StringBuffer();
   int length = receiver.length;
@@ -238,8 +264,12 @@ String stringReplaceAllEmptyFuncUnchecked(String receiver,
 }
 
 @notNull
-String stringReplaceAllStringFuncUnchecked(String receiver, String pattern,
-    String onMatch(Match match), String onNonMatch(String nonMatch)) {
+String stringReplaceAllStringFuncUnchecked(
+  String receiver,
+  String pattern,
+  String onMatch(Match match),
+  String onNonMatch(String nonMatch),
+) {
   int patternLength = pattern.length;
   if (patternLength == 0) {
     return stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch);
@@ -261,8 +291,12 @@ String stringReplaceAllStringFuncUnchecked(String receiver, String pattern,
 }
 
 @notNull
-String stringReplaceFirstUnchecked(@notNull String receiver,
-    @nullCheck Pattern pattern, String replacement, int startIndex) {
+String stringReplaceFirstUnchecked(
+  @notNull String receiver,
+  @nullCheck Pattern pattern,
+  String replacement,
+  int startIndex,
+) {
   if (pattern is String) {
     int index = stringIndexOfStringUnchecked(receiver, pattern, startIndex);
     if (index < 0) return receiver;
@@ -281,8 +315,12 @@ String stringReplaceFirstUnchecked(@notNull String receiver,
 }
 
 @notNull
-String stringReplaceFirstMappedUnchecked(String receiver, Pattern pattern,
-    String replace(Match current), int startIndex) {
+String stringReplaceFirstMappedUnchecked(
+  String receiver,
+  Pattern pattern,
+  String replace(Match current),
+  int startIndex,
+) {
   Iterator<Match> matches = pattern.allMatches(receiver, startIndex).iterator;
   if (!matches.moveNext()) return receiver;
   Match match = matches.current;
@@ -297,7 +335,11 @@ String stringJoinUnchecked(array, separator) {
 
 @notNull
 String stringReplaceRangeUnchecked(
-    String receiver, int start, int end, String replacement) {
+  String receiver,
+  int start,
+  int end,
+  String replacement,
+) {
   String prefix = JS('!', '#.substring(0, #)', receiver, start);
   String suffix = JS('!', '#.substring(#)', receiver, end);
   return "$prefix$replacement$suffix";

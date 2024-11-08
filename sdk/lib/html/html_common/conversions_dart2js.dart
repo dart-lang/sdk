@@ -27,10 +27,14 @@ Map<String, dynamic>? convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
   var dict = <String, dynamic>{};
   var keys = JS<JSExtendableArray>(
-      'JSExtendableArray', 'Object.getOwnPropertyNames(#)', object);
+    'JSExtendableArray',
+    'Object.getOwnPropertyNames(#)',
+    object,
+  );
   for (final key in keys) {
-    dict[JS('String', '#', key)] =
-        _convertNativeToDart_Value(JS('var', '#[#]', object, key));
+    dict[JS('String', '#', key)] = _convertNativeToDart_Value(
+      JS('var', '#[#]', object, key),
+    );
   }
   return dict;
 }
@@ -90,8 +94,9 @@ convertDartToNative_DateTime(DateTime date) {
 }
 
 convertDartToNative_PrepareForStructuredClone(value) =>
-    new _StructuredCloneDart2Js()
-        .convertDartToNative_PrepareForStructuredClone(value);
+    new _StructuredCloneDart2Js().convertDartToNative_PrepareForStructuredClone(
+      value,
+    );
 
 convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) =>
     new _AcceptStructuredCloneDart2Js()
@@ -101,8 +106,11 @@ class _StructuredCloneDart2Js extends _StructuredClone {
   JSObject newJsObject() => JS('JSObject', '{}');
 
   void forEachObjectKey(object, action(key, value)) {
-    for (final key
-        in JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', object)) {
+    for (final key in JS(
+      'returns:JSExtendableArray;new:true',
+      'Object.keys(#)',
+      object,
+    )) {
       action(key, JS('var', '#[#]', object, key));
     }
   }
@@ -113,10 +121,11 @@ class _StructuredCloneDart2Js extends _StructuredClone {
   newJsMap() => JS('var', '{}');
   putIntoMap(map, key, value) => JS('void', '#[#] = #', map, key, value);
   newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
-  cloneNotRequired(e) => (e is NativeByteBuffer ||
-      e is NativeTypedData ||
-      e is MessagePort ||
-      e is SharedArrayBuffer);
+  cloneNotRequired(e) =>
+      (e is NativeByteBuffer ||
+          e is NativeTypedData ||
+          e is MessagePort ||
+          e is SharedArrayBuffer);
 }
 
 class _AcceptStructuredCloneDart2Js extends _AcceptStructuredClone {
@@ -145,12 +154,15 @@ bool isImmutableJavaScriptArray(value) =>
 bool isJavaScriptPromise(value) =>
     JS('bool', r'typeof Promise != "undefined" && # instanceof Promise', value);
 
-const String _serializedScriptValue = 'num|String|bool|'
+const String _serializedScriptValue =
+    'num|String|bool|'
     'JSExtendableArray|=Object|'
     'Blob|File|NativeByteBuffer|NativeTypedData|MessagePort'
-    // TODO(sra): Add Date, RegExp.
-    ;
-const annotation_Creates_SerializedScriptValue =
-    const Creates(_serializedScriptValue);
-const annotation_Returns_SerializedScriptValue =
-    const Returns(_serializedScriptValue);
+// TODO(sra): Add Date, RegExp.
+;
+const annotation_Creates_SerializedScriptValue = const Creates(
+  _serializedScriptValue,
+);
+const annotation_Returns_SerializedScriptValue = const Returns(
+  _serializedScriptValue,
+);

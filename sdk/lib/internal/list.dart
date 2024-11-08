@@ -13,7 +13,8 @@ mixin FixedLengthListMixin<E> {
   /** This operation is not supported by a fixed length list. */
   set length(int newLength) {
     throw new UnsupportedError(
-        "Cannot change the length of a fixed-length list");
+      "Cannot change the length of a fixed-length list",
+    );
   }
 
   /** This operation is not supported by a fixed length list. */
@@ -93,7 +94,8 @@ mixin UnmodifiableListMixin<E> implements List<E> {
   /** This operation is not supported by an unmodifiable list. */
   set length(int newLength) {
     throw new UnsupportedError(
-        "Cannot change the length of an unmodifiable list");
+      "Cannot change the length of an unmodifiable list",
+    );
   }
 
   set first(E element) {

@@ -33,8 +33,12 @@ class _Uri {
   static bool get _isWindows => _isWindowsCached;
 
   @patch
-  static String _uriEncode(List<int> canonicalTable, String text,
-      Encoding encoding, bool spaceToPlus) {
+  static String _uriEncode(
+    List<int> canonicalTable,
+    String text,
+    Encoding encoding,
+    bool spaceToPlus,
+  ) {
     // First check if the text will be changed by encoding.
     int i = 0;
     if (identical(encoding, utf8) ||
@@ -81,7 +85,8 @@ class _Uri {
 
   @patch
   static String _makeQueryFromParameters(
-      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
+    Map<String, dynamic /*String?|Iterable<String>*/> queryParameters,
+  ) {
     return _makeQueryFromParametersDefault(queryParameters);
   }
 }

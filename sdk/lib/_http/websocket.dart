@@ -46,8 +46,9 @@ class CompressionOptions {
   ///
   /// Disables compression when used as compression configuration for a
   /// [WebSocket].
-  static const CompressionOptions compressionOff =
-      CompressionOptions(enabled: false);
+  static const CompressionOptions compressionOff = CompressionOptions(
+    enabled: false,
+  );
 
   /// Whether the client will reuse its compression instances.
   final bool clientNoContextTakeover;
@@ -82,12 +83,13 @@ class CompressionOptions {
   /// new instance with compression disabled.
   final bool enabled;
 
-  const CompressionOptions(
-      {this.clientNoContextTakeover = false,
-      this.serverNoContextTakeover = false,
-      this.clientMaxWindowBits,
-      this.serverMaxWindowBits,
-      this.enabled = true});
+  const CompressionOptions({
+    this.clientNoContextTakeover = false,
+    this.serverNoContextTakeover = false,
+    this.clientMaxWindowBits,
+    this.serverMaxWindowBits,
+    this.enabled = true,
+  });
 
   /// Parses list of requested server headers to return server compression
   /// response headers.
@@ -97,7 +99,8 @@ class CompressionOptions {
   /// [_CompressionMaxWindowBits] object which contains the response headers and
   /// negotiated max window bits.
   _CompressionMaxWindowBits _createServerResponseHeader(
-      HeaderValue? requested) {
+    HeaderValue? requested,
+  ) {
     var info = _CompressionMaxWindowBits("", 0);
 
     String? part = requested?.parameters[_serverMaxWindowBits];
@@ -105,7 +108,8 @@ class CompressionOptions {
       if (part.length >= 2 && part.startsWith('0')) {
         throw ArgumentError("Illegal 0 padding on value.");
       } else {
-        int mwb = serverMaxWindowBits ??
+        int mwb =
+            serverMaxWindowBits ??
             int.tryParse(part) ??
             _WebSocketImpl.DEFAULT_WINDOW_BITS;
         info.headerValue = "; server_max_window_bits=$mwb";
@@ -174,8 +178,10 @@ class CompressionOptions {
     info.headerValue += headerList.headerValue;
     info.maxWindowBits = headerList.maxWindowBits;
 
-    info.headerValue +=
-        _createClientRequestHeader(requested, info.maxWindowBits);
+    info.headerValue += _createClientRequestHeader(
+      requested,
+      info.maxWindowBits,
+    );
 
     return info;
   }
@@ -220,10 +226,11 @@ abstract class WebSocketTransformer
   /// If [compression] is provided, the [WebSocket] created will be configured
   /// to negotiate with the specified [CompressionOptions]. If none is specified
   /// then the [WebSocket] will be created with the default [CompressionOptions].
-  factory WebSocketTransformer(
-      {/*String|Future<String>*/ Function(List<String> protocols)?
-          protocolSelector,
-      CompressionOptions compression = CompressionOptions.compressionDefault}) {
+  factory WebSocketTransformer({
+    /*String|Future<String>*/ Function(List<String> protocols)?
+    protocolSelector,
+    CompressionOptions compression = CompressionOptions.compressionDefault,
+  }) {
     return _WebSocketTransformerImpl(protocolSelector, compression);
   }
 
@@ -242,11 +249,16 @@ abstract class WebSocketTransformer
   /// If [compression] is provided, the [WebSocket] created will be configured
   /// to negotiate with the specified [CompressionOptions]. If none is specified
   /// then the [WebSocket] will be created with the default [CompressionOptions].
-  static Future<WebSocket> upgrade(HttpRequest request,
-      {Function(List<String> protocols)? protocolSelector,
-      CompressionOptions compression = CompressionOptions.compressionDefault}) {
+  static Future<WebSocket> upgrade(
+    HttpRequest request, {
+    Function(List<String> protocols)? protocolSelector,
+    CompressionOptions compression = CompressionOptions.compressionDefault,
+  }) {
     return _WebSocketTransformerImpl._upgrade(
-        request, protocolSelector, compression);
+      request,
+      protocolSelector,
+      compression,
+    );
   }
 
   /// Checks whether the request is a valid WebSocket upgrade request.
@@ -261,8 +273,8 @@ abstract class WebSocketTransformer
 /// `String` and a binary message will be of type `List<int>`.
 abstract class WebSocket
     implements
-        Stream<dynamic /*String|List<int>*/ >,
-        StreamSink<dynamic /*String|List<int>*/ > {
+        Stream<dynamic /*String|List<int>*/>,
+        StreamSink<dynamic /*String|List<int>*/> {
   /// Possible states of the connection.
   static const int connecting = 0;
   static const int open = 1;
@@ -311,17 +323,24 @@ abstract class WebSocket
   ///
   /// If the `url` contains user information this will be passed as basic
   /// authentication when setting up the connection.
-  static Future<WebSocket> connect(String url,
-          {Iterable<String>? protocols,
-          Map<String, dynamic>? headers,
-          CompressionOptions compression =
-              CompressionOptions.compressionDefault,
-          HttpClient? customClient}) =>
-      _WebSocketImpl.connect(url, protocols, headers,
-          compression: compression, customClient: customClient);
+  static Future<WebSocket> connect(
+    String url, {
+    Iterable<String>? protocols,
+    Map<String, dynamic>? headers,
+    CompressionOptions compression = CompressionOptions.compressionDefault,
+    HttpClient? customClient,
+  }) => _WebSocketImpl.connect(
+    url,
+    protocols,
+    headers,
+    compression: compression,
+    customClient: customClient,
+  );
 
-  @Deprecated('This constructor will be removed in Dart 2.0. Use `implements`'
-      ' instead of `extends` if implementing this abstract class.')
+  @Deprecated(
+    'This constructor will be removed in Dart 2.0. Use `implements`'
+    ' instead of `extends` if implementing this abstract class.',
+  )
   WebSocket();
 
   /// Creates a WebSocket from an already-upgraded socket.
@@ -341,16 +360,24 @@ abstract class WebSocket
   /// If [compression] is provided, the [WebSocket] created will be configured
   /// to negotiate with the specified [CompressionOptions]. If none is specified
   /// then the [WebSocket] will be created with the default [CompressionOptions].
-  factory WebSocket.fromUpgradedSocket(Socket socket,
-      {String? protocol,
-      bool? serverSide,
-      CompressionOptions compression = CompressionOptions.compressionDefault}) {
+  factory WebSocket.fromUpgradedSocket(
+    Socket socket, {
+    String? protocol,
+    bool? serverSide,
+    CompressionOptions compression = CompressionOptions.compressionDefault,
+  }) {
     if (serverSide == null) {
-      throw ArgumentError("The serverSide argument must be passed "
-          "explicitly to WebSocket.fromUpgradedSocket.");
+      throw ArgumentError(
+        "The serverSide argument must be passed "
+        "explicitly to WebSocket.fromUpgradedSocket.",
+      );
     }
     return _WebSocketImpl._fromSocket(
-        socket, protocol, compression, serverSide);
+      socket,
+      protocol,
+      compression,
+      serverSide,
+    );
   }
 
   /// Returns the current state of the connection.

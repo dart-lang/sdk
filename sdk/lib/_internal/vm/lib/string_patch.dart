@@ -14,8 +14,11 @@ const int _maxUnicode = 0x10ffff;
 @pragma("vm:entry-point")
 class String {
   @patch
-  factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]) {
+  factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (charCodes == null) throw new ArgumentError.notNull("charCodes");
     if (start == null) throw new ArgumentError.notNull("start");
@@ -45,8 +48,10 @@ class String {
 
   @patch
   @pragma("vm:external-name", "String_fromEnvironment")
-  external const factory String.fromEnvironment(String name,
-      {String defaultValue = ""});
+  external const factory String.fromEnvironment(
+    String name, {
+    String defaultValue = "",
+  });
 
   bool get _isOneByte;
   String _substringUnchecked(int startIndex, int endIndex);
@@ -121,7 +126,11 @@ abstract final class _StringBase implements String {
    * It's `null` if unknown.
    */
   static String createFromCharCodes(
-      Iterable<int> charCodes, int start, int? end, int? limit) {
+    Iterable<int> charCodes,
+    int start,
+    int? end,
+    int? limit,
+  ) {
     // Validate start/end first.
     RangeError.checkNotNegative(start, "start");
     if (end != null) {
@@ -168,7 +177,10 @@ abstract final class _StringBase implements String {
     }
     if (actualLimit <= _maxUtf16) {
       return _TwoByteString._allocateFromTwoByteList(
-          typedCharCodes, start, end);
+        typedCharCodes,
+        start,
+        end,
+      );
     }
     // TODO(lrn): Consider passing limit to _createFromCodePoints, because
     // the function is currently fully generic and doesn't know that its
@@ -187,7 +199,10 @@ abstract final class _StringBase implements String {
   }
 
   static String _createStringFromIterable(
-      Iterable<int> charCodes, int start, int? end) {
+    Iterable<int> charCodes,
+    int start,
+    int? end,
+  ) {
     assert(start >= 0);
     assert(end == null || start <= end);
     // Treat charCodes as Iterable.
@@ -229,8 +244,11 @@ abstract final class _StringBase implements String {
       }
     }
     if (bits < 0 || bits > 0xFFFFF) {
-      throw ArgumentError.value(charCodes, "charCodes",
-          "Contains invalid character code, not 0 <= code <= 0x10FFFF");
+      throw ArgumentError.value(
+        charCodes,
+        "charCodes",
+        "Contains invalid character code, not 0 <= code <= 0x10FFFF",
+      );
     }
     List<int> codeUnitList = makeListFixedLength<int>(list);
     int length = codeUnitList.length;
@@ -263,7 +281,10 @@ abstract final class _StringBase implements String {
 
   @pragma("vm:external-name", "StringBase_createFromCodePoints")
   external static String _createFromCodePoints(
-      List<int> codePoints, int start, int end);
+    List<int> codePoints,
+    int start,
+    int end,
+  );
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:external-name", "String_charAt")
@@ -592,8 +613,11 @@ abstract final class _StringBase implements String {
     return pattern.allMatches(this.substring(startIndex)).isNotEmpty;
   }
 
-  String replaceFirst(Pattern pattern, String replacement,
-      [int startIndex = 0]) {
+  String replaceFirst(
+    Pattern pattern,
+    String replacement, [
+    int startIndex = 0,
+  ]) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (pattern == null) {
       throw new ArgumentError.notNull("pattern");
@@ -605,9 +629,10 @@ abstract final class _StringBase implements String {
       throw new ArgumentError.notNull("startIndex");
     }
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
-    Iterator iterator = startIndex == 0
-        ? pattern.allMatches(this).iterator
-        : pattern.allMatches(this, startIndex).iterator;
+    Iterator iterator =
+        startIndex == 0
+            ? pattern.allMatches(this).iterator
+            : pattern.allMatches(this, startIndex).iterator;
     if (!iterator.moveNext()) return this;
     Match match = iterator.current;
     return replaceRange(match.start, match.end, replacement);
@@ -633,7 +658,11 @@ abstract final class _StringBase implements String {
     if (replacement.length > 0) slices.add(replacement);
     _addReplaceSlice(slices, localEnd, length);
     return _joinReplaceAllResult(
-        this, slices, totalLength, replacementIsOneByte);
+      this,
+      slices,
+      totalLength,
+      replacementIsOneByte,
+    );
   }
 
   static int _addReplaceSlice(List matches, int start, int end) {
@@ -690,7 +719,10 @@ abstract final class _StringBase implements String {
    * is always a [_OneByteString].
    */
   static String _joinReplaceAllOneByteResult(
-      String base, List matches, int length) {
+    String base,
+    List matches,
+    int length,
+  ) {
     _OneByteString result = _OneByteString._allocate(length);
     int writeIndex = 0;
     for (int i = 0; i < matches.length; i++) {
@@ -739,7 +771,11 @@ abstract final class _StringBase implements String {
    */
   @pragma("vm:external-name", "StringBase_joinReplaceAllResult")
   external static String _joinReplaceAllResult(
-      String base, List matches, int length, bool replacementStringsAreOneByte);
+    String base,
+    List matches,
+    int length,
+    bool replacementStringsAreOneByte,
+  );
 
   String replaceAllMapped(Pattern pattern, String replace(Match match)) {
     if (pattern == null) throw new ArgumentError.notNull("pattern");
@@ -765,11 +801,18 @@ abstract final class _StringBase implements String {
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
     return _joinReplaceAllResult(
-        this, matches, length, replacementStringsAreOneByte);
+      this,
+      matches,
+      length,
+      replacementStringsAreOneByte,
+    );
   }
 
-  String replaceFirstMapped(Pattern pattern, String replace(Match match),
-      [int startIndex = 0]) {
+  String replaceFirstMapped(
+    Pattern pattern,
+    String replace(Match match), [
+    int startIndex = 0,
+  ]) {
     if (pattern == null) throw new ArgumentError.notNull("pattern");
     if (replace == null) throw new ArgumentError.notNull("replace");
     if (startIndex == null) throw new ArgumentError.notNull("startIndex");
@@ -786,7 +829,9 @@ abstract final class _StringBase implements String {
   static String _stringIdentity(String string) => string;
 
   String _splitMapJoinEmptyString(
-      String onMatch(Match match), String onNonMatch(String nonMatch)) {
+    String onMatch(Match match),
+    String onNonMatch(String nonMatch),
+  ) {
     // Pattern is the empty string.
     StringBuffer buffer = new StringBuffer();
     int length = this.length;
@@ -814,8 +859,11 @@ abstract final class _StringBase implements String {
     return buffer.toString();
   }
 
-  String splitMapJoin(Pattern pattern,
-      {String onMatch(Match match)?, String onNonMatch(String nonMatch)?}) {
+  String splitMapJoin(
+    Pattern pattern, {
+    String onMatch(Match match)?,
+    String onNonMatch(String nonMatch)?,
+  }) {
     if (pattern == null) {
       throw new ArgumentError.notNull("pattern");
     }
@@ -893,7 +941,10 @@ abstract final class _StringBase implements String {
   static ArgumentError _interpolationError(Object? o, Object? result) {
     // Since Dart 2.0, [result] can only be null.
     return new ArgumentError.value(
-        o, "object", "toString method returned 'null'");
+      o,
+      "object",
+      "toString method returned 'null'",
+    );
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
@@ -918,8 +969,10 @@ abstract final class _StringBase implements String {
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      List<String> result =
-          new List<String>.generate(this.length, (int i) => this[i]);
+      List<String> result = new List<String>.generate(
+        this.length,
+        (int i) => this[i],
+      );
       return result;
     }
     int length = this.length;
@@ -1301,7 +1354,10 @@ final class _OneByteString extends _StringBase {
 
   @pragma("vm:external-name", "OneByteString_allocateFromOneByteList")
   external static _OneByteString _allocateFromOneByteList(
-      List<int> list, int start, int end);
+    List<int> list,
+    int start,
+    int end,
+  );
 
   // This is internal helper method. Code point value must be a valid
   // Latin1 value (0..0xFF), index must be valid.
@@ -1345,7 +1401,10 @@ final class _TwoByteString extends _StringBase {
 
   @pragma("vm:external-name", "TwoByteString_allocateFromTwoByteList")
   external static String _allocateFromTwoByteList(
-      List<int> list, int start, int end);
+    List<int> list,
+    int start,
+    int end,
+  );
 
   // This is internal helper method. Code point value must be a valid
   // UTF-16 value (0..0xFFFF), index must be valid.

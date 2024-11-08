@@ -6,4 +6,6 @@ part of "internal_patch.dart";
 
 @patch
 void printToConsole(String line) => JS<void>(
-    's => printToConsole(s)', jsStringFromDartString(line).toExternRef);
+  's => printToConsole(s)',
+  jsStringFromDartString(line).toExternRef,
+);

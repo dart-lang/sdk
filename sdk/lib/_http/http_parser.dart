@@ -29,7 +29,7 @@ class _Const {
     F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, //
     F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, //
     F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, //
-    F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F
+    F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,
   ];
 }
 
@@ -112,7 +112,10 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<Uint8List> {
   int _pauseCount = 1;
 
   _HttpDetachedStreamSubscription(
-      this._subscription, this._injectData, this._userOnData);
+    this._subscription,
+    this._injectData,
+    this._userOnData,
+  );
 
   bool get isPaused => _subscription.isPaused;
 
@@ -181,8 +184,12 @@ class _HttpDetachedIncoming extends Stream<Uint8List> {
 
   _HttpDetachedIncoming(this._subscription, this._bufferedData);
 
-  StreamSubscription<Uint8List> listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+  StreamSubscription<Uint8List> listen(
+    void Function(Uint8List event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
     var subscription = this._subscription;
     if (subscription != null) {
       subscription
@@ -193,12 +200,19 @@ class _HttpDetachedIncoming extends Stream<Uint8List> {
         return subscription..resume();
       }
       return _HttpDetachedStreamSubscription(
-          subscription, _bufferedData, onData)
-        ..resume();
+        subscription,
+        _bufferedData,
+        onData,
+      )..resume();
     } else {
-      return Stream<Uint8List>.fromIterable([_bufferedData ?? Uint8List(0)])
-          .listen(onData,
-              onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+      return Stream<Uint8List>.fromIterable([
+        _bufferedData ?? Uint8List(0),
+      ]).listen(
+        onData,
+        onError: onError,
+        onDone: onDone,
+        cancelOnError: cancelOnError,
+      );
     }
   }
 }
@@ -277,7 +291,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   }
 
   _HttpParser._(this._requestParser)
-      : _controller = StreamController<_HttpIncoming>(sync: true) {
+    : _controller = StreamController<_HttpIncoming>(sync: true) {
     _controller
       ..onListen = () {
         _paused = false;
@@ -297,12 +311,17 @@ class _HttpParser extends Stream<_HttpIncoming> {
   }
 
   StreamSubscription<_HttpIncoming> listen(
-      void Function(_HttpIncoming event)? onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError}) {
-    return _controller.stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    void Function(_HttpIncoming event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    return _controller.stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 
   void listenToStream(Stream<Uint8List> stream) {
@@ -311,8 +330,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
     // given to provide a way of controlling the parser.
     // TODO(ajohnsen): Remove _dataPause, _dataResume and _dataDone and clean up
     // how the _HttpIncoming signals the parser.
-    _socketSubscription =
-        stream.listen(_onData, onError: _controller.addError, onDone: _onDone);
+    _socketSubscription = stream.listen(
+      _onData,
+      onError: _controller.addError,
+      onDone: _onDone,
+    );
   }
 
   void _parse() {
@@ -516,7 +538,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.RESPONSE_LINE_STATUS_CODE;
           } else {
             throw HttpException(
-                "Invalid response line, failed to parse HTTP version");
+              "Invalid response line, failed to parse HTTP version",
+            );
           }
           break;
 
@@ -599,7 +622,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
               throw HttpException("Invalid response status code with $byte");
             } else if (_statusCodeLength > 3) {
               throw HttpException(
-                  "Invalid response, status code is over 3 digits");
+                "Invalid response, status code is over 3 digits",
+              );
             } else {
               _statusCode = _statusCode * 10 + byte - 0x30;
             }
@@ -704,8 +728,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
             if (headerField == HttpHeaders.contentLengthHeader) {
               // Content Length header should not have more than one occurrence.
               if (_contentLength) {
-                throw HttpException("The Content-Length header occurred "
-                    "more than once, at most one is allowed.");
+                throw HttpException(
+                  "The Content-Length header occurred "
+                  "more than once, at most one is allowed.",
+                );
               } else if (!_transferEncoding) {
                 _contentLength = true;
               }
@@ -722,10 +748,12 @@ class _HttpParser extends Stream<_HttpIncoming> {
               final bool isResponse = _messageType == _MessageType.RESPONSE;
               final bool isUpgradeCode =
                   (_statusCode == HttpStatus.upgradeRequired) ||
-                      (_statusCode == HttpStatus.switchingProtocols);
+                  (_statusCode == HttpStatus.switchingProtocols);
               for (int i = 0; i < tokens.length; i++) {
                 final bool isUpgrade = _caseInsensitiveCompare(
-                    "upgrade".codeUnits, tokens[i].codeUnits);
+                  "upgrade".codeUnits,
+                  tokens[i].codeUnits,
+                );
                 if ((isUpgrade && !isResponse) ||
                     (isUpgrade && isResponse && isUpgradeCode)) {
                   _connectionUpgrade = true;
@@ -839,7 +867,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
           // cases like this, and the user will not experience different data
           // typed (which could lead to polymorphic user code).
           Uint8List data = Uint8List.view(
-              buffer.buffer, buffer.offsetInBytes + _index, dataAvailable);
+            buffer.buffer,
+            buffer.offsetInBytes + _index,
+            dataAvailable,
+          );
           _bodyController!.add(data);
           if (_remainingContent != -1) {
             _remainingContent -= data.length;
@@ -897,7 +928,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
           !(_state == _State.START && !_requestParser) &&
           !(_state == _State.BODY && !_chunked && _transferLength == -1)) {
         _reportBodyError(
-            HttpException("Connection closed while receiving data"));
+          HttpException("Connection closed while receiving data"),
+        );
       }
       _closeIncoming(true);
       _controller.close();
@@ -907,7 +939,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
     if (_state == _State.START) {
       if (!_requestParser) {
         _reportHttpError(
-            HttpException("Connection closed before full header was received"));
+          HttpException("Connection closed before full header was received"),
+        );
       }
       _controller.close();
       return;
@@ -923,7 +956,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
       // Report the error through the error callback if any. Otherwise
       // throw the error.
       _reportHttpError(
-          HttpException("Connection closed before full header was received"));
+        HttpException("Connection closed before full header was received"),
+      );
       _controller.close();
       return;
     }
@@ -935,7 +969,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
       // Report the error through the error callback if any. Otherwise
       // throw the error.
       _reportHttpError(
-          HttpException("Connection closed before full body was received"));
+        HttpException("Connection closed before full body was received"),
+      );
     }
     _controller.close();
   }
@@ -1077,7 +1112,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
       return byte - 0x61 + 10; // a - f
     } else {
       throw HttpException(
-          "Failed to parse HTTP, $byte is expected to be a Hex digit");
+        "Failed to parse HTTP, $byte is expected to be a Hex digit",
+      );
     }
   }
 
@@ -1121,7 +1157,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
         throw UnsupportedError("Unexpected state: $_state");
     }
     throw HttpException(
-        "$method exceeds the $_headerTotalSizeLimit size limit");
+      "$method exceeds the $_headerTotalSizeLimit size limit",
+    );
   }
 
   _HttpIncoming _createIncoming(int transferLength) {

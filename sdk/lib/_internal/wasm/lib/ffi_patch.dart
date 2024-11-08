@@ -28,11 +28,14 @@ Pointer<T> _fromAddress<T extends NativeType>(int address) =>
 @patch
 @pragma("wasm:prefer-inline")
 Pointer<S> _loadPointer<S extends NativeType>(
-        Object typedDataBase, int offsetInBytes) =>
-    Pointer<S>.fromAddress(_loadUint32(typedDataBase, offsetInBytes));
+  Object typedDataBase,
+  int offsetInBytes,
+) => Pointer<S>.fromAddress(_loadUint32(typedDataBase, offsetInBytes));
 
 @patch
 @pragma("wasm:prefer-inline")
 void _storePointer<S extends NativeType>(
-        Object typedDataBase, int offsetInBytes, Pointer<S> value) =>
-    _storeUint32(typedDataBase, offsetInBytes, value._address.toIntUnsigned());
+  Object typedDataBase,
+  int offsetInBytes,
+  Pointer<S> value,
+) => _storeUint32(typedDataBase, offsetInBytes, value._address.toIntUnsigned());

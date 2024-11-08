@@ -210,16 +210,21 @@ class _SuspendState {
 
     final currentZone = Zone._current;
     if (identical(currentZone, _rootZone) ||
-        identical(currentZone._registerUnaryCallback,
-            _rootZone._registerUnaryCallback)) {
+        identical(
+          currentZone._registerUnaryCallback,
+          _rootZone._registerUnaryCallback,
+        )) {
       _thenCallback = thenCallback;
     } else {
-      _thenCallback =
-          currentZone.registerUnaryCallback<dynamic, dynamic>(thenCallback);
+      _thenCallback = currentZone.registerUnaryCallback<dynamic, dynamic>(
+        thenCallback,
+      );
     }
     if (identical(currentZone, _rootZone) ||
-        identical(currentZone._registerBinaryCallback,
-            _rootZone._registerBinaryCallback)) {
+        identical(
+          currentZone._registerBinaryCallback,
+          _rootZone._registerBinaryCallback,
+        )) {
       _errorCallback = errorCallback;
     } else {
       _errorCallback = currentZone
@@ -235,17 +240,21 @@ class _SuspendState {
     if (future._hasError) {
       @pragma("vm:invisible")
       void run() {
-        final AsyncError asyncError =
-            unsafeCast<AsyncError>(future._resultOrListeners);
+        final AsyncError asyncError = unsafeCast<AsyncError>(
+          future._resultOrListeners,
+        );
         if (!future._zone.inSameErrorZone(zone)) {
           // Don't cross zone boundaries with errors.
-          future._zone
-              .handleUncaughtError(asyncError.error, asyncError.stackTrace);
+          future._zone.handleUncaughtError(
+            asyncError.error,
+            asyncError.stackTrace,
+          );
         } else {
           zone.runBinary(
-              unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
-              asyncError.error,
-              asyncError.stackTrace);
+            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
+            asyncError.error,
+            asyncError.stackTrace,
+          );
         }
       }
 
@@ -253,8 +262,10 @@ class _SuspendState {
     } else {
       @pragma("vm:invisible")
       void run() {
-        zone.runUnary(unsafeCast<dynamic Function(dynamic)>(_thenCallback),
-            future._resultOrListeners);
+        zone.runUnary(
+          unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+          future._resultOrListeners,
+        );
       }
 
       future._zone.scheduleMicrotask(run);
@@ -268,7 +279,9 @@ class _SuspendState {
     @pragma("vm:invisible")
     void run() {
       zone.runUnary(
-          unsafeCast<dynamic Function(dynamic)>(_thenCallback), object);
+        unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+        object,
+      );
     }
 
     zone.scheduleMicrotask(run);
@@ -288,10 +301,11 @@ class _SuspendState {
     }
 
     future.then(
-        unsafeCast<dynamic Function(dynamic)>(
-            _instantiateClosureWithFutureTypeArgument(typedCallback, future)),
-        onError:
-            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+      unsafeCast<dynamic Function(dynamic)>(
+        _instantiateClosureWithFutureTypeArgument(typedCallback, future),
+      ),
+      onError: unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
+    );
   }
 
   @pragma("vm:entry-point", "call")
@@ -305,8 +319,9 @@ class _SuspendState {
         _awaitCompletedFuture(object);
       } else {
         object._thenAwait<dynamic>(
-            unsafeCast<dynamic Function(dynamic)>(_thenCallback),
-            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+          unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+          unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
+        );
       }
     } else if (object is! Future) {
       _awaitNotFuture(object);
@@ -331,8 +346,9 @@ class _SuspendState {
           _awaitCompletedFuture(object);
         } else {
           object._thenAwait<dynamic>(
-              unsafeCast<dynamic Function(dynamic)>(_thenCallback),
-              unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+            unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+            unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback),
+          );
         }
       } else {
         _awaitUserDefinedFuture(obj);
@@ -363,7 +379,9 @@ class _SuspendState {
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   static Future _returnAsyncNotFuture(
-      Object suspendState, Object? returnValue) {
+    Object suspendState,
+    Object? returnValue,
+  ) {
     _Future future;
     if (suspendState is _SuspendState) {
       future = unsafeCast<_Future>(suspendState._functionData);
@@ -405,14 +423,18 @@ class _SuspendState {
   @pragma("vm:invisible")
   static void _returnAsyncStar(Object suspendState, Object? returnValue) {
     final controller = unsafeCast<_AsyncStarStreamController>(
-        unsafeCast<_SuspendState>(suspendState)._functionData);
+      unsafeCast<_SuspendState>(suspendState)._functionData,
+    );
     controller.close();
   }
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
   static Object? _handleException(
-      Object suspendState, Object exception, StackTrace stackTrace) {
+    Object suspendState,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
     Object? functionData;
     bool isSync = true;
     if (suspendState is _SuspendState) {
@@ -479,16 +501,23 @@ class _SuspendState {
   @pragma("vm:recognized", "other")
   @pragma("vm:never-inline")
   external Object? _resume(
-      Object? value, Object? exception, StackTrace? stackTrace);
+    Object? value,
+    Object? exception,
+    StackTrace? stackTrace,
+  );
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external _SuspendState _clone();
 
-  @pragma("vm:external-name",
-      "SuspendState_instantiateClosureWithFutureTypeArgument")
+  @pragma(
+    "vm:external-name",
+    "SuspendState_instantiateClosureWithFutureTypeArgument",
+  )
   external static Function _instantiateClosureWithFutureTypeArgument(
-      dynamic Function<T>(T) closure, Future future);
+    dynamic Function<T>(T) closure,
+    Future future,
+  );
 }
 
 class _SyncStarIterable<T> extends Iterable<T> {
@@ -560,8 +589,11 @@ class _SyncStarIterator<T> implements Iterator<T> {
 
       try {
         // Resume current sync* method in order to move to the next value.
-        final bool hasMore = unsafeCast<bool>(unsafeCast<_SuspendState>(_state)
-            ._resume(null, pendingException, pendingStackTrace));
+        final bool hasMore = unsafeCast<bool>(
+          unsafeCast<_SuspendState>(
+            _state,
+          )._resume(null, pendingException, pendingStackTrace),
+        );
         pendingException = null;
         pendingStackTrace = null;
         if (!hasMore) {

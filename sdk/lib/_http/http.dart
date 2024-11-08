@@ -187,9 +187,13 @@ abstract class HttpServer implements Stream<HttpRequest> {
   /// isolates are bound to the port, then the incoming connections will be
   /// distributed among all the bound `HttpServer`s. Connections can be
   /// distributed over multiple isolates this way.
-  static Future<HttpServer> bind(address, int port,
-          {int backlog = 0, bool v6Only = false, bool shared = false}) =>
-      _HttpServer.bind(address, port, backlog, v6Only, shared);
+  static Future<HttpServer> bind(
+    address,
+    int port, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool shared = false,
+  }) => _HttpServer.bind(address, port, backlog, v6Only, shared);
 
   /// The [address] can either be a [String] or an
   /// [InternetAddress]. If [address] is a [String], [bind] will
@@ -230,13 +234,22 @@ abstract class HttpServer implements Stream<HttpRequest> {
   /// distributed over multiple isolates this way.
 
   static Future<HttpServer> bindSecure(
-          address, int port, SecurityContext context,
-          {int backlog = 0,
-          bool v6Only = false,
-          bool requestClientCertificate = false,
-          bool shared = false}) =>
-      _HttpServer.bindSecure(address, port, context, backlog, v6Only,
-          requestClientCertificate, shared);
+    address,
+    int port,
+    SecurityContext context, {
+    int backlog = 0,
+    bool v6Only = false,
+    bool requestClientCertificate = false,
+    bool shared = false,
+  }) => _HttpServer.bindSecure(
+    address,
+    port,
+    context,
+    backlog,
+    v6Only,
+    requestClientCertificate,
+    shared,
+  );
 
   /// Attaches the HTTP server to an existing [ServerSocket]. When the
   /// [HttpServer] is closed, the [HttpServer] will just detach itself,
@@ -405,7 +418,7 @@ abstract interface class HttpHeaders {
     transferEncodingHeader,
     upgradeHeader,
     viaHeader,
-    warningHeader
+    warningHeader,
   ];
 
   static const entityHeaders = [
@@ -418,7 +431,7 @@ abstract interface class HttpHeaders {
     contentRangeHeader,
     contentTypeHeader,
     expiresHeader,
-    lastModifiedHeader
+    lastModifiedHeader,
   ];
 
   static const responseHeaders = [
@@ -431,7 +444,7 @@ abstract interface class HttpHeaders {
     serverHeader,
     varyHeader,
     wwwAuthenticateHeader,
-    contentDisposition
+    contentDisposition,
   ];
 
   static const requestHeaders = [
@@ -453,7 +466,7 @@ abstract interface class HttpHeaders {
     rangeHeader,
     refererHeader,
     teHeader,
-    userAgentHeader
+    userAgentHeader,
   ];
 
   /// The date specified by the [dateHeader] header, if any.
@@ -519,15 +532,21 @@ abstract interface class HttpHeaders {
   ///
   /// The current case of the a header name is that of the name used by
   /// the last [set] or [add] call for that header.
-  void add(String name, Object value,
-      {@Since("2.8") bool preserveHeaderCase = false});
+  void add(
+    String name,
+    Object value, {
+    @Since("2.8") bool preserveHeaderCase = false,
+  });
 
   /// Sets the header [name] to [value].
   ///
   /// Removes all existing values for the header named [name] and
   /// then [add]s [value] to it.
-  void set(String name, Object value,
-      {@Since("2.8") bool preserveHeaderCase = false});
+  void set(
+    String name,
+    Object value, {
+    @Since("2.8") bool preserveHeaderCase = false,
+  });
 
   /// Removes a specific value for a header name.
   ///
@@ -608,21 +627,27 @@ abstract interface class HttpHeaders {
 /// An instance of [HeaderValue] is immutable.
 abstract interface class HeaderValue {
   /// Creates a new header value object setting the value and parameters.
-  factory HeaderValue(
-      [String value = "", Map<String, String?> parameters = const {}]) {
+  factory HeaderValue([
+    String value = "",
+    Map<String, String?> parameters = const {},
+  ]) {
     return _HeaderValue(value, parameters);
   }
 
   /// Creates a new header value object from parsing a header value
   /// string with both value and optional parameters.
-  static HeaderValue parse(String value,
-      {String parameterSeparator = ";",
-      String? valueSeparator,
-      bool preserveBackslash = false}) {
-    return _HeaderValue.parse(value,
-        parameterSeparator: parameterSeparator,
-        valueSeparator: valueSeparator,
-        preserveBackslash: preserveBackslash);
+  static HeaderValue parse(
+    String value, {
+    String parameterSeparator = ";",
+    String? valueSeparator,
+    bool preserveBackslash = false,
+  }) {
+    return _HeaderValue.parse(
+      value,
+      parameterSeparator: parameterSeparator,
+      valueSeparator: valueSeparator,
+      preserveBackslash: preserveBackslash,
+    );
   }
 
   /// The value of the header.
@@ -719,8 +744,12 @@ abstract interface class ContentType implements HeaderValue {
   /// override the value in parameters. Keys passed in parameters will be
   /// converted to lower case. The `charset` entry, whether passed as `charset`
   /// or in `parameters`, will have its value converted to lower-case.
-  factory ContentType(String primaryType, String subType,
-      {String? charset, Map<String, String?> parameters = const {}}) {
+  factory ContentType(
+    String primaryType,
+    String subType, {
+    String? charset,
+    Map<String, String?> parameters = const {},
+  }) {
     return _ContentType(primaryType, subType, charset, parameters);
   }
 
@@ -1341,7 +1370,11 @@ abstract interface class HttpClient {
   /// HTTP transaction, and the objects returned by the futures, see
   /// the overall documentation for the class [HttpClient].
   Future<HttpClientRequest> open(
-      String method, String host, int port, String path);
+    String method,
+    String host,
+    int port,
+    String path,
+  );
 
   /// Opens a HTTP connection.
   ///
@@ -1475,7 +1508,8 @@ abstract interface class HttpClient {
   /// of a failed request, or issues due to missing request payload on retried
   /// request.
   void set authenticate(
-      Future<bool> Function(Uri url, String scheme, String? realm)? f);
+    Future<bool> Function(Uri url, String scheme, String? realm)? f,
+  );
 
   /// Add credentials to be used for authorizing HTTP requests.
   void addCredentials(Uri url, String realm, HttpClientCredentials credentials);
@@ -1516,9 +1550,13 @@ abstract interface class HttpClient {
   /// }
   /// ```
   void set connectionFactory(
-      Future<ConnectionTask<Socket>> Function(
-              Uri url, String? proxyHost, int? proxyPort)?
-          f);
+    Future<ConnectionTask<Socket>> Function(
+      Uri url,
+      String? proxyHost,
+      int? proxyPort,
+    )?
+    f,
+  );
 
   /// Sets the function used to resolve the proxy server to be used for
   /// opening a HTTP connection to the specified `url`. If this
@@ -1594,8 +1632,10 @@ abstract interface class HttpClient {
   /// [:username:password@hostname:port:] to include the username and
   /// password. Alternatively the API [addProxyCredentials] can be used
   /// to set credentials for proxies which require authentication.
-  static String findProxyFromEnvironment(Uri url,
-      {Map<String, String>? environment}) {
+  static String findProxyFromEnvironment(
+    Uri url, {
+    Map<String, String>? environment,
+  }) {
     HttpOverrides? overrides = HttpOverrides.current;
     if (overrides == null) {
       return _HttpClient._findProxyFromEnvironment(url, environment);
@@ -1621,13 +1661,17 @@ abstract interface class HttpClient {
   /// using the updated credentials. Otherwise response processing will
   /// continue normally.
   void set authenticateProxy(
-      Future<bool> Function(
-              String host, int port, String scheme, String? realm)?
-          f);
+    Future<bool> Function(String host, int port, String scheme, String? realm)?
+    f,
+  );
 
   /// Add credentials to be used for authorizing HTTP proxies.
   void addProxyCredentials(
-      String host, int port, String realm, HttpClientCredentials credentials);
+    String host,
+    int port,
+    String realm,
+    HttpClientCredentials credentials,
+  );
 
   /// Sets a callback that will decide whether to accept a secure connection
   /// with a server certificate that cannot be authenticated by any of our
@@ -1650,7 +1694,8 @@ abstract interface class HttpClient {
   /// the request is made, even if the value of badCertificateCallback
   /// has changed since then.
   void set badCertificateCallback(
-      bool Function(X509Certificate cert, String host, int port)? callback);
+    bool Function(X509Certificate cert, String host, int port)? callback,
+  );
 
   /// Sets a callback that will be called when new TLS keys are exchanged with
   /// the server. It will receive one line of text in
@@ -1932,8 +1977,11 @@ abstract interface class HttpClientResponse implements Stream<List<int>> {
   ///
   /// The method will ignore [HttpClientRequest.maxRedirects]
   /// and will always perform the redirect.
-  Future<HttpClientResponse> redirect(
-      [String? method, Uri? url, bool? followLoops]);
+  Future<HttpClientResponse> redirect([
+    String? method,
+    Uri? url,
+    bool? followLoops,
+  ]);
 
   /// Returns the client response headers.
   ///
@@ -2049,9 +2097,10 @@ class HttpException implements IOException {
   const HttpException(this.message, {this.uri});
 
   String toString() {
-    var b = StringBuffer()
-      ..write('HttpException: ')
-      ..write(message);
+    var b =
+        StringBuffer()
+          ..write('HttpException: ')
+          ..write(message);
     var uri = this.uri;
     if (uri != null) {
       b.write(', uri = $uri');

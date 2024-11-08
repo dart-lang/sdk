@@ -185,8 +185,8 @@ class ArgumentError extends Error {
   /// invalid value as well.
   @pragma("vm:entry-point")
   ArgumentError([this.message, @Since("2.14") this.name])
-      : invalidValue = null,
-        _hasValue = false;
+    : invalidValue = null,
+      _hasValue = false;
 
   /// Creates error containing the invalid [value].
   ///
@@ -201,14 +201,14 @@ class ArgumentError extends Error {
   /// interface method's argument name (or just rename arguments to match).
   @pragma("vm:entry-point")
   ArgumentError.value(value, [this.name, this.message])
-      : invalidValue = value,
-        _hasValue = true;
+    : invalidValue = value,
+      _hasValue = true;
 
   /// Creates an argument error for a `null` argument that must not be `null`.
   ArgumentError.notNull([this.name])
-      : _hasValue = false,
-        message = "Must not be null",
-        invalidValue = null;
+    : _hasValue = false,
+      message = "Must not be null",
+      invalidValue = null;
 
   /// Throws if [argument] is `null`.
   ///
@@ -252,10 +252,7 @@ class RangeError extends ArgumentError {
   // It currently isn't in all cases.
   /// Create a new [RangeError] with the given [message].
   @pragma("vm:entry-point")
-  RangeError(var message)
-      : start = null,
-        end = null,
-        super(message);
+  RangeError(var message) : start = null, end = null, super(message);
 
   /// Create a new [RangeError] with a message for the given [value].
   ///
@@ -263,9 +260,9 @@ class RangeError extends ArgumentError {
   /// invalid value, and the [message] can override the default error
   /// description.
   RangeError.value(num value, [String? name, String? message])
-      : start = null,
-        end = null,
-        super.value(value, name, message ?? "Value not in range");
+    : start = null,
+      end = null,
+      super.value(value, name, message ?? "Value not in range");
 
   /// Create a new [RangeError] for a value being outside the valid range.
   ///
@@ -280,11 +277,15 @@ class RangeError extends ArgumentError {
   /// invalid value, and the [message] can override the default error
   /// description.
   @pragma("vm:entry-point")
-  RangeError.range(num invalidValue, int? minValue, int? maxValue,
-      [String? name, String? message])
-      : start = minValue,
-        end = maxValue,
-        super.value(invalidValue, name, message ?? "Invalid value");
+  RangeError.range(
+    num invalidValue,
+    int? minValue,
+    int? maxValue, [
+    String? name,
+    String? message,
+  ]) : start = minValue,
+       end = maxValue,
+       super.value(invalidValue, name, message ?? "Invalid value");
 
   /// Creates a new [RangeError] stating that [index] is not a valid index
   /// into [indexable].
@@ -295,8 +296,13 @@ class RangeError extends ArgumentError {
   ///
   /// The [length] is the length of [indexable] at the time of the error.
   /// If `length` is omitted, it defaults to `indexable.length`.
-  factory RangeError.index(int index, dynamic indexable,
-      [String? name, String? message, int? length]) = IndexError;
+  factory RangeError.index(
+    int index,
+    dynamic indexable, [
+    String? name,
+    String? message,
+    int? length,
+  ]) = IndexError;
 
   /// Check that an integer [value] lies in a specific interval.
   ///
@@ -307,8 +313,13 @@ class RangeError extends ArgumentError {
   /// name and message text of the thrown error.
   ///
   /// Returns [value] if it is in the interval.
-  static int checkValueInInterval(int value, int minValue, int maxValue,
-      [String? name, String? message]) {
+  static int checkValueInInterval(
+    int value,
+    int minValue,
+    int maxValue, [
+    String? name,
+    String? message,
+  ]) {
     if (value < minValue || value > maxValue) {
       throw RangeError.range(value, minValue, maxValue, name, message);
     }
@@ -330,11 +341,21 @@ class RangeError extends ArgumentError {
   /// otherwise the length is found as `indexable.length`.
   ///
   /// Returns [index] if it is a valid index.
-  static int checkValidIndex(int index, dynamic indexable,
-      [String? name, int? length, String? message]) {
+  static int checkValidIndex(
+    int index,
+    dynamic indexable, [
+    String? name,
+    int? length,
+    String? message,
+  ]) {
     length ??= (indexable.length as int);
-    return IndexError.check(index, length,
-        indexable: indexable, name: name, message: message);
+    return IndexError.check(
+      index,
+      length,
+      indexable: indexable,
+      name: name,
+      message: message,
+    );
   }
 
   /// Check that a range represents a slice of an indexable object.
@@ -351,8 +372,14 @@ class RangeError extends ArgumentError {
   ///
   /// Returns the actual `end` value, which is `length` if `end` is `null`,
   /// and `end` otherwise.
-  static int checkValidRange(int start, int? end, int length,
-      [String? startName, String? endName, String? message]) {
+  static int checkValidRange(
+    int start,
+    int? end,
+    int length, [
+    String? startName,
+    String? endName,
+    String? message,
+  ]) {
     // Comparing with `0` as receiver produces better dart2js type inference.
     // Ditto `start > end` below.
     if (0 > start || start > length) {
@@ -435,12 +462,16 @@ class IndexError extends ArgumentError implements RangeError {
   ///
   /// The message is used as part of the string representation of the error.
   @Deprecated("Use IndexError.withLength instead.")
-  IndexError(int invalidValue, dynamic indexable,
-      [String? name, String? message, int? length])
-      : this.indexable = indexable,
-        // ignore: avoid_dynamic_calls
-        this.length = length ?? indexable.length,
-        super.value(invalidValue, name, message ?? "Index out of range");
+  IndexError(
+    int invalidValue,
+    dynamic indexable, [
+    String? name,
+    String? message,
+    int? length,
+  ]) : this.indexable = indexable,
+       // ignore: avoid_dynamic_calls
+       this.length = length ?? indexable.length,
+       super.value(invalidValue, name, message ?? "Index out of range");
 
   /// Creates a new [IndexError] stating that [invalidValue] is not a valid index
   /// into [indexable].
@@ -449,9 +480,13 @@ class IndexError extends ArgumentError implements RangeError {
   ///
   /// The message is used as part of the string representation of the error.
   @Since("2.19")
-  IndexError.withLength(int invalidValue, this.length,
-      {this.indexable, String? name, String? message})
-      : super.value(invalidValue, name, message ?? "Index out of range");
+  IndexError.withLength(
+    int invalidValue,
+    this.length, {
+    this.indexable,
+    String? name,
+    String? message,
+  }) : super.value(invalidValue, name, message ?? "Index out of range");
 
   /// Check that [index] is a valid index into an indexable object.
   ///
@@ -472,13 +507,23 @@ class IndexError extends ArgumentError implements RangeError {
   ///
   /// Returns [index] if it is a valid index.
   @Since("2.19")
-  static int check(int index, int length,
-      {Object? indexable, String? name, String? message}) {
+  static int check(
+    int index,
+    int length, {
+    Object? indexable,
+    String? name,
+    String? message,
+  }) {
     // Comparing with `0` as receiver produces better dart2js type inference.
     if (0 > index || index >= length) {
       name ??= "index";
-      throw IndexError.withLength(index, length,
-          indexable: indexable, name: name, message: message);
+      throw IndexError.withLength(
+        index,
+        length,
+        indexable: indexable,
+        name: name,
+        message: message,
+      );
     }
     return index;
   }
@@ -518,7 +563,9 @@ class NoSuchMethodError extends Error {
   /// The [invocation] represents the method call that failed. It
   /// should not be `null`.
   external factory NoSuchMethodError.withInvocation(
-      Object? receiver, Invocation invocation);
+    Object? receiver,
+    Invocation invocation,
+  );
 
   external String toString();
 }

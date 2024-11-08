@@ -25,14 +25,16 @@ final class BoxedInt implements int {
   }
 
   @pragma("wasm:prefer-inline")
-  int operator ~/(num other) => other is int
-      ? _truncDiv(this.value, other)
-      : BoxedDouble.truncDiv(toDouble(), unsafeCast<double>(other));
+  int operator ~/(num other) =>
+      other is int
+          ? _truncDiv(this.value, other)
+          : BoxedDouble.truncDiv(toDouble(), unsafeCast<double>(other));
 
   @pragma("wasm:prefer-inline")
-  num operator %(num other) => other is int
-      ? _modulo(this, other)
-      : BoxedDouble.modulo(toDouble(), unsafeCast<double>(other));
+  num operator %(num other) =>
+      other is int
+          ? _modulo(this, other)
+          : BoxedDouble.modulo(toDouble(), unsafeCast<double>(other));
 
   static int _modulo(int a, int b) {
     int rem = a - (a ~/ b) * b;
@@ -63,9 +65,10 @@ final class BoxedInt implements int {
   }
 
   @pragma("wasm:prefer-inline")
-  num remainder(num other) => other is int
-      ? this - (this ~/ other) * other
-      : BoxedDouble.computeRemainder(toDouble(), unsafeCast<double>(other));
+  num remainder(num other) =>
+      other is int
+          ? this - (this ~/ other) * other
+          : BoxedDouble.computeRemainder(toDouble(), unsafeCast<double>(other));
 
   external int operator -();
 
@@ -126,10 +129,12 @@ final class BoxedInt implements int {
   @pragma("wasm:prefer-inline")
   bool operator ==(Object other) {
     return other is int
-        ? this == other // Intrinsic ==
+        ? this ==
+            other // Intrinsic ==
         : other is double
-            ? this.toDouble() == other // Intrinsic ==
-            : false;
+        ? this.toDouble() ==
+            other // Intrinsic ==
+        : false;
   }
 
   @pragma("wasm:prefer-inline")

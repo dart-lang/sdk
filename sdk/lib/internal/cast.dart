@@ -49,8 +49,11 @@ abstract class _CastIterableBase<S, T> extends Iterable<T> {
   // Might be implemented by testing backwards from the end,
   // so use the _source's implementation.
   T lastWhere(bool test(T element), {T Function()? orElse}) =>
-      _source.lastWhere((S element) => test(element as T),
-          orElse: (orElse == null) ? null : () => orElse() as S) as T;
+      _source.lastWhere(
+            (S element) => test(element as T),
+            orElse: (orElse == null) ? null : () => orElse() as S,
+          )
+          as T;
 
   String toString() => _source.toString();
 }
@@ -80,7 +83,7 @@ class CastIterable<S, T> extends _CastIterableBase<S, T> {
 class _EfficientLengthCastIterable<S, T> extends CastIterable<S, T>
     implements EfficientLengthIterable<T>, HideEfficientLengthIterable<T> {
   _EfficientLengthCastIterable(EfficientLengthIterable<S> source)
-      : super._(source);
+    : super._(source);
 }
 
 abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
@@ -116,7 +119,8 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
 
   void sort([int Function(T v1, T v2)? compare]) {
     _source.sort(
-        compare == null ? null : (S v1, S v2) => compare(v1 as T, v2 as T));
+      compare == null ? null : (S v1, S v2) => compare(v1 as T, v2 as T),
+    );
   }
 
   void shuffle([Random? random]) {
@@ -298,8 +302,12 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
   bool get isNotEmpty => _source.isNotEmpty;
 
   V update(K key, V update(V value), {V Function()? ifAbsent}) {
-    return _source.update(key as SK, (SV value) => update(value as V) as SV,
-        ifAbsent: (ifAbsent == null) ? null : () => ifAbsent() as SV) as V;
+    return _source.update(
+          key as SK,
+          (SV value) => update(value as V) as SV,
+          ifAbsent: (ifAbsent == null) ? null : () => ifAbsent() as SV,
+        )
+        as V;
   }
 
   void updateAll(V update(K key, V value)) {
@@ -308,7 +316,8 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
 
   Iterable<MapEntry<K, V>> get entries {
     return _source.entries.map<MapEntry<K, V>>(
-        (MapEntry<SK, SV> e) => new MapEntry<K, V>(e.key as K, e.value as V));
+      (MapEntry<SK, SV> e) => new MapEntry<K, V>(e.key as K, e.value as V),
+    );
   }
 
   void addEntries(Iterable<MapEntry<K, V>> entries) {

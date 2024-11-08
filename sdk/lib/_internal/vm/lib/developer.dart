@@ -27,14 +27,16 @@ external bool debugger({bool when = true, String? message});
 external Object? inspect(Object? object);
 
 @patch
-void log(String message,
-    {DateTime? time,
-    int? sequenceNumber,
-    int level = 0,
-    String name = '',
-    Zone? zone,
-    Object? error,
-    StackTrace? stackTrace}) {
+void log(
+  String message, {
+  DateTime? time,
+  int? sequenceNumber,
+  int level = 0,
+  String name = '',
+  Zone? zone,
+  Object? error,
+  StackTrace? stackTrace,
+}) {
   if (message is! String) {
     throw new ArgumentError.value(message, "message", "Must be a String");
   }
@@ -47,8 +49,16 @@ void log(String message,
   } else {
     _nextSequenceNumber = sequenceNumber + 1;
   }
-  _log(message, time.millisecondsSinceEpoch, sequenceNumber, level, name, zone,
-      error, stackTrace);
+  _log(
+    message,
+    time.millisecondsSinceEpoch,
+    sequenceNumber,
+    level,
+    name,
+    zone,
+    error,
+    stackTrace,
+  );
 }
 
 @patch
@@ -58,8 +68,16 @@ external int get reachabilityBarrier;
 int _nextSequenceNumber = 0;
 
 @pragma("vm:external-name", "Developer_log")
-external _log(String message, int timestamp, int sequenceNumber, int level,
-    String name, Zone? zone, Object? error, StackTrace? stackTrace);
+external _log(
+  String message,
+  int timestamp,
+  int sequenceNumber,
+  int level,
+  String name,
+  Zone? zone,
+  Object? error,
+  StackTrace? stackTrace,
+);
 
 @patch
 @pragma("vm:external-name", "Developer_postEvent")
@@ -76,13 +94,14 @@ external _registerExtension(String method, ServiceExtensionHandler handler);
 // This code is only invoked when there is no other Dart code on the stack.
 @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 _runExtension(
-    ServiceExtensionHandler handler,
-    String method,
-    List<String> parameterKeys,
-    List<String> parameterValues,
-    SendPort replyPort,
-    Object id,
-    bool trace_service) {
+  ServiceExtensionHandler handler,
+  String method,
+  List<String> parameterKeys,
+  List<String> parameterValues,
+  SendPort replyPort,
+  Object id,
+  bool trace_service,
+) {
   var parameters = <String, String>{};
   for (var i = 0; i < parameterKeys.length; i++) {
     parameters[parameterKeys[i]] = parameterValues[i];
@@ -93,40 +112,53 @@ _runExtension(
   } catch (e, st) {
     var errorDetails = (st == null) ? '$e' : '$e\n$st';
     response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.extensionError, errorDetails);
+      ServiceExtensionResponse.extensionError,
+      errorDetails,
+    );
     _postResponse(replyPort, id, response, trace_service);
     return;
   }
   if (response is! Future) {
     response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.extensionError,
-        "Extension handler must return a Future");
+      ServiceExtensionResponse.extensionError,
+      "Extension handler must return a Future",
+    );
     _postResponse(replyPort, id, response, trace_service);
     return;
   }
-  response.catchError((e, st) {
-    // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
-    var errorDetails = (st == null) ? '$e' : '$e\n$st';
-    return new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.extensionError, errorDetails);
-  }).then((response) {
-    // Post the valid response or the wrapped error after verifying that
-    // the response is a ServiceExtensionResponse.
-    if (response is! ServiceExtensionResponse) {
-      response = new ServiceExtensionResponse.error(
+  response
+      .catchError((e, st) {
+        // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
+        var errorDetails = (st == null) ? '$e' : '$e\n$st';
+        return new ServiceExtensionResponse.error(
           ServiceExtensionResponse.extensionError,
-          "Extension handler must complete to a ServiceExtensionResponse");
-    }
-    _postResponse(replyPort, id, response, trace_service);
-  }).catchError((e, st) {
-    // We do not expect any errors to occur in the .then or .catchError blocks
-    // but, suppress them just in case.
-  });
+          errorDetails,
+        );
+      })
+      .then((response) {
+        // Post the valid response or the wrapped error after verifying that
+        // the response is a ServiceExtensionResponse.
+        if (response is! ServiceExtensionResponse) {
+          response = new ServiceExtensionResponse.error(
+            ServiceExtensionResponse.extensionError,
+            "Extension handler must complete to a ServiceExtensionResponse",
+          );
+        }
+        _postResponse(replyPort, id, response, trace_service);
+      })
+      .catchError((e, st) {
+        // We do not expect any errors to occur in the .then or .catchError blocks
+        // but, suppress them just in case.
+      });
 }
 
 // This code is only invoked by _runExtension.
-_postResponse(SendPort replyPort, Object id, ServiceExtensionResponse response,
-    bool trace_service) {
+_postResponse(
+  SendPort replyPort,
+  Object id,
+  ServiceExtensionResponse response,
+  bool trace_service,
+) {
   assert(replyPort != null);
   if (id == null) {
     if (trace_service) {
@@ -174,7 +206,10 @@ external void _getServerInfo(SendPort sendPort);
 @patch
 @pragma("vm:external-name", "Developer_webServerControl")
 external void _webServerControl(
-    SendPort sendPort, bool enable, bool? silenceOutput);
+  SendPort sendPort,
+  bool enable,
+  bool? silenceOutput,
+);
 
 @patch
 @pragma("vm:external-name", "Developer_getIsolateIdFromSendPort")

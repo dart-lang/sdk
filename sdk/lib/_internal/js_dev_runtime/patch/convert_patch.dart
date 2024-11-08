@@ -30,8 +30,11 @@ _parseJson(String source, reviver(key, value)?) {
 
   var parsed;
   try {
-    parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
-        'JSON.parse(#)', source);
+    parsed = JS(
+      '=Object|JSExtendableArray|Null|bool|num|String',
+      'JSON.parse(#)',
+      source,
+    );
   } catch (e) {
     throw FormatException(JS<String>('!', 'String(#)', e));
   }

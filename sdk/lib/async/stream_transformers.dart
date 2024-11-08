@@ -36,17 +36,21 @@ class _SinkTransformerStreamSubscription<S, T>
   StreamSubscription<S>? _subscription;
 
   _SinkTransformerStreamSubscription(
-      Stream<S> source,
-      _SinkMapper<S, T> mapper,
-      void onData(T data)?,
-      Function? onError,
-      void onDone()?,
-      bool cancelOnError)
-      // We set the adapter's target only when the user is allowed to send data.
-      : super(onData, onError, onDone, cancelOnError) {
+    Stream<S> source,
+    _SinkMapper<S, T> mapper,
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  )
+    // We set the adapter's target only when the user is allowed to send data.
+    : super(onData, onError, onDone, cancelOnError) {
     _transformerSink = mapper(_EventSinkWrapper<T>(this));
-    _subscription =
-        source.listen(_handleData, onError: _handleError, onDone: _handleDone);
+    _subscription = source.listen(
+      _handleData,
+      onError: _handleError,
+      onDone: _handleDone,
+    );
   }
 
   // _EventSink interface.
@@ -165,11 +169,21 @@ class _BoundSinkStream<S, T> extends Stream<T> {
 
   _BoundSinkStream(this._stream, this._sinkMapper);
 
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<T> listen(
+    void onData(T event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
     StreamSubscription<T> subscription =
-        _SinkTransformerStreamSubscription<S, T>(_stream, _sinkMapper, onData,
-            onError, onDone, cancelOnError ?? false);
+        _SinkTransformerStreamSubscription<S, T>(
+          _stream,
+          _sinkMapper,
+          onData,
+          onError,
+          onDone,
+          cancelOnError ?? false,
+        );
     return subscription;
   }
 }
@@ -179,7 +193,10 @@ typedef void _TransformDataHandler<S, T>(S data, EventSink<T> sink);
 
 /// Error-handler coming from [StreamTransformer.fromHandlers].
 typedef void _TransformErrorHandler<T>(
-    Object error, StackTrace stackTrace, EventSink<T> sink);
+  Object error,
+  StackTrace stackTrace,
+  EventSink<T> sink,
+);
 
 /// Done-handler coming from [StreamTransformer.fromHandlers].
 typedef void _TransformDoneHandler<T>(EventSink<T> sink);
@@ -196,8 +213,12 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
   /// Set to `null` when closed.
   EventSink<T>? _sink;
 
-  _HandlerEventSink(this._handleData, this._handleError, this._handleDone,
-      EventSink<T> this._sink);
+  _HandlerEventSink(
+    this._handleData,
+    this._handleError,
+    this._handleDone,
+    EventSink<T> this._sink,
+  );
 
   void add(S data) {
     var sink = _sink;
@@ -243,14 +264,18 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
 ///
 /// Note that this transformer can only be used once.
 class _StreamHandlerTransformer<S, T> extends _StreamSinkTransformer<S, T> {
-  _StreamHandlerTransformer(
-      {void handleData(S data, EventSink<T> sink)?,
-      void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
-      void handleDone(EventSink<T> sink)?})
-      : super((EventSink<T> outputSink) {
-          return new _HandlerEventSink<S, T>(
-              handleData, handleError, handleDone, outputSink);
-        });
+  _StreamHandlerTransformer({
+    void handleData(S data, EventSink<T> sink)?,
+    void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
+    void handleDone(EventSink<T> sink)?,
+  }) : super((EventSink<T> outputSink) {
+         return new _HandlerEventSink<S, T>(
+           handleData,
+           handleError,
+           handleDone,
+           outputSink,
+         );
+       });
 
   Stream<T> bind(Stream<S> stream) {
     return super.bind(stream);
@@ -267,7 +292,9 @@ class _StreamBindTransformer<S, T> extends StreamTransformerBase<S, T> {
 
 /// A closure mapping a stream and cancelOnError to a StreamSubscription.
 typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
-    Stream<S> stream, bool cancelOnError);
+  Stream<S> stream,
+  bool cancelOnError,
+);
 
 /// A [StreamTransformer] that minimizes the number of additional classes.
 ///
@@ -301,8 +328,12 @@ class _BoundSubscriptionStream<S, T> extends Stream<T> {
 
   _BoundSubscriptionStream(this._stream, this._onListen);
 
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<T> listen(
+    void onData(T event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
     StreamSubscription<T> result = _onListen(_stream, cancelOnError ?? false);
     result.onData(onData);
     result.onError(onError);

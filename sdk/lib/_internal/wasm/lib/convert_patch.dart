@@ -20,11 +20,14 @@ import "dart:typed_data" show Uint8List;
 
 @patch
 dynamic _parseJson(
-    String source, Object? Function(Object? key, Object? value)? reviver) {
+  String source,
+  Object? Function(Object? key, Object? value)? reviver,
+) {
   _JsonListener listener = new _JsonListener(reviver);
   var parser = new _JsonStringParser(listener);
   parser.chunk = unsafeCast<StringBase>(
-      source is JSStringImpl ? jsStringToDartString(source) : source);
+    source is JSStringImpl ? jsStringToDartString(source) : source,
+  );
   parser.chunkEnd = source.length;
   parser.parse(0);
   parser.close();
@@ -37,8 +40,10 @@ class Utf8Decoder {
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
       return _JsonUtf8Decoder(
-              (next as JsonDecoder)._reviver, this._allowMalformed)
-          as dynamic/*=Converter<List<int>, T>*/;
+            (next as JsonDecoder)._reviver,
+            this._allowMalformed,
+          )
+          as dynamic /*=Converter<List<int>, T>*/;
     }
     return super.fuse<T>(next);
   }
@@ -86,15 +91,20 @@ class _JsonListener {
   int stackLength = 0;
 
   void stackPush(WasmArray<Object?>? value, int valueLength) {
-    final GrowableList<Object?>? valueAsList = value == null
-        ? null
-        : GrowableList.withDataAndLength(value, valueLength);
+    final GrowableList<Object?>? valueAsList =
+        value == null
+            ? null
+            : GrowableList.withDataAndLength(value, valueLength);
 
     // `GrowableList._nextCapacity` is copied here as the next capacity. We
     // can't use `GrowableList._nextCapacity` as tear-off as it's difficult to
     // inline tear-offs manually in the `pushWasmArray` compiler.
     pushWasmArray<GrowableList<Object?>?>(
-        this.stack, this.stackLength, valueAsList, (stackLength * 2) | 3);
+      this.stack,
+      this.stackLength,
+      valueAsList,
+      (stackLength * 2) | 3,
+    );
   }
 
   GrowableList<dynamic>? stackPop() {
@@ -111,11 +121,16 @@ class _JsonListener {
   int currentContainerLength = 0;
 
   void currentContainerPush(Object? value) {
-    WasmArray<Object?> currentContainerNonNull =
-        unsafeCast<WasmArray<Object?>>(this.currentContainer);
+    WasmArray<Object?> currentContainerNonNull = unsafeCast<WasmArray<Object?>>(
+      this.currentContainer,
+    );
     // Per `_HashBase` invariant capacity needs to be a power of two.
-    pushWasmArray<Object?>(currentContainerNonNull, this.currentContainerLength,
-        value, currentContainerLength == 0 ? 8 : (currentContainerLength * 2));
+    pushWasmArray<Object?>(
+      currentContainerNonNull,
+      this.currentContainerLength,
+      value,
+      currentContainerLength == 0 ? 8 : (currentContainerLength * 2),
+    );
     currentContainer = currentContainerNonNull;
   }
 
@@ -136,7 +151,9 @@ class _JsonListener {
       value = null;
     } else {
       value = GrowableList.withDataAndLength(
-          currentContainerLocal, currentContainerLength);
+        currentContainerLocal,
+        currentContainerLength,
+      );
     }
 
     final GrowableList<dynamic>? currentContainerList = stackPop();
@@ -176,8 +193,9 @@ class _JsonListener {
 
   void propertyValue() {
     if (reviver case final reviver?) {
-      final keyValuePairs =
-          unsafeCast<WasmArray<Object?>>(currentContainer); // null deref
+      final keyValuePairs = unsafeCast<WasmArray<Object?>>(
+        currentContainer,
+      ); // null deref
       final key = keyValuePairs[currentContainerLength - 1];
       currentContainerPush(reviver(key, value));
     } else {
@@ -190,7 +208,9 @@ class _JsonListener {
     popContainer();
     final list = unsafeCast<GrowableList>(value);
     value = createMapFromKeyValueListUnsafe<String, dynamic>(
-        list.data, list.length);
+      list.data,
+      list.length,
+    );
   }
 
   void beginArray() {
@@ -240,7 +260,7 @@ class _NumberBuffer {
   WasmArray<WasmI8> array;
   int length = 0;
   _NumberBuffer(int initialCapacity)
-      : array = WasmArray<WasmI8>(_initialCapacity(initialCapacity));
+    : array = WasmArray<WasmI8>(_initialCapacity(initialCapacity));
 
   int get capacity => array.length;
 
@@ -483,8 +503,9 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   /**
    * Number parts stored while parsing a number.
    */
-  late final _NumberBuffer numberBuffer =
-      _NumberBuffer(_NumberBuffer.minCapacity);
+  late final _NumberBuffer numberBuffer = _NumberBuffer(
+    _NumberBuffer.minCapacity,
+  );
 
   /**
    * Push the current parse [state] on a stack.
@@ -586,7 +607,11 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Used for number buffer (always copies ASCII, so encoding is not important).
    */
   void copyCharsToList(
-      int start, int end, WasmArray<WasmI8> target, int offset);
+    int start,
+    int end,
+    WasmArray<WasmI8> target,
+    int offset,
+  );
 
   /**
    * Build a string using input code units.
@@ -1157,7 +1182,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
    * Returns [chunkEnd] so it can be used as part of a return statement.
    */
   int chunkStringEscapeU(int count, int value) {
-    partialState = PARTIAL_STRING |
+    partialState =
+        PARTIAL_STRING |
         STR_U |
         (count << STR_U_COUNT_SHIFT) |
         (value << STR_U_VALUE_SHIFT);
@@ -1433,7 +1459,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
       char = getChar(position);
       int expSign = 1;
       int exponent = 0;
-      if (((char + 1) | 2) == 0x2e /*+ or -*/) {
+      if (((char + 1) | 2) == 0x2e /*+ or -*/ ) {
         expSign = 0x2C - char; // -1 for MINUS, +1 for PLUS
         position++;
         if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
@@ -1457,7 +1483,8 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
           listener.handleNumber(sign < 0 ? -0.0 : 0.0);
         } else {
           listener.handleNumber(
-              sign < 0 ? double.negativeInfinity : double.infinity);
+            sign < 0 ? double.negativeInfinity : double.infinity,
+          );
         }
         return position;
       }
@@ -1544,7 +1571,11 @@ class _JsonStringParser extends _JsonParserWithListener
   }
 
   void copyCharsToList(
-      int start, int end, WasmArray<WasmI8> target, int offset) {
+    int start,
+    int end,
+    WasmArray<WasmI8> target,
+    int offset,
+  ) {
     int length = end - start;
     for (int i = 0; i < length; i++) {
       target.write(offset + i, chunk.codeUnitAtUnchecked(start + i));
@@ -1576,16 +1607,18 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   final Sink<Object?> _sink;
 
   _JsonStringDecoderSink(this._reviver, this._sink)
-      : _parser = _createParser(_reviver);
+    : _parser = _createParser(_reviver);
 
   static _JsonStringParser _createParser(
-      Object? Function(Object? key, Object? value)? reviver) {
+    Object? Function(Object? key, Object? value)? reviver,
+  ) {
     return new _JsonStringParser(new _JsonListener(reviver));
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
     _parser.chunk = unsafeCast<StringBase>(
-        chunk is JSStringImpl ? jsStringToDartString(chunk) : chunk);
+      chunk is JSStringImpl ? jsStringToDartString(chunk) : chunk,
+    );
     _parser.chunkEnd = end;
     _parser.parse(start);
     if (isLast) _parser.close();
@@ -1619,8 +1652,8 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   int chunkEnd = 0;
 
   _JsonUtf8Parser(_JsonListener listener, bool allowMalformed)
-      : decoder = new _Utf8Decoder(allowMalformed),
-        super(listener) {
+    : decoder = new _Utf8Decoder(allowMalformed),
+      super(listener) {
     // Starts out checking for an optional BOM (KWD_BOM, count = 0).
     partialState =
         _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
@@ -1679,7 +1712,11 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   }
 
   void copyCharsToList(
-      int start, int end, WasmArray<WasmI8> target, int offset) {
+    int start,
+    int end,
+    WasmArray<WasmI8> target,
+    int offset,
+  ) {
     int length = end - start;
     target.copy(offset, chunk.data, start, length);
   }
@@ -1703,11 +1740,12 @@ class _JsonUtf8DecoderSink extends ByteConversionSink {
   final Sink<Object?> _sink;
 
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
-      : _parser = _createParser(reviver, allowMalformed);
+    : _parser = _createParser(reviver, allowMalformed);
 
   static _JsonUtf8Parser _createParser(
-      Object? Function(Object? key, Object? value)? reviver,
-      bool allowMalformed) {
+    Object? Function(Object? key, Object? value)? reviver,
+    bool allowMalformed,
+  ) {
     return new _JsonUtf8Parser(new _JsonListener(reviver), allowMalformed);
   }
 
@@ -1859,8 +1897,12 @@ class _Utf8Decoder {
     if (start == end) return "";
 
     if (codeUnits is JSUint8ArrayImpl) {
-      JSStringImpl? decoded =
-          decodeUtf8JS(codeUnits, start, end, allowMalformed);
+      JSStringImpl? decoded = decodeUtf8JS(
+        codeUnits,
+        start,
+        end,
+        allowMalformed,
+      );
       if (decoded != null) return decoded;
     }
 
@@ -1883,7 +1925,10 @@ class _Utf8Decoder {
             byte = 0xFF;
           } else {
             throw FormatException(
-                'Invalid UTF-8 byte', codeUnits, codeUnitsIdx);
+              'Invalid UTF-8 byte',
+              codeUnits,
+              codeUnitsIdx,
+            );
           }
         }
         u8listData.write(u8listIdx++, byte);
@@ -1908,8 +1953,9 @@ class _Utf8Decoder {
       // Pure ASCII.
       assert(size == end - start);
       OneByteString result = OneByteString.withLength(size);
-      oneByteStringArray(result)
-          .copy(0, bytes.data, bytes.offsetInBytes + start, size);
+      oneByteStringArray(
+        result,
+      ).copy(0, bytes.data, bytes.offsetInBytes + start, size);
       return result;
     }
 
@@ -2127,18 +2173,22 @@ class _Utf8Decoder {
     }
     // Output size must match, unless we are doing single conversion and are
     // inside an unfinished sequence (which will trigger an error later).
-    assert(_bomIndex == 0 && _state != accept
-        ? (j == size - 1 || j == size - 2)
-        : (j == size));
+    assert(
+      _bomIndex == 0 && _state != accept
+          ? (j == size - 1 || j == size - 2)
+          : (j == size),
+    );
     return result;
   }
 
   String decode16(Uint8List bytes, int start, int end, int size) {
     assert(start < end);
-    final OneByteString transitionTable =
-        unsafeCast<OneByteString>(_Utf8Decoder.transitionTable);
-    final OneByteString typeTable =
-        unsafeCast<OneByteString>(_Utf8Decoder.typeTable);
+    final OneByteString transitionTable = unsafeCast<OneByteString>(
+      _Utf8Decoder.transitionTable,
+    );
+    final OneByteString typeTable = unsafeCast<OneByteString>(
+      _Utf8Decoder.typeTable,
+    );
     TwoByteString result = TwoByteString.withLength(size);
     int i = start;
     int j = 0;
@@ -2199,9 +2249,11 @@ class _Utf8Decoder {
     _charOrIndex = char;
     // Output size must match, unless we are doing single conversion and are
     // inside an unfinished sequence (which will trigger an error later).
-    assert(_bomIndex == 0 && _state != accept
-        ? (j == size - 1 || j == size - 2)
-        : (j == size));
+    assert(
+      _bomIndex == 0 && _state != accept
+          ? (j == size - 1 || j == size - 2)
+          : (j == size),
+    );
     return result;
   }
 }

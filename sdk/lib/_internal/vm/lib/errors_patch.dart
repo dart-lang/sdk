@@ -30,7 +30,12 @@ class Error {
 class _AssertionError extends Error implements AssertionError {
   @pragma("vm:entry-point")
   _AssertionError._create(
-      this._failedAssertion, this._url, this._line, this._column, this.message);
+    this._failedAssertion,
+    this._url,
+    this._line,
+    this._column,
+    this.message,
+  );
 
   // AssertionError_throwNew in errors.cc fishes the assertion source code
   // out of the script. It expects a Dart stack frame from class
@@ -42,12 +47,20 @@ class _AssertionError extends Error implements AssertionError {
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:external-name", "AssertionError_throwNewSource")
-  external static _throwNewSource(String failedAssertion, String? scriptUrl,
-      int line, int column, Object? message);
+  external static _throwNewSource(
+    String failedAssertion,
+    String? scriptUrl,
+    int line,
+    int column,
+    Object? message,
+  );
 
   @pragma("vm:external-name", "AssertionError_throwNew")
   external static _doThrowNew(
-      int assertionStart, int assertionEnd, Object? message);
+    int assertionStart,
+    int assertionEnd,
+    Object? message,
+  );
 
   @pragma("vm:entry-point", "call")
   static bool _evaluateAssertion(condition) {
@@ -98,7 +111,11 @@ class _TypeError extends Error implements TypeError {
   @pragma("vm:entry-point", "call")
   @pragma("vm:external-name", "TypeError_throwNew")
   external static _throwNew(
-      int location, Object srcValue, _Type dstType, String dstName);
+    int location,
+    Object srcValue,
+    _Type dstType,
+    String dstName,
+  );
 
   String toString() => _message;
 
@@ -139,8 +156,9 @@ class NoSuchMethodError {
 
   @patch
   factory NoSuchMethodError.withInvocation(
-          Object? receiver, Invocation invocation) =
-      NoSuchMethodError._withInvocation;
+    Object? receiver,
+    Invocation invocation,
+  ) = NoSuchMethodError._withInvocation;
 
   NoSuchMethodError._withInvocation(this._receiver, this._invocation);
 
@@ -153,20 +171,30 @@ class NoSuchMethodError {
   // unresolved method.
   @pragma("vm:entry-point", "call")
   static void _throwNew(
-      Object receiver,
-      String memberName,
-      int invocationType,
-      int typeArgumentsLength,
-      Object? typeArguments,
-      List? arguments,
-      List? argumentNames) {
-    throw new NoSuchMethodError._withType(receiver, memberName, invocationType,
-        typeArgumentsLength, typeArguments, arguments, argumentNames);
+    Object receiver,
+    String memberName,
+    int invocationType,
+    int typeArgumentsLength,
+    Object? typeArguments,
+    List? arguments,
+    List? argumentNames,
+  ) {
+    throw new NoSuchMethodError._withType(
+      receiver,
+      memberName,
+      invocationType,
+      typeArgumentsLength,
+      typeArguments,
+      arguments,
+      argumentNames,
+    );
   }
 
   // Helper to build a map of named arguments.
   static Map<Symbol, dynamic> _NamedArgumentsMap(
-      List arguments, List argumentNames) {
+    List arguments,
+    List argumentNames,
+  ) {
     Map<Symbol, dynamic> namedArguments = new Map<Symbol, dynamic>();
     int numPositionalArguments = arguments.length - argumentNames.length;
     for (int i = 0; i < argumentNames.length; i++) {
@@ -182,28 +210,34 @@ class NoSuchMethodError {
   // than a separate list of positional arguments and a map of named arguments.
   @pragma("vm:entry-point")
   NoSuchMethodError._withType(
-      this._receiver,
-      String memberName,
-      int invocationType,
-      int typeArgumentsLength, // Needed with all-dynamic (null) typeArguments.
-      Object? typeArguments,
-      List? arguments,
-      List? argumentNames)
-      : this._invocation = new _InvocationMirror._withType(
-            new Symbol(memberName),
-            invocationType,
-            _InvocationMirror._unpackTypeArguments(
-                typeArguments, typeArgumentsLength),
-            argumentNames != null
-                ? arguments!.sublist(0, arguments.length - argumentNames.length)
-                : arguments,
-            argumentNames != null
-                ? _NamedArgumentsMap(arguments!, argumentNames)
-                : null);
+    this._receiver,
+    String memberName,
+    int invocationType,
+    int typeArgumentsLength, // Needed with all-dynamic (null) typeArguments.
+    Object? typeArguments,
+    List? arguments,
+    List? argumentNames,
+  ) : this._invocation = new _InvocationMirror._withType(
+        new Symbol(memberName),
+        invocationType,
+        _InvocationMirror._unpackTypeArguments(
+          typeArguments,
+          typeArgumentsLength,
+        ),
+        argumentNames != null
+            ? arguments!.sublist(0, arguments.length - argumentNames.length)
+            : arguments,
+        argumentNames != null
+            ? _NamedArgumentsMap(arguments!, argumentNames)
+            : null,
+      );
 
   @pragma("vm:external-name", "NoSuchMethodError_existingMethodSignature")
   external static String? _existingMethodSignature(
-      Object? receiver, String methodName, int invocationType);
+    Object? receiver,
+    String methodName,
+    int invocationType,
+  );
 
   @patch
   String toString() {
@@ -212,7 +246,8 @@ class NoSuchMethodError {
       var internalName = localInvocation.memberName as internal.Symbol;
       String memberName = internal.Symbol.computeUnmangledName(internalName);
 
-      var level = (localInvocation._type >> _InvocationMirror._LEVEL_SHIFT) &
+      var level =
+          (localInvocation._type >> _InvocationMirror._LEVEL_SHIFT) &
           _InvocationMirror._LEVEL_MASK;
       var kind = localInvocation._type & _InvocationMirror._KIND_MASK;
       if (kind == _InvocationMirror._LOCAL_VAR) {
@@ -241,8 +276,9 @@ class NoSuchMethodError {
           if (argumentCount > 0) {
             argumentsBuf.write(", ");
           }
-          argumentsBuf
-              .write(Error.safeToString(positionalArguments[argumentCount]));
+          argumentsBuf.write(
+            Error.safeToString(positionalArguments[argumentCount]),
+          );
         }
       }
       var namedArguments = localInvocation.namedArguments;
@@ -252,26 +288,31 @@ class NoSuchMethodError {
             argumentsBuf.write(", ");
           }
           var internalName = key as internal.Symbol;
-          argumentsBuf
-              .write(internal.Symbol.computeUnmangledName(internalName));
+          argumentsBuf.write(
+            internal.Symbol.computeUnmangledName(internalName),
+          );
           argumentsBuf.write(": ");
           argumentsBuf.write(Error.safeToString(value));
           argumentCount++;
         });
       }
       String? existingSig = _existingMethodSignature(
-          _receiver, memberName, localInvocation._type);
+        _receiver,
+        memberName,
+        localInvocation._type,
+      );
       String argsMsg = existingSig != null ? " with matching arguments" : "";
 
       String kindBuf = "function";
       if (kind >= 0 && kind < 5) {
-        kindBuf = (const [
-          "method",
-          "getter",
-          "setter",
-          "getter or setter",
-          "variable"
-        ])[kind];
+        kindBuf =
+            (const [
+              "method",
+              "getter",
+              "setter",
+              "getter or setter",
+              "variable",
+            ])[kind];
       }
 
       StringBuffer msgBuf = new StringBuffer("NoSuchMethodError: ");
@@ -281,56 +322,71 @@ class NoSuchMethodError {
           {
             if (_receiver == null) {
               if (existingSig != null) {
-                msgBuf.writeln("The null object does not have a $kindBuf "
-                    "'$memberName'$argsMsg.");
+                msgBuf.writeln(
+                  "The null object does not have a $kindBuf "
+                  "'$memberName'$argsMsg.",
+                );
               } else {
-                msgBuf
-                    .writeln("The $kindBuf '$memberName' was called on null.");
+                msgBuf.writeln(
+                  "The $kindBuf '$memberName' was called on null.",
+                );
               }
             } else {
               if (_receiver is _Closure) {
-                msgBuf.writeln("Closure call with mismatched arguments: "
-                    "function '$memberName'");
+                msgBuf.writeln(
+                  "Closure call with mismatched arguments: "
+                  "function '$memberName'",
+                );
               } else if (_receiver is _Type && memberName == "call") {
                 isTypeCall = true;
                 String name = _receiver.toString();
-                msgBuf.writeln("Attempted to use type '$name' as a function. "
-                    "Since types do not define a method 'call', this is not "
-                    "possible. Did you intend to call the $name constructor and "
-                    "forget the 'new' operator?");
+                msgBuf.writeln(
+                  "Attempted to use type '$name' as a function. "
+                  "Since types do not define a method 'call', this is not "
+                  "possible. Did you intend to call the $name constructor and "
+                  "forget the 'new' operator?",
+                );
               } else {
-                msgBuf
-                    .writeln("Class '${_receiver.runtimeType}' has no instance "
-                        "$kindBuf '$memberName'$argsMsg.");
+                msgBuf.writeln(
+                  "Class '${_receiver.runtimeType}' has no instance "
+                  "$kindBuf '$memberName'$argsMsg.",
+                );
               }
             }
             break;
           }
         case _InvocationMirror._SUPER:
           {
-            msgBuf
-                .writeln("Super class of class '${_receiver.runtimeType}' has "
-                    "no instance $kindBuf '$memberName'$argsMsg.");
+            msgBuf.writeln(
+              "Super class of class '${_receiver.runtimeType}' has "
+              "no instance $kindBuf '$memberName'$argsMsg.",
+            );
             memberName = "super.$memberName";
             break;
           }
         case _InvocationMirror._STATIC:
           {
-            msgBuf.writeln("No static $kindBuf '$memberName'$argsMsg "
-                "declared in class '$_receiver'.");
+            msgBuf.writeln(
+              "No static $kindBuf '$memberName'$argsMsg "
+              "declared in class '$_receiver'.",
+            );
             break;
           }
         case _InvocationMirror._CONSTRUCTOR:
           {
-            msgBuf.writeln("No constructor '$memberName'$argsMsg declared "
-                "in class '$_receiver'.");
+            msgBuf.writeln(
+              "No constructor '$memberName'$argsMsg declared "
+              "in class '$_receiver'.",
+            );
             memberName = "new $memberName";
             break;
           }
         case _InvocationMirror._TOP_LEVEL:
           {
-            msgBuf.writeln("No top-level $kindBuf '$memberName'$argsMsg "
-                "declared.");
+            msgBuf.writeln(
+              "No top-level $kindBuf '$memberName'$argsMsg "
+              "declared.",
+            );
             break;
           }
       }

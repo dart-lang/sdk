@@ -165,7 +165,11 @@ T _callMethodUncheckedTrustType1<T>(Object o, Object method, Object? arg1) {
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked2<T>(
-    Object o, Object method, Object? arg1, Object? arg2) {
+  Object o,
+  Object method,
+  Object? arg1,
+  Object? arg2,
+) {
   return JS<dynamic>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
@@ -177,7 +181,11 @@ T _callMethodUnchecked2<T>(
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType2<T>(
-    Object o, Object method, Object? arg1, Object? arg2) {
+  Object o,
+  Object method,
+  Object? arg1,
+  Object? arg2,
+) {
   return JS<T>('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
@@ -188,9 +196,21 @@ T _callMethodUncheckedTrustType2<T>(
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked3<T>(
-    Object o, Object method, Object? arg1, Object? arg2, Object? arg3) {
+  Object o,
+  Object method,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+) {
   return JS<dynamic>(
-      'Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
+    'Object|Null',
+    '#[#](#, #, #)',
+    o,
+    method,
+    arg1,
+    arg2,
+    arg3,
+  );
 }
 
 /// Similar to [_callMethodUnchecked3] but introduces an unsound implicit cast
@@ -201,7 +221,12 @@ T _callMethodUnchecked3<T>(
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType3<T>(
-    Object o, Object method, Object? arg1, Object? arg2, Object? arg3) {
+  Object o,
+  Object method,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+) {
   return JS<T>('Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
 }
 
@@ -211,10 +236,24 @@ T _callMethodUncheckedTrustType3<T>(
 /// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
 /// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUnchecked4<T>(Object o, Object method, Object? arg1, Object? arg2,
-    Object? arg3, Object? arg4) {
+T _callMethodUnchecked4<T>(
+  Object o,
+  Object method,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+  Object? arg4,
+) {
   return JS<dynamic>(
-      'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
+    'Object|Null',
+    '#[#](#, #, #, #)',
+    o,
+    method,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+  );
 }
 
 /// Similar to [_callMethodUnchecked4] but introduces an unsound implicit cast
@@ -224,10 +263,24 @@ T _callMethodUnchecked4<T>(Object o, Object method, Object? arg1, Object? arg2,
 /// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
 /// edit this method.
 @pragma('dart2js:tryInline')
-T _callMethodUncheckedTrustType4<T>(Object o, Object method, Object? arg1,
-    Object? arg2, Object? arg3, Object? arg4) {
+T _callMethodUncheckedTrustType4<T>(
+  Object o,
+  Object method,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+  Object? arg4,
+) {
   return JS<T>(
-      'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
+    'Object|Null',
+    '#[#](#, #, #, #)',
+    o,
+    method,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+  );
 }
 
 @patch
@@ -262,7 +315,13 @@ T callConstructor<T>(Object constr, List<Object?>? arguments) {
         var arg1 = JS('', '#[1]', arguments);
         var arg2 = JS('', '#[2]', arguments);
         return JS<dynamic>(
-            'Object', 'new #(#, #, #)', constr, arg0, arg1, arg2);
+          'Object',
+          'new #(#, #, #)',
+          constr,
+          arg0,
+          arg1,
+          arg2,
+        );
 
       case 4:
         var arg0 = JS('', '#[0]', arguments);
@@ -270,7 +329,14 @@ T callConstructor<T>(Object constr, List<Object?>? arguments) {
         var arg2 = JS('', '#[2]', arguments);
         var arg3 = JS('', '#[3]', arguments);
         return JS<dynamic>(
-            'Object', 'new #(#, #, #, #)', constr, arg0, arg1, arg2, arg3);
+          'Object',
+          'new #(#, #, #, #)',
+          constr,
+          arg0,
+          arg1,
+          arg2,
+          arg3,
+        );
     }
   }
 
@@ -334,7 +400,11 @@ T _callConstructorUnchecked2<T>(Object constr, Object? arg1, Object? arg2) {
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked3<T>(
-    Object constr, Object? arg1, Object? arg2, Object? arg3) {
+  Object constr,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+) {
   return JS<dynamic>('Object', 'new #(#, #, #)', constr, arg1, arg2, arg3);
 }
 
@@ -345,9 +415,21 @@ T _callConstructorUnchecked3<T>(
 /// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked4<T>(
-    Object constr, Object? arg1, Object? arg2, Object? arg3, Object? arg4) {
+  Object constr,
+  Object? arg1,
+  Object? arg2,
+  Object? arg3,
+  Object? arg4,
+) {
   return JS<dynamic>(
-      'Object', 'new #(#, #, #, #)', constr, arg1, arg2, arg3, arg4);
+    'Object',
+    'new #(#, #, #, #)',
+    constr,
+    arg1,
+    arg2,
+    arg3,
+    arg4,
+  );
 }
 
 @patch
@@ -487,7 +569,8 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
     // provided if the error is `null` or `undefined`.
     if (e == null) {
       return completer.completeError(
-          NullRejectionException(JS('bool', '# === undefined', e)));
+        NullRejectionException(JS('bool', '# === undefined', e)),
+      );
     }
     return completer.completeError(e);
   }, 1);
@@ -535,8 +618,8 @@ DateTime _dateToDateTime(date) {
 bool _noDartifyRequired(Object? o) =>
     o == null ||
     JS(
-        'bool',
-        '''typeof # === 'boolean' ||
+      'bool',
+      '''typeof # === 'boolean' ||
                       typeof # === 'number' ||
                       typeof # === 'string' ||
                       # instanceof Int8Array ||
@@ -550,20 +633,21 @@ bool _noDartifyRequired(Object? o) =>
                       # instanceof Float64Array ||
                       # instanceof ArrayBuffer ||
                       # instanceof DataView''',
-        o,
-        o,
-        o,
-        o,
-        o,
-        o,
-        o,
-        o,
-        o,
-        o,
-        o,
-        o,
-        o,
-        o);
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+      o,
+    );
 
 @patch
 Object? dartify(Object? o) {

@@ -75,12 +75,15 @@ final class LineSplitter extends StreamTransformerBase<String, String> {
 
   StringConversionSink startChunkedConversion(Sink<String> sink) {
     return _LineSplitterSink(
-        sink is StringConversionSink ? sink : StringConversionSink.from(sink));
+      sink is StringConversionSink ? sink : StringConversionSink.from(sink),
+    );
   }
 
   Stream<String> bind(Stream<String> stream) {
     return Stream<String>.eventTransformed(
-        stream, (EventSink<String> sink) => _LineSplitterEventSink(sink));
+      stream,
+      (EventSink<String> sink) => _LineSplitterEventSink(sink),
+    );
   }
 }
 
@@ -238,8 +241,8 @@ class _LineSplitterEventSink extends _LineSplitterSink
   final EventSink<String> _eventSink;
 
   _LineSplitterEventSink(EventSink<String> eventSink)
-      : _eventSink = eventSink,
-        super(StringConversionSink.from(eventSink));
+    : _eventSink = eventSink,
+      super(StringConversionSink.from(eventSink));
 
   void addError(Object o, [StackTrace? stackTrace]) {
     _eventSink.addError(o, stackTrace);
@@ -292,7 +295,9 @@ class _LineSplitIterator implements Iterator<String> {
 
   // Creates string lazily on first request.
   // Makes it cheaper to do `LineSplitter.split(input).skip(5)...`.
-  String get current => _current ??= (_lineEnd >= 0
-      ? _source.substring(_lineStart, _lineEnd)
-      : (throw StateError("No element")));
+  String get current =>
+      _current ??=
+          (_lineEnd >= 0
+              ? _source.substring(_lineStart, _lineEnd)
+              : (throw StateError("No element")));
 }

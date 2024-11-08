@@ -224,8 +224,11 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// The created list is fixed-length if [growable] is set to false.
   ///
   /// The [length] must be non-negative.
-  external factory List.generate(int length, E generator(int index),
-      {bool growable = true});
+  external factory List.generate(
+    int length,
+    E generator(int index), {
+    bool growable = true,
+  });
 
   /// Creates an unmodifiable list containing all [elements].
   ///
@@ -273,8 +276,13 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// ranges are respected so that the target range ends up containing the
   /// initial content of the source range.
   /// Otherwise the order of element copying is not guaranteed.
-  static void copyRange<T>(List<T> target, int at, List<T> source,
-      [int? start, int? end]) {
+  static void copyRange<T>(
+    List<T> target,
+    int at,
+    List<T> source, [
+    int? start,
+    int? end,
+  ]) {
     start ??= 0;
     end = RangeError.checkValidRange(start, end, source.length);
     if (end == null) {
@@ -283,8 +291,11 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
     }
     int length = end - start;
     if (target.length < at + length) {
-      throw ArgumentError.value(target, "target",
-          "Not big enough to hold $length elements at position $at");
+      throw ArgumentError.value(
+        target,
+        "target",
+        "Not big enough to hold $length elements at position $at",
+      );
     }
     if (!identical(source, target) || start >= at) {
       for (int i = 0; i < length; i++) {

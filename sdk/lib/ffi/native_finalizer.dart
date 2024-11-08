@@ -227,8 +227,8 @@ abstract interface class Finalizable {
 ///
 /// A [NativeFinalizer]'s `callback` should have the C
 /// `void nativeFinalizer(void* token)` type.
-typedef NativeFinalizerFunction
-    = NativeFunction<Void Function(Pointer<Void> token)>;
+typedef NativeFinalizerFunction =
+    NativeFunction<Void Function(Pointer<Void> token)>;
 
 /// A native finalizer which can be attached to Dart objects.
 ///
@@ -379,8 +379,12 @@ abstract final class NativeFinalizer {
   /// The [externalSize] should represent the amount of native (non-Dart) memory
   /// owned by the given [value]. This information is used for garbage
   /// collection scheduling heuristics.
-  void attach(Finalizable value, Pointer<Void> token,
-      {Object? detach, int? externalSize});
+  void attach(
+    Finalizable value,
+    Pointer<Void> token, {
+    Object? detach,
+    int? externalSize,
+  });
 
   /// Detaches this finalizer from values attached with [detach].
   ///

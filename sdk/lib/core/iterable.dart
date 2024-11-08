@@ -118,8 +118,9 @@ abstract mixin class Iterable<E> {
       Function id = _GeneratorIterable._id;
       if (id is! E Function(int)) {
         throw ArgumentError(
-            "Generator must be supplied or element type must allow integers",
-            "generator");
+          "Generator must be supplied or element type must allow integers",
+          "generator",
+        );
       }
       generator = id;
     }
@@ -805,8 +806,12 @@ abstract mixin class Iterable<E> {
       if (skipCount == 0) return iterator.current;
       skipCount--;
     }
-    throw IndexError.withLength(index, index - skipCount,
-        indexable: this, name: "index");
+    throw IndexError.withLength(
+      index,
+      index - skipCount,
+      indexable: this,
+      name: "index",
+    );
   }
 
   /// Returns a string representation of (some of) the elements of `this`.
@@ -831,8 +836,11 @@ abstract mixin class Iterable<E> {
   ///
   /// Handles circular references where converting one of the elements
   /// to a string ends up converting [iterable] to a string again.
-  static String iterableToShortString(Iterable iterable,
-      [String leftDelimiter = '(', String rightDelimiter = ')']) {
+  static String iterableToShortString(
+    Iterable iterable, [
+    String leftDelimiter = '(',
+    String rightDelimiter = ')',
+  ]) {
     if (isToStringVisiting(iterable)) {
       if (leftDelimiter == "(" && rightDelimiter == ")") {
         // Avoid creating a new string in the "common" case.
@@ -864,8 +872,11 @@ abstract mixin class Iterable<E> {
   ///
   /// Handles circular references where converting one of the elements
   /// to a string ends up converting [iterable] to a string again.
-  static String iterableToFullString(Iterable iterable,
-      [String leftDelimiter = '(', String rightDelimiter = ')']) {
+  static String iterableToFullString(
+    Iterable iterable, [
+    String leftDelimiter = '(',
+    String rightDelimiter = ')',
+  ]) {
     if (isToStringVisiting(iterable)) {
       return "$leftDelimiter...$rightDelimiter";
     }

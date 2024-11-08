@@ -480,8 +480,11 @@ abstract final class ByteData implements TypedData {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory ByteData.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory ByteData.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asByteData(offsetInBytes, length);
   }
 
@@ -505,9 +508,14 @@ abstract final class ByteData implements TypedData {
   factory ByteData.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     return data.buffer.asByteData(
-        data.offsetInBytes + start * elementSize, (end - start) * elementSize);
+      data.offsetInBytes + start * elementSize,
+      (end - start) * elementSize,
+    );
   }
 
   /// A read-only view of this [ByteData].
@@ -781,8 +789,11 @@ abstract final class Int8List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int8List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Int8List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asInt8List(offsetInBytes, length);
   }
 
@@ -806,9 +817,14 @@ abstract final class Int8List implements _TypedIntList {
   factory Int8List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     return data.buffer.asInt8List(
-        data.offsetInBytes + start * elementSize, (end - start) * elementSize);
+      data.offsetInBytes + start * elementSize,
+      (end - start) * elementSize,
+    );
   }
 
   /// A read-only view of this [Int8List];
@@ -898,8 +914,11 @@ abstract final class Uint8List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint8List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Uint8List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asUint8List(offsetInBytes, length);
   }
 
@@ -923,9 +942,14 @@ abstract final class Uint8List implements _TypedIntList {
   factory Uint8List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     return data.buffer.asUint8List(
-        data.offsetInBytes + start * elementSize, (end - start) * elementSize);
+      data.offsetInBytes + start * elementSize,
+      (end - start) * elementSize,
+    );
   }
 
   /// A read-only view of this [Uint8List].
@@ -1023,8 +1047,11 @@ abstract final class Uint8ClampedList implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint8ClampedList.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Uint8ClampedList.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asUint8ClampedList(offsetInBytes, length);
   }
 
@@ -1045,13 +1072,21 @@ abstract final class Uint8ClampedList implements _TypedIntList {
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
   @Since("3.3")
-  factory Uint8ClampedList.sublistView(TypedData data,
-      [int start = 0, int? end]) {
+  factory Uint8ClampedList.sublistView(
+    TypedData data, [
+    int start = 0,
+    int? end,
+  ]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     return data.buffer.asUint8ClampedList(
-        data.offsetInBytes + start * elementSize, (end - start) * elementSize);
+      data.offsetInBytes + start * elementSize,
+      (end - start) * elementSize,
+    );
   }
 
   /// A read-only view of this [Uint8ClampedList].
@@ -1145,8 +1180,11 @@ abstract final class Int16List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int16List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Int16List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asInt16List(offsetInBytes, length);
   }
 
@@ -1173,14 +1211,21 @@ abstract final class Int16List implements _TypedIntList {
   factory Int16List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asInt16List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asInt16List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Int16List].
@@ -1275,8 +1320,11 @@ abstract final class Uint16List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint16List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Uint16List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asUint16List(offsetInBytes, length);
   }
 
@@ -1303,14 +1351,21 @@ abstract final class Uint16List implements _TypedIntList {
   factory Uint16List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asUint16List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asUint16List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Uint16List].
@@ -1404,8 +1459,11 @@ abstract final class Int32List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int32List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Int32List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asInt32List(offsetInBytes, length);
   }
 
@@ -1432,14 +1490,21 @@ abstract final class Int32List implements _TypedIntList {
   factory Int32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asInt32List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asInt32List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Int16List].
@@ -1534,8 +1599,11 @@ abstract final class Uint32List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint32List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Uint32List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asUint32List(offsetInBytes, length);
   }
 
@@ -1562,14 +1630,21 @@ abstract final class Uint32List implements _TypedIntList {
   factory Uint32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asUint32List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asUint32List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Uint32List].
@@ -1663,8 +1738,11 @@ abstract final class Int64List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int64List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Int64List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asInt64List(offsetInBytes, length);
   }
 
@@ -1691,14 +1769,21 @@ abstract final class Int64List implements _TypedIntList {
   factory Int64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asInt64List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asInt64List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Int64List].
@@ -1793,8 +1878,11 @@ abstract final class Uint64List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Uint64List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Uint64List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asUint64List(offsetInBytes, length);
   }
 
@@ -1821,14 +1909,21 @@ abstract final class Uint64List implements _TypedIntList {
   factory Uint64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asUint64List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asUint64List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Uint64List].
@@ -1923,8 +2018,11 @@ abstract final class Float32List implements _TypedFloatList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Float32List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Float32List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asFloat32List(offsetInBytes, length);
   }
 
@@ -1951,14 +2049,21 @@ abstract final class Float32List implements _TypedFloatList {
   factory Float32List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asFloat32List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asFloat32List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Float32List].
@@ -2046,8 +2151,11 @@ abstract final class Float64List implements _TypedFloatList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Float64List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Float64List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asFloat64List(offsetInBytes, length);
   }
 
@@ -2074,14 +2182,21 @@ abstract final class Float64List implements _TypedFloatList {
   factory Float64List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asFloat64List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asFloat64List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Float64List].
@@ -2169,8 +2284,11 @@ abstract final class Float32x4List
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Float32x4List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Float32x4List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asFloat32x4List(offsetInBytes, length);
   }
 
@@ -2197,14 +2315,21 @@ abstract final class Float32x4List
   factory Float32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asFloat32x4List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asFloat32x4List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Float32x4List].
@@ -2300,8 +2425,11 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Int32x4List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Int32x4List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asInt32x4List(offsetInBytes, length);
   }
 
@@ -2328,14 +2456,21 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   factory Int32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asInt32x4List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asInt32x4List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Int32x4List].
@@ -2441,8 +2576,11 @@ abstract final class Float64x2List
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
-  factory Float64x2List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int? length]) {
+  factory Float64x2List.view(
+    ByteBuffer buffer, [
+    int offsetInBytes = 0,
+    int? length,
+  ]) {
     return buffer.asFloat64x2List(offsetInBytes, length);
   }
 
@@ -2469,14 +2607,21 @@ abstract final class Float64x2List
   factory Float64x2List.sublistView(TypedData data, [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
     end = RangeError.checkValidRange(
-        start, end, data.lengthInBytes ~/ elementSize);
+      start,
+      end,
+      data.lengthInBytes ~/ elementSize,
+    );
     int byteLength = (end - start) * elementSize;
     if (byteLength % bytesPerElement != 0) {
-      throw ArgumentError("The number of bytes to view must be a multiple of " +
-          "$bytesPerElement");
+      throw ArgumentError(
+        "The number of bytes to view must be a multiple of " +
+            "$bytesPerElement",
+      );
     }
-    return data.buffer.asFloat64x2List(data.offsetInBytes + start * elementSize,
-        byteLength ~/ bytesPerElement);
+    return data.buffer.asFloat64x2List(
+      data.offsetInBytes + start * elementSize,
+      byteLength ~/ bytesPerElement,
+    );
   }
 
   /// A read-only view of this [Float64x2List].

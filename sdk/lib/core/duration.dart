@@ -171,19 +171,21 @@ class Duration implements Comparable<Duration> {
   ///   milliseconds: 30, microseconds: 10);
   /// print(duration); // 32:56:59.030010
   /// ```
-  const Duration(
-      {int days = 0,
-      int hours = 0,
-      int minutes = 0,
-      int seconds = 0,
-      int milliseconds = 0,
-      int microseconds = 0})
-      : this._microseconds(microseconds +
-            microsecondsPerMillisecond * milliseconds +
-            microsecondsPerSecond * seconds +
-            microsecondsPerMinute * minutes +
-            microsecondsPerHour * hours +
-            microsecondsPerDay * days);
+  const Duration({
+    int days = 0,
+    int hours = 0,
+    int minutes = 0,
+    int seconds = 0,
+    int milliseconds = 0,
+    int microseconds = 0,
+  }) : this._microseconds(
+         microseconds +
+             microsecondsPerMillisecond * milliseconds +
+             microsecondsPerSecond * seconds +
+             microsecondsPerMinute * minutes +
+             microsecondsPerHour * hours +
+             microsecondsPerDay * days,
+       );
 
   // Fast path internal direct constructor to avoids the optional arguments
   // and [_microseconds] recomputation.

@@ -55,12 +55,21 @@ class AngleInstancedArrays extends JavaScriptObject {
   static const int VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE = 0x88FE;
 
   @JSName('drawArraysInstancedANGLE')
-  void drawArraysInstancedAngle(int mode, int first, int count, int primcount)
-      native;
+  void drawArraysInstancedAngle(
+    int mode,
+    int first,
+    int count,
+    int primcount,
+  ) native;
 
   @JSName('drawElementsInstancedANGLE')
   void drawElementsInstancedAngle(
-      int mode, int count, int type, int offset, int primcount) native;
+    int mode,
+    int count,
+    int type,
+    int offset,
+    int primcount,
+  ) native;
 
   @JSName('vertexAttribDivisorANGLE')
   void vertexAttribDivisorAngle(int index, int divisor) native;
@@ -559,10 +568,24 @@ class GetBufferSubDataAsync extends JavaScriptObject {
     throw new UnsupportedError("Not supported");
   }
 
-  Future getBufferSubDataAsync(int target, int srcByteOffset, TypedData dstData,
-          [int? dstOffset, int? length]) =>
-      promiseToFuture(JS("", "#.getBufferSubDataAsync(#, #, #, #, #)", this,
-          target, srcByteOffset, dstData, dstOffset, length));
+  Future getBufferSubDataAsync(
+    int target,
+    int srcByteOffset,
+    TypedData dstData, [
+    int? dstOffset,
+    int? length,
+  ]) => promiseToFuture(
+    JS(
+      "",
+      "#.getBufferSubDataAsync(#, #, #, #, #)",
+      this,
+      target,
+      srcByteOffset,
+      dstData,
+      dstOffset,
+      length,
+    ),
+  );
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -757,8 +780,12 @@ class RenderingContext extends JavaScriptObject
 
   void blendFunc(int sfactor, int dfactor) native;
 
-  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
-      native;
+  void blendFuncSeparate(
+    int srcRGB,
+    int dstRGB,
+    int srcAlpha,
+    int dstAlpha,
+  ) native;
 
   void bufferData(int target, data_OR_size, int usage) native;
 
@@ -780,17 +807,48 @@ class RenderingContext extends JavaScriptObject
 
   void compileShader(Shader shader) native;
 
-  void compressedTexImage2D(int target, int level, int internalformat,
-      int width, int height, int border, TypedData data) native;
+  void compressedTexImage2D(
+    int target,
+    int level,
+    int internalformat,
+    int width,
+    int height,
+    int border,
+    TypedData data,
+  ) native;
 
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset,
-      int width, int height, int format, TypedData data) native;
+  void compressedTexSubImage2D(
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int width,
+    int height,
+    int format,
+    TypedData data,
+  ) native;
 
-  void copyTexImage2D(int target, int level, int internalformat, int x, int y,
-      int width, int height, int border) native;
+  void copyTexImage2D(
+    int target,
+    int level,
+    int internalformat,
+    int x,
+    int y,
+    int width,
+    int height,
+    int border,
+  ) native;
 
-  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x,
-      int y, int width, int height) native;
+  void copyTexSubImage2D(
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int x,
+    int y,
+    int width,
+    int height,
+  ) native;
 
   Buffer createBuffer() native;
 
@@ -842,11 +900,20 @@ class RenderingContext extends JavaScriptObject
 
   void flush() native;
 
-  void framebufferRenderbuffer(int target, int attachment,
-      int renderbuffertarget, Renderbuffer? renderbuffer) native;
+  void framebufferRenderbuffer(
+    int target,
+    int attachment,
+    int renderbuffertarget,
+    Renderbuffer? renderbuffer,
+  ) native;
 
-  void framebufferTexture2D(int target, int attachment, int textarget,
-      Texture? texture, int level) native;
+  void framebufferTexture2D(
+    int target,
+    int attachment,
+    int textarget,
+    Texture? texture,
+    int level,
+  ) native;
 
   void frontFace(int mode) native;
 
@@ -880,12 +947,17 @@ class RenderingContext extends JavaScriptObject
   @Creates('int|Renderbuffer|Texture|Null')
   @Returns('int|Renderbuffer|Texture|Null')
   Object? getFramebufferAttachmentParameter(
-      int target, int attachment, int pname) native;
+    int target,
+    int attachment,
+    int pname,
+  ) native;
 
   @Creates(
-      'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
+    'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture',
+  )
   @Returns(
-      'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
+    'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture',
+  )
   Object? getParameter(int pname) native;
 
   String? getProgramInfoLog(Program program) native;
@@ -905,7 +977,9 @@ class RenderingContext extends JavaScriptObject
   Object? getShaderParameter(Shader shader, int pname) native;
 
   ShaderPrecisionFormat getShaderPrecisionFormat(
-      int shadertype, int precisiontype) native;
+    int shadertype,
+    int precisiontype,
+  ) native;
 
   String? getShaderSource(Shader shader) native;
 
@@ -916,9 +990,11 @@ class RenderingContext extends JavaScriptObject
   Object? getTexParameter(int target, int pname) native;
 
   @Creates(
-      'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
+    'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List',
+  )
   @Returns(
-      'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
+    'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List',
+  )
   Object? getUniform(Program program, UniformLocation location) native;
 
   UniformLocation getUniformLocation(Program program, String name) native;
@@ -956,11 +1032,22 @@ class RenderingContext extends JavaScriptObject
   void polygonOffset(num factor, num units) native;
 
   @JSName('readPixels')
-  void _readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData? pixels) native;
+  void _readPixels(
+    int x,
+    int y,
+    int width,
+    int height,
+    int format,
+    int type,
+    TypedData? pixels,
+  ) native;
 
   void renderbufferStorage(
-      int target, int internalformat, int width, int height) native;
+    int target,
+    int internalformat,
+    int width,
+    int height,
+  ) native;
 
   void sampleCoverage(num value, bool invert) native;
 
@@ -981,28 +1068,30 @@ class RenderingContext extends JavaScriptObject
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   void texImage2D(
-      int target,
-      int level,
-      int internalformat,
-      int format_OR_width,
-      int height_OR_type,
-      bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
-      [int? format,
-      int? type,
-      TypedData? pixels]) {
+    int target,
+    int level,
+    int internalformat,
+    int format_OR_width,
+    int height_OR_type,
+    bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video, [
+    int? format,
+    int? type,
+    TypedData? pixels,
+  ]) {
     if (type != null &&
         format != null &&
         (bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
-          format,
-          type,
-          pixels);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+        format,
+        type,
+        pixels,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData) &&
@@ -1010,9 +1099,16 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
-      _texImage2D_2(target, level, internalformat, format_OR_width,
-          height_OR_type, pixels_1);
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
+      _texImage2D_2(
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        pixels_1,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
@@ -1021,12 +1117,13 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texImage2D_3(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
@@ -1035,12 +1132,13 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texImage2D_4(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
@@ -1049,12 +1147,13 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texImage2D_5(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
@@ -1063,71 +1162,121 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texImage2D_6(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texImage2D')
-  void _texImage2D_1(target, level, internalformat, width, height, int border,
-      format, type, TypedData? pixels) native;
+  void _texImage2D_1(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    int border,
+    format,
+    type,
+    TypedData? pixels,
+  ) native;
   @JSName('texImage2D')
-  void _texImage2D_2(target, level, internalformat, format, type, pixels)
-      native;
+  void _texImage2D_2(
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    pixels,
+  ) native;
   @JSName('texImage2D')
   void _texImage2D_3(
-      target, level, internalformat, format, type, ImageElement image) native;
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    ImageElement image,
+  ) native;
   @JSName('texImage2D')
   void _texImage2D_4(
-      target, level, internalformat, format, type, CanvasElement canvas) native;
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    CanvasElement canvas,
+  ) native;
   @JSName('texImage2D')
   void _texImage2D_5(
-      target, level, internalformat, format, type, VideoElement video) native;
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    VideoElement video,
+  ) native;
   @JSName('texImage2D')
   void _texImage2D_6(
-      target, level, internalformat, format, type, ImageBitmap bitmap) native;
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    ImageBitmap bitmap,
+  ) native;
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
   void texSubImage2D(
-      int target,
-      int level,
-      int xoffset,
-      int yoffset,
-      int format_OR_width,
-      int height_OR_type,
-      bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
-      [int? type,
-      TypedData? pixels]) {
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int format_OR_width,
+    int height_OR_type,
+    bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video, [
+    int? type,
+    TypedData? pixels,
+  ]) {
     if (type != null &&
         (bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
-          type,
-          pixels);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+        type,
+        pixels,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData) &&
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
-      _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, pixels_1);
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
+      _texSubImage2D_2(
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        pixels_1,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
@@ -1135,13 +1284,14 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texSubImage2D_3(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
@@ -1149,13 +1299,14 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texSubImage2D_4(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
@@ -1163,13 +1314,14 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texSubImage2D_5(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
@@ -1177,36 +1329,81 @@ class RenderingContext extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texSubImage2D_6(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texSubImage2D')
-  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
-      int format, type, TypedData? pixels) native;
+  void _texSubImage2D_1(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    int format,
+    type,
+    TypedData? pixels,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
-      native;
+  void _texSubImage2D_2(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    pixels,
+  ) native;
   @JSName('texSubImage2D')
   void _texSubImage2D_3(
-      target, level, xoffset, yoffset, format, type, ImageElement image) native;
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    ImageElement image,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D_4(target, level, xoffset, yoffset, format, type,
-      CanvasElement canvas) native;
+  void _texSubImage2D_4(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    CanvasElement canvas,
+  ) native;
   @JSName('texSubImage2D')
   void _texSubImage2D_5(
-      target, level, xoffset, yoffset, format, type, VideoElement video) native;
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    VideoElement video,
+  ) native;
   @JSName('texSubImage2D')
   void _texSubImage2D_6(
-      target, level, xoffset, yoffset, format, type, ImageBitmap bitmap) native;
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    ImageBitmap bitmap,
+  ) native;
 
   void uniform1f(UniformLocation? location, num x) native;
 
@@ -1240,14 +1437,23 @@ class RenderingContext extends JavaScriptObject
 
   void uniform4iv(UniformLocation? location, v) native;
 
-  void uniformMatrix2fv(UniformLocation? location, bool transpose, array)
-      native;
+  void uniformMatrix2fv(
+    UniformLocation? location,
+    bool transpose,
+    array,
+  ) native;
 
-  void uniformMatrix3fv(UniformLocation? location, bool transpose, array)
-      native;
+  void uniformMatrix3fv(
+    UniformLocation? location,
+    bool transpose,
+    array,
+  ) native;
 
-  void uniformMatrix4fv(UniformLocation? location, bool transpose, array)
-      native;
+  void uniformMatrix4fv(
+    UniformLocation? location,
+    bool transpose,
+    array,
+  ) native;
 
   void useProgram(Program? program) native;
 
@@ -1269,13 +1475,26 @@ class RenderingContext extends JavaScriptObject
 
   void vertexAttrib4fv(int indx, values) native;
 
-  void vertexAttribPointer(int indx, int size, int type, bool normalized,
-      int stride, int offset) native;
+  void vertexAttribPointer(
+    int indx,
+    int size,
+    int type,
+    bool normalized,
+    int stride,
+    int offset,
+  ) native;
 
   void viewport(int x, int y, int width, int height) native;
 
-  void readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData? pixels) {
+  void readPixels(
+    int x,
+    int y,
+    int width,
+    int height,
+    int format,
+    int type,
+    TypedData? pixels,
+  ) {
     _readPixels(x, y, width, height, format, type, pixels);
   }
 
@@ -1288,10 +1507,22 @@ class RenderingContext extends JavaScriptObject
    * This is deprecated in favor of [texImage2D].
    */
   @Deprecated("Use texImage2D")
-  void texImage2DUntyped(int targetTexture, int levelOfDetail,
-      int internalFormat, int format, int type, data) {
+  void texImage2DUntyped(
+    int targetTexture,
+    int levelOfDetail,
+    int internalFormat,
+    int format,
+    int type,
+    data,
+  ) {
     texImage2D(
-        targetTexture, levelOfDetail, internalFormat, format, type, data);
+      targetTexture,
+      levelOfDetail,
+      internalFormat,
+      format,
+      type,
+      data,
+    );
   }
 
   /**
@@ -1300,10 +1531,28 @@ class RenderingContext extends JavaScriptObject
    * This is deprecated in favour of [texImage2D].
    */
   @Deprecated("Use texImage2D")
-  void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
-      int width, int height, int border, int format, int type, TypedData data) {
-    texImage2D(targetTexture, levelOfDetail, internalFormat, width, height,
-        border, format, type, data);
+  void texImage2DTyped(
+    int targetTexture,
+    int levelOfDetail,
+    int internalFormat,
+    int width,
+    int height,
+    int border,
+    int format,
+    int type,
+    TypedData data,
+  ) {
+    texImage2D(
+      targetTexture,
+      levelOfDetail,
+      internalFormat,
+      width,
+      height,
+      border,
+      format,
+      type,
+      data,
+    );
   }
 
   /**
@@ -1314,10 +1563,24 @@ class RenderingContext extends JavaScriptObject
    *
    */
   @Deprecated("Use texSubImage2D")
-  void texSubImage2DUntyped(int targetTexture, int levelOfDetail, int xOffset,
-      int yOffset, int format, int type, data) {
+  void texSubImage2DUntyped(
+    int targetTexture,
+    int levelOfDetail,
+    int xOffset,
+    int yOffset,
+    int format,
+    int type,
+    data,
+  ) {
     texSubImage2D(
-        targetTexture, levelOfDetail, xOffset, yOffset, format, type, data);
+      targetTexture,
+      levelOfDetail,
+      xOffset,
+      yOffset,
+      format,
+      type,
+      data,
+    );
   }
 
   /**
@@ -1325,18 +1588,28 @@ class RenderingContext extends JavaScriptObject
    */
   @Deprecated("Use texSubImage2D")
   void texSubImage2DTyped(
-      int targetTexture,
-      int levelOfDetail,
-      int xOffset,
-      int yOffset,
-      int width,
-      int height,
-      int border,
-      int format,
-      int type,
-      TypedData data) {
-    texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset, width, height,
-        format, type, data);
+    int targetTexture,
+    int levelOfDetail,
+    int xOffset,
+    int yOffset,
+    int width,
+    int height,
+    int border,
+    int format,
+    int type,
+    TypedData data,
+  ) {
+    texSubImage2D(
+      targetTexture,
+      levelOfDetail,
+      xOffset,
+      yOffset,
+      width,
+      height,
+      format,
+      type,
+      data,
+    );
   }
 
   /**
@@ -1378,7 +1651,12 @@ class RenderingContext2 extends JavaScriptObject
   void bindBufferBase(int target, int index, Buffer? buffer) native;
 
   void bindBufferRange(
-      int target, int index, Buffer? buffer, int offset, int size) native;
+    int target,
+    int index,
+    Buffer? buffer,
+    int offset,
+    int size,
+  ) native;
 
   void bindSampler(int unit, Sampler? sampler) native;
 
@@ -1386,88 +1664,189 @@ class RenderingContext2 extends JavaScriptObject
 
   void bindVertexArray(VertexArrayObject? vertexArray) native;
 
-  void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0,
-      int dstY0, int dstX1, int dstY1, int mask, int filter) native;
+  void blitFramebuffer(
+    int srcX0,
+    int srcY0,
+    int srcX1,
+    int srcY1,
+    int dstX0,
+    int dstY0,
+    int dstX1,
+    int dstY1,
+    int mask,
+    int filter,
+  ) native;
 
   @JSName('bufferData')
-  void bufferData2(int target, TypedData srcData, int usage, int srcOffset,
-      [int? length]) native;
+  void bufferData2(
+    int target,
+    TypedData srcData,
+    int usage,
+    int srcOffset, [
+    int? length,
+  ]) native;
 
   @JSName('bufferSubData')
   void bufferSubData2(
-      int target, int dstByteOffset, TypedData srcData, int srcOffset,
-      [int? length]) native;
+    int target,
+    int dstByteOffset,
+    TypedData srcData,
+    int srcOffset, [
+    int? length,
+  ]) native;
 
   void clearBufferfi(int buffer, int drawbuffer, num depth, int stencil) native;
 
-  void clearBufferfv(int buffer, int drawbuffer, value, [int? srcOffset])
-      native;
+  void clearBufferfv(
+    int buffer,
+    int drawbuffer,
+    value, [
+    int? srcOffset,
+  ]) native;
 
-  void clearBufferiv(int buffer, int drawbuffer, value, [int? srcOffset])
-      native;
+  void clearBufferiv(
+    int buffer,
+    int drawbuffer,
+    value, [
+    int? srcOffset,
+  ]) native;
 
-  void clearBufferuiv(int buffer, int drawbuffer, value, [int? srcOffset])
-      native;
+  void clearBufferuiv(
+    int buffer,
+    int drawbuffer,
+    value, [
+    int? srcOffset,
+  ]) native;
 
   int clientWaitSync(Sync sync, int flags, int timeout) native;
 
   @JSName('compressedTexImage2D')
-  void compressedTexImage2D2(int target, int level, int internalformat,
-      int width, int height, int border, TypedData data, int srcOffset,
-      [int? srcLengthOverride]) native;
+  void compressedTexImage2D2(
+    int target,
+    int level,
+    int internalformat,
+    int width,
+    int height,
+    int border,
+    TypedData data,
+    int srcOffset, [
+    int? srcLengthOverride,
+  ]) native;
 
   @JSName('compressedTexImage2D')
-  void compressedTexImage2D3(int target, int level, int internalformat,
-      int width, int height, int border, int imageSize, int offset) native;
+  void compressedTexImage2D3(
+    int target,
+    int level,
+    int internalformat,
+    int width,
+    int height,
+    int border,
+    int imageSize,
+    int offset,
+  ) native;
 
-  void compressedTexImage3D(int target, int level, int internalformat,
-      int width, int height, int depth, int border, TypedData data,
-      [int? srcOffset, int? srcLengthOverride]) native;
+  void compressedTexImage3D(
+    int target,
+    int level,
+    int internalformat,
+    int width,
+    int height,
+    int depth,
+    int border,
+    TypedData data, [
+    int? srcOffset,
+    int? srcLengthOverride,
+  ]) native;
 
   @JSName('compressedTexImage3D')
   void compressedTexImage3D2(
-      int target,
-      int level,
-      int internalformat,
-      int width,
-      int height,
-      int depth,
-      int border,
-      int imageSize,
-      int offset) native;
+    int target,
+    int level,
+    int internalformat,
+    int width,
+    int height,
+    int depth,
+    int border,
+    int imageSize,
+    int offset,
+  ) native;
 
   @JSName('compressedTexSubImage2D')
-  void compressedTexSubImage2D2(int target, int level, int xoffset, int yoffset,
-      int width, int height, int format, TypedData data, int srcOffset,
-      [int? srcLengthOverride]) native;
+  void compressedTexSubImage2D2(
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int width,
+    int height,
+    int format,
+    TypedData data,
+    int srcOffset, [
+    int? srcLengthOverride,
+  ]) native;
 
   @JSName('compressedTexSubImage2D')
-  void compressedTexSubImage2D3(int target, int level, int xoffset, int yoffset,
-      int width, int height, int format, int imageSize, int offset) native;
+  void compressedTexSubImage2D3(
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int width,
+    int height,
+    int format,
+    int imageSize,
+    int offset,
+  ) native;
 
-  void compressedTexSubImage3D(int target, int level, int xoffset, int yoffset,
-      int zoffset, int width, int height, int depth, int format, TypedData data,
-      [int? srcOffset, int? srcLengthOverride]) native;
+  void compressedTexSubImage3D(
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int zoffset,
+    int width,
+    int height,
+    int depth,
+    int format,
+    TypedData data, [
+    int? srcOffset,
+    int? srcLengthOverride,
+  ]) native;
 
   @JSName('compressedTexSubImage3D')
   void compressedTexSubImage3D2(
-      int target,
-      int level,
-      int xoffset,
-      int yoffset,
-      int zoffset,
-      int width,
-      int height,
-      int depth,
-      int format,
-      int imageSize,
-      int offset) native;
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int zoffset,
+    int width,
+    int height,
+    int depth,
+    int format,
+    int imageSize,
+    int offset,
+  ) native;
 
-  void copyBufferSubData(int readTarget, int writeTarget, int readOffset,
-      int writeOffset, int size) native;
+  void copyBufferSubData(
+    int readTarget,
+    int writeTarget,
+    int readOffset,
+    int writeOffset,
+    int size,
+  ) native;
 
-  void copyTexSubImage3D(int target, int level, int xoffset, int yoffset,
-      int zoffset, int x, int y, int width, int height) native;
+  void copyTexSubImage3D(
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int zoffset,
+    int x,
+    int y,
+    int width,
+    int height,
+  ) native;
 
   Query? createQuery() native;
 
@@ -1487,16 +1866,31 @@ class RenderingContext2 extends JavaScriptObject
 
   void deleteVertexArray(VertexArrayObject? vertexArray) native;
 
-  void drawArraysInstanced(int mode, int first, int count, int instanceCount)
-      native;
+  void drawArraysInstanced(
+    int mode,
+    int first,
+    int count,
+    int instanceCount,
+  ) native;
 
   void drawBuffers(List<int> buffers) native;
 
   void drawElementsInstanced(
-      int mode, int count, int type, int offset, int instanceCount) native;
+    int mode,
+    int count,
+    int type,
+    int offset,
+    int instanceCount,
+  ) native;
 
   void drawRangeElements(
-      int mode, int start, int end, int count, int type, int offset) native;
+    int mode,
+    int start,
+    int end,
+    int count,
+    int type,
+    int offset,
+  ) native;
 
   void endQuery(int target) native;
 
@@ -1504,27 +1898,48 @@ class RenderingContext2 extends JavaScriptObject
 
   Sync? fenceSync(int condition, int flags) native;
 
-  void framebufferTextureLayer(int target, int attachment, Texture? texture,
-      int level, int layer) native;
+  void framebufferTextureLayer(
+    int target,
+    int attachment,
+    Texture? texture,
+    int level,
+    int layer,
+  ) native;
 
-  String? getActiveUniformBlockName(Program program, int uniformBlockIndex)
-      native;
+  String? getActiveUniformBlockName(
+    Program program,
+    int uniformBlockIndex,
+  ) native;
 
   Object? getActiveUniformBlockParameter(
-      Program program, int uniformBlockIndex, int pname) native;
+    Program program,
+    int uniformBlockIndex,
+    int pname,
+  ) native;
 
   Object? getActiveUniforms(
-      Program program, List<int> uniformIndices, int pname) native;
+    Program program,
+    List<int> uniformIndices,
+    int pname,
+  ) native;
 
-  void getBufferSubData(int target, int srcByteOffset, TypedData dstData,
-      [int? dstOffset, int? length]) native;
+  void getBufferSubData(
+    int target,
+    int srcByteOffset,
+    TypedData dstData, [
+    int? dstOffset,
+    int? length,
+  ]) native;
 
   int getFragDataLocation(Program program, String name) native;
 
   Object? getIndexedParameter(int target, int index) native;
 
-  Object? getInternalformatParameter(int target, int internalformat, int pname)
-      native;
+  Object? getInternalformatParameter(
+    int target,
+    int internalformat,
+    int pname,
+  ) native;
 
   Object? getQuery(int target, int pname) native;
 
@@ -1548,8 +1963,14 @@ class RenderingContext2 extends JavaScriptObject
 
   void invalidateFramebuffer(int target, List<int> attachments) native;
 
-  void invalidateSubFramebuffer(int target, List<int> attachments, int x, int y,
-      int width, int height) native;
+  void invalidateSubFramebuffer(
+    int target,
+    List<int> attachments,
+    int x,
+    int y,
+    int width,
+    int height,
+  ) native;
 
   bool isQuery(Query? query) native;
 
@@ -1566,12 +1987,24 @@ class RenderingContext2 extends JavaScriptObject
   void readBuffer(int mode) native;
 
   @JSName('readPixels')
-  void readPixels2(int x, int y, int width, int height, int format, int type,
-      dstData_OR_offset,
-      [int? offset]) native;
+  void readPixels2(
+    int x,
+    int y,
+    int width,
+    int height,
+    int format,
+    int type,
+    dstData_OR_offset, [
+    int? offset,
+  ]) native;
 
-  void renderbufferStorageMultisample(int target, int samples,
-      int internalformat, int width, int height) native;
+  void renderbufferStorageMultisample(
+    int target,
+    int samples,
+    int internalformat,
+    int width,
+    int height,
+  ) native;
 
   void resumeTransformFeedback() native;
 
@@ -1580,240 +2013,338 @@ class RenderingContext2 extends JavaScriptObject
   void samplerParameteri(Sampler sampler, int pname, int param) native;
 
   void texImage2D2(
-      int target,
-      int level,
-      int internalformat,
-      int width,
-      int height,
-      int border,
-      int format,
-      int type,
-      bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
-      [int? srcOffset]) {
+    int target,
+    int level,
+    int internalformat,
+    int width,
+    int height,
+    int border,
+    int format,
+    int type,
+    bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video, [
+    int? srcOffset,
+  ]) {
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is int) &&
         srcOffset == null) {
       _texImage2D2_1(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is ImageData) &&
         srcOffset == null) {
       var data_1 = convertDartToNative_ImageData(
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
-      _texImage2D2_2(target, level, internalformat, width, height, border,
-          format, type, data_1);
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
+      _texImage2D2_2(
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        border,
+        format,
+        type,
+        data_1,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is ImageElement) &&
         srcOffset == null) {
       _texImage2D2_3(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is CanvasElement) &&
         srcOffset == null) {
       _texImage2D2_4(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is VideoElement) &&
         srcOffset == null) {
       _texImage2D2_5(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is ImageBitmap) &&
         srcOffset == null) {
       _texImage2D2_6(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if (srcOffset != null &&
         (bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is TypedData)) {
       _texImage2D2_7(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
-          srcOffset);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+        srcOffset,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texImage2D')
-  void _texImage2D2_1(target, level, internalformat, width, height, border,
-      format, type, int offset) native;
+  void _texImage2D2_1(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    border,
+    format,
+    type,
+    int offset,
+  ) native;
   @JSName('texImage2D')
-  void _texImage2D2_2(target, level, internalformat, width, height, border,
-      format, type, data) native;
+  void _texImage2D2_2(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    border,
+    format,
+    type,
+    data,
+  ) native;
   @JSName('texImage2D')
-  void _texImage2D2_3(target, level, internalformat, width, height, border,
-      format, type, ImageElement image) native;
+  void _texImage2D2_3(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    border,
+    format,
+    type,
+    ImageElement image,
+  ) native;
   @JSName('texImage2D')
-  void _texImage2D2_4(target, level, internalformat, width, height, border,
-      format, type, CanvasElement canvas) native;
+  void _texImage2D2_4(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    border,
+    format,
+    type,
+    CanvasElement canvas,
+  ) native;
   @JSName('texImage2D')
-  void _texImage2D2_5(target, level, internalformat, width, height, border,
-      format, type, VideoElement video) native;
+  void _texImage2D2_5(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    border,
+    format,
+    type,
+    VideoElement video,
+  ) native;
   @JSName('texImage2D')
-  void _texImage2D2_6(target, level, internalformat, width, height, border,
-      format, type, ImageBitmap bitmap) native;
+  void _texImage2D2_6(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    border,
+    format,
+    type,
+    ImageBitmap bitmap,
+  ) native;
   @JSName('texImage2D')
-  void _texImage2D2_7(target, level, internalformat, width, height, border,
-      format, type, TypedData srcData, srcOffset) native;
+  void _texImage2D2_7(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    border,
+    format,
+    type,
+    TypedData srcData,
+    srcOffset,
+  ) native;
 
   void texImage3D(
-      int target,
-      int level,
-      int internalformat,
-      int width,
-      int height,
-      int depth,
-      int border,
-      int format,
-      int type,
-      bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
-      [int? srcOffset]) {
+    int target,
+    int level,
+    int internalformat,
+    int width,
+    int height,
+    int depth,
+    int border,
+    int format,
+    int type,
+    bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video, [
+    int? srcOffset,
+  ]) {
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is int) &&
         srcOffset == null) {
       _texImage3D_1(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          depth,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        depth,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is ImageData) &&
         srcOffset == null) {
       var data_1 = convertDartToNative_ImageData(
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
-      _texImage3D_2(target, level, internalformat, width, height, depth, border,
-          format, type, data_1);
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
+      _texImage3D_2(
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        depth,
+        border,
+        format,
+        type,
+        data_1,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is ImageElement) &&
         srcOffset == null) {
       _texImage3D_3(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          depth,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        depth,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is CanvasElement) &&
         srcOffset == null) {
       _texImage3D_4(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          depth,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        depth,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is VideoElement) &&
         srcOffset == null) {
       _texImage3D_5(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          depth,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        depth,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is ImageBitmap) &&
         srcOffset == null) {
       _texImage3D_6(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          depth,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        depth,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
@@ -1822,474 +2353,862 @@ class RenderingContext2 extends JavaScriptObject
                 null) &&
         srcOffset == null) {
       _texImage3D_7(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          depth,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        depth,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if (srcOffset != null &&
         (bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is TypedData)) {
       _texImage3D_8(
-          target,
-          level,
-          internalformat,
-          width,
-          height,
-          depth,
-          border,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
-          srcOffset);
+        target,
+        level,
+        internalformat,
+        width,
+        height,
+        depth,
+        border,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+        srcOffset,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texImage3D')
-  void _texImage3D_1(target, level, internalformat, width, height, depth,
-      border, format, type, int offset) native;
+  void _texImage3D_1(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    depth,
+    border,
+    format,
+    type,
+    int offset,
+  ) native;
   @JSName('texImage3D')
-  void _texImage3D_2(target, level, internalformat, width, height, depth,
-      border, format, type, data) native;
+  void _texImage3D_2(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    depth,
+    border,
+    format,
+    type,
+    data,
+  ) native;
   @JSName('texImage3D')
-  void _texImage3D_3(target, level, internalformat, width, height, depth,
-      border, format, type, ImageElement image) native;
+  void _texImage3D_3(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    depth,
+    border,
+    format,
+    type,
+    ImageElement image,
+  ) native;
   @JSName('texImage3D')
-  void _texImage3D_4(target, level, internalformat, width, height, depth,
-      border, format, type, CanvasElement canvas) native;
+  void _texImage3D_4(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    depth,
+    border,
+    format,
+    type,
+    CanvasElement canvas,
+  ) native;
   @JSName('texImage3D')
-  void _texImage3D_5(target, level, internalformat, width, height, depth,
-      border, format, type, VideoElement video) native;
+  void _texImage3D_5(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    depth,
+    border,
+    format,
+    type,
+    VideoElement video,
+  ) native;
   @JSName('texImage3D')
-  void _texImage3D_6(target, level, internalformat, width, height, depth,
-      border, format, type, ImageBitmap bitmap) native;
+  void _texImage3D_6(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    depth,
+    border,
+    format,
+    type,
+    ImageBitmap bitmap,
+  ) native;
   @JSName('texImage3D')
-  void _texImage3D_7(target, level, internalformat, width, height, depth,
-      border, format, type, TypedData? pixels) native;
+  void _texImage3D_7(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    depth,
+    border,
+    format,
+    type,
+    TypedData? pixels,
+  ) native;
   @JSName('texImage3D')
-  void _texImage3D_8(target, level, internalformat, width, height, depth,
-      border, format, type, TypedData pixels, srcOffset) native;
+  void _texImage3D_8(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    depth,
+    border,
+    format,
+    type,
+    TypedData pixels,
+    srcOffset,
+  ) native;
 
   void texStorage2D(
-      int target, int levels, int internalformat, int width, int height) native;
+    int target,
+    int levels,
+    int internalformat,
+    int width,
+    int height,
+  ) native;
 
-  void texStorage3D(int target, int levels, int internalformat, int width,
-      int height, int depth) native;
+  void texStorage3D(
+    int target,
+    int levels,
+    int internalformat,
+    int width,
+    int height,
+    int depth,
+  ) native;
 
   void texSubImage2D2(
-      int target,
-      int level,
-      int xoffset,
-      int yoffset,
-      int width,
-      int height,
-      int format,
-      int type,
-      bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
-      [int? srcOffset]) {
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int width,
+    int height,
+    int format,
+    int type,
+    bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video, [
+    int? srcOffset,
+  ]) {
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is int) &&
         srcOffset == null) {
       _texSubImage2D2_1(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          width,
-          height,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        width,
+        height,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is ImageData) &&
         srcOffset == null) {
       var data_1 = convertDartToNative_ImageData(
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       _texSubImage2D2_2(
-          target, level, xoffset, yoffset, width, height, format, type, data_1);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        width,
+        height,
+        format,
+        type,
+        data_1,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is ImageElement) &&
         srcOffset == null) {
       _texSubImage2D2_3(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          width,
-          height,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        width,
+        height,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is CanvasElement) &&
         srcOffset == null) {
       _texSubImage2D2_4(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          width,
-          height,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        width,
+        height,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is VideoElement) &&
         srcOffset == null) {
       _texSubImage2D2_5(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          width,
-          height,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        width,
+        height,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is ImageBitmap) &&
         srcOffset == null) {
       _texSubImage2D2_6(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          width,
-          height,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        width,
+        height,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+      );
       return;
     }
     if (srcOffset != null &&
         (bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is TypedData)) {
       _texSubImage2D2_7(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          width,
-          height,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
-          srcOffset);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        width,
+        height,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
+        srcOffset,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texSubImage2D')
-  void _texSubImage2D2_1(target, level, xoffset, yoffset, width, height, format,
-      type, int offset) native;
+  void _texSubImage2D2_1(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    format,
+    type,
+    int offset,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D2_2(target, level, xoffset, yoffset, width, height, format,
-      type, data) native;
+  void _texSubImage2D2_2(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    format,
+    type,
+    data,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D2_3(target, level, xoffset, yoffset, width, height, format,
-      type, ImageElement image) native;
+  void _texSubImage2D2_3(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    format,
+    type,
+    ImageElement image,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D2_4(target, level, xoffset, yoffset, width, height, format,
-      type, CanvasElement canvas) native;
+  void _texSubImage2D2_4(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    format,
+    type,
+    CanvasElement canvas,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D2_5(target, level, xoffset, yoffset, width, height, format,
-      type, VideoElement video) native;
+  void _texSubImage2D2_5(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    format,
+    type,
+    VideoElement video,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D2_6(target, level, xoffset, yoffset, width, height, format,
-      type, ImageBitmap bitmap) native;
+  void _texSubImage2D2_6(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    format,
+    type,
+    ImageBitmap bitmap,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D2_7(target, level, xoffset, yoffset, width, height, format,
-      type, TypedData srcData, srcOffset) native;
+  void _texSubImage2D2_7(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    format,
+    type,
+    TypedData srcData,
+    srcOffset,
+  ) native;
 
   void texSubImage3D(
-      int target,
-      int level,
-      int xoffset,
-      int yoffset,
-      int zoffset,
-      int width,
-      int height,
-      int depth,
-      int format,
-      int type,
-      bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
-      [int? srcOffset]) {
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int zoffset,
+    int width,
+    int height,
+    int depth,
+    int format,
+    int type,
+    bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video, [
+    int? srcOffset,
+  ]) {
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is int) &&
         srcOffset == null) {
       _texSubImage3D_1(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          zoffset,
-          width,
-          height,
-          depth,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        zoffset,
+        width,
+        height,
+        depth,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is ImageData) &&
         srcOffset == null) {
       var data_1 = convertDartToNative_ImageData(
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
-      _texSubImage3D_2(target, level, xoffset, yoffset, zoffset, width, height,
-          depth, format, type, data_1);
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
+      _texSubImage3D_2(
+        target,
+        level,
+        xoffset,
+        yoffset,
+        zoffset,
+        width,
+        height,
+        depth,
+        format,
+        type,
+        data_1,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is ImageElement) &&
         srcOffset == null) {
       _texSubImage3D_3(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          zoffset,
-          width,
-          height,
-          depth,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        zoffset,
+        width,
+        height,
+        depth,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is CanvasElement) &&
         srcOffset == null) {
       _texSubImage3D_4(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          zoffset,
-          width,
-          height,
-          depth,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        zoffset,
+        width,
+        height,
+        depth,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is VideoElement) &&
         srcOffset == null) {
       _texSubImage3D_5(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          zoffset,
-          width,
-          height,
-          depth,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        zoffset,
+        width,
+        height,
+        depth,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is ImageBitmap) &&
         srcOffset == null) {
       _texSubImage3D_6(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          zoffset,
-          width,
-          height,
-          depth,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        zoffset,
+        width,
+        height,
+        depth,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is TypedData) &&
         srcOffset == null) {
       _texSubImage3D_7(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          zoffset,
-          width,
-          height,
-          depth,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        zoffset,
+        width,
+        height,
+        depth,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+      );
       return;
     }
     if (srcOffset != null &&
         (bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is TypedData)) {
       _texSubImage3D_8(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          zoffset,
-          width,
-          height,
-          depth,
-          format,
-          type,
-          bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
-          srcOffset);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        zoffset,
+        width,
+        height,
+        depth,
+        format,
+        type,
+        bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
+        srcOffset,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texSubImage3D')
-  void _texSubImage3D_1(target, level, xoffset, yoffset, zoffset, width, height,
-      depth, format, type, int offset) native;
+  void _texSubImage3D_1(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    zoffset,
+    width,
+    height,
+    depth,
+    format,
+    type,
+    int offset,
+  ) native;
   @JSName('texSubImage3D')
-  void _texSubImage3D_2(target, level, xoffset, yoffset, zoffset, width, height,
-      depth, format, type, data) native;
+  void _texSubImage3D_2(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    zoffset,
+    width,
+    height,
+    depth,
+    format,
+    type,
+    data,
+  ) native;
   @JSName('texSubImage3D')
-  void _texSubImage3D_3(target, level, xoffset, yoffset, zoffset, width, height,
-      depth, format, type, ImageElement image) native;
+  void _texSubImage3D_3(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    zoffset,
+    width,
+    height,
+    depth,
+    format,
+    type,
+    ImageElement image,
+  ) native;
   @JSName('texSubImage3D')
-  void _texSubImage3D_4(target, level, xoffset, yoffset, zoffset, width, height,
-      depth, format, type, CanvasElement canvas) native;
+  void _texSubImage3D_4(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    zoffset,
+    width,
+    height,
+    depth,
+    format,
+    type,
+    CanvasElement canvas,
+  ) native;
   @JSName('texSubImage3D')
-  void _texSubImage3D_5(target, level, xoffset, yoffset, zoffset, width, height,
-      depth, format, type, VideoElement video) native;
+  void _texSubImage3D_5(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    zoffset,
+    width,
+    height,
+    depth,
+    format,
+    type,
+    VideoElement video,
+  ) native;
   @JSName('texSubImage3D')
-  void _texSubImage3D_6(target, level, xoffset, yoffset, zoffset, width, height,
-      depth, format, type, ImageBitmap bitmap) native;
+  void _texSubImage3D_6(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    zoffset,
+    width,
+    height,
+    depth,
+    format,
+    type,
+    ImageBitmap bitmap,
+  ) native;
   @JSName('texSubImage3D')
-  void _texSubImage3D_7(target, level, xoffset, yoffset, zoffset, width, height,
-      depth, format, type, TypedData pixels) native;
+  void _texSubImage3D_7(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    zoffset,
+    width,
+    height,
+    depth,
+    format,
+    type,
+    TypedData pixels,
+  ) native;
   @JSName('texSubImage3D')
-  void _texSubImage3D_8(target, level, xoffset, yoffset, zoffset, width, height,
-      depth, format, type, TypedData pixels, srcOffset) native;
+  void _texSubImage3D_8(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    zoffset,
+    width,
+    height,
+    depth,
+    format,
+    type,
+    TypedData pixels,
+    srcOffset,
+  ) native;
 
   void transformFeedbackVaryings(
-      Program program, List<String> varyings, int bufferMode) {
+    Program program,
+    List<String> varyings,
+    int bufferMode,
+  ) {
     List varyings_1 = convertDartToNative_StringArray(varyings);
     _transformFeedbackVaryings_1(program, varyings_1, bufferMode);
     return;
   }
 
   @JSName('transformFeedbackVaryings')
-  void _transformFeedbackVaryings_1(Program program, List varyings, bufferMode)
-      native;
+  void _transformFeedbackVaryings_1(
+    Program program,
+    List varyings,
+    bufferMode,
+  ) native;
 
   @JSName('uniform1fv')
-  void uniform1fv2(UniformLocation? location, v, int srcOffset,
-      [int? srcLength]) native;
+  void uniform1fv2(
+    UniformLocation? location,
+    v,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
   @JSName('uniform1iv')
-  void uniform1iv2(UniformLocation? location, v, int srcOffset,
-      [int? srcLength]) native;
+  void uniform1iv2(
+    UniformLocation? location,
+    v,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
   void uniform1ui(UniformLocation? location, int v0) native;
 
-  void uniform1uiv(UniformLocation? location, v,
-      [int? srcOffset, int? srcLength]) native;
+  void uniform1uiv(
+    UniformLocation? location,
+    v, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
   @JSName('uniform2fv')
-  void uniform2fv2(UniformLocation? location, v, int srcOffset,
-      [int? srcLength]) native;
+  void uniform2fv2(
+    UniformLocation? location,
+    v,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
   @JSName('uniform2iv')
-  void uniform2iv2(UniformLocation? location, v, int srcOffset,
-      [int? srcLength]) native;
+  void uniform2iv2(
+    UniformLocation? location,
+    v,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
   void uniform2ui(UniformLocation? location, int v0, int v1) native;
 
-  void uniform2uiv(UniformLocation? location, v,
-      [int? srcOffset, int? srcLength]) native;
+  void uniform2uiv(
+    UniformLocation? location,
+    v, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
   @JSName('uniform3fv')
-  void uniform3fv2(UniformLocation? location, v, int srcOffset,
-      [int? srcLength]) native;
+  void uniform3fv2(
+    UniformLocation? location,
+    v,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
   @JSName('uniform3iv')
-  void uniform3iv2(UniformLocation? location, v, int srcOffset,
-      [int? srcLength]) native;
+  void uniform3iv2(
+    UniformLocation? location,
+    v,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
   void uniform3ui(UniformLocation? location, int v0, int v1, int v2) native;
 
-  void uniform3uiv(UniformLocation? location, v,
-      [int? srcOffset, int? srcLength]) native;
+  void uniform3uiv(
+    UniformLocation? location,
+    v, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
   @JSName('uniform4fv')
-  void uniform4fv2(UniformLocation? location, v, int srcOffset,
-      [int? srcLength]) native;
+  void uniform4fv2(
+    UniformLocation? location,
+    v,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
   @JSName('uniform4iv')
-  void uniform4iv2(UniformLocation? location, v, int srcOffset,
-      [int? srcLength]) native;
+  void uniform4iv2(
+    UniformLocation? location,
+    v,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
-  void uniform4ui(UniformLocation? location, int v0, int v1, int v2, int v3)
-      native;
+  void uniform4ui(
+    UniformLocation? location,
+    int v0,
+    int v1,
+    int v2,
+    int v3,
+  ) native;
 
-  void uniform4uiv(UniformLocation? location, v,
-      [int? srcOffset, int? srcLength]) native;
+  void uniform4uiv(
+    UniformLocation? location,
+    v, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
   void uniformBlockBinding(
-      Program program, int uniformBlockIndex, int uniformBlockBinding) native;
+    Program program,
+    int uniformBlockIndex,
+    int uniformBlockBinding,
+  ) native;
 
   @JSName('uniformMatrix2fv')
   void uniformMatrix2fv2(
-      UniformLocation? location, bool transpose, array, int srcOffset,
-      [int? srcLength]) native;
+    UniformLocation? location,
+    bool transpose,
+    array,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
-  void uniformMatrix2x3fv(UniformLocation? location, bool transpose, value,
-      [int? srcOffset, int? srcLength]) native;
+  void uniformMatrix2x3fv(
+    UniformLocation? location,
+    bool transpose,
+    value, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
-  void uniformMatrix2x4fv(UniformLocation? location, bool transpose, value,
-      [int? srcOffset, int? srcLength]) native;
+  void uniformMatrix2x4fv(
+    UniformLocation? location,
+    bool transpose,
+    value, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
   @JSName('uniformMatrix3fv')
   void uniformMatrix3fv2(
-      UniformLocation? location, bool transpose, array, int srcOffset,
-      [int? srcLength]) native;
+    UniformLocation? location,
+    bool transpose,
+    array,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
-  void uniformMatrix3x2fv(UniformLocation? location, bool transpose, value,
-      [int? srcOffset, int? srcLength]) native;
+  void uniformMatrix3x2fv(
+    UniformLocation? location,
+    bool transpose,
+    value, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
-  void uniformMatrix3x4fv(UniformLocation? location, bool transpose, value,
-      [int? srcOffset, int? srcLength]) native;
+  void uniformMatrix3x4fv(
+    UniformLocation? location,
+    bool transpose,
+    value, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
   @JSName('uniformMatrix4fv')
   void uniformMatrix4fv2(
-      UniformLocation? location, bool transpose, array, int srcOffset,
-      [int? srcLength]) native;
+    UniformLocation? location,
+    bool transpose,
+    array,
+    int srcOffset, [
+    int? srcLength,
+  ]) native;
 
-  void uniformMatrix4x2fv(UniformLocation? location, bool transpose, value,
-      [int? srcOffset, int? srcLength]) native;
+  void uniformMatrix4x2fv(
+    UniformLocation? location,
+    bool transpose,
+    value, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
-  void uniformMatrix4x3fv(UniformLocation? location, bool transpose, value,
-      [int? srcOffset, int? srcLength]) native;
+  void uniformMatrix4x3fv(
+    UniformLocation? location,
+    bool transpose,
+    value, [
+    int? srcOffset,
+    int? srcLength,
+  ]) native;
 
   void vertexAttribDivisor(int index, int divisor) native;
 
@@ -2302,7 +3221,12 @@ class RenderingContext2 extends JavaScriptObject
   void vertexAttribI4uiv(int index, v) native;
 
   void vertexAttribIPointer(
-      int index, int size, int type, int stride, int offset) native;
+    int index,
+    int size,
+    int type,
+    int stride,
+    int offset,
+  ) native;
 
   void waitSync(Sync sync, int flags, int timeout) native;
 
@@ -2334,8 +3258,12 @@ class RenderingContext2 extends JavaScriptObject
 
   void blendFunc(int sfactor, int dfactor) native;
 
-  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
-      native;
+  void blendFuncSeparate(
+    int srcRGB,
+    int dstRGB,
+    int srcAlpha,
+    int dstAlpha,
+  ) native;
 
   void bufferData(int target, data_OR_size, int usage) native;
 
@@ -2357,17 +3285,48 @@ class RenderingContext2 extends JavaScriptObject
 
   void compileShader(Shader shader) native;
 
-  void compressedTexImage2D(int target, int level, int internalformat,
-      int width, int height, int border, TypedData data) native;
+  void compressedTexImage2D(
+    int target,
+    int level,
+    int internalformat,
+    int width,
+    int height,
+    int border,
+    TypedData data,
+  ) native;
 
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset,
-      int width, int height, int format, TypedData data) native;
+  void compressedTexSubImage2D(
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int width,
+    int height,
+    int format,
+    TypedData data,
+  ) native;
 
-  void copyTexImage2D(int target, int level, int internalformat, int x, int y,
-      int width, int height, int border) native;
+  void copyTexImage2D(
+    int target,
+    int level,
+    int internalformat,
+    int x,
+    int y,
+    int width,
+    int height,
+    int border,
+  ) native;
 
-  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x,
-      int y, int width, int height) native;
+  void copyTexSubImage2D(
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int x,
+    int y,
+    int width,
+    int height,
+  ) native;
 
   Buffer createBuffer() native;
 
@@ -2419,11 +3378,20 @@ class RenderingContext2 extends JavaScriptObject
 
   void flush() native;
 
-  void framebufferRenderbuffer(int target, int attachment,
-      int renderbuffertarget, Renderbuffer? renderbuffer) native;
+  void framebufferRenderbuffer(
+    int target,
+    int attachment,
+    int renderbuffertarget,
+    Renderbuffer? renderbuffer,
+  ) native;
 
-  void framebufferTexture2D(int target, int attachment, int textarget,
-      Texture? texture, int level) native;
+  void framebufferTexture2D(
+    int target,
+    int attachment,
+    int textarget,
+    Texture? texture,
+    int level,
+  ) native;
 
   void frontFace(int mode) native;
 
@@ -2451,7 +3419,10 @@ class RenderingContext2 extends JavaScriptObject
   Object? getExtension(String name) native;
 
   Object? getFramebufferAttachmentParameter(
-      int target, int attachment, int pname) native;
+    int target,
+    int attachment,
+    int pname,
+  ) native;
 
   Object? getParameter(int pname) native;
 
@@ -2466,7 +3437,9 @@ class RenderingContext2 extends JavaScriptObject
   Object? getShaderParameter(Shader shader, int pname) native;
 
   ShaderPrecisionFormat getShaderPrecisionFormat(
-      int shadertype, int precisiontype) native;
+    int shadertype,
+    int precisiontype,
+  ) native;
 
   String? getShaderSource(Shader shader) native;
 
@@ -2509,11 +3482,22 @@ class RenderingContext2 extends JavaScriptObject
   void polygonOffset(num factor, num units) native;
 
   @JSName('readPixels')
-  void _readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData? pixels) native;
+  void _readPixels(
+    int x,
+    int y,
+    int width,
+    int height,
+    int format,
+    int type,
+    TypedData? pixels,
+  ) native;
 
   void renderbufferStorage(
-      int target, int internalformat, int width, int height) native;
+    int target,
+    int internalformat,
+    int width,
+    int height,
+  ) native;
 
   void sampleCoverage(num value, bool invert) native;
 
@@ -2534,28 +3518,30 @@ class RenderingContext2 extends JavaScriptObject
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   void texImage2D(
-      int target,
-      int level,
-      int internalformat,
-      int format_OR_width,
-      int height_OR_type,
-      bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
-      [int? format,
-      int? type,
-      TypedData? pixels]) {
+    int target,
+    int level,
+    int internalformat,
+    int format_OR_width,
+    int height_OR_type,
+    bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video, [
+    int? format,
+    int? type,
+    TypedData? pixels,
+  ]) {
     if (type != null &&
         format != null &&
         (bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
-          format,
-          type,
-          pixels);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+        format,
+        type,
+        pixels,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData) &&
@@ -2563,9 +3549,16 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
-      _texImage2D_2(target, level, internalformat, format_OR_width,
-          height_OR_type, pixels_1);
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
+      _texImage2D_2(
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        pixels_1,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
@@ -2574,12 +3567,13 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texImage2D_3(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
@@ -2588,12 +3582,13 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texImage2D_4(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
@@ -2602,12 +3597,13 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texImage2D_5(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video
@@ -2616,71 +3612,121 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texImage2D_6(
-          target,
-          level,
-          internalformat,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        internalformat,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texImage2D')
-  void _texImage2D_1(target, level, internalformat, width, height, int border,
-      format, type, TypedData? pixels) native;
+  void _texImage2D_1(
+    target,
+    level,
+    internalformat,
+    width,
+    height,
+    int border,
+    format,
+    type,
+    TypedData? pixels,
+  ) native;
   @JSName('texImage2D')
-  void _texImage2D_2(target, level, internalformat, format, type, pixels)
-      native;
+  void _texImage2D_2(
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    pixels,
+  ) native;
   @JSName('texImage2D')
   void _texImage2D_3(
-      target, level, internalformat, format, type, ImageElement image) native;
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    ImageElement image,
+  ) native;
   @JSName('texImage2D')
   void _texImage2D_4(
-      target, level, internalformat, format, type, CanvasElement canvas) native;
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    CanvasElement canvas,
+  ) native;
   @JSName('texImage2D')
   void _texImage2D_5(
-      target, level, internalformat, format, type, VideoElement video) native;
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    VideoElement video,
+  ) native;
   @JSName('texImage2D')
   void _texImage2D_6(
-      target, level, internalformat, format, type, ImageBitmap bitmap) native;
+    target,
+    level,
+    internalformat,
+    format,
+    type,
+    ImageBitmap bitmap,
+  ) native;
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
   void texSubImage2D(
-      int target,
-      int level,
-      int xoffset,
-      int yoffset,
-      int format_OR_width,
-      int height_OR_type,
-      bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
-      [int? type,
-      TypedData? pixels]) {
+    int target,
+    int level,
+    int xoffset,
+    int yoffset,
+    int format_OR_width,
+    int height_OR_type,
+    bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video, [
+    int? type,
+    TypedData? pixels,
+  ]) {
     if (type != null &&
         (bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
-          type,
-          pixels);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+        type,
+        pixels,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData) &&
         type == null &&
         pixels == null) {
       var pixels_1 = convertDartToNative_ImageData(
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
-      _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width,
-          height_OR_type, pixels_1);
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
+      _texSubImage2D_2(
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        pixels_1,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
@@ -2688,13 +3734,14 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texSubImage2D_3(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
@@ -2702,13 +3749,14 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texSubImage2D_4(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
@@ -2716,13 +3764,14 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texSubImage2D_5(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     if ((bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video
@@ -2730,36 +3779,81 @@ class RenderingContext2 extends JavaScriptObject
         type == null &&
         pixels == null) {
       _texSubImage2D_6(
-          target,
-          level,
-          xoffset,
-          yoffset,
-          format_OR_width,
-          height_OR_type,
-          bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video);
+        target,
+        level,
+        xoffset,
+        yoffset,
+        format_OR_width,
+        height_OR_type,
+        bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
+      );
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @JSName('texSubImage2D')
-  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
-      int format, type, TypedData? pixels) native;
+  void _texSubImage2D_1(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    width,
+    height,
+    int format,
+    type,
+    TypedData? pixels,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
-      native;
+  void _texSubImage2D_2(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    pixels,
+  ) native;
   @JSName('texSubImage2D')
   void _texSubImage2D_3(
-      target, level, xoffset, yoffset, format, type, ImageElement image) native;
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    ImageElement image,
+  ) native;
   @JSName('texSubImage2D')
-  void _texSubImage2D_4(target, level, xoffset, yoffset, format, type,
-      CanvasElement canvas) native;
+  void _texSubImage2D_4(
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    CanvasElement canvas,
+  ) native;
   @JSName('texSubImage2D')
   void _texSubImage2D_5(
-      target, level, xoffset, yoffset, format, type, VideoElement video) native;
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    VideoElement video,
+  ) native;
   @JSName('texSubImage2D')
   void _texSubImage2D_6(
-      target, level, xoffset, yoffset, format, type, ImageBitmap bitmap) native;
+    target,
+    level,
+    xoffset,
+    yoffset,
+    format,
+    type,
+    ImageBitmap bitmap,
+  ) native;
 
   void uniform1f(UniformLocation? location, num x) native;
 
@@ -2793,14 +3887,23 @@ class RenderingContext2 extends JavaScriptObject
 
   void uniform4iv(UniformLocation? location, v) native;
 
-  void uniformMatrix2fv(UniformLocation? location, bool transpose, array)
-      native;
+  void uniformMatrix2fv(
+    UniformLocation? location,
+    bool transpose,
+    array,
+  ) native;
 
-  void uniformMatrix3fv(UniformLocation? location, bool transpose, array)
-      native;
+  void uniformMatrix3fv(
+    UniformLocation? location,
+    bool transpose,
+    array,
+  ) native;
 
-  void uniformMatrix4fv(UniformLocation? location, bool transpose, array)
-      native;
+  void uniformMatrix4fv(
+    UniformLocation? location,
+    bool transpose,
+    array,
+  ) native;
 
   void useProgram(Program? program) native;
 
@@ -2822,13 +3925,26 @@ class RenderingContext2 extends JavaScriptObject
 
   void vertexAttrib4fv(int indx, values) native;
 
-  void vertexAttribPointer(int indx, int size, int type, bool normalized,
-      int stride, int offset) native;
+  void vertexAttribPointer(
+    int indx,
+    int size,
+    int type,
+    bool normalized,
+    int stride,
+    int offset,
+  ) native;
 
   void viewport(int x, int y, int width, int height) native;
 
-  void readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData pixels) {
+  void readPixels(
+    int x,
+    int y,
+    int width,
+    int height,
+    int format,
+    int type,
+    TypedData pixels,
+  ) {
     _readPixels(x, y, width, height, format, type, pixels);
   }
 }

@@ -21,7 +21,9 @@ class Timer {
 
   @patch
   static Timer _createPeriodicTimer(
-      Duration duration, void callback(Timer timer)) {
+    Duration duration,
+    void callback(Timer timer),
+  ) {
     final factory = VMLibraryHooks.timerFactory;
     if (factory == null) {
       throw new UnsupportedError("Timer interface not supported.");
