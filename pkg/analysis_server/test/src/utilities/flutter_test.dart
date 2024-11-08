@@ -441,19 +441,20 @@ class MyContainer extends Container {}
 class NotFlutter {}
 class NotWidget extends State {}
 ''');
-    var myStatelessWidget = testUnitElement.getClass('MyStatelessWidget');
+
+    var myStatelessWidget = findElement2.class_('MyStatelessWidget');
     expect(myStatelessWidget.isWidget, isTrue);
 
-    var myStatefulWidget = testUnitElement.getClass('MyStatefulWidget');
+    var myStatefulWidget = findElement2.class_('MyStatefulWidget');
     expect(myStatefulWidget.isWidget, isTrue);
 
-    var myContainer = testUnitElement.getClass('MyContainer');
+    var myContainer = findElement2.class_('MyContainer');
     expect(myContainer.isWidget, isTrue);
 
-    var notFlutter = testUnitElement.getClass('NotFlutter');
+    var notFlutter = findElement2.class_('NotFlutter');
     expect(notFlutter.isWidget, isFalse);
 
-    var notWidget = testUnitElement.getClass('NotWidget');
+    var notWidget = findElement2.class_('NotWidget');
     expect(notWidget.isWidget, isFalse);
   }
 
