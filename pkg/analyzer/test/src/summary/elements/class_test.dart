@@ -12915,6 +12915,7 @@ library
               getter2: <testLibraryFragment>::@class::A::@getter::_foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
   classes
     class A
@@ -15155,6 +15156,7 @@ library
               element: <testLibraryFragment>::@class::C::@getter::b#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
         final a @19
@@ -31189,6 +31191,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @28
@@ -31312,6 +31315,7 @@ library
               typeNameOffset: 33
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -31427,6 +31431,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -31545,6 +31550,7 @@ library
               typeNameOffset: 33
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -31656,6 +31662,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -31847,6 +31854,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a1.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       classes
@@ -31857,6 +31865,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a11.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a11.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a1.dart
       previousFragment: <testLibrary>::@fragment::package:test/a1.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       classes
@@ -31867,6 +31876,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a12.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a12.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a1.dart
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/a2.dart
       classes
@@ -31877,6 +31887,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a2.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a2.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/a21.dart
       classes
@@ -31887,6 +31898,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a21.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a21.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a2.dart
       previousFragment: <testLibrary>::@fragment::package:test/a2.dart
       nextFragment: <testLibrary>::@fragment::package:test/a22.dart
       classes
@@ -31897,6 +31909,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a22.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a22.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a2.dart
       previousFragment: <testLibrary>::@fragment::package:test/a21.dart
       classes
         class A @33
@@ -32002,6 +32015,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @36
@@ -32159,6 +32173,7 @@ library
               typeName: B
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -32177,6 +32192,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo1#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @32
@@ -32311,6 +32327,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -32435,6 +32452,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -32540,6 +32558,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -32658,6 +32677,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -32752,6 +32772,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -32849,6 +32870,7 @@ library
               element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -32956,6 +32978,7 @@ library
               typeNameOffset: 27
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -33039,6 +33062,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -33135,6 +33159,7 @@ library
               periodOffset: 28
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -33248,6 +33273,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::f#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -33381,6 +33407,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::f#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -33503,6 +33530,7 @@ library
               periodOffset: 28
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -33650,6 +33678,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -33838,6 +33867,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -33854,6 +33884,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @35
@@ -34043,6 +34074,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -34058,6 +34090,7 @@ library
               previousFragment: <testLibraryFragment>::@class::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @35
@@ -34250,6 +34283,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -34268,6 +34302,7 @@ library
               previousFragment: <testLibraryFragment>::@class::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @35
@@ -34416,6 +34451,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -34568,6 +34604,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -34723,6 +34760,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -34857,6 +34895,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -34973,6 +35012,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -35111,6 +35151,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -35284,6 +35325,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -35498,6 +35540,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -35650,6 +35693,7 @@ library
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -35788,6 +35832,7 @@ library
                     staticType: int
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -35901,6 +35946,7 @@ library
               periodOffset: 28
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -36011,6 +36057,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -36145,6 +36192,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -36288,6 +36336,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -36449,6 +36498,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -36616,6 +36666,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -36804,6 +36855,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -36820,6 +36872,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @35
@@ -36981,6 +37034,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo2#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -37128,6 +37182,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -37294,6 +37349,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -37310,6 +37366,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @35
@@ -37403,6 +37460,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -37515,6 +37573,7 @@ library
               typeName: I1
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -37676,6 +37735,7 @@ library
               typeName: I1
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -37694,6 +37754,7 @@ library
               typeName: I2
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @32
@@ -37844,6 +37905,7 @@ library
               typeName: I1
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -37998,6 +38060,7 @@ library
               typeName: I1
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -38125,6 +38188,7 @@ library
               periodOffset: 28
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -38261,6 +38325,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -38395,6 +38460,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -38528,6 +38594,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -38644,6 +38711,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -38746,6 +38814,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -38868,6 +38937,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo2#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -38985,6 +39055,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -39113,6 +39184,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -39260,6 +39332,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -39276,6 +39349,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @32
@@ -39393,6 +39467,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -39518,6 +39593,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -39634,6 +39710,7 @@ library
           element: <testLibrary>::@mixin::M1
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -39836,6 +39913,7 @@ library
               element: <not-implemented>
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -39856,6 +39934,7 @@ library
               element: <not-implemented>
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @35
@@ -40003,6 +40082,7 @@ library
               periodOffset: 28
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -40137,6 +40217,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -40264,6 +40345,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -40414,6 +40496,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -40588,6 +40671,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -40694,6 +40778,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -40860,6 +40945,7 @@ library
                   element: <testLibraryFragment>::@class::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -40986,6 +41072,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
@@ -40995,6 +41082,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       mixins
         mixin A @36
@@ -41101,6 +41189,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       mixins
@@ -41109,6 +41198,7 @@ library
           element: <testLibrary>::@mixin::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @36
@@ -41247,6 +41337,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -41266,6 +41357,7 @@ library
               previousFragment: <testLibraryFragment>::@class::A::@constructor::named
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @35
@@ -41368,6 +41460,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -41465,6 +41558,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -41577,6 +41671,7 @@ library
               superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class B @35
@@ -41703,6 +41798,7 @@ library
                   element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -41824,6 +41920,7 @@ library
                   element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart
@@ -41960,6 +42057,7 @@ library
                   element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class B @35
@@ -42080,6 +42178,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::bar#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -42167,6 +42266,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @44
@@ -42244,6 +42344,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @40
@@ -42321,6 +42422,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @41
@@ -42398,6 +42500,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @45
@@ -42475,6 +42578,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @41
@@ -42552,6 +42656,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @41
@@ -42629,6 +42734,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @42
@@ -42872,6 +42978,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35
@@ -42993,6 +43100,7 @@ library
                 substitution: {T: T1}
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class B @35
@@ -43139,6 +43247,7 @@ library
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -43149,6 +43258,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::C
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class C @35
@@ -43267,6 +43377,7 @@ library
               typeName: B
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @35

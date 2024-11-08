@@ -374,6 +374,9 @@ if (is_win) {
 set_defaults("shared_library") {
   configs = _shared_library_configs
 }
+set_defaults("loadable_module") {
+  configs = _shared_library_configs
+}
 
 # Source set defaults (also for components in non-component mode).
 set_defaults("source_set") {

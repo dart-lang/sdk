@@ -120,7 +120,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "core_rev": "4b6279294026f71697f28d4958a7c7a6fdb991e1",
+  "core_rev": "1156cfe4abc000f173bbf826783c215ca02b2ebf",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -132,11 +132,11 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "dc13a2f8e667825980cbc1a06ed645620f9bed70", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "5168f81a7d774effd7f8520cd170ffcb180f7c39",
+  "dartdoc_rev": "24c2a966c253111318dc50813718eaa2816871fa",
   "ecosystem_rev": "52e4ceb6f0715bab5c47495429c4a2b7ce708a66",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "b6319d6c2880b44039e75dfed80f7ce150f76d51",
-  "http_rev": "8db0d0ae3e8dece7cf56c025e30ecb1082cf9c5d",
+  "http_rev": "03ced4da4fbf62b9a88cf078608cd56ee7e4e0d4",
   "http_multi_server_rev": "c8aabe36268aa38c906eae46728c10d883b9aced",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
@@ -153,7 +153,7 @@ vars = {
   "shelf_rev": "1a141c71e201ed361aabc1d89a21181667f0b39c",
   "source_maps_rev": "b20b97003a48d78a1ecba7e46d932ea4b480dd94",
   "source_span_rev": "f147469ba02108c1ade3680de548b7b447de8c72",
-  "sse_rev": "1b020116af2be83a572b168b8b9d7ad9ed6232b1",
+  "sse_rev": "befbd6d35118f59525903242db3888942ac34180",
   "stack_trace_rev": "63e79f584567f7c73e7f5739c7cfd8e748f51f16",
   "stream_channel_rev": "9bfc2a8dec202bcd07332f39df0f905c670092c6",
   "string_scanner_rev": "255d67111e3ed67caedba2789269b6344bf62638",
@@ -176,8 +176,8 @@ vars = {
   "yaml_edit_rev": "3d1421b928ec62cf866ec3487940e560852c5c3b",
 
   # Windows deps
-  "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
-  "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
+  "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",
+  "minichromium_rev": "203a01130fac64bfdcc8cab2e1798c7b2c0619bf",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
 
   # Pinned browser versions used by the testing infrastructure. These are not

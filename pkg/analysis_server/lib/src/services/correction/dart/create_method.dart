@@ -163,7 +163,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
             target.element?.kind == ElementKind.MIXIN;
       }
       // Use different utils.
-      var targetPath = targetFragment.libraryFragment.source.fullName;
+      var targetPath = targetFragment.libraryFragment!.source.fullName;
       var targetResolveResult = await unitResult.session.getResolvedUnit(
         targetPath,
       );
@@ -171,7 +171,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
         return;
       }
     }
-    var targetSource = targetFragment?.libraryFragment.source;
+    var targetSource = targetFragment?.libraryFragment!.source;
     if (targetSource == null) {
       return;
     }

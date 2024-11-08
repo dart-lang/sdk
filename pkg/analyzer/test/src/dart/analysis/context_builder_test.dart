@@ -198,7 +198,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     AnalysisOptionsImpl expected,
   ) {
     // TODO(brianwilkerson): Consider moving this to AnalysisOptionsImpl.==.
-    expect(actual.enableTiming, expected.enableTiming);
     expect(actual.lint, expected.lint);
     expect(actual.warning, expected.warning);
     expect(

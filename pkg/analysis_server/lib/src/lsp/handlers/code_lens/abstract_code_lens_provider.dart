@@ -41,13 +41,13 @@ abstract class AbstractCodeLensProvider
 
     // Map the source onto a URI and only return this item if the client
     // can handle the URI.
-    var source = fragment.libraryFragment.source;
+    var source = fragment.libraryFragment!.source;
     var uri = server.uriConverter.toClientUri(source.fullName);
     if (!server.uriConverter.supportedSchemes.contains(uri.scheme)) {
       return null;
     }
 
-    var lineInfo = fragment.libraryFragment.lineInfo;
+    var lineInfo = fragment.libraryFragment!.lineInfo;
     return Location(uri: uri, range: toRange(lineInfo, nameOffset, nameLength));
   }
 

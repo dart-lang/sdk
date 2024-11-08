@@ -36,8 +36,8 @@ extension Element2OrNullExtension on Element2? {
         return self;
       case GetterElement():
         return self.firstFragment as Element;
-      case MultiplyDefinedElement element2:
-        return element2;
+      case MultiplyDefinedElementImpl2 element2:
+        return element2.asElement;
       case NeverElementImpl():
         return self;
       case PrefixElementImpl():
@@ -147,7 +147,11 @@ extension ElementOrNullExtension on Element? {
     } else if (self is LocalVariableElementImpl) {
       return self.element;
     } else if (self is MultiplyDefinedElementImpl) {
-      return self;
+      return MultiplyDefinedElementImpl2(
+        self.libraryFragment,
+        self.name,
+        self.conflictingElements.map((e) => e.asElement2).nonNulls.toList(),
+      );
     } else if (self is NeverElementImpl) {
       return self;
     } else if (self is ParameterMember) {

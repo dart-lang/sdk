@@ -1096,7 +1096,7 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
 
 /// The container to register visitors for separate AST node types.
 class NodeLintRegistry {
-  final bool enableTiming;
+  final bool _enableTiming;
   final List<_AfterLibrarySubscription> _afterLibrary = [];
   final List<_Subscription<AdjacentStrings>> _forAdjacentStrings = [];
   final List<_Subscription<Annotation>> _forAnnotation = [];
@@ -1307,7 +1307,7 @@ class NodeLintRegistry {
   final List<_Subscription<WithClause>> _forWithClause = [];
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
 
-  NodeLintRegistry(this.enableTiming);
+  NodeLintRegistry({required bool enableTiming}) : _enableTiming = enableTiming;
 
   void addAdjacentStrings(AnalysisRule rule, AstVisitor visitor) {
     _forAdjacentStrings.add(_Subscription(rule, visitor, _getTimer(rule)));
@@ -2019,7 +2019,7 @@ class NodeLintRegistry {
 
   /// Get the timer associated with the given [rule].
   Stopwatch? _getTimer(AnalysisRule rule) {
-    if (enableTiming) {
+    if (_enableTiming) {
       return analysisRuleTimers.getTimer(rule);
     } else {
       return null;

@@ -148,6 +148,9 @@ features:
   inference-update-4:
     help: "A bundle of updates to type inference."
 
+  enum-shorthands:
+    help: "Shorter dot syntax for enum values."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

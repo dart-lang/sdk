@@ -26,7 +26,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -240,8 +239,9 @@ class PluginServer {
         ),
     ];
 
-    var enableTiming = analysisOptions.enableTiming;
-    var nodeRegistry = NodeLintRegistry(enableTiming);
+    // TODO(srawlins): Enable timing similar to what the linter package's
+    // `benchhmark.dart` script does.
+    var nodeRegistry = NodeLintRegistry(enableTiming: false);
 
     var context = LinterContextWithResolvedResults(
       allUnits,
@@ -261,10 +261,9 @@ class PluginServer {
           Registry.ruleRegistry.enabled(configuration.diagnosticConfigs);
       for (var rule in rules) {
         rule.reporter = errorReporter;
-        var timer = enableTiming ? analysisRuleTimers.getTimer(rule) : null;
-        timer?.start();
+        // TODO(srawlins): Enable timing similar to what the linter package's
+        // `benchhmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);
-        timer?.stop();
       }
     }
 

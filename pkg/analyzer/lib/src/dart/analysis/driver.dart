@@ -76,7 +76,7 @@ import 'package:meta/meta.dart';
 /// "analysis state" be either "working" or "idle".
 ///
 /// (These are theoretical constructs; they may not necessarily reflect data
-/// structures maintained explicitly by the driver).
+/// structures maintained explicitly by the driver.)
 ///
 /// Then we make the following guarantees:
 ///
@@ -99,7 +99,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 416;
+  static const int DATA_VERSION = 417;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -267,6 +267,9 @@ class AnalysisDriver {
   /// A map that associates files to corresponding analysis options.
   late final AnalysisOptionsMap analysisOptionsMap;
 
+  /// Whether timing data should be gathered during lint rule execution.
+  final bool _enableLintRuleTiming;
+
   /// Create a new instance of [AnalysisDriver].
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -293,6 +296,7 @@ class AnalysisDriver {
     DeclaredVariables? declaredVariables,
     bool retainDataForTesting = false,
     this.testView,
+    bool enableLintRuleTiming = false,
   })  : _scheduler = scheduler,
         _resourceProvider = resourceProvider,
         _byteStore = byteStore,
@@ -306,7 +310,8 @@ class AnalysisDriver {
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         declaredVariables = declaredVariables ?? DeclaredVariables(),
-        testingData = retainDataForTesting ? TestingData() : null {
+        testingData = retainDataForTesting ? TestingData() : null,
+        _enableLintRuleTiming = enableLintRuleTiming {
     analysisContext?.driver = this;
     testView?.driver = this;
 
@@ -1400,6 +1405,7 @@ class AnalysisDriver {
           library,
           testingData: testingData,
           typeSystemOperations: typeSystemOperations,
+          enableLintRuleTiming: _enableLintRuleTiming,
         ).analyze();
 
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);

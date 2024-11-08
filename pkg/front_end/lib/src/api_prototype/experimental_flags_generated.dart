@@ -142,6 +142,15 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 6),
   );
 
+  static const ExperimentalFlag enumShorthands = const ExperimentalFlag(
+    name: 'enum-shorthands',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag extensionMethods = const ExperimentalFlag(
     name: 'extension-methods',
     isEnabledByDefault: true,
@@ -502,6 +511,12 @@ class GlobalFeatures {
   GlobalFeature get enhancedParts =>
       _enhancedParts ??= _computeGlobalFeature(ExperimentalFlag.enhancedParts);
 
+  GlobalFeature? _enumShorthands;
+  GlobalFeature get enumShorthands =>
+      _enumShorthands ??= _computeGlobalFeature(
+        ExperimentalFlag.enumShorthands,
+      );
+
   GlobalFeature? _extensionMethods;
   GlobalFeature get extensionMethods =>
       _extensionMethods ??= _computeGlobalFeature(
@@ -729,6 +744,14 @@ class LibraryFeatures {
   LibraryFeature get enhancedParts =>
       _enhancedParts ??= globalFeatures._computeLibraryFeature(
         ExperimentalFlag.enhancedParts,
+        canonicalUri,
+        libraryVersion,
+      );
+
+  LibraryFeature? _enumShorthands;
+  LibraryFeature get enumShorthands =>
+      _enumShorthands ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.enumShorthands,
         canonicalUri,
         libraryVersion,
       );
@@ -972,6 +995,8 @@ class LibraryFeatures {
         return enhancedEnums;
       case shared.ExperimentalFlag.enhancedParts:
         return enhancedParts;
+      case shared.ExperimentalFlag.enumShorthands:
+        return enumShorthands;
       case shared.ExperimentalFlag.extensionMethods:
         return extensionMethods;
       case shared.ExperimentalFlag.genericMetadata:
@@ -1052,6 +1077,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.enhancedEnums;
     case "enhanced-parts":
       return ExperimentalFlag.enhancedParts;
+    case "enum-shorthands":
+      return ExperimentalFlag.enumShorthands;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
     case "generic-metadata":
@@ -1131,6 +1158,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.enhancedEnums.isEnabledByDefault,
   ExperimentalFlag.enhancedParts:
       ExperimentalFlag.enhancedParts.isEnabledByDefault,
+  ExperimentalFlag.enumShorthands:
+      ExperimentalFlag.enumShorthands.isEnabledByDefault,
   ExperimentalFlag.extensionMethods:
       ExperimentalFlag.extensionMethods.isEnabledByDefault,
   ExperimentalFlag.genericMetadata:
@@ -1197,6 +1226,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
   shared.ExperimentalFlag.enhancedParts: ExperimentalFlag.enhancedParts,
+  shared.ExperimentalFlag.enumShorthands: ExperimentalFlag.enumShorthands,
   shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,

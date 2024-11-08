@@ -2832,6 +2832,7 @@ shorted
 shorten
 shortened
 shorter
+shorthands
 shorting
 shorts
 should

@@ -3638,6 +3638,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -3648,6 +3649,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @41
@@ -3783,6 +3785,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -3814,6 +3817,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @41
@@ -3957,6 +3961,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -4114,6 +4119,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -4269,6 +4275,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -4462,6 +4469,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -4694,6 +4702,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -4710,6 +4719,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
@@ -4943,6 +4953,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -4958,6 +4969,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@getter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
@@ -5194,6 +5206,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -5212,6 +5225,7 @@ library
               previousFragment: <testLibraryFragment>::@extensionType::A::@setter::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
@@ -5415,6 +5429,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -5600,6 +5615,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -5814,6 +5830,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo1::@parameter::_foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -6027,6 +6044,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -6232,6 +6250,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -6443,6 +6462,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -6675,6 +6695,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -6691,6 +6712,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
@@ -6896,6 +6918,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::foo2#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -7107,6 +7130,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -7123,6 +7147,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @44
@@ -7294,6 +7319,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -7581,6 +7607,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -7612,6 +7639,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionType::I2::@getter::it#element
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @41
@@ -7912,6 +7940,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -8202,6 +8231,7 @@ library
               element: <testLibraryFragment>::@extensionType::I1::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -8423,6 +8453,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -8589,6 +8620,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@method::foo2#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -8775,6 +8807,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       extensionTypes
@@ -8791,6 +8824,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a.dart
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @41
@@ -8956,6 +8990,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@method::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -9129,6 +9164,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -9304,6 +9340,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@method::bar#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -9498,6 +9535,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo1::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -9717,6 +9755,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -9941,6 +9980,7 @@ library
                   element: <testLibraryFragment>::@extensionType::A::@setter::foo2::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensionTypes
         extension type A @44
@@ -10090,6 +10130,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -10099,6 +10140,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
         class A @36
@@ -10230,6 +10272,7 @@ library
               element: <testLibraryFragment>::@extensionType::A::@getter::it#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
       classes
@@ -10238,6 +10281,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
       extensionTypes
         extension type A @45

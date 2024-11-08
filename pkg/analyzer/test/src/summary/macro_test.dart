@@ -3124,6 +3124,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::f#element
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
@@ -3233,6 +3234,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
@@ -3332,6 +3334,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
@@ -3446,6 +3449,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
@@ -3568,6 +3572,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
@@ -3671,6 +3676,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
@@ -3777,6 +3783,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
@@ -5448,6 +5455,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class B @49
@@ -5527,6 +5535,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       functions
         foo @40
@@ -5626,6 +5635,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
         final x @41
@@ -5763,6 +5773,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart as prefix0 @67
@@ -5922,6 +5933,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart as prefix0 @67
@@ -6092,6 +6104,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart as prefix0 @67
@@ -6233,6 +6246,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart as prefix0 @67
@@ -6384,6 +6398,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart as prefix0 @67
@@ -6780,6 +6795,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class B @41
@@ -10598,6 +10614,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/test.dart as prefix0 @70
@@ -10885,6 +10902,7 @@ library
               element: <testLibraryFragment>::@class::A::@method::foo#element
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       extensions
         extension B @45
@@ -11818,6 +11836,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @49
@@ -12277,6 +12296,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::bar#element
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:core as prefix0 @57
@@ -12489,6 +12509,7 @@ library
               element: <testLibraryFragment>::@class::A::@getter::bar#element
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/json_serializable.dart as prefix0 @83
@@ -17450,6 +17471,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
@@ -17533,6 +17555,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
@@ -17634,6 +17657,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
@@ -17735,6 +17759,7 @@ library
               typeName: A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
@@ -17826,6 +17851,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class B @41
@@ -18051,6 +18077,7 @@ library
           element: <testLibrary>::@class::A
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class MyClass @41
@@ -18174,6 +18201,7 @@ library
           element: <testLibrary>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart as prefix0 @67
@@ -18606,6 +18634,7 @@ library
           element: <testLibrary>::@class::X
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         package:test/a.dart as prefix0 @67
@@ -18860,6 +18889,7 @@ library
           element: <testLibrary>::@class::B
     <testLibrary>::@fragment::package:test/test.macro.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class X @41
@@ -19590,6 +19620,7 @@ library
           element: package:other/other.dart::@class::A
     package:other/other.dart::@fragment::package:other/other.macro.dart
       element: package:other/other.dart
+      enclosingFragment: package:other/other.dart::<fragment>
       previousFragment: package:other/other.dart::<fragment>
       classes
         class B @43

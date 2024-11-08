@@ -647,6 +647,9 @@ abstract class ExecutableFragment implements FunctionTypedFragment {
   bool get isSynchronous;
 
   @override
+  LibraryFragment get libraryFragment;
+
+  @override
   ExecutableFragment? get nextFragment;
 
   @override
@@ -929,7 +932,7 @@ abstract class Fragment {
   /// The library fragment that contains this fragment.
   ///
   /// This will be the fragment itself if it is a library fragment.
-  LibraryFragment get libraryFragment;
+  LibraryFragment? get libraryFragment;
 
   /// The name of the fragment.
   ///
@@ -1156,6 +1159,9 @@ abstract class InstanceFragment
   ///
   /// If `true`, the declaration has the explicit `augment` modifier.
   bool get isAugmentation;
+
+  @override
+  LibraryFragment get libraryFragment;
 
   /// The methods declared in this fragment.
   List<MethodFragment> get methods2;
@@ -1927,8 +1933,10 @@ abstract class MultiplyDefinedElement2 implements Element2, FragmentedElement {
   MultiplyDefinedFragment get firstFragment;
 }
 
-/// The portion of a [MultiplyDefinedElement2] contributed by a single
-/// declaration.
+/// The fragment for a [MultiplyDefinedElement2].
+///
+/// It has no practical use, and exists for consistency, so that the
+/// corresponding element has a fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MultiplyDefinedFragment implements Fragment {
@@ -1936,10 +1944,10 @@ abstract class MultiplyDefinedFragment implements Fragment {
   MultiplyDefinedElement2 get element;
 
   @override
-  MultiplyDefinedFragment? get nextFragment;
+  Null get nextFragment;
 
   @override
-  MultiplyDefinedFragment? get previousFragment;
+  Null get previousFragment;
 }
 
 /// A pattern variable.
@@ -2123,6 +2131,9 @@ abstract class PropertyInducingFragment
   /// constructor for a class that does not explicitly define any constructors.
   // TODO(brianwilkerson): Should synthetic elements have a fragment?
   bool get isSynthetic;
+
+  @override
+  LibraryFragment get libraryFragment;
 
   @override
   PropertyInducingFragment? get nextFragment;

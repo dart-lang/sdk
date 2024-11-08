@@ -16,6 +16,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
@@ -232,7 +233,8 @@ List<AnalysisError> _validatePluginsOption(
 }) {
   RecordingErrorListener recorder = RecordingErrorListener();
   ErrorReporter reporter = ErrorReporter(recorder, source);
-  PluginsOptionValidator(firstEnabledPluginName).validate(reporter, options);
+  _LegacyPluginsOptionValidator(firstEnabledPluginName)
+      .validate(reporter, options);
   return recorder.errors;
 }
 
@@ -340,24 +342,60 @@ class AnalyzerOptions {
 }
 
 /// Validates `analyzer` options.
-class AnalyzerOptionsValidator extends CompositeValidator {
+class AnalyzerOptionsValidator extends _CompositeValidator {
   AnalyzerOptionsValidator()
       : super([
-          TopLevelAnalyzerOptionsValidator(),
-          StrongModeOptionValueValidator(),
-          ErrorFilterOptionValidator(),
-          EnabledExperimentsValidator(),
-          LanguageOptionValidator(),
-          OptionalChecksValueValidator(),
-          CannotIgnoreOptionValidator(),
+          _TopLevelAnalyzerOptionsValidator(),
+          _StrongModeOptionValueValidator(),
+          _ErrorFilterOptionValidator(),
+          _EnabledExperimentsValidator(),
+          _LanguageOptionValidator(),
+          _OptionalChecksValueValidator(),
+          _CannotIgnoreOptionValidator(),
         ]);
+}
+
+/// Validates options defined in an analysis options file.
+@visibleForTesting
+class OptionsFileValidator {
+  /// The source being validated.
+  final Source _source;
+
+  final List<OptionsValidator> _validators;
+
+  OptionsFileValidator(
+    this._source, {
+    required VersionConstraint? sdkVersionConstraint,
+    required bool sourceIsOptionsForContextRoot,
+    LintRuleProvider? provider,
+  }) : _validators = [
+          AnalyzerOptionsValidator(),
+          _CodeStyleOptionsValidator(),
+          _FormatterOptionsValidator(),
+          _LinterOptionsValidator(),
+          LinterRuleOptionsValidator(
+            provider: provider,
+            sdkVersionConstraint: sdkVersionConstraint,
+            sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+          ),
+          // TODO(srawlins): validate the top-level 'plugins' section.
+        ];
+
+  List<AnalysisError> validate(YamlMap options) {
+    RecordingErrorListener recorder = RecordingErrorListener();
+    ErrorReporter reporter = ErrorReporter(recorder, _source);
+    for (var validator in _validators) {
+      validator.validate(reporter, options);
+    }
+    return recorder.errors;
+  }
 }
 
 /// Validates the `analyzer` `cannot-ignore` option.
 ///
 /// This includes the format of the `cannot-ignore` section, the format of
 /// values in the section, and whether each value is a valid string.
-class CannotIgnoreOptionValidator extends OptionsValidator {
+class _CannotIgnoreOptionValidator extends OptionsValidator {
   /// Lazily populated set of error codes.
   static final Set<String> _errorCodes =
       errorCodeValues.map((ErrorCode code) => code.name).toSet();
@@ -423,7 +461,7 @@ class CannotIgnoreOptionValidator extends OptionsValidator {
 }
 
 /// Validates `code-style` options.
-class CodeStyleOptionsValidator extends OptionsValidator {
+class _CodeStyleOptionsValidator extends OptionsValidator {
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
     var codeStyle = options.valueAt(AnalyzerOptions.codeStyle);
@@ -486,10 +524,10 @@ class CodeStyleOptionsValidator extends OptionsValidator {
 }
 
 /// Convenience class for composing validators.
-class CompositeValidator extends OptionsValidator {
+class _CompositeValidator extends OptionsValidator {
   final List<OptionsValidator> validators;
 
-  CompositeValidator(this.validators);
+  _CompositeValidator(this.validators);
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -499,8 +537,8 @@ class CompositeValidator extends OptionsValidator {
   }
 }
 
-/// Validates `analyzer` language configuration options.
-class EnabledExperimentsValidator extends OptionsValidator {
+/// Validates `analyzer` enabled experiments configuration options.
+class _EnabledExperimentsValidator extends OptionsValidator {
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalyzerOptions.analyzer);
@@ -541,7 +579,7 @@ class EnabledExperimentsValidator extends OptionsValidator {
 }
 
 /// Builds error reports with value proposals.
-class ErrorBuilder {
+class _ErrorBuilder {
   static AnalysisOptionsWarningCode get noProposalCode =>
       AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES;
 
@@ -556,18 +594,18 @@ class ErrorBuilder {
   final AnalysisOptionsWarningCode code;
 
   /// Create a builder for the given [supportedOptions].
-  factory ErrorBuilder(List<String> supportedOptions) {
+  factory _ErrorBuilder(List<String> supportedOptions) {
     var proposal = supportedOptions.quotedAndCommaSeparatedWithAnd;
     if (supportedOptions.isEmpty) {
-      return ErrorBuilder._(proposal: proposal, code: noProposalCode);
+      return _ErrorBuilder._(proposal: proposal, code: noProposalCode);
     } else if (supportedOptions.length == 1) {
-      return ErrorBuilder._(proposal: proposal, code: singularProposalCode);
+      return _ErrorBuilder._(proposal: proposal, code: singularProposalCode);
     } else {
-      return ErrorBuilder._(proposal: proposal, code: pluralProposalCode);
+      return _ErrorBuilder._(proposal: proposal, code: pluralProposalCode);
     }
   }
 
-  ErrorBuilder._({
+  _ErrorBuilder._({
     required this.proposal,
     required this.code,
   });
@@ -591,7 +629,7 @@ class ErrorBuilder {
 }
 
 /// Validates `analyzer` error filter options.
-class ErrorFilterOptionValidator extends OptionsValidator {
+class _ErrorFilterOptionValidator extends OptionsValidator {
   /// Legal values.
   static final List<String> legalValues =
       List.from(AnalyzerOptions.ignoreSynonyms)
@@ -671,7 +709,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 }
 
 /// Validates `formatter` options.
-class FormatterOptionsValidator extends OptionsValidator {
+class _FormatterOptionsValidator extends OptionsValidator {
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
     var formatter = options.valueAt(AnalyzerOptions.formatter);
@@ -717,8 +755,8 @@ class FormatterOptionsValidator extends OptionsValidator {
 }
 
 /// Validates `analyzer` language configuration options.
-class LanguageOptionValidator extends OptionsValidator {
-  final ErrorBuilder _builder = ErrorBuilder(AnalyzerOptions.languageOptions);
+class _LanguageOptionValidator extends OptionsValidator {
+  final _ErrorBuilder _builder = _ErrorBuilder(AnalyzerOptions.languageOptions);
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -772,106 +810,14 @@ class LanguageOptionValidator extends OptionsValidator {
   }
 }
 
-/// Validates `linter` top-level options.
-// TODO(pq): move into `linter` package and plugin.
-class LinterOptionsValidator extends TopLevelOptionValidator {
-  LinterOptionsValidator() : super('linter', AnalyzerOptions.linterOptions);
-}
-
-/// Validates `analyzer` optional-checks value configuration options.
-class OptionalChecksValueValidator extends OptionsValidator {
-  final ErrorBuilder _builder =
-      ErrorBuilder(AnalyzerOptions.optionalChecksOptions);
-
-  @override
-  void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
-    if (analyzer is YamlMap) {
-      var v = analyzer.valueAt(AnalyzerOptions.optionalChecks);
-      if (v is YamlScalar) {
-        var value = toLowerCase(v.value);
-        if (value != AnalyzerOptions.chromeOsManifestChecks) {
-          _builder.reportError(
-              reporter, AnalyzerOptions.chromeOsManifestChecks, v);
-        }
-      } else if (v is YamlMap) {
-        v.nodes.forEach((k, v) {
-          String? key, value;
-          if (k is YamlScalar) {
-            key = k.value?.toString();
-            if (key != AnalyzerOptions.chromeOsManifestChecks) {
-              _builder.reportError(
-                  reporter, AnalyzerOptions.chromeOsManifestChecks, k);
-            } else {
-              value = toLowerCase(v.value);
-              if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-                reporter.atSourceSpan(
-                  v.span,
-                  AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
-                  arguments: [
-                    key!,
-                    v.valueOrThrow,
-                    AnalyzerOptions.trueOrFalseProposal
-                  ],
-                );
-              }
-            }
-          }
-        });
-      } else if (v != null) {
-        reporter.atSourceSpan(
-          v.span,
-          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-          arguments: [AnalyzerOptions.enableExperiment],
-        );
-      }
-    }
-  }
-}
-
-/// Validates options defined in an analysis options file.
-class OptionsFileValidator {
-  /// The source being validated.
-  final Source source;
-
-  final List<OptionsValidator> _validators;
-
-  OptionsFileValidator(
-    this.source, {
-    required VersionConstraint? sdkVersionConstraint,
-    required bool sourceIsOptionsForContextRoot,
-    LintRuleProvider? provider,
-  }) : _validators = [
-          AnalyzerOptionsValidator(),
-          CodeStyleOptionsValidator(),
-          FormatterOptionsValidator(),
-          LinterOptionsValidator(),
-          LinterRuleOptionsValidator(
-            provider: provider,
-            sdkVersionConstraint: sdkVersionConstraint,
-            sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
-          ),
-          // TODO(srawlins): validate the top-level 'plugins' section.
-        ];
-
-  List<AnalysisError> validate(YamlMap options) {
-    RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(recorder, source);
-    for (var validator in _validators) {
-      validator.validate(reporter, options);
-    }
-    return recorder.errors;
-  }
-}
-
 /// Validates `analyzer` plugins configuration options.
-class PluginsOptionValidator extends OptionsValidator {
-  /// The name of the first included plugin, if there is one.
+class _LegacyPluginsOptionValidator extends OptionsValidator {
+  /// The name of the first included legacy plugin, if there is one.
   ///
-  /// If there are no included plugins, this is `null`.
+  /// If there are no included legacy plugins, this is `null`.
   final String? _firstIncludedPluginName;
 
-  PluginsOptionValidator(this._firstIncludedPluginName);
+  _LegacyPluginsOptionValidator(this._firstIncludedPluginName);
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -961,9 +907,66 @@ class PluginsOptionValidator extends OptionsValidator {
   }
 }
 
+/// Validates `linter` top-level options.
+class _LinterOptionsValidator extends _TopLevelOptionValidator {
+  _LinterOptionsValidator() : super('linter', AnalyzerOptions.linterOptions);
+}
+
+/// Validates `analyzer` optional-checks value configuration options.
+class _OptionalChecksValueValidator extends OptionsValidator {
+  final _ErrorBuilder _builder =
+      _ErrorBuilder(AnalyzerOptions.optionalChecksOptions);
+
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
+    if (analyzer is YamlMap) {
+      var v = analyzer.valueAt(AnalyzerOptions.optionalChecks);
+      if (v is YamlScalar) {
+        var value = toLowerCase(v.value);
+        if (value != AnalyzerOptions.chromeOsManifestChecks) {
+          _builder.reportError(
+              reporter, AnalyzerOptions.chromeOsManifestChecks, v);
+        }
+      } else if (v is YamlMap) {
+        v.nodes.forEach((k, v) {
+          String? key, value;
+          if (k is YamlScalar) {
+            key = k.value?.toString();
+            if (key != AnalyzerOptions.chromeOsManifestChecks) {
+              _builder.reportError(
+                  reporter, AnalyzerOptions.chromeOsManifestChecks, k);
+            } else {
+              value = toLowerCase(v.value);
+              if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+                reporter.atSourceSpan(
+                  v.span,
+                  AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+                  arguments: [
+                    key!,
+                    v.valueOrThrow,
+                    AnalyzerOptions.trueOrFalseProposal
+                  ],
+                );
+              }
+            }
+          }
+        });
+      } else if (v != null) {
+        reporter.atSourceSpan(
+          v.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalyzerOptions.enableExperiment],
+        );
+      }
+    }
+  }
+}
+
 /// Validates `analyzer` strong-mode value configuration options.
-class StrongModeOptionValueValidator extends OptionsValidator {
-  final ErrorBuilder _builder = ErrorBuilder(AnalyzerOptions.strongModeOptions);
+class _StrongModeOptionValueValidator extends OptionsValidator {
+  final _ErrorBuilder _builder =
+      _ErrorBuilder(AnalyzerOptions.strongModeOptions);
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -1022,21 +1025,24 @@ class StrongModeOptionValueValidator extends OptionsValidator {
 }
 
 /// Validates `analyzer` top-level options.
-class TopLevelAnalyzerOptionsValidator extends TopLevelOptionValidator {
-  TopLevelAnalyzerOptionsValidator()
+class _TopLevelAnalyzerOptionsValidator extends _TopLevelOptionValidator {
+  _TopLevelAnalyzerOptionsValidator()
       : super(AnalyzerOptions.analyzer, AnalyzerOptions.topLevel);
 }
 
 /// Validates top-level options. For example,
+///
+/// ```yaml
 ///     plugin:
 ///       top-level-option: true
-class TopLevelOptionValidator extends OptionsValidator {
+/// ```
+class _TopLevelOptionValidator extends OptionsValidator {
   final String pluginName;
   final List<String> supportedOptions;
   final String _valueProposal;
   final AnalysisOptionsWarningCode _warningCode;
 
-  TopLevelOptionValidator(this.pluginName, this.supportedOptions)
+  _TopLevelOptionValidator(this.pluginName, this.supportedOptions)
       : assert(supportedOptions.isNotEmpty),
         _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
         _warningCode = supportedOptions.length == 1

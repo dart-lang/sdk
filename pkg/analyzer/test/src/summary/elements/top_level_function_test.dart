@@ -251,6 +251,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       functions
         main @16
@@ -2007,6 +2008,7 @@ library
           element: <testLibrary>::@function::foo
     <testLibrary>::@fragment::package:test/a1.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a11.dart
       functions
@@ -2015,6 +2017,7 @@ library
           element: <testLibrary>::@function::foo
     <testLibrary>::@fragment::package:test/a11.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a1.dart
       previousFragment: <testLibrary>::@fragment::package:test/a1.dart
       nextFragment: <testLibrary>::@fragment::package:test/a12.dart
       functions
@@ -2023,6 +2026,7 @@ library
           element: <testLibrary>::@function::foo
     <testLibrary>::@fragment::package:test/a12.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a1.dart
       previousFragment: <testLibrary>::@fragment::package:test/a11.dart
       nextFragment: <testLibrary>::@fragment::package:test/a2.dart
       functions
@@ -2031,6 +2035,7 @@ library
           element: <testLibrary>::@function::foo
     <testLibrary>::@fragment::package:test/a2.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a12.dart
       nextFragment: <testLibrary>::@fragment::package:test/a21.dart
       functions
@@ -2039,6 +2044,7 @@ library
           element: <testLibrary>::@function::foo
     <testLibrary>::@fragment::package:test/a21.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a2.dart
       previousFragment: <testLibrary>::@fragment::package:test/a2.dart
       nextFragment: <testLibrary>::@fragment::package:test/a22.dart
       functions
@@ -2047,6 +2053,7 @@ library
           element: <testLibrary>::@function::foo
     <testLibrary>::@fragment::package:test/a22.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/a2.dart
       previousFragment: <testLibrary>::@fragment::package:test/a21.dart
       functions
         foo @32
@@ -2119,6 +2126,7 @@ library
               typeName: foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       functions
         foo @35
@@ -2194,6 +2202,7 @@ library
           element: <testLibrary>::@function::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       functions
         foo @34
@@ -2261,6 +2270,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       functions
         foo @26
@@ -2342,6 +2352,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       functions
         foo @35
@@ -2430,6 +2441,7 @@ library
               element: <testLibraryFragment>::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       functions
         foo @35
@@ -2531,6 +2543,7 @@ library
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       functions
         foo @35
@@ -2617,6 +2630,7 @@ library
           element: <testLibrary>::@class::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
@@ -2695,6 +2709,7 @@ library
           element: <testLibrary>::@function::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
@@ -2789,6 +2804,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
@@ -2855,6 +2871,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
@@ -2947,6 +2964,7 @@ library
               element: <testLibraryFragment>::@setter::foo::@parameter::_#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
@@ -3068,6 +3086,7 @@ library
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       getters
         augment get foo @37
@@ -3167,6 +3186,7 @@ library
               typeName: foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo @33
@@ -3270,6 +3290,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo @33
@@ -3347,6 +3368,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo @33
@@ -3449,6 +3471,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo @33
@@ -3574,6 +3597,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       setters
         augment set foo @33

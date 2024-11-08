@@ -84,12 +84,21 @@ class LibraryAnalyzer {
   final TestingData? _testingData;
   final TypeSystemOperations _typeSystemOperations;
 
-  LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
-      this._libraryElement, this._inheritance, this._library,
-      {TestingData? testingData,
-      required TypeSystemOperations typeSystemOperations})
-      : _testingData = testingData,
-        _typeSystemOperations = typeSystemOperations {
+  /// Whether timing data should be gathered during lint rule execution.
+  final bool _enableLintRuleTiming;
+
+  LibraryAnalyzer(
+    this._analysisOptions,
+    this._declaredVariables,
+    this._libraryElement,
+    this._inheritance,
+    this._library, {
+    TestingData? testingData,
+    required TypeSystemOperations typeSystemOperations,
+    bool enableLintRuleTiming = false,
+  })  : _testingData = testingData,
+        _typeSystemOperations = typeSystemOperations,
+        _enableLintRuleTiming = enableLintRuleTiming {
     _libraryVerificationContext = LibraryVerificationContext(
       libraryKind: _library,
       constructorFieldsVerifier: ConstructorFieldsVerifier(
@@ -371,8 +380,7 @@ class LibraryAnalyzer {
     var allUnits = analysesToContextUnits.values.toList();
     definingContextUnit ??= allUnits.first;
 
-    var enableTiming = _analysisOptions.enableTiming;
-    var nodeRegistry = NodeLintRegistry(enableTiming);
+    var nodeRegistry = NodeLintRegistry(enableTiming: _enableLintRuleTiming);
     var context = LinterContextWithResolvedResults(
       allUnits,
       definingContextUnit,
@@ -383,7 +391,8 @@ class LibraryAnalyzer {
     );
 
     for (var linter in _analysisOptions.lintRules) {
-      var timer = enableTiming ? analysisRuleTimers.getTimer(linter) : null;
+      var timer =
+          _enableLintRuleTiming ? analysisRuleTimers.getTimer(linter) : null;
       timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
       timer?.stop();
