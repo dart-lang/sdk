@@ -401,9 +401,7 @@ class InheritanceManager3 {
     if (elements == null) {
       return null;
     }
-    return elements
-        .map((fragment) => (fragment as ExecutableFragment).element)
-        .toList();
+    return elements.map((fragment) => fragment.asExecutableElement2).toList();
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member

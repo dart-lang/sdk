@@ -8076,6 +8076,8 @@ final class ForStatementImpl extends StatementImpl
 /// A declaration of a fragment of an element.
 @experimental
 abstract final class FragmentDeclaration implements Declaration {
+  // TODO(pq): move `declaredFragment` into `Declaration` and remove this class.
+
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.

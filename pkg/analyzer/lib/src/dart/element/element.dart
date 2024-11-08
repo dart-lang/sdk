@@ -1971,6 +1971,9 @@ class DynamicElementImpl2 extends TypeDefiningElementImpl2 {
   Null get documentationComment => null;
 
   @override
+  Element2? get enclosingElement2 => null;
+
+  @override
   DynamicElementImpl get firstFragment => DynamicElementImpl.instance;
 
   @override
@@ -8432,6 +8435,9 @@ class NeverElementImpl extends ElementImpl
   NeverElementImpl2 get element => NeverElementImpl2.instance;
 
   @override
+  Element2? get enclosingElement2 => null;
+
+  @override
   Null get enclosingFragment => null;
 
   @override
@@ -8479,6 +8485,9 @@ class NeverElementImpl2 extends TypeDefiningElementImpl2 {
 
   @override
   Null get documentationComment => null;
+
+  @override
+  Element2? get enclosingElement2 => null;
 
   @override
   NeverElementImpl get firstFragment => NeverElementImpl.instance;
