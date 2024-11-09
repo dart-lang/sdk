@@ -378,6 +378,7 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.null_closures: [ReplaceNullWithClosure.new],
   LinterLintCode.omit_local_variable_types: [ReplaceWithVar.new],
   LinterLintCode.omit_obvious_local_variable_types: [ReplaceWithVar.new],
+  LinterLintCode.omit_obvious_property_types: [ReplaceWithVar.new],
   LinterLintCode.prefer_adjacent_string_concatenation: [RemoveOperator.new],
   LinterLintCode.prefer_collection_literals: [
     ConvertToMapLiteral.new,
@@ -458,6 +459,9 @@ final _builtInLintProducers = <LintCode, List<ProducerGenerator>>{
     SortUnnamedConstructorFirst.new,
   ],
   LinterLintCode.specify_nonobvious_local_variable_types: [
+    AddTypeAnnotation.bulkFixable,
+  ],
+  LinterLintCode.specify_nonobvious_property_types: [
     AddTypeAnnotation.bulkFixable,
   ],
   LinterLintCode.type_annotate_public_apis: [AddTypeAnnotation.bulkFixable],
@@ -1085,8 +1089,8 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
     //  updated so that only the appropriate subset is generated.
     QualifyReference.new,
   ],
-  CompileTimeErrorCode
-      .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
+  CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
+      [
     // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
     //  method or setter. The existing producers would need to be updated so
     //  that only the appropriate subset is generated.

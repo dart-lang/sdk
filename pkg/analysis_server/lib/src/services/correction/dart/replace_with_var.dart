@@ -44,7 +44,9 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
     var grandparent = parent?.parent;
     if (parent is VariableDeclarationList &&
         (grandparent is VariableDeclarationStatement ||
-            grandparent is ForPartsWithDeclarations)) {
+            grandparent is ForPartsWithDeclarations ||
+            grandparent is TopLevelVariableDeclaration ||
+            grandparent is FieldDeclaration)) {
       var variables = parent.variables;
       if (variables.length != 1) {
         return;
@@ -159,6 +161,10 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
           return true;
         }
         return false;
+      } else if (parent is TopLevelVariableDeclaration) {
+        return _canConvertVariableDeclarationList(parent.variables);
+      } else if (parent is FieldDeclaration) {
+        return _canConvertVariableDeclarationList(parent.fields);
       }
       parent = parent.parent;
     }
