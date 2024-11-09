@@ -183,7 +183,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   List<FormalParameterElement> get formalParameters => parameters
-      .map((fragment) => (fragment as FormalParameterFragment).element)
+      .map((parameter) => switch (parameter) {
+            FormalParameterFragment(:var element) => element,
+            ParameterMember(:var element) => element,
+            _ => throw UnsupportedError(
+                'Unsupported type ${parameter.runtimeType}'),
+          })
       .toList();
 
   @Deprecated('Check element, or use getDisplayString()')

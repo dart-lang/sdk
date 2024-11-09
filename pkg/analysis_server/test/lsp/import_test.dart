@@ -18,6 +18,18 @@ void main() {
 
 @reflectiveTest
 class ImportTest extends AbstractLspAnalysisServerTest {
+  /// A helper for creating files for multi-level-parts tests.
+  ({Uri uri, String filePath, TestCode code}) createFile(
+    String filename,
+    String content,
+  ) {
+    assert(filename.endsWith('.dart'));
+    var filePath = join(projectFolderPath, 'lib', filename);
+    var code = TestCode.parse(content);
+    newFile(filePath, code.code);
+    return (uri: toUri(filePath), filePath: filePath, code: code);
+  }
+
   Future<void> test_constant() async {
     await _verifyGoToImports(
       TestCode.parse('''
@@ -180,6 +192,131 @@ a.A^? r;
     );
   }
 
+  Future<void> test_import_multiLevelParts() async {
+    // Create a tree of files that all import 'dart:math' and ensure we find
+    // only the import from the parent (not a grandparent, sibling, or child).
+    //
+    //
+    // - root                      has import
+    //     - level1_other          has import
+    //     - level1                has import, is the used reference
+    //         - level2_other      has import
+    //         - level2            has reference
+    //             - level3_other  has import
+
+    createFile('root.dart', '''
+import 'dart:math';
+part 'level1_other.dart';
+part 'level1.dart';
+''');
+
+    createFile('level1_other.dart', '''
+part of 'root.dart';
+import 'dart:math';
+''');
+
+    var level1 = createFile('level1.dart', '''
+part of 'root.dart';
+[!import 'dart:math';!]
+part 'level2_other.dart';
+part 'level2.dart';
+''');
+
+    createFile('level2_other.dart', '''
+part of 'level1.dart';
+import 'dart:math';
+''');
+
+    var level2 = createFile('level2.dart', '''
+part of 'level1.dart';
+part 'level3_other.dart';
+
+Rando^m? r;
+''');
+
+    createFile('level3_other.dart', '''
+part of 'level2.dart';
+import 'dart:math';
+''');
+
+    await _verifyGoToImports(
+      // Test the position in level2.
+      level2.code,
+      fileUri: level2.uri,
+      // Expect only the nearest parent import (level1).
+      expecting: (level1.uri, level1.code.ranges),
+    );
+  }
+
+  Future<void> test_import_multiLevelParts_findsInGrandParent() async {
+    var root = createFile('root.dart', '''
+[!import 'dart:math';!]
+part 'level1.dart';
+''');
+
+    createFile('level1.dart', '''
+part of 'root.dart';
+part 'level2.dart';
+''');
+
+    var level2 = createFile('level2.dart', '''
+part of 'level1.dart';
+Rando^m? r;''');
+
+    await _verifyGoToImports(
+      // Test the position in level2, expect reference in root.
+      level2.code,
+      fileUri: level2.uri,
+      expecting: (root.uri, root.code.ranges),
+    );
+  }
+
+  Future<void> test_import_multiLevelParts_findsInParent() async {
+    createFile('root.dart', '''
+part 'level1.dart';
+''');
+
+    var level1 = createFile('level1.dart', '''
+part of 'root.dart';
+[!import 'dart:math';!]
+part 'level2.dart';
+''');
+
+    var level2 = createFile('level2.dart', '''
+part of 'level1.dart';
+Rando^m? r;''');
+
+    await _verifyGoToImports(
+      // Test the position in level2, expect reference in level1.
+      level2.code,
+      fileUri: level2.uri,
+      expecting: (level1.uri, level1.code.ranges),
+    );
+  }
+
+  Future<void> test_import_multiLevelParts_findsInSelf() async {
+    createFile('root.dart', '''
+part 'level1.dart';
+''');
+
+    createFile('level1.dart', '''
+part of 'root.dart';
+part 'level2.dart';
+''');
+
+    var level2 = createFile('level2.dart', '''
+part of 'level1.dart';
+[!import 'dart:math';!]
+Rando^m? r;''');
+
+    await _verifyGoToImports(
+      // Test the position in level2, expect reference in same.
+      level2.code,
+      fileUri: level2.uri,
+      expecting: (level2.uri, level2.code.ranges),
+    );
+  }
+
   Future<void> test_import_part() async {
     var otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
     var main = TestCode.parse('''
@@ -195,7 +332,7 @@ part of '$mainFileUri';
 Rando^m? r;
 '''),
       fileUri: otherFileUri,
-      expecting: [_Results(mainFileUri, main.ranges)],
+      expecting: (mainFileUri, main.ranges),
     );
   }
 
@@ -277,38 +414,23 @@ var a = 1.abs().ba^r();
     );
   }
 
-  void _expecting(List<Location>? res, List<_Results>? fileRanges) {
-    List<Location>? expected;
-    if (fileRanges != null && fileRanges.expand((r) => r.ranges).isNotEmpty) {
-      expected = [
-        for (final _Results(:uri, :ranges) in fileRanges)
-          for (final range in ranges) Location(uri: uri, range: range.range),
-      ];
-    }
-
-    expect(res, equals(expected));
-  }
-
   Future<void> _verifyGoToImports(
     TestCode code, {
     Uri? fileUri,
-    List<_Results>? expecting,
+    (Uri, List<TestCodeRange>)? expecting,
   }) async {
+    expecting ??= (fileUri ?? mainFileUri, code.ranges);
+    var (expectedUri, expectedRanges) = expecting;
+    var expectedLocations = [
+      for (var range in expectedRanges)
+        Location(uri: expectedUri, range: range.range),
+    ];
+
     newFile(fromUri(fileUri ?? mainFileUri), code.code);
     await initialize();
     await initialAnalysis;
     var res = await getImports(fileUri ?? mainFileUri, code.position.position);
-    List<_Results>? results;
-    if (expecting == null && code.ranges.isNotEmpty) {
-      results = [_Results(fileUri ?? mainFileUri, code.ranges)];
-    }
-    _expecting(res, expecting ?? results);
+
+    expect(res ?? [], expectedLocations);
   }
-}
-
-extension type _Results._((Uri uri, List<TestCodeRange> ranges) _r) {
-  _Results(Uri uri, List<TestCodeRange> ranges) : _r = (uri, ranges);
-
-  List<TestCodeRange> get ranges => _r.$2;
-  Uri get uri => _r.$1;
 }

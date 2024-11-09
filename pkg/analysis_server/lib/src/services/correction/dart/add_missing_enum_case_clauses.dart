@@ -127,7 +127,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     var shortestPrefix = '';
     for (var directive in unit.directives) {
       if (directive is ImportDirective) {
-        var namespace = directive.element?.namespace;
+        var namespace = directive.libraryImport?.namespace;
         if (namespace != null) {
           if (namespace.definedNames2.containsValue(element)) {
             var prefix = directive.prefix?.name;

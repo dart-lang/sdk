@@ -100,6 +100,13 @@ extension LibraryElementExtensions on LibraryElement {
   }
 }
 
+extension LibraryElementExtensions2 on LibraryElement2 {
+  /// Return all extensions exported from this library.
+  Iterable<ExtensionElement> get exportedExtensions {
+    return exportNamespace.definedNames.values.whereType();
+  }
+}
+
 extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.

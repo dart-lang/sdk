@@ -155,8 +155,7 @@ extension ElementOrNullExtension on Element? {
     } else if (self is NeverElementImpl) {
       return NeverElementImpl2.instance;
     } else if (self is ParameterMember) {
-      // TODO(scheglov): we lose types here
-      return self.declaration.asElement2;
+      return self;
     } else if (self is PrefixElementImpl) {
       return self.element2;
     } else if (self is ExecutableMember) {
@@ -166,6 +165,22 @@ extension ElementOrNullExtension on Element? {
     } else {
       return (self as Fragment?)?.element;
     }
+  }
+}
+
+extension ExecutableElement2Extension on ExecutableElement2 {
+  ExecutableElement get asElement {
+    return firstFragment as ExecutableElement;
+  }
+}
+
+extension ExecutableElementExtension on ExecutableElement {
+  ExecutableElement2 get asElement2 {
+    return switch (this) {
+      ExecutableFragment(:var element) => element,
+      ExecutableMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
   }
 }
 
@@ -187,6 +202,12 @@ extension FormalParameterExtension on FormalParameterElement {
       buffer.write(' = ');
       buffer.write(defaultValueCode);
     }
+  }
+}
+
+extension InterfaceElementExtension on InterfaceElement {
+  InterfaceElement2 get asElement2 {
+    return (this as InterfaceElementImpl).element;
   }
 }
 

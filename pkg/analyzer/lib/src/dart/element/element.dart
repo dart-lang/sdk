@@ -1971,6 +1971,9 @@ class DynamicElementImpl2 extends TypeDefiningElementImpl2 {
   Null get documentationComment => null;
 
   @override
+  Element2? get enclosingElement2 => null;
+
+  @override
   DynamicElementImpl get firstFragment => DynamicElementImpl.instance;
 
   @override
@@ -6400,6 +6403,24 @@ class LibraryElementImpl extends ElementImpl
   @override
   int nameLength;
 
+  @override
+  List<ClassElementImpl2> classes = [];
+
+  @override
+  List<EnumElementImpl2> enums = [];
+
+  @override
+  List<ExtensionElementImpl2> extensions = [];
+
+  @override
+  List<ExtensionTypeElementImpl2> extensionTypes = [];
+
+  @override
+  List<TopLevelFunctionElementImpl> functions = [];
+
+  @override
+  List<MixinElementImpl2> mixins = [];
+
   /// The export [Namespace] of this library, `null` if it has not been
   /// computed yet.
   Namespace? _exportNamespace;
@@ -6448,15 +6469,6 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  List<ClassElementImpl2> get classes {
-    return units
-        .expand((fragment) => fragment.classes)
-        .map((fragment) => fragment.element)
-        .toSet()
-        .toList();
-  }
-
-  @override
   CompilationUnitElementImpl get definingCompilationUnit =>
       _definingCompilationUnit;
 
@@ -6489,15 +6501,6 @@ class LibraryElementImpl extends ElementImpl
       entryPoint as TopLevelFunctionElement?;
 
   @override
-  List<EnumElementImpl2> get enums {
-    return units
-        .expand((fragment) => fragment.enums)
-        .map((fragment) => fragment.element)
-        .toSet()
-        .toList();
-  }
-
-  @override
   List<LibraryElementImpl> get exportedLibraries {
     return fragments
         .expand((fragment) => fragment.libraryExports)
@@ -6519,24 +6522,6 @@ class LibraryElementImpl extends ElementImpl
 
   set exportNamespace(Namespace exportNamespace) {
     _exportNamespace = exportNamespace;
-  }
-
-  @override
-  List<ExtensionElementImpl2> get extensions {
-    return units
-        .expand((fragment) => fragment.extensions)
-        .map((fragment) => fragment.element)
-        .toSet()
-        .toList();
-  }
-
-  @override
-  List<ExtensionTypeElementImpl2> get extensionTypes {
-    return units
-        .expand((fragment) => fragment.extensionTypes)
-        .map((fragment) => fragment.element)
-        .toSet()
-        .toList();
   }
 
   /// Information about why non-promotable private fields in the library are not
@@ -6581,15 +6566,6 @@ class LibraryElementImpl extends ElementImpl
       _definingCompilationUnit,
       ..._partUnits,
     ];
-  }
-
-  @override
-  List<TopLevelFunctionElementImpl> get functions {
-    return units
-        .expand((fragment) => fragment.functions)
-        .map((fragment) => fragment.element as TopLevelFunctionElementImpl)
-        .toSet()
-        .toList();
   }
 
   @override
@@ -6676,15 +6652,6 @@ class LibraryElementImpl extends ElementImpl
   List<ElementAnnotationImpl> get metadata {
     linkedData?.read(this);
     return super.metadata;
-  }
-
-  @override
-  List<MixinElementImpl2> get mixins {
-    return units
-        .expand((fragment) => fragment.mixins)
-        .map((fragment) => fragment.element)
-        .toSet()
-        .toList();
   }
 
   @override
@@ -8468,6 +8435,9 @@ class NeverElementImpl extends ElementImpl
   NeverElementImpl2 get element => NeverElementImpl2.instance;
 
   @override
+  Element2? get enclosingElement2 => null;
+
+  @override
   Null get enclosingFragment => null;
 
   @override
@@ -8515,6 +8485,9 @@ class NeverElementImpl2 extends TypeDefiningElementImpl2 {
 
   @override
   Null get documentationComment => null;
+
+  @override
+  Element2? get enclosingElement2 => null;
 
   @override
   NeverElementImpl get firstFragment => NeverElementImpl.instance;

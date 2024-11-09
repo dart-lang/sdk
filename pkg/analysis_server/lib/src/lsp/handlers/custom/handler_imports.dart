@@ -9,12 +9,11 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
-
-typedef _ImportRecord = ({CompilationUnit unit, ImportDirective directive});
+import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/results.dart';
 
 class ImportsHandler
     extends SharedMessageHandler<TextDocumentPositionParams, List<Location>?> {
@@ -60,7 +59,7 @@ class ImportsHandler
     );
 
     return (library, unit, offset).mapResults((library, unit, offset) async {
-      var node = NodeLocator(offset).searchWithin(unit.unit);
+      var node = unit.unit.nodeCovering(offset: offset);
       if (node == null) {
         return success(null);
       }
@@ -89,18 +88,18 @@ class ImportsHandler
         element = enclosingElement;
       }
 
-      var locations = _getImportLocations(element, library, unit, prefix);
+      var locations = _getImportLocations(library, unit, element, prefix);
 
       return success(nullIfEmpty(locations));
     });
   }
 
   /// Returns [Location]s for imports that import the given [element] into
-  /// [unit].
+  /// [unitResult].
   List<Location> _getImportLocations(
-    Element2 element,
     ResolvedLibraryResult libraryResult,
-    ResolvedUnitResult unit,
+    ResolvedUnitResult? unitResult,
+    Element2 element,
     String? prefix,
   ) {
     var elementName = element.name3;
@@ -108,10 +107,37 @@ class ImportsHandler
       return [];
     }
 
-    var imports = _getImports(libraryResult);
-    var results = <Location>[];
+    // Search in each unit up the chain for related imports.
+    while (unitResult is ResolvedUnitResult) {
+      var results = _getImportsInUnit(
+        unitResult.unit,
+        element,
+        prefix: prefix,
+        elementName: elementName,
+      );
 
-    for (var (:unit, :directive) in imports) {
+      // Stop searching in the unit where we find any matching imports.
+      if (results.isNotEmpty) {
+        return results;
+      }
+
+      // Otherwise, we continue up the chain.
+      unitResult = libraryResult.parentUnitOf(unitResult);
+    }
+
+    return [];
+  }
+
+  /// Gets the locations of all imports that provide [element] with [prefix] in
+  /// [unit].
+  List<Location> _getImportsInUnit(
+    CompilationUnit unit,
+    Element2 element, {
+    required String? prefix,
+    required String elementName,
+  }) {
+    var results = <Location>[];
+    for (var directive in unit.directives.whereType<ImportDirective>()) {
       var import = directive.libraryImport;
       if (import == null) continue;
 
@@ -134,20 +160,6 @@ class ImportsHandler
         results.add(Location(uri: uri, range: range));
       }
     }
-
     return results;
-  }
-
-  List<_ImportRecord> _getImports(ResolvedLibraryResult libraryResult) {
-    var imports = <_ImportRecord>[];
-
-    // TODO(dantup): With enhanced parts, we may need to look at more than
-    //  just the first fragment.
-    var unit = libraryResult.units.first.unit;
-    for (var directive in unit.directives.whereType<ImportDirective>()) {
-      imports.add((unit: unit, directive: directive));
-    }
-
-    return imports;
   }
 }

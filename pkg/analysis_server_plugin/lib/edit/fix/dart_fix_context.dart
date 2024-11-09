@@ -6,6 +6,7 @@ import 'package:analysis_server_plugin/edit/fix/fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -80,6 +81,33 @@ class DartFixContext implements FixContext {
       }
 
       yield elementResult.element;
+    }
+  }
+
+  /// Returns libraries with extensions that declare non-static public
+  /// extension members with the [memberName].
+  // TODO(srawlins): The documentation above is wrong; `memberName` is unused.
+  Stream<LibraryElement2> librariesWithExtensions2(String memberName) async* {
+    var analysisContext = resolvedResult.session.analysisContext;
+    var analysisDriver = (analysisContext as DriverBasedAnalysisContext).driver;
+    await analysisDriver.discoverAvailableFiles();
+
+    var fsState = analysisDriver.fsState;
+    var filter = FileStateFilter(
+      fsState.getFileForPath(resolvedResult.path),
+    );
+
+    for (var file in fsState.knownFiles.toList()) {
+      if (!filter.shouldInclude(file)) {
+        continue;
+      }
+
+      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
+      if (elementResult is! LibraryElementResult) {
+        continue;
+      }
+
+      yield elementResult.element2;
     }
   }
 }

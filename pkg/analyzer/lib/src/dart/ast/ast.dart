@@ -21,6 +21,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -6083,6 +6084,9 @@ sealed class ExpressionImpl extends AstNodeImpl
     if (staticParameterElement case FormalParameterFragment fragment) {
       return fragment.element;
     }
+    if (staticParameterElement case ParameterMember member) {
+      return member;
+    }
     return null;
   }
 
@@ -8072,6 +8076,8 @@ final class ForStatementImpl extends StatementImpl
 /// A declaration of a fragment of an element.
 @experimental
 abstract final class FragmentDeclaration implements Declaration {
+  // TODO(pq): move `declaredFragment` into `Declaration` and remove this class.
+
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -8590,8 +8596,9 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @experimental
   @override
-  ExecutableElement2? get element =>
-      staticElement?.asElement2 as ExecutableElement2?;
+  ExecutableElement2? get element {
+    return staticElement?.asElement2;
+  }
 
   @override
   Token get endToken => _argumentList.endToken;

@@ -11,7 +11,6 @@ lib/src/rules/invalid_runtime_check_with_js_interop_types.dart
 lib/src/rules/prefer_asserts_in_initializer_lists.dart
 lib/src/rules/prefer_final_fields.dart
 lib/src/rules/prefer_initializing_formals.dart
-lib/src/rules/prefer_int_literals.dart
 lib/src/rules/public_member_api_docs.dart
 lib/src/rules/unnecessary_overrides.dart
 lib/src/rules/unnecessary_this.dart
