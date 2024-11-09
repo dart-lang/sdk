@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -25,25 +26,39 @@ class InsertOnKeyword extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! ExtensionDeclaration) {
-      if (node.parent case ExtensionDeclaration parent) {
-        node = parent;
-      } else {
-        return;
-      }
+    var extension =
+        node.ifTypeOrNull<ExtensionDeclaration>() ??
+        node.parent.ifTypeOrNull<ExtensionDeclaration>();
+    if (extension == null) {
+      return;
     }
 
-    var onClause = node.onClause;
-    if (onClause != null && onClause.onKeyword.isSynthetic) {
-      var onOffset = onClause.onKeyword.offset;
-      if (onClause.extendedType.length == 0) {
-        onOffset = node.name?.offset ?? onOffset;
-      }
-
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleInsertion(onOffset, 'on ');
-      });
+    var onClause = extension.onClause;
+    if (onClause == null) {
+      return;
     }
+
+    var name = extension.name;
+    var onKeyword = onClause.onKeyword;
+    var extendedType = onClause.extendedType;
+
+    // We don't expect this.
+    if (name == null || name.isSynthetic) {
+      return;
+    }
+
+    // Otherwise this is not our error to fix.
+    if (!onKeyword.isSynthetic) {
+      return;
+    }
+
+    // `extension int {}`
+    // `extension E int {}`
+    var insertOffset =
+        extendedType.isSynthetic ? name.offset : extendedType.offset;
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleInsertion(insertOffset, 'on ');
+    });
   }
 }
