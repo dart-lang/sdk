@@ -2199,7 +2199,7 @@ LintCode.omit_local_variable_types:
 LintCode.omit_obvious_local_variable_types:
   status: hasFix
 LintCode.omit_obvious_property_types:
-  status: needsEvaluation
+  status: hasFix
 LintCode.one_member_abstracts:
   status: noFix
   notes: |-
@@ -2362,7 +2362,7 @@ LintCode.sort_unnamed_constructors_first:
 LintCode.specify_nonobvious_local_variable_types:
   status: hasFix
 LintCode.specify_nonobvious_property_types:
-  status: needsEvaluation
+  status: hasFix
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:

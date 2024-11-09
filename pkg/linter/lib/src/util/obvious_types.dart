@@ -87,6 +87,20 @@ extension DartTypeExtensions on DartType? {
     }
     return null;
   }
+
+  ({DartType? key, DartType? value})? get keyValueTypeOfMap {
+    var self = this; // Enable promotion.
+    if (self == null) return null;
+    if (self is InterfaceType) {
+      var mapInterfaces =
+          self.implementedInterfaces.where((type) => type.isDartCoreMap);
+      if (mapInterfaces.length == 1) {
+        var [key, value] = mapInterfaces.first.typeArguments;
+        return (key: key, value: value);
+      }
+    }
+    return null;
+  }
 }
 
 extension ExpressionExtensions on Expression {
@@ -118,8 +132,17 @@ extension ExpressionExtensions on Expression {
             return false;
           }
         }
-        var theSelfElementType = self.staticType.elementTypeOfIterable;
-        return theSelfElementType == theObviousType;
+        if (theObviousType != null) {
+          var theSelfElementType = self.staticType.elementTypeOfIterable;
+          return theSelfElementType == theObviousType;
+        } else if (theObviousKeyType != null && theObviousValueType != null) {
+          var keyValueTypes = self.staticType.keyValueTypeOfMap;
+          if (keyValueTypes == null) return false;
+          return theObviousKeyType == keyValueTypes.key &&
+              theObviousValueType == keyValueTypes.value;
+        } else {
+          return false;
+        }
       case RecordLiteral():
         for (var expression in self.fields) {
           if (!expression.hasObviousType) return false;

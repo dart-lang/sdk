@@ -15,7 +15,7 @@ main() {
 @reflectiveTest
 class SpecifyNonObviousPropertyTypesTest extends LintRuleTest {
   @override
-  String get lintRule => 'specify_nonobvious_property_types';
+  String get lintRule => LintNames.specify_nonobvious_property_types;
 
   test_as_dynamic_instance() async {
     await assertNoDiagnostics(r'''

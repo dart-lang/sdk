@@ -226,11 +226,8 @@ class DartFormat {
   static String get _dartPath => Platform.resolvedExecutable;
 
   static void formatFile(File file) {
-    var result = Process.runSync(_dartPath, [
-      'format',
-      '--language-version=latest',
-      file.path
-    ]);
+    var result = Process.runSync(
+        _dartPath, ['format', '--language-version=latest', file.path]);
     _throwIfExitCode(result);
   }
 

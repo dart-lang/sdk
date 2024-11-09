@@ -10,18 +10,19 @@ import '../analyzer.dart';
 import '../extensions.dart';
 import '../util/obvious_types.dart';
 
-const _desc = r'Specify non-obvious type annotations for local variables.';
+const _desc =
+    r'Specify non-obvious type annotations for top-level and static variables.';
 
 class SpecifyNonObviousPropertyTypes extends LintRule {
   SpecifyNonObviousPropertyTypes()
       : super(
-          name: 'specify_nonobvious_property_types',
+          name: LintNames.specify_nonobvious_property_types,
           description: _desc,
           state: State.experimental(),
         );
 
   @override
-  List<String> get incompatibleRules => const ['omit_local_variable_types'];
+  List<String> get incompatibleRules => const [];
 
   @override
   LintCode get lintCode => LinterLintCode.specify_nonobvious_property_types;

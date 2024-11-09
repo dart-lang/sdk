@@ -23,7 +23,6 @@ class OmitLocalVariableTypes extends LintRule {
   List<String> get incompatibleRules => const [
         LintNames.always_specify_types,
         LintNames.specify_nonobvious_local_variable_types,
-        LintNames.specify_nonobvious_property_types,
       ];
 
   @override
