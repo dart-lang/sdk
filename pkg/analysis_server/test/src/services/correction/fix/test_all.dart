@@ -140,6 +140,7 @@ import 'import_library_show_test.dart' as import_library_show;
 import 'inline_invocation_test.dart' as inline_invocation;
 import 'inline_typedef_test.dart' as inline_typedef;
 import 'insert_body_test.dart' as insert_body;
+import 'insert_on_keyword_test.dart' as insert_on_keyword;
 import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_conditional_on_debug_mode_test.dart'
@@ -423,6 +424,7 @@ void main() {
     inline_invocation.main();
     inline_typedef.main();
     insert_body.main();
+    insert_on_keyword.main();
     insert_semicolon.main();
     make_class_abstract.main();
     make_conditional_on_debug_mode.main();

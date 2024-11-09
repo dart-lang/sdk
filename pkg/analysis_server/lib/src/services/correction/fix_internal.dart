@@ -105,6 +105,7 @@ import 'package:analysis_server/src/services/correction/dart/import_library.dart
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/insert_body.dart';
+import 'package:analysis_server/src/services/correction/dart/insert_on_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/insert_semicolon.dart';
 import 'package:analysis_server/src/services/correction/dart/make_class_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/make_conditional_on_debug_mode.dart';
@@ -1134,7 +1135,11 @@ final _builtInNonLintProducers = <ErrorCode, List<ProducerGenerator>>{
   ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY: [InsertBody.new],
   ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY: [InsertBody.new],
   ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY: [InsertBody.new],
-  ParserErrorCode.EXPECTED_TOKEN: [InsertSemicolon.new, ReplaceWithArrow.new],
+  ParserErrorCode.EXPECTED_TOKEN: [
+    InsertSemicolon.new,
+    ReplaceWithArrow.new,
+    InsertOnKeyword.new,
+  ],
   ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE: [RemoveOnClause.new],
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR: [RemoveConstructor.new],
   ParserErrorCode.EXTERNAL_CLASS: [RemoveLexeme.modifier],

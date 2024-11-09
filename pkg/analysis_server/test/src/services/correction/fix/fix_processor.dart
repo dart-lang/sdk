@@ -217,6 +217,23 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     expect(resultCode, expected);
   }
 
+  Future<List<Fix>> getFixesForFirst(
+    bool Function(AnalysisError error) test,
+  ) async {
+    var errors = testAnalysisResult.errors.where(test);
+    expect(errors, isNotEmpty);
+    String? errorCode;
+    for (var error in errors) {
+      errorCode ??= error.errorCode.name;
+      if (errorCode != error.errorCode.name) {
+        fail('Expected only errors of one type but found: $errors');
+      }
+    }
+
+    var fixes = await _computeFixes(errors.first);
+    return fixes;
+  }
+
   Future<List<Fix>> getFixesForFirstError() async {
     var errors = testAnalysisResult.errors;
     expect(errors, isNotEmpty);

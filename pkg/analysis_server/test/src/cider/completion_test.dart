@@ -788,7 +788,7 @@ import 'a.dart';
       unit.accept(
         FunctionAstVisitor(
           simpleIdentifier: (node) {
-            if (identifiers.contains(node.name) && node.staticElement != null) {
+            if (identifiers.contains(node.name) && node.element != null) {
               fail('Unexpectedly resolved node: $node');
             }
           },
