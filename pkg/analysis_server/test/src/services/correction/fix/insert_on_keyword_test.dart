@@ -19,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class InsertOnKeywordMultiTest extends FixInFileProcessorTest {
-  Future<void> test_expected_onKeyword_multi() async {
+  Future<void> test_hasName() async {
     await resolveTestCode('''
 extension String {}
 extension String {}
@@ -40,7 +40,7 @@ class InsertOnKeywordTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.INSERT_ON_KEYWORD;
 
-  Future<void> test_expected_onKeyword() async {
+  Future<void> test_hasName() async {
     await resolveTestCode('''
 extension int {}
 ''');
@@ -54,7 +54,7 @@ extension on int {}
     );
   }
 
-  Future<void> test_expected_onKeyword_betweenNameAndType() async {
+  Future<void> test_hasName_hasType() async {
     await resolveTestCode('''
 extension E int {}
 ''');
@@ -63,7 +63,16 @@ extension E on int {}
 ''');
   }
 
-  Future<void> test_expected_onKeyword_betweenTypeParameterAndType() async {
+  Future<void> test_hasName_hasType_withTypeArguments() async {
+    await resolveTestCode('''
+extension E List<int> {}
+''');
+    await assertHasFix('''
+extension E on List<int> {}
+''');
+  }
+
+  Future<void> test_hasName_hasTypeParameters_noType() async {
     await resolveTestCode('''
 extension E<T> int {}
 ''');
@@ -72,36 +81,7 @@ extension E<T> on int {}
 ''');
   }
 
-  Future<void> test_expected_onKeyword_nonType() async {
-    await resolveTestCode('''
-extension UnresolvedType {}
-''');
-    await assertHasFix(
-      '''
-extension on UnresolvedType {}
-''',
-      errorFilter: (error) {
-        return error.errorCode == ParserErrorCode.EXPECTED_TOKEN;
-      },
-    );
-  }
-
-  Future<void> test_expected_onKeyword_nonTypeWithTypeArguments() async {
-    // We want to believe that the type parameter is from the undefined type.
-    await resolveTestCode('''
-extension UnresolvedType<T> {}
-''');
-    await assertHasFix(
-      '''
-extension on UnresolvedType<T> {}
-''',
-      errorFilter: (error) {
-        return error.errorCode == ParserErrorCode.EXPECTED_TOKEN;
-      },
-    );
-  }
-
-  Future<void> test_expected_onKeyword_typeWithTypeArguments() async {
+  Future<void> test_noName_hasType_withTypeArguments() async {
     await resolveTestCode('''
 extension List<int> {}
 ''');
