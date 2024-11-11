@@ -83,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (returnType is InterfaceType &&
           returnType.element3 ==
               // ignore: cast_nullable_to_non_nullable
-              (parent as FragmentDeclaration).declaredFragment?.element) {
+              (parent as Declaration).declaredFragment?.element) {
       } else {
         return;
       }

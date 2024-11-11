@@ -7,7 +7,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 class AugmentationHandler
@@ -44,7 +44,7 @@ class AugmentationHandler
       var node =
           unit.unit
               .nodeCovering(offset: offset)
-              ?.thisOrAncestorOfType<FragmentDeclaration>();
+              ?.thisOrAncestorOfType<ast.Declaration>();
 
       var location = fragmentToLocation(
         uriConverter,

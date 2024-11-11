@@ -38,7 +38,7 @@ class RemoveUnusedElement extends _RemoveUnused {
     }
 
     Element2? element;
-    if (node is FragmentDeclaration) {
+    if (node is Declaration) {
       element = node.declaredFragment?.element;
     }
     if (element == null) {
