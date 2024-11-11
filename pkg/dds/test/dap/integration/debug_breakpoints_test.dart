@@ -207,26 +207,6 @@ void main(List<String> args) async {
       await testHitBreakpointAndResume();
     });
 
-    test(
-        'stops at a line breakpoint and can be resumed '
-        'when breakpoint requests have lowercase drive letters '
-        'and program/VM have uppercase drive letters', () async {
-      final client = dap.client;
-      client.forceDriveLetterCasingUpper = true;
-      client.forceBreakpointDriveLetterCasingLower = true;
-      await testHitBreakpointAndResume();
-    }, skip: !Platform.isWindows);
-
-    test(
-        'stops at a line breakpoint and can be resumed '
-        'when breakpoint requests have uppercase drive letters '
-        'and program/VM have lowercase drive letters', () async {
-      final client = dap.client;
-      client.forceDriveLetterCasingLower = true;
-      client.forceBreakpointDriveLetterCasingUpper = true;
-      await testHitBreakpointAndResume();
-    }, skip: !Platform.isWindows);
-
     test('stops at a line breakpoint and can step over (next)', () async {
       final testFile = dap.createTestFile('''
 void main(List<String> args) async {

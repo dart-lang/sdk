@@ -115,7 +115,7 @@ main() {
           .nonNulls
           .toList();
       // Ensure we had a frame with the absolute path of the test script.
-      expect(stackFramePaths, contains(testFile.path));
+      expect(stackFramePaths, contains(uppercaseDriveLetter(testFile.path)));
     });
 
     test('can hit and resume from a breakpoint', () async {

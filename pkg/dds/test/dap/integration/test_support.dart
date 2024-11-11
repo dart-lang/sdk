@@ -365,3 +365,28 @@ void testWithUriConfigurations(
     });
   }
 }
+
+/// Sets the casing of a drive letter according to [casing].
+String setDriveLetterCasing(String path, DriveLetterCasing? casing) {
+  if (!Platform.isWindows || path.isEmpty) {
+    return path;
+  }
+  var (driveLetter, rest) = (path.substring(0, 1), path.substring(1));
+  return switch (casing) {
+    DriveLetterCasing.uppercase => driveLetter.toUpperCase() + rest,
+    DriveLetterCasing.lowercase => driveLetter.toLowerCase() + rest,
+    null => path,
+  };
+}
+
+/// Normalizes a a path to have an uppercase drive letter. All paths verified
+/// that come out of the adapter are normalized this way so test expectations
+/// should be normalized the same way before comparing.
+String uppercaseDriveLetter(String path) {
+  return setDriveLetterCasing(path, DriveLetterCasing.uppercase);
+}
+
+enum DriveLetterCasing {
+  uppercase,
+  lowercase,
+}
