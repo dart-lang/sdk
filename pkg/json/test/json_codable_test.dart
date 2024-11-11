@@ -49,6 +49,7 @@ void main() {
         'nullableIntField': 9,
         'nullableDoubleField': 11.5,
         'nullableNumField': 11.1,
+        'nullableDateTimeField': '2024-11-11T03:42:29.108308',
         'nullableListOfSerializableField': [
           {'x': 1},
         ],
@@ -66,6 +67,8 @@ void main() {
       expect(b.nullableIntField, 9);
       expect(b.nullableDoubleField, 11.5);
       expect(b.nullableNumField, 11.1);
+      expect(b.nullableDateTimeField,
+          DateTime.parse('2024-11-11T03:42:29.108308'));
       expect(b.nullableListOfSerializableField!.single.x, 1);
       expect(b.nullableSetOfSerializableField!.single.x, 2);
       expect(b.nullableMapOfSerializableField!['d']!.x, 3);
@@ -80,6 +83,7 @@ void main() {
         'nullableIntField': null,
         'nullableDoubleField': null,
         'nullableNumField': null,
+        'nullableDateTimeField': null,
         'nullableListOfSerializableField': null,
         'nullableSetOfSerializableField': null,
         'nullableMapOfSerializableField': null,
@@ -89,6 +93,7 @@ void main() {
       expect(b.nullableIntField, null);
       expect(b.nullableDoubleField, null);
       expect(b.nullableNumField, null);
+      expect(b.nullableDateTimeField, null);
       expect(b.nullableListOfSerializableField, null);
       expect(b.nullableMapOfSerializableField, null);
       expect(b.nullableSetOfSerializableField, null);
@@ -103,6 +108,7 @@ void main() {
       expect(b.nullableIntField, null);
       expect(b.nullableDoubleField, null);
       expect(b.nullableNumField, null);
+      expect(b.nullableDateTimeField, null);
       expect(b.nullableListOfSerializableField, null);
       expect(b.nullableMapOfSerializableField, null);
       expect(b.nullableSetOfSerializableField, null);
@@ -226,13 +232,13 @@ class A {
 
   final num numField;
 
+  final DateTime dateTimeField;
+
   final List<C> listOfSerializableField;
 
   final Set<C> setOfSerializableField;
 
   final Map<String, C> mapOfSerializableField;
-
-  final DateTime dateTimeField;
 }
 
 @JsonCodable()
@@ -247,13 +253,13 @@ class B {
 
   final num? nullableNumField;
 
+  final DateTime? nullableDateTimeField;
+
   final List<C>? nullableListOfSerializableField;
 
   final Set<C>? nullableSetOfSerializableField;
 
   final Map<String, C>? nullableMapOfSerializableField;
-
-  final DateTime? nullableDateTimeField;
 }
 
 @JsonCodable()
