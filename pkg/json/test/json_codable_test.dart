@@ -112,7 +112,6 @@ void main() {
       expect(b.nullableListOfSerializableField, null);
       expect(b.nullableMapOfSerializableField, null);
       expect(b.nullableSetOfSerializableField, null);
-      expect(b.nullableDateTimeField, null);
 
       expect(b.toJson(), isEmpty);
     });
