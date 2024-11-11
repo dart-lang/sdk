@@ -6053,7 +6053,7 @@ class Parser {
             operator = next;
           }
           token = next.next!.isA(Keyword.THROW)
-              ? parseThrowExpression(next, /* allowCascades = */ false)
+              ? parseThrowExpression(next, allowCascades)
               : parsePrecedenceExpression(
                   next, level, allowCascades, ConstantPatternContext.none);
           listener.handleAssignmentExpression(operator, token);
