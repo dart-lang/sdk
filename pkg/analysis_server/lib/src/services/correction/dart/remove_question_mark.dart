@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -43,6 +44,13 @@ class RemoveQuestionMark extends ResolvedCorrectionProducer {
       });
     }
     if (targetNode is NullCheckPattern) {
+      var valueType = targetNode.pattern.matchedValueType;
+      // Ignore if the condition is of invalid type.
+      // I.e. when missing imports for the type, don't remove '?'.
+      if (valueType is InvalidType) {
+        return;
+      }
+
       var questionMark = targetNode.operator;
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.token(questionMark));

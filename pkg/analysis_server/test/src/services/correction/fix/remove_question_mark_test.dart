@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -65,6 +66,36 @@ void f() {
   }
 }
 ''');
+  }
+
+  Future<void> test_casePatternIfInvalidType() async {
+    await resolveTestCode('''
+UnknownType? getValue() => null;
+void f() {
+  if (getValue() case final valueX?) {
+    print(valueX);
+  }
+}
+''');
+    await assertNoFix(
+        errorFilter: (error) =>
+            error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS);
+  }
+
+  Future<void> test_casePatternSwitchInvalidType() async {
+    await resolveTestCode('''
+UnknownType? getValue() => null;
+void f() {
+  switch (getValue()) {
+    case
+      var s?:
+      print(s);
+  }
+}
+''');
+    await assertNoFix(
+        errorFilter: (error) =>
+            error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS);
   }
 
   Future<void> test_catchClause() async {
