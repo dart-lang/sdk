@@ -153,6 +153,9 @@ abstract final class CustomMethods {
   static const dartTextDocumentContentDidChange = Method(
     'dart/textDocumentContentDidChange',
   );
+  static const dartTextDocumentEditableArguments = Method(
+    'experimental/dart/textDocument/editableArguments',
+  );
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
   //  should be relying on it as we now support proper $/progress events.

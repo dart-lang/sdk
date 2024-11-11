@@ -2048,6 +2048,14 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// a single test.
   static const String _isTestVariableName = 'isTest';
 
+  /// The name of the top-level variable used to mark a function as a Flutter
+  /// widget factory.
+  static const String _widgetFactoryName = 'widgetFactory';
+
+  /// The URI of the Flutter widget inspector library.
+  static final Uri _flutterWidgetInspectorLibraryUri =
+      Uri.parse('package:flutter/src/widgets/widget_inspector.dart');
+
   /// The name of the top-level variable used to mark a function as running
   /// a test group.
   static const String _isTestGroupVariableName = 'isTestGroup';
@@ -2325,6 +2333,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
       name: _visibleOutsideTemplateVariableName);
 
   @override
+  bool get isWidgetFactory => _isTopGetter(
+      libraryUri: _flutterWidgetInspectorLibraryUri, name: _widgetFactoryName);
+
+  @override
   LibraryElement get library => compilationUnit.library;
 
   /// Get the library containing this annotation.
@@ -2382,13 +2394,17 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   bool _isTopGetter({
-    required String libraryName,
+    String? libraryName,
+    Uri? libraryUri,
     required String name,
   }) {
+    assert((libraryName != null) != (libraryUri != null),
+        'Exactly one of librayName/libraryUri should be provided');
     var element = this.element;
     return element is PropertyAccessorElement &&
         element.name == name &&
-        element.library.name == libraryName;
+        (libraryName == null || element.library.name == libraryName) &&
+        (libraryUri == null || element.library.source.uri == libraryUri);
   }
 }
 
@@ -7568,6 +7584,18 @@ final class MetadataImpl implements Metadata {
     for (var i = 0; i < annotations.length; i++) {
       var annotation = annotations[i];
       if (annotation.isVisibleOutsideTemplate) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasWidgetFactory {
+    var annotations = this.annotations;
+    for (var i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isWidgetFactory) {
         return true;
       }
     }

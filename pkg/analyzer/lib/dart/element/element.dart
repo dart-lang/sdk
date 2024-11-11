@@ -991,6 +991,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// outside of template files.
   bool get isVisibleOutsideTemplate;
 
+  /// Whether the annotation marks the associated member as being a widget
+  /// factory.
+  bool get isWidgetFactory;
+
   /// Returns a representation of the value of this annotation, forcing the
   /// value to be computed if it had not previously been computed, or `null`
   /// if the value of this annotation could not be computed because of errors.

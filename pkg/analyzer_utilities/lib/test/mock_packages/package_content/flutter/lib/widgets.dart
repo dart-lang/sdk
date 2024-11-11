@@ -13,3 +13,4 @@ export 'src/widgets/navigator.dart';
 export 'src/widgets/placeholder.dart';
 export 'src/widgets/text.dart';
 export 'src/widgets/ticker_provider.dart';
+export 'src/widgets/widget_inspector.dart';
