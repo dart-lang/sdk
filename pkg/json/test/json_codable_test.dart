@@ -34,6 +34,7 @@ void main() {
       expect(a.intField, 10);
       expect(a.doubleField, 12.5);
       expect(a.numField, 11);
+      expect(a.dateTimeField, DateTime.parse('2024-11-11T03:42:29.108308'));
       expect(a.listOfSerializableField.single.x, 1);
       expect(a.setOfSerializableField.single.x, 2);
       expect(a.mapOfSerializableField['c']!.x, 3);
