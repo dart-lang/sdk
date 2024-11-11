@@ -1,6 +1,5 @@
-## 2.4.1-wip
-
 ## 2.4.0
+
 - Bump `unified_analytics` dependency to ^7.0.0.
 
 ## 2.3.0
