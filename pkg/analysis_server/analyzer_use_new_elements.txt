@@ -115,6 +115,5 @@ test/services/search/element_visitors_test.dart
 test/services/search/hierarchy_test.dart
 test/services/search/search_engine_test.dart
 test/src/cider/rename_test.dart
-test/src/services/completion/dart/suggestion_builder_test.dart
 test/src/utilities/selection_coverage_test.dart
 tool/code_completion/try_hypothesis.dart
