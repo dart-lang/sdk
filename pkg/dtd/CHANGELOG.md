@@ -1,4 +1,7 @@
+## 2.3.1-wip
+
 ## 2.3.0
+
 - Indicate compatibility with `package:web_socket_channel` 2.x and 3.x.
 - Bump minimum version for `package:unified_analytics` to 6.1.0.
 - `DartToolingDaemon.connect` will now wait for the web socket to be connected.
@@ -15,10 +18,12 @@
   prior to calling `streamListen` to avoid the possibility of missing events.
 
 ## 2.2.0
+
 - Added new response types `Success`, `StringResponse`, `BoolResponse`, and `StringListResponse`.
 - Added contributing guide (`CONTRIBUTING.md`).
 
 ## 2.1.0
+
 - Added `getProjectRoots` API.
 - Expose constant values from `dtd.dart`.
 

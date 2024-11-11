@@ -120,7 +120,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "core_rev": "1156cfe4abc000f173bbf826783c215ca02b2ebf",
+  "core_rev": "6af0821dd8c0ecc5c30d5e67b3c8e16e8d79cda6",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
