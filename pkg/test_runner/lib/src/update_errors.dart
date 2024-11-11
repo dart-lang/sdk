@@ -105,13 +105,15 @@ String updateErrorExpectations(
     var previousLength = -1;
 
     for (var error in errorsHere) {
-      // Try to indent the line nicely to match either the existing expectation
-      // that is being regenerated, or, barring that, the previous line of code.
-      var indent = indentation[i + 1] ?? previousIndent;
+      // Try to indent the line nicely to match the existing expectation that
+      // is being regenerated. If that collides with the carets, then indent
+      // the line based on the preceding line of code. If the caret still
+      // doesn't fit with that indentation, we'll use an explicit location.
+      var indent = indentation[i + 1];
+      if (indent == null || error.column - 1 < indent + 2) {
+        indent = previousIndent;
+      }
 
-      // If the error is to the left of the indent and the "//", sacrifice the
-      // indentation.
-      if (error.column - 1 < indent + 2) indent = 0;
       var comment = "${" " * indent}//";
 
       // Write the location line, unless we already have an identical one. Allow
@@ -120,12 +122,11 @@ String updateErrorExpectations(
           (previousLength != 0 &&
               error.length != 0 &&
               error.length != previousLength)) {
-        // If the error can't fit in a line comment, or no source location is
-        // specified, use an explicit location.
-        if (error.column <= 2) {
+        // If the error location starts to the left of the line comment, or no
+        // error length is specified, use an explicit location.
+        if (error.column - 1 < indent + 2) {
           if (error.length == 0) {
-            result.add("$comment [error column "
-                "${error.column}]");
+            result.add("$comment [error column ${error.column}]");
           } else {
             result.add("$comment [error column "
                 "${error.column}, length ${error.length}]");
