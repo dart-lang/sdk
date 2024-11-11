@@ -4,11 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type_visitor.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -21,10 +19,6 @@ bool _isOldModelElement(Element2? element) {
   }
 
   var firstFragment = element.firstFragment;
-  if (firstFragment == null) {
-    return false;
-  }
-
   var libraryFragment = firstFragment.libraryFragment;
   if (libraryFragment == null) {
     return false;
@@ -230,17 +224,5 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (_isOldModelType(node.staticType)) {
       rule.reportLint(node);
     }
-  }
-}
-
-extension on Element2 {
-  Fragment? get firstFragment {
-    switch (this) {
-      case FragmentedElementMixin fragmented:
-        return fragmented.firstFragment;
-      case AugmentedInstanceElement fragmented:
-        return fragmented.firstFragment as Fragment;
-    }
-    return null;
   }
 }

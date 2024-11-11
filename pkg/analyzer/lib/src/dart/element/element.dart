@@ -2530,6 +2530,11 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
+  Fragment get firstFragment {
+    throw UnimplementedError('This is a fragment');
+  }
+
+  @override
   bool get hasAlwaysThrows {
     var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {

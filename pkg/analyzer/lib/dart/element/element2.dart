@@ -256,8 +256,7 @@ abstract class ClassFragment implements InterfaceFragment {
 /// type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ConstructorElement2
-    implements ExecutableElement2, FragmentedElement {
+abstract class ConstructorElement2 implements ExecutableElement2 {
   @override
   ConstructorElement2 get baseElement;
 
@@ -395,6 +394,13 @@ abstract class Element2 {
   /// Returns `null` if this element is a library because libraries are the
   /// top-level elements in the model.
   Element2? get enclosingElement2;
+
+  /// The first fragment in the chain of fragments that are merged to make this
+  /// element.
+  ///
+  /// The other fragments in the chain can be accessed using successive
+  /// invocations of [Fragment.nextFragment].
+  Fragment get firstFragment;
 
   /// The unique integer identifier of this element.
   int get id;
@@ -799,7 +805,7 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements PromotableElement2, Annotatable, FragmentedElement {
+    implements PromotableElement2, Annotatable {
   @override
   FormalParameterElement get baseElement;
 
@@ -986,16 +992,6 @@ abstract class Fragment {
   Fragment? get previousFragment;
 }
 
-/// An element that can be defined by multiple fragments.
-abstract class FragmentedElement {
-  /// The first fragment in the chain of fragments that are merged to make this
-  /// element.
-  ///
-  /// The other fragments in the chain can be accessed using successive
-  /// invocations of [Fragment.nextFragment].
-  Fragment get firstFragment;
-}
-
 /// An element that has a [FunctionType] as its [type].
 ///
 /// This also provides convenient access to the parameters and return type.
@@ -1035,8 +1031,7 @@ abstract class FunctionTypedFragment implements TypeParameterizedFragment {
 /// The pseudo-declaration that defines a generic function type.
 ///
 /// Clients may not extend, implement, or mix-in this class.
-abstract class GenericFunctionTypeElement2
-    implements FunctionTypedElement2, FragmentedElement {
+abstract class GenericFunctionTypeElement2 implements FunctionTypedElement2 {
   @override
   GenericFunctionTypeFragment get firstFragment;
 }
@@ -1063,7 +1058,7 @@ abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
 /// top-level variable or a field. Induced getters are synthetic.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class GetterElement implements ExecutableElement2, FragmentedElement {
+abstract class GetterElement implements ExecutableElement2 {
   @override
   GetterElement get baseElement;
 
@@ -1329,7 +1324,7 @@ abstract class JoinPatternVariableFragment implements PatternVariableFragment {
 /// A label associated with a statement.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LabelElement2 implements Element2, FragmentedElement {
+abstract class LabelElement2 implements Element2 {
   @override
   // TODO(brianwilkerson): We shouldn't be inheriting this member.
   ExecutableElement2? get enclosingElement2;
@@ -1358,8 +1353,7 @@ abstract class LabelFragment implements Fragment {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement2
-    implements Element2, Annotatable, FragmentedElement {
+abstract class LibraryElement2 implements Element2, Annotatable {
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -1639,8 +1633,7 @@ abstract class LibraryImport {
 /// expression for a field or variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalFunctionElement
-    implements ExecutableElement2, FragmentedElement {
+abstract class LocalFunctionElement implements ExecutableElement2 {
   @override
   LocalFunctionFragment get firstFragment;
 }
@@ -1678,8 +1671,7 @@ abstract class LocalFunctionFragment implements ExecutableFragment {
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement2
-    implements PromotableElement2, FragmentedElement {
+abstract class LocalVariableElement2 implements PromotableElement2 {
   @override
   LocalVariableElement2 get baseElement;
 
@@ -1837,7 +1829,7 @@ abstract class Metadata {
 /// method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodElement2 implements ExecutableElement2, FragmentedElement {
+abstract class MethodElement2 implements ExecutableElement2 {
   @override
   MethodElement2 get baseElement;
 
@@ -1931,7 +1923,7 @@ abstract class MixinFragment implements InterfaceFragment {
 /// and will return useless results.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MultiplyDefinedElement2 implements Element2, FragmentedElement {
+abstract class MultiplyDefinedElement2 implements Element2 {
   /// The elements that were defined within the scope to have the same name.
   List<Element2> get conflictingElements2;
 
@@ -1990,7 +1982,7 @@ abstract class PatternVariableFragment implements LocalVariableFragment {
 /// A prefix used to import one or more libraries into another library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PrefixElement2 implements Element2, FragmentedElement {
+abstract class PrefixElement2 implements Element2 {
   /// There is no enclosing element for import prefixes, which are elements,
   /// but exist inside a single [LibraryFragment], not an element.
   @override
@@ -2077,7 +2069,7 @@ abstract class PromotableFragment implements VariableFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingElement2
-    implements VariableElement2, Annotatable, FragmentedElement {
+    implements VariableElement2, Annotatable {
   @override
   PropertyInducingFragment get firstFragment;
 
@@ -2166,7 +2158,7 @@ abstract class PropertyInducingFragment
 /// top-level variable or a field. Induced setters are synthetic.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class SetterElement implements ExecutableElement2, FragmentedElement {
+abstract class SetterElement implements ExecutableElement2 {
   @override
   SetterElement get baseElement;
 
@@ -2252,8 +2244,7 @@ abstract class SuperFormalParameterFragment implements FormalParameterFragment {
 /// A top-level function.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TopLevelFunctionElement
-    implements ExecutableElement2, FragmentedElement {
+abstract class TopLevelFunctionElement implements ExecutableElement2 {
   @override
   TopLevelFunctionElement get baseElement;
 
@@ -2383,8 +2374,7 @@ abstract class TypeAliasFragment
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningElement2
-    implements Element2, Annotatable, FragmentedElement {
+abstract class TypeDefiningElement2 implements Element2, Annotatable {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
   //  after converting clients to the new API.
 
@@ -2451,8 +2441,7 @@ abstract class TypeParameterFragment implements TypeDefiningFragment {
 /// An element that has type parameters, such as a class, typedef, or method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterizedElement2
-    implements Element2, FragmentedElement, Annotatable {
+abstract class TypeParameterizedElement2 implements Element2, Annotatable {
   @override
   TypeParameterizedFragment get firstFragment;
 
@@ -2496,7 +2485,7 @@ abstract class TypeParameterizedFragment implements Fragment, Annotatable {
 /// There are more specific subclasses for more specific kinds of variables.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class VariableElement2 implements Element2, FragmentedElement {
+abstract class VariableElement2 implements Element2 {
   @override
   VariableFragment get firstFragment;
 
