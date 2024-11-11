@@ -383,11 +383,11 @@ mixin _FromJson on _Shared {
             if (nullCheck != null) nullCheck,
             await builder.resolveIdentifier(_dartCore, 'DateTime'),
             '.parse(',
-            jsonReference, 
+            jsonReference,
             ' as ',
             introspectionData.stringCode,
             ')'
-            ]);
+          ]);
       }
     }
 
