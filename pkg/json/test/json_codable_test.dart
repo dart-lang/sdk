@@ -7,6 +7,8 @@
 import 'package:json/json.dart';
 import 'package:test/test.dart';
 
+//
+
 void main() {
   group('Can encode and decode', () {
     test('non-nullable fields', () {
