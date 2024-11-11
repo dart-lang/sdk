@@ -652,11 +652,12 @@ OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
     return {instructions_image.build_id_length(), image_build_id};
   }
   const uint8_t* dso_base = GetAppDSOBase(snapshot_instructions);
-  const ElfW(Ehdr)& elf_header = *reinterpret_cast<const ElfW(Ehdr)*>(dso_base);
+  const ElfW(Ehdr) & elf_header =
+      *reinterpret_cast<const ElfW(Ehdr)*>(dso_base);
   const ElfW(Phdr)* const phdr_array =
       reinterpret_cast<const ElfW(Phdr)*>(dso_base + elf_header.e_phoff);
   for (intptr_t i = 0; i < elf_header.e_phnum; i++) {
-    const ElfW(Phdr)& header = phdr_array[i];
+    const ElfW(Phdr) & header = phdr_array[i];
     if (header.p_type != PT_NOTE) continue;
     if ((header.p_flags & PF_R) != PF_R) continue;
     const uint8_t* const note_addr = dso_base + header.p_vaddr;
