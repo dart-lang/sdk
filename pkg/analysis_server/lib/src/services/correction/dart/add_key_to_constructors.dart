@@ -146,8 +146,10 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     if (leftDelimiter == null) {
       // There are no named parameters, so add the delimiters.
       await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(parameters.last.end, (builder) {
-          builder.write(', {');
+        var offset = parameters.last.hasCommaAfter ? 1 : 0;
+        var delimiter = parameters.last.hasCommaAfter ? '' : ',';
+        builder.addInsertion(parameters.last.end + offset, (builder) {
+          builder.write('$delimiter {');
           writeKey(builder);
           builder.write('}');
         });

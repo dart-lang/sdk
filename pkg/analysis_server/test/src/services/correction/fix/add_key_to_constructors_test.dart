@@ -19,6 +19,7 @@ void main() {
       AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest,
     );
     defineReflectiveTests(AddKeyToConstructorsWithoutSuperParametersTest);
+    defineReflectiveTests(AddKeyToConstructorsWithPositionalParameterTest);
   });
 }
 
@@ -584,6 +585,50 @@ class A extends StatelessWidget {
 
 class B extends A {
   B({Key? key}) : super(const Text(''), key: key);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddKeyToConstructorsWithPositionalParameterTest
+    extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS;
+
+  @override
+  String get lintCode => LintNames.use_key_in_widget_constructors;
+
+  @override
+  String get testPackageLanguageVersion => '2.16';
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(flutter: true);
+  }
+
+  Future<void> test_constructor_withPositional_noSuper() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class A extends StatelessWidget {
+  const A(
+    this.widget,
+  );
+
+  final Widget widget;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class A extends StatelessWidget {
+  const A(
+    this.widget, {super.key}
+  );
+
+  final Widget widget;
 }
 ''');
   }
