@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
@@ -25,8 +24,6 @@ import 'package:analysis_server/src/services/snippets/dart/test_group_definition
 import 'package:analysis_server/src/services/snippets/dart/try_catch_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/while_statement.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules.dart';
@@ -1815,172 +1812,6 @@ class BaseImpl extends Base {
     var item = res.singleWhere((c) => c.label == 'myMethod() { … }');
     // filterText is set explicitly because it's not the same as label.
     expect(item.filterText, 'myMethod');
-  }
-
-  Future<void> test_fromPlugin_dartFile() async {
-    if (!AnalysisServer.supportsPlugins) return;
-    var code = TestCode.parse('''
-    void f() {
-      var x = '';
-      print(^);
-    }
-''');
-
-    var pluginResult =
-        plugin.CompletionGetSuggestionsResult(code.position.offset, 0, [
-          plugin.CompletionSuggestion(
-            plugin.CompletionSuggestionKind.INVOCATION,
-            100,
-            'x.toUpperCase()',
-            -1,
-            -1,
-            false,
-            false,
-          ),
-        ]);
-    configureTestPlugin(respondWith: pluginResult);
-
-    await initialize();
-    await openFile(mainFileUri, code.code);
-
-    var res = await getCompletion(mainFileUri, code.position.position);
-    var fromServer = res.singleWhere((c) => c.label == 'x');
-    var fromPlugin = res.singleWhere((c) => c.label == 'x.toUpperCase()');
-
-    expect(fromServer.kind, equals(CompletionItemKind.Variable));
-    expect(fromPlugin.kind, equals(CompletionItemKind.Method));
-  }
-
-  Future<void> test_fromPlugin_dartFile_withImports() async {
-    if (!AnalysisServer.supportsPlugins) return;
-    var code = TestCode.parse('''
-void f() {
-  ^
-}
-''');
-
-    var pluginResult =
-        plugin.CompletionGetSuggestionsResult(code.position.offset, 0, [
-          plugin.CompletionSuggestion(
-            plugin.CompletionSuggestionKind.IDENTIFIER,
-            100,
-            'fooFromDartIO',
-            -1,
-            -1,
-            false,
-            false,
-            libraryUri: 'dart:io',
-            isNotImported: true,
-          ),
-        ]);
-    configureTestPlugin(respondWith: pluginResult);
-
-    await initialize();
-    await openFile(mainFileUri, code.code);
-
-    var items = await getCompletion(mainFileUri, code.position.position);
-    var item = items.singleWhere((c) => c.label == 'fooFromDartIO');
-    var resolved = await resolveCompletion(item);
-
-    // Apply both the main completion edit and the additionalTextEdits atomically.
-    var newContent = applyTextEdits(
-      code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
-    );
-
-    // Ensure the plugin-supplied import was added.
-    expect(
-      newContent,
-      equals('''
-import 'dart:io';
-
-void f() {
-  fooFromDartIO
-}
-'''),
-    );
-  }
-
-  Future<void> test_fromPlugin_nonDartFile() async {
-    if (!AnalysisServer.supportsPlugins) return;
-    var pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
-    var pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
-    var code = TestCode.parse('''
-    CREATE TABLE foo (
-      id INTEGER NOT NULL PRIMARY KEY
-    );
-
-    query: SELECT ^ FROM foo;
-''');
-
-    var pluginResult =
-        plugin.CompletionGetSuggestionsResult(code.position.offset, 0, [
-          plugin.CompletionSuggestion(
-            plugin.CompletionSuggestionKind.IDENTIFIER,
-            100,
-            'id',
-            -1,
-            -1,
-            false,
-            false,
-          ),
-        ]);
-    configureTestPlugin(respondWith: pluginResult);
-
-    await initialize();
-    await openFile(pluginAnalyzedFileUri, code.code);
-    var res = await getCompletion(
-      pluginAnalyzedFileUri,
-      code.position.position,
-    );
-
-    expect(res, hasLength(1));
-    var suggestion = res.single;
-
-    expect(suggestion.kind, CompletionItemKind.Variable);
-    expect(suggestion.label, equals('id'));
-  }
-
-  Future<void> test_fromPlugin_tooSlow() async {
-    if (!AnalysisServer.supportsPlugins) return;
-    var code = TestCode.parse('''
-    void f() {
-      var x = '';
-      print(^);
-    }
-''');
-
-    var pluginResult =
-        plugin.CompletionGetSuggestionsResult(code.position.offset, 0, [
-          plugin.CompletionSuggestion(
-            plugin.CompletionSuggestionKind.INVOCATION,
-            100,
-            'x.toUpperCase()',
-            -1,
-            -1,
-            false,
-            false,
-          ),
-        ]);
-    configureTestPlugin(
-      respondWith: pluginResult,
-      // Don't respond within an acceptable time
-      respondAfter: Duration(seconds: 1),
-    );
-
-    await initialize();
-    await openFile(mainFileUri, code.code);
-
-    var res = await getCompletion(mainFileUri, code.position.position);
-    var fromServer = res.singleWhere((c) => c.label == 'x');
-    var fromPlugin = res.singleWhereOrNull((c) => c.label == 'x.toUpperCase()');
-
-    // Server results should still be included.
-    expect(fromServer.kind, equals(CompletionItemKind.Variable));
-    // Plugin results are not because they didn't arrive in time.
-    expect(fromPlugin, isNull);
   }
 
   /// Check that narrowing a type from String? to String in a subclass includes

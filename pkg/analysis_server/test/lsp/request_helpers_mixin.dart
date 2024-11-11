@@ -509,6 +509,20 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  Future<EditableArguments?> getEditableArguments(
+    Uri uri,
+    Position pos,
+  ) {
+    var request = makeRequest(
+      CustomMethods.dartTextDocumentEditableArguments,
+      TextDocumentPositionParams(
+        textDocument: TextDocumentIdentifier(uri: uri),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, EditableArguments.fromJson);
+  }
+
   Future<List<FoldingRange>> getFoldingRanges(Uri uri) {
     var request = makeRequest(
       Method.textDocument_foldingRange,

@@ -15,10 +15,12 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// A container with enough information to do filtering, and if necessary
@@ -981,6 +983,35 @@ class SuggestionBuilder {
     }
   }
 
+  /// Add a suggestion for a top-level [function]. If a [kind] is provided it
+  /// will be used as the kind for the suggestion. If the function can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
+  void suggestTopLevelFunction2(
+    TopLevelFunctionElement function, {
+    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    String? prefix,
+    int? relevance,
+  }) {
+    var completion = _getCompletionString2(function);
+    if (completion == null) return;
+    if (_couldMatch(completion, prefix)) {
+      relevance ??= relevanceComputer.computeTopLevelRelevance2(
+        function,
+        elementType: function.returnType,
+        isNotImportedLibrary: isNotImportedLibrary,
+      );
+      _addBuilder(
+        _createCompletionSuggestionBuilder2(
+          function,
+          kind: kind,
+          prefix: prefix,
+          relevance: relevance,
+          isNotImported: isNotImportedLibrary,
+        ),
+      );
+    }
+  }
+
   /// Add a suggestion for a top-level property [accessor]. If the accessor can
   /// only be referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelPropertyAccessor(
@@ -1255,6 +1286,42 @@ class SuggestionBuilder {
     );
   }
 
+  /// Return a [CompletionSuggestionBuilder] based on the [element], or `null`
+  /// if the element cannot be suggested. If the completion should be something
+  /// different than the name of the element, then the [completion] should be
+  /// supplied. If an [elementKind] is provided, then it will be used rather
+  /// than the kind normally used for the element. If a [prefix] is provided,
+  /// then the element name (or completion) will be prefixed. The [relevance] is
+  /// the relevance of the suggestion.
+  CompletionSuggestionBuilder? _createCompletionSuggestionBuilder2(
+    Element2 element, {
+    String? completion,
+    required CompletionSuggestionKind kind,
+    required int relevance,
+    required bool isNotImported,
+    String? prefix,
+  }) {
+    completion ??= _getCompletionString2(element);
+    if (completion == null) {
+      return null;
+    }
+
+    if (prefix != null) {
+      completion = '$prefix.$completion';
+    }
+
+    return _CompletionSuggestionBuilderImpl(
+      orgElement: element.asElement!,
+      suggestionBuilder: this,
+      kind: kind,
+      completion: completion,
+      relevance: relevance,
+      libraryUriStr: libraryUriStr,
+      requiredImports: requiredImports,
+      isNotImported: isNotImported,
+    );
+  }
+
   /// The non-caching implementation of [_getElementCompletionData].
   _ElementCompletionData _createElementCompletionData(Element element) {
     var documentation = _getDocumentation(element);
@@ -1337,6 +1404,14 @@ class SuggestionBuilder {
 
   String? _getCompletionString(Element element) {
     if (element is ExecutableElement && element.isOperator) {
+      return null;
+    }
+
+    return element.displayName;
+  }
+
+  String? _getCompletionString2(Element2 element) {
+    if (element is MethodElement2 && element.isOperator) {
       return null;
     }
 

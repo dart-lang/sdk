@@ -43,6 +43,9 @@ class DtdServices {
   static const allowedLspMethods = <Method>{
     // When removing this allowlist or adding simple methods like
     // textDocument/hover, skipped tests in `SharedDtdTests` can be unskipped.
+    // TODO(dantup): Enable this but add a flag so we can opt-in to experimental
+    //  handlers being exposed over DTD while in dev.
+    // CustomMethods.dartTextDocumentEditableArguments,
   };
 
   /// The name of the DTD service that methods will be registered under.

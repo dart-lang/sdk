@@ -55,7 +55,7 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagation_PhiUnwrappingAndConvergence) {
     v1 = H.Phi(b2, {{b1, v0}, {b3, &v1}});
     builder.AddPhi(v1);
     auto v2 = builder.AddDefinition(new EqualityCompareInstr(
-        InstructionSource(), Token::kEQ, new Value(v1), new Value(v0), kSmiCid,
+        InstructionSource(), Token::kEQ, new Value(v1), new Value(v0), kTagged,
         S.GetNextDeoptId(), /*null_aware=*/false));
     builder.AddBranch(new StrictCompareInstr(
                           InstructionSource(), Token::kEQ_STRICT, new Value(v2),

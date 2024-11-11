@@ -12,12 +12,12 @@ import '../../../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ContextTypeTest);
+    defineReflectiveTests(SuggestionBuilderTest);
   });
 }
 
 @reflectiveTest
-class ContextTypeTest extends AbstractSingleUnitTest {
+class SuggestionBuilderTest extends AbstractSingleUnitTest {
   void assertSuggestion(
     CompletionSuggestion suggestion, {
     String? expectedDefaultArgumentList,
@@ -34,7 +34,7 @@ class ContextTypeTest extends AbstractSingleUnitTest {
       offset: 0,
     );
     var builder = SuggestionBuilder(request, useFilter: false);
-    builder.suggestTopLevelFunction(findElement.topFunction('f'));
+    builder.suggestTopLevelFunction2(findElement2.topFunction('f'));
     var suggestions = builder.suggestions.map((e) => e.build()).toList();
     expect(suggestions, hasLength(1));
     return suggestions[0];

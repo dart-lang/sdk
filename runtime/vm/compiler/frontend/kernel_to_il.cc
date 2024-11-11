@@ -4682,7 +4682,7 @@ Fragment FlowGraphBuilder::IntRelationalOp(TokenPosition position,
     Value* left = Pop();
     RelationalOpInstr* instr =
         new (Z) RelationalOpInstr(InstructionSource(position), kind, left,
-                                  right, kMintCid, GetNextDeoptId());
+                                  right, kUnboxedInt64, GetNextDeoptId());
     Push(instr);
     return Fragment(instr);
   }

@@ -1810,6 +1810,9 @@ abstract class Metadata {
   /// `@visibleOutsideTemplate`.
   bool get hasVisibleOutsideTemplate;
 
+  /// Whether the receiver has an annotation of the form `@widgetFactory`.
+  bool get hasWidgetFactory;
+
   /// The version where the associated SDK API was added.
   ///
   /// A `@Since()` annotation can be applied to a library declaration,

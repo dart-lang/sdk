@@ -2208,9 +2208,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
             Smi::ZoneHandle(Smi::New(variant.cid_end)), cid_representation);
         condition = new EqualityCompareInstr(
             call_->source(), Token::kEQ, new Value(load_cid),
-            new Value(cid_constant),
-            cid_representation == kTagged ? kSmiCid : kIntegerCid,
-            DeoptId::kNone, /*null_aware=*/false);
+            new Value(cid_constant), cid_representation, DeoptId::kNone,
+            /*null_aware=*/false);
       } else {
         condition = new TestRangeInstr(call_->source(), new Value(load_cid),
                                        variant.cid_start, variant.cid_end,

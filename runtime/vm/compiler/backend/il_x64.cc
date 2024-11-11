@@ -819,26 +819,6 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-static Condition TokenKindToIntCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ:
-      return EQUAL;
-    case Token::kNE:
-      return NOT_EQUAL;
-    case Token::kLT:
-      return LESS;
-    case Token::kGT:
-      return GREATER;
-    case Token::kLTE:
-      return LESS_EQUAL;
-    case Token::kGTE:
-      return GREATER_EQUAL;
-    default:
-      UNREACHABLE();
-      return OVERFLOW;
-  }
-}
-
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -848,7 +828,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
   if (is_null_aware()) {
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
-  } else if (operation_cid() == kDoubleCid) {
+  } else if (input_representation() == kUnboxedDouble) {
     locs->set_in(0, Location::RequiresFpuRegister());
     locs->set_in(1, Location::RequiresFpuRegister());
   } else {
@@ -903,9 +883,9 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                      Token::Kind kind) {
   Location left = locs.in(0);
   Location right = locs.in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
 
-  Condition true_condition = TokenKindToIntCondition(kind);
+  Condition true_condition =
+      TokenKindToIntCondition(kind, /*is_unsigned=*/false);
   if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
   } else {
@@ -914,21 +894,37 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
-static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
-                                       const LocationSummary& locs,
-                                       Token::Kind kind) {
+static Condition EmitUnboxedIntComparisonOp(FlowGraphCompiler* compiler,
+                                            const LocationSummary& locs,
+                                            Token::Kind kind,
+                                            Representation rep) {
   Location left = locs.in(0);
   Location right = locs.in(1);
-  ASSERT(!left.IsConstant() || !right.IsConstant());
+  ASSERT((rep == kUnboxedInt64) || (rep == kUnboxedInt32) ||
+         (rep == kUnboxedUint32));
 
-  Condition true_condition = TokenKindToIntCondition(kind);
+  Condition true_condition = TokenKindToIntCondition(
+      kind, RepresentationUtils::IsUnsignedInteger(rep));
   if (right.IsConstant()) {
     int64_t value;
     const bool ok = compiler::HasIntegerValue(right.constant(), &value);
     RELEASE_ASSERT(ok);
-    __ cmpq(left.reg(), compiler::Immediate(value));
+    if (rep == kUnboxedInt64) {
+      __ cmpq(left.reg(), compiler::Immediate(value));
+    } else {
+      if (rep == kUnboxedUint32) {
+        // Assembler expects signed int32 immediate.
+        ASSERT(Utils::IsUint(32, value));
+        value = static_cast<int32_t>(static_cast<uint32_t>(value));
+      }
+      __ cmpl(left.reg(), compiler::Immediate(value));
+    }
   } else {
-    __ cmpq(left.reg(), right.reg());
+    if (rep == kUnboxedInt64) {
+      __ cmpq(left.reg(), right.reg());
+    } else {
+      __ cmpl(left.reg(), right.reg());
+    }
   }
   return true_condition;
 }
@@ -940,7 +936,8 @@ static Condition EmitNullAwareInt64ComparisonOp(FlowGraphCompiler* compiler,
   ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   const Register left = locs.in(0).reg();
   const Register right = locs.in(1).reg();
-  const Condition true_condition = TokenKindToIntCondition(kind);
+  const Condition true_condition =
+      TokenKindToIntCondition(kind, /*is_unsigned=*/false);
   compiler::Label* equal_result =
       (true_condition == EQUAL) ? labels.true_label : labels.false_label;
   compiler::Label* not_equal_result =
@@ -1001,16 +998,20 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 Condition EqualityCompareInstr::EmitConditionCode(FlowGraphCompiler* compiler,
                                                   BranchLabels labels) {
   if (is_null_aware()) {
-    ASSERT(operation_cid() == kMintCid);
     return EmitNullAwareInt64ComparisonOp(compiler, *locs(), kind(), labels);
   }
-  if (operation_cid() == kSmiCid) {
-    return EmitSmiComparisonOp(compiler, *locs(), kind());
-  } else if (operation_cid() == kMintCid || operation_cid() == kIntegerCid) {
-    return EmitInt64ComparisonOp(compiler, *locs(), kind());
-  } else {
-    ASSERT(operation_cid() == kDoubleCid);
-    return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+  switch (input_representation()) {
+    case kTagged:
+      return EmitSmiComparisonOp(compiler, *locs(), kind());
+    case kUnboxedInt64:
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      return EmitUnboxedIntComparisonOp(compiler, *locs(), kind(),
+                                        input_representation());
+    case kUnboxedDouble:
+      return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -1139,7 +1140,7 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (operation_cid() == kDoubleCid) {
+  if (input_representation() == kUnboxedDouble) {
     locs->set_in(0, Location::RequiresFpuRegister());
     locs->set_in(1, Location::RequiresFpuRegister());
   } else {
@@ -1152,13 +1153,18 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
 
 Condition RelationalOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
                                                BranchLabels labels) {
-  if (operation_cid() == kSmiCid) {
-    return EmitSmiComparisonOp(compiler, *locs(), kind());
-  } else if (operation_cid() == kMintCid) {
-    return EmitInt64ComparisonOp(compiler, *locs(), kind());
-  } else {
-    ASSERT(operation_cid() == kDoubleCid);
-    return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+  switch (input_representation()) {
+    case kTagged:
+      return EmitSmiComparisonOp(compiler, *locs(), kind());
+    case kUnboxedInt64:
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      return EmitUnboxedIntComparisonOp(compiler, *locs(), kind(),
+                                        input_representation());
+    case kUnboxedDouble:
+      return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+    default:
+      UNREACHABLE();
   }
 }
 

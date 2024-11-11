@@ -599,8 +599,9 @@ class RangeAnalysis : public ValueObject {
   // Find unsatisfiable constraints and mark corresponding blocks unreachable.
   void MarkUnreachableBlocks();
 
-  // Convert mint operations that stay within int32 range into Int32 operations.
-  void NarrowMintToInt32();
+  // Convert Int64 operations that stay within Int32 range into Int32
+  // operations.
+  void NarrowInt64OperationsToInt32();
 
   // Remove artificial Constraint instructions and replace them with actual
   // unconstrained definitions.
@@ -625,6 +626,7 @@ class RangeAnalysis : public ValueObject {
   // All 64-bit binary and shift operations.
   GrowableArray<BinaryInt64OpInstr*> binary_int64_ops_;
   GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
+  GrowableArray<ComparisonInstr*> int64_comparisons_;
 
   // All CheckArrayBound/GenericCheckBound instructions.
   GrowableArray<CheckBoundBaseInstr*> bounds_checks_;
@@ -656,6 +658,8 @@ class IntegerInstructionSelector : public ValueObject {
   bool AllUsesAreUint32Narrowing(Value* list_head);
   bool CanBecomeUint32(Definition* def);
   void Propagate();
+  bool IsUint32Use(Value* use);
+  void NarrowUint32Uses();
   Definition* ConstructReplacementFor(Definition* def);
   void ReplaceInstructions();
 

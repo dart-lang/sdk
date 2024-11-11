@@ -60,7 +60,9 @@ void main() {
         var handler = generator(_MockServer());
         var method = handler.handlesMessage.toString();
 
-        if (method.startsWith('dart')) {
+        if (method.startsWith('experimental/')) {
+          // Experimental handlers may change frequently, exclude them.
+        } else if (method.startsWith('dart')) {
           // Dart methods are included under their own heading.
           var expectedHeading = '### $method Method';
           if (!readmeContent.contains(expectedHeading)) {

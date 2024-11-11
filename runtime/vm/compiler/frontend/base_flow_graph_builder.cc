@@ -876,7 +876,7 @@ Fragment BaseFlowGraphBuilder::SmiRelationalOp(Token::Kind kind) {
   Value* right = Pop();
   Value* left = Pop();
   RelationalOpInstr* instr = new (Z) RelationalOpInstr(
-      InstructionSource(), kind, left, right, kSmiCid, GetNextDeoptId());
+      InstructionSource(), kind, left, right, kTagged, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }

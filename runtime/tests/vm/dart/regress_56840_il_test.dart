@@ -29,7 +29,8 @@ void matchIL$foobar(FlowGraph graph) {
       'values' << match.Parameter(index: 1),
       'values.length' <<
           match.LoadField('values', slot: 'GrowableObjectArray.length'),
-      'values.length_unboxed' << match.UnboxInt64('values.length'),
+      if (!is32BitConfiguration)
+        'values.length_unboxed' << match.UnboxInt64('values.length'),
       'values.data' <<
           match.LoadField('values', slot: 'GrowableObjectArray.data'),
       match.Goto('B16'),
@@ -38,11 +39,11 @@ void matchIL$foobar(FlowGraph graph) {
         match.block('Join', [
           'i' << match.Phi('int 0', 'i+1'),
           if (is32BitConfiguration)
-            'i_64' << match.IntConverter('i', from: 'int32', to: 'int64'),
+            // Not moved out of the loop due to the current pass
+            // ordering (LICM is performed before RangeAnalysis).
+            'values.length_unboxed' << match.UnboxInt32('values.length'),
           match.Branch(
-              match.RelationalOp(
-                  is32BitConfiguration ? 'i_64' : 'i', 'values.length_unboxed',
-                  kind: '>='),
+              match.RelationalOp('i', 'values.length_unboxed', kind: '>='),
               ifTrue: 'B4',
               ifFalse: 'B12'),
         ]),

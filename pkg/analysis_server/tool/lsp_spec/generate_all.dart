@@ -408,6 +408,86 @@ List<LspEntity> getCustomClasses() {
         canBeUndefined: true,
       ),
     ]),
+    interface('EditableArguments', [
+      field('textDocument', type: 'TextDocumentIdentifier'),
+      // TODO(dantup): field('refactors', ...),
+      field('arguments', type: 'EditableArgument', array: true),
+    ]),
+    interface('EditableArgument', [
+      field(
+        'name',
+        type: 'string',
+        comment: 'The name of the corresponding parameter.',
+      ),
+      field(
+        'type',
+        type: 'string',
+        comment:
+            'The kind of parameter. This is not necessarily the Dart type, '
+            'it is from a defined set of values that clients may understand '
+            'how to edit.',
+      ),
+      Field(
+        name: 'value',
+        type: TypeReference.LspAny,
+        allowsNull: false,
+        allowsUndefined: true,
+        comment:
+            'The current value for this argument. This is only included if '
+            'an explicit value is given in the code and is a valid literal for '
+            'the kind of parameter. For expressions or named constants, this '
+            'will not be included and displayValue can be shown as the current '
+            'value instead.',
+      ),
+      field(
+        'hasArgument',
+        type: 'boolean',
+        comment:
+            'Whether an explicit argument exists for this parameter in the '
+            'code. This will be true even if the explicit argument is the same '
+            'value as the parameter default.',
+      ),
+      field(
+        'isDefault',
+        type: 'boolean',
+        comment:
+            'Whether the value is the default for this parameter, either '
+            'because there is no argument or because it is explicitly provided '
+            'as the same value.',
+      ),
+      field(
+        'displayValue',
+        type: 'string',
+        canBeUndefined: true,
+        comment:
+            'A string that can be displayed to indicate the value for this '
+            'argument. This will be populated in cases where the source code '
+            'is not literally the same as the value field, for example an '
+            'expression or named constant.',
+      ),
+      field(
+        'isRequired',
+        type: 'boolean',
+        comment: 'Whether an argument is required for this parameter.',
+      ),
+      field(
+        'isNullable',
+        type: 'boolean',
+        comment:
+            'Whether this argument can be `null`. It is possible for an '
+            'argument to be required, but still allow an explicit `null`.',
+      ),
+      field(
+        'options',
+        type: 'string',
+        array: true,
+        canBeUndefined: true,
+        comment:
+            'The set of values allowed for this argument if it is an enum. '
+            'Values are qualified in the form `EnumName.valueName`.',
+      ),
+      // TODO(dantup): field('properties', ...),
+    ]),
     TypeAlias(
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(

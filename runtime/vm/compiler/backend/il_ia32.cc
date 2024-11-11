@@ -623,30 +623,11 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-static Condition TokenKindToIntCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ:
-      return EQUAL;
-    case Token::kNE:
-      return NOT_EQUAL;
-    case Token::kLT:
-      return LESS;
-    case Token::kGT:
-      return GREATER;
-    case Token::kLTE:
-      return LESS_EQUAL;
-    case Token::kGTE:
-      return GREATER_EQUAL;
-    default:
-      UNREACHABLE();
-      return OVERFLOW;
-  }
-}
-
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
+  ASSERT(!is_null_aware());
   const intptr_t kNumInputs = 2;
-  if (operation_cid() == kMintCid) {
+  if (input_representation() == kUnboxedInt64) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -656,8 +637,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                    Location::RequiresRegister()));
     locs->set_out(0, Location::RequiresRegister());
     return locs;
-  }
-  if (operation_cid() == kDoubleCid) {
+  } else if (input_representation() == kUnboxedDouble) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -665,8 +645,10 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     locs->set_in(1, Location::RequiresFpuRegister());
     locs->set_out(0, Location::RequiresRegister());
     return locs;
-  }
-  if (operation_cid() == kSmiCid || operation_cid() == kIntegerCid) {
+  } else {
+    ASSERT((input_representation() == kTagged) ||
+           (input_representation() == kUnboxedInt32) ||
+           (input_representation() == kUnboxedUint32));
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -675,8 +657,6 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
-  UNREACHABLE();
-  return nullptr;
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,
@@ -748,12 +728,12 @@ static void EmitBranchOnCondition(
 
 static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                      const LocationSummary& locs,
-                                     Token::Kind kind,
-                                     BranchLabels labels) {
+                                     Token::Kind kind) {
   Location left = locs.in(0);
   Location right = locs.in(1);
 
-  Condition true_condition = TokenKindToIntCondition(kind);
+  Condition true_condition =
+      TokenKindToIntCondition(kind, /*is_unsigned=*/false);
   if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
   } else {
@@ -762,14 +742,15 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
-static Condition EmitWordComparisonOp(FlowGraphCompiler* compiler,
-                                      const LocationSummary& locs,
-                                      Token::Kind kind,
-                                      BranchLabels labels) {
+static Condition EmitUnboxedWordComparisonOp(FlowGraphCompiler* compiler,
+                                             const LocationSummary& locs,
+                                             Token::Kind kind,
+                                             Representation rep) {
   Location left = locs.in(0);
   Location right = locs.in(1);
 
-  Condition true_condition = TokenKindToIntCondition(kind);
+  Condition true_condition = TokenKindToIntCondition(
+      kind, RepresentationUtils::IsUnsignedInteger(rep));
   if (right.IsConstant()) {
     __ CompareImmediate(
         left.reg(),
@@ -780,10 +761,10 @@ static Condition EmitWordComparisonOp(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
-static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
-                                           const LocationSummary& locs,
-                                           Token::Kind kind,
-                                           BranchLabels labels) {
+static Condition EmitUnboxedInt64EqualityOp(FlowGraphCompiler* compiler,
+                                            const LocationSummary& locs,
+                                            Token::Kind kind,
+                                            BranchLabels labels) {
   ASSERT(Token::IsEqualityOperator(kind));
   PairLocation* left_pair = locs.in(0).AsPairLocation();
   Register left1 = left_pair->At(0).reg();
@@ -798,14 +779,15 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
   // Lower is equal, compare upper.
   __ cmpl(left2, right2);
   __ Bind(&done);
-  Condition true_condition = TokenKindToIntCondition(kind);
+  Condition true_condition =
+      TokenKindToIntCondition(kind, /*is_unsigned=*/false);
   return true_condition;
 }
 
-static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
-                                             const LocationSummary& locs,
-                                             Token::Kind kind,
-                                             BranchLabels labels) {
+static Condition EmitUnboxedInt64ComparisonOp(FlowGraphCompiler* compiler,
+                                              const LocationSummary& locs,
+                                              Token::Kind kind,
+                                              BranchLabels labels) {
   PairLocation* left_pair = locs.in(0).AsPairLocation();
   Register left1 = left_pair->At(0).reg();
   Register left2 = left_pair->At(1).reg();
@@ -887,15 +869,19 @@ Condition EqualityCompareInstr::EmitConditionCode(FlowGraphCompiler* compiler,
     // Null-aware EqualityCompare instruction is only used in AOT.
     UNREACHABLE();
   }
-  if (operation_cid() == kSmiCid) {
-    return EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
-  } else if (operation_cid() == kMintCid) {
-    return EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), labels);
-  } else if (operation_cid() == kIntegerCid) {
-    return EmitWordComparisonOp(compiler, *locs(), kind(), labels);
-  } else {
-    ASSERT(operation_cid() == kDoubleCid);
-    return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+  switch (input_representation()) {
+    case kTagged:
+      return EmitSmiComparisonOp(compiler, *locs(), kind());
+    case kUnboxedInt64:
+      return EmitUnboxedInt64EqualityOp(compiler, *locs(), kind(), labels);
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      return EmitUnboxedWordComparisonOp(compiler, *locs(), kind(),
+                                         input_representation());
+    case kUnboxedDouble:
+      return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -1013,43 +999,42 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
-  if (operation_cid() == kMintCid) {
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  if (input_representation() == kUnboxedInt64) {
     locs->set_in(0, Location::Pair(Location::RequiresRegister(),
                                    Location::RequiresRegister()));
     locs->set_in(1, Location::Pair(Location::RequiresRegister(),
                                    Location::RequiresRegister()));
-    locs->set_out(0, Location::RequiresRegister());
-    return locs;
-  }
-  if (operation_cid() == kDoubleCid) {
-    LocationSummary* locs = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  } else if (input_representation() == kUnboxedDouble) {
     locs->set_in(0, Location::RequiresFpuRegister());
     locs->set_in(1, Location::RequiresFpuRegister());
-    locs->set_out(0, Location::RequiresRegister());
-    return locs;
+  } else {
+    ASSERT((input_representation() == kTagged) ||
+           (input_representation() == kUnboxedInt32) ||
+           (input_representation() == kUnboxedUint32));
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, LocationRegisterOrConstant(right()));
   }
-  ASSERT(operation_cid() == kSmiCid);
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, LocationRegisterOrConstant(right()));
   locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
 
 Condition RelationalOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
                                                BranchLabels labels) {
-  if (operation_cid() == kSmiCid) {
-    return EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
-  } else if (operation_cid() == kMintCid) {
-    return EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), labels);
-  } else {
-    ASSERT(operation_cid() == kDoubleCid);
-    return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+  switch (input_representation()) {
+    case kTagged:
+      return EmitSmiComparisonOp(compiler, *locs(), kind());
+    case kUnboxedInt64:
+      return EmitUnboxedInt64ComparisonOp(compiler, *locs(), kind(), labels);
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      return EmitUnboxedWordComparisonOp(compiler, *locs(), kind(),
+                                         input_representation());
+    case kUnboxedDouble:
+      return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
+    default:
+      UNREACHABLE();
   }
 }
 
