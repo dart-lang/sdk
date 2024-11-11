@@ -10,12 +10,14 @@ import 'package:test/test.dart';
 void main() {
   group('Can encode and decode', () {
     test('non-nullable fields', () {
+      print(DateTime.now().toIso8601String());
       var json = {
         'boolField': true,
         'stringField': 'hello',
         'intField': 10,
         'doubleField': 12.5,
         'numField': 11,
+        'dateTimeField': '2024-11-11T03:42:29.108308',
         'listOfSerializableField': [
           {'x': 1},
         ],
@@ -104,6 +106,7 @@ void main() {
       expect(b.nullableListOfSerializableField, null);
       expect(b.nullableMapOfSerializableField, null);
       expect(b.nullableSetOfSerializableField, null);
+      expect(b.nullableDateTimeField, null);
 
       expect(b.toJson(), isEmpty);
     });
@@ -228,6 +231,8 @@ class A {
   final Set<C> setOfSerializableField;
 
   final Map<String, C> mapOfSerializableField;
+
+  final DateTime dateTimeField;
 }
 
 @JsonCodable()
@@ -247,6 +252,8 @@ class B {
   final Set<C>? nullableSetOfSerializableField;
 
   final Map<String, C>? nullableMapOfSerializableField;
+
+  final DateTime? nullableDateTimeField;
 }
 
 @JsonCodable()

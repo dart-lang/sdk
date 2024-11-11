@@ -378,6 +378,16 @@ mixin _FromJson on _Shared {
             ' as ',
             type.code,
           ]);
+        case 'DateTime':
+          return RawCode.fromParts([
+            if (nullCheck != null) nullCheck,
+            await builder.resolveIdentifier(_dartCore, 'DateTime'),
+            '.parse(',
+            jsonReference, 
+            ' as ',
+            introspectionData.stringCode,
+            ')'
+            ]);
       }
     }
 
@@ -624,6 +634,8 @@ mixin _ToJson on _Shared {
           ]);
         case 'int' || 'double' || 'num' || 'String' || 'bool':
           return valueReference;
+        case 'DateTime':
+          return RawCode.fromParts([valueReference, '.toIso8601String()']);
       }
     }
 

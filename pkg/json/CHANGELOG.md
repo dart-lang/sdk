@@ -1,3 +1,7 @@
+# 0.20.3
+
+- Add support for DateTime
+
 # 0.20.2
 
 - Fix generated code syntax error when defining fields containing the dollar sign `$` by using raw strings.
