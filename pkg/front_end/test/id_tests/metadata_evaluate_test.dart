@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/testing/metadata_helper.dart';
 import 'package:_fe_analyzer_shared/src/metadata/ast.dart' as shared;
 import 'package:front_end/src/base/common.dart';
 import 'package:front_end/src/builder/member_builder.dart';
+import 'package:front_end/src/kernel/macro/metadata.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -65,7 +66,8 @@ class MetadataDataExtractor extends CfeDataExtractor<String> {
         List<String> list = [];
         for (MetadataBuilder metadataBuilder in metadata) {
           shared.Expression resolved = metadataBuilder.expression!;
-          list.addAll(evaluationToText(resolved));
+          list.addAll(evaluationToText(resolved,
+              getFieldInitializer: getFieldInitializer));
         }
         return '\n${list.join('\n')}';
       }

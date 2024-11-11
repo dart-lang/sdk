@@ -125,5 +125,6 @@ void binary19() {}
 @Helper(1 + constInt)
 /*member: binary20:
 resolved=BinaryExpression(IntegerLiteral(1) + StaticGet(constInt))
-evaluate=BinaryExpression(IntegerLiteral(1) + StaticGet(constInt))*/
+evaluate=IntegerLiteral(value=43)
+constInt=IntegerLiteral(42)*/
 void binary20() {}

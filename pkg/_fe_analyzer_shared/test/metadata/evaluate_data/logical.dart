@@ -59,23 +59,27 @@ void logicalExpression8() {}
 @Helper(constBool && true)
 /*member: logicalExpression9:
 resolved=LogicalExpression(StaticGet(constBool) && BooleanLiteral(true))
-evaluate=LogicalExpression(StaticGet(constBool) && BooleanLiteral(true))*/
+evaluate=BooleanLiteral(true)
+constBool=BooleanLiteral(true)*/
 void logicalExpression9() {}
 
 @Helper(constBool && false)
 /*member: logicalExpression10:
 resolved=LogicalExpression(StaticGet(constBool) && BooleanLiteral(false))
-evaluate=LogicalExpression(StaticGet(constBool) && BooleanLiteral(false))*/
+evaluate=BooleanLiteral(false)
+constBool=BooleanLiteral(true)*/
 void logicalExpression10() {}
 
 @Helper(constBool || true)
 /*member: logicalExpression11:
 resolved=LogicalExpression(StaticGet(constBool) || BooleanLiteral(true))
-evaluate=LogicalExpression(StaticGet(constBool) || BooleanLiteral(true))*/
+evaluate=BooleanLiteral(true)
+constBool=BooleanLiteral(true)*/
 void logicalExpression11() {}
 
 @Helper(constBool || false)
 /*member: logicalExpression12:
 resolved=LogicalExpression(StaticGet(constBool) || BooleanLiteral(false))
-evaluate=LogicalExpression(StaticGet(constBool) || BooleanLiteral(false))*/
+evaluate=BooleanLiteral(true)
+constBool=BooleanLiteral(true)*/
 void logicalExpression12() {}

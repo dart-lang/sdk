@@ -53,6 +53,7 @@ void stringInterpolation7() {}
 @Helper("a ${" b ${constBool}"} c")
 /*member: stringInterpolation8:
 resolved=StringLiteral('a ${StringLiteral(' b ${StaticGet(constBool)}')} c')
-evaluate=StringLiteral('a  b ${StaticGet(constBool)} c')*/
+evaluate=StringLiteral('a  b true c')
+constBool=BooleanLiteral(true)*/
 void stringInterpolation8() {}
 

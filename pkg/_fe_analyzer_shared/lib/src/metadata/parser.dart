@@ -1053,6 +1053,18 @@ Expression parseAnnotation(
   return listener.pop() as Expression;
 }
 
+/// Parses the expression beginning at [initializerToken].
+Expression parseExpression(
+    Token initializerToken, Uri fileUri, Scope scope, References references,
+    {required bool isDartLibrary, bool delayLookupForTesting = false}) {
+  AnnotationsListener listener = new AnnotationsListener(
+      fileUri, scope, references,
+      delayLookup: delayLookupForTesting, isDartLibrary: isDartLibrary);
+  Parser parser = new Parser(listener, useImplicitCreationExpression: false);
+  parser.parseExpression(parser.syntheticPreviousToken(initializerToken));
+  return listener._popExpression();
+}
+
 /// A [Scope] extended to include function type parameters.
 class FunctionTypeParameterScope implements Scope {
   final Scope parentScope;

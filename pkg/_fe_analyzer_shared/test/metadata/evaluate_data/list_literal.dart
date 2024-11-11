@@ -33,7 +33,8 @@ void listLiteral3() {}
 @Helper([?constInt])
 /*member: listLiteral4:
 resolved=ListLiteral([ExpressionElement(?StaticGet(constInt))])
-evaluate=ListLiteral([ExpressionElement(?StaticGet(constInt))])*/
+evaluate=ListLiteral([ExpressionElement(IntegerLiteral(42))])
+constInt=IntegerLiteral(42)*/
 void listLiteral4() {}
 
 @Helper([if (true) 1])
@@ -57,9 +58,8 @@ void listLiteral6() {}
 resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   ExpressionElement(IntegerLiteral(1)))])
-evaluate=ListLiteral([IfElement(
-  StaticGet(constBool),
-  ExpressionElement(IntegerLiteral(1)))])*/
+evaluate=ListLiteral([ExpressionElement(IntegerLiteral(1))])
+constBool=BooleanLiteral(true)*/
 void listLiteral7() {}
 
 @Helper([if (true) 1 else 2])
@@ -86,10 +86,8 @@ resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   ExpressionElement(IntegerLiteral(1)),
   ExpressionElement(IntegerLiteral(2)))])
-evaluate=ListLiteral([IfElement(
-  StaticGet(constBool),
-  ExpressionElement(IntegerLiteral(1)),
-  ExpressionElement(IntegerLiteral(2)))])*/
+evaluate=ListLiteral([ExpressionElement(IntegerLiteral(1))])
+constBool=BooleanLiteral(true)*/
 void listLiteral10() {}
 
 @Helper([...[0, 1]])
@@ -105,7 +103,12 @@ void listLiteral11() {}
 @Helper([...constList])
 /*member: listLiteral12:
 resolved=ListLiteral([SpreadElement(...StaticGet(constList))])
-evaluate=ListLiteral([SpreadElement(...StaticGet(constList))])*/
+evaluate=ListLiteral([
+  ExpressionElement(IntegerLiteral(2)), 
+  ExpressionElement(IntegerLiteral(3))])
+constList=ListLiteral([
+  ExpressionElement(IntegerLiteral(2)), 
+  ExpressionElement(IntegerLiteral(3))])*/
 void listLiteral12() {}
 
 @Helper([...?[0, 1]])
@@ -121,7 +124,12 @@ void listLiteral13() {}
 @Helper([...?constList])
 /*member: listLiteral14:
 resolved=ListLiteral([SpreadElement(?...StaticGet(constList))])
-evaluate=ListLiteral([SpreadElement(?...StaticGet(constList))])*/
+evaluate=ListLiteral([
+  ExpressionElement(IntegerLiteral(2)), 
+  ExpressionElement(IntegerLiteral(3))])
+constList=ListLiteral([
+  ExpressionElement(IntegerLiteral(2)), 
+  ExpressionElement(IntegerLiteral(3))])*/
 void listLiteral14() {}
 
 @Helper([...?null])
@@ -135,7 +143,8 @@ void listLiteral15() {}
 resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   ExpressionElement(?NullLiteral()))])
-evaluate=ListLiteral([])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)*/
 void listLiteral16() {}
 
 @Helper([if (constBool) ?null else 2])
@@ -144,9 +153,8 @@ resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   ExpressionElement(?NullLiteral()),
   ExpressionElement(IntegerLiteral(2)))])
-evaluate=ListLiteral([IfElement(
-  UnaryExpression(!StaticGet(constBool)),
-  ExpressionElement(IntegerLiteral(2)))])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)*/
 void listLiteral17() {}
 
 @Helper([if (constBool) 1 else ?null])
@@ -155,9 +163,8 @@ resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   ExpressionElement(IntegerLiteral(1)),
   ExpressionElement(?NullLiteral()))])
-evaluate=ListLiteral([IfElement(
-  StaticGet(constBool),
-  ExpressionElement(IntegerLiteral(1)))])*/
+evaluate=ListLiteral([ExpressionElement(IntegerLiteral(1))])
+constBool=BooleanLiteral(true)*/
 void listLiteral18() {}
 
 @Helper([if (constBool) ?null else ?null])
@@ -166,7 +173,8 @@ resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   ExpressionElement(?NullLiteral()),
   ExpressionElement(?NullLiteral()))])
-evaluate=ListLiteral([])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)*/
 void listLiteral19() {}
 
 @Helper([if (constBool) ...[]])
@@ -174,7 +182,8 @@ void listLiteral19() {}
 resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   SpreadElement(...ListLiteral([])))])
-evaluate=ListLiteral([])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)*/
 void listLiteral20() {}
 
 @Helper([if (constBool) ...{}])
@@ -182,7 +191,8 @@ void listLiteral20() {}
 resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   SpreadElement(...SetOrMapLiteral({})))])
-evaluate=ListLiteral([])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)*/
 void listLiteral21() {}
 
 @Helper([if (constBool) ...?[]])
@@ -190,7 +200,8 @@ void listLiteral21() {}
 resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   SpreadElement(?...ListLiteral([])))])
-evaluate=ListLiteral([])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)*/
 void listLiteral22() {}
 
 @Helper([if (constBool) ...?{}])
@@ -198,7 +209,8 @@ void listLiteral22() {}
 resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   SpreadElement(?...SetOrMapLiteral({})))])
-evaluate=ListLiteral([])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)*/
 void listLiteral23() {}
 
 @Helper([if (constBool) ...?null])
@@ -206,7 +218,8 @@ void listLiteral23() {}
 resolved=ListLiteral([IfElement(
   StaticGet(constBool),
   SpreadElement(?...NullLiteral()))])
-evaluate=ListLiteral([])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)*/
 void listLiteral24() {}
 
 @Helper([if (constBool) if (constBool) ?null else ?null])
@@ -217,5 +230,7 @@ resolved=ListLiteral([IfElement(
     StaticGet(constBool),
     ExpressionElement(?NullLiteral()),
     ExpressionElement(?NullLiteral())))])
-evaluate=ListLiteral([])*/
+evaluate=ListLiteral([])
+constBool=BooleanLiteral(true)
+constBool=BooleanLiteral(true)*/
 void listLiteral25() {}

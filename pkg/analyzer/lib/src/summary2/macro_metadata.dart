@@ -12,6 +12,19 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 
+/// Returns the [shared.Expression] for the constant initializer of [reference].
+shared.Expression? getFieldInitializer(shared.FieldReference reference) {
+  if (reference is _VariableReference) {
+    var element = reference._element;
+    if (element is VariableElementImpl) {
+      return parseFieldInitializer(element);
+    }
+  }
+  assert(false,
+      "Unexpected field reference $reference (${reference.runtimeType})");
+  return null;
+}
+
 /// Creates a [shared.Expression] for the [annotation].
 ///
 /// If [delayLookupForTesting] is `true`, identifiers are not looked up in their
@@ -25,6 +38,7 @@ shared.Expression parseAnnotation(ElementAnnotationImpl annotation,
   var compilationUnit = annotation.compilationUnit;
   var annotationImpl = annotation.annotationAst;
   var uri = compilationUnit.source.uri;
+  // TODO(johnniwinther): Find the right scope for non-top-level annotations.
   var scope = _Scope(compilationUnit);
   var references = _References();
   // The token stream might have been detached, so we ensure an EOF while
@@ -37,6 +51,43 @@ shared.Expression parseAnnotation(ElementAnnotationImpl annotation,
       delayLookupForTesting: delayLookupForTesting);
   annotationImpl.endToken.next = endTokenNext;
   return expression;
+}
+
+/// Creates a [shared.Expression] for the initializer of the constant
+/// [variable].
+///
+/// If [delayLookupForTesting] is `true`, identifiers are not looked up in their
+/// corresponding scopes. This means that the return expression will contain
+/// [shared.UnresolvedIdentifier] nodes, as if the identifier wasn't in scope.
+/// A subsequent call to [shared.Expression.resolve] will perform the lookup
+/// a create the resolved expression. This is used in testing to mimic the
+/// scenario in which the declaration is added to the scope via macros.
+shared.Expression? parseFieldInitializer(VariableElementImpl variable,
+    {bool delayLookupForTesting = false}) {
+  var initializer = variable.constantInitializer;
+  if (initializer == null) return null;
+  var enclosingElement = variable.enclosingElement3;
+  while (enclosingElement != null) {
+    if (enclosingElement is CompilationUnitElementImpl) {
+      var uri = enclosingElement.source.uri;
+      // TODO(johnniwinther): Find the right scope for class members.
+      var scope = _Scope(enclosingElement);
+      var references = _References();
+      // The token stream might have been detached, so we ensure an EOF while
+      // parsing the annotation.
+      var endTokenNext = initializer.endToken.next;
+      initializer.endToken.next ??= Token.eof(-1);
+      var expression = shared.parseExpression(
+          initializer.beginToken, uri, scope, references,
+          isDartLibrary:
+              uri.isScheme("dart") || uri.isScheme("org-dartlang-sdk"),
+          delayLookupForTesting: delayLookupForTesting);
+      initializer.endToken.next = endTokenNext;
+      return expression;
+    }
+    enclosingElement = enclosingElement.enclosingElement3;
+  }
+  return null;
 }
 
 shared.Proto _elementToProto(Element element, String name) {

@@ -4,13 +4,39 @@
 
 import 'ast.dart';
 
+typedef GetFieldInitializer = Expression? Function(
+    FieldReference fieldReference);
+
 /// Evaluates an [expression] based on the semantics that can be deduced from
 /// the syntax.
-Expression evaluateExpression(Expression expression) {
-  return new Evaluator().evaluate(expression);
+///
+/// If [getFieldInitializer] is provided, it is used to get constant initializer
+/// expressions of const [StaticGet]s in [expression]. The evaluated constant
+/// initializer expressions are used as the evaluation result of the
+/// [StaticGet]s.
+///
+/// If [dereferences] is provided, the field references of [StaticGet]s, for
+/// which [getFieldInitializer] has provided a constant initializer
+/// [Expression], are mapped to there corresponding in constant initializer
+/// [Expression]s in [dereferences].
+Expression evaluateExpression(Expression expression,
+    {GetFieldInitializer? getFieldInitializer,
+    Map<FieldReference, Expression>? dereferences}) {
+  return new Evaluator(
+          getFieldInitializer: getFieldInitializer, dereferences: dereferences)
+      .evaluate(expression);
 }
 
 class Evaluator {
+  final GetFieldInitializer? _getFieldInitializer;
+  final Map<FieldReference, Expression>? _dereferences;
+
+  Evaluator(
+      {required GetFieldInitializer? getFieldInitializer,
+      required Map<FieldReference, Expression>? dereferences})
+      : _getFieldInitializer = getFieldInitializer,
+        _dereferences = dereferences;
+
   Expression evaluate(Expression expression) {
     return _visitExpression(expression);
   }
@@ -18,7 +44,15 @@ class Evaluator {
   Expression _visitExpression(Expression expression) {
     switch (expression) {
       case StaticGet():
-        // TODO(johnniwinther): Support inlining constant values.
+        if (_getFieldInitializer != null) {
+          Expression? result = _getFieldInitializer(expression.reference);
+          if (result != null) {
+            if (_dereferences != null) {
+              _dereferences[expression.reference] = result;
+            }
+            return _visitExpression(result);
+          }
+        }
         return expression;
       case InvalidExpression():
       case FunctionTearOff():

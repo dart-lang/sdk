@@ -446,6 +446,8 @@ dependency's
 depfile
 deprecating
 deps
+dereference
+dereferences
 dereferencing
 deregister
 descent

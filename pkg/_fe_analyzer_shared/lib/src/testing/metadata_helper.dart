@@ -27,13 +27,23 @@ Expression unwrap(Expression expression) {
 
 /// Creates a list containing structured and readable textual representation of
 /// the [resolved] expression and the result of evaluating [resolved].
-List<String> evaluationToText(Expression resolved) {
+///
+/// If [getFieldInitializer] is provided, it is used to dereference constant
+/// field references during evaluation.
+List<String> evaluationToText(Expression resolved,
+    {GetFieldInitializer? getFieldInitializer}) {
   List<String> list = [];
 
   Expression unwrappedResolved = unwrap(resolved);
   list.add('resolved=${expressionToText(unwrappedResolved)}');
-  list.add(
-      'evaluate=${expressionToText(evaluateExpression(unwrappedResolved))}');
+
+  Map<FieldReference, Expression> dereferences = {};
+  Expression evaluated = evaluateExpression(unwrappedResolved,
+      getFieldInitializer: getFieldInitializer, dereferences: dereferences);
+  list.add('evaluate=${expressionToText(evaluated)}');
+  for (MapEntry<FieldReference, Expression> entry in dereferences.entries) {
+    list.add('${entry.key.name}=${expressionToText(entry.value)}');
+  }
 
   return list;
 }
