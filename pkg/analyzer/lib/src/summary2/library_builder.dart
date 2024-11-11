@@ -202,7 +202,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     for (var linkingUnit in units) {
       var elementBuilder = ElementBuilder(
         libraryBuilder: this,
-        unitReference: linkingUnit.reference,
         unitElement: linkingUnit.element,
       );
       elementBuilder.buildDirectiveElements(linkingUnit.node);
@@ -885,7 +884,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     performance.run('elements + types', (performance) {
       ElementBuilder(
         libraryBuilder: this,
-        unitReference: macroLinkingUnit.reference,
         unitElement: macroLinkingUnit.element,
       ).buildDeclarationElements(macroLinkingUnit.node);
 

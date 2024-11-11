@@ -353,7 +353,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: int Function()
     alias: <testLibraryFragment>::@typeAlias::F
 ''');
@@ -371,7 +371,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: num Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -391,7 +391,7 @@ f(F a) {}
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: dynamic Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -420,7 +420,7 @@ NamedType
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: int Function()
     alias: <testLibraryFragment>::@typeAlias::F
       typeArguments
@@ -833,7 +833,7 @@ NamedType
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -854,7 +854,7 @@ void f() {
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -884,7 +884,7 @@ NamedType
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -909,7 +909,7 @@ NamedType
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Map<int, String>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -931,7 +931,7 @@ NamedType
         type: String?
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Map<int, String?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -959,7 +959,7 @@ NamedType
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: List<int?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -981,7 +981,7 @@ NamedType
         type: int?
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: List<int?>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -1000,7 +1000,7 @@ void f(X a, X? b) {}
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Never
 ''');
 
@@ -1010,7 +1010,7 @@ NamedType
   name: X
   question: ?
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
   }
@@ -1026,7 +1026,7 @@ void f(X a, X? b) {}
 NamedType
   name: X
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
 
@@ -1036,7 +1036,7 @@ NamedType
   name: X
   question: ?
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
   }
@@ -1061,7 +1061,7 @@ NamedType
         type: int
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: int?
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -1089,7 +1089,7 @@ NamedType
         type: String
     rightBracket: >
   element: <testLibraryFragment>::@typeAlias::X
-  element2: <testLibraryFragment>::@typeAlias::X#element
+  element2: <testLibrary>::@typeAlias::X
   type: Map<int, String>
     alias: <testLibraryFragment>::@typeAlias::X
       typeArguments
@@ -1108,7 +1108,7 @@ Nothing f() {}
 NamedType
   name: Nothing
   element: <testLibraryFragment>::@typeAlias::Nothing
-  element2: <testLibraryFragment>::@typeAlias::Nothing#element
+  element2: <testLibrary>::@typeAlias::Nothing
   type: void
 ''');
   }

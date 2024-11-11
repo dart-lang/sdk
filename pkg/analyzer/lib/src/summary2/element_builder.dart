@@ -34,11 +34,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
-    required Reference unitReference,
     required CompilationUnitElementImpl unitElement,
   })  : _libraryBuilder = libraryBuilder,
         _unitElement = unitElement,
-        _enclosingContext = _EnclosingContext(unitReference, unitElement);
+        _enclosingContext = _EnclosingContext(
+          instanceElementBuilder: null,
+          fragment: unitElement,
+        );
 
   Linker get _linker => _libraryBuilder.linker;
 
@@ -141,8 +143,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
-    var holder = _EnclosingContext(fragmentReference, fragment,
-        constFieldsForFinalInstance: true);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: elementBuilder,
+      fragment: fragment,
+      constFieldsForFinalInstance: true,
+    );
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
@@ -183,21 +188,36 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(fragment, node);
     _setDocumentation(fragment, node);
 
-    var refName = fragment.name2 ?? '${_nextUnnamedId++}';
-    var elementReference =
-        _libraryBuilder.reference.getChild('@class').addChild(refName);
-    var element = ClassElementImpl2(elementReference, fragment);
-    _libraryBuilder.element.classes.add(element);
-
     node.declaredElement = fragment;
     _linker.elementNodes[fragment] = node;
 
+    var refName = fragment.name2 ?? '${_nextUnnamedId++}';
     var reference = _enclosingContext.addClass(refName, fragment);
     if (!fragment.isAugmentation) {
       _libraryBuilder.declare(name, reference);
     }
 
-    var holder = _EnclosingContext(reference, fragment);
+    var elementBuilder = _libraryBuilder.elementBuilderGetters[name];
+    elementBuilder?.setPreviousFor(fragment);
+    if (fragment.isAugmentation && elementBuilder is ClassElementBuilder) {
+    } else {
+      var libraryRef = _libraryBuilder.reference;
+      var containerRef = libraryRef.getChild('@class');
+      var elementReference = containerRef.addChild(refName);
+      var element = ClassElementImpl2(elementReference, fragment);
+      _libraryBuilder.element.classes.add(element);
+
+      elementBuilder = ClassElementBuilder(
+        element: element,
+        firstFragment: fragment,
+      );
+      _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
+    }
+
+    var holder = _EnclosingContext(
+      instanceElementBuilder: elementBuilder,
+      fragment: fragment,
+    );
     _withEnclosing(holder, () {
       var typeParameters = node.typeParameters;
       if (typeParameters != null) {
@@ -252,7 +272,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var reference = _enclosingContext.addConstructor(element);
     _buildExecutableElementChildren(
       reference: reference,
-      element: element,
+      fragment: element,
       formalParameters: node.parameters,
     );
   }
@@ -303,8 +323,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     var holder = _EnclosingContext(
-      reference,
-      fragment,
+      instanceElementBuilder: elementBuilder,
+      fragment: fragment,
       constFieldsForFinalInstance: true,
     );
 
@@ -555,7 +575,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       elementBuilder as ExtensionElementBuilder; // force
     }
 
-    var holder = _EnclosingContext(reference, fragment);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: elementBuilder,
+      fragment: fragment,
+    );
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
@@ -618,7 +641,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
-    var holder = _EnclosingContext(reference, fragment);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: elementBuilder,
+      fragment: fragment,
+    );
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _builtRepresentationDeclaration(
@@ -737,8 +763,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
 
     // TODO(scheglov): check that we don't set reference for parameters
-    var fakeReference = Reference.root();
-    var holder = _EnclosingContext(fakeReference, element);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: null,
+      fragment: element,
+    );
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       if (formalParameters != null) {
@@ -774,72 +802,78 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ExecutableElementImpl executableElement;
     FragmentedElementBuilder? elementBuilder;
     if (node.isGetter) {
-      var fragment = PropertyAccessorElementImpl(name, nameOffset);
-      fragment.name2 = _getFragmentName(nameToken);
-      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
-      fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isGetter = true;
-      fragment.isStatic = true;
+      var getterFragment = PropertyAccessorElementImpl(name, nameOffset);
+      getterFragment.name2 = _getFragmentName(nameToken);
+      getterFragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      getterFragment.isAugmentation = node.augmentKeyword != null;
+      getterFragment.isGetter = true;
+      getterFragment.isStatic = true;
 
-      reference = _enclosingContext.addGetter(name, fragment);
-      executableElement = fragment;
+      var refName = getterFragment.name2 ?? '${_nextUnnamedId++}';
+      reference = _enclosingContext.addGetter(refName, getterFragment);
+      executableElement = getterFragment;
 
-      if (!fragment.isAugmentation) {
-        var variable = _buildSyntheticVariable(
+      if (!getterFragment.isAugmentation) {
+        var variableFragment = _buildSyntheticVariable(
           name: name,
-          accessorElement: fragment,
+          accessorElement: getterFragment,
         ) as TopLevelVariableElementImpl;
+
         var elementBuilder = TopLevelVariableElementBuilder(
-          element: TopLevelVariableElementImpl2(variable),
-          firstFragment: variable,
+          element: variableFragment.element,
+          firstFragment: variableFragment,
         );
         _libraryBuilder.elementBuilderVariables[name] = elementBuilder;
       }
 
       elementBuilder = _libraryBuilder.elementBuilderGetters[name];
       elementBuilder ??= _libraryBuilder.elementBuilderSetters[name];
-      elementBuilder?.setPreviousFor(fragment);
-      if (fragment.isAugmentation && elementBuilder is GetterElementBuilder) {
-        elementBuilder.addFragment(fragment);
+      elementBuilder?.setPreviousFor(getterFragment);
+      if (getterFragment.isAugmentation &&
+          elementBuilder is GetterElementBuilder) {
+        elementBuilder.addFragment(getterFragment);
       } else {
         elementBuilder = GetterElementBuilder(
-          element: GetterElementImpl(fragment),
-          firstFragment: fragment,
+          element: GetterElementImpl(getterFragment),
+          firstFragment: getterFragment,
         );
         _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
       }
     } else if (node.isSetter) {
-      var fragment = PropertyAccessorElementImpl(name, nameOffset);
-      fragment.name2 = _getFragmentName(nameToken);
-      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
-      fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isSetter = true;
-      fragment.isStatic = true;
+      var setterFragment = PropertyAccessorElementImpl(name, nameOffset);
+      setterFragment.name2 = _getFragmentName(nameToken);
+      setterFragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      setterFragment.isAugmentation = node.augmentKeyword != null;
+      setterFragment.isSetter = true;
+      setterFragment.isStatic = true;
 
-      reference = _enclosingContext.addSetter(name, fragment);
-      executableElement = fragment;
+      var refName = setterFragment.name2 ?? '${_nextUnnamedId++}';
+      reference = _enclosingContext.addSetter(refName, setterFragment);
+      executableElement = setterFragment;
 
-      if (!fragment.isAugmentation) {
-        var variable = _buildSyntheticVariable(
+      if (!setterFragment.isAugmentation) {
+        var variableFragment = _buildSyntheticVariable(
           name: name,
-          accessorElement: fragment,
+          accessorElement: setterFragment,
         ) as TopLevelVariableElementImpl;
+
         var elementBuilder = TopLevelVariableElementBuilder(
-          element: TopLevelVariableElementImpl2(variable),
-          firstFragment: variable,
+          element: variableFragment.element,
+          firstFragment: variableFragment,
         );
         _libraryBuilder.elementBuilderVariables[name] = elementBuilder;
       }
 
       elementBuilder = _libraryBuilder.elementBuilderSetters[name];
       elementBuilder ??= _libraryBuilder.elementBuilderGetters[name];
-      elementBuilder?.setPreviousFor(fragment);
-      if (fragment.isAugmentation && elementBuilder is SetterElementBuilder) {
-        elementBuilder.addFragment(fragment);
+      elementBuilder?.setPreviousFor(setterFragment);
+      if (setterFragment.isAugmentation &&
+          elementBuilder is SetterElementBuilder) {
+        elementBuilder.addFragment(setterFragment);
       } else {
         elementBuilder = SetterElementBuilder(
-          element: SetterElementImpl(fragment),
-          firstFragment: fragment,
+          element: SetterElementImpl(setterFragment),
+          firstFragment: setterFragment,
         );
         _libraryBuilder.elementBuilderSetters[name] = elementBuilder;
       }
@@ -891,7 +925,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     _buildExecutableElementChildren(
       reference: reference,
-      element: executableElement,
+      fragment: executableElement,
       formalParameters: functionExpression.parameters,
       typeParameters: functionExpression.typeParameters,
     );
@@ -930,14 +964,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     elementBuilder?.setPreviousFor(fragment);
     if (fragment.isAugmentation && elementBuilder is TypeAliasElementBuilder) {
     } else {
+      var libraryRef = _libraryBuilder.reference;
+      var containerRef = libraryRef.getChild('@typeAlias');
+      var elementReference = containerRef.addChild(refName);
+      var element = TypeAliasElementImpl2(elementReference, fragment);
+      _libraryBuilder.element.typeAliases.add(element);
+
       elementBuilder = TypeAliasElementBuilder(
-        element: TypeAliasElementImpl2(fragment),
+        element: element,
         firstFragment: fragment,
       );
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
-    var holder = _EnclosingContext(reference, fragment);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: null,
+      fragment: fragment,
+    );
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       node.returnType?.accept(this);
@@ -992,8 +1035,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var refName = node.isNamed ? name : null;
     _enclosingContext.addParameter(refName, element);
 
-    var fakeReference = Reference.root();
-    var holder = _EnclosingContext(fakeReference, element);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: null,
+      fragment: element,
+    );
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       formalParameters.accept(this);
@@ -1017,8 +1062,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var fakeReference = Reference.root();
-    var holder = _EnclosingContext(fakeReference, element);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: null,
+      fragment: element,
+    );
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       formalParameters.accept(this);
@@ -1061,14 +1108,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     elementBuilder?.setPreviousFor(fragment);
     if (fragment.isAugmentation && elementBuilder is TypeAliasElementBuilder) {
     } else {
+      var libraryRef = _libraryBuilder.reference;
+      var containerRef = libraryRef.getChild('@typeAlias');
+      var elementReference = containerRef.addChild(refName);
+      var element = TypeAliasElementImpl2(elementReference, fragment);
+      _libraryBuilder.element.typeAliases.add(element);
+
       elementBuilder = TypeAliasElementBuilder(
-        element: TypeAliasElementImpl2(fragment),
+        element: element,
         firstFragment: fragment,
       );
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
-    var holder = _EnclosingContext(reference, fragment);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: null,
+      fragment: fragment,
+    );
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
     });
@@ -1108,46 +1164,46 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameOffset = nameToken.offset;
 
     Reference reference;
-    ExecutableElementImpl executableElement;
+    ExecutableElementImpl executableFragment;
     if (node.isGetter) {
-      var element = PropertyAccessorElementImpl(name, nameOffset);
-      element.name2 = _getFragmentName(nameToken);
-      element.nameOffset2 = _getFragmentNameOffset(nameToken);
-      element.isAbstract = node.isAbstract;
-      element.isAugmentation = node.augmentKeyword != null;
-      element.isGetter = true;
-      element.isStatic = node.isStatic;
+      var fragment = PropertyAccessorElementImpl(name, nameOffset);
+      fragment.name2 = _getFragmentName(nameToken);
+      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.isAbstract = node.isAbstract;
+      fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isGetter = true;
+      fragment.isStatic = node.isStatic;
 
       // `class Enum {}` in `dart:core` declares `int get index` as abstract.
       // But the specification says that practically a different class
       // implementing `Enum` is used as a superclass, so `index` should be
       // considered to have non-abstract implementation.
       if (_enclosingContext.isDartCoreEnum && name == 'index') {
-        element.isAbstract = false;
+        fragment.isAbstract = false;
       }
 
-      reference = _enclosingContext.addGetter(name, element);
-      executableElement = element;
+      reference = _enclosingContext.addGetter(name, fragment);
+      executableFragment = fragment;
 
-      if (!element.isAugmentation) {
-        var refName = element.name2 ?? '${_nextUnnamedId++}';
-        _buildSyntheticVariable(name: refName, accessorElement: element);
+      if (!fragment.isAugmentation) {
+        var refName = fragment.name2 ?? '${_nextUnnamedId++}';
+        _buildSyntheticVariable(name: refName, accessorElement: fragment);
       }
     } else if (node.isSetter) {
-      var element = PropertyAccessorElementImpl(name, nameOffset);
-      element.name2 = _getFragmentName(nameToken);
-      element.nameOffset2 = _getFragmentNameOffset(nameToken);
-      element.isAbstract = node.isAbstract;
-      element.isAugmentation = node.augmentKeyword != null;
-      element.isSetter = true;
-      element.isStatic = node.isStatic;
+      var fragment = PropertyAccessorElementImpl(name, nameOffset);
+      fragment.name2 = _getFragmentName(nameToken);
+      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.isAbstract = node.isAbstract;
+      fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isSetter = true;
+      fragment.isStatic = node.isStatic;
 
-      var refName = element.name2 ?? '${_nextUnnamedId++}';
-      reference = _enclosingContext.addSetter(refName, element);
-      executableElement = element;
+      var refName = fragment.name2 ?? '${_nextUnnamedId++}';
+      reference = _enclosingContext.addSetter(refName, fragment);
+      executableFragment = fragment;
 
-      if (!element.isAugmentation) {
-        _buildSyntheticVariable(name: name, accessorElement: element);
+      if (!fragment.isAugmentation) {
+        _buildSyntheticVariable(name: name, accessorElement: fragment);
       }
     } else {
       var isUnaryMinus = false;
@@ -1160,39 +1216,62 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         name = 'unary-';
       }
 
-      var element = MethodElementImpl(name, nameOffset);
-      element.name2 = _getFragmentName(nameToken);
-      element.nameOffset2 = _getFragmentNameOffset(nameToken);
-      element.isAbstract = node.isAbstract;
-      element.isAugmentation = node.augmentKeyword != null;
-      element.isStatic = node.isStatic;
+      var fragment = MethodElementImpl(name, nameOffset);
+      fragment.name2 = _getFragmentName(nameToken);
+      fragment.nameOffset2 = _getFragmentNameOffset(nameToken);
+      fragment.isAbstract = node.isAbstract;
+      fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isStatic = node.isStatic;
 
       String refName;
       if (isUnaryMinus) {
         refName = 'unary-';
       } else {
-        refName = element.name2 ?? '${_nextUnnamedId++}';
+        refName = fragment.name2 ?? '${_nextUnnamedId++}';
       }
 
-      reference = _enclosingContext.addMethod(refName, element);
-      executableElement = element;
-    }
-    executableElement.hasImplicitReturnType = node.returnType == null;
-    executableElement.invokesSuperSelf = node.invokesSuperSelf;
-    executableElement.isAsynchronous = node.body.isAsynchronous;
-    executableElement.isExternal =
-        node.externalKeyword != null || node.body is NativeFunctionBody;
-    executableElement.isGenerator = node.body.isGenerator;
-    executableElement.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(executableElement, node);
-    _setDocumentation(executableElement, node);
+      reference = _enclosingContext.addMethod(refName, fragment);
+      executableFragment = fragment;
 
-    node.declaredElement = executableElement;
-    _linker.elementNodes[executableElement] = node;
+      {
+        var enclosingBuilder = _enclosingContext.instanceElementBuilder!;
+
+        var lastFragment = enclosingBuilder.replaceGetter(fragment);
+        if (fragment.isAugmentation) {
+          fragment.augmentationTargetAny = lastFragment;
+        }
+
+        if (fragment.isAugmentation && lastFragment is MethodElementImpl) {
+          lastFragment.augmentation = fragment;
+          fragment.element = lastFragment.element;
+        } else {
+          var element = MethodElementImpl2(
+            enclosingBuilder.element.reference!
+                .getChild('@method')
+                .addChild(refName),
+            fragment.name2,
+            fragment,
+          );
+          enclosingBuilder.element.methods2.add(element);
+        }
+      }
+    }
+    executableFragment.hasImplicitReturnType = node.returnType == null;
+    executableFragment.invokesSuperSelf = node.invokesSuperSelf;
+    executableFragment.isAsynchronous = node.body.isAsynchronous;
+    executableFragment.isExternal =
+        node.externalKeyword != null || node.body is NativeFunctionBody;
+    executableFragment.isGenerator = node.body.isGenerator;
+    executableFragment.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(executableFragment, node);
+    _setDocumentation(executableFragment, node);
+
+    node.declaredElement = executableFragment;
+    _linker.elementNodes[executableFragment] = node;
 
     _buildExecutableElementChildren(
       reference: reference,
-      element: executableElement,
+      fragment: executableFragment,
       formalParameters: node.parameters,
       typeParameters: node.typeParameters,
     );
@@ -1244,7 +1323,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _libraryBuilder.elementBuilderGetters[name] = elementBuilder;
     }
 
-    var holder = _EnclosingContext(reference, fragment);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: elementBuilder,
+      fragment: fragment,
+    );
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
@@ -1389,8 +1471,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
 
     // TODO(scheglov): check that we don't set reference for parameters
-    var fakeReference = Reference.root();
-    var holder = _EnclosingContext(fakeReference, element);
+    var holder = _EnclosingContext(
+      instanceElementBuilder: null,
+      fragment: element,
+    );
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       if (formalParameters != null) {
@@ -1412,7 +1496,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitTopLevelVariableDeclaration(
     covariant TopLevelVariableDeclarationImpl node,
   ) {
-    var enclosingRef = _enclosingContext.reference;
+    var enclosingRef = _enclosingContext.fragmentReference;
 
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.variables.variables) {
@@ -1485,8 +1569,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           elementBuilder is TopLevelVariableElementBuilder) {
         elementBuilder.addFragment(fragment);
       } else {
+        var elementReference = _libraryBuilder.reference
+            .getChild('@topLevelVariable')
+            .addChild(refName);
+        var element = TopLevelVariableElementImpl2(
+          elementReference,
+          fragment,
+        );
+        _libraryBuilder.element.topLevelVariables.add(element);
+
         elementBuilder = TopLevelVariableElementBuilder(
-          element: TopLevelVariableElementImpl2(fragment),
+          element: element,
           firstFragment: fragment,
         );
         _libraryBuilder.elementBuilderVariables[name] = elementBuilder;
@@ -1535,23 +1628,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   void _buildExecutableElementChildren({
     required Reference reference,
-    required ExecutableElementImpl element,
+    required ExecutableElementImpl fragment,
     FormalParameterList? formalParameters,
     TypeParameterList? typeParameters,
   }) {
     var holder = _EnclosingContext(
-      reference,
-      element,
+      instanceElementBuilder: null,
+      fragment: fragment,
       hasDefaultFormalParameters: true,
     );
     _withEnclosing(holder, () {
       if (formalParameters != null) {
         formalParameters.accept(this);
-        element.parameters = holder.parameters;
+        fragment.parameters = holder.parameters;
       }
       if (typeParameters != null) {
         typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
+        fragment.typeParameters = holder.typeParameters;
       }
     });
   }
@@ -1561,8 +1654,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     required String name,
     required PropertyAccessorElementImpl accessorElement,
   }) {
-    var enclosingRef = _enclosingContext.reference;
-    var enclosingElement = _enclosingContext.element;
+    var refName = accessorElement.name2 ?? '${_nextUnnamedId++}';
+    var enclosingRef = _enclosingContext.fragmentReference;
+    var enclosingElement = _enclosingContext.fragment;
 
     bool canUseExisting(PropertyInducingElement property) {
       return property.isSynthetic ||
@@ -1588,7 +1682,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         var reference = containerRef.addChild(name);
         var variable = property = TopLevelVariableElementImpl(name, -1)
           ..isSynthetic = true;
+        variable.name2 = accessorElement.name2;
         _enclosingContext.addTopLevelVariableSynthetic(reference, variable);
+
+        var variableElementReference = _libraryBuilder.reference
+            .getChild('@topLevelVariable')
+            .addChild(refName);
+        var variableElement = TopLevelVariableElementImpl2(
+          variableElementReference,
+          variable,
+        );
+        _libraryBuilder.element.topLevelVariables.add(variableElement);
       }
     } else {
       // Try to find the variable to attach the accessor.
@@ -1804,8 +1908,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 }
 
 class _EnclosingContext {
-  final Reference reference;
-  final ElementImpl element;
+  final InstanceElementBuilder? instanceElementBuilder;
+  final ElementImpl fragment;
   final List<ClassElementImpl> _classes = [];
   final List<ConstructorElementImpl> _constructors = [];
   final List<EnumElementImpl> _enums = [];
@@ -1831,9 +1935,9 @@ class _EnclosingContext {
   /// [ParameterElementImpl]s or [DefaultParameterElementImpl]s.
   final bool hasDefaultFormalParameters;
 
-  _EnclosingContext(
-    this.reference,
-    this.element, {
+  _EnclosingContext({
+    required this.instanceElementBuilder,
+    required this.fragment,
     this.constFieldsForFinalInstance = false,
     this.hasDefaultFormalParameters = false,
   });
@@ -1862,13 +1966,17 @@ class _EnclosingContext {
     return _fields.toFixedList();
   }
 
+  Reference get fragmentReference {
+    return fragment.reference!;
+  }
+
   List<FunctionElementImpl> get functions {
     return _functions.toFixedList();
   }
 
   bool get isDartCoreEnum {
-    var element = this.element;
-    return element is ClassElementImpl && element.isDartCoreEnum;
+    var fragment = this.fragment;
+    return fragment is ClassElementImpl && fragment.isDartCoreEnum;
   }
 
   List<MethodElementImpl> get methods {
@@ -1986,13 +2094,13 @@ class _EnclosingContext {
     }
 
     {
-      var getterRef = reference.getChild('@getter').addChild(name);
+      var getterRef = fragmentReference.getChild('@getter').addChild(name);
       var getter = element.createImplicitGetter(getterRef);
       _propertyAccessors.add(getter);
     }
 
     if (element.hasSetter) {
-      var setterRef = reference.getChild('@setter').addChild(name);
+      var setterRef = fragmentReference.getChild('@setter').addChild(name);
       var setter = element.createImplicitSetter(setterRef);
       _propertyAccessors.add(setter);
     }
@@ -2040,9 +2148,9 @@ class _EnclosingContext {
     return _addReference(containerName, name, element);
   }
 
-  void addTypeParameter(String name, TypeParameterElementImpl element) {
-    _typeParameters.add(element);
-    this.element.encloseElement(element);
+  void addTypeParameter(String name, TypeParameterElementImpl fragment) {
+    _typeParameters.add(fragment);
+    this.fragment.encloseElement(fragment);
   }
 
   Reference _addReference(
@@ -2050,15 +2158,15 @@ class _EnclosingContext {
     String name,
     ElementImpl element,
   ) {
-    var containerRef = this.reference.getChild(containerName);
+    var containerRef = fragmentReference.getChild(containerName);
     var reference = containerRef.addChild(name);
     _bindReference(reference, element);
     return reference;
   }
 
-  void _bindReference(Reference reference, ElementImpl element) {
-    reference.element = element;
-    element.reference = reference;
-    this.element.encloseElement(element);
+  void _bindReference(Reference reference, ElementImpl fragment) {
+    reference.element = fragment;
+    fragment.reference = reference;
+    this.fragment.encloseElement(fragment);
   }
 }

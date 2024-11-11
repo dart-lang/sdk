@@ -356,7 +356,7 @@ ConstantPattern
     type: NamedType
       name: A
       element: <testLibraryFragment>::@typeAlias::A
-      element2: <testLibraryFragment>::@typeAlias::A#element
+      element2: <testLibrary>::@typeAlias::A
       type: int
         alias: <testLibraryFragment>::@typeAlias::A
     staticType: Type
@@ -416,7 +416,7 @@ ConstantPattern
         element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@typeAlias::A
-      element2: package:test/a.dart::<fragment>::@typeAlias::A#element
+      element2: package:test/a.dart::@typeAlias::A
       type: int
         alias: package:test/a.dart::<fragment>::@typeAlias::A
     staticType: Type

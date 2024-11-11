@@ -73,7 +73,7 @@ ImplementsClause
         element2: <testLibraryFragment>::@prefix2::a
       name: B
       element: package:test/lib1.dart::<fragment>::@typeAlias::B
-      element2: package:test/lib1.dart::<fragment>::@typeAlias::B#element
+      element2: package:test/lib1.dart::@typeAlias::B
       type: A
         alias: package:test/lib1.dart::<fragment>::@typeAlias::B
 ''');

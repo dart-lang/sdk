@@ -83,6 +83,10 @@ class ElementPrinter {
     switch (element) {
       case null:
         _sink.write('<null>');
+      case TypeAliasElementImpl2 element:
+        writeReference(element.reference);
+      case TopLevelVariableElementImpl2 element:
+        writeReference(element.reference);
       case TypeParameterElementImpl2():
         // TODO(scheglov): update when implemented
         _sink.write('<not-implemented>');

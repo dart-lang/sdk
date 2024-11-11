@@ -576,8 +576,10 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo::@def::0
           firstFragment: <testLibraryFragment>::@class::A::@method::foo::@def::0
         foo
+          reference: <testLibrary>::@class::A::@method::foo::@def::1
           firstFragment: <testLibraryFragment>::@class::A::@method::foo::@def::1
 ''');
   }
@@ -1599,13 +1601,13 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F::@def::0
-          element: <testLibraryFragment>::@typeAlias::F::@def::0#element
+          element: <testLibrary>::@typeAlias::F::@def::0
         F @31
           reference: <testLibraryFragment>::@typeAlias::F::@def::1
-          element: <testLibraryFragment>::@typeAlias::F::@def::1#element
+          element: <testLibrary>::@typeAlias::F::@def::1
         F @54
           reference: <testLibraryFragment>::@typeAlias::F::@def::2
-          element: <testLibraryFragment>::@typeAlias::F::@def::2#element
+          element: <testLibrary>::@typeAlias::F::@def::2
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F::@def::0
@@ -1893,21 +1895,21 @@ library
       topLevelVariables
         x @5
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::0
-          element: <testLibraryFragment>::@topLevelVariable::x::@def::0#element
+          element: <testLibrary>::@topLevelVariable::x::@def::0
           getter2: <testLibraryFragment>::@getter::x::@def::0
           setter2: <testLibraryFragment>::@setter::x::@def::0
         x @12
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::1
-          element: <testLibraryFragment>::@topLevelVariable::x::@def::1#element
+          element: <testLibrary>::@topLevelVariable::x::@def::1
           getter2: <testLibraryFragment>::@getter::x::@def::1
           setter2: <testLibraryFragment>::@setter::x::@def::1
         final x @21
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::2
-          element: <testLibraryFragment>::@topLevelVariable::x::@def::2#element
+          element: <testLibrary>::@topLevelVariable::x::@def::2
           getter2: <testLibraryFragment>::@getter::x::@def::2
         x @32
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::3
-          element: <testLibraryFragment>::@topLevelVariable::x::@def::3#element
+          element: <testLibrary>::@topLevelVariable::x::@def::3
           getter2: <testLibraryFragment>::@getter::x::@def::3
           setter2: <testLibraryFragment>::@setter::x::@def::2
       getters
@@ -1944,20 +1946,24 @@ library
               element: <testLibraryFragment>::@setter::x::@def::2::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x::@def::0
       firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::0
       type: bool
       getter: <testLibraryFragment>::@getter::x::@def::0#element
       setter: <testLibraryFragment>::@setter::x::@def::0#element
     x
+      reference: <testLibrary>::@topLevelVariable::x::@def::1
       firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::1
       type: dynamic
       getter: <testLibraryFragment>::@getter::x::@def::1#element
       setter: <testLibraryFragment>::@setter::x::@def::1#element
     final x
+      reference: <testLibrary>::@topLevelVariable::x::@def::2
       firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::2
       type: int
       getter: <testLibraryFragment>::@getter::x::@def::2#element
     x
+      reference: <testLibrary>::@topLevelVariable::x::@def::3
       firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::3
       type: double
       getter: <testLibraryFragment>::@getter::x::@def::3#element
@@ -2030,9 +2036,9 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic <null-name>
+        synthetic foo
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo::@def::1
       getters
         get foo @8
@@ -2043,6 +2049,7 @@ library
           element: <testLibraryFragment>::@getter::foo::@def::1#element
   topLevelVariables
     synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: double
       getter: <testLibraryFragment>::@getter::foo::@def::1#element
@@ -2100,9 +2107,9 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic <null-name>
+        synthetic foo
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           setter2: <testLibraryFragment>::@setter::foo::@def::1
       setters
         set foo @4
@@ -2119,6 +2126,7 @@ library
               element: <testLibraryFragment>::@setter::foo::@def::1::@parameter::_#element
   topLevelVariables
     synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: double
       setter: <testLibraryFragment>::@setter::foo::@def::1#element

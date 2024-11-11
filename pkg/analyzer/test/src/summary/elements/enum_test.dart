@@ -4015,6 +4015,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           typeParameters
             U
@@ -4157,6 +4158,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         toString
+          reference: <testLibrary>::@enum::E::@method::toString
           firstFragment: <testLibraryFragment>::@enum::E::@method::toString
 ''');
   }
@@ -6170,7 +6172,7 @@ library
       topLevelVariables
         const annotation @91
           reference: <testLibraryFragment>::@topLevelVariable::annotation
-          element: <testLibraryFragment>::@topLevelVariable::annotation#element
+          element: <testLibrary>::@topLevelVariable::annotation
           getter2: <testLibraryFragment>::@getter::annotation
       getters
         get <null-name>
@@ -6206,6 +6208,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const annotation
+      reference: <testLibrary>::@topLevelVariable::annotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotation
       type: int
       getter: <testLibraryFragment>::@getter::annotation#element
@@ -7074,6 +7077,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
       reference: <testLibrary>::@class::B
@@ -7085,6 +7089,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
     class C
       reference: <testLibrary>::@class::C
@@ -7097,6 +7102,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
     class alias D
       reference: <testLibrary>::@class::D
@@ -7265,7 +7271,7 @@ library
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         get <null-name>
@@ -7295,6 +7301,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -7883,7 +7890,7 @@ library
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         get <null-name>
@@ -7923,6 +7930,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -8079,7 +8087,7 @@ library
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         get <null-name>
@@ -8109,6 +8117,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: <testLibraryFragment>::@enum::E::@method::foo
           metadata
             Annotation
@@ -8122,6 +8131,7 @@ library
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
     const a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -8339,7 +8349,7 @@ library
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get <null-name>
@@ -8387,6 +8397,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::foo
       methods
         bar
+          reference: <testLibrary>::@enum::E::@method::bar
           firstFragment: <testLibraryFragment>::@enum::E::@method::bar
           metadata
             Annotation
@@ -8400,6 +8411,7 @@ library
               element2: <testLibraryFragment>::@enum::E::@getter::foo#element
   topLevelVariables
     const foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -8553,7 +8565,7 @@ library
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         get <null-name>
@@ -8595,6 +8607,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -8725,7 +8738,7 @@ library
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         get <null-name>
@@ -8755,6 +8768,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     const a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -8929,8 +8943,10 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo
         bar
+          reference: <testLibrary>::@enum::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
@@ -9436,6 +9452,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@getter::values
       methods
         foo1
+          reference: <testLibrary>::@enum::A::@def::0::@method::foo1
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0::@method::foo1
     enum A
       reference: <testLibrary>::@enum::A::@def::1
@@ -9460,8 +9477,10 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::values
       methods
         foo2
+          reference: <testLibrary>::@enum::A::@def::1::@method::foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@method::foo2
         foo3
+          reference: <testLibrary>::@enum::A::@def::1::@method::foo3
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1::@method::foo3
 ''');
   }
@@ -9622,8 +9641,10 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::values
       methods
         foo1
+          reference: <testLibrary>::@enum::A::@method::foo1
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo1
         foo2
+          reference: <testLibrary>::@enum::A::@method::foo2
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@method::foo2
 ''');
   }
@@ -17454,8 +17475,10 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
         bar
+          reference: <testLibrary>::@enum::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
@@ -17646,6 +17669,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::foo
           formalParameters
             optionalPositional x
@@ -17827,10 +17851,12 @@ library
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
-        foo2
-          firstFragment: <testLibraryFragment>::@enum::A::@method::foo2
         foo1
+          reference: <testLibrary>::@enum::A::@method::foo1
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo1
+        foo2
+          reference: <testLibrary>::@enum::A::@method::foo2
+          firstFragment: <testLibraryFragment>::@enum::A::@method::foo2
 ''');
   }
 
@@ -18012,6 +18038,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
@@ -18208,6 +18235,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
@@ -18423,6 +18451,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
@@ -18606,8 +18635,10 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
         bar
+          reference: <testLibrary>::@enum::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@method::bar
 ''');
   }
@@ -18794,6 +18825,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::A::@method::foo
           firstFragment: <testLibraryFragment>::@enum::A::@method::foo
 ''');
   }
@@ -21213,6 +21245,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::B::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B::@method::foo
           formalParameters
             requiredPositional a
@@ -21396,6 +21429,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::B::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: <testLibraryFragment>::@enum::B::@method::foo
           formalParameters
             requiredPositional a
@@ -21579,6 +21613,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::B::@getter::values
       methods
         foo
+          reference: <testLibrary>::@enum::B::@method::foo
           firstFragment: <testLibraryFragment>::@enum::B::@method::foo
           formalParameters
             requiredPositional a

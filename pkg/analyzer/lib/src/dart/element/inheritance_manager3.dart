@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
@@ -1136,7 +1137,11 @@ class InheritanceManager3 {
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
       result.parameters = resultType.parameters;
-      result.element = MethodElementImpl2(firstMethod.name, result);
+      result.element = MethodElementImpl2(
+        Reference.root(), // TODO(scheglov): wrong
+        firstMethod.name,
+        result,
+      );
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElement;

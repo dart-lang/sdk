@@ -31,7 +31,7 @@ void foo() {
 NamedType
   name: F
   element: <testLibraryFragment>::@typeAlias::F
-  element2: <testLibraryFragment>::@typeAlias::F#element
+  element2: <testLibrary>::@typeAlias::F
   type: InvalidType
 ''');
   }

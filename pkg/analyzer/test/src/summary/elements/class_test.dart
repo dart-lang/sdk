@@ -6637,7 +6637,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -7492,7 +7492,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @10
               element: <not-implemented>
@@ -7511,6 +7511,7 @@ library
           redirectedConstructor: <testLibraryFragment>::@class::C::@constructor::new#element
       methods
         abstract B_
+          reference: <testLibrary>::@class::B::@method::B_
           firstFragment: <testLibraryFragment>::@class::B::@method::B_
     class C
       reference: <testLibrary>::@class::C
@@ -8181,7 +8182,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -12414,7 +12415,7 @@ library
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         get <null-name>
@@ -12453,6 +12454,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@getter::f
   topLevelVariables
     const a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -13455,6 +13457,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
+          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -13606,6 +13609,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
+          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -13758,6 +13762,7 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         noSuchMethod
+          reference: <testLibrary>::@class::D::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::D::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -13872,6 +13877,7 @@ library
         Object
       methods
         noSuchMethod
+          reference: <testLibrary>::@mixin::M::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@mixin::M::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14015,6 +14021,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
       methods
         noSuchMethod
+          reference: <testLibrary>::@enum::E::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@enum::E::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14122,6 +14129,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
+          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14224,6 +14232,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
+          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14312,6 +14321,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         abstract A
+          reference: <testLibrary>::@class::B::@method::A
           firstFragment: <testLibraryFragment>::@class::B::@method::A
           formalParameters
             requiredPositional final value
@@ -14327,6 +14337,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
+          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14455,6 +14466,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         noSuchMethod
+          reference: <testLibrary>::@class::C::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@class::C::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -14558,6 +14570,7 @@ library
         A
       methods
         noSuchMethod
+          reference: <testLibrary>::@mixin::M::@method::noSuchMethod
           firstFragment: <testLibraryFragment>::@mixin::M::@method::noSuchMethod
           formalParameters
             requiredPositional invocation
@@ -15161,7 +15174,7 @@ library
       topLevelVariables
         final a @19
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
       getters
         get <null-name>
@@ -15184,6 +15197,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::b
   topLevelVariables
     final a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
       type: int
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
@@ -16781,6 +16795,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
       reference: <testLibrary>::@class::B
@@ -17489,6 +17504,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         get
+          reference: <testLibrary>::@class::A::@method::get
           firstFragment: <testLibraryFragment>::@class::A::@method::get
 ''');
   }
@@ -18394,6 +18410,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         abstract f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18458,6 +18475,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18522,6 +18540,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18584,6 +18603,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           documentationComment: /**\n   * Docs\n   */
 ''');
@@ -18639,6 +18659,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         external f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -18757,6 +18778,7 @@ library
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional value
@@ -18769,6 +18791,7 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
       methods
         abstract f
+          reference: <testLibrary>::@class::D::@method::f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
           formalParameters
             requiredPositional value
@@ -18862,6 +18885,7 @@ library
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
     abstract class D
       reference: <testLibrary>::@class::D
@@ -18871,6 +18895,7 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
       methods
         abstract f
+          reference: <testLibrary>::@class::D::@method::f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
 ''');
   }
@@ -18931,6 +18956,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -18989,6 +19015,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         <null-name>
+          reference: <testLibrary>::@class::A::@method::0
           firstFragment: <testLibraryFragment>::@class::A::@method::0
 ''');
   }
@@ -19074,6 +19101,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         A
+          reference: <testLibrary>::@class::B::@method::A
           firstFragment: <testLibraryFragment>::@class::B::@method::A
 ''');
   }
@@ -19132,6 +19160,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         external m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -19196,6 +19225,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional x
@@ -19255,6 +19285,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         static f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -19315,6 +19346,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
 ''');
   }
@@ -19385,6 +19417,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           typeParameters
             T
@@ -19486,6 +19519,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           typeParameters
             V
@@ -19569,6 +19603,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           typeParameters
             T
@@ -19639,8 +19674,10 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
         g
+          reference: <testLibrary>::@class::C::@method::g
           firstFragment: <testLibraryFragment>::@class::C::@method::g
 ''');
   }
@@ -20572,7 +20609,7 @@ library
       typeAliases
         A @32
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -20646,7 +20683,7 @@ library
       typeAliases
         F @32
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -20846,13 +20883,13 @@ library
       typeAliases
         C @8
           reference: <testLibraryFragment>::@typeAlias::C
-          element: <testLibraryFragment>::@typeAlias::C#element
+          element: <testLibrary>::@typeAlias::C
           typeParameters
             T @10
               element: <not-implemented>
         D @50
           reference: <testLibraryFragment>::@typeAlias::D
-          element: <testLibraryFragment>::@typeAlias::D#element
+          element: <testLibrary>::@typeAlias::D
           typeParameters
             T @52
               element: <not-implemented>
@@ -20908,13 +20945,13 @@ library
       typeAliases
         C @8
           reference: <testLibraryFragment>::@typeAlias::C
-          element: <testLibraryFragment>::@typeAlias::C#element
+          element: <testLibrary>::@typeAlias::C
           typeParameters
             T @10
               element: <not-implemented>
         D @42
           reference: <testLibraryFragment>::@typeAlias::D
-          element: <testLibraryFragment>::@typeAlias::D#element
+          element: <testLibrary>::@typeAlias::D
           typeParameters
             T @44
               element: <not-implemented>
@@ -21420,10 +21457,10 @@ library
       typeAliases
         F @32
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
         G @52
           reference: <testLibraryFragment>::@typeAlias::G
-          element: <testLibraryFragment>::@typeAlias::G#element
+          element: <testLibrary>::@typeAlias::G
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -21739,6 +21776,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         +
+          reference: <testLibrary>::@class::C::@method::+
           firstFragment: <testLibraryFragment>::@class::C::@method::+
           formalParameters
             requiredPositional other
@@ -21806,6 +21844,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         ==
+          reference: <testLibrary>::@class::C::@method::==
           firstFragment: <testLibraryFragment>::@class::C::@method::==
           formalParameters
             requiredPositional other
@@ -21870,6 +21909,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         external +
+          reference: <testLibrary>::@class::C::@method::+
           firstFragment: <testLibraryFragment>::@class::C::@method::+
           formalParameters
             requiredPositional other
@@ -21937,6 +21977,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         >=
+          reference: <testLibrary>::@class::C::@method::>=
           firstFragment: <testLibraryFragment>::@class::C::@method::>=
           formalParameters
             requiredPositional other
@@ -22001,6 +22042,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         []
+          reference: <testLibrary>::@class::C::@method::[]
           firstFragment: <testLibraryFragment>::@class::C::@method::[]
           formalParameters
             requiredPositional i
@@ -22072,6 +22114,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         []=
+          reference: <testLibrary>::@class::C::@method::[]=
           firstFragment: <testLibraryFragment>::@class::C::@method::[]=
           formalParameters
             requiredPositional i
@@ -22141,6 +22184,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         <=
+          reference: <testLibrary>::@class::C::@method::<=
           firstFragment: <testLibraryFragment>::@class::C::@method::<=
           formalParameters
             requiredPositional other
@@ -22203,7 +22247,7 @@ library
       topLevelVariables
         c @13
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -22226,6 +22270,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
@@ -22297,7 +22342,7 @@ library
       topLevelVariables
         c @14
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -22320,6 +22365,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C?
       getter: <testLibraryFragment>::@getter::c#element
@@ -24313,6 +24359,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         set
+          reference: <testLibrary>::@class::A::@method::set
           firstFragment: <testLibraryFragment>::@class::A::@method::set
           formalParameters
             requiredPositional _
@@ -25508,7 +25555,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             X @10
               element: <not-implemented>
@@ -25595,7 +25642,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             X @10
               element: <not-implemented>
@@ -25685,7 +25732,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             X @10
               element: <not-implemented>
@@ -25775,7 +25822,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             X @10
               element: <not-implemented>
@@ -26076,7 +26123,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             X @10
               element: <not-implemented>
@@ -26161,7 +26208,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             X @10
               element: <not-implemented>
@@ -30543,6 +30590,7 @@ library
               type: int
       methods
         f
+          reference: <testLibrary>::@class::E::@method::f
           firstFragment: <testLibraryFragment>::@class::E::@method::f
 ''');
   }
@@ -30716,7 +30764,7 @@ library
       topLevelVariables
         const x @61
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         get <null-name>
@@ -30742,6 +30790,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
   topLevelVariables
     const x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: C
       getter: <testLibraryFragment>::@getter::x#element
@@ -31050,12 +31099,12 @@ library
       topLevelVariables
         c @36
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         v @43
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -31089,14 +31138,17 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C<int>
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: void Function()
       getter: <testLibraryFragment>::@getter::v#element
@@ -31224,8 +31276,10 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo
         bar
+          reference: <testLibrary>::@class::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::bar
 ''');
   }
@@ -32060,6 +32114,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
       methods
         foo1
+          reference: <testLibrary>::@class::A::@def::0::@method::foo1
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
     class A
       reference: <testLibrary>::@class::A::@def::1
@@ -32069,8 +32124,10 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
       methods
         foo2
+          reference: <testLibrary>::@class::A::@def::1::@method::foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2
         foo3
+          reference: <testLibrary>::@class::A::@def::1::@method::foo3
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
 ''');
   }
@@ -32218,8 +32275,10 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructor::new
       methods
         foo1
+          reference: <testLibrary>::@class::A::@method::foo1
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo1
         foo2
+          reference: <testLibrary>::@class::A::@method::foo2
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::A::@method::foo2
 ''');
   }
@@ -32581,6 +32640,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::foo
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -35036,6 +35096,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -36080,6 +36141,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -38208,6 +38270,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::foo
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
 ''');
   }
@@ -38360,6 +38423,7 @@ library
               type: int
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
 ''');
   }
@@ -38488,6 +38552,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
 ''');
   }
@@ -38625,6 +38690,7 @@ library
               type: int
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
 ''');
   }
@@ -38731,8 +38797,10 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
         bar
+          reference: <testLibrary>::@class::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::bar
 ''');
   }
@@ -38837,6 +38905,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::foo
           formalParameters
             optionalPositional x
@@ -38957,10 +39026,12 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
-        foo2
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo2
         foo1
+          reference: <testLibrary>::@class::A::@method::foo1
           firstFragment: <testLibraryFragment>::@class::A::@method::foo1
+        foo2
+          reference: <testLibrary>::@class::A::@method::foo2
+          firstFragment: <testLibraryFragment>::@class::A::@method::foo2
 ''');
   }
 
@@ -39081,6 +39152,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -39216,6 +39288,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -39370,6 +39443,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -39492,8 +39566,10 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
         bar
+          reference: <testLibrary>::@class::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::bar
 ''');
   }
@@ -39619,6 +39695,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -40374,6 +40451,7 @@ library
               type: int
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -41696,6 +41774,7 @@ library
           superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@classAugmentation::B::@method::foo
           formalParameters
             requiredPositional a
@@ -41818,6 +41897,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
             requiredPositional a
@@ -41941,6 +42021,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
             requiredPositional a
@@ -42083,6 +42164,7 @@ library
           superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
             requiredPositional a
@@ -42198,10 +42280,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       methods
-        bar
-          firstFragment: <testLibraryFragment>::@class::A::@method::bar
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
+        bar
+          reference: <testLibrary>::@class::A::@method::bar
+          firstFragment: <testLibraryFragment>::@class::A::@method::bar
 ''');
   }
 

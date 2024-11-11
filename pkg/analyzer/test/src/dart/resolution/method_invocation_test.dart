@@ -5945,7 +5945,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -5985,7 +5985,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   operator: .
   methodName: SimpleIdentifier

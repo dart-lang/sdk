@@ -195,7 +195,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
-    element2: <testLibraryFragment>::@typeAlias::CA#element
+    element2: <testLibrary>::@typeAlias::CA
     type: C<int>
       alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
@@ -226,7 +226,7 @@ TypeLiteral
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
-    element2: <testLibraryFragment>::@typeAlias::CA#element
+    element2: <testLibrary>::@typeAlias::CA
     type: C<String, int>
       alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
@@ -267,7 +267,7 @@ TypeLiteral
           type: void Function()
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
-    element2: <testLibraryFragment>::@typeAlias::CA#element
+    element2: <testLibrary>::@typeAlias::CA
     type: C<void Function()>
       alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
@@ -306,7 +306,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: package:test/a.dart::<fragment>::@typeAlias::CA
-    element2: package:test/a.dart::<fragment>::@typeAlias::CA#element
+    element2: package:test/a.dart::@typeAlias::CA
     type: C<int>
       alias: package:test/a.dart::<fragment>::@typeAlias::CA
         typeArguments
@@ -340,7 +340,7 @@ TypeLiteral
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::CA
-    element2: <testLibraryFragment>::@typeAlias::CA#element
+    element2: <testLibrary>::@typeAlias::CA
     type: C<String>
       alias: <testLibraryFragment>::@typeAlias::CA
         typeArguments
@@ -433,7 +433,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -471,7 +471,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: package:test/a.dart::<fragment>::@typeAlias::Fn
-    element2: package:test/a.dart::<fragment>::@typeAlias::Fn#element
+    element2: package:test/a.dart::@typeAlias::Fn
     type: void Function(int)
       alias: package:test/a.dart::<fragment>::@typeAlias::Fn
         typeArguments
@@ -510,7 +510,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -557,7 +557,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: package:test/a.dart::<fragment>::@typeAlias::Fn
-    element2: package:test/a.dart::<fragment>::@typeAlias::Fn#element
+    element2: package:test/a.dart::@typeAlias::Fn
     type: void Function(int)
       alias: package:test/a.dart::<fragment>::@typeAlias::Fn
         typeArguments
@@ -594,7 +594,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -633,7 +633,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -670,7 +670,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -709,7 +709,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -746,7 +746,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(int)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -778,7 +778,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(dynamic, dynamic)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -816,7 +816,7 @@ TypeLiteral
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(dynamic)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -849,7 +849,7 @@ TypeLiteral
           type: String
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::Fn
-    element2: <testLibraryFragment>::@typeAlias::Fn#element
+    element2: <testLibrary>::@typeAlias::Fn
     type: void Function(String)
       alias: <testLibraryFragment>::@typeAlias::Fn
         typeArguments
@@ -906,7 +906,7 @@ TypeLiteral
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::T
-    element2: <testLibraryFragment>::@typeAlias::T#element
+    element2: <testLibrary>::@typeAlias::T
     type: int
       alias: <testLibraryFragment>::@typeAlias::T
         typeArguments
@@ -946,7 +946,7 @@ TypeLiteral
           type: void Function()
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::T
-    element2: <testLibraryFragment>::@typeAlias::T#element
+    element2: <testLibrary>::@typeAlias::T
     type: void Function()
       alias: <testLibraryFragment>::@typeAlias::T
         typeArguments

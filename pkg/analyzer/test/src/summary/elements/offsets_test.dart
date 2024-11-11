@@ -3040,11 +3040,14 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         raw
+          reference: <testLibrary>::@class::C::@method::raw
           firstFragment: <testLibraryFragment>::@class::C::@method::raw
         hasDocComment
+          reference: <testLibrary>::@class::C::@method::hasDocComment
           firstFragment: <testLibraryFragment>::@class::C::@method::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
         hasAnnotation
+          reference: <testLibrary>::@class::C::@method::hasAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::hasAnnotation
           metadata
             Annotation
@@ -3060,6 +3063,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         annotationThenComment
+          reference: <testLibrary>::@class::C::@method::annotationThenComment
           firstFragment: <testLibraryFragment>::@class::C::@method::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -3076,6 +3080,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentThenAnnotation
+          reference: <testLibrary>::@class::C::@method::commentThenAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -3092,6 +3097,7 @@ library
               element: dart:core::<fragment>::@class::Object::@constructor::new
               element2: dart:core::<fragment>::@class::Object::@constructor::new#element
         commentAroundAnnotation
+          reference: <testLibrary>::@class::C::@method::commentAroundAnnotation
           firstFragment: <testLibraryFragment>::@class::C::@method::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -3448,27 +3454,27 @@ library
       topLevelVariables
         withInit @4
           reference: <testLibraryFragment>::@topLevelVariable::withInit
-          element: <testLibraryFragment>::@topLevelVariable::withInit#element
+          element: <testLibrary>::@topLevelVariable::withInit
           getter2: <testLibraryFragment>::@getter::withInit
           setter2: <testLibraryFragment>::@setter::withInit
         withoutInit @31
           reference: <testLibraryFragment>::@topLevelVariable::withoutInit
-          element: <testLibraryFragment>::@topLevelVariable::withoutInit#element
+          element: <testLibrary>::@topLevelVariable::withoutInit
           getter2: <testLibraryFragment>::@getter::withoutInit
           setter2: <testLibraryFragment>::@setter::withoutInit
         multiWithInit @49
           reference: <testLibraryFragment>::@topLevelVariable::multiWithInit
-          element: <testLibraryFragment>::@topLevelVariable::multiWithInit#element
+          element: <testLibrary>::@topLevelVariable::multiWithInit
           getter2: <testLibraryFragment>::@getter::multiWithInit
           setter2: <testLibraryFragment>::@setter::multiWithInit
         multiWithoutInit @68
           reference: <testLibraryFragment>::@topLevelVariable::multiWithoutInit
-          element: <testLibraryFragment>::@topLevelVariable::multiWithoutInit#element
+          element: <testLibrary>::@topLevelVariable::multiWithoutInit
           getter2: <testLibraryFragment>::@getter::multiWithoutInit
           setter2: <testLibraryFragment>::@setter::multiWithoutInit
         multiWithInit2 @86
           reference: <testLibraryFragment>::@topLevelVariable::multiWithInit2
-          element: <testLibraryFragment>::@topLevelVariable::multiWithInit2#element
+          element: <testLibrary>::@topLevelVariable::multiWithInit2
           getter2: <testLibraryFragment>::@getter::multiWithInit2
           setter2: <testLibraryFragment>::@setter::multiWithInit2
       getters
@@ -3520,26 +3526,31 @@ library
               element: <testLibraryFragment>::@setter::multiWithInit2::@parameter::_multiWithInit2#element
   topLevelVariables
     withInit
+      reference: <testLibrary>::@topLevelVariable::withInit
       firstFragment: <testLibraryFragment>::@topLevelVariable::withInit
       type: int
       getter: <testLibraryFragment>::@getter::withInit#element
       setter: <testLibraryFragment>::@setter::withInit#element
     withoutInit
+      reference: <testLibrary>::@topLevelVariable::withoutInit
       firstFragment: <testLibraryFragment>::@topLevelVariable::withoutInit
       type: int
       getter: <testLibraryFragment>::@getter::withoutInit#element
       setter: <testLibraryFragment>::@setter::withoutInit#element
     multiWithInit
+      reference: <testLibrary>::@topLevelVariable::multiWithInit
       firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithInit
       type: int
       getter: <testLibraryFragment>::@getter::multiWithInit#element
       setter: <testLibraryFragment>::@setter::multiWithInit#element
     multiWithoutInit
+      reference: <testLibrary>::@topLevelVariable::multiWithoutInit
       firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithoutInit
       type: int
       getter: <testLibraryFragment>::@getter::multiWithoutInit#element
       setter: <testLibraryFragment>::@setter::multiWithoutInit#element
     multiWithInit2
+      reference: <testLibrary>::@topLevelVariable::multiWithInit2
       firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithInit2
       type: int
       getter: <testLibraryFragment>::@getter::multiWithInit2#element
@@ -3909,19 +3920,19 @@ library
       topLevelVariables
         hasDocComment @34
           reference: <testLibraryFragment>::@topLevelVariable::hasDocComment
-          element: <testLibraryFragment>::@topLevelVariable::hasDocComment#element
+          element: <testLibrary>::@topLevelVariable::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           getter2: <testLibraryFragment>::@getter::hasDocComment
           setter2: <testLibraryFragment>::@setter::hasDocComment
         hasDocComment2 @49
           reference: <testLibraryFragment>::@topLevelVariable::hasDocComment2
-          element: <testLibraryFragment>::@topLevelVariable::hasDocComment2#element
+          element: <testLibrary>::@topLevelVariable::hasDocComment2
           documentationComment: /// Comment 1.\n/// Comment 2.
           getter2: <testLibraryFragment>::@getter::hasDocComment2
           setter2: <testLibraryFragment>::@setter::hasDocComment2
         hasAnnotation @80
           reference: <testLibraryFragment>::@topLevelVariable::hasAnnotation
-          element: <testLibraryFragment>::@topLevelVariable::hasAnnotation#element
+          element: <testLibrary>::@topLevelVariable::hasAnnotation
           metadata
             Annotation
               atSign: @ @66
@@ -3939,7 +3950,7 @@ library
           setter2: <testLibraryFragment>::@setter::hasAnnotation
         hasAnnotation2 @95
           reference: <testLibraryFragment>::@topLevelVariable::hasAnnotation2
-          element: <testLibraryFragment>::@topLevelVariable::hasAnnotation2#element
+          element: <testLibrary>::@topLevelVariable::hasAnnotation2
           metadata
             Annotation
               atSign: @ @66
@@ -3957,7 +3968,7 @@ library
           setter2: <testLibraryFragment>::@setter::hasAnnotation2
         annotationThenComment @156
           reference: <testLibraryFragment>::@topLevelVariable::annotationThenComment
-          element: <testLibraryFragment>::@topLevelVariable::annotationThenComment#element
+          element: <testLibrary>::@topLevelVariable::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3976,7 +3987,7 @@ library
           setter2: <testLibraryFragment>::@setter::annotationThenComment
         annotationThenComment2 @179
           reference: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
-          element: <testLibraryFragment>::@topLevelVariable::annotationThenComment2#element
+          element: <testLibrary>::@topLevelVariable::annotationThenComment2
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -3995,7 +4006,7 @@ library
           setter2: <testLibraryFragment>::@setter::annotationThenComment2
         commentThenAnnotation @248
           reference: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
-          element: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation#element
+          element: <testLibrary>::@topLevelVariable::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -4014,7 +4025,7 @@ library
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation
         commentThenAnnotation2 @271
           reference: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
-          element: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2#element
+          element: <testLibrary>::@topLevelVariable::commentThenAnnotation2
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
@@ -4033,7 +4044,7 @@ library
           setter2: <testLibraryFragment>::@setter::commentThenAnnotation2
         commentAroundAnnotation @340
           reference: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
-          element: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation#element
+          element: <testLibrary>::@topLevelVariable::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -4052,7 +4063,7 @@ library
           setter2: <testLibraryFragment>::@setter::commentAroundAnnotation
         commentAroundAnnotation2 @365
           reference: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
-          element: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2#element
+          element: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
           documentationComment: /// Comment 2.
           metadata
             Annotation
@@ -4163,18 +4174,21 @@ library
               element: <testLibraryFragment>::@setter::commentAroundAnnotation2::@parameter::_commentAroundAnnotation2#element
   topLevelVariables
     hasDocComment
+      reference: <testLibrary>::@topLevelVariable::hasDocComment
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasDocComment
       documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibraryFragment>::@getter::hasDocComment#element
       setter: <testLibraryFragment>::@setter::hasDocComment#element
     hasDocComment2
+      reference: <testLibrary>::@topLevelVariable::hasDocComment2
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasDocComment2
       documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibraryFragment>::@getter::hasDocComment2#element
       setter: <testLibraryFragment>::@setter::hasDocComment2#element
     hasAnnotation
+      reference: <testLibrary>::@topLevelVariable::hasAnnotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasAnnotation
       metadata
         Annotation
@@ -4193,6 +4207,7 @@ library
       getter: <testLibraryFragment>::@getter::hasAnnotation#element
       setter: <testLibraryFragment>::@setter::hasAnnotation#element
     hasAnnotation2
+      reference: <testLibrary>::@topLevelVariable::hasAnnotation2
       firstFragment: <testLibraryFragment>::@topLevelVariable::hasAnnotation2
       metadata
         Annotation
@@ -4211,6 +4226,7 @@ library
       getter: <testLibraryFragment>::@getter::hasAnnotation2#element
       setter: <testLibraryFragment>::@setter::hasAnnotation2#element
     annotationThenComment
+      reference: <testLibrary>::@topLevelVariable::annotationThenComment
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
@@ -4230,6 +4246,7 @@ library
       getter: <testLibraryFragment>::@getter::annotationThenComment#element
       setter: <testLibraryFragment>::@setter::annotationThenComment#element
     annotationThenComment2
+      reference: <testLibrary>::@topLevelVariable::annotationThenComment2
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotationThenComment2
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
@@ -4249,6 +4266,7 @@ library
       getter: <testLibraryFragment>::@getter::annotationThenComment2#element
       setter: <testLibraryFragment>::@setter::annotationThenComment2#element
     commentThenAnnotation
+      reference: <testLibrary>::@topLevelVariable::commentThenAnnotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
@@ -4268,6 +4286,7 @@ library
       getter: <testLibraryFragment>::@getter::commentThenAnnotation#element
       setter: <testLibraryFragment>::@setter::commentThenAnnotation#element
     commentThenAnnotation2
+      reference: <testLibrary>::@topLevelVariable::commentThenAnnotation2
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentThenAnnotation2
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
@@ -4287,6 +4306,7 @@ library
       getter: <testLibraryFragment>::@getter::commentThenAnnotation2#element
       setter: <testLibraryFragment>::@setter::commentThenAnnotation2#element
     commentAroundAnnotation
+      reference: <testLibrary>::@topLevelVariable::commentAroundAnnotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation
       documentationComment: /// Comment 2.
       metadata
@@ -4306,6 +4326,7 @@ library
       getter: <testLibraryFragment>::@getter::commentAroundAnnotation#element
       setter: <testLibraryFragment>::@setter::commentAroundAnnotation#element
     commentAroundAnnotation2
+      reference: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
       firstFragment: <testLibraryFragment>::@topLevelVariable::commentAroundAnnotation2
       documentationComment: /// Comment 2.
       metadata
@@ -4837,6 +4858,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           typeParameters
             T
@@ -5197,7 +5219,7 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @15
               element: <not-implemented>
@@ -5239,7 +5261,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -5324,9 +5346,9 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic <null-name>
+        synthetic foo
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get foo @8
@@ -5334,6 +5356,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element

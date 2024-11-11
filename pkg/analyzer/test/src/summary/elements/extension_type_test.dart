@@ -1939,7 +1939,7 @@ library
       typeAliases
         A @8
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
   extensionTypes
     extension type X
       reference: <testLibrary>::@extensionType::X
@@ -2267,6 +2267,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             requiredPositional a
@@ -2363,6 +2364,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
           formalParameters
             optionalNamed a
@@ -3851,8 +3853,10 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::it
       methods
         foo1
+          reference: <testLibrary>::@extensionType::A::@method::foo1
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::foo1
         foo2
+          reference: <testLibrary>::@extensionType::A::@method::foo2
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@method::foo2
 ''');
   }
@@ -8487,8 +8491,10 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
         bar
+          reference: <testLibrary>::@extensionType::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
 ''');
   }
@@ -8654,10 +8660,12 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
-        foo2
-          firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo2
         foo1
+          reference: <testLibrary>::@extensionType::A::@method::foo1
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo1
+        foo2
+          reference: <testLibrary>::@extensionType::A::@method::foo2
+          firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo2
 ''');
   }
 
@@ -8859,6 +8867,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
 ''');
   }
@@ -9029,8 +9038,10 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
         bar
+          reference: <testLibrary>::@extensionType::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@method::bar
 ''');
   }
@@ -9204,6 +9215,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
 ''');
   }
@@ -9377,10 +9389,12 @@ library
         synthetic get it
           firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
       methods
-        bar
-          firstFragment: <testLibraryFragment>::@extensionType::A::@method::bar
         foo
+          reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@method::foo
+        bar
+          reference: <testLibrary>::@extensionType::A::@method::bar
+          firstFragment: <testLibraryFragment>::@extensionType::A::@method::bar
 ''');
   }
 
