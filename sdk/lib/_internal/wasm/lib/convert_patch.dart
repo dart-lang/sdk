@@ -1615,7 +1615,10 @@ class _JsonOneByteStringParser extends _JsonParserWithListener
     }
   }
 
-  double parseDouble(int start, int end) => _parseDouble(chunk, start, end);
+  double parseDouble(int start, int end) {
+    final string = chunk.substringUnchecked(start, end);
+    return double.parse(string);
+  }
 }
 
 /**
@@ -1666,7 +1669,10 @@ class _JsonTwoByteStringParser extends _JsonParserWithListener
     }
   }
 
-  double parseDouble(int start, int end) => _parseDouble(chunk, start, end);
+  double parseDouble(int start, int end) {
+    final string = chunk.substringUnchecked(start, end);
+    return double.parse(string);
+  }
 }
 
 @patch
@@ -1856,14 +1862,10 @@ class _JsonUtf8Parser extends _JsonParserWithListener
   }
 
   double parseDouble(int start, int end) {
-    String string = getString(start, end, 0x7f);
-    return _parseDouble(string, 0, string.length);
+    final string = getString(start, end, 0x7f);
+    return double.parse(string);
   }
 }
-
-@pragma("wasm:prefer-inline")
-double _parseDouble(String source, int start, int end) =>
-    double.parse(source.substringUnchecked(start, end));
 
 /**
  * Implements the chunked conversion from a UTF-8 encoding of JSON
