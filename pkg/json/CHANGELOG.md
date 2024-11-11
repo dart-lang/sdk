@@ -1,6 +1,6 @@
 # 0.20.3
 
-- Add support for DateTime
+- Add support for DateTime as ISO-8601 String.
 
 # 0.20.2
 
