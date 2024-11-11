@@ -107,8 +107,7 @@ extension AstNodeNullableExtension on AstNode? {
       if (node is Identifier) {
         return node.element;
       } else if (node is PropertyAccess) {
-        // TODO(pq): implement.
-        return null;
+        return node.propertyName.element;
       }
     }
     return null;
