@@ -856,9 +856,10 @@ class BodyBuilder extends StackListenerImpl
             new Name(identifier.name, libraryBuilder.nameOrigin),
             unresolvedReadKind: UnresolvedKind.Unknown);
       }
-      if (name?.isNotEmpty ?? false) {
+
+      if ((name?.isNotEmpty ?? false) && expression is Generator) {
         Token period = periodBeforeName ?? beginToken.next!.next!;
-        Generator generator = expression as Generator;
+        Generator generator = expression;
         expression = generator.buildSelectorAccess(
             new PropertySelector(
                 this, period.next!, new Name(name!, libraryBuilder.nameOrigin)),
