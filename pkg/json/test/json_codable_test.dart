@@ -10,7 +10,6 @@ import 'package:test/test.dart';
 void main() {
   group('Can encode and decode', () {
     test('non-nullable fields', () {
-      print(DateTime.now().toIso8601String());
       var json = {
         'boolField': true,
         'stringField': 'hello',
