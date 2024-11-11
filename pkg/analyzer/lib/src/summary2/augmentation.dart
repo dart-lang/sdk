@@ -269,7 +269,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
 
     augmented.fields.addAll(firstFragment.fields);
     augmented.accessors.addAll(firstFragment.accessors);
-    augmented.methods.addAll(firstFragment.methods);
 
     if (augmented is InterfaceElementImpl2) {
       if (firstFragment is InterfaceElementImpl) {
@@ -357,16 +356,6 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
         }
         return PropertyAccessorMember(
             element, toFirstFragment, Substitution.empty);
-      }),
-    ];
-
-    element.methods = [
-      ...element.methods.notAugmented,
-      ...augmentation.methods.notAugmented.map((element) {
-        if (toFirstFragment.map.isEmpty) {
-          return element;
-        }
-        return MethodMember(element, toFirstFragment, Substitution.empty);
       }),
     ];
   }

@@ -925,7 +925,14 @@ class _MockSdkElementsBuilder {
     element.fields = fragment.fields;
     element.constructors = fragment.constructors;
     element.accessors = fragment.accessors;
-    element.methods = fragment.methods;
+
+    element.methods2 = fragment.methods.map((firstFragment) {
+      return MethodElementImpl2(
+        Reference.root(),
+        firstFragment.name2,
+        firstFragment,
+      );
+    }).toList();
   }
 
   LibraryElementImpl _buildCore() {
