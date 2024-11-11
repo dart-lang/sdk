@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -40,12 +41,13 @@ class DtdServices {
   /// development and testing this will be restricted to selected methods (in
   /// particular, those with well defined results that are not affected by
   /// differences in client capabilities).
-  static const allowedLspMethods = <Method>{
+  static final allowedLspMethods = <Method>{
     // When removing this allowlist or adding simple methods like
     // textDocument/hover, skipped tests in `SharedDtdTests` can be unskipped.
     // TODO(dantup): Enable this but add a flag so we can opt-in to experimental
     //  handlers being exposed over DTD while in dev.
-    // CustomMethods.dartTextDocumentEditableArguments,
+    CustomMethods.experimentalEcho,
+    CustomMethods.dartTextDocumentEditableArguments,
   };
 
   /// The name of the DTD service that methods will be registered under.
@@ -63,7 +65,14 @@ class DtdServices {
 
   DtdConnectionState _state = DtdConnectionState.Connecting;
 
-  DtdServices._(this._server, this.dtdUri);
+  /// Whether to register experimental LSP handlers over DTD.
+  final bool registerExperimentalHandlers;
+
+  DtdServices._(
+    this._server,
+    this.dtdUri, {
+    this.registerExperimentalHandlers = false,
+  });
 
   DtdConnectionState get state => _state;
 
@@ -215,7 +224,8 @@ class DtdServices {
   ) async {
     await Future.wait([
       for (var lspHandler in handler.messageHandlers.values)
-        if (allowedLspMethods.contains(lspHandler.handlesMessage))
+        if (allowedLspMethods.contains(lspHandler.handlesMessage) &&
+            (registerExperimentalHandlers || !lspHandler.isExperimental))
           _registerLspService(lspHandler, dtd),
     ]);
 
@@ -257,10 +267,15 @@ class DtdServices {
   /// made or fails to initialize.
   static Future<ErrorOr<DtdServices>> connect(
     AnalysisServer server,
-    Uri uri,
-  ) async {
+    Uri uri, {
+    bool registerExperimentalHandlers = false,
+  }) async {
     try {
-      var dtd = DtdServices._(server, uri);
+      var dtd = DtdServices._(
+        server,
+        uri,
+        registerExperimentalHandlers: registerExperimentalHandlers,
+      );
       await dtd._connect();
       return success(dtd);
     } catch (e) {

@@ -1021,23 +1021,31 @@ class ConnectToDtdParams implements ToJsonable {
     ConnectToDtdParams.fromJson,
   );
 
+  /// Whether to register experimental LSP handlers with DTD. This should not be
+  /// set by clients automatically but opt-in for users that are
+  /// developing/testing incomplete functionality.
+  final bool? registerExperimentalHandlers;
+
   final Uri uri;
 
-  ConnectToDtdParams({required this.uri});
-
+  ConnectToDtdParams({this.registerExperimentalHandlers, required this.uri});
   @override
-  int get hashCode => uri.hashCode;
+  int get hashCode => Object.hash(registerExperimentalHandlers, uri);
 
   @override
   bool operator ==(Object other) {
     return other is ConnectToDtdParams &&
         other.runtimeType == ConnectToDtdParams &&
+        registerExperimentalHandlers == other.registerExperimentalHandlers &&
         uri == other.uri;
   }
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
+    if (registerExperimentalHandlers != null) {
+      result['registerExperimentalHandlers'] = registerExperimentalHandlers;
+    }
     result['uri'] = uri.toString();
     return result;
   }
@@ -1047,6 +1055,15 @@ class ConnectToDtdParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'registerExperimentalHandlers',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
+        return false;
+      }
       return _canParseUri(
         obj,
         reporter,
@@ -1061,9 +1078,16 @@ class ConnectToDtdParams implements ToJsonable {
   }
 
   static ConnectToDtdParams fromJson(Map<String, Object?> json) {
+    final registerExperimentalHandlersJson =
+        json['registerExperimentalHandlers'];
+    final registerExperimentalHandlers =
+        registerExperimentalHandlersJson as bool?;
     final uriJson = json['uri'];
     final uri = Uri.parse(uriJson as String);
-    return ConnectToDtdParams(uri: uri);
+    return ConnectToDtdParams(
+      registerExperimentalHandlers: registerExperimentalHandlers,
+      uri: uri,
+    );
   }
 }
 
