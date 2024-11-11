@@ -24,9 +24,9 @@ class int {
   }
 
   @patch
-  static int parse(String source, {int? radix, int onError(String source)?}) {
+  static int parse(String source, {int? radix}) {
     if (source.isEmpty) {
-      return _handleFormatError(onError, source, 0, radix, null) as int;
+      return _handleFormatError(null, source, 0, radix, null) as int;
     }
     if (radix == null || radix == 10) {
       // Try parsing immediately, without trimming whitespace.
@@ -36,7 +36,7 @@ class int {
       throw RangeError("Radix $radix not in range 2..36");
     }
     // Split here so improve odds of parse being inlined and the checks omitted.
-    return _parse(source, radix, onError)!;
+    return _parse(source, radix, null)!;
   }
 
   static int? _parse(
