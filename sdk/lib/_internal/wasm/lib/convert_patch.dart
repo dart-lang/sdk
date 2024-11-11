@@ -315,25 +315,117 @@ class _NumberBuffer {
   double parseDouble() => double.parse(getString());
 }
 
-abstract class _JsonParserWithListener {
+/**
+ * Base class for the common monomorphic parts of all chunked JSON parsers.
+ *
+ * The members in this class should not be overridden and should not have
+ * polymorphism to make sure the generated code for the subclasses is optimal.
+ */
+abstract class _ChunkedJsonParserState {
   final _JsonListener listener;
-  _JsonParserWithListener(this.listener);
+
+  _ChunkedJsonParserState(this.listener);
+
+  // The current parsing state.
+  int state = _ChunkedJsonParser.STATE_INITIAL;
+  GrowableList<int> states = GrowableList<int>.empty();
+
+  /**
+   * Stores tokenizer state between chunks.
+   *
+   * This state is stored when a chunk stops in the middle of a
+   * token (string, numeral, boolean or null).
+   *
+   * The partial state is used to continue parsing on the next chunk.
+   * The previous chunk is not retained, any data needed are stored in
+   * this integer, or in the [buffer] field as a string-building buffer
+   * or a [_NumberBuffer].
+   *
+   * Prefix state stored in [prefixState] as bits.
+   *
+   *            ..00 : No partial value (NO_PARTIAL).
+   *
+   *         ..00001 : Partial string, not inside escape.
+   *         ..00101 : Partial string, after '\'.
+   *     ..vvvv1dd01 : Partial \u escape.
+   *                   The 'dd' bits (2-3) encode the number of hex digits seen.
+   *                   Bits 5-16 encode the value of the hex digits seen so far.
+   *
+   *        ..0ddd10 : Partial numeral.
+   *                   The `ddd` bits store the parts of in the numeral seen so
+   *                   far, as the constants `NUM_*` defined above.
+   *                   The characters of the numeral are stored in [buffer]
+   *                   as a [_NumberBuffer].
+   *
+   *      ..0ddd0011 : Partial 'null' keyword.
+   *      ..0ddd0111 : Partial 'true' keyword.
+   *      ..0ddd1011 : Partial 'false' keyword.
+   *      ..0ddd1111 : Partial UTF-8 BOM byte sequence ("\xEF\xBB\xBF").
+   *                   For all keywords, the `ddd` bits encode the number
+   *                   of letters seen.
+   *                   The BOM byte sequence is only used by [_JsonUtf8Parser],
+   *                   and only at the very beginning of input.
+   */
+  int partialState = _ChunkedJsonParser.NO_PARTIAL;
+
+  /**
+   * String parts stored while parsing a string.
+   */
+  StringBuffer? _stringBuffer;
+
+  @pragma('wasm:prefer-inline')
+  StringBuffer get stringBuffer => _stringBuffer ??= StringBuffer();
+
+  /**
+   * Number parts stored while parsing a number.
+   */
+  _NumberBuffer? _numberBuffer;
+
+  @pragma('wasm:prefer-inline')
+  _NumberBuffer get numberBuffer =>
+      _numberBuffer ??= _NumberBuffer(_NumberBuffer.minCapacity);
+
+  void restoreStateFromChunkedParserState(
+    _ChunkedJsonParserState chunkedParserState,
+  ) {
+    state = chunkedParserState.state;
+    states = chunkedParserState.states;
+    partialState = chunkedParserState.partialState;
+    _stringBuffer = chunkedParserState._stringBuffer;
+    _numberBuffer = chunkedParserState._numberBuffer;
+  }
+
+  /**
+   * Push the current parse [state] on a stack.
+   *
+   * State is pushed when a new array or object literal starts,
+   * so the parser can go back to the correct value when the literal ends.
+   */
+  void saveState(int state) {
+    states.add(state);
+  }
+
+  /**
+   * Restore a state pushed with [saveState].
+   */
+  int restoreState() => states.removeLast(); // Throws if empty.
+
+  /**
+   * Read out the result after successfully closing the parser.
+   *
+   * The parser is closed by calling [close] or calling [addSourceChunk] with
+   * `true` as second (`isLast`) argument.
+   */
+  dynamic get result => listener.result;
 }
 
 /**
- * Chunked JSON parser.
+ * Chunked JSON parser implementation.
  *
- * Receives inputs in chunks, gives access to individual parts of the input,
- * and stores input state between chunks.
- *
- * Implementations include [String] and UTF-8 parsers.
- *
- * Note: this is a mixin instead of the base class to allow compilers
- * to specialize applications otherwise accessing chunk characters becomes
- * polymorphic.
- *
+ * This is a mixin instead of a base class to allow compilers to specialize
+ * applications otherwise accessing chunk characters becomes polymorphic.
  */
-mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
+mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
   // A simple non-recursive state-based parser for JSON.
   //
   // Literal values accepted in states ARRAY_EMPTY, ARRAY_COMMA, OBJECT_COLON
@@ -464,100 +556,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
   // Mask used to mask off two lower bits.
   static const int TWO_BIT_MASK = 3;
 
-  // The current parsing state.
-  int state = STATE_INITIAL;
-  GrowableList<int> states = GrowableList<int>.empty();
-
-  /**
-   * Stores tokenizer state between chunks.
-   *
-   * This state is stored when a chunk stops in the middle of a
-   * token (string, numeral, boolean or null).
-   *
-   * The partial state is used to continue parsing on the next chunk.
-   * The previous chunk is not retained, any data needed are stored in
-   * this integer, or in the [buffer] field as a string-building buffer
-   * or a [_NumberBuffer].
-   *
-   * Prefix state stored in [prefixState] as bits.
-   *
-   *            ..00 : No partial value (NO_PARTIAL).
-   *
-   *         ..00001 : Partial string, not inside escape.
-   *         ..00101 : Partial string, after '\'.
-   *     ..vvvv1dd01 : Partial \u escape.
-   *                   The 'dd' bits (2-3) encode the number of hex digits seen.
-   *                   Bits 5-16 encode the value of the hex digits seen so far.
-   *
-   *        ..0ddd10 : Partial numeral.
-   *                   The `ddd` bits store the parts of in the numeral seen so
-   *                   far, as the constants `NUM_*` defined above.
-   *                   The characters of the numeral are stored in [buffer]
-   *                   as a [_NumberBuffer].
-   *
-   *      ..0ddd0011 : Partial 'null' keyword.
-   *      ..0ddd0111 : Partial 'true' keyword.
-   *      ..0ddd1011 : Partial 'false' keyword.
-   *      ..0ddd1111 : Partial UTF-8 BOM byte sequence ("\xEF\xBB\xBF").
-   *                   For all keywords, the `ddd` bits encode the number
-   *                   of letters seen.
-   *                   The BOM byte sequence is only used by [_JsonUtf8Parser],
-   *                   and only at the very beginning of input.
-   */
-  int partialState = NO_PARTIAL;
-
-  /**
-   * String parts stored while parsing a string.
-   */
-  StringBuffer? _stringBuffer;
-
-  @pragma('wasm:prefer-inline')
-  StringBuffer get stringBuffer => _stringBuffer ??= StringBuffer();
-
-  /**
-   * Number parts stored while parsing a number.
-   */
-  _NumberBuffer? _numberBuffer;
-
-  @pragma('wasm:prefer-inline')
-  _NumberBuffer get numberBuffer =>
-      _numberBuffer ??= _NumberBuffer(_NumberBuffer.minCapacity);
-
-  void saveStateToChunkedParserState(_ChunkedParserState chunkedParserState) {
-    chunkedParserState.state = state;
-    chunkedParserState.states = states;
-    chunkedParserState.partialState = partialState;
-    chunkedParserState.stringBuffer = _stringBuffer;
-    chunkedParserState.numberBuffer = _numberBuffer;
-  }
-
-  void restoreStateFromChunkedParserState(
-    _ChunkedParserState chunkedParserState,
-  ) {
-    state = chunkedParserState.state;
-    states = chunkedParserState.states;
-    partialState = chunkedParserState.partialState;
-    _stringBuffer = chunkedParserState.stringBuffer;
-    _numberBuffer = chunkedParserState.numberBuffer;
-  }
-
-  /**
-   * Push the current parse [state] on a stack.
-   *
-   * State is pushed when a new array or object literal starts,
-   * so the parser can go back to the correct value when the literal ends.
-   */
-  void saveState(int state) {
-    states.add(state);
-  }
-
-  /**
-   * Restore a state pushed with [saveState].
-   */
-  int restoreState() {
-    return states.removeLast(); // Throws if empty.
-  }
-
   /**
    * Finalizes the parsing.
    *
@@ -590,16 +588,6 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
     if (state != STATE_END) {
       fail(chunkEnd);
     }
-  }
-
-  /**
-   * Read out the result after successfully closing the parser.
-   *
-   * The parser is closed by calling [close] or calling [addSourceChunk] with
-   * `true` as second (`isLast`) argument.
-   */
-  dynamic get result {
-    return listener.result;
   }
 
   /** Sets the current source chunk. */
@@ -1570,7 +1558,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
 /**
  * Chunked JSON parser that parses [OneByteString] chunks.
  */
-class _JsonOneByteStringParser extends _JsonParserWithListener
+class _JsonOneByteStringParser extends _ChunkedJsonParserState
     with _ChunkedJsonParser<OneByteString> {
   OneByteString chunk = OneByteString.withLength(0);
   int chunkEnd = 0;
@@ -1624,7 +1612,7 @@ class _JsonOneByteStringParser extends _JsonParserWithListener
 /**
  * Chunked JSON parser that parses [TwoByteString] chunks.
  */
-class _JsonTwoByteStringParser extends _JsonParserWithListener
+class _JsonTwoByteStringParser extends _ChunkedJsonParserState
     with _ChunkedJsonParser<TwoByteString> {
   TwoByteString chunk = TwoByteString.withLength(0);
   int chunkEnd = 0;
@@ -1682,22 +1670,6 @@ class JsonDecoder {
       _JsonStringDecoderSink(this._reviver, sink);
 }
 
-class _ChunkedParserState {
-  int state;
-  GrowableList<int> states;
-  int partialState;
-  StringBuffer? stringBuffer;
-  _NumberBuffer? numberBuffer;
-
-  _ChunkedParserState(
-    this.state,
-    this.states,
-    this.partialState,
-    this.stringBuffer,
-    this.numberBuffer,
-  );
-}
-
 /**
  * Implements the chunked conversion from a JSON string to its corresponding
  * object.
@@ -1705,25 +1677,37 @@ class _ChunkedParserState {
  * The sink only creates one object, but its input can be chunked.
  */
 class _JsonStringDecoderSink extends StringConversionSinkBase {
-  final _ChunkedParserState _parserState = _ChunkedParserState(
-    _ChunkedJsonParser.STATE_INITIAL,
-    GrowableList<int>.empty(),
-    _ChunkedJsonParser.NO_PARTIAL,
-    null,
-    null,
-  );
+  /// The parser that holds the latest chunked parser state. When switching
+  /// between parsers, restore the chunked parser state from this parser.
+  _ChunkedJsonParserState? _parserState;
 
   final _JsonListener _listener;
 
   _JsonOneByteStringParser? _oneByteStringParser;
 
-  _JsonOneByteStringParser get oneByteStringParser =>
-      _oneByteStringParser ??= _JsonOneByteStringParser(_listener);
+  _JsonOneByteStringParser get oneByteStringParser {
+    final oneByteStringParser =
+        _oneByteStringParser ??= _JsonOneByteStringParser(_listener);
+    final parserState = _parserState;
+    if (parserState != null && !identical(oneByteStringParser, parserState)) {
+      oneByteStringParser.restoreStateFromChunkedParserState(parserState);
+    }
+    _parserState = oneByteStringParser;
+    return oneByteStringParser;
+  }
 
   _JsonTwoByteStringParser? _twoByteStringParser;
 
-  _JsonTwoByteStringParser get twoByteStringParser =>
-      _twoByteStringParser ??= _JsonTwoByteStringParser(_listener);
+  _JsonTwoByteStringParser get twoByteStringParser {
+    final twoByteStringParser =
+        _twoByteStringParser ??= _JsonTwoByteStringParser(_listener);
+    final parserState = _parserState;
+    if (parserState != null && !identical(twoByteStringParser, parserState)) {
+      twoByteStringParser.restoreStateFromChunkedParserState(parserState);
+    }
+    _parserState = twoByteStringParser;
+    return twoByteStringParser;
+  }
 
   final Object? Function(Object? key, Object? value)? _reviver;
 
@@ -1735,20 +1719,16 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   void addSlice(String chunk, int start, int end, bool isLast) {
     if (chunk is OneByteString) {
       final parser = oneByteStringParser;
-      parser.restoreStateFromChunkedParserState(_parserState);
       parser.chunk = chunk;
       parser.chunkEnd = end;
       parser.parse(start);
       if (isLast) parser.close();
-      parser.saveStateToChunkedParserState(_parserState);
     } else if (chunk is TwoByteString) {
       final parser = twoByteStringParser;
-      parser.restoreStateFromChunkedParserState(_parserState);
       parser.chunk = chunk;
       parser.chunkEnd = end;
       parser.parse(start);
       if (isLast) parser.close();
-      parser.saveStateToChunkedParserState(_parserState);
     } else {
       final dartString = jsStringToDartString(unsafeCast<JSStringImpl>(chunk));
       return addSlice(dartString, start, end, isLast);
@@ -1760,16 +1740,24 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void close() {
-    final oneByteStringParser = _oneByteStringParser;
-    final twoByteStringParser = _twoByteStringParser;
+    final parserState = _parserState;
+    if (parserState != null) {
+      // Use any of the parsers to finish parsing. Since we have a parser state,
+      // at least one of these parsers should be non-null.
+      final oneByteStringParser = _oneByteStringParser;
+      final twoByteStringParser = _twoByteStringParser;
 
-    // Use any of the parsers to finish parsing.
-    if (oneByteStringParser != null) {
-      oneByteStringParser.restoreStateFromChunkedParserState(_parserState);
-      oneByteStringParser.close();
-    } else if (twoByteStringParser != null) {
-      twoByteStringParser.restoreStateFromChunkedParserState(_parserState);
-      twoByteStringParser.close();
+      if (oneByteStringParser != null) {
+        oneByteStringParser.restoreStateFromChunkedParserState(parserState);
+        oneByteStringParser.close();
+      } else {
+        // Use `unsafeCast` for unchecked null deref.
+        final parser = unsafeCast<_JsonTwoByteStringParser>(
+          twoByteStringParser,
+        );
+        parser.restoreStateFromChunkedParserState(parserState);
+        parser.close();
+      }
     }
 
     _sink.add(_listener.result);
@@ -1783,7 +1771,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
 /**
  * Chunked JSON parser that parses UTF-8 chunks.
  */
-class _JsonUtf8Parser extends _JsonParserWithListener
+class _JsonUtf8Parser extends _ChunkedJsonParserState
     with _ChunkedJsonParser<U8List> {
   static final U8List emptyChunk = U8List(0);
 
