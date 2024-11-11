@@ -337,7 +337,7 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
 
     // Comparing char-codes instead of strings.
     EqualityCompareInstr* comp = new (Z) EqualityCompareInstr(
-        call->source(), op_kind, left_val, right_val, kSmiCid, call->deopt_id(),
+        call->source(), op_kind, left_val, right_val, kTagged, call->deopt_id(),
         /*null_aware=*/false);
     ReplaceCall(call, comp);
 
@@ -370,7 +370,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
 
-  intptr_t cid = kIllegalCid;
+  Representation representation = kNoRepresentation;
   if (binary_feedback.OperandsAre(kOneByteStringCid)) {
     return TryStringLengthOneEquality(call, op_kind);
   } else if (binary_feedback.OperandsAre(kSmiCid)) {
@@ -382,9 +382,8 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                  new (Z) CheckSmiInstr(new (Z) Value(right), call->deopt_id(),
                                        call->source()),
                  call->env(), FlowGraph::kEffect);
-    cid = kSmiCid;
+    representation = kTagged;
   } else if (binary_feedback.OperandsAreSmiOrMint()) {
-    cid = kMintCid;
     left =
         UnboxInstr::Create(kUnboxedInt64, new (Z) Value(left), call->deopt_id(),
                            UnboxInstr::ValueMode::kCheckType);
@@ -393,11 +392,10 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         UnboxInstr::Create(kUnboxedInt64, new (Z) Value(right),
                            call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
     InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    representation = kUnboxedInt64;
   } else if (binary_feedback.OperandsAreSmiOrDouble()) {
     // Use double comparison.
-    if (SmiFitsInDouble()) {
-      cid = kDoubleCid;
-    } else {
+    if (!SmiFitsInDouble()) {
       if (binary_feedback.IncludesOperands(kSmiCid)) {
         // We cannot use double comparison on two smis. Need polymorphic
         // call.
@@ -408,7 +406,6 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
             new (Z) CheckEitherNonSmiInstr(
                 new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
             call->env(), FlowGraph::kEffect);
-        cid = kDoubleCid;
       }
     }
     left =
@@ -419,6 +416,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         UnboxInstr::Create(kUnboxedDouble, new (Z) Value(right),
                            call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
     InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    representation = kUnboxedDouble;
   } else {
     // Check if ICDData contains checks with Smi/Null combinations. In that case
     // we can still emit the optimized Smi equality operation but need to add
@@ -427,7 +425,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       AddChecksForArgNr(call, left, /* arg_number = */ 0);
       AddChecksForArgNr(call, right, /* arg_number = */ 1);
 
-      cid = kSmiCid;
+      representation = kTagged;
     } else {
       // Shortcut for equality with null.
       // TODO(vegorov): this optimization is not speculative and should
@@ -446,10 +444,10 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       return false;
     }
   }
-  ASSERT(cid != kIllegalCid);
+  ASSERT(representation != kNoRepresentation);
   EqualityCompareInstr* comp = new (Z) EqualityCompareInstr(
-      call->source(), op_kind, new (Z) Value(left), new (Z) Value(right), cid,
-      call->deopt_id(), /*null_aware=*/false);
+      call->source(), op_kind, new (Z) Value(left), new (Z) Value(right),
+      representation, call->deopt_id(), /*null_aware=*/false);
   ReplaceCall(call, comp);
   return true;
 }
@@ -463,7 +461,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
 
-  intptr_t cid = kIllegalCid;
+  Representation representation = kNoRepresentation;
   if (binary_feedback.OperandsAre(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(left), call->deopt_id(),
@@ -473,7 +471,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                  new (Z) CheckSmiInstr(new (Z) Value(right), call->deopt_id(),
                                        call->source()),
                  call->env(), FlowGraph::kEffect);
-    cid = kSmiCid;
+    representation = kTagged;
   } else if (binary_feedback.OperandsAreSmiOrMint()) {
     left =
         UnboxInstr::Create(kUnboxedInt64, new (Z) Value(left), call->deopt_id(),
@@ -483,12 +481,10 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
         UnboxInstr::Create(kUnboxedInt64, new (Z) Value(right),
                            call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
     InsertBefore(call, right, call->env(), FlowGraph::kValue);
-    cid = kMintCid;
+    representation = kUnboxedInt64;
   } else if (binary_feedback.OperandsAreSmiOrDouble()) {
     // Use double comparison.
-    if (SmiFitsInDouble()) {
-      cid = kDoubleCid;
-    } else {
+    if (!SmiFitsInDouble()) {
       if (binary_feedback.IncludesOperands(kSmiCid)) {
         // We cannot use double comparison on two smis. Need polymorphic
         // call.
@@ -499,7 +495,6 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
             new (Z) CheckEitherNonSmiInstr(
                 new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
             call->env(), FlowGraph::kEffect);
-        cid = kDoubleCid;
       }
     }
     left =
@@ -510,13 +505,14 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
         UnboxInstr::Create(kUnboxedDouble, new (Z) Value(right),
                            call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
     InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    representation = kUnboxedDouble;
   } else {
     return false;
   }
-  ASSERT(cid != kIllegalCid);
-  RelationalOpInstr* comp =
-      new (Z) RelationalOpInstr(call->source(), op_kind, new (Z) Value(left),
-                                new (Z) Value(right), cid, call->deopt_id());
+  ASSERT(representation != kNoRepresentation);
+  RelationalOpInstr* comp = new (Z)
+      RelationalOpInstr(call->source(), op_kind, new (Z) Value(left),
+                        new (Z) Value(right), representation, call->deopt_id());
   ReplaceCall(call, comp);
   return true;
 }
@@ -1269,7 +1265,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         Smi::Handle(Z, Smi::New(type_cid)), kUnboxedUword);
     EqualityCompareInstr* check_cid = new (Z)
         EqualityCompareInstr(call->source(), Token::kEQ, new Value(load_cid),
-                             new Value(constant_cid), kIntegerCid,
+                             new Value(constant_cid), kUnboxedUword,
                              DeoptId::kNone, /*null_aware=*/false);
     ReplaceCall(call, check_cid);
     return;

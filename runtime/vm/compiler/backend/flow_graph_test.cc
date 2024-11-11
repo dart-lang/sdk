@@ -49,7 +49,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_UnboxInt64Phi) {
     builder.AddBranch(
         new RelationalOpInstr(InstructionSource(), Token::kLT,
                               new Value(loop_var), new Value(H.IntConstant(50)),
-                              kMintCid, S.GetNextDeoptId()),
+                              kUnboxedInt64, S.GetNextDeoptId()),
         loop_body, loop_exit);
   }
 
@@ -112,7 +112,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_LateVariablePhiUnboxing) {
     builder.AddBranch(
         new RelationalOpInstr(InstructionSource(), Token::kLT,
                               new Value(loop_var), new Value(H.IntConstant(10)),
-                              kMintCid, S.GetNextDeoptId()),
+                              kUnboxedInt64, S.GetNextDeoptId()),
         loop_body, loop_exit);
   }
 

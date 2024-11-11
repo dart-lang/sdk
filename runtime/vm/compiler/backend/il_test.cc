@@ -418,7 +418,7 @@ static void TestNullAwareEqualityCompareCanonicalization(
 
     compare = builder.AddDefinition(new EqualityCompareInstr(
         InstructionSource(), Token::kEQ, new Value(box0), new Value(box1),
-        kMintCid, S.GetNextDeoptId(), /*null_aware=*/true));
+        kTagged, S.GetNextDeoptId(), /*null_aware=*/true));
     builder.AddReturn(new Value(compare));
   }
 
@@ -431,6 +431,8 @@ static void TestNullAwareEqualityCompareCanonicalization(
   H.flow_graph()->Canonicalize();
 
   EXPECT(compare->is_null_aware() == !allow_representation_change);
+  EXPECT(compare->input_representation() ==
+         (allow_representation_change ? kUnboxedInt64 : kTagged));
 }
 
 ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_EqualityCompare) {

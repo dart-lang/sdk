@@ -699,7 +699,7 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   Definition* left_defn = instr->left()->definition();
   Definition* right_defn = instr->right()->definition();
 
-  if (IsIntegerClassId(instr->operation_cid())) {
+  if (!instr->IsFloatingPoint()) {
     // Fold x == x, and x != x to true/false for numbers comparisons.
     Definition* unwrapped_left_defn = UnwrapPhi(left_defn);
     Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
@@ -1614,9 +1614,8 @@ void ConstantPropagator::InsertRedefinitionsAfterEqualityComparisons() {
     if (auto branch = block->last_instruction()->AsBranch()) {
       auto comparison = branch->condition()->AsComparison();
       if (comparison != nullptr &&
-          (comparison->IsStrictCompare() ||
-           (comparison->IsEqualityCompare() &&
-            comparison->operation_cid() != kDoubleCid))) {
+          (comparison->IsStrictCompare() || (comparison->IsEqualityCompare() &&
+                                             !comparison->IsFloatingPoint()))) {
         Value* value;
         ConstantInstr* constant_defn;
         if (comparison->IsComparisonWithConstant(&value, &constant_defn) &&
