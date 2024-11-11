@@ -55,9 +55,6 @@ resolved=IfNull(
    ?? 
   IntegerLiteral(0)
 )
-evaluate=IfNull(
-  StaticGet(constNullableInt)
-   ?? 
-  IntegerLiteral(0)
-)*/
+evaluate=IntegerLiteral(42)
+constNullableInt=IntegerLiteral(42)*/
 void ifNull5() {}

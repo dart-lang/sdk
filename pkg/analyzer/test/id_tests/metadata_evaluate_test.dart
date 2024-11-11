@@ -61,7 +61,8 @@ class _MetadataDataExtractor extends AstDataExtractor<String> {
         for (ElementAnnotation annotation in element.metadata) {
           if (annotation is ElementAnnotationImpl) {
             var resolved = parseAnnotation(annotation);
-            list.addAll(evaluationToText(resolved));
+            list.addAll(evaluationToText(resolved,
+                getFieldInitializer: getFieldInitializer));
           }
         }
         if (list.isNotEmpty) {

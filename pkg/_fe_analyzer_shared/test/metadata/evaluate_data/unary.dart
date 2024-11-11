@@ -37,11 +37,13 @@ void unary4() {}
 @Helper(!constBool)
 /*member: unary5:
 resolved=UnaryExpression(!StaticGet(constBool))
-evaluate=UnaryExpression(!StaticGet(constBool))*/
+evaluate=BooleanLiteral(false)
+constBool=BooleanLiteral(true)*/
 void unary5() {}
 
 @Helper(-constInt)
 /*member: unary6:
 resolved=UnaryExpression(-StaticGet(constInt))
-evaluate=UnaryExpression(-StaticGet(constInt))*/
+evaluate=IntegerLiteral(value=-42)
+constInt=IntegerLiteral(42)*/
 void unary6() {}

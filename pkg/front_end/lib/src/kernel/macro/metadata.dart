@@ -24,6 +24,7 @@ import '../../builder/never_type_declaration_builder.dart';
 import '../../builder/null_type_declaration_builder.dart';
 import '../../builder/prefix_builder.dart';
 import '../../builder/procedure_builder.dart';
+import '../../source/source_field_builder.dart';
 
 // Coverage-ignore(suite): Not run.
 final Uri dummyUri = Uri.parse('dummy:uri');
@@ -49,6 +50,39 @@ shared.Expression parseAnnotation(
       atToken, fileUri, new AnnotationScope(scope), new References(loader),
       isDartLibrary: _isDartLibrary(importUri, fileUri),
       delayLookupForTesting: delayLookupForTesting);
+}
+
+// Coverage-ignore(suite): Not run.
+/// Creates a [shared.Expression] for the initializer at [initializerToken].
+///
+/// If [delayLookupForTesting] is `true`, identifiers are not looked up in their
+/// corresponding scopes. This means that the return expression will contain
+/// [shared.UnresolvedIdentifier] nodes, as if the identifier wasn't in scope.
+/// A subsequent call to [shared.Expression.resolve] will perform the lookup
+/// a create the resolved expression. This is used in testing to mimic the
+/// scenario in which the declaration is added to the scope via macros.
+shared.Expression parseFieldInitializer(Loader loader, Token initializerToken,
+    Uri importUri, Uri fileUri, LookupScope scope,
+    {bool delayLookupForTesting = false}) {
+  return shared.parseExpression(initializerToken, fileUri,
+      new AnnotationScope(scope), new References(loader),
+      isDartLibrary: _isDartLibrary(importUri, fileUri),
+      delayLookupForTesting: delayLookupForTesting);
+}
+
+// Coverage-ignore(suite): Not run.
+/// Returns the [shared.Expression] for the constant initializer of [reference].
+shared.Expression? getFieldInitializer(shared.FieldReference reference) {
+  if (reference is FieldReference) {
+    FieldBuilder element = reference.builder;
+    if (element is SourceFieldBuilder) {
+      return element.initializerExpression;
+    }
+  } else {
+    assert(false,
+        "Unexpected field reference $reference (${reference.runtimeType})");
+  }
+  return null;
 }
 
 // Coverage-ignore(suite): Not run.

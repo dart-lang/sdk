@@ -23,5 +23,6 @@ void nullCheck2() {}
 @Helper(constInt!)
 /*member: nullCheck3:
 resolved=NullCheck(StaticGet(constInt))
-evaluate=NullCheck(StaticGet(constInt))*/
+evaluate=IntegerLiteral(42)
+constInt=IntegerLiteral(42)*/
 void nullCheck3() {}

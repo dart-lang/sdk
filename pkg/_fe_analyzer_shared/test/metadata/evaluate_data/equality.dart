@@ -47,12 +47,14 @@ void equalityExpression6() {}
 @Helper(constInt == 1)
 /*member: equalityExpression7:
 resolved=EqualityExpression(StaticGet(constInt) == IntegerLiteral(1))
-evaluate=EqualityExpression(StaticGet(constInt) == IntegerLiteral(1))*/
+evaluate=BooleanLiteral(false)
+constInt=IntegerLiteral(42)*/
 void equalityExpression7() {}
 
 @Helper(constInt != 1)
 /*member: equalityExpression8:
 resolved=EqualityExpression(StaticGet(constInt) != IntegerLiteral(1))
-evaluate=EqualityExpression(StaticGet(constInt) != IntegerLiteral(1))*/
+evaluate=BooleanLiteral(true)
+constInt=IntegerLiteral(42)*/
 void equalityExpression8() {}
 

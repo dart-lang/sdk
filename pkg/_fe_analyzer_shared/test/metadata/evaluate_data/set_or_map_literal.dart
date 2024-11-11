@@ -33,7 +33,8 @@ void setOrMapLiteral3() {}
 @Helper({?constInt})
 /*member: setOrMapLiteral4:
 resolved=SetOrMapLiteral({ExpressionElement(?StaticGet(constInt))})
-evaluate=SetOrMapLiteral({ExpressionElement(?StaticGet(constInt))})*/
+evaluate=SetOrMapLiteral({ExpressionElement(IntegerLiteral(42))})
+constInt=IntegerLiteral(42)*/
 void setOrMapLiteral4() {}
 
 @Helper({if (true) 1})
@@ -57,9 +58,8 @@ void setOrMapLiteral6() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   ExpressionElement(IntegerLiteral(1)))})
-evaluate=SetOrMapLiteral({IfElement(
-  StaticGet(constBool),
-  ExpressionElement(IntegerLiteral(1)))})*/
+evaluate=SetOrMapLiteral({ExpressionElement(IntegerLiteral(1))})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral7() {}
 
 @Helper({if (true) 1 else 2})
@@ -86,10 +86,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   ExpressionElement(IntegerLiteral(1)),
   ExpressionElement(IntegerLiteral(2)))})
-evaluate=SetOrMapLiteral({IfElement(
-  StaticGet(constBool),
-  ExpressionElement(IntegerLiteral(1)),
-  ExpressionElement(IntegerLiteral(2)))})*/
+evaluate=SetOrMapLiteral({ExpressionElement(IntegerLiteral(1))})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral10() {}
 
 @Helper({...{0, 1}})
@@ -105,7 +103,12 @@ void setOrMapLiteral11() {}
 @Helper({...constList})
 /*member: setOrMapLiteral12:
 resolved=SetOrMapLiteral({SpreadElement(...StaticGet(constList))})
-evaluate=SetOrMapLiteral({SpreadElement(...StaticGet(constList))})*/
+evaluate=SetOrMapLiteral({
+  ExpressionElement(IntegerLiteral(2)), 
+  ExpressionElement(IntegerLiteral(3))})
+constList=ListLiteral([
+  ExpressionElement(IntegerLiteral(2)), 
+  ExpressionElement(IntegerLiteral(3))])*/
 void setOrMapLiteral12() {}
 
 @Helper({...?{0, 1}})
@@ -121,7 +124,12 @@ void setOrMapLiteral13() {}
 @Helper({...?constList})
 /*member: setOrMapLiteral14:
 resolved=SetOrMapLiteral({SpreadElement(?...StaticGet(constList))})
-evaluate=SetOrMapLiteral({SpreadElement(?...StaticGet(constList))})*/
+evaluate=SetOrMapLiteral({
+  ExpressionElement(IntegerLiteral(2)), 
+  ExpressionElement(IntegerLiteral(3))})
+constList=ListLiteral([
+  ExpressionElement(IntegerLiteral(2)), 
+  ExpressionElement(IntegerLiteral(3))])*/
 void setOrMapLiteral14() {}
 
 @Helper({...?null})
@@ -135,7 +143,8 @@ void setOrMapLiteral15() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   ExpressionElement(?NullLiteral()))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral16() {}
 
 @Helper({if (constBool) ?null else 2})
@@ -144,9 +153,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   ExpressionElement(?NullLiteral()),
   ExpressionElement(IntegerLiteral(2)))})
-evaluate=SetOrMapLiteral({IfElement(
-  UnaryExpression(!StaticGet(constBool)),
-  ExpressionElement(IntegerLiteral(2)))})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral17() {}
 
 @Helper({if (constBool) 1 else ?null})
@@ -155,9 +163,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   ExpressionElement(IntegerLiteral(1)),
   ExpressionElement(?NullLiteral()))})
-evaluate=SetOrMapLiteral({IfElement(
-  StaticGet(constBool),
-  ExpressionElement(IntegerLiteral(1)))})*/
+evaluate=SetOrMapLiteral({ExpressionElement(IntegerLiteral(1))})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral18() {}
 
 @Helper({if (constBool) ?null else ?null})
@@ -166,7 +173,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   ExpressionElement(?NullLiteral()),
   ExpressionElement(?NullLiteral()))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral19() {}
 
 @Helper({if (constBool) ...[]})
@@ -174,7 +182,8 @@ void setOrMapLiteral19() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   SpreadElement(...ListLiteral([])))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral20() {}
 
 @Helper({if (constBool) ...[]})
@@ -182,7 +191,8 @@ void setOrMapLiteral20() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   SpreadElement(...ListLiteral([])))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral21() {}
 
 @Helper({if (constBool) ...?{}})
@@ -190,7 +200,8 @@ void setOrMapLiteral21() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   SpreadElement(?...SetOrMapLiteral({})))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral22() {}
 
 @Helper({if (constBool) ...?{}})
@@ -198,7 +209,8 @@ void setOrMapLiteral22() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   SpreadElement(?...SetOrMapLiteral({})))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral23() {}
 
 @Helper({if (constBool) ...?null})
@@ -206,7 +218,8 @@ void setOrMapLiteral23() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   SpreadElement(?...NullLiteral()))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral24() {}
 
 @Helper({if (constBool) if (constBool) ?null else ?null})
@@ -217,7 +230,9 @@ resolved=SetOrMapLiteral({IfElement(
     StaticGet(constBool),
     ExpressionElement(?NullLiteral()),
     ExpressionElement(?NullLiteral())))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral25() {}
 
 @Helper({0: 1})
@@ -265,19 +280,23 @@ void setOrMapLiteral32() {}
 @Helper({?constInt: 1})
 /*member: setOrMapLiteral33:
 resolved=SetOrMapLiteral({MapEntryElement(?StaticGet(constInt):IntegerLiteral(1))})
-evaluate=SetOrMapLiteral({MapEntryElement(?StaticGet(constInt):IntegerLiteral(1))})*/
+evaluate=SetOrMapLiteral({MapEntryElement(IntegerLiteral(42):IntegerLiteral(1))})
+constInt=IntegerLiteral(42)*/
 void setOrMapLiteral33() {}
 
 @Helper({0: ?constInt})
 /*member: setOrMapLiteral34:
 resolved=SetOrMapLiteral({MapEntryElement(IntegerLiteral(0):?StaticGet(constInt))})
-evaluate=SetOrMapLiteral({MapEntryElement(IntegerLiteral(0):?StaticGet(constInt))})*/
+evaluate=SetOrMapLiteral({MapEntryElement(IntegerLiteral(0):IntegerLiteral(42))})
+constInt=IntegerLiteral(42)*/
 void setOrMapLiteral34() {}
 
 @Helper({?constInt: ?constInt})
 /*member: setOrMapLiteral35:
 resolved=SetOrMapLiteral({MapEntryElement(?StaticGet(constInt):?StaticGet(constInt))})
-evaluate=SetOrMapLiteral({MapEntryElement(?StaticGet(constInt):?StaticGet(constInt))})*/
+evaluate=SetOrMapLiteral({MapEntryElement(IntegerLiteral(42):IntegerLiteral(42))})
+constInt=IntegerLiteral(42)
+constInt=IntegerLiteral(42)*/
 void setOrMapLiteral35() {}
 
 @Helper({if (constBool) ?null: 1})
@@ -285,7 +304,8 @@ void setOrMapLiteral35() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(?NullLiteral():IntegerLiteral(1)))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral36() {}
 
 @Helper({if (constBool) 0: ?null})
@@ -293,7 +313,8 @@ void setOrMapLiteral36() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(IntegerLiteral(0):?NullLiteral()))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral37() {}
 
 @Helper({if (constBool) ?null: ?null})
@@ -301,7 +322,8 @@ void setOrMapLiteral37() {}
 resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(?NullLiteral():?NullLiteral()))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral38() {}
 
 @Helper({if (constBool) ?null: 1 else 2: 3})
@@ -310,9 +332,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(?NullLiteral():IntegerLiteral(1)),
   MapEntryElement(IntegerLiteral(2):IntegerLiteral(3)))})
-evaluate=SetOrMapLiteral({IfElement(
-  UnaryExpression(!StaticGet(constBool)),
-  MapEntryElement(IntegerLiteral(2):IntegerLiteral(3)))})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral39() {}
 
 @Helper({if (constBool) 0: ?null else 2: 3})
@@ -321,9 +342,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(IntegerLiteral(0):?NullLiteral()),
   MapEntryElement(IntegerLiteral(2):IntegerLiteral(3)))})
-evaluate=SetOrMapLiteral({IfElement(
-  UnaryExpression(!StaticGet(constBool)),
-  MapEntryElement(IntegerLiteral(2):IntegerLiteral(3)))})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral40() {}
 
 @Helper({if (constBool) ?null: ?null else 2: 3})
@@ -332,9 +352,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(?NullLiteral():?NullLiteral()),
   MapEntryElement(IntegerLiteral(2):IntegerLiteral(3)))})
-evaluate=SetOrMapLiteral({IfElement(
-  UnaryExpression(!StaticGet(constBool)),
-  MapEntryElement(IntegerLiteral(2):IntegerLiteral(3)))})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral41() {}
 
 @Helper({if (constBool) 1: 2 else ?null: 3})
@@ -343,9 +362,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(IntegerLiteral(1):IntegerLiteral(2)),
   MapEntryElement(?NullLiteral():IntegerLiteral(3)))})
-evaluate=SetOrMapLiteral({IfElement(
-  StaticGet(constBool),
-  MapEntryElement(IntegerLiteral(1):IntegerLiteral(2)))})*/
+evaluate=SetOrMapLiteral({MapEntryElement(IntegerLiteral(1):IntegerLiteral(2))})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral42() {}
 
 @Helper({if (constBool) 1: 2 else 3: ?null})
@@ -354,9 +372,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(IntegerLiteral(1):IntegerLiteral(2)),
   MapEntryElement(IntegerLiteral(3):?NullLiteral()))})
-evaluate=SetOrMapLiteral({IfElement(
-  StaticGet(constBool),
-  MapEntryElement(IntegerLiteral(1):IntegerLiteral(2)))})*/
+evaluate=SetOrMapLiteral({MapEntryElement(IntegerLiteral(1):IntegerLiteral(2))})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral43() {}
 
 @Helper({if (constBool) 1: 2 else ?null: ?null})
@@ -365,9 +382,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(IntegerLiteral(1):IntegerLiteral(2)),
   MapEntryElement(?NullLiteral():?NullLiteral()))})
-evaluate=SetOrMapLiteral({IfElement(
-  StaticGet(constBool),
-  MapEntryElement(IntegerLiteral(1):IntegerLiteral(2)))})*/
+evaluate=SetOrMapLiteral({MapEntryElement(IntegerLiteral(1):IntegerLiteral(2))})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral44() {}
 
 @Helper({if (constBool) ?null: 1 else ?null: 2})
@@ -376,7 +392,8 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(?NullLiteral():IntegerLiteral(1)),
   MapEntryElement(?NullLiteral():IntegerLiteral(2)))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral45() {}
 
 @Helper({if (constBool) 1: ?null else 2: ?null})
@@ -385,5 +402,6 @@ resolved=SetOrMapLiteral({IfElement(
   StaticGet(constBool),
   MapEntryElement(IntegerLiteral(1):?NullLiteral()),
   MapEntryElement(IntegerLiteral(2):?NullLiteral()))})
-evaluate=SetOrMapLiteral({})*/
+evaluate=SetOrMapLiteral({})
+constBool=BooleanLiteral(true)*/
 void setOrMapLiteral46() {}
