@@ -3285,11 +3285,15 @@ class BodyBuilder extends StackListenerImpl
       return new ThisPropertyAccessGenerator(this, nameToken, n,
           thisVariable: inConstructorInitializer ? null : thisVariable);
     } else if (declaration.isExtensionInstanceMember) {
+      // TODO(johnniwinther): Better check for constantContext like below/above?
+      if (constantContext != ConstantContext.none && thisVariable == null) {
+        return new IncompleteErrorGenerator(
+            this, nameToken, fasta.messageNotAConstantExpression);
+      }
       ExtensionBuilder extensionBuilder =
           declaration.parent as ExtensionBuilder;
       MemberBuilder? setterBuilder =
           _getCorrespondingSetterBuilder(scope, declaration, name, nameOffset);
-      // TODO(johnniwinther): Check for constantContext like below?
       if (declaration.isField) {
         declaration = null;
       }
