@@ -174,7 +174,7 @@ void f() {
 ''';
     var expected = '''
 ```dart
-MyEnum one
+MyEnum get one
 ```
 Type: `MyEnum`
 
@@ -209,7 +209,7 @@ class A {
 ''';
     var expected = '''
 ```dart
-int _
+int get _
 ```
 Type: `int`
 
@@ -729,7 +729,7 @@ final data = A<String?>().[!myF^ield!];
     var expectedHoverContent =
         '''
 ```dart
-T? myField
+String? get myField
 ```
 Type: `String?`
 
@@ -774,7 +774,7 @@ final data = A<String?>().[!myG^etter!];
     var expectedHoverContent =
         '''
 ```dart
-T? get myGetter
+String? get myGetter
 ```
 Type: `String?`
 
@@ -822,7 +822,7 @@ void f() {
     var expectedHoverContent =
         '''
 ```dart
-set mySetter(T value)
+set mySetter(String value)
 ```
 Type: `String`
 
@@ -914,7 +914,7 @@ int f() => [!^_!];
 ''';
     var expected = '''
 ```dart
-int _
+int get _
 ```
 Type: `int`
 
