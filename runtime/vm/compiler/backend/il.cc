@@ -6564,7 +6564,12 @@ bool IfThenElseInstr::Supports(ConditionInstr* condition,
     // by if-conversion.
     return !strict_compare->needs_number_check();
   }
-  if (auto* comparison = condition->AsComparison()) {
+  if (auto* equality = condition->AsEqualityCompare()) {
+    // Non-smi comparisons are not supported by if-conversion.
+    return (equality->input_representation() == kTagged) &&
+           !equality->is_null_aware();
+  }
+  if (auto* comparison = condition->AsRelationalOp()) {
     // Non-smi comparisons are not supported by if-conversion.
     return comparison->input_representation() == kTagged;
   }
