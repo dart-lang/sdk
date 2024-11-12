@@ -44,13 +44,6 @@ class RemoveQuestionMark extends ResolvedCorrectionProducer {
       });
     }
     if (targetNode is NullCheckPattern) {
-      var valueType = targetNode.pattern.matchedValueType;
-      // Ignore if the condition is of invalid type.
-      // I.e. when missing imports for the type, don't remove '?'.
-      if (valueType is InvalidType) {
-        return;
-      }
-
       var questionMark = targetNode.operator;
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.token(questionMark));

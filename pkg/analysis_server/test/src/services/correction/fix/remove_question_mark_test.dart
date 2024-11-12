@@ -77,9 +77,7 @@ void f() {
   }
 }
 ''');
-    await assertNoFix(
-        errorFilter: (error) =>
-            error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS);
+    await assertNoFix();
   }
 
   Future<void> test_casePatternSwitchInvalidType() async {
@@ -93,9 +91,7 @@ void f() {
   }
 }
 ''');
-    await assertNoFix(
-        errorFilter: (error) =>
-            error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS);
+    await assertNoFix();
   }
 
   Future<void> test_catchClause() async {
