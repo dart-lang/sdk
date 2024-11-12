@@ -320,10 +320,16 @@ abstract class ExecutableMember extends Member
   }
 
   @override
-  String displayString2(
-      {bool multiline = false, bool preferTypeAlias = false}) {
-    return _element2.displayString2(
-        multiline: multiline, preferTypeAlias: preferTypeAlias);
+  String displayString2({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+  }) {
+    var builder = ElementDisplayStringBuilder(
+      multiline: multiline,
+      preferTypeAlias: preferTypeAlias,
+    );
+    appendTo(builder);
+    return builder.toString();
   }
 
   @override
@@ -1341,7 +1347,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(
       this,
-      (isGetter ? 'get ' : 'set ') + name,
+      (isGetter ? 'get ' : 'set ') + displayName,
     );
   }
 

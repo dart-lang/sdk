@@ -44,7 +44,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     var result = session?.getParsedUnit(path);
 
     if (cancellationToken.isCancellationRequested) {
-      return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+      return cancelled(cancellationToken);
     }
 
     if (result is! ParsedUnitResult) {

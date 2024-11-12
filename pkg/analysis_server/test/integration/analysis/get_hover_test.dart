@@ -50,9 +50,8 @@ void f() {
   /// [isCore] means the hover info should indicate that the element is defined
   /// in dart.core.  [docRegexp], if specified, should match the documentation
   /// string of the element.  [isLiteral] means the hover should indicate a
-  /// literal value.  [parameterRegexps] means is a set of regexps which should
-  /// match the hover parameters.  [propagatedType], if specified, is the
-  /// expected propagated type of the element.
+  /// literal value.  [parameter] is a matcher for the parameter, or the
+  /// parameter is expected to be null if not supplied.
   Future<AnalysisGetHoverResult?> checkHover(
     String target,
     int length,
@@ -63,7 +62,7 @@ void f() {
     bool isCore = false,
     String? docRegexp,
     bool isLiteral = false,
-    List<String>? parameterRegexps,
+    Matcher? parameter = isNull,
   }) {
     var offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) async {
@@ -95,14 +94,7 @@ void f() {
         }
       }
       expect(info.elementKind, equals(kind));
-      if (parameterRegexps == null) {
-        expect(info.parameter, isNull);
-      } else {
-        expect(info.parameter, isString);
-        for (var parameterRegexp in parameterRegexps) {
-          expect(info.parameter, matches(parameterRegexp));
-        }
-      }
+      expect(info.parameter, parameter);
       if (staticTypeRegexps == null) {
         expect(info.staticType, isNull);
       } else {
@@ -200,7 +192,7 @@ void f() {
       'topLevelVar.length;',
       11,
       ['List', 'topLevelVar'],
-      'top level variable',
+      'getter',
       ['List'],
     );
 
@@ -232,7 +224,6 @@ void f() {
       ['int'],
       isLocal: true,
       docRegexp: 'Documentation for func',
-      parameterRegexps: ['.*'],
     );
 
     await checkHover(
@@ -252,7 +243,7 @@ void f() {
       'local variable',
       ['num'],
       isLocal: true,
-      parameterRegexps: ['.*'],
+      parameter: equals('dynamic value'),
     );
 
     await checkHover(
@@ -271,7 +262,7 @@ void f() {
       null,
       ['int'],
       isLiteral: true,
-      parameterRegexps: ['int', 'param'],
+      parameter: equals('int param'),
     );
 
     await checkNoHover('comment');

@@ -464,8 +464,11 @@ class IsolateManager {
 
   /// Sends an event informing the client that a thread is stopped at entry.
   void sendStoppedOnEntryEvent(ThreadInfo thread) {
-    _adapter.sendEvent(
-        StoppedEventBody(reason: 'entry', threadId: thread.threadId));
+    _adapter.sendEvent(StoppedEventBody(
+      reason: 'entry',
+      threadId: thread.threadId,
+      allThreadsStopped: false,
+    ));
   }
 
   /// Records breakpoints for [uri].
@@ -709,6 +712,7 @@ class IsolateManager {
         StoppedEventBody(
           reason: reason,
           threadId: thread.threadId,
+          allThreadsStopped: false,
           text: text,
         ),
       );
@@ -724,7 +728,13 @@ class IsolateManager {
       // necessary when the user has clicked Continue because it is implied.
       // However, resume events can now be triggered by other things (eg. other
       // in other IDEs or DevTools) so we must notify the client.
-      _adapter.sendEvent(ContinuedEventBody(threadId: thread.threadId));
+      _adapter.sendEvent(ContinuedEventBody(
+        threadId: thread.threadId,
+        // Although the DAP spec makes it seem like this defaults to false,
+        // VS Code treats it as true. As such, always provide it explicitly.
+        // https://github.com/microsoft/vscode/issues/224832#issuecomment-2469552752
+        allThreadsContinued: false,
+      ));
       thread.paused = false;
       thread.pauseEvent = null;
       thread.exceptionReference = null;

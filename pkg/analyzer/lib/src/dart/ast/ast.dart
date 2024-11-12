@@ -6087,13 +6087,11 @@ sealed class ExpressionImpl extends AstNodeImpl
   @experimental
   @override
   FormalParameterElement? get correspondingParameter {
-    if (staticParameterElement case FormalParameterFragment fragment) {
-      return fragment.element;
-    }
-    if (staticParameterElement case ParameterMember member) {
-      return member;
-    }
-    return null;
+    return switch (staticParameterElement) {
+      FormalParameterFragment(:var element) => element,
+      ParameterMember member => member,
+      _ => null,
+    };
   }
 
   @override

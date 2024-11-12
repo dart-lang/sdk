@@ -181,7 +181,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       // Check the rename is valid here.
       var initStatus = await refactoring.checkInitialConditions();
       if (token.isCancellationRequested) {
-        return cancelled();
+        return cancelled(token);
       }
       if (initStatus.hasFatalError) {
         return error(
@@ -203,7 +203,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       // Final validation.
       var finalStatus = await refactoring.checkFinalConditions();
       if (token.isCancellationRequested) {
-        return cancelled();
+        return cancelled(token);
       }
       if (finalStatus.hasFatalError) {
         return error(
@@ -227,7 +227,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
         );
 
         if (token.isCancellationRequested) {
-          return cancelled();
+          return cancelled(token);
         }
 
         if (userChoice != UserPromptActions.renameAnyway) {
@@ -248,7 +248,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       refactoring.includePotential = false;
       var change = await refactoring.createChange();
       if (token.isCancellationRequested) {
-        return cancelled();
+        return cancelled(token);
       }
 
       // Before we send anything back, ensure the original file didn't change

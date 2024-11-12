@@ -346,8 +346,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   List<LintRule> lintRules = [];
 
-  /// Indicates whether linter exceptions should be propagated to the caller (by
-  /// re-throwing them).
+  /// Whether linter exceptions should be propagated to the caller (by
+  /// rethrowing them).
   bool propagateLinterExceptions;
 
   @override

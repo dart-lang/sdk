@@ -35,6 +35,9 @@ abstract class MacroRunner {
 }
 
 abstract class RunningMacro {
+  /// The phases the macro runs in.
+  Future<Set<Phase>> get phasesToExecute;
+
   /// Executes the macro's phase two, declarations.
   Future<MacroExecutionResult> executeDeclarationsPhase(MacroTarget target,
       DeclarationPhaseIntrospector declarationsPhaseIntrospector);

@@ -42,7 +42,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     var result = await requireResolvedUnit(path);
 
     if (cancellationToken.isCancellationRequested) {
-      return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+      return cancelled(cancellationToken);
     }
 
     return result.mapResult((result) async {

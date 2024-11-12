@@ -219,9 +219,19 @@ main() {
       final eventsFuture = client.allEvents
           .where((e) => interestingEvents.contains(e.event))
           .map((e) {
-        // Map onto a descriptive string for verifying later.
-        final reason = (e.body as Map<String, Object?>)['reason'] as String?;
-        return reason != null ? '${e.event} ($reason)' : e.event;
+        // Create a descriptive string for verifying later.
+        final body = e.body as Map<String, Object?>;
+        const interestingFields = [
+          'reason',
+          'threadId',
+          'allThreadsContinued',
+          'allThreadsStopped'
+        ];
+        final description = interestingFields
+            .where(body.containsKey)
+            .map((field) => '$field: ${body[field]}')
+            .join(', ');
+        return description.isNotEmpty ? '${e.event} ($description)' : e.event;
       }).toList();
 
       // Start the program and wait to pause on `debugger()`.
@@ -242,27 +252,27 @@ main() {
       expect(
         await eventsFuture,
         [
-          'thread (started)',
-          'stopped (entry)',
-          'continued',
+          'thread (reason: started, threadId: $threadId)',
+          'stopped (reason: entry, threadId: $threadId, allThreadsStopped: false)',
+          'continued (threadId: $threadId, allThreadsContinued: false)',
           // stop on debugger()
-          'stopped (step)',
+          'stopped (reason: step, threadId: $threadId, allThreadsStopped: false)',
           // step 1
-          'continued',
-          'stopped (step)',
+          'continued (threadId: $threadId, allThreadsContinued: false)',
+          'stopped (reason: step, threadId: $threadId, allThreadsStopped: false)',
           // step 2
-          'continued',
-          'stopped (step)',
+          'continued (threadId: $threadId, allThreadsContinued: false)',
+          'stopped (reason: step, threadId: $threadId, allThreadsStopped: false)',
           // step 3
-          'continued',
-          'stopped (step)',
+          'continued (threadId: $threadId, allThreadsContinued: false)',
+          'stopped (reason: step, threadId: $threadId, allThreadsStopped: false)',
           // continue
-          'continued',
+          'continued (threadId: $threadId, allThreadsContinued: false)',
           // pause-on-exit to drain stdout and handle looking up URIs
-          'stopped (exit)',
+          'stopped (reason: exit, threadId: $threadId, allThreadsStopped: false)',
           // finished
-          'thread (exited)',
-          'terminated',
+          'thread (reason: exited, threadId: $threadId)',
+          'terminated'
         ],
       );
     });

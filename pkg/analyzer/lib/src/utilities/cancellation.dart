@@ -4,11 +4,23 @@
 
 class CancelableToken extends CancellationToken {
   bool _isCancelled = false;
+  int? _cancellationCode;
+  String? _cancellationReason;
+
+  /// An optional code for why this request was cancelled.
+  int? get cancellationCode => _cancellationCode;
+
+  /// An description for why this request was cancelled.
+  String? get cancellationReason => _cancellationReason;
 
   @override
   bool get isCancellationRequested => _isCancelled;
 
-  void cancel() => _isCancelled = true;
+  void cancel({int? code, String? reason}) {
+    _isCancelled = true;
+    _cancellationCode = code;
+    _cancellationReason = reason;
+  }
 }
 
 /// A token used to signal cancellation of an operation. This allows computation
@@ -41,11 +53,11 @@ class _WrappedCancelableToken extends CancelableToken {
       super.isCancellationRequested || _child.isCancellationRequested;
 
   @override
-  void cancel() {
-    super.cancel();
+  void cancel({int? code, String? reason}) {
+    super.cancel(code: code, reason: reason);
     var child = _child;
     if (child is CancelableToken) {
-      child.cancel();
+      child.cancel(code: code, reason: reason);
     }
   }
 }

@@ -7,7 +7,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
 import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -63,20 +63,16 @@ class DartUnitHoverComputer {
       var range = _hoverRange(node, locationEntity);
       var hover = HoverInformation(range.offset, range.length);
       // element
-      var element = ElementLocator.locate(node);
+      var element = ElementLocator.locate2(node);
       if (element != null) {
-        // use the non-synthetic element to get things like dartdoc from the
-        // underlying field (and resolved type args), except for `enum.values`
-        // because that will resolve to the enum itself.
-        if (_useNonSyntheticElement(element)) {
-          element = element.nonSynthetic;
-        }
         // short code that illustrates the element meaning.
         hover.elementDescription = _elementDisplayString(node, element);
         hover.elementKind = element.kind.displayName;
-        hover.isDeprecated = element.hasDeprecated;
+        if (element case Annotatable a) {
+          hover.isDeprecated = a.metadata2.hasDeprecated;
+        }
         // not local element
-        if (element.enclosingElement3 is! ExecutableElement) {
+        if (element.enclosingElement2 is! ExecutableElement2) {
           // containing class
           hover.containingClassDescription = _containingClass(element);
           // containing library
@@ -85,7 +81,7 @@ class DartUnitHoverComputer {
           hover.containingLibraryPath = libraryInfo?.libraryPath;
         }
         // documentation
-        hover.dartdoc = _documentationComputer.computePreferred(
+        hover.dartdoc = _documentationComputer.computePreferred2(
           element,
           documentationPreference,
         );
@@ -102,8 +98,8 @@ class DartUnitHoverComputer {
   }
 
   /// Gets the name of the containing class of [element].
-  String? _containingClass(Element element) {
-    var containingClass = element.thisOrAncestorOfType<InterfaceElement>();
+  String? _containingClass(Element2 element) {
+    var containingClass = element.thisOrAncestorOfType2<InterfaceElement2>();
     return containingClass != null && containingClass != element
         ? containingClass.displayName
         : null;
@@ -114,8 +110,8 @@ class DartUnitHoverComputer {
   /// This is usually `element.getDisplayString()` but may contain additional
   /// information to disambiguate things like constructors from types (and
   /// whether they are const).
-  String? _elementDisplayString(AstNode node, Element? element) {
-    var displayString = element?.getDisplayString(multiline: true);
+  String? _elementDisplayString(AstNode node, Element2? element) {
+    var displayString = element?.displayString2(multiline: true);
 
     if (displayString != null &&
         node is InstanceCreationExpression &&
@@ -150,13 +146,14 @@ class DartUnitHoverComputer {
   }
 
   /// Returns information about the library that contains [element].
-  _LibraryInfo _libraryInfo(Element element) {
-    var library = element.library;
+  _LibraryInfo _libraryInfo(Element2 element) {
+    var library = element.library2;
     if (library == null) {
       return null;
     }
 
-    var uri = library.source.uri;
+    var definingSource = library.firstFragment.source;
+    var uri = definingSource.uri;
     var analysisSession = _unit.declaredElement?.session;
 
     String? libraryName, libraryPath;
@@ -178,7 +175,7 @@ class DartUnitHoverComputer {
     } else {
       libraryName = uri.toString();
     }
-    libraryPath = library.source.fullName;
+    libraryPath = definingSource.fullName;
 
     return (libraryName: libraryName, libraryPath: libraryPath);
   }
@@ -211,10 +208,19 @@ class DartUnitHoverComputer {
   ///
   /// Returns `null` if the parameter is not an expression.
   String? _parameterDisplayString(AstNode node) {
-    if (node is Expression) {
-      return _elementDisplayString(node, node.staticParameterElement);
+    if (node is! Expression) {
+      return null;
     }
-    return null;
+    var parameter = node.correspondingParameter;
+    return switch (parameter?.enclosingElement2) {
+      // Expressions passed as arguments to setters and binary expressions
+      // will have parameters here but we don't want them to show as such in
+      // hovers because information about those functions are already available
+      // by hovering over the function name or the operator.
+      SetterElement() => null,
+      MethodElement2 method when method.isOperator => null,
+      _ => _elementDisplayString(node, parameter),
+    };
   }
 
   /// Adjusts the target node for constructors.
@@ -237,15 +243,16 @@ class DartUnitHoverComputer {
   }
 
   /// Returns information about the static type of [node].
-  String? _typeDisplayString(AstNode node, Element? element) {
+  String? _typeDisplayString(AstNode node, Element2? element) {
     var parent = node.parent;
     DartType? staticType;
     if (node is Expression &&
         (element == null ||
-            element is VariableElement ||
-            element is PropertyAccessorElement)) {
+            element is VariableElement2 ||
+            element is GetterElement ||
+            element is SetterElement)) {
       staticType = _getTypeOfDeclarationOrReference(node);
-    } else if (element is VariableElement) {
+    } else if (element is VariableElement2) {
       staticType = element.type;
     } else if (parent is MethodInvocation && parent.methodName == node) {
       staticType = parent.staticInvokeType;
@@ -260,24 +267,10 @@ class DartUnitHoverComputer {
     return staticType?.getDisplayString();
   }
 
-  /// Whether to use the non-synthetic element for hover information.
-  ///
-  /// Usually we want this because the non-synthetic element will include the
-  /// users DartDoc and show any type arguments as declared.
-  ///
-  /// For enum.values, nonSynthetic returns the enum itself which causes
-  /// incorrect types to be shown and so we stick with the synthetic getter.
-  bool _useNonSyntheticElement(Element element) {
-    return element is PropertyAccessorElement &&
-        !(element.enclosingElement3 is EnumElement &&
-            element.name == 'values' &&
-            element.isSynthetic);
-  }
-
   static DartType? _getTypeOfDeclarationOrReference(Expression node) {
     if (node is SimpleIdentifier) {
-      var element = node.staticElement;
-      if (element is VariableElement) {
+      var element = node.element;
+      if (element is VariableElement2) {
         if (node.inDeclarationContext()) {
           return element.type;
         }

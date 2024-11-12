@@ -80,7 +80,7 @@ abstract class AbstractSemanticTokensHandler<T>
         var pluginHighlightRegions = getPluginResults(path).flattenedToList;
 
         if (token.isCancellationRequested) {
-          return cancelled();
+          return cancelled(token);
         }
 
         var encoder = SemanticTokenEncoder();

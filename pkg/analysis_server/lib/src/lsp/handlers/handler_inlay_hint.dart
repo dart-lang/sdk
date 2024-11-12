@@ -47,7 +47,7 @@ class InlayHintHandler
       }
 
       if (token.isCancellationRequested) {
-        return cancelled();
+        return cancelled(token);
       }
 
       return result.mapResult((result) async {
