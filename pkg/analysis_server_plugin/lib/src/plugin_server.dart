@@ -267,7 +267,8 @@ class PluginServer {
       }
     }
 
-    currentUnit.unit.accept(AnalysisRuleVisitor(nodeRegistry));
+    currentUnit.unit.accept(
+        AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
     var errorsAndProtocolErrors = [

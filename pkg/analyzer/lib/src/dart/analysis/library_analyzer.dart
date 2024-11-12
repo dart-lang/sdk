@@ -398,10 +398,6 @@ class LibraryAnalyzer {
       timer?.stop();
     }
 
-    var logException = AnalysisRuleExceptionHandler(
-      propagateExceptions: _analysisOptions.propagateLinterExceptions,
-    ).logException;
-
     for (var MapEntry(key: fileAnalysis, value: currentUnit)
         in analysesToContextUnits.entries) {
       // Skip computing lints on macro generated augmentations.
@@ -417,13 +413,19 @@ class LibraryAnalyzer {
 
       // Run lint rules that handle specific node types.
       unit.accept(
-        AnalysisRuleVisitor(nodeRegistry, logException),
+        AnalysisRuleVisitor(
+          nodeRegistry,
+          shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
+        ),
       );
     }
 
     // Now that all lint rules have visited the code in each of the compilation
     // units, we can accept each lint rule's `afterLibrary` hook.
-    AnalysisRuleVisitor(nodeRegistry, logException).afterLibrary();
+    AnalysisRuleVisitor(
+      nodeRegistry,
+      shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
+    ).afterLibrary();
   }
 
   void _computeVerifyErrors(FileAnalysis fileAnalysis) {
