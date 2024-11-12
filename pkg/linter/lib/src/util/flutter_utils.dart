@@ -10,6 +10,13 @@ import 'package:analyzer/dart/element/type.dart';
 import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
+const _nameBuildContext = 'BuildContext';
+const _nameContainer = 'Container';
+const _nameSizedBox = 'SizedBox';
+const _nameState = 'State';
+const _nameStatefulWidget = 'StatefulWidget';
+const _nameWidget = 'Widget';
+
 var _collectionInterfaces = <InterfaceTypeDefinition>[
   InterfaceTypeDefinition('List', 'dart.core'),
   InterfaceTypeDefinition('Map', 'dart.core'),
@@ -19,6 +26,10 @@ var _collectionInterfaces = <InterfaceTypeDefinition>[
 ];
 
 _Flutter _flutterInstance = _Flutter('flutter', 'package:flutter');
+
+final Uri _uriFramework = Uri.parse(
+  'package:flutter/src/widgets/framework.dart',
+);
 
 _Flutter get _flutter => _flutterInstance;
 
@@ -64,13 +75,6 @@ bool isWidgetType(DartType? type) => _flutter.isWidgetType(type);
 ///
 /// See pkg/analysis_server/lib/src/utilities/flutter.dart.
 class _Flutter {
-  static const _nameBuildContext = 'BuildContext';
-  static const _nameContainer = 'Container';
-  static const _nameSizedBox = 'SizedBox';
-  static const _nameState = 'State';
-  static const _nameStatefulWidget = 'StatefulWidget';
-  static const _nameWidget = 'Widget';
-
   final String packageName;
   final String widgetsUri;
 
@@ -122,6 +126,9 @@ class _Flutter {
   bool isExactWidget(ClassElement element) =>
       isExactly(element, _nameWidget, _uriFramework);
 
+  bool isExactWidget2(ClassElement2 element) =>
+      isExactly2(element, _nameWidget, _uriFramework);
+
   bool isExactWidgetTypeContainer(DartType? type) =>
       type is InterfaceType &&
       isExactly(type.element, _nameContainer, _uriContainer);
@@ -164,4 +171,40 @@ class _Flutter {
 
   bool isWidgetType(DartType? type) =>
       type is InterfaceType && isWidget(type.element3);
+}
+
+// TODO(pq): based on similar extension in server. (Move and reuse.)
+extension InterfaceElementExtension2 on InterfaceElement2? {
+  bool get extendsWidget => _hasWidgetAsAscendant(this, {});
+
+  bool get isExactlyWidget => _isExactly(_nameWidget, _uriFramework);
+
+  /// Whether this is the Flutter class `Widget`, or a subtype.
+  bool get isWidget {
+    var self = this;
+    if (self is! ClassElement2) return false;
+
+    if (isExactlyWidget) return true;
+
+    return self.allSupertypes
+        .any((type) => type.element3._isExactly(_nameWidget, _uriFramework));
+  }
+
+  /// Whether this is the exact [type] defined in the file with the given [uri].
+  bool _isExactly(String type, Uri uri) {
+    var self = this;
+    return self is ClassElement2 &&
+        self.name3 == type &&
+        self.firstFragment.libraryFragment.source.uri == uri;
+  }
+
+  static bool _hasWidgetAsAscendant(
+      InterfaceElement2? element, Set<InterfaceElement2> alreadySeen) {
+    if (element == null) return false;
+    if (element.isExactlyWidget) return true;
+
+    if (!alreadySeen.add(element)) return false;
+
+    return _hasWidgetAsAscendant(element.supertype?.element3, alreadySeen);
+  }
 }

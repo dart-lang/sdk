@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -39,11 +39,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var classElement = node.declaredElement;
+    var classElement = node.declaredFragment?.element;
     if (classElement != null &&
         classElement.isPublic &&
-        hasWidgetAsAscendant(classElement) &&
-        classElement.allConstructors.where((e) => !e.isSynthetic).isEmpty) {
+        classElement.extendsWidget &&
+        classElement.constructors2.where((e) => !e.isSynthetic).isEmpty) {
       rule.reportLintForToken(node.name);
     }
     super.visitClassDeclaration(node);
@@ -53,26 +53,26 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.isAugmentation) return;
 
-    var constructorElement = node.declaredElement;
+    var constructorElement = node.declaredFragment?.element;
     if (constructorElement == null) {
       return;
     }
-    var classElement = constructorElement.enclosingElement3;
+    var classElement = constructorElement.enclosingElement2;
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
         classElement.isPublic &&
-        classElement is ClassElement &&
-        hasWidgetAsAscendant(classElement) &&
-        !isExactWidget(classElement) &&
+        classElement is ClassElement2 &&
+        !classElement.isExactlyWidget &&
+        classElement.extendsWidget &&
         !_hasKeySuperParameterInitializerArg(node) &&
         !node.initializers.any((initializer) {
           if (initializer is SuperConstructorInvocation) {
-            var staticElement = initializer.staticElement;
+            var staticElement = initializer.element;
             return staticElement != null &&
                 (!_defineKeyParameter(staticElement) ||
                     _defineKeyArgument(initializer.argumentList));
           } else if (initializer is RedirectingConstructorInvocation) {
-            var staticElement = initializer.staticElement;
+            var staticElement = initializer.element;
             return staticElement != null &&
                 (!_defineKeyParameter(staticElement) ||
                     _defineKeyArgument(initializer.argumentList));
@@ -86,15 +86,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
-      .any((a) => a.staticParameterElement?.name == 'key');
+      .any((a) => a.correspondingParameter?.name3 == 'key');
 
-  bool _defineKeyParameter(ConstructorElement element) =>
-      element.parameters.any((e) => e.name == 'key' && _isKeyType(e.type));
+  bool _defineKeyParameter(ConstructorElement2 element) =>
+      element.formalParameters
+          .any((e) => e.name3 == 'key' && _isKeyType(e.type));
 
   bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
-    for (var parameter in node.parameters.parameters) {
-      var element = parameter.declaredElement;
-      if (element is SuperFormalParameterElement && element.name == 'key') {
+    for (var parameter in node.parameters.parameterFragments) {
+      var element = parameter?.element;
+      if (element is SuperFormalParameterElement2 && element.name3 == 'key') {
         return true;
       }
     }

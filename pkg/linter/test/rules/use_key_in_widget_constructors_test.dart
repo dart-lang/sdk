@@ -127,6 +127,24 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  test_implementsWidget() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class AbstractWidget implements Widget {}
+''');
+  }
+
+  test_key_keyPassedToSuper() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class MyWidget extends StatelessWidget {
+  MyWidget({Key? key}) : super(key: key ?? Key(''));
+}
+''');
+  }
+
   test_keyUse_inAugmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
