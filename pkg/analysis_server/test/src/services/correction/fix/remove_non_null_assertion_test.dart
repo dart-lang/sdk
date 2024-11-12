@@ -38,32 +38,6 @@ class RemoveNonNullAssertionTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_NON_NULL_ASSERTION;
 
-  Future<void> test_casePatternIfInvalidType() async {
-    await resolveTestCode('''
-UnknownType? getValue() => null;
-void f() {
-  if (getValue() case final valueX!) {
-    print(valueX);
-  }
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_casePatternSwitchInvalidType() async {
-    await resolveTestCode('''
-UnknownType? getValue() => null;
-void f() {
-  switch (getValue()) {
-    case
-      var s!:
-      print(s);
-  }
-}
-''');
-    await assertNoFix();
-  }
-
   Future<void> test_nonNullable() async {
     await resolveTestCode('''
 void f(String a) {

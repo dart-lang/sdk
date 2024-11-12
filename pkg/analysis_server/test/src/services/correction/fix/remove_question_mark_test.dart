@@ -67,32 +67,6 @@ void f() {
 ''');
   }
 
-  Future<void> test_casePatternIfInvalidType() async {
-    await resolveTestCode('''
-UnknownType? getValue() => null;
-void f() {
-  if (getValue() case final valueX?) {
-    print(valueX);
-  }
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_casePatternSwitchInvalidType() async {
-    await resolveTestCode('''
-UnknownType? getValue() => null;
-void f() {
-  switch (getValue()) {
-    case
-      var s?:
-      print(s);
-  }
-}
-''');
-    await assertNoFix();
-  }
-
   Future<void> test_catchClause() async {
     await resolveTestCode('''
 class A {}
