@@ -174,6 +174,7 @@ class MicroAssembler : public AssemblerBase {
   void mv(Register rd, Register rs) { addi(rd, rs, 0); }
   void not_(Register rd, Register rs) { xori(rd, rs, -1); }
   void neg(Register rd, Register rs) { sub(rd, ZR, rs); }
+  void zextb(Register rd, Register rs) { andi(rd, rs, 0xFF); }
 
   void snez(Register rd, Register rs) { sltu(rd, ZR, rs); }
   void seqz(Register rd, Register rs) { sltiu(rd, rs, 1); }
@@ -695,6 +696,22 @@ class MicroAssembler : public AssemblerBase {
 
   void c_nop();
   void c_ebreak();
+
+  // ==== Zcb: Additional code-size saving instructions ====
+  void c_lbu(Register rd, Address addr);
+  void c_lh(Register rd, Address addr);
+  void c_lhu(Register rd, Address addr);
+  void c_sb(Register rs2, Address addr);
+  void c_sh(Register rs2, Address addr);
+  void c_zextb(Register rd, Register rs1);
+  void c_sextb(Register rd, Register rs1);
+  void c_zexth(Register rd, Register rs1);
+  void c_sexth(Register rd, Register rs1);
+#if XLEN >= 64
+  void c_zextw(Register rd, Register rs1);
+#endif
+  void c_mul(Register rd, Register rs1, Register rs2);
+  void c_not(Register rd, Register rs1);
 
  protected:
   intptr_t UpdateCBOffset(intptr_t branch_position, intptr_t new_offset);

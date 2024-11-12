@@ -273,6 +273,11 @@ void MicroAssembler::lb(Register rd, Address addr) {
 
 void MicroAssembler::lh(Register rd, Address addr) {
   ASSERT(Supports(RV_I));
+  if (Supports(RV_Zcb) && IsCRdp(rd) && IsCRs1p(addr.base()) &&
+      IsCMem2Imm(addr.offset())) {
+    c_lh(rd, addr);
+    return;
+  }
   EmitIType(addr.offset(), addr.base(), LH, rd, LOAD);
 }
 
@@ -293,21 +298,41 @@ void MicroAssembler::lw(Register rd, Address addr) {
 
 void MicroAssembler::lbu(Register rd, Address addr) {
   ASSERT(Supports(RV_I));
+  if (Supports(RV_Zcb) && IsCRdp(rd) && IsCRs1p(addr.base()) &&
+      IsCMem1Imm(addr.offset())) {
+    c_lbu(rd, addr);
+    return;
+  }
   EmitIType(addr.offset(), addr.base(), LBU, rd, LOAD);
 }
 
 void MicroAssembler::lhu(Register rd, Address addr) {
   ASSERT(Supports(RV_I));
+  if (Supports(RV_Zcb) && IsCRdp(rd) && IsCRs1p(addr.base()) &&
+      IsCMem2Imm(addr.offset())) {
+    c_lhu(rd, addr);
+    return;
+  }
   EmitIType(addr.offset(), addr.base(), LHU, rd, LOAD);
 }
 
 void MicroAssembler::sb(Register rs2, Address addr) {
   ASSERT(Supports(RV_I));
+  if (Supports(RV_Zcb) && IsCRs2p(rs2) && IsCRs1p(addr.base()) &&
+      IsCMem1Imm(addr.offset())) {
+    c_sb(rs2, addr);
+    return;
+  }
   EmitSType(addr.offset(), rs2, addr.base(), SB, STORE);
 }
 
 void MicroAssembler::sh(Register rs2, Address addr) {
   ASSERT(Supports(RV_I));
+  if (Supports(RV_Zcb) && IsCRs2p(rs2) && IsCRs1p(addr.base()) &&
+      IsCMem2Imm(addr.offset())) {
+    c_sh(rs2, addr);
+    return;
+  }
   EmitSType(addr.offset(), rs2, addr.base(), SH, STORE);
 }
 
@@ -371,6 +396,12 @@ void MicroAssembler::sltiu(Register rd, Register rs1, intptr_t imm) {
 
 void MicroAssembler::xori(Register rd, Register rs1, intptr_t imm) {
   ASSERT(Supports(RV_I));
+  if (Supports(RV_Zcb)) {
+    if ((rd == rs1) && IsCRs1p(rs1) && (imm == -1)) {
+      c_not(rd, rs1);
+      return;
+    }
+  }
   EmitIType(imm, rs1, XORI, rd, OPIMM);
 }
 
@@ -385,6 +416,12 @@ void MicroAssembler::andi(Register rd, Register rs1, intptr_t imm) {
     if ((rd == rs1) && IsCRs1p(rs1) && IsCIImm(imm)) {
       c_andi(rd, rs1, imm);
       return;
+    }
+    if (Supports(RV_Zcb)) {
+      if ((rd == rs1) && IsCRs1p(rs1) && (imm == 0xFF)) {
+        c_zextb(rd, rs1);
+        return;
+      }
     }
   }
   EmitIType(imm, rs1, ANDI, rd, OPIMM);
@@ -702,6 +739,16 @@ void MicroAssembler::sraw(Register rd, Register rs1, Register rs2) {
 
 void MicroAssembler::mul(Register rd, Register rs1, Register rs2) {
   ASSERT(Supports(RV_M));
+  if (Supports(RV_Zcb)) {
+    if ((rd == rs1) && IsCRs1p(rs1) && IsCRs2p(rs2)) {
+      c_mul(rd, rs1, rs2);
+      return;
+    }
+    if ((rd == rs2) && IsCRs1p(rs1) && IsCRs2p(rs2)) {
+      c_mul(rd, rs2, rs1);
+      return;
+    }
+  }
   EmitRType(MULDIV, rs2, rs1, MUL, rd, OP);
 }
 
@@ -1401,6 +1448,11 @@ void MicroAssembler::fmvdx(FRegister rd, Register rs1) {
 #if XLEN >= 64
 void MicroAssembler::adduw(Register rd, Register rs1, Register rs2) {
   ASSERT(Supports(RV_Zba));
+  if (Supports(RV_Zcb)) {
+    if ((rd == rs1) && IsCRs1p(rs1) && (rs2 == ZR)) {
+      return c_zextw(rd, rs1);
+    }
+  }
   EmitRType(ADDUW, rs2, rs1, F3_0, rd, OP32);
 }
 #endif
@@ -1514,16 +1566,31 @@ void MicroAssembler::minu(Register rd, Register rs1, Register rs2) {
 
 void MicroAssembler::sextb(Register rd, Register rs1) {
   ASSERT(Supports(RV_Zbb));
+  if (Supports(RV_Zcb)) {
+    if ((rd == rs1) && IsCRs1p(rs1)) {
+      return c_sextb(rd, rs1);
+    }
+  }
   EmitRType((Funct7)0b0110000, 0b00100, rs1, SEXT, rd, OPIMM);
 }
 
 void MicroAssembler::sexth(Register rd, Register rs1) {
   ASSERT(Supports(RV_Zbb));
+  if (Supports(RV_Zcb)) {
+    if ((rd == rs1) && IsCRs1p(rs1)) {
+      return c_sexth(rd, rs1);
+    }
+  }
   EmitRType((Funct7)0b0110000, 0b00101, rs1, SEXT, rd, OPIMM);
 }
 
 void MicroAssembler::zexth(Register rd, Register rs1) {
   ASSERT(Supports(RV_Zbb));
+  if (Supports(RV_Zcb)) {
+    if ((rd == rs1) && IsCRs1p(rs1)) {
+      return c_zexth(rd, rs1);
+    }
+  }
 #if XLEN == 32
   EmitRType((Funct7)0b0000100, 0b00000, rs1, ZEXT, rd, OP);
 #elif XLEN == 64
@@ -1973,6 +2040,84 @@ void MicroAssembler::c_nop() {
 void MicroAssembler::c_ebreak() {
   ASSERT(Supports(RV_C));
   Emit16(C_EBREAK);
+}
+
+void MicroAssembler::c_lbu(Register rd, Address addr) {
+  ASSERT(Supports(RV_Zcb));
+  Emit16(C_LBU | EncodeCRdp(rd) | EncodeCRs1p(addr.base()) |
+         EncodeCMem1Imm(addr.offset()));
+}
+
+void MicroAssembler::c_lhu(Register rd, Address addr) {
+  ASSERT(Supports(RV_Zcb));
+  Emit16(C_LHU | EncodeCRdp(rd) | EncodeCRs1p(addr.base()) |
+         EncodeCMem2Imm(addr.offset()));
+}
+
+void MicroAssembler::c_lh(Register rd, Address addr) {
+  ASSERT(Supports(RV_Zcb));
+  Emit16(C_LH | EncodeCRdp(rd) | EncodeCRs1p(addr.base()) |
+         EncodeCMem2Imm(addr.offset()));
+}
+
+void MicroAssembler::c_sb(Register rs2, Address addr) {
+  ASSERT(Supports(RV_Zcb));
+  Emit16(C_SB | EncodeCRs1p(addr.base()) | EncodeCRs2p(rs2) |
+         EncodeCMem1Imm(addr.offset()));
+}
+
+void MicroAssembler::c_sh(Register rs2, Address addr) {
+  ASSERT(Supports(RV_Zcb));
+  Emit16(C_SH | EncodeCRs1p(addr.base()) | EncodeCRs2p(rs2) |
+         EncodeCMem2Imm(addr.offset()));
+}
+
+void MicroAssembler::c_zextb(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zcb));
+  ASSERT(rd == rs1);
+  Emit16(C_ZEXTB | EncodeCRs1p(rs1));
+}
+
+void MicroAssembler::c_sextb(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zcb));
+  ASSERT(rd == rs1);
+  Emit16(C_SEXTB | EncodeCRs1p(rs1));
+}
+
+void MicroAssembler::c_zexth(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zcb));
+  ASSERT(Supports(RV_Zbb));
+  ASSERT(rd == rs1);
+  Emit16(C_ZEXTH | EncodeCRs1p(rs1));
+}
+
+void MicroAssembler::c_sexth(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zcb));
+  ASSERT(Supports(RV_Zbb));
+  ASSERT(rd == rs1);
+  Emit16(C_SEXTH | EncodeCRs1p(rs1));
+}
+
+#if XLEN >= 64
+void MicroAssembler::c_zextw(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zcb));
+  ASSERT(Supports(RV_Zba));
+  ASSERT(rd == rs1);
+  Emit16(C_ZEXTW | EncodeCRs1p(rs1));
+}
+#endif
+
+void MicroAssembler::c_mul(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zcb));
+  ASSERT(Supports(RV_M));
+  ASSERT(rd == rs1);
+  Emit16(C_MUL | EncodeCRs1p(rs1) | EncodeCRs2p(rs2));
+}
+
+void MicroAssembler::c_not(Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zcb));
+  ASSERT(rd == rs1);
+  Emit16(C_NOT | EncodeCRs1p(rs1));
 }
 
 static Funct3 InvertFunct3(Funct3 func) {

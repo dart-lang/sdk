@@ -1263,6 +1263,38 @@ inline intx_t DecodeCSPStore8Imm(uint32_t encoding) {
   return imm;
 }
 
+inline bool IsCMem1Imm(intptr_t imm) {
+  return Utils::IsUint(2, imm) && Utils::IsAligned(imm, 1);
+}
+inline uint32_t EncodeCMem1Imm(intptr_t imm) {
+  ASSERT(IsCMem1Imm(imm));
+  uint32_t encoding = 0;
+  encoding |= ((imm >> 1) & 0x1) << 5;
+  encoding |= ((imm >> 0) & 0x1) << 6;
+  return encoding;
+}
+inline intx_t DecodeCMem1Imm(uint32_t encoding) {
+  uint32_t imm = 0;
+  imm |= ((encoding >> 5) & 0x1) << 1;
+  imm |= ((encoding >> 6) & 0x1) << 0;
+  return imm;
+}
+
+inline bool IsCMem2Imm(intptr_t imm) {
+  return Utils::IsUint(2, imm) && Utils::IsAligned(imm, 2);
+}
+inline uint32_t EncodeCMem2Imm(intptr_t imm) {
+  ASSERT(IsCMem1Imm(imm));
+  uint32_t encoding = 0;
+  encoding |= ((imm >> 1) & 0x1) << 5;
+  return encoding;
+}
+inline intx_t DecodeCMem2Imm(uint32_t encoding) {
+  uint32_t imm = 0;
+  imm |= ((encoding >> 5) & 0x1) << 1;
+  return imm;
+}
+
 inline bool IsCMem4Imm(intptr_t imm) {
   return Utils::IsUint(7, imm) && Utils::IsAligned(imm, 4);
 }
@@ -1479,6 +1511,15 @@ enum COpcode {
   C_AND = 0b1000110001100001,
   C_SUBW = 0b1001110000000001,
   C_ADDW = 0b1001110000100001,
+  C_MUL = 0b1001110001000001,
+  C_EXT = 0b1001110001100001,
+  C_EXT_MASK = 0b1111110001111111,
+  C_ZEXTB = 0b1001110001100001,
+  C_SEXTB = 0b1001110001100101,
+  C_ZEXTH = 0b1001110001101001,
+  C_SEXTH = 0b1001110001101101,
+  C_ZEXTW = 0b1001110001110001,
+  C_NOT = 0b1001110001110101,
 
   C_J = 0b1010000000000001,
   C_BEQZ = 0b1100000000000001,
@@ -1500,6 +1541,12 @@ enum COpcode {
 
   C_NOP = 0b0000000000000001,
   C_EBREAK = 0b1001000000000010,
+
+  C_LBU = 0b1000000000000000,
+  C_LH = 0b1000010001000000,
+  C_LHU = 0b1000010000000000,
+  C_SB = 0b1000100000000000,
+  C_SH = 0b1000110000000000,
 };
 
 class CInstr {
@@ -1529,6 +1576,8 @@ class CInstr {
   intx_t spload8_imm() { return DecodeCSPLoad8Imm(encoding_); }
   intx_t spstore4_imm() { return DecodeCSPStore4Imm(encoding_); }
   intx_t spstore8_imm() { return DecodeCSPStore8Imm(encoding_); }
+  intx_t mem1_imm() { return DecodeCMem1Imm(encoding_); }
+  intx_t mem2_imm() { return DecodeCMem2Imm(encoding_); }
   intx_t mem4_imm() { return DecodeCMem4Imm(encoding_); }
   intx_t mem8_imm() { return DecodeCMem8Imm(encoding_); }
   intx_t j_imm() { return DecodeCJImm(encoding_); }
@@ -1626,7 +1675,8 @@ static constexpr Extension RV_Zbc(9);  // Carry-less multiplication
 static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
 static constexpr Extension RV_Zicond(10);  // Integer conditional operations
-static constexpr Extension RV_Zalasr(11);  // Load-acquire, store-release
+static constexpr Extension RV_Zcb(11);     // More compressed instructions
+static constexpr Extension RV_Zalasr(12);  // Load-acquire, store-release
 
 #if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
 static constexpr ExtensionSet RV_baseline = RV_GCB;

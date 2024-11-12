@@ -6954,6 +6954,313 @@ ASSEMBLER_TEST_RUN(ConditionalZeroIfNotEqualsZero, test) {
   EXPECT_EQ(0, Call(test->entry(), 42, -1));
 }
 
+ASSEMBLER_TEST_GENERATE(CompressedLoadByteUnsigned_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lbu(A0, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadByteUnsigned_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    8108 lbu a0, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint8_t values[3];
+  values[0] = 0xAB;
+  values[1] = 0xCD;
+  values[2] = 0xEF;
+
+  EXPECT_EQ(0xCD, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadByteUnsigned_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lbu(A0, Address(A0, 1));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadByteUnsigned_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    8148 lbu a0, 1(a0)\n"
+      "    8082 ret\n");
+
+  uint8_t values[3];
+  values[0] = 0xAB;
+  values[1] = 0xCD;
+  values[2] = 0xEF;
+
+  EXPECT_EQ(0xEF, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadHalfword_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lh(A0, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadHalfword_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    8548 lh a0, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0xAB01;
+  values[1] = 0xCD02;
+  values[2] = 0xEF03;
+
+  EXPECT_EQ(-13054, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadHalfword_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lh(A0, Address(A0, 2));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadHalfword_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    8568 lh a0, 2(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0xAB01;
+  values[1] = 0xCD02;
+  values[2] = 0xEF03;
+
+  EXPECT_EQ(-4349, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadHalfwordUnsigned_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lhu(A0, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadHalfwordUnsigned_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    8508 lhu a0, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0xAB01;
+  values[1] = 0xCD02;
+  values[2] = 0xEF03;
+
+  EXPECT_EQ(0xCD02, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadHalfwordUnsigned_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lhu(A0, Address(A0, 2));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadHalfwordUnsigned_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    8528 lhu a0, 2(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0xAB01;
+  values[1] = 0xCD02;
+  values[2] = 0xEF03;
+
+  EXPECT_EQ(0xEF03, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedStoreByte_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ sb(A1, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedStoreByte_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    890c sb a1, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint8_t values[3];
+  values[0] = 0;
+  values[1] = 0;
+  values[2] = 0;
+
+  Call(test->entry(), reinterpret_cast<intx_t>(&values[1]), 0xCD);
+  EXPECT_EQ(0, values[0]);
+  EXPECT_EQ(0xCD, values[1]);
+  EXPECT_EQ(0, values[2]);
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedStoreByte_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ sb(A1, Address(A0, 1));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedStoreByte_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    894c sb a1, 1(a0)\n"
+      "    8082 ret\n");
+
+  uint8_t values[3];
+  values[0] = 0;
+  values[1] = 0;
+  values[2] = 0;
+
+  Call(test->entry(), reinterpret_cast<intx_t>(&values[1]), 0xEF);
+  EXPECT_EQ(0, values[0]);
+  EXPECT_EQ(0, values[1]);
+  EXPECT_EQ(0xEF, values[2]);
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedStoreHalfword_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ sh(A1, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedStoreHalfword_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    8d0c sh a1, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0;
+  values[1] = 0;
+  values[2] = 0;
+
+  Call(test->entry(), reinterpret_cast<intx_t>(&values[1]), 0xCD02);
+  EXPECT_EQ(0, values[0]);
+  EXPECT_EQ(0xCD02, values[1]);
+  EXPECT_EQ(0, values[2]);
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedStoreHalfword_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ sh(A1, Address(A0, 2));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedStoreHalfword_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    8d2c sh a1, 2(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0;
+  values[1] = 0;
+  values[2] = 0;
+
+  Call(test->entry(), reinterpret_cast<intx_t>(&values[1]), 0xEF03);
+  EXPECT_EQ(0, values[0]);
+  EXPECT_EQ(0, values[1]);
+  EXPECT_EQ(0xEF03, values[2]);
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedSignExtendByte, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ sextb(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedSignExtendByte, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d65 sext.b a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(127, Call(test->entry(), 127));
+  EXPECT_EQ(-128, Call(test->entry(), 128));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedZeroExtendByte, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ zextb(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedZeroExtendByte, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d61 zext.b a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(0xCD, Call(test->entry(), 0x1234ABCD));
+  EXPECT_EQ(0xFF, Call(test->entry(), 0xFF));
+  EXPECT_EQ(0xFF, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedSignExtendHalfword, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ sexth(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedSignExtendHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d6d sext.h a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(0x7BCD, Call(test->entry(), 0x12347BCD));
+  EXPECT_EQ(-1, Call(test->entry(), 0xFFFF));
+  EXPECT_EQ(-1, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedZeroExtendHalfword, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ zexth(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedZeroExtendHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d69 zext.h a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0xABCD, Call(test->entry(), 0x1234ABCD));
+  EXPECT_EQ(0xFFFF, Call(test->entry(), 0xFFFF));
+  EXPECT_EQ(0xFFFF, Call(test->entry(), -1));
+}
+
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(CompressedZeroExtendWord, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ zextw(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedZeroExtendWord, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d71 zext.w a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0x1234ABCD, Call(test->entry(), 0x11234ABCD));
+  EXPECT_EQ(0xFFFFFFFF, Call(test->entry(), 0xFFFFFFFF));
+  EXPECT_EQ(0xFFFFFFFF, Call(test->entry(), -1));
+}
+#endif  // XLEN >= 64
+
+ASSEMBLER_TEST_GENERATE(CompressedNot, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ not_(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedNot, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d75 not a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(~42, Call(test->entry(), 42));
+  EXPECT_EQ(~-42, Call(test->entry(), -42));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedMultiply, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ mul(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedMultiply, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d4d mul a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(68, Call(test->entry(), 4, 17));
+  EXPECT_EQ(-68, Call(test->entry(), -4, 17));
+  EXPECT_EQ(-68, Call(test->entry(), 4, -17));
+  EXPECT_EQ(68, Call(test->entry(), -4, -17));
+  EXPECT_EQ(68, Call(test->entry(), 17, 4));
+  EXPECT_EQ(-68, Call(test->entry(), -17, 4));
+  EXPECT_EQ(-68, Call(test->entry(), 17, -4));
+  EXPECT_EQ(68, Call(test->entry(), -17, -4));
+}
+
 ASSEMBLER_TEST_GENERATE(LoadByteAcquire, assembler) {
   __ SetExtensions(RV_GC | RV_Zalasr);
   __ lb(A0, Address(A1), std::memory_order_acquire);
@@ -7570,6 +7877,8 @@ TEST_ENCODING(intptr_t, CSPLoad4Imm)
 TEST_ENCODING(intptr_t, CSPLoad8Imm)
 TEST_ENCODING(intptr_t, CSPStore4Imm)
 TEST_ENCODING(intptr_t, CSPStore8Imm)
+TEST_ENCODING(intptr_t, CMem1Imm)
+TEST_ENCODING(intptr_t, CMem2Imm)
 TEST_ENCODING(intptr_t, CMem4Imm)
 TEST_ENCODING(intptr_t, CMem8Imm)
 TEST_ENCODING(intptr_t, CJImm)

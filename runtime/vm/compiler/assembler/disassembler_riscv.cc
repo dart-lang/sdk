@@ -369,9 +369,60 @@ void RISCVDisassembler::DisassembleInstruction(CInstr instr) {
               Print("subw 'rs1p, 'rs1p, 'rs2p", instr, RV_C);
               break;
 #endif
+            case C_MUL:
+              Print("mul 'rs1p, 'rs1p, 'rs2p", instr, RV_Zcb);
+              break;
+            case C_EXT:
+              switch (instr.encoding() & C_EXT_MASK) {
+                case C_ZEXTB:
+                  Print("zext.b 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+                case C_SEXTB:
+                  Print("sext.b 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+                case C_ZEXTH:
+                  Print("zext.h 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+                case C_SEXTH:
+                  Print("sext.h 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+#if XLEN >= 64
+                case C_ZEXTW:
+                  Print("zext.w 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+#endif
+                case C_NOT:
+                  Print("not 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+                default:
+                  UnknownInstruction(instr);
+              }
+              break;
             default:
               UnknownInstruction(instr);
           }
+          break;
+        default:
+          UnknownInstruction(instr);
+      }
+      break;
+    case C_LBU:
+      switch (instr.encoding() & 0b1111110000000011) {
+        case C_LBU:
+          Print("lbu 'rdp, 'mem1imm('rs1p)", instr, RV_Zcb);
+          break;
+        case C_LHU:
+          if ((instr.encoding() & 0b1000000) == 0) {
+            Print("lhu 'rdp, 'mem2imm('rs1p)", instr, RV_Zcb);
+          } else {
+            Print("lh 'rdp, 'mem2imm('rs1p)", instr, RV_Zcb);
+          }
+          break;
+        case C_SB:
+          Print("sb 'rs2p, 'mem1imm('rs1p)", instr, RV_Zcb);
+          break;
+        case C_SH:
+          Print("sh 'rs2p, 'mem2imm('rs1p)", instr, RV_Zcb);
           break;
         default:
           UnknownInstruction(instr);
@@ -1806,6 +1857,12 @@ const char* RISCVDisassembler::PrintOption(const char* format, CInstr instr) {
   } else if (STRING_STARTS_WITH(format, "spstore8imm")) {
     Printf("%" Pd, static_cast<intptr_t>(instr.spstore8_imm()));
     return format + 11;
+  } else if (STRING_STARTS_WITH(format, "mem1imm")) {
+    Printf("%" Pd, static_cast<intptr_t>(instr.mem1_imm()));
+    return format + 7;
+  } else if (STRING_STARTS_WITH(format, "mem2imm")) {
+    Printf("%" Pd, static_cast<intptr_t>(instr.mem2_imm()));
+    return format + 7;
   } else if (STRING_STARTS_WITH(format, "mem4imm")) {
     Printf("%" Pd, static_cast<intptr_t>(instr.mem4_imm()));
     return format + 7;
