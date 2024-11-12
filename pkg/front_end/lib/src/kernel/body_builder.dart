@@ -5826,9 +5826,11 @@ class BodyBuilder extends StackListenerImpl
       Name name = new Name(operator);
       if (receiver is Generator) {
         push(receiver.buildUnaryOperation(token, name));
+      } else if (receiver is Expression) {
+        push(forest.createUnary(fileOffset, name, receiver));
       } else {
-        assert(receiver is Expression);
-        push(forest.createUnary(fileOffset, name, receiver as Expression));
+        Expression value = toValue(receiver);
+        push(forest.createUnary(fileOffset, name, value));
       }
     }
   }
