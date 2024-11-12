@@ -123,7 +123,7 @@ abstract class BuilderFactory {
   void beginExtensionDeclaration(String? name, int charOffset,
       List<NominalParameterBuilder>? typeParameters);
 
-  void beginExtensionBody(TypeBuilder? extensionThisType);
+  void beginExtensionBody(TypeBuilder extensionThisType);
 
   void endExtensionDeclaration(String? name);
 
