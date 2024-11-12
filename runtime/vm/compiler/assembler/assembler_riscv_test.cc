@@ -6924,6 +6924,36 @@ ASSEMBLER_TEST_RUN(BitSetImmediate2, test) {
   EXPECT_EQ(-1, Call(test->entry(), -1));
 }
 
+ASSEMBLER_TEST_GENERATE(ConditionalZeroIfEqualsZero, assembler) {
+  __ SetExtensions(RV_GC | RV_Zicond);
+  __ czeroeqz(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ConditionalZeroIfEqualsZero, test) {
+  EXPECT_DISASSEMBLY(
+      "0eb55533 czero.eqz a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 42, 0));
+  EXPECT_EQ(42, Call(test->entry(), 42, 1));
+  EXPECT_EQ(42, Call(test->entry(), 42, -1));
+}
+
+ASSEMBLER_TEST_GENERATE(ConditionalZeroIfNotEqualsZero, assembler) {
+  __ SetExtensions(RV_GC | RV_Zicond);
+  __ czeronez(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ConditionalZeroIfNotEqualsZero, test) {
+  EXPECT_DISASSEMBLY(
+      "0eb57533 czero.nez a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(42, Call(test->entry(), 42, 0));
+  EXPECT_EQ(0, Call(test->entry(), 42, 1));
+  EXPECT_EQ(0, Call(test->entry(), 42, -1));
+}
+
 ASSEMBLER_TEST_GENERATE(LoadByteAcquire, assembler) {
   __ SetExtensions(RV_GC | RV_Zalasr);
   __ lb(A0, Address(A1), std::memory_order_acquire);

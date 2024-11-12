@@ -606,6 +606,12 @@ class MicroAssembler : public AssemblerBase {
   void bset(Register rd, Register rs1, Register rs2);
   void bseti(Register rd, Register rs1, intx_t shamt);
 
+  // ==== Zicond: Integer conditional operations ====
+  // rd := rs2 == 0 ? 0 : rs1
+  void czeroeqz(Register rd, Register rs1, Register rs2);
+  // rd := rs2 != 0 ? 0 : rs1
+  void czeronez(Register rd, Register rs1, Register rs2);
+
   // ==== Zalasr: Load-acquire, store-release ====
   void lb(Register rd, Address addr, std::memory_order order);
   void lh(Register rd, Address addr, std::memory_order order);

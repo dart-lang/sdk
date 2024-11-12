@@ -69,6 +69,7 @@ class RISCVDisassembler {
   void DisassembleOP_MINMAXCLMUL(Instr instr);
   void DisassembleOP_ROTATE(Instr instr);
   void DisassembleOP_BCLRBEXT(Instr instr);
+  void DisassembleOP_CZERO(Instr instr);
   void DisassembleOP32(Instr instr);
   void DisassembleOP32_0(Instr instr);
   void DisassembleOP32_SUB(Instr instr);
@@ -713,6 +714,9 @@ void RISCVDisassembler::DisassembleOP(Instr instr) {
       Print("zext.h 'rd, 'rs1", instr, RV_Zbb);
       break;
 #endif
+    case CZERO:
+      DisassembleOP_CZERO(instr);
+      break;
     default:
       UnknownInstruction(instr);
   }
@@ -880,6 +884,19 @@ void RISCVDisassembler::DisassembleOP_BCLRBEXT(Instr instr) {
       break;
     case BEXT:
       Print("bext 'rd, 'rs1, 'rs2", instr, RV_Zbs);
+      break;
+    default:
+      UnknownInstruction(instr);
+  }
+}
+
+void RISCVDisassembler::DisassembleOP_CZERO(Instr instr) {
+  switch (instr.funct3()) {
+    case CZEROEQZ:
+      Print("czero.eqz 'rd, 'rs1, 'rs2", instr, RV_Zicond);
+      break;
+    case CZERONEZ:
+      Print("czero.nez 'rd, 'rs1, 'rs2", instr, RV_Zicond);
       break;
     default:
       UnknownInstruction(instr);

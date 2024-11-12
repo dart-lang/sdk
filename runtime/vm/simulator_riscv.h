@@ -211,6 +211,7 @@ class Simulator {
   void InterpretOP_MINMAXCLMUL(Instr instr);
   void InterpretOP_ROTATE(Instr instr);
   void InterpretOP_BCLRBEXT(Instr instr);
+  void InterpretOP_CZERO(Instr instr);
   void InterpretOP32(Instr instr);
   void InterpretOP32_0(Instr instr);
   void InterpretOP32_SUB(Instr instr);

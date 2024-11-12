@@ -1634,6 +1634,16 @@ void MicroAssembler::bseti(Register rd, Register rs1, intx_t shamt) {
   EmitRType(BSET, shamt, rs1, F3_BSET, rd, OPIMM);
 }
 
+void MicroAssembler::czeroeqz(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zicond));
+  EmitRType(CZERO, rs2, rs1, CZEROEQZ, rd, OP);
+}
+
+void MicroAssembler::czeronez(Register rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zicond));
+  EmitRType(CZERO, rs2, rs1, CZERONEZ, rd, OP);
+}
+
 void MicroAssembler::lb(Register rd, Address addr, std::memory_order order) {
   ASSERT(addr.offset() == 0);
   ASSERT((order == std::memory_order_acquire) ||
