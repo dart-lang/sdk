@@ -3,10 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:meta/meta.dart';
 
-ErrorOr<R> cancelled<R>() =>
-    error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+ErrorOr<R> cancelled<R>([CancellationToken? token]) {
+  var code = ErrorCodes.RequestCancelled;
+  var reason = 'Request was cancelled';
+
+  if (token is CancelableToken) {
+    if (token.cancellationCode case var cancellationCode?) {
+      code = ErrorCodes(cancellationCode);
+    }
+    if (token.cancellationReason case var cancellationReason?) {
+      reason = cancellationReason;
+    }
+  }
+
+  return error(code, reason);
+}
 
 ErrorOr<R> error<R>(ErrorCodes code, String message, [String? data]) =>
     ErrorOr<R>.error(ResponseError(code: code, message: message, data: data));

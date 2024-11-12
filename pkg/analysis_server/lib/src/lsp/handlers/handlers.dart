@@ -507,7 +507,9 @@ abstract class ServerStateMessageHandler {
       // that it was a request it didn't need (in the case of completions this
       // can be quite large).
       await Future.delayed(Duration.zero);
-      return cancellationToken.isCancellationRequested ? cancelled() : result;
+      return cancellationToken.isCancellationRequested
+          ? cancelled(cancellationToken)
+          : result;
     } finally {
       cancelHandler.clearToken(message);
     }

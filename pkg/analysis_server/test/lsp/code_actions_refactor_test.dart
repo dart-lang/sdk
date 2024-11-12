@@ -187,7 +187,13 @@ void newMethod() {
     // Expect the first will have cancelled the second.
     await expectLater(
       req1,
-      throwsA(isResponseError(ErrorCodes.RequestCancelled)),
+      throwsA(
+        isResponseError(
+          ErrorCodes.RequestCancelled,
+          message:
+              'Another workspace/executeCommand request for a refactor was started',
+        ),
+      ),
     );
     await req2;
 

@@ -88,7 +88,7 @@ class CompletionResolveHandler
         }
 
         if (token.isCancellationRequested) {
-          return cancelled();
+          return cancelled(token);
         }
 
         var builder = ChangeBuilder(session: session);
@@ -99,7 +99,7 @@ class CompletionResolveHandler
         });
 
         if (token.isCancellationRequested) {
-          return cancelled();
+          return cancelled(token);
         }
 
         var changes = builder.sourceChange;
@@ -219,7 +219,7 @@ class CompletionResolveHandler
     );
 
     if (token.isCancellationRequested) {
-      return cancelled();
+      return cancelled(token);
     }
 
     var description = packageDetails?.description;

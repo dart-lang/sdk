@@ -255,7 +255,10 @@ class LspRefactorManager {
 
   /// Begins a new refactor, cancelling any other in-progress refactors.
   void begin(CancelableToken cancelToken) {
-    _currentRefactoringCancellationToken?.cancel();
+    _currentRefactoringCancellationToken?.cancel(
+      reason:
+          'Another workspace/executeCommand request for a refactor was started',
+    );
     _currentRefactoringCancellationToken = cancelToken;
   }
 

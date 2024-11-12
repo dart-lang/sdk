@@ -1712,11 +1712,21 @@ import 'package:^';
 
       expect(
         responseFutures[0],
-        throwsA(isResponseError(ErrorCodes.RequestCancelled)),
+        throwsA(
+          isResponseError(
+            ErrorCodes.RequestCancelled,
+            message: 'Another textDocument/completion request was started',
+          ),
+        ),
       );
       expect(
         responseFutures[1],
-        throwsA(isResponseError(ErrorCodes.RequestCancelled)),
+        throwsA(
+          isResponseError(
+            ErrorCodes.RequestCancelled,
+            message: 'Another textDocument/completion request was started',
+          ),
+        ),
       );
       var results = await responseFutures[2];
       expect(results, isNotEmpty);

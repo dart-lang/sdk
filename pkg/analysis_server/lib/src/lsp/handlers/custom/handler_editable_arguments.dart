@@ -69,7 +69,7 @@ class EditableArgumentsHandler
       if (fileHasBeenModified(filePath, docIdentifier.version)) {
         return fileModifiedError;
       } else if (token.isCancellationRequested) {
-        return cancelled();
+        return cancelled(token);
       }
 
       // Compute the editable arguments for an invocation at `offset`.

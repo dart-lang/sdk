@@ -85,7 +85,7 @@ class WillRenameFilesHandler
     // nothing rather than interrupt the users file rename with an error.
     var results = await refactoring.checkAllConditions();
     if (token.isCancellationRequested) {
-      return cancelled();
+      return cancelled(token);
     }
 
     if (results.hasFatalError) {
@@ -98,7 +98,7 @@ class WillRenameFilesHandler
     }
 
     if (token.isCancellationRequested) {
-      return cancelled();
+      return cancelled(token);
     }
 
     server.checkConsistency(sessions);

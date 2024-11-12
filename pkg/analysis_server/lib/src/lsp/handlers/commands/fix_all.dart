@@ -62,7 +62,7 @@ class FixAllCommandHandler extends SimpleEditCommandHandler {
       // Before we send an edit back, ensure the original file didn't change
       // (or the request cancelled) while we were computing changes.
       if (cancellationToken.isCancellationRequested) {
-        return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+        return cancelled(cancellationToken);
       }
       // If the client modified the file, it's possible (though unlikely since
       // we only just unlocked the queue and having had many 'await's) that the
@@ -106,7 +106,7 @@ class _FixAllOperation extends TemporaryOverlayOperation
 
   Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl() async {
     if (cancellationToken.isCancellationRequested) {
-      return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+      return cancelled(cancellationToken);
     }
 
     var context = server.contextManager.getContextFor(path);

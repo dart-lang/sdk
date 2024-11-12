@@ -97,7 +97,9 @@ class CompletionHandler
     // Cancel any existing in-progress completion request in case the client did
     // not do it explicitly, because the results will not be useful and it may
     // delay processing this one.
-    previousRequestCancellationToken?.cancel();
+    previousRequestCancellationToken?.cancel(
+      reason: 'Another textDocument/completion request was started',
+    );
     previousRequestCancellationToken = token.asCancelable();
 
     var requestLatency = message.timeSinceRequest;
@@ -131,7 +133,7 @@ class CompletionHandler
       await delayAfterResolveForTests;
     }
     if (token.isCancellationRequested) {
-      return cancelled();
+      return cancelled(token);
     }
 
     // Map the offset, propagating the previous failure if we didn't have a
@@ -401,7 +403,7 @@ class CompletionHandler
       );
 
       if (token.isCancellationRequested) {
-        return cancelled();
+        return cancelled(token);
       }
 
       /// completeFunctionCalls should be suppressed if the target is an
