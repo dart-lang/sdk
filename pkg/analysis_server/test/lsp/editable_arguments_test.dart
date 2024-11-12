@@ -64,6 +64,7 @@ $content
     Object? isDefault = anything,
     Object? isRequired = anything,
     Object? isNullable = anything,
+    Object? options = anything,
   }) {
     return isA<EditableArgument>()
         .having((arg) => arg.name, 'name', name)
@@ -74,6 +75,7 @@ $content
         .having((arg) => arg.isDefault, 'isDefault', isDefault)
         .having((arg) => arg.isRequired, 'isRequired', isRequired)
         .having((arg) => arg.isNullable, 'isNullable', isNullable)
+        .having((arg) => arg.options, 'options', options)
         // Some extra checks that should be true for all.
         .having(
           (arg) =>
@@ -593,15 +595,20 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          // TODO(dantup): Should we be able to get the `value` here?
-          isArg('aVar', value: isNull, displayValue: 'myVar'),
-          isArg('aConst', value: true, displayValue: 'myConst'),
+          isArg('aVar', type: 'bool', value: isNull, displayValue: 'myVar'),
+          isArg('aConst', type: 'bool', value: true, displayValue: 'myConst'),
           isArg(
             'aExpr',
+            type: 'bool',
             value: isNull,
             displayValue: 'DateTime.now().isBefore(DateTime.now())',
           ),
-          isArg('aConstExpr', value: false, displayValue: '1 == 2'),
+          isArg(
+            'aConstExpr',
+            type: 'bool',
+            value: false,
+            displayValue: '1 == 2',
+          ),
         ]),
       ),
     );
@@ -693,15 +700,121 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          // TODO(dantup): Should we be able to get the `value` here?
-          isArg('aVar', value: isNull, displayValue: 'myVar'),
-          isArg('aConst', value: 1.0, displayValue: 'myConst'),
+          isArg('aVar', type: 'double', value: isNull, displayValue: 'myVar'),
+          isArg('aConst', type: 'double', value: 1.0, displayValue: 'myConst'),
           isArg(
             'aExpr',
+            type: 'double',
             value: isNull,
             displayValue: 'DateTime.now().millisecondsSinceEpoch.toDouble()',
           ),
-          isArg('aConstExpr', value: 2.0, displayValue: '1.0 + myConst'),
+          isArg(
+            'aConstExpr',
+            type: 'double',
+            value: 2.0,
+            displayValue: '1.0 + myConst',
+          ),
+        ]),
+      ),
+    );
+  }
+
+  test_type_enum() async {
+    var result = await getEditableArgumentsFor('''
+enum E { one, two }
+class MyWidget extends StatelessWidget {
+  const MyWidget({
+    E supplied = E.one,
+    E suppliedAsDefault = E.one,
+    E notSupplied = E.one,
+  });
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(
+    supplied: E.two,
+    suppliedAsDefault: E.one,
+  );
+}
+''');
+
+    var optionsMatcher = equals(['E.one', 'E.two']);
+    expect(
+      result,
+      hasArgs(
+        orderedEquals([
+          isArg(
+            'supplied',
+            type: 'enum',
+            value: 'E.two',
+            isDefault: false,
+            options: optionsMatcher,
+          ),
+          isArg(
+            'suppliedAsDefault',
+            type: 'enum',
+            value: 'E.one',
+            isDefault: true,
+            options: optionsMatcher,
+          ),
+          isArg(
+            'notSupplied',
+            type: 'enum',
+            value: 'E.one',
+            isDefault: true,
+            options: optionsMatcher,
+          ),
+        ]),
+      ),
+    );
+  }
+
+  test_type_enum_nonLiterals() async {
+    var result = await getEditableArgumentsFor('''
+enum E { one, two }
+var myVar = E.one;
+const myConst = E.one;
+class MyWidget extends StatelessWidget {
+  const MyWidget({
+    E? aVar,
+    E? aConst,
+    E? aExpr,
+  });
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(
+    aVar: myVar,
+    aConst: myConst,
+    aExpr: E.values.first,
+  );
+}
+''');
+
+    var optionsMatcher = equals(['E.one', 'E.two']);
+    expect(
+      result,
+      hasArgs(
+        orderedEquals([
+          isArg(
+            'aVar',
+            type: 'enum',
+            value: isNull,
+            displayValue: 'myVar',
+            options: optionsMatcher,
+          ),
+          isArg(
+            'aConst',
+            type: 'enum',
+            value: 'E.one',
+            displayValue: 'myConst',
+            options: optionsMatcher,
+          ),
+          isArg(
+            'aExpr',
+            type: 'enum',
+            value: isNull,
+            displayValue: 'E.values.first',
+            options: optionsMatcher,
+          ),
         ]),
       ),
     );
@@ -760,15 +873,20 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          // TODO(dantup): Should we be able to get the `value` here?
-          isArg('aVar', value: isNull, displayValue: 'myVar'),
-          isArg('aConst', value: 1, displayValue: 'myConst'),
+          isArg('aVar', type: 'int', value: isNull, displayValue: 'myVar'),
+          isArg('aConst', type: 'int', value: 1, displayValue: 'myConst'),
           isArg(
             'aExpr',
+            type: 'int',
             value: isNull,
             displayValue: 'DateTime.now().millisecondsSinceEpoch',
           ),
-          isArg('aConstExpr', value: 2, displayValue: '1 + myConst'),
+          isArg(
+            'aConstExpr',
+            type: 'int',
+            value: 2,
+            displayValue: '1 + myConst',
+          ),
         ]),
       ),
     );
@@ -832,15 +950,20 @@ class MyWidget extends StatelessWidget {
       result,
       hasArgs(
         orderedEquals([
-          // TODO(dantup): Should we be able to get the `value` here?
-          isArg('aVar', value: isNull, displayValue: 'myVar'),
-          isArg('aConst', value: 'a', displayValue: 'myConst'),
+          isArg('aVar', type: 'string', value: isNull, displayValue: 'myVar'),
+          isArg('aConst', type: 'string', value: 'a', displayValue: 'myConst'),
           isArg(
             'aExpr',
+            type: 'string',
             value: isNull,
             displayValue: 'DateTime.now().toString()',
           ),
-          isArg('aConstExpr', value: 'ab', displayValue: "'a' + 'b'"),
+          isArg(
+            'aConstExpr',
+            type: 'string',
+            value: 'ab',
+            displayValue: "'a' + 'b'",
+          ),
         ]),
       ),
     );

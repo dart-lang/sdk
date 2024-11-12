@@ -3501,7 +3501,8 @@ class EnumElementImpl extends InterfaceElementImpl
   }
 
   @override
-  List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
+  List<FieldElement2> get constants2 =>
+      constants.map((e) => e.asElement2 as FieldElement2).toList();
 
   @override
   EnumElementImpl2 get element {
@@ -3559,7 +3560,8 @@ class EnumElementImpl2 extends InterfaceElementImpl2
   }
 
   @override
-  List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
+  List<FieldElement2> get constants2 =>
+      constants.map((e) => e.asElement2 as FieldElement2).toList();
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -4201,7 +4203,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   ElementKind get kind => ElementKind.FIELD;
 
   @override
-  String? get name3 => firstFragment.name;
+  String get name3 => firstFragment.name;
 
   @override
   SetterElement? get setter2 => firstFragment.setter?.element as SetterElement?;
