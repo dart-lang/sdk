@@ -652,11 +652,7 @@ class LibraryMacroApplier {
         annotationIndex: annotationIndex,
         annotationNode: annotation,
         instance: instance,
-        phasesToExecute: {
-          macro.Phase.types,
-          macro.Phase.declarations,
-          macro.Phase.definitions
-        },
+        phasesToExecute: await instance.phasesToExecute,
       );
 
       libraryBuilder._applications.add(application);
