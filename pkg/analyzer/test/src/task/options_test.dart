@@ -73,7 +73,6 @@ class ErrorCodeValuesTest {
 class OptionsFileValidatorTest {
   final OptionsFileValidator validator = OptionsFileValidator(
     TestSource(),
-    sdkVersionConstraint: null,
     sourceIsOptionsForContextRoot: true,
   );
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();

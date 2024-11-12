@@ -20,15 +20,13 @@ void main() {
 
 @reflectiveTest
 class LinterRuleOptionsValidatorTest {
-  final LinterRuleOptionsValidator validator = LinterRuleOptionsValidator();
-
-  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
-
   late RecordingErrorListener recorder;
 
   late ErrorReporter reporter;
 
   List<AnalysisError> get errors => recorder.errors;
+
+  LinterRuleOptionsValidator get validator => LinterRuleOptionsValidator();
 
   void setUp() {
     registerLintRules();
@@ -72,7 +70,7 @@ linter:
   }
 
   void validate(String source, List<ErrorCode> expected) {
-    var options = optionsProvider.getOptionsFromString(source);
+    var options = AnalysisOptionsProvider().getOptionsFromString(source);
     validator.validate(reporter, options);
     expect(
       errors.map((AnalysisError e) => e.errorCode),

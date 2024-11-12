@@ -26,9 +26,8 @@ List<AnalysisError> analyzeAnalysisOptions(
   String content,
   SourceFactory sourceFactory,
   String contextRoot,
-  VersionConstraint? sdkVersionConstraint, {
-  LintRuleProvider? provider,
-}) {
+  VersionConstraint? sdkVersionConstraint,
+) {
   List<AnalysisError> errors = [];
   Source initialSource = source;
   SourceSpan? initialIncludeSpan;
@@ -71,13 +70,12 @@ List<AnalysisError> analyzeAnalysisOptions(
   }
 
   // Validates the specified options and any included option files.
-  void validate(Source source, YamlMap options, LintRuleProvider? provider) {
+  void validate(Source source, YamlMap options) {
     var sourceIsOptionsForContextRoot = initialIncludeSpan == null;
     var validationErrors = OptionsFileValidator(
       source,
       sdkVersionConstraint: sdkVersionConstraint,
       sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
-      provider: provider,
     ).validate(options);
     addDirectErrorOrIncludedError(validationErrors, source,
         sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
@@ -87,7 +85,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       // Validate the 'plugins' option in [options], understanding that no other
       // options are included.
       addDirectErrorOrIncludedError(
-          _validatePluginsOption(source, options: options), source,
+          _validateLegacyPluginsOption(source, options: options), source,
           sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot);
       return;
     }
@@ -145,12 +143,12 @@ List<AnalysisError> analyzeAnalysisOptions(
       try {
         var includedOptions =
             optionsProvider.getOptionsFromString(includedSource.contents.data);
-        validate(includedSource, includedOptions, provider);
+        validate(includedSource, includedOptions);
         firstPluginName ??= _firstPluginName(includedOptions);
         // Validate the 'plugins' option in [options], taking into account any
         // plugins enabled by [includedOptions].
         addDirectErrorOrIncludedError(
-          _validatePluginsOption(source,
+          _validateLegacyPluginsOption(source,
               options: options, firstEnabledPluginName: firstPluginName),
           source,
           sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
@@ -189,7 +187,7 @@ List<AnalysisError> analyzeAnalysisOptions(
 
   try {
     YamlMap options = optionsProvider.getOptionsFromString(content);
-    validate(source, options, provider);
+    validate(source, options);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
     errors.add(
@@ -205,8 +203,8 @@ List<AnalysisError> analyzeAnalysisOptions(
   return errors;
 }
 
-/// Returns the name of the first plugin, if one is specified in [options],
-/// otherwise `null`.
+/// Returns the name of the first legacy plugin, if one is specified in
+/// [options], otherwise `null`.
 String? _firstPluginName(YamlMap options) {
   var analyzerMap = options.valueAt(AnalyzerOptions.analyzer);
   if (analyzerMap is! YamlMap) {
@@ -224,9 +222,9 @@ String? _firstPluginName(YamlMap options) {
   }
 }
 
-/// Validates the 'plugins' options in [options], given
+/// Validates the legacy 'plugins' options in [options], given
 /// [firstEnabledPluginName].
-List<AnalysisError> _validatePluginsOption(
+List<AnalysisError> _validateLegacyPluginsOption(
   Source source, {
   required YamlMap options,
   String? firstEnabledPluginName,
@@ -365,16 +363,14 @@ class OptionsFileValidator {
 
   OptionsFileValidator(
     this._source, {
-    required VersionConstraint? sdkVersionConstraint,
+    VersionConstraint? sdkVersionConstraint,
     required bool sourceIsOptionsForContextRoot,
-    LintRuleProvider? provider,
   }) : _validators = [
           AnalyzerOptionsValidator(),
           _CodeStyleOptionsValidator(),
           _FormatterOptionsValidator(),
           _LinterOptionsValidator(),
           LinterRuleOptionsValidator(
-            provider: provider,
             sdkVersionConstraint: sdkVersionConstraint,
             sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
           ),
