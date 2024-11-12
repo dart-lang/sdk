@@ -103,7 +103,7 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
       properties['static invoke type'] = node.staticInvokeType;
       properties['static type'] = node.staticType;
     } else if (node is PartDirective) {
-      properties['fragment include'] = node.fragmentInclude;
+      properties['fragment include'] = node.partInclude;
     } else if (node is PostfixExpression) {
       properties['element'] = node.element;
       properties['static type'] = node.staticType;

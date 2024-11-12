@@ -13613,7 +13613,7 @@ abstract final class PartDirective implements UriBasedDirective {
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
   @experimental
-  LibraryFragmentInclude? get fragmentInclude;
+  PartInclude? get partInclude;
 
   /// The token representing the `part` keyword.
   Token get partKeyword;
@@ -13661,8 +13661,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
 
   @experimental
   @override
-  LibraryFragmentInclude? get fragmentInclude =>
-      element as LibraryFragmentInclude?;
+  PartInclude? get partInclude => element as PartInclude?;
 
   @override
   ChildEntities get _childEntities => super._childEntities

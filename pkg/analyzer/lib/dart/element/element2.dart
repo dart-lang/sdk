@@ -1490,7 +1490,7 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   TypeSystem get typeSystem;
 }
 
-/// An export directive within a library.
+/// An `export` directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryExport {
@@ -1532,11 +1532,6 @@ abstract class LibraryFragment implements Fragment, Annotatable {
   /// The fragments of the extension types declared in this fragment.
   List<ExtensionTypeFragment> get extensionTypes2;
 
-  /// The `part` directives within this fragment.
-  // TODO(brianwilkerson): Rename this, `libraryExports2`, and `libraryImports2`
-  //  to be consistent with each other.
-  List<LibraryFragmentInclude> get fragmentIncludes;
-
   /// The fragments of the top-level functions declared in this fragment.
   List<TopLevelFunctionFragment> get functions2;
 
@@ -1557,6 +1552,9 @@ abstract class LibraryFragment implements Fragment, Annotatable {
 
   @override
   LibraryFragment? get nextFragment;
+
+  /// The `part` directives within this fragment.
+  List<PartInclude> get partIncludes;
 
   /// The prefixes used by [libraryImports2].
   ///
@@ -1585,15 +1583,7 @@ abstract class LibraryFragment implements Fragment, Annotatable {
   List<TypeAliasFragment> get typeAliases2;
 }
 
-/// A 'part' directive within a library fragment.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class LibraryFragmentInclude {
-  /// The interpretation of the URI specified in the directive.
-  DirectiveUri get uri;
-}
-
-/// An import directive within a library.
+/// An `import` directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryImport {
@@ -1648,12 +1638,6 @@ abstract class LocalFunctionFragment implements ExecutableFragment {
   //  functions.
   // @override
   // LocalFunctionElement get element;
-
-  /// The offset of the name of this fragment in the file that contains the
-  /// declaration of this fragment, or `null` if this element doesn't have an
-  /// offset.
-  // TODO(brianwilkerson): Figure out why the return type is nullable.
-  int? get nameOffset;
 
   // TODO(brianwilkerson): This should override `nextFragment` to be more
   //  specific, but can't because the Impl class supports both local and
@@ -1953,6 +1937,14 @@ abstract class MultiplyDefinedFragment implements Fragment {
   Null get previousFragment;
 }
 
+/// A 'part' directive within a library fragment.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PartInclude {
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
+}
+
 /// A pattern variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2132,7 +2124,6 @@ abstract class PropertyInducingFragment
   /// A synthetic fragment is a fragment that is not represented in the source
   /// code explicitly, but is implied by the source code, such as the default
   /// constructor for a class that does not explicitly define any constructors.
-  // TODO(brianwilkerson): Should synthetic elements have a fragment?
   bool get isSynthetic;
 
   @override

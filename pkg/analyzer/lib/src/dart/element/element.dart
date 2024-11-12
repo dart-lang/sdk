@@ -926,10 +926,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       extensionTypes.cast<ExtensionTypeFragment>();
 
   @override
-  List<LibraryFragmentInclude> get fragmentIncludes =>
-      libraryImportPrefixes.cast<LibraryFragmentInclude>();
-
-  @override
   List<FunctionElementImpl> get functions {
     return _functions;
   }
@@ -1050,6 +1046,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     var index = units.indexOf(this);
     return units.elementAtOrNull(index + 1);
   }
+
+  @override
+  List<PartInclude> get partIncludes =>
+      libraryImportPrefixes.cast<PartInclude>();
 
   @override
   List<PartElementImpl> get parts => _parts;
@@ -8912,7 +8912,7 @@ mixin ParameterElementMixin implements ParameterElement {
 }
 
 class PartElementImpl extends _ExistingElementImpl
-    implements PartElement, LibraryFragmentInclude {
+    implements PartElement, PartInclude {
   @override
   final DirectiveUri uri;
 

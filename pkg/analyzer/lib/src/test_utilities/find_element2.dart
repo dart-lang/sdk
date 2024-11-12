@@ -226,7 +226,7 @@ class FindElement2 extends _FindElementBase {
   LibraryFragment part(String targetUri) {
     LibraryFragment? result;
 
-    for (var partElement in libraryFragment.fragmentIncludes) {
+    for (var partElement in libraryFragment.partIncludes) {
       var uri = partElement.uri;
       if (uri is DirectiveUriWithUnit) {
         var unitElement = uri.libraryFragment;
