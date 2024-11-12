@@ -6559,7 +6559,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   TopLevelFunctionElement? get entryPoint2 =>
-      entryPoint as TopLevelFunctionElement?;
+      entryPoint.asElement2 as TopLevelFunctionElement?;
 
   @override
   List<LibraryElementImpl> get exportedLibraries {
