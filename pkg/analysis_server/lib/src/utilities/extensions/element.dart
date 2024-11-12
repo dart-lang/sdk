@@ -46,6 +46,9 @@ extension Element2Extension on Element2 {
     if (this is Annotatable && (this as Annotatable).metadata2.hasDeprecated) {
       return true;
     }
+    if (this is FormalParameterElement) {
+      return false;
+    }
     var ancestor = enclosingElement2;
     if (ancestor is InterfaceElement2) {
       if (ancestor.metadata2.hasDeprecated) {

@@ -1537,6 +1537,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = _elementWalker!.getTypeParameter();
       } else {
         element = TypeParameterElementImpl(name.lexeme, name.offset);
+        element.name2 = name.lexeme;
+        element.nameOffset2 = name.offset;
         _elementHolder.addTypeParameter(element);
 
         _setCodeRange(element, typeParameter);

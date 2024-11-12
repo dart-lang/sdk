@@ -3386,8 +3386,25 @@ class ElementLocationImpl implements ElementLocation {
     List<String> components = <String>[];
     Element2? ancestor = element;
     while (ancestor != null) {
-      components.insert(0, (ancestor as ElementImpl2).identifier);
-      ancestor = ancestor.enclosingElement2;
+      if (ancestor is! ElementImpl2) {
+        if (ancestor is LibraryElementImpl) {
+          components.insert(0, ancestor.identifier);
+        } else if (ancestor is AugmentableElement) {
+          components.insert(0, ancestor.identifier);
+        } else {
+          throw '${ancestor.runtimeType} is not an ElementImpl2';
+        }
+        ancestor = ancestor.enclosingElement2;
+      } else {
+       components.insert(0, ancestor.identifier);
+        if (ancestor is LocalFunctionElementImpl) {
+          ancestor = (ancestor.wrappedElement._enclosingElement3
+                  as ExecutableElementImpl)
+              .element;
+        } else {
+          ancestor = ancestor.enclosingElement2;
+        }
+      }
     }
     _components = components.toFixedList();
   }
@@ -5382,6 +5399,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       .toList();
 
   @override
+  String get identifier => name3 ?? firstFragment.identifier;
+
+  @override
   bool get isPrivate => firstFragment.isPrivate;
 
   @override
@@ -7104,6 +7124,10 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
       _wrappedElement.typeParameters
           .map((fragment) => (fragment as TypeParameterFragment).element)
           .toList();
+
+  FunctionElementImpl get wrappedElement {
+    return _wrappedElement;
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {

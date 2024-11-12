@@ -9,8 +9,10 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
     show SuggestionBuilder;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 /// A visitor for building suggestions based upon the elements defined by
@@ -92,7 +94,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   void visitExtensionElement(ExtensionElement element) {
     if (opType.includeReturnValueSuggestions) {
       if (element.name != null) {
-        builder.suggestExtension(element, kind: kind, prefix: prefix);
+        builder.suggestExtension(
+          element.asElement2 as ExtensionElement2,
+          kind: kind,
+          prefix: prefix,
+        );
       }
     }
   }
@@ -114,11 +120,19 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
     var returnType = element.returnType;
     if (returnType is VoidType) {
       if (opType.includeVoidReturnSuggestions) {
-        builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
+        builder.suggestTopLevelFunction(
+          element.asElement2 as TopLevelFunctionElement,
+          kind: kind,
+          prefix: prefix,
+        );
       }
     } else {
       if (opType.includeReturnValueSuggestions) {
-        builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
+        builder.suggestTopLevelFunction(
+          element.asElement2 as TopLevelFunctionElement,
+          kind: kind,
+          prefix: prefix,
+        );
       }
     }
   }
@@ -152,14 +166,37 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
         if (element.isSynthetic) {
           if (element.isGetter) {
             if (variable is FieldElement) {
-              builder.suggestField(variable, inheritanceDistance: 0.0);
+              builder.suggestField(
+                variable.asElement2 as FieldElement2,
+                inheritanceDistance: 0.0,
+              );
             }
           }
         } else {
-          builder.suggestAccessor(element, inheritanceDistance: 0.0);
+          if (element.isGetter) {
+            builder.suggestGetter(
+              element.asElement2 as GetterElement,
+              inheritanceDistance: 0.0,
+            );
+          } else {
+            builder.suggestSetter(
+              element.asElement2 as SetterElement,
+              inheritanceDistance: 0.0,
+            );
+          }
         }
       } else {
-        builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);
+        if (element.isGetter) {
+          builder.suggestTopLevelGetter(
+            element.asElement2 as GetterElement,
+            prefix: prefix,
+          );
+        } else {
+          builder.suggestTopLevelSetter(
+            element.asElement2 as SetterElement,
+            prefix: prefix,
+          );
+        }
       }
     }
   }
@@ -167,14 +204,20 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   @override
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
-      builder.suggestTopLevelVariable(element, prefix: prefix);
+      builder.suggestTopLevelVariable(
+        element.asElement2 as TopLevelVariableElement2,
+        prefix: prefix,
+      );
     }
   }
 
   @override
   void visitTypeAliasElement(TypeAliasElement element) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(element, prefix: prefix);
+      builder.suggestTypeAlias(
+        element.asElement2 as TypeAliasElement2,
+        prefix: prefix,
+      );
     }
   }
 
@@ -199,13 +242,17 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
       if (onlyConst && !constructor.isConst) {
         continue;
       }
-      builder.suggestConstructor(constructor, kind: kind, prefix: prefix);
+      builder.suggestConstructor(
+        constructor.asElement2 as ConstructorElement2,
+        kind: kind,
+        prefix: prefix,
+      );
     }
   }
 
   void _visitInterfaceElement(InterfaceElement element) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestInterface(element, prefix: prefix);
+      builder.suggestInterface(element.asElement2, prefix: prefix);
     }
     if (element is ClassElement) {
       if (opType.includeConstructorSuggestions) {
@@ -226,14 +273,17 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
             if (field.isSynthetic) {
               var getter = field.getter;
               if (getter != null) {
-                builder.suggestAccessor(
-                  getter,
+                builder.suggestGetter(
+                  getter.asElement2 as GetterElement,
                   inheritanceDistance: 0.0,
                   withEnclosingName: true,
                 );
               }
             } else {
-              builder.suggestStaticField(field, prefix: prefix);
+              builder.suggestStaticField(
+                field.asElement2 as FieldElement2,
+                prefix: prefix,
+              );
             }
           }
         }

@@ -630,6 +630,7 @@ class ElementDisplayStringBuilder {
       }
 
       var newTypeParameter = TypeParameterElementImpl(name, -1);
+      newTypeParameter.name2 = name;
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter);
     }

@@ -1830,6 +1830,11 @@ abstract class Metadata {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodElement2 implements ExecutableElement2 {
+
+  /// The name of the method that can be implemented by a class to allow its
+  /// instances to be invoked as if they were a function.
+  static final String CALL_METHOD_NAME = "call";
+
   @override
   MethodElement2 get baseElement;
 
