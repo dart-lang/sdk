@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
@@ -24,7 +24,7 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
-      var variableElement = variable.declaredElement;
+      var variableElement = variable.declaredFragment?.element;
       if (variableElement == null) {
         return;
       }
@@ -56,39 +56,35 @@ bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
     predicates.keys.any((p) => predicates[p] == methodName && p(type));
 
 bool _isElementEqualToVariable(
-        Element? propertyElement, VariableElement? variableElement) =>
+        Element2? propertyElement, VariableElement2? variableElement) =>
     propertyElement == variableElement ||
-    propertyElement is PropertyAccessorElement &&
-        propertyElement.variable2 == variableElement;
+    propertyElement.matches(variableElement);
 
 bool _isInvocationThroughCascadeExpression(
-    MethodInvocation invocation, VariableElement variableElement) {
+    MethodInvocation invocation, VariableElement2 variableElement) {
   if (invocation.realTarget is! SimpleIdentifier) {
     return false;
   }
 
   var identifier = invocation.realTarget;
   if (identifier is SimpleIdentifier) {
-    var element = identifier.staticElement;
-    if (element is PropertyAccessorElement) {
-      return element.variable2 == variableElement;
-    }
+    return identifier.element.matches(variableElement);
   }
   return false;
 }
 
 bool _isPostfixExpressionOperandEqualToVariable(
-    AstNode? n, VariableElement variableElement) {
+    AstNode? n, VariableElement2 variableElement) {
   if (n is PostfixExpression) {
     var operand = n.operand;
     return operand is SimpleIdentifier &&
-        _isElementEqualToVariable(operand.staticElement, variableElement);
+        _isElementEqualToVariable(operand.element, variableElement);
   }
   return false;
 }
 
 bool _isPropertyAccessThroughThis(
-    Expression? n, VariableElement variableElement) {
+    Expression? n, VariableElement2 variableElement) {
   if (n is! PropertyAccess) {
     return false;
   }
@@ -98,14 +94,14 @@ bool _isPropertyAccessThroughThis(
     return false;
   }
 
-  var propertyElement = n.propertyName.staticElement;
+  var propertyElement = n.propertyName.element;
   return _isElementEqualToVariable(propertyElement, variableElement);
 }
 
 bool _isSimpleIdentifierElementEqualToVariable(
-        AstNode? n, VariableElement variableElement) =>
+        AstNode? n, VariableElement2 variableElement) =>
     n is SimpleIdentifier &&
-    _isElementEqualToVariable(n.staticElement, variableElement);
+    _isElementEqualToVariable(n.element, variableElement);
 
 typedef DartTypePredicate = bool Function(DartType type);
 
@@ -164,7 +160,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 
   /// The element of the variable under consideration; stored here as a non-
   /// `null` value.
-  final VariableElement variableElement;
+  final VariableElement2 variableElement;
 
   /// The predicates that determine whether a method call or method tear-off is
   /// a valid use.
@@ -190,7 +186,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     // Being assigned another reference.
     if (node.rightHandSide is SimpleIdentifier) {
       if (_isElementEqualToVariable(
-          node.writeElement, variable.declaredElement)) {
+          node.writeElement2, variable.declaredFragment?.element)) {
         containsValidUse = true;
         return;
       }
@@ -207,7 +203,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (node.fieldName.staticElement == variableElement) {
+    if (node.fieldName.element == variableElement) {
       containsValidUse = true;
       return;
     }
@@ -217,9 +213,9 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     if (variableType == _VariableType.field) {
-      var staticElement = node.declaredElement;
-      if (staticElement is FieldFormalParameterElement &&
-          staticElement.field == variableElement) {
+      var staticElement = node.declaredFragment?.element;
+      if (staticElement is FieldFormalParameterElement2 &&
+          staticElement.field2 == variableElement) {
         containsValidUse = true;
         return;
       }
@@ -247,7 +243,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 
     if (node.argumentList.arguments
         .whereType<SimpleIdentifier>()
-        .map((e) => e.staticElement)
+        .map((e) => e.element)
         .contains(variableElement)) {
       // If any function is invoked with our variable, we suppress lints. This
       // is because it is not so uncommon to invoke the target method there. We
@@ -264,7 +260,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (node.prefix.staticElement == variableElement &&
+    if (node.prefix.element == variableElement &&
         _hasMatch(
             predicates, variableElement.type, node.identifier.token.lexeme)) {
       containsValidUse = true;
@@ -278,7 +274,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     if (variableType == _VariableType.local) {
       var expression = node.expression;
       if (expression is SimpleIdentifier &&
-          expression.staticElement == variableElement) {
+          expression.element == variableElement) {
         containsValidUse = true;
         return;
       }
@@ -291,4 +287,12 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 enum _VariableType {
   field,
   local;
+}
+
+extension on Element2? {
+  bool matches(VariableElement2? variable) => switch (this) {
+        GetterElement(:var variable3) => variable3 == variable,
+        SetterElement(:var variable3) => variable3 == variable,
+        _ => false,
+      };
 }
