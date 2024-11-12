@@ -77,6 +77,62 @@ class AnalysisHoverTest extends PubPackageAnalysisServerTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
+  Future<void> test_binaryOperator() async {
+    newFile(testFilePath, '''
+class A {
+  /// doc op
+  A operator +(A other) => this;
+}
+
+var a = A() + A();
+''');
+    var hover = await prepareHover('+ A()');
+    // element
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.dartdoc, 'doc op');
+    expect(hover.elementDescription, 'A +(A other)');
+    expect(hover.elementKind, 'method');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter.
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_binaryOperator_leftHandSide() async {
+    newFile(testFilePath, '''
+class A {
+  /// doc aaa
+  A();
+  A operator +(int other) => this;
+}
+
+var a = A() + A();
+''');
+    var hover = await prepareHover('A() +');
+    // element
+    expect(hover.elementDescription, '(new) A A()');
+    // don't show parameter information for binary operators
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_binaryOperator_rightHandSide() async {
+    newFile(testFilePath, '''
+class A {
+  A();
+  A operator +(int other) => this;
+}
+
+var a = A() + A(); // 1
+''');
+    var hover = await prepareHover('A(); // 1');
+    // element
+    expect(hover.elementDescription, '(new) A A()');
+    // don't show parameter information for binary operators
+    expect(hover.parameter, isNull);
+  }
+
   Future<void> test_class_constructor_named() async {
     newFile(testFilePath, '''
 class A {

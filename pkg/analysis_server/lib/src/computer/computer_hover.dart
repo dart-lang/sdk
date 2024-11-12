@@ -212,10 +212,15 @@ class DartUnitHoverComputer {
       return null;
     }
     var parameter = node.correspondingParameter;
-    if (parameter?.enclosingElement2 is SetterElement) {
-      return null;
-    }
-    return _elementDisplayString(node, parameter);
+    return switch (parameter?.enclosingElement2) {
+      // Expressions passed as arguments to setters and binary expressions
+      // will have parameters here but we don't want them to show as such in
+      // hovers because information about those functions are already available
+      // by hovering over the function name or the operator.
+      SetterElement() => null,
+      MethodElement2 method when method.isOperator => null,
+      _ => _elementDisplayString(node, parameter),
+    };
   }
 
   /// Adjusts the target node for constructors.
