@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 import '../type_inference/assigned_variables.dart';
 import '../type_inference/promotion_key_store.dart';
 import 'flow_analysis_operations.dart';
 import 'flow_link.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 /// [PropertyTarget] representing an implicit reference to the target of the
 /// innermost enclosing cascade expression.
@@ -5222,7 +5222,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   bool nullCheckOrAssertPattern_begin(
       {required bool isAssert, required Type matchedValueType}) {
     // When [matchedValueType] is InvalidType,
-    // we cannot say it is strictly non-nullable.
+    // we cannot determine whether it is strictly non-nullable.
     if (matchedValueType is InvalidType) {
       return false;
     }
