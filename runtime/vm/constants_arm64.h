@@ -690,40 +690,38 @@ static inline Condition InvertCondition(Condition c) {
   return static_cast<Condition>(c ^ 1);
 }
 
-enum Bits {
-  B0 = (1 << 0),
-  B1 = (1 << 1),
-  B2 = (1 << 2),
-  B3 = (1 << 3),
-  B4 = (1 << 4),
-  B5 = (1 << 5),
-  B6 = (1 << 6),
-  B7 = (1 << 7),
-  B8 = (1 << 8),
-  B9 = (1 << 9),
-  B10 = (1 << 10),
-  B11 = (1 << 11),
-  B12 = (1 << 12),
-  B13 = (1 << 13),
-  B14 = (1 << 14),
-  B15 = (1 << 15),
-  B16 = (1 << 16),
-  B17 = (1 << 17),
-  B18 = (1 << 18),
-  B19 = (1 << 19),
-  B20 = (1 << 20),
-  B21 = (1 << 21),
-  B22 = (1 << 22),
-  B23 = (1 << 23),
-  B24 = (1 << 24),
-  B25 = (1 << 25),
-  B26 = (1 << 26),
-  B27 = (1 << 27),
-  B28 = (1 << 28),
-  B29 = (1 << 29),
-  B30 = (1 << 30),
-  B31 = (1 << 31),
-};
+constexpr int32_t B0 = (1 << 0);
+constexpr int32_t B1 = (1 << 1);
+constexpr int32_t B2 = (1 << 2);
+constexpr int32_t B3 = (1 << 3);
+constexpr int32_t B4 = (1 << 4);
+constexpr int32_t B5 = (1 << 5);
+constexpr int32_t B6 = (1 << 6);
+constexpr int32_t B7 = (1 << 7);
+constexpr int32_t B8 = (1 << 8);
+constexpr int32_t B9 = (1 << 9);
+constexpr int32_t B10 = (1 << 10);
+constexpr int32_t B11 = (1 << 11);
+constexpr int32_t B12 = (1 << 12);
+constexpr int32_t B13 = (1 << 13);
+constexpr int32_t B14 = (1 << 14);
+constexpr int32_t B15 = (1 << 15);
+constexpr int32_t B16 = (1 << 16);
+constexpr int32_t B17 = (1 << 17);
+constexpr int32_t B18 = (1 << 18);
+constexpr int32_t B19 = (1 << 19);
+constexpr int32_t B20 = (1 << 20);
+constexpr int32_t B21 = (1 << 21);
+constexpr int32_t B22 = (1 << 22);
+constexpr int32_t B23 = (1 << 23);
+constexpr int32_t B24 = (1 << 24);
+constexpr int32_t B25 = (1 << 25);
+constexpr int32_t B26 = (1 << 26);
+constexpr int32_t B27 = (1 << 27);
+constexpr int32_t B28 = (1 << 28);
+constexpr int32_t B29 = (1 << 29);
+constexpr int32_t B30 = (1 << 30);
+constexpr int32_t B31 = (1 << 31);
 
 // Opcodes from C3
 // C3.1.

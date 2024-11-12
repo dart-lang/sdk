@@ -1036,13 +1036,13 @@ static void RunLockerWithLongJumpTest() {
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
       LockerType locker(Thread::Current(), &lock);
-      execution_count++;
+      execution_count = execution_count + 1;
       Thread::Current()->long_jump_base()->Jump(
           1, Object::background_compilation_error());
     } else {
       ASSERT(Thread::Current()->StealStickyError() ==
              Object::background_compilation_error().ptr());
-      thrown_count++;
+      thrown_count = thrown_count + 1;
     }
   }
   EXPECT_EQ(kNumIterations, execution_count);

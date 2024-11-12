@@ -25,6 +25,7 @@ config("binaryen_flags") {
         "-Wno-unused-private-field",
         "-Wno-inconsistent-missing-override",
         "-Wno-unknown-warning-option",
+        "-Wno-deprecated-this-capture",
       ]
     } else {
       # GCC
@@ -36,6 +37,7 @@ config("binaryen_flags") {
         # Bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86465#c16 triggered by
         # https://github.com/WebAssembly/binaryen/blob/cdb7aeab40b4c522de20b242019f7e88641445d5/src/wasm/wasm-type.cpp#L530.
         "-Wno-maybe-uninitialized",
+        "-Wno-deprecated",
       ]
     }
   }

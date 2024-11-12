@@ -54,7 +54,7 @@ extension on CType {
   String coutExpression(String variableName) {
     switch (this.runtimeType) {
       case FundamentalType:
-        if (this == uint8 || this == int8) {
+        if (this == uint8 || this == int8 || this == wchar) {
           return "<< static_cast<int>($variableName)";
         }
         return "<< $variableName";

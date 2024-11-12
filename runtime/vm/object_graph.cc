@@ -1713,7 +1713,8 @@ void HeapSnapshotWriter::Write() {
 
     // Smis.
     for (SmiPtr smi : smis_) {
-      WriteUnsigned(kSmiCid + kNumExtraCids);
+      WriteUnsigned(static_cast<intptr_t>(kSmiCid) +
+                    static_cast<intptr_t>(kNumExtraCids));
       WriteUnsigned(0);  // Heap size.
       WriteUnsigned(kIntData);
       WriteUnsigned(Smi::Value(smi));

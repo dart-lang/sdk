@@ -3663,7 +3663,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
         RELEASE_ASSERT(far_branch_level < 2);
-        far_branch_level++;
+        far_branch_level = far_branch_level + 1;
       } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.
