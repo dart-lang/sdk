@@ -54,7 +54,7 @@ import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 import '../testing_utils.dart' show checkEnvironment;
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
 import 'suite_utils.dart';
-import 'testing/environment_keys.dart';
+import '../testing/environment_keys.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;

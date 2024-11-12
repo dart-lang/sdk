@@ -12,7 +12,7 @@ import 'package:testing/src/suite.dart' as testing show Suite;
 import 'package:testing/testing.dart' show Step, TestDescription;
 
 import '../coverage_helper.dart';
-import 'testing/suite.dart';
+import '../testing/suite.dart';
 
 const String limitToArgument = "--limitTo=";
 

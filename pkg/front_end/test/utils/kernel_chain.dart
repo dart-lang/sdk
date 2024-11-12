@@ -52,7 +52,7 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
-import '../fasta/testing/suite.dart' show CompilationSetup, CompileMode;
+import '../testing/suite.dart' show CompilationSetup, CompileMode;
 import '../test_utils.dart';
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();

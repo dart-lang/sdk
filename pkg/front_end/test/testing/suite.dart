@@ -123,9 +123,9 @@ import 'package:testing/testing.dart'
         StdioProcess;
 import 'package:vm/modular/target/vm.dart' show VmTarget;
 
-import '../../incremental_suite.dart' show TestRecorderForTesting;
-import '../../testing_utils.dart' show checkEnvironment;
-import '../../utils/kernel_chain.dart'
+import '../incremental_suite.dart' show TestRecorderForTesting;
+import '../testing_utils.dart' show checkEnvironment;
+import '../utils/kernel_chain.dart'
     show
         ComponentResult,
         ErrorCommentChecker,
@@ -134,7 +134,7 @@ import '../../utils/kernel_chain.dart'
         Print,
         TypeCheck,
         WriteDill;
-import '../../utils/validating_instrumentation.dart'
+import '../utils/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 import 'environment_keys.dart';
 import 'folder_options.dart';

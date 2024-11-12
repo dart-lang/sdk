@@ -16,7 +16,7 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
 import 'fasta/suite_utils.dart';
-import 'fasta/testing/environment_keys.dart';
+import 'testing/environment_keys.dart';
 import 'incremental_suite.dart' as helper;
 import 'testing_utils.dart' show checkEnvironment;
 import 'utils/kernel_chain.dart' show MatchContext;
