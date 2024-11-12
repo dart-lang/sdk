@@ -11120,6 +11120,60 @@ suggestions
 ''');
   }
 
+  Future<void> test_partial_code_before_nested_function() async {
+    // Issue https://github.com/dart-lang/sdk/issues/49477.
+    allowedIdentifiers = {'bar', 'baz'};
+    await computeSuggestions('''
+class Foo {
+  Bar get bar => Bar();
+}
+
+class Bar {
+  String get baz => "baz";
+}
+
+void main(List<String> args) async {
+  final f = Foo();
+  f.bar.^
+
+  void writeMessage(String message) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  baz
+    kind: getter
+''');
+  }
+
+
+  Future<void> test_partial_code_before_nested_function_2() async {
+    // Variant of issue https://github.com/dart-lang/sdk/issues/49477,
+    // requested in https://dart-review.googlesource.com/c/sdk/+/393340.
+    allowedIdentifiers = {'bar', 'baz'};
+    await computeSuggestions('''
+class Foo {
+  Bar get bar => Bar();
+}
+
+class Bar {
+  String get baz => "baz";
+}
+
+void main(List<String> args) async {
+  final f = Foo();
+  f.bar.^
+
+  int getNumber() { return 42; }
+}
+''');
+    assertResponse(r'''
+suggestions
+  baz
+    kind: getter
+''');
+  }
+
   Future<void> test_single_2() async {
     allowedIdentifiers = {'B'};
     await computeSuggestions('''

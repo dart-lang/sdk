@@ -7282,10 +7282,12 @@ class Parser {
 
   Token parseSendOrFunctionLiteral(Token token, IdentifierContext context,
       ConstantPatternContext constantPatternContext) {
-    if (!mayParseFunctionExpressions) {
+    if (!mayParseFunctionExpressions || context.isContinuation) {
+      // "Inside" a continuation we can't have a function literal.
       return parseSend(token, context, constantPatternContext);
     }
     TypeInfo typeInfo = computeType(token, /* required = */ false);
+
     Token beforeName = typeInfo.skipType(token);
     Token name = beforeName.next!;
     if (name.isIdentifier) {
@@ -7298,6 +7300,7 @@ class Parser {
         }
       }
     }
+
     return parseSend(token, context, constantPatternContext);
   }
 

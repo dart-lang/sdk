@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_03.dart:7:7: Error: 'foo' is already declared in this scope.
+//   get foo => ~foo;
+//       ^^^
+// pkg/front_end/testcases/regress/ambiguous_builder_03.dart:6:7: Context: Previous declaration of 'foo'.
+//   get foo => 42;
+//       ^^^
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_03.dart:7:15: Error: Can't use 'foo' because it is declared more than once.
+//   get foo => ~foo;
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  synthetic constructor •() → self::Bar
+    : super core::Object::•()
+    ;
+  get foo() → dynamic
+    return 42;
+}
