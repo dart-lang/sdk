@@ -30,7 +30,7 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
 import 'fasta/suite_utils.dart';
-import 'fasta/testing/environment_keys.dart';
+import 'testing/environment_keys.dart';
 import 'parser_test_listener.dart' show ParserTestListener;
 import 'parser_test_parser.dart' show TestParser;
 import 'testing_utils.dart' show checkEnvironment;

@@ -641,7 +641,7 @@ deps = {
     "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/pkg/front_end/test/fasta/types/benchmark_data": {
+  Var("dart_root") + "/pkg/front_end/test/types/benchmark_data": {
     "packages": [
       {
         "package": "dart/cfe/benchmark_data",

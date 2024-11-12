@@ -26,7 +26,7 @@ void main(List<String> args) {
 
 void canParseTopLevelIshOfAllFrontendFiles() {
   Stopwatch stopwatch = new Stopwatch()..start();
-  Directory directory = new Directory.fromUri(base.resolve("../../../"));
+  Directory directory = new Directory.fromUri(base.resolve("../../"));
   int processed = 0;
   int errors = 0;
   for (FileSystemEntity entry in directory.listSync(recursive: true)) {

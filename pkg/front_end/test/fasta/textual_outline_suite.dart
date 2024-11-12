@@ -25,8 +25,8 @@ import 'package:testing/testing.dart'
 
 import '../utils/kernel_chain.dart' show MatchContext;
 import 'suite_utils.dart';
-import 'testing/environment_keys.dart';
-import 'testing/folder_options.dart';
+import '../testing/environment_keys.dart';
+import '../testing/folder_options.dart';
 
 const int minSupportedMajorVersion = 2;
 const int minSupportedMinorVersion = 12;
