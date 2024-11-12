@@ -2064,7 +2064,7 @@ FunctionReference
               type: int
           rightBracket: >
         element: <testLibraryFragment>::@typeAlias::Exactly
-        element2: <testLibraryFragment>::@typeAlias::Exactly#element
+        element2: <testLibrary>::@typeAlias::Exactly
         type: int Function(int)
           alias: <testLibraryFragment>::@typeAlias::Exactly
             typeArguments
@@ -2659,7 +2659,7 @@ FunctionReference
               type: int
           rightBracket: >
         element: <testLibraryFragment>::@typeAlias::Exactly
-        element2: <testLibraryFragment>::@typeAlias::Exactly#element
+        element2: <testLibrary>::@typeAlias::Exactly
         type: int Function(int)
           alias: <testLibraryFragment>::@typeAlias::Exactly
             typeArguments
@@ -3477,10 +3477,10 @@ FunctionReference
       identifier: SimpleIdentifier
         token: TA
         staticElement: package:test/a.dart::<fragment>::@typeAlias::TA
-        element: package:test/a.dart::<fragment>::@typeAlias::TA#element
+        element: package:test/a.dart::@typeAlias::TA
         staticType: Type
       staticElement: package:test/a.dart::<fragment>::@typeAlias::TA
-      element: package:test/a.dart::<fragment>::@typeAlias::TA#element
+      element: package:test/a.dart::@typeAlias::TA
       staticType: Type
     operator: .
     propertyName: SimpleIdentifier
@@ -3523,7 +3523,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: TA
       staticElement: <testLibraryFragment>::@typeAlias::TA
-      element: <testLibraryFragment>::@typeAlias::TA#element
+      element: <testLibrary>::@typeAlias::TA
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -4016,7 +4016,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: Cb
       staticElement: <testLibraryFragment>::@typeAlias::Cb
-      element: <testLibraryFragment>::@typeAlias::Cb#element
+      element: <testLibrary>::@typeAlias::Cb
       staticType: Type
     period: .
     identifier: SimpleIdentifier
@@ -4055,7 +4055,7 @@ FunctionReference
     prefix: SimpleIdentifier
       token: T
       staticElement: <testLibraryFragment>::@typeAlias::T
-      element: <testLibraryFragment>::@typeAlias::T#element
+      element: <testLibrary>::@typeAlias::T
       staticType: Type
     period: .
     identifier: SimpleIdentifier

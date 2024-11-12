@@ -903,7 +903,7 @@ InstanceCreationExpression
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::X
-      element2: <testLibraryFragment>::@typeAlias::X#element
+      element2: <testLibrary>::@typeAlias::X
       type: A<int, String>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::new
@@ -1212,7 +1212,7 @@ InstanceCreationExpression
         element2: <testLibraryFragment>::@prefix2::prefix
       name: X
       element: package:test/a.dart::<fragment>::@typeAlias::X
-      element2: package:test/a.dart::<fragment>::@typeAlias::X#element
+      element2: package:test/a.dart::@typeAlias::X
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1625,7 +1625,7 @@ InstanceCreationExpression
     type: NamedType
       name: X
       element: <testLibraryFragment>::@typeAlias::X
-      element2: <testLibraryFragment>::@typeAlias::X#element
+      element2: <testLibrary>::@typeAlias::X
       type: A<int>
     period: .
     name: SimpleIdentifier

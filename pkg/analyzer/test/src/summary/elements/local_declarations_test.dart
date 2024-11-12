@@ -160,6 +160,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -194,9 +195,9 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic <null-name>
+        synthetic g
           reference: <testLibraryFragment>::@topLevelVariable::g
-          element: <testLibraryFragment>::@topLevelVariable::g#element
+          element: <testLibrary>::@topLevelVariable::g
           getter2: <testLibraryFragment>::@getter::g
       getters
         get g @4
@@ -204,6 +205,7 @@ library
           element: <testLibraryFragment>::@getter::g#element
   topLevelVariables
     synthetic g
+      reference: <testLibrary>::@topLevelVariable::g
       firstFragment: <testLibraryFragment>::@topLevelVariable::g
       type: dynamic
       getter: <testLibraryFragment>::@getter::g#element
@@ -326,6 +328,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }

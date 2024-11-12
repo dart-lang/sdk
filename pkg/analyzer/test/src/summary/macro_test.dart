@@ -3696,6 +3696,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
           formalParameters
             requiredPositional a
@@ -3881,6 +3882,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           formalParameters
             optionalPositional x
@@ -3914,6 +3916,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           formalParameters
             optionalPositional x
@@ -3967,6 +3970,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           formalParameters
             requiredPositional x
@@ -4220,6 +4224,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     const x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
@@ -4256,6 +4261,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     const x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
@@ -4298,6 +4304,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     const x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       metadata
         Annotation
@@ -4325,6 +4332,7 @@ library
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
     const y
+      reference: <testLibrary>::@topLevelVariable::y
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::y
       metadata
         Annotation
@@ -4385,6 +4393,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     const x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       type: Type
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
@@ -4663,6 +4672,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           metadata
             Annotation
@@ -4879,6 +4889,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
@@ -4941,6 +4952,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
       type: int
       setter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
@@ -5002,6 +5014,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
       type: dynamic
       setter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
@@ -5064,6 +5077,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     final foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
       metadata
         Annotation
@@ -5126,6 +5140,7 @@ library
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
     final foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
       metadata
         Annotation
@@ -5153,6 +5168,7 @@ library
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
     final bar
+      reference: <testLibrary>::@topLevelVariable::bar
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::bar
       metadata
         Annotation
@@ -5640,7 +5656,7 @@ library
       topLevelVariables
         final x @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
-          element: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
       getters
         get <null-name>
@@ -5652,6 +5668,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
   topLevelVariables
     final x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
@@ -6276,6 +6293,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         external foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::foo
 ''');
   }
@@ -6685,6 +6703,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -7261,6 +7280,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           typeParameters
             T
@@ -7643,6 +7663,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -7831,7 +7852,7 @@ library
       typeAliases
         A @82
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           typeParameters
             T @84
               element: <not-implemented>
@@ -7910,6 +7931,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -8847,6 +8869,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -8910,7 +8933,7 @@ library
       topLevelVariables
         final foo @80
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get <null-name>
@@ -8918,6 +8941,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
     final foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -9049,7 +9073,7 @@ library
       typeAliases
         A @35
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
       functions
         foo @98
           reference: <testLibraryFragment>::@function::foo
@@ -9149,6 +9173,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           formalParameters
             requiredPositional a
@@ -9228,6 +9253,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -9535,7 +9561,7 @@ library
       typeAliases
         A @81
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
   typeAliases
     A
       firstFragment: <testLibraryFragment>::@typeAlias::A
@@ -9627,8 +9653,10 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
         bar
+          reference: <testLibrary>::@class::A::@method::bar
           firstFragment: <testLibraryFragment>::@class::A::@method::bar
 ''');
   }
@@ -10147,6 +10175,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -10712,6 +10741,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
 
@@ -10829,6 +10859,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -10914,6 +10945,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
   extensions
     extension B
@@ -10986,6 +11018,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11054,6 +11087,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11122,6 +11156,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11192,6 +11227,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11262,6 +11298,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11332,6 +11369,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11402,6 +11440,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11472,6 +11511,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11589,6 +11629,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
   enums
     enum B
@@ -11678,6 +11719,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11748,6 +11790,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11854,6 +11897,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11924,6 +11968,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -11994,6 +12039,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -12064,6 +12110,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -12134,6 +12181,7 @@ library
       firstFragment: <testLibraryFragment>::@class::A
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -12337,6 +12385,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@getter::bar
       methods
         toString
+          reference: <testLibrary>::@class::A::@method::toString
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toString
 ''');
   }
@@ -12580,6 +12629,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@getter::bar
       methods
         external toJson
+          reference: <testLibrary>::@class::A::@method::toJson
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@method::toJson
 ''');
   }
@@ -18228,6 +18278,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass
       methods
         foo
+          reference: <testLibrary>::@class::MyClass::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@class::MyClass::@method::foo
           formalParameters
             requiredPositional _

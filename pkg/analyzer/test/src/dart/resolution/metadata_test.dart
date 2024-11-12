@@ -1780,10 +1780,10 @@ Annotation
     identifier: SimpleIdentifier
       token: B
       staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-      element: package:test/a.dart::<fragment>::@typeAlias::B#element
+      element: package:test/a.dart::@typeAlias::B
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-    element: package:test/a.dart::<fragment>::@typeAlias::B#element
+    element: package:test/a.dart::@typeAlias::B
     staticType: null
   period: .
   constructorName: SimpleIdentifier
@@ -1830,10 +1830,10 @@ Annotation
     identifier: SimpleIdentifier
       token: B
       staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-      element: package:test/a.dart::<fragment>::@typeAlias::B#element
+      element: package:test/a.dart::@typeAlias::B
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-    element: package:test/a.dart::<fragment>::@typeAlias::B#element
+    element: package:test/a.dart::@typeAlias::B
     staticType: null
   period: .
   constructorName: SimpleIdentifier
@@ -1894,10 +1894,10 @@ Annotation
     identifier: SimpleIdentifier
       token: B
       staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-      element: package:test/a.dart::<fragment>::@typeAlias::B#element
+      element: package:test/a.dart::@typeAlias::B
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-    element: package:test/a.dart::<fragment>::@typeAlias::B#element
+    element: package:test/a.dart::@typeAlias::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -1950,10 +1950,10 @@ Annotation
     identifier: SimpleIdentifier
       token: B
       staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-      element: package:test/a.dart::<fragment>::@typeAlias::B#element
+      element: package:test/a.dart::@typeAlias::B
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-    element: package:test/a.dart::<fragment>::@typeAlias::B#element
+    element: package:test/a.dart::@typeAlias::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2023,10 +2023,10 @@ Annotation
     identifier: SimpleIdentifier
       token: B
       staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-      element: package:test/a.dart::<fragment>::@typeAlias::B#element
+      element: package:test/a.dart::@typeAlias::B
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@typeAlias::B
-    element: package:test/a.dart::<fragment>::@typeAlias::B#element
+    element: package:test/a.dart::@typeAlias::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2089,7 +2089,7 @@ Annotation
     prefix: SimpleIdentifier
       token: B
       staticElement: <testLibraryFragment>::@typeAlias::B
-      element: <testLibraryFragment>::@typeAlias::B#element
+      element: <testLibrary>::@typeAlias::B
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2130,7 +2130,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2198,7 +2198,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2258,7 +2258,7 @@ Annotation
     prefix: SimpleIdentifier
       token: B
       staticElement: <testLibraryFragment>::@typeAlias::B
-      element: <testLibraryFragment>::@typeAlias::B#element
+      element: <testLibrary>::@typeAlias::B
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2314,7 +2314,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -2357,7 +2357,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2417,7 +2417,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2470,7 +2470,7 @@ Annotation
     prefix: SimpleIdentifier
       token: B
       staticElement: <testLibraryFragment>::@typeAlias::B
-      element: <testLibraryFragment>::@typeAlias::B#element
+      element: <testLibrary>::@typeAlias::B
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2526,7 +2526,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
@@ -2570,7 +2570,7 @@ Annotation
     prefix: SimpleIdentifier
       token: B
       staticElement: <testLibraryFragment>::@typeAlias::B
-      element: <testLibraryFragment>::@typeAlias::B#element
+      element: <testLibrary>::@typeAlias::B
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2618,7 +2618,7 @@ Annotation
   name: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (

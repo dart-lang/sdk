@@ -386,7 +386,7 @@ ConstructorReference
         element2: <testLibraryFragment>::@prefix2::a
       name: TA
       element: package:test/a.dart::<fragment>::@typeAlias::TA
-      element2: package:test/a.dart::<fragment>::@typeAlias::TA#element
+      element2: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -426,7 +426,7 @@ ConstructorReference
         element2: <testLibraryFragment>::@prefix2::a
       name: TA
       element: package:test/a.dart::<fragment>::@typeAlias::TA
-      element2: package:test/a.dart::<fragment>::@typeAlias::TA#element
+      element2: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -535,7 +535,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -568,7 +568,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -599,7 +599,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -636,7 +636,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -689,7 +689,7 @@ ConstructorReference
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -733,7 +733,7 @@ ConstructorReference
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -784,7 +784,7 @@ ConstructorReference
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -819,7 +819,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -861,7 +861,7 @@ ConstructorReference
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -922,7 +922,7 @@ ConstructorReference
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -970,7 +970,7 @@ ConstructorReference
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -1516,7 +1516,7 @@ ConstructorReference
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@typeAlias::TA
-      element2: package:test/a.dart::<fragment>::@typeAlias::TA#element
+      element2: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier

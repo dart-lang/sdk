@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
+// ignore: implementation_imports
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 LinterNameInScopeResolutionResult resolveNameInScope(
   String id,
@@ -56,6 +59,9 @@ class LinterNameInScopeResolutionResult {
 
   const LinterNameInScopeResolutionResult._requestedName(this.element)
       : _state = _LinterNameInScopeResolutionResultState.requestedName;
+
+  /// The element with the requested basename, `null` is [isNone].
+  Element2? get element2 => element.asElement2;
 
   bool get isDifferentName =>
       _state == _LinterNameInScopeResolutionResultState.differentName;

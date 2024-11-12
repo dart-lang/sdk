@@ -135,7 +135,7 @@ ObjectPattern
   type: NamedType
     name: L
     element: <testLibraryFragment>::@typeAlias::L
-    element2: <testLibraryFragment>::@typeAlias::L#element
+    element2: <testLibrary>::@typeAlias::L
     type: B<int, String>
       alias: <testLibraryFragment>::@typeAlias::L
         typeArguments
@@ -919,7 +919,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
-    element2: <testLibraryFragment>::@typeAlias::A#element
+    element2: <testLibrary>::@typeAlias::A
     type: int?
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -959,7 +959,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
-    element2: <testLibraryFragment>::@typeAlias::A#element
+    element2: <testLibrary>::@typeAlias::A
     type: dynamic
   leftParenthesis: (
   fields
@@ -1012,7 +1012,7 @@ ObjectPattern
           type: int
       rightBracket: >
     element: <testLibraryFragment>::@typeAlias::A
-    element2: <testLibraryFragment>::@typeAlias::A#element
+    element2: <testLibrary>::@typeAlias::A
     type: int Function()
       alias: <testLibraryFragment>::@typeAlias::A
         typeArguments
@@ -1059,7 +1059,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
-    element2: <testLibraryFragment>::@typeAlias::A#element
+    element2: <testLibrary>::@typeAlias::A
     type: void Function()
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1100,7 +1100,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
-    element2: <testLibraryFragment>::@typeAlias::A#element
+    element2: <testLibrary>::@typeAlias::A
     type: void Function()
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1142,7 +1142,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
-    element2: <testLibraryFragment>::@typeAlias::A#element
+    element2: <testLibrary>::@typeAlias::A
     type: void Function()
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1183,7 +1183,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
-    element2: <testLibraryFragment>::@typeAlias::A#element
+    element2: <testLibrary>::@typeAlias::A
     type: ({int foo})
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (
@@ -1224,7 +1224,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: <testLibraryFragment>::@typeAlias::A
-    element2: <testLibraryFragment>::@typeAlias::A#element
+    element2: <testLibrary>::@typeAlias::A
     type: (int,)
       alias: <testLibraryFragment>::@typeAlias::A
   leftParenthesis: (

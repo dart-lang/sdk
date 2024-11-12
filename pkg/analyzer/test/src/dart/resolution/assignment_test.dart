@@ -2432,7 +2432,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: B
       staticElement: <testLibraryFragment>::@typeAlias::B
-      element: <testLibraryFragment>::@typeAlias::B#element
+      element: <testLibrary>::@typeAlias::B
       staticType: null
     period: .
     identifier: SimpleIdentifier

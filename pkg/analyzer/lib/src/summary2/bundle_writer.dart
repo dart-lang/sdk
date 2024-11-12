@@ -27,6 +27,7 @@ import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_type_location_storage.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class BundleWriter {
   late final _BundleWriterReferences _references;
@@ -491,21 +492,22 @@ class BundleWriter {
     _writeReference2(element.reference);
   }
 
-  void _writeMethodElement(MethodElementImpl element) {
+  void _writeMethodElement(MethodElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(element);
-    _writeFragmentName(element);
-    _sink._writeStringReference(element.name);
-    MethodElementFlags.write(_sink, element);
-    _writeAugmentationTargetAny(element);
+    _writeReference(fragment);
+    _writeReference2(fragment.element.reference);
+    _writeFragmentName(fragment);
+    _sink._writeStringReference(fragment.name);
+    MethodElementFlags.write(_sink, fragment);
+    _writeAugmentationTargetAny(fragment);
 
-    _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink._writeAnnotationList(fragment.metadata);
 
-    _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
-      _writeList(element.parameters, _writeParameterElement);
-      _sink._writeTopLevelInferenceError(element.typeInferenceError);
-      _resolutionSink.writeType(element.returnType);
+    _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(fragment.macroDiagnostics);
+      _writeList(fragment.parameters, _writeParameterElement);
+      _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
+      _resolutionSink.writeType(fragment.returnType);
     });
   }
 
@@ -611,20 +613,27 @@ class BundleWriter {
     }
   }
 
-  void _writePropertyAccessorElement(PropertyAccessorElementImpl element) {
+  void _writePropertyAccessorElement(PropertyAccessorElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(element);
-    _writeFragmentName(element);
-    PropertyAccessorElementFlags.write(_sink, element);
-    _writeAugmentationTargetAny(element);
+    _writeReference(fragment);
+    _writeFragmentName(fragment);
+    PropertyAccessorElementFlags.write(_sink, fragment);
+    _writeAugmentationTargetAny(fragment);
 
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeType(element.returnType);
-    _writeList(element.parameters, _writeParameterElement);
+    _resolutionSink._writeAnnotationList(fragment.metadata);
+    _resolutionSink.writeType(fragment.returnType);
+    _writeList(fragment.parameters, _writeParameterElement);
 
     // Write the reference for the variable, the reader will use it.
-    if (!element.isAugmentation) {
-      _writeReference(element.variable2!);
+    if (!fragment.isAugmentation) {
+      var variableFragment = fragment.variable2!;
+      _writeReference(variableFragment);
+      _writeOptionalReference(
+        variableFragment
+            .ifTypeOrNull<TopLevelVariableElementImpl>()
+            ?.element
+            .reference,
+      );
     }
   }
 
@@ -638,40 +647,42 @@ class BundleWriter {
     _sink.writeUInt30(index);
   }
 
-  void _writeTopLevelVariableElement(TopLevelVariableElementImpl element) {
+  void _writeTopLevelVariableElement(TopLevelVariableElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _writeReference(element);
-    _writeOptionalReference(element.getter?.reference);
-    _writeOptionalReference(element.setter?.reference);
-    _writeFragmentName(element);
-    _sink._writeStringReference(element.name);
-    _sink.writeBool(element.isConst);
-    TopLevelVariableElementFlags.write(_sink, element);
-    _writeAugmentationTargetAny(element);
-    _sink._writeTopLevelInferenceError(element.typeInferenceError);
-    _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
-    _resolutionSink.writeType(element.type);
+    _writeReference(fragment);
+    _writeReference2(fragment.element.reference);
+    _writeOptionalReference(fragment.getter?.reference);
+    _writeOptionalReference(fragment.setter?.reference);
+    _writeFragmentName(fragment);
+    _sink._writeStringReference(fragment.name);
+    _sink.writeBool(fragment.isConst);
+    TopLevelVariableElementFlags.write(_sink, fragment);
+    _writeAugmentationTargetAny(fragment);
+    _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
+    _resolutionSink._writeAnnotationList(fragment.metadata);
+    _resolutionSink.writeMacroDiagnostics(fragment.macroDiagnostics);
+    _resolutionSink.writeType(fragment.type);
 
-    _resolutionSink._writeOptionalNode(element.constantInitializer);
+    _resolutionSink._writeOptionalNode(fragment.constantInitializer);
   }
 
-  void _writeTypeAliasElement(TypeAliasElementImpl element) {
+  void _writeTypeAliasElement(TypeAliasElementImpl fragment) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _writeReference(element);
-    _writeFragmentName(element);
-    _sink._writeStringReference(element.name);
-    _sink.writeBool(element.isFunctionTypeAliasBased);
-    TypeAliasElementFlags.write(_sink, element);
-    _writeAugmentationTargetAny(element);
+    _writeReference(fragment);
+    _writeReference2(fragment.element.reference);
+    _writeFragmentName(fragment);
+    _sink._writeStringReference(fragment.name);
+    _sink.writeBool(fragment.isFunctionTypeAliasBased);
+    TypeAliasElementFlags.write(_sink, fragment);
+    _writeAugmentationTargetAny(fragment);
 
-    _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink._writeAnnotationList(fragment.metadata);
 
-    _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
-      _resolutionSink._writeAliasedElement(element.aliasedElement);
-      _resolutionSink.writeType(element.aliasedType);
+    _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.writeMacroDiagnostics(fragment.macroDiagnostics);
+      _resolutionSink._writeAliasedElement(fragment.aliasedElement);
+      _resolutionSink.writeType(fragment.aliasedType);
     });
   }
 

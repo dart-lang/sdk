@@ -253,7 +253,17 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
                          (unboxed_inputs() ? 0 : kSmiTagShift);
   if (FLAG_target_memory_sanitizer) {
-    __ PushPair(length_reg, dest_reg);
+    __ Push(length_reg);
+    if (!unboxed_inputs()) {
+      __ ExtendNonNegativeSmi(length_reg);
+    }
+    if (shift < 0) {
+      __ AsrImmediate(length_reg, length_reg, -shift);
+    } else {
+      __ LslImmediate(length_reg, length_reg, shift);
+    }
+    __ MsanUnpoison(dest_reg, length_reg);
+    __ Pop(length_reg);
   }
   if (reversed) {
     // Verify that the overlap actually exists by checking to see if
@@ -297,19 +307,6 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   __ subs(length_reg, length_reg, compiler::Operand(loop_subtract),
           compiler::kObjectBytes);
   __ b(&loop, NOT_ZERO);
-
-  if (FLAG_target_memory_sanitizer) {
-    __ PopPair(length_reg, dest_reg);
-    if (!unboxed_inputs()) {
-      __ ExtendNonNegativeSmi(length_reg);
-    }
-    if (shift < 0) {
-      __ AsrImmediate(length_reg, length_reg, -shift);
-    } else {
-      __ LslImmediate(length_reg, length_reg, shift);
-    }
-    __ MsanUnpoison(dest_reg, length_reg);
-  }
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,

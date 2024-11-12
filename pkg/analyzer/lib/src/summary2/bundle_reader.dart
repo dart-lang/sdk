@@ -614,6 +614,7 @@ class LibraryReader {
   final String? macroGeneratedCode;
 
   late final LibraryElementImpl _libraryElement;
+  late InstanceElementImpl2 _currentInstanceElement;
 
   LibraryReader._({
     required LinkedElementFactory elementFactory,
@@ -729,10 +730,12 @@ class LibraryReader {
     var fragment = ClassElementImpl(name, -1);
     fragment.name2 = fragmentName;
 
-    if (reference2.element2 case ClassElementImpl2 element2?) {
-      fragment.augmentedInternal = element2;
+    if (reference2.element2 case ClassElementImpl2 element?) {
+      _currentInstanceElement = element;
+      fragment.augmentedInternal = element;
     } else {
       var element = ClassElementImpl2(reference2, fragment);
+      _currentInstanceElement = element;
       _libraryElement.classes.add(element);
     }
 
@@ -886,10 +889,12 @@ class LibraryReader {
     var fragment = EnumElementImpl(name, -1);
     fragment.name2 = fragmentName;
 
-    if (reference2.element2 case EnumElementImpl2 element2?) {
-      fragment.augmentedInternal = element2;
+    if (reference2.element2 case EnumElementImpl2 element?) {
+      _currentInstanceElement = element;
+      fragment.augmentedInternal = element;
     } else {
       var element = EnumElementImpl2(reference2, fragment);
+      _currentInstanceElement = element;
       _libraryElement.enums.add(element);
     }
 
@@ -984,10 +989,12 @@ class LibraryReader {
     var fragment = ExtensionElementImpl(name, -1);
     fragment.name2 = fragmentName;
 
-    if (reference2.element2 case ExtensionElementImpl2 element2?) {
-      fragment.augmentedInternal = element2;
+    if (reference2.element2 case ExtensionElementImpl2 element?) {
+      _currentInstanceElement = element;
+      fragment.augmentedInternal = element;
     } else {
       var element = ExtensionElementImpl2(reference2, fragment);
+      _currentInstanceElement = element;
       _libraryElement.extensions.add(element);
     }
 
@@ -1042,10 +1049,12 @@ class LibraryReader {
     var fragment = ExtensionTypeElementImpl(name, -1);
     fragment.name2 = fragmentName;
 
-    if (reference2.element2 case ExtensionTypeElementImpl2 element2?) {
-      fragment.augmentedInternal = element2;
+    if (reference2.element2 case ExtensionTypeElementImpl2 element?) {
+      _currentInstanceElement = element;
+      fragment.augmentedInternal = element;
     } else {
       var element = ExtensionTypeElementImpl2(reference2, fragment);
+      _currentInstanceElement = element;
       _libraryElement.extensionTypes.add(element);
     }
 
@@ -1315,24 +1324,33 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var reference = _readReference();
+      var reference2 = _readReference();
       var fragmentName = _readFragmentName();
       // TODO(scheglov): we do this only because MethodElement2 uses this name.
       var name = _reader.readStringReference();
-      var element = MethodElementImpl(name, -1);
-      element.name2 = fragmentName;
+      var fragment = MethodElementImpl(name, -1);
+      fragment.name2 = fragmentName;
+
+      if (reference2.element2 case MethodElementImpl2 element) {
+        fragment.element = element;
+      } else {
+        var element = MethodElementImpl2(reference2, fragment.name2, fragment);
+        _currentInstanceElement.methods2.add(element);
+      }
+
       var linkedData = MethodElementLinkedData(
         reference: reference,
         libraryReader: this,
         unitElement: unitElement,
         offset: resolutionOffset,
       );
-      element.setLinkedData(reference, linkedData);
-      MethodElementFlags.read(_reader, element);
-      _readAugmentationTargetAny(element);
-      element.typeParameters = _readTypeParameters();
-      element.parameters = _readParameters();
-      element.typeInferenceError = _readTopLevelInferenceError();
-      return element;
+      fragment.setLinkedData(reference, linkedData);
+      MethodElementFlags.read(_reader, fragment);
+      _readAugmentationTargetAny(fragment);
+      fragment.typeParameters = _readTypeParameters();
+      fragment.parameters = _readParameters();
+      fragment.typeInferenceError = _readTopLevelInferenceError();
+      return fragment;
     });
   }
 
@@ -1351,10 +1369,12 @@ class LibraryReader {
     var fragment = MixinElementImpl(name, -1);
     fragment.name2 = fragmentName;
 
-    if (reference2.element2 case MixinElementImpl2 element2?) {
-      fragment.augmentedInternal = element2;
+    if (reference2.element2 case MixinElementImpl2 element?) {
+      _currentInstanceElement = element;
+      fragment.augmentedInternal = element;
     } else {
       var element = MixinElementImpl2(reference2, fragment);
+      _currentInstanceElement = element;
       _libraryElement.mixins.add(element);
     }
 
@@ -1527,10 +1547,11 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     ElementImpl enclosingElement,
     Reference enclosingReference,
-    List<PropertyAccessorElement> accessors,
-    List<PropertyInducingElement> properties,
-    String containerRefName,
-  ) {
+    List<PropertyAccessorElement> accessorFragments,
+    List<PropertyInducingElement> propertyFragments,
+    String containerRefName, {
+    List<TopLevelVariableElementImpl2>? variables2,
+  }) {
     var accessorCount = _reader.readUInt30();
     for (var i = 0; i < accessorCount; i++) {
       var accessor = _readPropertyAccessorElement(
@@ -1538,14 +1559,16 @@ class LibraryReader {
         enclosingElement,
         enclosingReference,
       );
-      accessors.add(accessor);
+      accessorFragments.add(accessor);
 
       if (accessor.isAugmentation) {
         continue;
       }
 
-      // Read the property reference.
-      var propertyReference = _readReference();
+      // Read the property references.
+      var propertyFragmentReference = _readReference();
+      // TODO(scheglov): should be required?
+      var propertyElementReference = _readOptionalReference();
 
       var name = accessor.displayName;
       var isGetter = accessor.isGetter;
@@ -1555,41 +1578,51 @@ class LibraryReader {
             accessor.isSetter && property.setter == null;
       }
 
-      PropertyInducingElementImpl property;
-      var existing = propertyReference.element;
+      PropertyInducingElementImpl propertyFragment;
+      var existing = propertyFragmentReference.element;
       if (enclosingElement is CompilationUnitElementImpl) {
         if (existing is TopLevelVariableElementImpl &&
             canUseExisting(existing)) {
-          property = existing;
+          propertyFragment = existing;
         } else {
-          property = TopLevelVariableElementImpl(name, -1)
+          var variableFragment = TopLevelVariableElementImpl(name, -1)
             ..enclosingElement3 = enclosingElement
-            ..reference = propertyReference
+            ..reference = propertyFragmentReference
             ..isSynthetic = true;
-          propertyReference.element ??= property;
-          properties.add(property);
+          variableFragment.name2 = accessor.name2;
+          propertyFragment = variableFragment;
+          propertyFragmentReference.element ??= propertyFragment;
+          propertyFragments.add(variableFragment);
+
+          // TODO(scheglov): should be required?
+          propertyElementReference!;
+          var variableElement = TopLevelVariableElementImpl2(
+            propertyElementReference,
+            variableFragment,
+          );
+          variables2!.add(variableElement);
         }
       } else {
         if (existing is FieldElementImpl && canUseExisting(existing)) {
-          property = existing;
+          propertyFragment = existing;
         } else {
-          property = FieldElementImpl(name, -1)
+          propertyFragment = FieldElementImpl(name, -1)
             ..enclosingElement3 = enclosingElement
-            ..reference = propertyReference
+            ..reference = propertyFragmentReference
             ..isStatic = accessor.isStatic
             ..isSynthetic = true;
-          propertyReference.element ??= property;
-          properties.add(property);
+          propertyFragmentReference.element ??= propertyFragment;
+          propertyFragments.add(propertyFragment);
         }
       }
 
-      accessor.variable2 = property;
+      accessor.variable2 = propertyFragment;
       if (isGetter) {
-        property.getter = accessor;
+        propertyFragment.getter = accessor;
       } else {
-        property.setter = accessor;
-        if (property.isSynthetic) {
-          property.isFinal = false;
+        propertyFragment.setter = accessor;
+        if (propertyFragment.isSynthetic) {
+          propertyFragment.isFinal = false;
         }
       }
     }
@@ -1620,6 +1653,7 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     var reference = _readReference();
+    var reference2 = _readReference();
     var getterReference = _readOptionalReference();
     var setterReference = _readOptionalReference();
     var fragmentName = _readFragmentName();
@@ -1628,13 +1662,20 @@ class LibraryReader {
     var name = _reader.readStringReference();
     var isConst = _reader.readBool();
 
-    TopLevelVariableElementImpl element;
+    TopLevelVariableElementImpl fragment;
     if (isConst) {
-      element = ConstTopLevelVariableElementImpl(name, -1);
+      fragment = ConstTopLevelVariableElementImpl(name, -1);
     } else {
-      element = TopLevelVariableElementImpl(name, -1);
+      fragment = TopLevelVariableElementImpl(name, -1);
     }
-    element.name2 = fragmentName;
+    fragment.name2 = fragmentName;
+
+    if (reference2.element2 case TopLevelVariableElementImpl2 element) {
+      fragment.element = element;
+    } else {
+      var element = TopLevelVariableElementImpl2(reference2, fragment);
+      _libraryElement.topLevelVariables.add(element);
+    }
 
     var linkedData = TopLevelVariableElementLinkedData(
       reference: reference,
@@ -1642,21 +1683,21 @@ class LibraryReader {
       unitElement: unitElement,
       offset: resolutionOffset,
     );
-    element.setLinkedData(reference, linkedData);
+    fragment.setLinkedData(reference, linkedData);
 
-    element.isConst = isConst;
-    TopLevelVariableElementFlags.read(_reader, element);
-    _readAugmentationTargetAny(element);
-    element.typeInferenceError = _readTopLevelInferenceError();
+    fragment.isConst = isConst;
+    TopLevelVariableElementFlags.read(_reader, fragment);
+    _readAugmentationTargetAny(fragment);
+    fragment.typeInferenceError = _readTopLevelInferenceError();
 
     if (getterReference != null) {
-      element.createImplicitGetter(getterReference);
+      fragment.createImplicitGetter(getterReference);
     }
-    if (element.hasSetter && setterReference != null) {
-      element.createImplicitSetter(setterReference);
+    if (fragment.hasSetter && setterReference != null) {
+      fragment.createImplicitSetter(setterReference);
     }
 
-    return element;
+    return fragment;
   }
 
   void _readTopLevelVariables(
@@ -1688,19 +1729,27 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     var reference = _readReference();
+    var reference2 = _readReference();
     var fragmentName = _readFragmentName();
     var name = _reader.readStringReference();
 
     var isFunctionTypeAliasBased = _reader.readBool();
 
-    TypeAliasElementImpl element;
+    TypeAliasElementImpl fragment;
     if (isFunctionTypeAliasBased) {
-      element = TypeAliasElementImpl(name, -1);
-      element.isFunctionTypeAliasBased = true;
+      fragment = TypeAliasElementImpl(name, -1);
+      fragment.isFunctionTypeAliasBased = true;
     } else {
-      element = TypeAliasElementImpl(name, -1);
+      fragment = TypeAliasElementImpl(name, -1);
     }
-    element.name2 = fragmentName;
+    fragment.name2 = fragmentName;
+
+    if (reference2.element2 case TypeAliasElementImpl2 element) {
+      fragment.element = element;
+    } else {
+      var element = TypeAliasElementImpl2(reference2, fragment);
+      _libraryElement.typeAliases.add(element);
+    }
 
     var linkedData = TypeAliasElementLinkedData(
       reference: reference,
@@ -1708,15 +1757,15 @@ class LibraryReader {
       unitElement: unitElement,
       offset: resolutionOffset,
     );
-    element.setLinkedData(reference, linkedData);
+    fragment.setLinkedData(reference, linkedData);
 
-    element.isFunctionTypeAliasBased = isFunctionTypeAliasBased;
-    TypeAliasElementFlags.read(_reader, element);
-    _readAugmentationTargetAny(element);
+    fragment.isFunctionTypeAliasBased = isFunctionTypeAliasBased;
+    TypeAliasElementFlags.read(_reader, fragment);
+    _readAugmentationTargetAny(fragment);
 
-    element.typeParameters = _readTypeParameters();
+    fragment.typeParameters = _readTypeParameters();
 
-    return element;
+    return fragment;
   }
 
   void _readTypeAliases(
@@ -1788,13 +1837,21 @@ class LibraryReader {
     _readMixins(unitElement, unitReference);
     _readTypeAliases(unitElement, unitReference);
 
-    var accessors = <PropertyAccessorElementImpl>[];
-    var variables = <TopLevelVariableElementImpl>[];
-    _readTopLevelVariables(unitElement, unitReference, accessors, variables);
-    _readPropertyAccessors(unitElement, unitElement, unitReference, accessors,
-        variables, '@topLevelVariable');
-    unitElement.accessors = accessors.toFixedList();
-    unitElement.topLevelVariables = variables.toFixedList();
+    var accessorFragments = <PropertyAccessorElementImpl>[];
+    var variableFragments = <TopLevelVariableElementImpl>[];
+    _readTopLevelVariables(
+        unitElement, unitReference, accessorFragments, variableFragments);
+    _readPropertyAccessors(
+      unitElement,
+      unitElement,
+      unitReference,
+      accessorFragments,
+      variableFragments,
+      '@topLevelVariable',
+      variables2: _libraryElement.topLevelVariables,
+    );
+    unitElement.accessors = accessorFragments.toFixedList();
+    unitElement.topLevelVariables = variableFragments.toFixedList();
 
     unitElement.macroGenerated = _reader.readOptionalObject((reader) {
       return MacroGeneratedLibraryFragment(

@@ -16,6 +16,7 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import 'test_server.dart';
+import 'test_support.dart';
 
 /// A helper class to simplify acting as a client for interacting with the
 /// [DapTestServer] in tests.
@@ -51,19 +52,17 @@ class DapTestClient {
 
   late final Future<Uri?> vmServiceUri;
 
-  /// Used to control drive letter casing on Windows for testing.
-  bool? forceDriveLetterCasingUpper;
-
-  /// Used to control drive letter casing on Windows for testing.
-  bool? forceDriveLetterCasingLower;
-
-  /// Used to control drive letter casing for breakpoint requests on Windows for
+  /// Used to control drive letter casing for the 'program' value on Windows for
   /// testing.
-  bool? forceBreakpointDriveLetterCasingUpper;
+  DriveLetterCasing? forceProgramDriveLetterCasing;
 
-  /// Used to control drive letter casing for breakpoint requests on Windows for
+  /// Used to control drive letter casing for the 'cwd' value on Windows for
   /// testing.
-  bool? forceBreakpointDriveLetterCasingLower;
+  DriveLetterCasing? forceCwdDriveLetterCasing;
+
+  /// Used to control drive letter casing for breakpoint paths on Windows for
+  /// testing.
+  DriveLetterCasing? forceBreakpointDriveLetterCasing;
 
   /// All stderr OutputEvents that have occurred so far.
   final StringBuffer _stderr = StringBuffer();
@@ -174,8 +173,11 @@ class DapTestClient {
       DartAttachRequestArguments(
         vmServiceUri: vmServiceUri,
         vmServiceInfoFile: vmServiceInfoFile,
-        cwd: cwd != null ? _normalizePath(cwd) : null,
-        additionalProjectPaths: additionalProjectPaths,
+        cwd: cwd != null
+            ? setDriveLetterCasing(cwd, forceCwdDriveLetterCasing)
+            : null,
+        additionalProjectPaths:
+            additionalProjectPaths?.map(uppercaseDriveLetter).toList(),
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
         showGettersInDebugViews: showGettersInDebugViews,
@@ -339,13 +341,15 @@ class DapTestClient {
     return sendRequest(
       DartLaunchRequestArguments(
         noDebug: noDebug,
-        program: _normalizePath(program),
-        cwd: cwd != null ? _normalizePath(cwd) : null,
+        program: setDriveLetterCasing(program, forceProgramDriveLetterCasing),
+        cwd: cwd != null
+            ? setDriveLetterCasing(cwd, forceCwdDriveLetterCasing)
+            : null,
         args: args,
         vmAdditionalArgs: vmAdditionalArgs,
         toolArgs: toolArgs,
         additionalProjectPaths:
-            additionalProjectPaths?.map(_normalizePath).toList(),
+            additionalProjectPaths?.map(uppercaseDriveLetter).toList(),
         console: console,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -777,50 +781,11 @@ extension DapTestClientExtension on DapTestClient {
     );
   }
 
-  /// Normalizes a non-breakpoint path being sent to the debug adapter based on
-  /// the values of [forceDriveLetterCasingUpper] and
-  /// [forceDriveLetterCasingLower].
-  String _normalizePath(String path) {
-    return _forceDriveLetterCasing(
-      path,
-      upper: forceDriveLetterCasingUpper,
-      lower: forceDriveLetterCasingLower,
-    );
-  }
-
-  /// Normalizes a a path to have an uppercase drive letter. All paths verified
-  /// that come out of the adapter are normalized this way so test expectations
-  /// should be normalized the same way before comparing.
-  String uppercaseDriveLetter(String path) {
-    return _forceDriveLetterCasing(
-      path,
-      upper: true,
-    );
-  }
-
   /// Normalizes a breakpoint path being sent to the debug adapter based on
   /// the values of [forceBreakpointDriveLetterCasingUpper] and
   /// [forceBreakpointDriveLetterCasingLower].
   String _normalizeBreakpointPath(String path) {
-    return _forceDriveLetterCasing(
-      path,
-      upper: forceBreakpointDriveLetterCasingUpper,
-      lower: forceBreakpointDriveLetterCasingLower,
-    );
-  }
-
-  String _forceDriveLetterCasing(String path, {bool? upper, bool? lower}) {
-    assert(upper != true || lower != true);
-    if (!Platform.isWindows || path.isEmpty) {
-      return path;
-    }
-    if (upper ?? false) {
-      return path.substring(0, 1).toUpperCase() + path.substring(1);
-    } else if (lower ?? false) {
-      return path.substring(0, 1).toLowerCase() + path.substring(1);
-    } else {
-      return path;
-    }
+    return setDriveLetterCasing(path, forceBreakpointDriveLetterCasing);
   }
 
   /// Sets the exception pause mode to [pauseMode] and expects to pause after

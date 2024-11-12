@@ -289,6 +289,7 @@ library
               type: int
       methods
         m
+          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           formalParameters
             requiredPositional v
@@ -1616,7 +1617,7 @@ library
       typeAliases
         M2 @34
           reference: <testLibraryFragment>::@typeAlias::M2
-          element: <testLibraryFragment>::@typeAlias::M2#element
+          element: <testLibrary>::@typeAlias::M2
           typeParameters
             T2 @37
               element: <not-implemented>
@@ -1774,13 +1775,13 @@ library
       typeAliases
         M2 @34
           reference: <testLibraryFragment>::@typeAlias::M2
-          element: <testLibraryFragment>::@typeAlias::M2#element
+          element: <testLibrary>::@typeAlias::M2
           typeParameters
             T2 @37
               element: <not-implemented>
         M3 @64
           reference: <testLibraryFragment>::@typeAlias::M3
-          element: <testLibraryFragment>::@typeAlias::M3#element
+          element: <testLibrary>::@typeAlias::M3
           typeParameters
             T3 @67
               element: <not-implemented>
@@ -1992,6 +1993,7 @@ library
         Object
       methods
         foo
+          reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::M::@method::foo
 ''');
   }
@@ -2067,6 +2069,7 @@ library
         A
       methods
         A
+          reference: <testLibrary>::@mixin::B::@method::A
           firstFragment: <testLibraryFragment>::@mixin::B::@method::A
 ''');
   }
@@ -2942,6 +2945,7 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@constructor::new
       methods
         foo1
+          reference: <testLibrary>::@class::A::@def::0::@method::foo1
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::0::@method::foo1
     class A
       reference: <testLibrary>::@class::A::@def::1
@@ -2951,8 +2955,10 @@ library
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
       methods
         foo2
+          reference: <testLibrary>::@class::A::@def::1::@method::foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A::@method::foo2
         foo3
+          reference: <testLibrary>::@class::A::@def::1::@method::foo3
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@def::1::@method::foo3
 ''');
   }
@@ -3084,8 +3090,10 @@ library
         Object
       methods
         foo1
+          reference: <testLibrary>::@mixin::A::@method::foo1
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@method::foo1
         foo2
+          reference: <testLibrary>::@mixin::A::@method::foo2
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@method::foo2
 ''');
   }
@@ -5911,8 +5919,10 @@ library
         Object
       methods
         foo
+          reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::A::@method::foo
         bar
+          reference: <testLibrary>::@mixin::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@method::bar
 ''');
   }
@@ -6022,10 +6032,12 @@ library
       superclassConstraints
         Object
       methods
-        foo2
-          firstFragment: <testLibraryFragment>::@mixin::A::@method::foo2
         foo1
+          reference: <testLibrary>::@mixin::A::@method::foo1
           firstFragment: <testLibraryFragment>::@mixin::A::@method::foo1
+        foo2
+          reference: <testLibrary>::@mixin::A::@method::foo2
+          firstFragment: <testLibraryFragment>::@mixin::A::@method::foo2
 ''');
   }
 
@@ -6171,6 +6183,7 @@ library
         Object
       methods
         foo
+          reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::A::@method::foo
 ''');
   }
@@ -6285,8 +6298,10 @@ library
         Object
       methods
         foo
+          reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::A::@method::foo
         bar
+          reference: <testLibrary>::@mixin::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@method::bar
 ''');
   }
@@ -6404,6 +6419,7 @@ library
         Object
       methods
         foo
+          reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::A::@method::foo
 ''');
   }
@@ -6521,10 +6537,12 @@ library
       superclassConstraints
         Object
       methods
-        bar
-          firstFragment: <testLibraryFragment>::@mixin::A::@method::bar
         foo
+          reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::A::@method::foo
+        bar
+          reference: <testLibrary>::@mixin::A::@method::bar
+          firstFragment: <testLibraryFragment>::@mixin::A::@method::bar
 ''');
   }
 
@@ -7885,6 +7903,7 @@ library
         A
       methods
         foo
+          reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::B::@method::foo
           formalParameters
             requiredPositional a
@@ -7999,6 +8018,7 @@ library
         A
       methods
         foo
+          reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
           formalParameters
             requiredPositional a
@@ -8107,6 +8127,7 @@ library
         A
       methods
         foo
+          reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
           formalParameters
             requiredPositional a
@@ -8236,6 +8257,7 @@ library
         A
       methods
         foo
+          reference: <testLibrary>::@mixin::B::@method::foo
           firstFragment: <testLibraryFragment>::@mixin::B::@method::foo
           formalParameters
             requiredPositional a

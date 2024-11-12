@@ -1511,7 +1511,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeMethodElement(MethodElement2 e) {
+  void _writeMethodElement(MethodElementImpl2 e) {
     _sink.writeIndentedLine(() {
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
@@ -1522,6 +1522,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       // _writeElementReference(e.enclosingElement2, label: 'enclosingElement2');
       _writeDocumentation(e.documentationComment);
@@ -1820,7 +1821,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // _assertNonSyntheticElementSelf(f);
   }
 
-  void _writeTopLevelVariableElement(TopLevelVariableElement2 e) {
+  void _writeTopLevelVariableElement(TopLevelVariableElementImpl2 e) {
     DartType type = e.type;
     expect(type, isNotNull);
 
@@ -1855,6 +1856,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
 
     _sink.withIndent(() {
+      _writeReference2(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata2);

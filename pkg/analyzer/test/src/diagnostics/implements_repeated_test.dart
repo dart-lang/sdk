@@ -84,7 +84,7 @@ ImplementsClause
     NamedType
       name: B
       element: <testLibraryFragment>::@typeAlias::B
-      element2: <testLibraryFragment>::@typeAlias::B#element
+      element2: <testLibrary>::@typeAlias::B
       type: A
         alias: <testLibraryFragment>::@typeAlias::B
 ''');
@@ -174,7 +174,7 @@ ImplementsClause
     NamedType
       name: B
       element: <testLibraryFragment>::@typeAlias::B
-      element2: <testLibraryFragment>::@typeAlias::B#element
+      element2: <testLibrary>::@typeAlias::B
       type: A
         alias: <testLibraryFragment>::@typeAlias::B
 ''');
@@ -259,7 +259,7 @@ ImplementsClause
     NamedType
       name: A
       element: <testLibraryFragment>::@typeAlias::A
-      element2: <testLibraryFragment>::@typeAlias::A#element
+      element2: <testLibrary>::@typeAlias::A
       type: int
         alias: <testLibraryFragment>::@typeAlias::A
 ''');

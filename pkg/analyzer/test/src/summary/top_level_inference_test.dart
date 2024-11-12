@@ -509,42 +509,42 @@ library
       topLevelVariables
         vPlusIntInt @4
           reference: <testLibraryFragment>::@topLevelVariable::vPlusIntInt
-          element: <testLibraryFragment>::@topLevelVariable::vPlusIntInt#element
+          element: <testLibrary>::@topLevelVariable::vPlusIntInt
           getter2: <testLibraryFragment>::@getter::vPlusIntInt
           setter2: <testLibraryFragment>::@setter::vPlusIntInt
         vPlusIntDouble @29
           reference: <testLibraryFragment>::@topLevelVariable::vPlusIntDouble
-          element: <testLibraryFragment>::@topLevelVariable::vPlusIntDouble#element
+          element: <testLibrary>::@topLevelVariable::vPlusIntDouble
           getter2: <testLibraryFragment>::@getter::vPlusIntDouble
           setter2: <testLibraryFragment>::@setter::vPlusIntDouble
         vPlusDoubleInt @59
           reference: <testLibraryFragment>::@topLevelVariable::vPlusDoubleInt
-          element: <testLibraryFragment>::@topLevelVariable::vPlusDoubleInt#element
+          element: <testLibrary>::@topLevelVariable::vPlusDoubleInt
           getter2: <testLibraryFragment>::@getter::vPlusDoubleInt
           setter2: <testLibraryFragment>::@setter::vPlusDoubleInt
         vPlusDoubleDouble @89
           reference: <testLibraryFragment>::@topLevelVariable::vPlusDoubleDouble
-          element: <testLibraryFragment>::@topLevelVariable::vPlusDoubleDouble#element
+          element: <testLibrary>::@topLevelVariable::vPlusDoubleDouble
           getter2: <testLibraryFragment>::@getter::vPlusDoubleDouble
           setter2: <testLibraryFragment>::@setter::vPlusDoubleDouble
         vMinusIntInt @124
           reference: <testLibraryFragment>::@topLevelVariable::vMinusIntInt
-          element: <testLibraryFragment>::@topLevelVariable::vMinusIntInt#element
+          element: <testLibrary>::@topLevelVariable::vMinusIntInt
           getter2: <testLibraryFragment>::@getter::vMinusIntInt
           setter2: <testLibraryFragment>::@setter::vMinusIntInt
         vMinusIntDouble @150
           reference: <testLibraryFragment>::@topLevelVariable::vMinusIntDouble
-          element: <testLibraryFragment>::@topLevelVariable::vMinusIntDouble#element
+          element: <testLibrary>::@topLevelVariable::vMinusIntDouble
           getter2: <testLibraryFragment>::@getter::vMinusIntDouble
           setter2: <testLibraryFragment>::@setter::vMinusIntDouble
         vMinusDoubleInt @181
           reference: <testLibraryFragment>::@topLevelVariable::vMinusDoubleInt
-          element: <testLibraryFragment>::@topLevelVariable::vMinusDoubleInt#element
+          element: <testLibrary>::@topLevelVariable::vMinusDoubleInt
           getter2: <testLibraryFragment>::@getter::vMinusDoubleInt
           setter2: <testLibraryFragment>::@setter::vMinusDoubleInt
         vMinusDoubleDouble @212
           reference: <testLibraryFragment>::@topLevelVariable::vMinusDoubleDouble
-          element: <testLibraryFragment>::@topLevelVariable::vMinusDoubleDouble#element
+          element: <testLibrary>::@topLevelVariable::vMinusDoubleDouble
           getter2: <testLibraryFragment>::@getter::vMinusDoubleDouble
           setter2: <testLibraryFragment>::@setter::vMinusDoubleDouble
       getters
@@ -623,41 +623,49 @@ library
               element: <testLibraryFragment>::@setter::vMinusDoubleDouble::@parameter::_vMinusDoubleDouble#element
   topLevelVariables
     vPlusIntInt
+      reference: <testLibrary>::@topLevelVariable::vPlusIntInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vPlusIntInt
       type: int
       getter: <testLibraryFragment>::@getter::vPlusIntInt#element
       setter: <testLibraryFragment>::@setter::vPlusIntInt#element
     vPlusIntDouble
+      reference: <testLibrary>::@topLevelVariable::vPlusIntDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vPlusIntDouble
       type: double
       getter: <testLibraryFragment>::@getter::vPlusIntDouble#element
       setter: <testLibraryFragment>::@setter::vPlusIntDouble#element
     vPlusDoubleInt
+      reference: <testLibrary>::@topLevelVariable::vPlusDoubleInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vPlusDoubleInt
       type: double
       getter: <testLibraryFragment>::@getter::vPlusDoubleInt#element
       setter: <testLibraryFragment>::@setter::vPlusDoubleInt#element
     vPlusDoubleDouble
+      reference: <testLibrary>::@topLevelVariable::vPlusDoubleDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vPlusDoubleDouble
       type: double
       getter: <testLibraryFragment>::@getter::vPlusDoubleDouble#element
       setter: <testLibraryFragment>::@setter::vPlusDoubleDouble#element
     vMinusIntInt
+      reference: <testLibrary>::@topLevelVariable::vMinusIntInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMinusIntInt
       type: int
       getter: <testLibraryFragment>::@getter::vMinusIntInt#element
       setter: <testLibraryFragment>::@setter::vMinusIntInt#element
     vMinusIntDouble
+      reference: <testLibrary>::@topLevelVariable::vMinusIntDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMinusIntDouble
       type: double
       getter: <testLibraryFragment>::@getter::vMinusIntDouble#element
       setter: <testLibraryFragment>::@setter::vMinusIntDouble#element
     vMinusDoubleInt
+      reference: <testLibrary>::@topLevelVariable::vMinusDoubleInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMinusDoubleInt
       type: double
       getter: <testLibraryFragment>::@getter::vMinusDoubleInt#element
       setter: <testLibraryFragment>::@setter::vMinusDoubleInt#element
     vMinusDoubleDouble
+      reference: <testLibrary>::@topLevelVariable::vMinusDoubleDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMinusDoubleDouble
       type: double
       getter: <testLibraryFragment>::@getter::vMinusDoubleDouble#element
@@ -761,7 +769,7 @@ library
       topLevelVariables
         V @4
           reference: <testLibraryFragment>::@topLevelVariable::V
-          element: <testLibraryFragment>::@topLevelVariable::V#element
+          element: <testLibrary>::@topLevelVariable::V
           getter2: <testLibraryFragment>::@getter::V
           setter2: <testLibraryFragment>::@setter::V
       getters
@@ -777,6 +785,7 @@ library
               element: <testLibraryFragment>::@setter::V::@parameter::_V#element
   topLevelVariables
     V
+      reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: num
       getter: <testLibraryFragment>::@getter::V#element
@@ -865,17 +874,17 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         t1 @15
           reference: <testLibraryFragment>::@topLevelVariable::t1
-          element: <testLibraryFragment>::@topLevelVariable::t1#element
+          element: <testLibrary>::@topLevelVariable::t1
           getter2: <testLibraryFragment>::@getter::t1
           setter2: <testLibraryFragment>::@setter::t1
         t2 @33
           reference: <testLibraryFragment>::@topLevelVariable::t2
-          element: <testLibraryFragment>::@topLevelVariable::t2#element
+          element: <testLibrary>::@topLevelVariable::t2
           getter2: <testLibraryFragment>::@getter::t2
           setter2: <testLibraryFragment>::@setter::t2
       getters
@@ -909,16 +918,19 @@ library
               element: <testLibraryFragment>::@setter::t2::@parameter::_t2#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     t1
+      reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: <testLibraryFragment>::@topLevelVariable::t1
       type: int
       getter: <testLibraryFragment>::@getter::t1#element
       setter: <testLibraryFragment>::@setter::t1#element
     t2
+      reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: <testLibraryFragment>::@topLevelVariable::t2
       type: int
       getter: <testLibraryFragment>::@getter::t2#element
@@ -1021,17 +1033,17 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         t1 @17
           reference: <testLibraryFragment>::@topLevelVariable::t1
-          element: <testLibraryFragment>::@topLevelVariable::t1#element
+          element: <testLibrary>::@topLevelVariable::t1
           getter2: <testLibraryFragment>::@getter::t1
           setter2: <testLibraryFragment>::@setter::t1
         t2 @38
           reference: <testLibraryFragment>::@topLevelVariable::t2
-          element: <testLibraryFragment>::@topLevelVariable::t2#element
+          element: <testLibrary>::@topLevelVariable::t2
           getter2: <testLibraryFragment>::@getter::t2
           setter2: <testLibraryFragment>::@setter::t2
       getters
@@ -1065,16 +1077,19 @@ library
               element: <testLibraryFragment>::@setter::t2::@parameter::_t2#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: List<int>
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     t1
+      reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: <testLibraryFragment>::@topLevelVariable::t1
       type: int
       getter: <testLibraryFragment>::@getter::t1#element
       setter: <testLibraryFragment>::@setter::t1#element
     t2
+      reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: <testLibraryFragment>::@topLevelVariable::t2
       type: int
       getter: <testLibraryFragment>::@getter::t2#element
@@ -1231,17 +1246,17 @@ library
       topLevelVariables
         a @25
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         t1 @42
           reference: <testLibraryFragment>::@topLevelVariable::t1
-          element: <testLibraryFragment>::@topLevelVariable::t1#element
+          element: <testLibrary>::@topLevelVariable::t1
           getter2: <testLibraryFragment>::@getter::t1
           setter2: <testLibraryFragment>::@setter::t1
         t2 @62
           reference: <testLibraryFragment>::@topLevelVariable::t2
-          element: <testLibraryFragment>::@topLevelVariable::t2#element
+          element: <testLibrary>::@topLevelVariable::t2
           getter2: <testLibraryFragment>::@getter::t2
           setter2: <testLibraryFragment>::@setter::t2
       getters
@@ -1297,16 +1312,19 @@ library
               type: int
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: A
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     t1
+      reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: <testLibraryFragment>::@topLevelVariable::t1
       type: int
       getter: <testLibraryFragment>::@getter::t1#element
       setter: <testLibraryFragment>::@setter::t1#element
     t2
+      reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: <testLibraryFragment>::@topLevelVariable::t2
       type: int
       getter: <testLibraryFragment>::@getter::t2#element
@@ -1480,17 +1498,17 @@ library
       topLevelVariables
         c @56
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         t1 @63
           reference: <testLibraryFragment>::@topLevelVariable::t1
-          element: <testLibraryFragment>::@topLevelVariable::t1#element
+          element: <testLibrary>::@topLevelVariable::t1
           getter2: <testLibraryFragment>::@getter::t1
           setter2: <testLibraryFragment>::@setter::t1
         t2 @83
           reference: <testLibraryFragment>::@topLevelVariable::t2
-          element: <testLibraryFragment>::@topLevelVariable::t2#element
+          element: <testLibrary>::@topLevelVariable::t2
           getter2: <testLibraryFragment>::@getter::t2
           setter2: <testLibraryFragment>::@setter::t2
       getters
@@ -1554,16 +1572,19 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     t1
+      reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: <testLibraryFragment>::@topLevelVariable::t1
       type: int
       getter: <testLibraryFragment>::@getter::t1#element
       setter: <testLibraryFragment>::@setter::t1#element
     t2
+      reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: <testLibraryFragment>::@topLevelVariable::t2
       type: int
       getter: <testLibraryFragment>::@getter::t2#element
@@ -1727,12 +1748,12 @@ library
       topLevelVariables
         t1 @76
           reference: <testLibraryFragment>::@topLevelVariable::t1
-          element: <testLibraryFragment>::@topLevelVariable::t1#element
+          element: <testLibrary>::@topLevelVariable::t1
           getter2: <testLibraryFragment>::@getter::t1
           setter2: <testLibraryFragment>::@setter::t1
         t2 @101
           reference: <testLibraryFragment>::@topLevelVariable::t2
-          element: <testLibraryFragment>::@topLevelVariable::t2#element
+          element: <testLibrary>::@topLevelVariable::t2
           getter2: <testLibraryFragment>::@getter::t2
           setter2: <testLibraryFragment>::@setter::t2
       getters
@@ -1791,11 +1812,13 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     t1
+      reference: <testLibrary>::@topLevelVariable::t1
       firstFragment: <testLibraryFragment>::@topLevelVariable::t1
       type: int
       getter: <testLibraryFragment>::@getter::t1#element
       setter: <testLibraryFragment>::@setter::t1#element
     t2
+      reference: <testLibrary>::@topLevelVariable::t2
       firstFragment: <testLibraryFragment>::@topLevelVariable::t2
       type: int
       getter: <testLibraryFragment>::@getter::t2#element
@@ -1896,12 +1919,12 @@ library
       topLevelVariables
         uValue @80
           reference: <testLibraryFragment>::@topLevelVariable::uValue
-          element: <testLibraryFragment>::@topLevelVariable::uValue#element
+          element: <testLibrary>::@topLevelVariable::uValue
           getter2: <testLibraryFragment>::@getter::uValue
           setter2: <testLibraryFragment>::@setter::uValue
         uFuture @121
           reference: <testLibraryFragment>::@topLevelVariable::uFuture
-          element: <testLibraryFragment>::@topLevelVariable::uFuture#element
+          element: <testLibrary>::@topLevelVariable::uFuture
           getter2: <testLibraryFragment>::@getter::uFuture
           setter2: <testLibraryFragment>::@setter::uFuture
       getters
@@ -1933,11 +1956,13 @@ library
           element: <testLibrary>::@function::fFuture
   topLevelVariables
     uValue
+      reference: <testLibrary>::@topLevelVariable::uValue
       firstFragment: <testLibraryFragment>::@topLevelVariable::uValue
       type: Future<int> Function()
       getter: <testLibraryFragment>::@getter::uValue#element
       setter: <testLibraryFragment>::@setter::uValue#element
     uFuture
+      reference: <testLibrary>::@topLevelVariable::uFuture
       firstFragment: <testLibraryFragment>::@topLevelVariable::uFuture
       type: Future<int> Function()
       getter: <testLibraryFragment>::@getter::uFuture#element
@@ -2076,27 +2101,27 @@ library
       topLevelVariables
         vBitXor @4
           reference: <testLibraryFragment>::@topLevelVariable::vBitXor
-          element: <testLibraryFragment>::@topLevelVariable::vBitXor#element
+          element: <testLibrary>::@topLevelVariable::vBitXor
           getter2: <testLibraryFragment>::@getter::vBitXor
           setter2: <testLibraryFragment>::@setter::vBitXor
         vBitAnd @25
           reference: <testLibraryFragment>::@topLevelVariable::vBitAnd
-          element: <testLibraryFragment>::@topLevelVariable::vBitAnd#element
+          element: <testLibrary>::@topLevelVariable::vBitAnd
           getter2: <testLibraryFragment>::@getter::vBitAnd
           setter2: <testLibraryFragment>::@setter::vBitAnd
         vBitOr @46
           reference: <testLibraryFragment>::@topLevelVariable::vBitOr
-          element: <testLibraryFragment>::@topLevelVariable::vBitOr#element
+          element: <testLibrary>::@topLevelVariable::vBitOr
           getter2: <testLibraryFragment>::@getter::vBitOr
           setter2: <testLibraryFragment>::@setter::vBitOr
         vBitShiftLeft @66
           reference: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft
-          element: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft#element
+          element: <testLibrary>::@topLevelVariable::vBitShiftLeft
           getter2: <testLibraryFragment>::@getter::vBitShiftLeft
           setter2: <testLibraryFragment>::@setter::vBitShiftLeft
         vBitShiftRight @94
           reference: <testLibraryFragment>::@topLevelVariable::vBitShiftRight
-          element: <testLibraryFragment>::@topLevelVariable::vBitShiftRight#element
+          element: <testLibrary>::@topLevelVariable::vBitShiftRight
           getter2: <testLibraryFragment>::@getter::vBitShiftRight
           setter2: <testLibraryFragment>::@setter::vBitShiftRight
       getters
@@ -2148,26 +2173,31 @@ library
               element: <testLibraryFragment>::@setter::vBitShiftRight::@parameter::_vBitShiftRight#element
   topLevelVariables
     vBitXor
+      reference: <testLibrary>::@topLevelVariable::vBitXor
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitXor
       type: int
       getter: <testLibraryFragment>::@getter::vBitXor#element
       setter: <testLibraryFragment>::@setter::vBitXor#element
     vBitAnd
+      reference: <testLibrary>::@topLevelVariable::vBitAnd
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitAnd
       type: int
       getter: <testLibraryFragment>::@getter::vBitAnd#element
       setter: <testLibraryFragment>::@setter::vBitAnd#element
     vBitOr
+      reference: <testLibrary>::@topLevelVariable::vBitOr
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitOr
       type: int
       getter: <testLibraryFragment>::@getter::vBitOr#element
       setter: <testLibraryFragment>::@setter::vBitOr#element
     vBitShiftLeft
+      reference: <testLibrary>::@topLevelVariable::vBitShiftLeft
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitShiftLeft
       type: int
       getter: <testLibraryFragment>::@getter::vBitShiftLeft#element
       setter: <testLibraryFragment>::@setter::vBitShiftLeft#element
     vBitShiftRight
+      reference: <testLibrary>::@topLevelVariable::vBitShiftRight
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBitShiftRight
       type: int
       getter: <testLibraryFragment>::@getter::vBitShiftRight#element
@@ -2348,17 +2378,17 @@ library
       topLevelVariables
         vSetField @39
           reference: <testLibraryFragment>::@topLevelVariable::vSetField
-          element: <testLibraryFragment>::@topLevelVariable::vSetField#element
+          element: <testLibrary>::@topLevelVariable::vSetField
           getter2: <testLibraryFragment>::@getter::vSetField
           setter2: <testLibraryFragment>::@setter::vSetField
         vInvokeMethod @71
           reference: <testLibraryFragment>::@topLevelVariable::vInvokeMethod
-          element: <testLibraryFragment>::@topLevelVariable::vInvokeMethod#element
+          element: <testLibrary>::@topLevelVariable::vInvokeMethod
           getter2: <testLibraryFragment>::@getter::vInvokeMethod
           setter2: <testLibraryFragment>::@setter::vInvokeMethod
         vBoth @105
           reference: <testLibraryFragment>::@topLevelVariable::vBoth
-          element: <testLibraryFragment>::@topLevelVariable::vBoth#element
+          element: <testLibrary>::@topLevelVariable::vBoth
           getter2: <testLibraryFragment>::@getter::vBoth
           setter2: <testLibraryFragment>::@setter::vBoth
       getters
@@ -2414,19 +2444,23 @@ library
               type: int
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
   topLevelVariables
     vSetField
+      reference: <testLibrary>::@topLevelVariable::vSetField
       firstFragment: <testLibraryFragment>::@topLevelVariable::vSetField
       type: A
       getter: <testLibraryFragment>::@getter::vSetField#element
       setter: <testLibraryFragment>::@setter::vSetField#element
     vInvokeMethod
+      reference: <testLibrary>::@topLevelVariable::vInvokeMethod
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInvokeMethod
       type: A
       getter: <testLibraryFragment>::@getter::vInvokeMethod#element
       setter: <testLibraryFragment>::@setter::vInvokeMethod#element
     vBoth
+      reference: <testLibrary>::@topLevelVariable::vBoth
       firstFragment: <testLibraryFragment>::@topLevelVariable::vBoth
       type: A
       getter: <testLibraryFragment>::@getter::vBoth#element
@@ -3327,7 +3361,7 @@ library
       topLevelVariables
         V @4
           reference: <testLibraryFragment>::@topLevelVariable::V
-          element: <testLibraryFragment>::@topLevelVariable::V#element
+          element: <testLibrary>::@topLevelVariable::V
           getter2: <testLibraryFragment>::@getter::V
           setter2: <testLibraryFragment>::@setter::V
       getters
@@ -3343,6 +3377,7 @@ library
               element: <testLibraryFragment>::@setter::V::@parameter::_V#element
   topLevelVariables
     V
+      reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: num
       getter: <testLibraryFragment>::@getter::V#element
@@ -3414,12 +3449,12 @@ library
       topLevelVariables
         vEq @4
           reference: <testLibraryFragment>::@topLevelVariable::vEq
-          element: <testLibraryFragment>::@topLevelVariable::vEq#element
+          element: <testLibrary>::@topLevelVariable::vEq
           getter2: <testLibraryFragment>::@getter::vEq
           setter2: <testLibraryFragment>::@setter::vEq
         vNotEq @22
           reference: <testLibraryFragment>::@topLevelVariable::vNotEq
-          element: <testLibraryFragment>::@topLevelVariable::vNotEq#element
+          element: <testLibrary>::@topLevelVariable::vNotEq
           getter2: <testLibraryFragment>::@getter::vNotEq
           setter2: <testLibraryFragment>::@setter::vNotEq
       getters
@@ -3444,11 +3479,13 @@ library
               element: <testLibraryFragment>::@setter::vNotEq::@parameter::_vNotEq#element
   topLevelVariables
     vEq
+      reference: <testLibrary>::@topLevelVariable::vEq
       firstFragment: <testLibraryFragment>::@topLevelVariable::vEq
       type: bool
       getter: <testLibraryFragment>::@getter::vEq#element
       setter: <testLibraryFragment>::@setter::vEq#element
     vNotEq
+      reference: <testLibrary>::@topLevelVariable::vNotEq
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNotEq
       type: bool
       getter: <testLibraryFragment>::@getter::vNotEq#element
@@ -3531,12 +3568,12 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         b @21
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
           setter2: <testLibraryFragment>::@setter::b
       getters
@@ -3561,11 +3598,13 @@ library
               element: <testLibraryFragment>::@setter::b::@parameter::_b#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
@@ -3629,7 +3668,7 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
       getters
@@ -3645,6 +3684,7 @@ library
               element: <testLibraryFragment>::@setter::a::@parameter::_a#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -3733,17 +3773,17 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         b0 @22
           reference: <testLibraryFragment>::@topLevelVariable::b0
-          element: <testLibraryFragment>::@topLevelVariable::b0#element
+          element: <testLibrary>::@topLevelVariable::b0
           getter2: <testLibraryFragment>::@getter::b0
           setter2: <testLibraryFragment>::@setter::b0
         b1 @37
           reference: <testLibraryFragment>::@topLevelVariable::b1
-          element: <testLibraryFragment>::@topLevelVariable::b1#element
+          element: <testLibrary>::@topLevelVariable::b1
           getter2: <testLibraryFragment>::@getter::b1
           setter2: <testLibraryFragment>::@setter::b1
       getters
@@ -3777,16 +3817,19 @@ library
               element: <testLibraryFragment>::@setter::b1::@parameter::_b1#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: List<num>
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     b0
+      reference: <testLibrary>::@topLevelVariable::b0
       firstFragment: <testLibraryFragment>::@topLevelVariable::b0
       type: num
       getter: <testLibraryFragment>::@getter::b0#element
       setter: <testLibraryFragment>::@setter::b0#element
     b1
+      reference: <testLibrary>::@topLevelVariable::b1
       firstFragment: <testLibraryFragment>::@topLevelVariable::b1
       type: num
       getter: <testLibraryFragment>::@getter::b1#element
@@ -3866,7 +3909,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -3882,6 +3925,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -3991,7 +4035,7 @@ library
       topLevelVariables
         x @29
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -4029,6 +4073,7 @@ library
               type: int
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -4095,7 +4140,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -4111,6 +4156,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -4176,7 +4222,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -4192,6 +4238,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -4301,7 +4348,7 @@ library
       topLevelVariables
         x @29
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -4339,6 +4386,7 @@ library
               type: int
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -4405,7 +4453,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -4421,6 +4469,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -4714,12 +4763,12 @@ library
       topLevelVariables
         c @24
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         x @31
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -4766,11 +4815,13 @@ library
               type: bool
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: bool
       getter: <testLibraryFragment>::@getter::x#element
@@ -4920,12 +4971,12 @@ library
       topLevelVariables
         c @57
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         x @64
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -4980,11 +5031,13 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: bool
       getter: <testLibraryFragment>::@getter::x#element
@@ -5124,7 +5177,7 @@ library
       topLevelVariables
         x @74
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -5174,6 +5227,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: bool
       getter: <testLibraryFragment>::@getter::x#element
@@ -5309,12 +5363,12 @@ library
       topLevelVariables
         x @70
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
         y @89
           reference: <testLibraryFragment>::@topLevelVariable::y
-          element: <testLibraryFragment>::@topLevelVariable::y#element
+          element: <testLibrary>::@topLevelVariable::y
           getter2: <testLibraryFragment>::@getter::y
           setter2: <testLibraryFragment>::@setter::y
       getters
@@ -5346,6 +5400,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
     class B
       reference: <testLibrary>::@class::B
@@ -5357,14 +5412,17 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
       setter: <testLibraryFragment>::@setter::x#element
     y
+      reference: <testLibrary>::@topLevelVariable::y
       firstFragment: <testLibraryFragment>::@topLevelVariable::y
       type: int
       getter: <testLibraryFragment>::@getter::y#element
@@ -5517,32 +5575,32 @@ library
       topLevelVariables
         vFuture @25
           reference: <testLibraryFragment>::@topLevelVariable::vFuture
-          element: <testLibraryFragment>::@topLevelVariable::vFuture#element
+          element: <testLibrary>::@topLevelVariable::vFuture
           getter2: <testLibraryFragment>::@getter::vFuture
           setter2: <testLibraryFragment>::@setter::vFuture
         v_noParameters_inferredReturnType @60
           reference: <testLibraryFragment>::@topLevelVariable::v_noParameters_inferredReturnType
-          element: <testLibraryFragment>::@topLevelVariable::v_noParameters_inferredReturnType#element
+          element: <testLibrary>::@topLevelVariable::v_noParameters_inferredReturnType
           getter2: <testLibraryFragment>::@getter::v_noParameters_inferredReturnType
           setter2: <testLibraryFragment>::@setter::v_noParameters_inferredReturnType
         v_hasParameter_withType_inferredReturnType @110
           reference: <testLibraryFragment>::@topLevelVariable::v_hasParameter_withType_inferredReturnType
-          element: <testLibraryFragment>::@topLevelVariable::v_hasParameter_withType_inferredReturnType#element
+          element: <testLibrary>::@topLevelVariable::v_hasParameter_withType_inferredReturnType
           getter2: <testLibraryFragment>::@getter::v_hasParameter_withType_inferredReturnType
           setter2: <testLibraryFragment>::@setter::v_hasParameter_withType_inferredReturnType
         v_hasParameter_withType_returnParameter @177
           reference: <testLibraryFragment>::@topLevelVariable::v_hasParameter_withType_returnParameter
-          element: <testLibraryFragment>::@topLevelVariable::v_hasParameter_withType_returnParameter#element
+          element: <testLibrary>::@topLevelVariable::v_hasParameter_withType_returnParameter
           getter2: <testLibraryFragment>::@getter::v_hasParameter_withType_returnParameter
           setter2: <testLibraryFragment>::@setter::v_hasParameter_withType_returnParameter
         v_async_returnValue @240
           reference: <testLibraryFragment>::@topLevelVariable::v_async_returnValue
-          element: <testLibraryFragment>::@topLevelVariable::v_async_returnValue#element
+          element: <testLibrary>::@topLevelVariable::v_async_returnValue
           getter2: <testLibraryFragment>::@getter::v_async_returnValue
           setter2: <testLibraryFragment>::@setter::v_async_returnValue
         v_async_returnFuture @282
           reference: <testLibraryFragment>::@topLevelVariable::v_async_returnFuture
-          element: <testLibraryFragment>::@topLevelVariable::v_async_returnFuture#element
+          element: <testLibrary>::@topLevelVariable::v_async_returnFuture
           getter2: <testLibraryFragment>::@getter::v_async_returnFuture
           setter2: <testLibraryFragment>::@setter::v_async_returnFuture
       getters
@@ -5603,31 +5661,37 @@ library
               element: <testLibraryFragment>::@setter::v_async_returnFuture::@parameter::_v_async_returnFuture#element
   topLevelVariables
     vFuture
+      reference: <testLibrary>::@topLevelVariable::vFuture
       firstFragment: <testLibraryFragment>::@topLevelVariable::vFuture
       type: Future<int>
       getter: <testLibraryFragment>::@getter::vFuture#element
       setter: <testLibraryFragment>::@setter::vFuture#element
     v_noParameters_inferredReturnType
+      reference: <testLibrary>::@topLevelVariable::v_noParameters_inferredReturnType
       firstFragment: <testLibraryFragment>::@topLevelVariable::v_noParameters_inferredReturnType
       type: int Function()
       getter: <testLibraryFragment>::@getter::v_noParameters_inferredReturnType#element
       setter: <testLibraryFragment>::@setter::v_noParameters_inferredReturnType#element
     v_hasParameter_withType_inferredReturnType
+      reference: <testLibrary>::@topLevelVariable::v_hasParameter_withType_inferredReturnType
       firstFragment: <testLibraryFragment>::@topLevelVariable::v_hasParameter_withType_inferredReturnType
       type: int Function(String)
       getter: <testLibraryFragment>::@getter::v_hasParameter_withType_inferredReturnType#element
       setter: <testLibraryFragment>::@setter::v_hasParameter_withType_inferredReturnType#element
     v_hasParameter_withType_returnParameter
+      reference: <testLibrary>::@topLevelVariable::v_hasParameter_withType_returnParameter
       firstFragment: <testLibraryFragment>::@topLevelVariable::v_hasParameter_withType_returnParameter
       type: String Function(String)
       getter: <testLibraryFragment>::@getter::v_hasParameter_withType_returnParameter#element
       setter: <testLibraryFragment>::@setter::v_hasParameter_withType_returnParameter#element
     v_async_returnValue
+      reference: <testLibrary>::@topLevelVariable::v_async_returnValue
       firstFragment: <testLibraryFragment>::@topLevelVariable::v_async_returnValue
       type: Future<int> Function()
       getter: <testLibraryFragment>::@getter::v_async_returnValue#element
       setter: <testLibraryFragment>::@setter::v_async_returnValue#element
     v_async_returnFuture
+      reference: <testLibrary>::@topLevelVariable::v_async_returnFuture
       firstFragment: <testLibraryFragment>::@topLevelVariable::v_async_returnFuture
       type: Future<int> Function()
       getter: <testLibraryFragment>::@getter::v_async_returnFuture#element
@@ -5718,7 +5782,7 @@ library
       topLevelVariables
         v @4
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -5734,6 +5798,7 @@ library
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
       getter: <testLibraryFragment>::@getter::v#element
@@ -5814,12 +5879,12 @@ library
       topLevelVariables
         vHasTypeArgument @22
           reference: <testLibraryFragment>::@topLevelVariable::vHasTypeArgument
-          element: <testLibraryFragment>::@topLevelVariable::vHasTypeArgument#element
+          element: <testLibrary>::@topLevelVariable::vHasTypeArgument
           getter2: <testLibraryFragment>::@getter::vHasTypeArgument
           setter2: <testLibraryFragment>::@setter::vHasTypeArgument
         vNoTypeArgument @55
           reference: <testLibraryFragment>::@topLevelVariable::vNoTypeArgument
-          element: <testLibraryFragment>::@topLevelVariable::vNoTypeArgument#element
+          element: <testLibrary>::@topLevelVariable::vNoTypeArgument
           getter2: <testLibraryFragment>::@getter::vNoTypeArgument
           setter2: <testLibraryFragment>::@setter::vNoTypeArgument
       getters
@@ -5851,11 +5916,13 @@ library
               element: <not-implemented>
   topLevelVariables
     vHasTypeArgument
+      reference: <testLibrary>::@topLevelVariable::vHasTypeArgument
       firstFragment: <testLibraryFragment>::@topLevelVariable::vHasTypeArgument
       type: int
       getter: <testLibraryFragment>::@getter::vHasTypeArgument#element
       setter: <testLibraryFragment>::@setter::vHasTypeArgument#element
     vNoTypeArgument
+      reference: <testLibrary>::@topLevelVariable::vNoTypeArgument
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNoTypeArgument
       type: dynamic
       getter: <testLibraryFragment>::@getter::vNoTypeArgument#element
@@ -5950,12 +6017,12 @@ library
       topLevelVariables
         vOkArgumentType @29
           reference: <testLibraryFragment>::@topLevelVariable::vOkArgumentType
-          element: <testLibraryFragment>::@topLevelVariable::vOkArgumentType#element
+          element: <testLibrary>::@topLevelVariable::vOkArgumentType
           getter2: <testLibraryFragment>::@getter::vOkArgumentType
           setter2: <testLibraryFragment>::@setter::vOkArgumentType
         vWrongArgumentType @57
           reference: <testLibraryFragment>::@topLevelVariable::vWrongArgumentType
-          element: <testLibraryFragment>::@topLevelVariable::vWrongArgumentType#element
+          element: <testLibrary>::@topLevelVariable::vWrongArgumentType
           getter2: <testLibraryFragment>::@getter::vWrongArgumentType
           setter2: <testLibraryFragment>::@setter::vWrongArgumentType
       getters
@@ -5987,11 +6054,13 @@ library
               element: <testLibraryFragment>::@function::f::@parameter::p#element
   topLevelVariables
     vOkArgumentType
+      reference: <testLibrary>::@topLevelVariable::vOkArgumentType
       firstFragment: <testLibraryFragment>::@topLevelVariable::vOkArgumentType
       type: String
       getter: <testLibraryFragment>::@getter::vOkArgumentType#element
       setter: <testLibraryFragment>::@setter::vOkArgumentType#element
     vWrongArgumentType
+      reference: <testLibrary>::@topLevelVariable::vWrongArgumentType
       firstFragment: <testLibraryFragment>::@topLevelVariable::vWrongArgumentType
       type: String
       getter: <testLibraryFragment>::@getter::vWrongArgumentType#element
@@ -6316,52 +6385,52 @@ library
       topLevelVariables
         topLevelVariable @44
           reference: <testLibraryFragment>::@topLevelVariable::topLevelVariable
-          element: <testLibraryFragment>::@topLevelVariable::topLevelVariable#element
+          element: <testLibrary>::@topLevelVariable::topLevelVariable
           getter2: <testLibraryFragment>::@getter::topLevelVariable
           setter2: <testLibraryFragment>::@setter::topLevelVariable
         r_topLevelFunction @280
           reference: <testLibraryFragment>::@topLevelVariable::r_topLevelFunction
-          element: <testLibraryFragment>::@topLevelVariable::r_topLevelFunction#element
+          element: <testLibrary>::@topLevelVariable::r_topLevelFunction
           getter2: <testLibraryFragment>::@getter::r_topLevelFunction
           setter2: <testLibraryFragment>::@setter::r_topLevelFunction
         r_topLevelVariable @323
           reference: <testLibraryFragment>::@topLevelVariable::r_topLevelVariable
-          element: <testLibraryFragment>::@topLevelVariable::r_topLevelVariable#element
+          element: <testLibrary>::@topLevelVariable::r_topLevelVariable
           getter2: <testLibraryFragment>::@getter::r_topLevelVariable
           setter2: <testLibraryFragment>::@setter::r_topLevelVariable
         r_topLevelGetter @366
           reference: <testLibraryFragment>::@topLevelVariable::r_topLevelGetter
-          element: <testLibraryFragment>::@topLevelVariable::r_topLevelGetter#element
+          element: <testLibrary>::@topLevelVariable::r_topLevelGetter
           getter2: <testLibraryFragment>::@getter::r_topLevelGetter
           setter2: <testLibraryFragment>::@setter::r_topLevelGetter
         r_staticClassVariable @405
           reference: <testLibraryFragment>::@topLevelVariable::r_staticClassVariable
-          element: <testLibraryFragment>::@topLevelVariable::r_staticClassVariable#element
+          element: <testLibrary>::@topLevelVariable::r_staticClassVariable
           getter2: <testLibraryFragment>::@getter::r_staticClassVariable
           setter2: <testLibraryFragment>::@setter::r_staticClassVariable
         r_staticGetter @456
           reference: <testLibraryFragment>::@topLevelVariable::r_staticGetter
-          element: <testLibraryFragment>::@topLevelVariable::r_staticGetter#element
+          element: <testLibrary>::@topLevelVariable::r_staticGetter
           getter2: <testLibraryFragment>::@getter::r_staticGetter
           setter2: <testLibraryFragment>::@setter::r_staticGetter
         r_staticClassMethod @493
           reference: <testLibraryFragment>::@topLevelVariable::r_staticClassMethod
-          element: <testLibraryFragment>::@topLevelVariable::r_staticClassMethod#element
+          element: <testLibrary>::@topLevelVariable::r_staticClassMethod
           getter2: <testLibraryFragment>::@getter::r_staticClassMethod
           setter2: <testLibraryFragment>::@setter::r_staticClassMethod
         instanceOfA @540
           reference: <testLibraryFragment>::@topLevelVariable::instanceOfA
-          element: <testLibraryFragment>::@topLevelVariable::instanceOfA#element
+          element: <testLibrary>::@topLevelVariable::instanceOfA
           getter2: <testLibraryFragment>::@getter::instanceOfA
           setter2: <testLibraryFragment>::@setter::instanceOfA
         r_instanceClassMethod @567
           reference: <testLibraryFragment>::@topLevelVariable::r_instanceClassMethod
-          element: <testLibraryFragment>::@topLevelVariable::r_instanceClassMethod#element
+          element: <testLibrary>::@topLevelVariable::r_instanceClassMethod
           getter2: <testLibraryFragment>::@getter::r_instanceClassMethod
           setter2: <testLibraryFragment>::@setter::r_instanceClassMethod
-        synthetic <null-name>
+        synthetic topLevelGetter
           reference: <testLibraryFragment>::@topLevelVariable::topLevelGetter
-          element: <testLibraryFragment>::@topLevelVariable::topLevelGetter#element
+          element: <testLibrary>::@topLevelVariable::topLevelGetter
           getter2: <testLibraryFragment>::@getter::topLevelGetter
       getters
         get <null-name>
@@ -6486,62 +6555,74 @@ library
               type: int
       methods
         static staticClassMethod
+          reference: <testLibrary>::@class::A::@method::staticClassMethod
           firstFragment: <testLibraryFragment>::@class::A::@method::staticClassMethod
           formalParameters
             requiredPositional p
               type: int
         instanceClassMethod
+          reference: <testLibrary>::@class::A::@method::instanceClassMethod
           firstFragment: <testLibraryFragment>::@class::A::@method::instanceClassMethod
           formalParameters
             requiredPositional p
               type: int
   topLevelVariables
     topLevelVariable
+      reference: <testLibrary>::@topLevelVariable::topLevelVariable
       firstFragment: <testLibraryFragment>::@topLevelVariable::topLevelVariable
       type: int
       getter: <testLibraryFragment>::@getter::topLevelVariable#element
       setter: <testLibraryFragment>::@setter::topLevelVariable#element
     r_topLevelFunction
+      reference: <testLibrary>::@topLevelVariable::r_topLevelFunction
       firstFragment: <testLibraryFragment>::@topLevelVariable::r_topLevelFunction
       type: String Function(int)
       getter: <testLibraryFragment>::@getter::r_topLevelFunction#element
       setter: <testLibraryFragment>::@setter::r_topLevelFunction#element
     r_topLevelVariable
+      reference: <testLibrary>::@topLevelVariable::r_topLevelVariable
       firstFragment: <testLibraryFragment>::@topLevelVariable::r_topLevelVariable
       type: int
       getter: <testLibraryFragment>::@getter::r_topLevelVariable#element
       setter: <testLibraryFragment>::@setter::r_topLevelVariable#element
     r_topLevelGetter
+      reference: <testLibrary>::@topLevelVariable::r_topLevelGetter
       firstFragment: <testLibraryFragment>::@topLevelVariable::r_topLevelGetter
       type: int
       getter: <testLibraryFragment>::@getter::r_topLevelGetter#element
       setter: <testLibraryFragment>::@setter::r_topLevelGetter#element
     r_staticClassVariable
+      reference: <testLibrary>::@topLevelVariable::r_staticClassVariable
       firstFragment: <testLibraryFragment>::@topLevelVariable::r_staticClassVariable
       type: int
       getter: <testLibraryFragment>::@getter::r_staticClassVariable#element
       setter: <testLibraryFragment>::@setter::r_staticClassVariable#element
     r_staticGetter
+      reference: <testLibrary>::@topLevelVariable::r_staticGetter
       firstFragment: <testLibraryFragment>::@topLevelVariable::r_staticGetter
       type: int
       getter: <testLibraryFragment>::@getter::r_staticGetter#element
       setter: <testLibraryFragment>::@setter::r_staticGetter#element
     r_staticClassMethod
+      reference: <testLibrary>::@topLevelVariable::r_staticClassMethod
       firstFragment: <testLibraryFragment>::@topLevelVariable::r_staticClassMethod
       type: String Function(int)
       getter: <testLibraryFragment>::@getter::r_staticClassMethod#element
       setter: <testLibraryFragment>::@setter::r_staticClassMethod#element
     instanceOfA
+      reference: <testLibrary>::@topLevelVariable::instanceOfA
       firstFragment: <testLibraryFragment>::@topLevelVariable::instanceOfA
       type: A
       getter: <testLibraryFragment>::@getter::instanceOfA#element
       setter: <testLibraryFragment>::@setter::instanceOfA#element
     r_instanceClassMethod
+      reference: <testLibrary>::@topLevelVariable::r_instanceClassMethod
       firstFragment: <testLibraryFragment>::@topLevelVariable::r_instanceClassMethod
       type: String Function(int)
       getter: <testLibraryFragment>::@getter::r_instanceClassMethod#element
       setter: <testLibraryFragment>::@setter::r_instanceClassMethod#element
     synthetic topLevelGetter
+      reference: <testLibrary>::@topLevelVariable::topLevelGetter
       firstFragment: <testLibraryFragment>::@topLevelVariable::topLevelGetter
       type: int
       getter: <testLibraryFragment>::@getter::topLevelGetter#element
@@ -6773,7 +6854,7 @@ library
       topLevelVariables
         c @72
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -6832,6 +6913,7 @@ library
               type: dynamic
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: dynamic
       getter: <testLibraryFragment>::@getter::c#element
@@ -6962,12 +7044,12 @@ library
       topLevelVariables
         b @36
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
           setter2: <testLibraryFragment>::@setter::b
         c @49
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -7014,11 +7096,13 @@ library
               type: dynamic
   topLevelVariables
     b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
       setter: <testLibraryFragment>::@setter::b#element
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: dynamic
       getter: <testLibraryFragment>::@getter::c#element
@@ -7109,19 +7193,19 @@ library
       topLevelVariables
         final a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
         final b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
         final c @32
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
         final d @45
           reference: <testLibraryFragment>::@topLevelVariable::d
-          element: <testLibraryFragment>::@topLevelVariable::d#element
+          element: <testLibrary>::@topLevelVariable::d
           getter2: <testLibraryFragment>::@getter::d
       getters
         get <null-name>
@@ -7138,18 +7222,22 @@ library
           element: <testLibraryFragment>::@getter::d#element
   topLevelVariables
     final a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     final b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
     final c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: dynamic
       getter: <testLibraryFragment>::@getter::c#element
     final d
+      reference: <testLibrary>::@topLevelVariable::d
       firstFragment: <testLibraryFragment>::@topLevelVariable::d
       type: dynamic
       getter: <testLibraryFragment>::@getter::d#element
@@ -7241,7 +7329,7 @@ library
       topLevelVariables
         a @15
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
       getters
@@ -7264,6 +7352,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: A
       getter: <testLibraryFragment>::@getter::a#element
@@ -7341,12 +7430,12 @@ library
       topLevelVariables
         s @25
           reference: <testLibraryFragment>::@topLevelVariable::s
-          element: <testLibraryFragment>::@topLevelVariable::s#element
+          element: <testLibrary>::@topLevelVariable::s
           getter2: <testLibraryFragment>::@getter::s
           setter2: <testLibraryFragment>::@setter::s
         h @49
           reference: <testLibraryFragment>::@topLevelVariable::h
-          element: <testLibraryFragment>::@topLevelVariable::h#element
+          element: <testLibrary>::@topLevelVariable::h
           getter2: <testLibraryFragment>::@getter::h
           setter2: <testLibraryFragment>::@setter::h
       getters
@@ -7375,11 +7464,13 @@ library
           element: <testLibrary>::@function::f
   topLevelVariables
     s
+      reference: <testLibrary>::@topLevelVariable::s
       firstFragment: <testLibraryFragment>::@topLevelVariable::s
       type: String
       getter: <testLibraryFragment>::@getter::s#element
       setter: <testLibraryFragment>::@setter::s#element
     h
+      reference: <testLibrary>::@topLevelVariable::h
       firstFragment: <testLibraryFragment>::@topLevelVariable::h
       type: int
       getter: <testLibraryFragment>::@getter::h#element
@@ -7479,17 +7570,17 @@ library
       topLevelVariables
         d @8
           reference: <testLibraryFragment>::@topLevelVariable::d
-          element: <testLibraryFragment>::@topLevelVariable::d#element
+          element: <testLibrary>::@topLevelVariable::d
           getter2: <testLibraryFragment>::@getter::d
           setter2: <testLibraryFragment>::@setter::d
         s @15
           reference: <testLibraryFragment>::@topLevelVariable::s
-          element: <testLibraryFragment>::@topLevelVariable::s#element
+          element: <testLibrary>::@topLevelVariable::s
           getter2: <testLibraryFragment>::@getter::s
           setter2: <testLibraryFragment>::@setter::s
         h @37
           reference: <testLibraryFragment>::@topLevelVariable::h
-          element: <testLibraryFragment>::@topLevelVariable::h#element
+          element: <testLibrary>::@topLevelVariable::h
           getter2: <testLibraryFragment>::@getter::h
           setter2: <testLibraryFragment>::@setter::h
       getters
@@ -7523,16 +7614,19 @@ library
               element: <testLibraryFragment>::@setter::h::@parameter::_h#element
   topLevelVariables
     d
+      reference: <testLibrary>::@topLevelVariable::d
       firstFragment: <testLibraryFragment>::@topLevelVariable::d
       type: dynamic
       getter: <testLibraryFragment>::@getter::d#element
       setter: <testLibraryFragment>::@setter::d#element
     s
+      reference: <testLibrary>::@topLevelVariable::s
       firstFragment: <testLibraryFragment>::@topLevelVariable::s
       type: String
       getter: <testLibraryFragment>::@getter::s#element
       setter: <testLibraryFragment>::@setter::s#element
     h
+      reference: <testLibrary>::@topLevelVariable::h
       firstFragment: <testLibraryFragment>::@topLevelVariable::h
       type: int
       getter: <testLibraryFragment>::@getter::h#element
@@ -7618,12 +7712,12 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         b @17
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
           setter2: <testLibraryFragment>::@setter::b
       getters
@@ -7648,11 +7742,13 @@ library
               element: <testLibraryFragment>::@setter::b::@parameter::_b#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: double
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: bool
       getter: <testLibraryFragment>::@getter::b#element
@@ -7793,22 +7889,22 @@ library
       topLevelVariables
         vObject @4
           reference: <testLibraryFragment>::@topLevelVariable::vObject
-          element: <testLibraryFragment>::@topLevelVariable::vObject#element
+          element: <testLibrary>::@topLevelVariable::vObject
           getter2: <testLibraryFragment>::@getter::vObject
           setter2: <testLibraryFragment>::@setter::vObject
         vNum @37
           reference: <testLibraryFragment>::@topLevelVariable::vNum
-          element: <testLibraryFragment>::@topLevelVariable::vNum#element
+          element: <testLibrary>::@topLevelVariable::vNum
           getter2: <testLibraryFragment>::@getter::vNum
           setter2: <testLibraryFragment>::@setter::vNum
         vNumEmpty @64
           reference: <testLibraryFragment>::@topLevelVariable::vNumEmpty
-          element: <testLibraryFragment>::@topLevelVariable::vNumEmpty#element
+          element: <testLibrary>::@topLevelVariable::vNumEmpty
           getter2: <testLibraryFragment>::@getter::vNumEmpty
           setter2: <testLibraryFragment>::@setter::vNumEmpty
         vInt @89
           reference: <testLibraryFragment>::@topLevelVariable::vInt
-          element: <testLibraryFragment>::@topLevelVariable::vInt#element
+          element: <testLibrary>::@topLevelVariable::vInt
           getter2: <testLibraryFragment>::@getter::vInt
           setter2: <testLibraryFragment>::@setter::vInt
       getters
@@ -7851,21 +7947,25 @@ library
               element: <testLibraryFragment>::@setter::vInt::@parameter::_vInt#element
   topLevelVariables
     vObject
+      reference: <testLibrary>::@topLevelVariable::vObject
       firstFragment: <testLibraryFragment>::@topLevelVariable::vObject
       type: List<Object>
       getter: <testLibraryFragment>::@getter::vObject#element
       setter: <testLibraryFragment>::@setter::vObject#element
     vNum
+      reference: <testLibrary>::@topLevelVariable::vNum
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNum
       type: List<num>
       getter: <testLibraryFragment>::@getter::vNum#element
       setter: <testLibraryFragment>::@setter::vNum#element
     vNumEmpty
+      reference: <testLibrary>::@topLevelVariable::vNumEmpty
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNumEmpty
       type: List<num>
       getter: <testLibraryFragment>::@getter::vNumEmpty#element
       setter: <testLibraryFragment>::@setter::vNumEmpty#element
     vInt
+      reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInt
       type: List<int>
       getter: <testLibraryFragment>::@getter::vInt#element
@@ -7975,17 +8075,17 @@ library
       topLevelVariables
         vInt @4
           reference: <testLibraryFragment>::@topLevelVariable::vInt
-          element: <testLibraryFragment>::@topLevelVariable::vInt#element
+          element: <testLibrary>::@topLevelVariable::vInt
           getter2: <testLibraryFragment>::@getter::vInt
           setter2: <testLibraryFragment>::@setter::vInt
         vNum @26
           reference: <testLibraryFragment>::@topLevelVariable::vNum
-          element: <testLibraryFragment>::@topLevelVariable::vNum#element
+          element: <testLibrary>::@topLevelVariable::vNum
           getter2: <testLibraryFragment>::@getter::vNum
           setter2: <testLibraryFragment>::@setter::vNum
         vObject @47
           reference: <testLibraryFragment>::@topLevelVariable::vObject
-          element: <testLibraryFragment>::@topLevelVariable::vObject#element
+          element: <testLibrary>::@topLevelVariable::vObject
           getter2: <testLibraryFragment>::@getter::vObject
           setter2: <testLibraryFragment>::@setter::vObject
       getters
@@ -8019,16 +8119,19 @@ library
               element: <testLibraryFragment>::@setter::vObject::@parameter::_vObject#element
   topLevelVariables
     vInt
+      reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInt
       type: List<int>
       getter: <testLibraryFragment>::@getter::vInt#element
       setter: <testLibraryFragment>::@setter::vInt#element
     vNum
+      reference: <testLibrary>::@topLevelVariable::vNum
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNum
       type: List<num>
       getter: <testLibraryFragment>::@getter::vNum#element
       setter: <testLibraryFragment>::@setter::vNum#element
     vObject
+      reference: <testLibrary>::@topLevelVariable::vObject
       firstFragment: <testLibraryFragment>::@topLevelVariable::vObject
       type: List<Object>
       getter: <testLibraryFragment>::@getter::vObject#element
@@ -8177,27 +8280,27 @@ library
       topLevelVariables
         vObjectObject @4
           reference: <testLibraryFragment>::@topLevelVariable::vObjectObject
-          element: <testLibraryFragment>::@topLevelVariable::vObjectObject#element
+          element: <testLibrary>::@topLevelVariable::vObjectObject
           getter2: <testLibraryFragment>::@getter::vObjectObject
           setter2: <testLibraryFragment>::@setter::vObjectObject
         vComparableObject @50
           reference: <testLibraryFragment>::@topLevelVariable::vComparableObject
-          element: <testLibraryFragment>::@topLevelVariable::vComparableObject#element
+          element: <testLibrary>::@topLevelVariable::vComparableObject
           getter2: <testLibraryFragment>::@getter::vComparableObject
           setter2: <testLibraryFragment>::@setter::vComparableObject
         vNumString @109
           reference: <testLibraryFragment>::@topLevelVariable::vNumString
-          element: <testLibraryFragment>::@topLevelVariable::vNumString#element
+          element: <testLibrary>::@topLevelVariable::vNumString
           getter2: <testLibraryFragment>::@getter::vNumString
           setter2: <testLibraryFragment>::@setter::vNumString
         vNumStringEmpty @149
           reference: <testLibraryFragment>::@topLevelVariable::vNumStringEmpty
-          element: <testLibraryFragment>::@topLevelVariable::vNumStringEmpty#element
+          element: <testLibrary>::@topLevelVariable::vNumStringEmpty
           getter2: <testLibraryFragment>::@getter::vNumStringEmpty
           setter2: <testLibraryFragment>::@setter::vNumStringEmpty
         vIntString @188
           reference: <testLibraryFragment>::@topLevelVariable::vIntString
-          element: <testLibraryFragment>::@topLevelVariable::vIntString#element
+          element: <testLibrary>::@topLevelVariable::vIntString
           getter2: <testLibraryFragment>::@getter::vIntString
           setter2: <testLibraryFragment>::@setter::vIntString
       getters
@@ -8249,26 +8352,31 @@ library
               element: <testLibraryFragment>::@setter::vIntString::@parameter::_vIntString#element
   topLevelVariables
     vObjectObject
+      reference: <testLibrary>::@topLevelVariable::vObjectObject
       firstFragment: <testLibraryFragment>::@topLevelVariable::vObjectObject
       type: Map<Object, Object>
       getter: <testLibraryFragment>::@getter::vObjectObject#element
       setter: <testLibraryFragment>::@setter::vObjectObject#element
     vComparableObject
+      reference: <testLibrary>::@topLevelVariable::vComparableObject
       firstFragment: <testLibraryFragment>::@topLevelVariable::vComparableObject
       type: Map<Comparable<int>, Object>
       getter: <testLibraryFragment>::@getter::vComparableObject#element
       setter: <testLibraryFragment>::@setter::vComparableObject#element
     vNumString
+      reference: <testLibrary>::@topLevelVariable::vNumString
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNumString
       type: Map<num, String>
       getter: <testLibraryFragment>::@getter::vNumString#element
       setter: <testLibraryFragment>::@setter::vNumString#element
     vNumStringEmpty
+      reference: <testLibrary>::@topLevelVariable::vNumStringEmpty
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNumStringEmpty
       type: Map<num, String>
       getter: <testLibraryFragment>::@getter::vNumStringEmpty#element
       setter: <testLibraryFragment>::@setter::vNumStringEmpty#element
     vIntString
+      reference: <testLibrary>::@topLevelVariable::vIntString
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIntString
       type: Map<int, String>
       getter: <testLibraryFragment>::@getter::vIntString#element
@@ -8385,17 +8493,17 @@ library
       topLevelVariables
         vIntString @4
           reference: <testLibraryFragment>::@topLevelVariable::vIntString
-          element: <testLibraryFragment>::@topLevelVariable::vIntString#element
+          element: <testLibrary>::@topLevelVariable::vIntString
           getter2: <testLibraryFragment>::@getter::vIntString
           setter2: <testLibraryFragment>::@setter::vIntString
         vNumString @39
           reference: <testLibraryFragment>::@topLevelVariable::vNumString
-          element: <testLibraryFragment>::@topLevelVariable::vNumString#element
+          element: <testLibrary>::@topLevelVariable::vNumString
           getter2: <testLibraryFragment>::@getter::vNumString
           setter2: <testLibraryFragment>::@setter::vNumString
         vIntObject @76
           reference: <testLibraryFragment>::@topLevelVariable::vIntObject
-          element: <testLibraryFragment>::@topLevelVariable::vIntObject#element
+          element: <testLibrary>::@topLevelVariable::vIntObject
           getter2: <testLibraryFragment>::@getter::vIntObject
           setter2: <testLibraryFragment>::@setter::vIntObject
       getters
@@ -8429,16 +8537,19 @@ library
               element: <testLibraryFragment>::@setter::vIntObject::@parameter::_vIntObject#element
   topLevelVariables
     vIntString
+      reference: <testLibrary>::@topLevelVariable::vIntString
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIntString
       type: Map<int, String>
       getter: <testLibraryFragment>::@getter::vIntString#element
       setter: <testLibraryFragment>::@setter::vIntString#element
     vNumString
+      reference: <testLibrary>::@topLevelVariable::vNumString
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNumString
       type: Map<num, String>
       getter: <testLibraryFragment>::@getter::vNumString#element
       setter: <testLibraryFragment>::@setter::vNumString#element
     vIntObject
+      reference: <testLibrary>::@topLevelVariable::vIntObject
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIntObject
       type: Map<int, Object>
       getter: <testLibraryFragment>::@getter::vIntObject#element
@@ -8587,27 +8698,27 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         b @18
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
           setter2: <testLibraryFragment>::@setter::b
         vEq @32
           reference: <testLibraryFragment>::@topLevelVariable::vEq
-          element: <testLibraryFragment>::@topLevelVariable::vEq#element
+          element: <testLibrary>::@topLevelVariable::vEq
           getter2: <testLibraryFragment>::@getter::vEq
           setter2: <testLibraryFragment>::@setter::vEq
         vAnd @50
           reference: <testLibraryFragment>::@topLevelVariable::vAnd
-          element: <testLibraryFragment>::@topLevelVariable::vAnd#element
+          element: <testLibrary>::@topLevelVariable::vAnd
           getter2: <testLibraryFragment>::@getter::vAnd
           setter2: <testLibraryFragment>::@setter::vAnd
         vOr @69
           reference: <testLibraryFragment>::@topLevelVariable::vOr
-          element: <testLibraryFragment>::@topLevelVariable::vOr#element
+          element: <testLibrary>::@topLevelVariable::vOr
           getter2: <testLibraryFragment>::@getter::vOr
           setter2: <testLibraryFragment>::@setter::vOr
       getters
@@ -8659,26 +8770,31 @@ library
               element: <testLibraryFragment>::@setter::vOr::@parameter::_vOr#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: bool
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: bool
       getter: <testLibraryFragment>::@getter::b#element
       setter: <testLibraryFragment>::@setter::b#element
     vEq
+      reference: <testLibrary>::@topLevelVariable::vEq
       firstFragment: <testLibraryFragment>::@topLevelVariable::vEq
       type: bool
       getter: <testLibraryFragment>::@getter::vEq#element
       setter: <testLibraryFragment>::@setter::vEq#element
     vAnd
+      reference: <testLibrary>::@topLevelVariable::vAnd
       firstFragment: <testLibraryFragment>::@topLevelVariable::vAnd
       type: bool
       getter: <testLibraryFragment>::@getter::vAnd#element
       setter: <testLibraryFragment>::@setter::vAnd#element
     vOr
+      reference: <testLibrary>::@topLevelVariable::vOr
       firstFragment: <testLibraryFragment>::@topLevelVariable::vOr
       type: bool
       getter: <testLibraryFragment>::@getter::vOr#element
@@ -8849,17 +8965,17 @@ library
       topLevelVariables
         instanceOfA @43
           reference: <testLibraryFragment>::@topLevelVariable::instanceOfA
-          element: <testLibraryFragment>::@topLevelVariable::instanceOfA#element
+          element: <testLibrary>::@topLevelVariable::instanceOfA
           getter2: <testLibraryFragment>::@getter::instanceOfA
           setter2: <testLibraryFragment>::@setter::instanceOfA
         v1 @70
           reference: <testLibraryFragment>::@topLevelVariable::v1
-          element: <testLibraryFragment>::@topLevelVariable::v1#element
+          element: <testLibrary>::@topLevelVariable::v1
           getter2: <testLibraryFragment>::@getter::v1
           setter2: <testLibraryFragment>::@setter::v1
         v2 @96
           reference: <testLibraryFragment>::@topLevelVariable::v2
-          element: <testLibraryFragment>::@topLevelVariable::v2#element
+          element: <testLibrary>::@topLevelVariable::v2
           getter2: <testLibraryFragment>::@getter::v2
           setter2: <testLibraryFragment>::@setter::v2
       getters
@@ -8900,22 +9016,26 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional p
               type: int
   topLevelVariables
     instanceOfA
+      reference: <testLibrary>::@topLevelVariable::instanceOfA
       firstFragment: <testLibraryFragment>::@topLevelVariable::instanceOfA
       type: A
       getter: <testLibraryFragment>::@getter::instanceOfA#element
       setter: <testLibraryFragment>::@setter::instanceOfA#element
     v1
+      reference: <testLibrary>::@topLevelVariable::v1
       firstFragment: <testLibraryFragment>::@topLevelVariable::v1
       type: String
       getter: <testLibraryFragment>::@getter::v1#element
       setter: <testLibraryFragment>::@setter::v1#element
     v2
+      reference: <testLibrary>::@topLevelVariable::v2
       firstFragment: <testLibraryFragment>::@topLevelVariable::v2
       type: String
       getter: <testLibraryFragment>::@getter::v2#element
@@ -9154,57 +9274,57 @@ library
       topLevelVariables
         vModuloIntInt @4
           reference: <testLibraryFragment>::@topLevelVariable::vModuloIntInt
-          element: <testLibraryFragment>::@topLevelVariable::vModuloIntInt#element
+          element: <testLibrary>::@topLevelVariable::vModuloIntInt
           getter2: <testLibraryFragment>::@getter::vModuloIntInt
           setter2: <testLibraryFragment>::@setter::vModuloIntInt
         vModuloIntDouble @31
           reference: <testLibraryFragment>::@topLevelVariable::vModuloIntDouble
-          element: <testLibraryFragment>::@topLevelVariable::vModuloIntDouble#element
+          element: <testLibrary>::@topLevelVariable::vModuloIntDouble
           getter2: <testLibraryFragment>::@getter::vModuloIntDouble
           setter2: <testLibraryFragment>::@setter::vModuloIntDouble
         vMultiplyIntInt @63
           reference: <testLibraryFragment>::@topLevelVariable::vMultiplyIntInt
-          element: <testLibraryFragment>::@topLevelVariable::vMultiplyIntInt#element
+          element: <testLibrary>::@topLevelVariable::vMultiplyIntInt
           getter2: <testLibraryFragment>::@getter::vMultiplyIntInt
           setter2: <testLibraryFragment>::@setter::vMultiplyIntInt
         vMultiplyIntDouble @92
           reference: <testLibraryFragment>::@topLevelVariable::vMultiplyIntDouble
-          element: <testLibraryFragment>::@topLevelVariable::vMultiplyIntDouble#element
+          element: <testLibrary>::@topLevelVariable::vMultiplyIntDouble
           getter2: <testLibraryFragment>::@getter::vMultiplyIntDouble
           setter2: <testLibraryFragment>::@setter::vMultiplyIntDouble
         vMultiplyDoubleInt @126
           reference: <testLibraryFragment>::@topLevelVariable::vMultiplyDoubleInt
-          element: <testLibraryFragment>::@topLevelVariable::vMultiplyDoubleInt#element
+          element: <testLibrary>::@topLevelVariable::vMultiplyDoubleInt
           getter2: <testLibraryFragment>::@getter::vMultiplyDoubleInt
           setter2: <testLibraryFragment>::@setter::vMultiplyDoubleInt
         vMultiplyDoubleDouble @160
           reference: <testLibraryFragment>::@topLevelVariable::vMultiplyDoubleDouble
-          element: <testLibraryFragment>::@topLevelVariable::vMultiplyDoubleDouble#element
+          element: <testLibrary>::@topLevelVariable::vMultiplyDoubleDouble
           getter2: <testLibraryFragment>::@getter::vMultiplyDoubleDouble
           setter2: <testLibraryFragment>::@setter::vMultiplyDoubleDouble
         vDivideIntInt @199
           reference: <testLibraryFragment>::@topLevelVariable::vDivideIntInt
-          element: <testLibraryFragment>::@topLevelVariable::vDivideIntInt#element
+          element: <testLibrary>::@topLevelVariable::vDivideIntInt
           getter2: <testLibraryFragment>::@getter::vDivideIntInt
           setter2: <testLibraryFragment>::@setter::vDivideIntInt
         vDivideIntDouble @226
           reference: <testLibraryFragment>::@topLevelVariable::vDivideIntDouble
-          element: <testLibraryFragment>::@topLevelVariable::vDivideIntDouble#element
+          element: <testLibrary>::@topLevelVariable::vDivideIntDouble
           getter2: <testLibraryFragment>::@getter::vDivideIntDouble
           setter2: <testLibraryFragment>::@setter::vDivideIntDouble
         vDivideDoubleInt @258
           reference: <testLibraryFragment>::@topLevelVariable::vDivideDoubleInt
-          element: <testLibraryFragment>::@topLevelVariable::vDivideDoubleInt#element
+          element: <testLibrary>::@topLevelVariable::vDivideDoubleInt
           getter2: <testLibraryFragment>::@getter::vDivideDoubleInt
           setter2: <testLibraryFragment>::@setter::vDivideDoubleInt
         vDivideDoubleDouble @290
           reference: <testLibraryFragment>::@topLevelVariable::vDivideDoubleDouble
-          element: <testLibraryFragment>::@topLevelVariable::vDivideDoubleDouble#element
+          element: <testLibrary>::@topLevelVariable::vDivideDoubleDouble
           getter2: <testLibraryFragment>::@getter::vDivideDoubleDouble
           setter2: <testLibraryFragment>::@setter::vDivideDoubleDouble
         vFloorDivide @327
           reference: <testLibraryFragment>::@topLevelVariable::vFloorDivide
-          element: <testLibraryFragment>::@topLevelVariable::vFloorDivide#element
+          element: <testLibrary>::@topLevelVariable::vFloorDivide
           getter2: <testLibraryFragment>::@getter::vFloorDivide
           setter2: <testLibraryFragment>::@setter::vFloorDivide
       getters
@@ -9310,56 +9430,67 @@ library
               element: <testLibraryFragment>::@setter::vFloorDivide::@parameter::_vFloorDivide#element
   topLevelVariables
     vModuloIntInt
+      reference: <testLibrary>::@topLevelVariable::vModuloIntInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vModuloIntInt
       type: int
       getter: <testLibraryFragment>::@getter::vModuloIntInt#element
       setter: <testLibraryFragment>::@setter::vModuloIntInt#element
     vModuloIntDouble
+      reference: <testLibrary>::@topLevelVariable::vModuloIntDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vModuloIntDouble
       type: double
       getter: <testLibraryFragment>::@getter::vModuloIntDouble#element
       setter: <testLibraryFragment>::@setter::vModuloIntDouble#element
     vMultiplyIntInt
+      reference: <testLibrary>::@topLevelVariable::vMultiplyIntInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMultiplyIntInt
       type: int
       getter: <testLibraryFragment>::@getter::vMultiplyIntInt#element
       setter: <testLibraryFragment>::@setter::vMultiplyIntInt#element
     vMultiplyIntDouble
+      reference: <testLibrary>::@topLevelVariable::vMultiplyIntDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMultiplyIntDouble
       type: double
       getter: <testLibraryFragment>::@getter::vMultiplyIntDouble#element
       setter: <testLibraryFragment>::@setter::vMultiplyIntDouble#element
     vMultiplyDoubleInt
+      reference: <testLibrary>::@topLevelVariable::vMultiplyDoubleInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMultiplyDoubleInt
       type: double
       getter: <testLibraryFragment>::@getter::vMultiplyDoubleInt#element
       setter: <testLibraryFragment>::@setter::vMultiplyDoubleInt#element
     vMultiplyDoubleDouble
+      reference: <testLibrary>::@topLevelVariable::vMultiplyDoubleDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vMultiplyDoubleDouble
       type: double
       getter: <testLibraryFragment>::@getter::vMultiplyDoubleDouble#element
       setter: <testLibraryFragment>::@setter::vMultiplyDoubleDouble#element
     vDivideIntInt
+      reference: <testLibrary>::@topLevelVariable::vDivideIntInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDivideIntInt
       type: double
       getter: <testLibraryFragment>::@getter::vDivideIntInt#element
       setter: <testLibraryFragment>::@setter::vDivideIntInt#element
     vDivideIntDouble
+      reference: <testLibrary>::@topLevelVariable::vDivideIntDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDivideIntDouble
       type: double
       getter: <testLibraryFragment>::@getter::vDivideIntDouble#element
       setter: <testLibraryFragment>::@setter::vDivideIntDouble#element
     vDivideDoubleInt
+      reference: <testLibrary>::@topLevelVariable::vDivideDoubleInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDivideDoubleInt
       type: double
       getter: <testLibraryFragment>::@getter::vDivideDoubleInt#element
       setter: <testLibraryFragment>::@setter::vDivideDoubleInt#element
     vDivideDoubleDouble
+      reference: <testLibrary>::@topLevelVariable::vDivideDoubleDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDivideDoubleDouble
       type: double
       getter: <testLibraryFragment>::@getter::vDivideDoubleDouble#element
       setter: <testLibraryFragment>::@setter::vDivideDoubleDouble#element
     vFloorDivide
+      reference: <testLibrary>::@topLevelVariable::vFloorDivide
       firstFragment: <testLibraryFragment>::@topLevelVariable::vFloorDivide
       type: int
       getter: <testLibraryFragment>::@getter::vFloorDivide#element
@@ -9518,17 +9649,17 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         vEq @15
           reference: <testLibraryFragment>::@topLevelVariable::vEq
-          element: <testLibraryFragment>::@topLevelVariable::vEq#element
+          element: <testLibrary>::@topLevelVariable::vEq
           getter2: <testLibraryFragment>::@getter::vEq
           setter2: <testLibraryFragment>::@setter::vEq
         vNotEq @46
           reference: <testLibraryFragment>::@topLevelVariable::vNotEq
-          element: <testLibraryFragment>::@topLevelVariable::vNotEq#element
+          element: <testLibrary>::@topLevelVariable::vNotEq
           getter2: <testLibraryFragment>::@getter::vNotEq
           setter2: <testLibraryFragment>::@setter::vNotEq
       getters
@@ -9562,16 +9693,19 @@ library
               element: <testLibraryFragment>::@setter::vNotEq::@parameter::_vNotEq#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     vEq
+      reference: <testLibrary>::@topLevelVariable::vEq
       firstFragment: <testLibraryFragment>::@topLevelVariable::vEq
       type: bool
       getter: <testLibraryFragment>::@getter::vEq#element
       setter: <testLibraryFragment>::@setter::vEq#element
     vNotEq
+      reference: <testLibrary>::@topLevelVariable::vNotEq
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNotEq
       type: bool
       getter: <testLibraryFragment>::@getter::vNotEq#element
@@ -9640,7 +9774,7 @@ library
       topLevelVariables
         V @4
           reference: <testLibraryFragment>::@topLevelVariable::V
-          element: <testLibraryFragment>::@topLevelVariable::V#element
+          element: <testLibrary>::@topLevelVariable::V
           getter2: <testLibraryFragment>::@getter::V
           setter2: <testLibraryFragment>::@setter::V
       getters
@@ -9656,6 +9790,7 @@ library
               element: <testLibraryFragment>::@setter::V::@parameter::_V#element
   topLevelVariables
     V
+      reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: int
       getter: <testLibraryFragment>::@getter::V#element
@@ -9795,32 +9930,32 @@ library
       topLevelVariables
         vInt @4
           reference: <testLibraryFragment>::@topLevelVariable::vInt
-          element: <testLibraryFragment>::@topLevelVariable::vInt#element
+          element: <testLibrary>::@topLevelVariable::vInt
           getter2: <testLibraryFragment>::@getter::vInt
           setter2: <testLibraryFragment>::@setter::vInt
         vDouble @18
           reference: <testLibraryFragment>::@topLevelVariable::vDouble
-          element: <testLibraryFragment>::@topLevelVariable::vDouble#element
+          element: <testLibrary>::@topLevelVariable::vDouble
           getter2: <testLibraryFragment>::@getter::vDouble
           setter2: <testLibraryFragment>::@setter::vDouble
         vIncInt @37
           reference: <testLibraryFragment>::@topLevelVariable::vIncInt
-          element: <testLibraryFragment>::@topLevelVariable::vIncInt#element
+          element: <testLibrary>::@topLevelVariable::vIncInt
           getter2: <testLibraryFragment>::@getter::vIncInt
           setter2: <testLibraryFragment>::@setter::vIncInt
         vDecInt @59
           reference: <testLibraryFragment>::@topLevelVariable::vDecInt
-          element: <testLibraryFragment>::@topLevelVariable::vDecInt#element
+          element: <testLibrary>::@topLevelVariable::vDecInt
           getter2: <testLibraryFragment>::@getter::vDecInt
           setter2: <testLibraryFragment>::@setter::vDecInt
         vIncDouble @81
           reference: <testLibraryFragment>::@topLevelVariable::vIncDouble
-          element: <testLibraryFragment>::@topLevelVariable::vIncDouble#element
+          element: <testLibrary>::@topLevelVariable::vIncDouble
           getter2: <testLibraryFragment>::@getter::vIncDouble
           setter2: <testLibraryFragment>::@setter::vIncDouble
         vDecDouble @109
           reference: <testLibraryFragment>::@topLevelVariable::vDecDouble
-          element: <testLibraryFragment>::@topLevelVariable::vDecDouble#element
+          element: <testLibrary>::@topLevelVariable::vDecDouble
           getter2: <testLibraryFragment>::@getter::vDecDouble
           setter2: <testLibraryFragment>::@setter::vDecDouble
       getters
@@ -9881,31 +10016,37 @@ library
               element: <testLibraryFragment>::@setter::vDecDouble::@parameter::_vDecDouble#element
   topLevelVariables
     vInt
+      reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInt
       type: int
       getter: <testLibraryFragment>::@getter::vInt#element
       setter: <testLibraryFragment>::@setter::vInt#element
     vDouble
+      reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDouble
       type: double
       getter: <testLibraryFragment>::@getter::vDouble#element
       setter: <testLibraryFragment>::@setter::vDouble#element
     vIncInt
+      reference: <testLibrary>::@topLevelVariable::vIncInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIncInt
       type: int
       getter: <testLibraryFragment>::@getter::vIncInt#element
       setter: <testLibraryFragment>::@setter::vIncInt#element
     vDecInt
+      reference: <testLibrary>::@topLevelVariable::vDecInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDecInt
       type: int
       getter: <testLibraryFragment>::@getter::vDecInt#element
       setter: <testLibraryFragment>::@setter::vDecInt#element
     vIncDouble
+      reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIncDouble
       type: double
       getter: <testLibraryFragment>::@getter::vIncDouble#element
       setter: <testLibraryFragment>::@setter::vIncDouble#element
     vDecDouble
+      reference: <testLibrary>::@topLevelVariable::vDecDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDecDouble
       type: double
       getter: <testLibraryFragment>::@getter::vDecDouble#element
@@ -10080,32 +10221,32 @@ library
       topLevelVariables
         vInt @4
           reference: <testLibraryFragment>::@topLevelVariable::vInt
-          element: <testLibraryFragment>::@topLevelVariable::vInt#element
+          element: <testLibrary>::@topLevelVariable::vInt
           getter2: <testLibraryFragment>::@getter::vInt
           setter2: <testLibraryFragment>::@setter::vInt
         vDouble @20
           reference: <testLibraryFragment>::@topLevelVariable::vDouble
-          element: <testLibraryFragment>::@topLevelVariable::vDouble#element
+          element: <testLibrary>::@topLevelVariable::vDouble
           getter2: <testLibraryFragment>::@getter::vDouble
           setter2: <testLibraryFragment>::@setter::vDouble
         vIncInt @41
           reference: <testLibraryFragment>::@topLevelVariable::vIncInt
-          element: <testLibraryFragment>::@topLevelVariable::vIncInt#element
+          element: <testLibrary>::@topLevelVariable::vIncInt
           getter2: <testLibraryFragment>::@getter::vIncInt
           setter2: <testLibraryFragment>::@setter::vIncInt
         vDecInt @66
           reference: <testLibraryFragment>::@topLevelVariable::vDecInt
-          element: <testLibraryFragment>::@topLevelVariable::vDecInt#element
+          element: <testLibrary>::@topLevelVariable::vDecInt
           getter2: <testLibraryFragment>::@getter::vDecInt
           setter2: <testLibraryFragment>::@setter::vDecInt
         vIncDouble @91
           reference: <testLibraryFragment>::@topLevelVariable::vIncDouble
-          element: <testLibraryFragment>::@topLevelVariable::vIncDouble#element
+          element: <testLibrary>::@topLevelVariable::vIncDouble
           getter2: <testLibraryFragment>::@getter::vIncDouble
           setter2: <testLibraryFragment>::@setter::vIncDouble
         vDecDouble @122
           reference: <testLibraryFragment>::@topLevelVariable::vDecDouble
-          element: <testLibraryFragment>::@topLevelVariable::vDecDouble#element
+          element: <testLibrary>::@topLevelVariable::vDecDouble
           getter2: <testLibraryFragment>::@getter::vDecDouble
           setter2: <testLibraryFragment>::@setter::vDecDouble
       getters
@@ -10166,31 +10307,37 @@ library
               element: <testLibraryFragment>::@setter::vDecDouble::@parameter::_vDecDouble#element
   topLevelVariables
     vInt
+      reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInt
       type: List<int>
       getter: <testLibraryFragment>::@getter::vInt#element
       setter: <testLibraryFragment>::@setter::vInt#element
     vDouble
+      reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDouble
       type: List<double>
       getter: <testLibraryFragment>::@getter::vDouble#element
       setter: <testLibraryFragment>::@setter::vDouble#element
     vIncInt
+      reference: <testLibrary>::@topLevelVariable::vIncInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIncInt
       type: int
       getter: <testLibraryFragment>::@getter::vIncInt#element
       setter: <testLibraryFragment>::@setter::vIncInt#element
     vDecInt
+      reference: <testLibrary>::@topLevelVariable::vDecInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDecInt
       type: int
       getter: <testLibraryFragment>::@getter::vDecInt#element
       setter: <testLibraryFragment>::@setter::vDecInt#element
     vIncDouble
+      reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIncDouble
       type: double
       getter: <testLibraryFragment>::@getter::vIncDouble#element
       setter: <testLibraryFragment>::@setter::vIncDouble#element
     vDecDouble
+      reference: <testLibrary>::@topLevelVariable::vDecDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDecDouble
       type: double
       getter: <testLibraryFragment>::@getter::vDecDouble#element
@@ -10365,32 +10512,32 @@ library
       topLevelVariables
         vInt @4
           reference: <testLibraryFragment>::@topLevelVariable::vInt
-          element: <testLibraryFragment>::@topLevelVariable::vInt#element
+          element: <testLibrary>::@topLevelVariable::vInt
           getter2: <testLibraryFragment>::@getter::vInt
           setter2: <testLibraryFragment>::@setter::vInt
         vDouble @18
           reference: <testLibraryFragment>::@topLevelVariable::vDouble
-          element: <testLibraryFragment>::@topLevelVariable::vDouble#element
+          element: <testLibrary>::@topLevelVariable::vDouble
           getter2: <testLibraryFragment>::@getter::vDouble
           setter2: <testLibraryFragment>::@setter::vDouble
         vIncInt @37
           reference: <testLibraryFragment>::@topLevelVariable::vIncInt
-          element: <testLibraryFragment>::@topLevelVariable::vIncInt#element
+          element: <testLibrary>::@topLevelVariable::vIncInt
           getter2: <testLibraryFragment>::@getter::vIncInt
           setter2: <testLibraryFragment>::@setter::vIncInt
         vDecInt @59
           reference: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::0
-          element: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::0#element
+          element: <testLibrary>::@topLevelVariable::vDecInt::@def::0
           getter2: <testLibraryFragment>::@getter::vDecInt::@def::0
           setter2: <testLibraryFragment>::@setter::vDecInt::@def::0
         vIncDouble @81
           reference: <testLibraryFragment>::@topLevelVariable::vIncDouble
-          element: <testLibraryFragment>::@topLevelVariable::vIncDouble#element
+          element: <testLibrary>::@topLevelVariable::vIncDouble
           getter2: <testLibraryFragment>::@getter::vIncDouble
           setter2: <testLibraryFragment>::@setter::vIncDouble
         vDecInt @109
           reference: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::1
-          element: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::1#element
+          element: <testLibrary>::@topLevelVariable::vDecInt::@def::1
           getter2: <testLibraryFragment>::@getter::vDecInt::@def::1
           setter2: <testLibraryFragment>::@setter::vDecInt::@def::1
       getters
@@ -10451,31 +10598,37 @@ library
               element: <testLibraryFragment>::@setter::vDecInt::@def::1::@parameter::_vDecInt#element
   topLevelVariables
     vInt
+      reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInt
       type: int
       getter: <testLibraryFragment>::@getter::vInt#element
       setter: <testLibraryFragment>::@setter::vInt#element
     vDouble
+      reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDouble
       type: double
       getter: <testLibraryFragment>::@getter::vDouble#element
       setter: <testLibraryFragment>::@setter::vDouble#element
     vIncInt
+      reference: <testLibrary>::@topLevelVariable::vIncInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIncInt
       type: int
       getter: <testLibraryFragment>::@getter::vIncInt#element
       setter: <testLibraryFragment>::@setter::vIncInt#element
     vDecInt
+      reference: <testLibrary>::@topLevelVariable::vDecInt::@def::0
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::0
       type: int
       getter: <testLibraryFragment>::@getter::vDecInt::@def::0#element
       setter: <testLibraryFragment>::@setter::vDecInt::@def::0#element
     vIncDouble
+      reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIncDouble
       type: double
       getter: <testLibraryFragment>::@getter::vIncDouble#element
       setter: <testLibraryFragment>::@setter::vIncDouble#element
     vDecInt
+      reference: <testLibrary>::@topLevelVariable::vDecInt::@def::1
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::1
       type: double
       getter: <testLibraryFragment>::@getter::vDecInt::@def::1#element
@@ -10668,32 +10821,32 @@ library
       topLevelVariables
         vInt @4
           reference: <testLibraryFragment>::@topLevelVariable::vInt
-          element: <testLibraryFragment>::@topLevelVariable::vInt#element
+          element: <testLibrary>::@topLevelVariable::vInt
           getter2: <testLibraryFragment>::@getter::vInt
           setter2: <testLibraryFragment>::@setter::vInt
         vDouble @20
           reference: <testLibraryFragment>::@topLevelVariable::vDouble
-          element: <testLibraryFragment>::@topLevelVariable::vDouble#element
+          element: <testLibrary>::@topLevelVariable::vDouble
           getter2: <testLibraryFragment>::@getter::vDouble
           setter2: <testLibraryFragment>::@setter::vDouble
         vIncInt @41
           reference: <testLibraryFragment>::@topLevelVariable::vIncInt
-          element: <testLibraryFragment>::@topLevelVariable::vIncInt#element
+          element: <testLibrary>::@topLevelVariable::vIncInt
           getter2: <testLibraryFragment>::@getter::vIncInt
           setter2: <testLibraryFragment>::@setter::vIncInt
         vDecInt @66
           reference: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::0
-          element: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::0#element
+          element: <testLibrary>::@topLevelVariable::vDecInt::@def::0
           getter2: <testLibraryFragment>::@getter::vDecInt::@def::0
           setter2: <testLibraryFragment>::@setter::vDecInt::@def::0
         vIncDouble @91
           reference: <testLibraryFragment>::@topLevelVariable::vIncDouble
-          element: <testLibraryFragment>::@topLevelVariable::vIncDouble#element
+          element: <testLibrary>::@topLevelVariable::vIncDouble
           getter2: <testLibraryFragment>::@getter::vIncDouble
           setter2: <testLibraryFragment>::@setter::vIncDouble
         vDecInt @122
           reference: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::1
-          element: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::1#element
+          element: <testLibrary>::@topLevelVariable::vDecInt::@def::1
           getter2: <testLibraryFragment>::@getter::vDecInt::@def::1
           setter2: <testLibraryFragment>::@setter::vDecInt::@def::1
       getters
@@ -10754,31 +10907,37 @@ library
               element: <testLibraryFragment>::@setter::vDecInt::@def::1::@parameter::_vDecInt#element
   topLevelVariables
     vInt
+      reference: <testLibrary>::@topLevelVariable::vInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vInt
       type: List<int>
       getter: <testLibraryFragment>::@getter::vInt#element
       setter: <testLibraryFragment>::@setter::vInt#element
     vDouble
+      reference: <testLibrary>::@topLevelVariable::vDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDouble
       type: List<double>
       getter: <testLibraryFragment>::@getter::vDouble#element
       setter: <testLibraryFragment>::@setter::vDouble#element
     vIncInt
+      reference: <testLibrary>::@topLevelVariable::vIncInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIncInt
       type: int
       getter: <testLibraryFragment>::@getter::vIncInt#element
       setter: <testLibraryFragment>::@setter::vIncInt#element
     vDecInt
+      reference: <testLibrary>::@topLevelVariable::vDecInt::@def::0
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::0
       type: int
       getter: <testLibraryFragment>::@getter::vDecInt::@def::0#element
       setter: <testLibraryFragment>::@setter::vDecInt::@def::0#element
     vIncDouble
+      reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vIncDouble
       type: double
       getter: <testLibraryFragment>::@getter::vIncDouble#element
       setter: <testLibraryFragment>::@setter::vIncDouble#element
     vDecInt
+      reference: <testLibrary>::@topLevelVariable::vDecInt::@def::1
       firstFragment: <testLibraryFragment>::@topLevelVariable::vDecInt::@def::1
       type: double
       getter: <testLibraryFragment>::@getter::vDecInt::@def::1#element
@@ -10868,7 +11027,7 @@ library
       topLevelVariables
         vNot @4
           reference: <testLibraryFragment>::@topLevelVariable::vNot
-          element: <testLibraryFragment>::@topLevelVariable::vNot#element
+          element: <testLibrary>::@topLevelVariable::vNot
           getter2: <testLibraryFragment>::@getter::vNot
           setter2: <testLibraryFragment>::@setter::vNot
       getters
@@ -10884,6 +11043,7 @@ library
               element: <testLibraryFragment>::@setter::vNot::@parameter::_vNot#element
   topLevelVariables
     vNot
+      reference: <testLibrary>::@topLevelVariable::vNot
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNot
       type: bool
       getter: <testLibraryFragment>::@getter::vNot#element
@@ -10972,17 +11132,17 @@ library
       topLevelVariables
         vNegateInt @4
           reference: <testLibraryFragment>::@topLevelVariable::vNegateInt
-          element: <testLibraryFragment>::@topLevelVariable::vNegateInt#element
+          element: <testLibrary>::@topLevelVariable::vNegateInt
           getter2: <testLibraryFragment>::@getter::vNegateInt
           setter2: <testLibraryFragment>::@setter::vNegateInt
         vNegateDouble @25
           reference: <testLibraryFragment>::@topLevelVariable::vNegateDouble
-          element: <testLibraryFragment>::@topLevelVariable::vNegateDouble#element
+          element: <testLibrary>::@topLevelVariable::vNegateDouble
           getter2: <testLibraryFragment>::@getter::vNegateDouble
           setter2: <testLibraryFragment>::@setter::vNegateDouble
         vComplement @51
           reference: <testLibraryFragment>::@topLevelVariable::vComplement
-          element: <testLibraryFragment>::@topLevelVariable::vComplement#element
+          element: <testLibrary>::@topLevelVariable::vComplement
           getter2: <testLibraryFragment>::@getter::vComplement
           setter2: <testLibraryFragment>::@setter::vComplement
       getters
@@ -11016,16 +11176,19 @@ library
               element: <testLibraryFragment>::@setter::vComplement::@parameter::_vComplement#element
   topLevelVariables
     vNegateInt
+      reference: <testLibrary>::@topLevelVariable::vNegateInt
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNegateInt
       type: int
       getter: <testLibraryFragment>::@getter::vNegateInt#element
       setter: <testLibraryFragment>::@setter::vNegateInt#element
     vNegateDouble
+      reference: <testLibrary>::@topLevelVariable::vNegateDouble
       firstFragment: <testLibraryFragment>::@topLevelVariable::vNegateDouble
       type: double
       getter: <testLibraryFragment>::@getter::vNegateDouble#element
       setter: <testLibraryFragment>::@setter::vNegateDouble#element
     vComplement
+      reference: <testLibrary>::@topLevelVariable::vComplement
       firstFragment: <testLibraryFragment>::@topLevelVariable::vComplement
       type: int
       getter: <testLibraryFragment>::@getter::vComplement#element
@@ -11193,7 +11356,7 @@ library
       topLevelVariables
         final x @53
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         get <null-name>
@@ -11244,6 +11407,7 @@ library
               type: int
   topLevelVariables
     final x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -11382,7 +11546,7 @@ library
       topLevelVariables
         x @63
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -11434,6 +11598,7 @@ library
               type: int
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -11539,22 +11704,22 @@ library
       topLevelVariables
         vLess @4
           reference: <testLibraryFragment>::@topLevelVariable::vLess
-          element: <testLibraryFragment>::@topLevelVariable::vLess#element
+          element: <testLibrary>::@topLevelVariable::vLess
           getter2: <testLibraryFragment>::@getter::vLess
           setter2: <testLibraryFragment>::@setter::vLess
         vLessOrEqual @23
           reference: <testLibraryFragment>::@topLevelVariable::vLessOrEqual
-          element: <testLibraryFragment>::@topLevelVariable::vLessOrEqual#element
+          element: <testLibrary>::@topLevelVariable::vLessOrEqual
           getter2: <testLibraryFragment>::@getter::vLessOrEqual
           setter2: <testLibraryFragment>::@setter::vLessOrEqual
         vGreater @50
           reference: <testLibraryFragment>::@topLevelVariable::vGreater
-          element: <testLibraryFragment>::@topLevelVariable::vGreater#element
+          element: <testLibrary>::@topLevelVariable::vGreater
           getter2: <testLibraryFragment>::@getter::vGreater
           setter2: <testLibraryFragment>::@setter::vGreater
         vGreaterOrEqual @72
           reference: <testLibraryFragment>::@topLevelVariable::vGreaterOrEqual
-          element: <testLibraryFragment>::@topLevelVariable::vGreaterOrEqual#element
+          element: <testLibrary>::@topLevelVariable::vGreaterOrEqual
           getter2: <testLibraryFragment>::@getter::vGreaterOrEqual
           setter2: <testLibraryFragment>::@setter::vGreaterOrEqual
       getters
@@ -11597,21 +11762,25 @@ library
               element: <testLibraryFragment>::@setter::vGreaterOrEqual::@parameter::_vGreaterOrEqual#element
   topLevelVariables
     vLess
+      reference: <testLibrary>::@topLevelVariable::vLess
       firstFragment: <testLibraryFragment>::@topLevelVariable::vLess
       type: bool
       getter: <testLibraryFragment>::@getter::vLess#element
       setter: <testLibraryFragment>::@setter::vLess#element
     vLessOrEqual
+      reference: <testLibrary>::@topLevelVariable::vLessOrEqual
       firstFragment: <testLibraryFragment>::@topLevelVariable::vLessOrEqual
       type: bool
       getter: <testLibraryFragment>::@getter::vLessOrEqual#element
       setter: <testLibraryFragment>::@setter::vLessOrEqual#element
     vGreater
+      reference: <testLibrary>::@topLevelVariable::vGreater
       firstFragment: <testLibraryFragment>::@topLevelVariable::vGreater
       type: bool
       getter: <testLibraryFragment>::@getter::vGreater#element
       setter: <testLibraryFragment>::@setter::vGreater#element
     vGreaterOrEqual
+      reference: <testLibrary>::@topLevelVariable::vGreaterOrEqual
       firstFragment: <testLibraryFragment>::@topLevelVariable::vGreaterOrEqual
       type: bool
       getter: <testLibraryFragment>::@getter::vGreaterOrEqual#element
@@ -16440,7 +16609,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
@@ -17121,6 +17290,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -17135,6 +17305,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -17276,6 +17447,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -17288,6 +17460,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -17304,6 +17477,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -17443,6 +17617,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           formalParameters
             requiredPositional x
@@ -17455,6 +17630,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         abstract foo
+          reference: <testLibrary>::@class::B::@method::foo
           firstFragment: <testLibraryFragment>::@class::B::@method::foo
           formalParameters
             requiredPositional x
@@ -17470,6 +17646,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         abstract foo
+          reference: <testLibrary>::@class::C::@method::foo
           firstFragment: <testLibraryFragment>::@class::C::@method::foo
           formalParameters
             requiredPositional x
@@ -17592,6 +17769,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
     class B
       reference: <testLibrary>::@class::B
@@ -17601,6 +17779,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
     class C
       reference: <testLibrary>::@class::C
@@ -17614,6 +17793,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -17768,6 +17948,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -17782,6 +17963,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -17798,6 +17980,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -17960,6 +18143,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -17974,6 +18158,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -17990,6 +18175,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -18099,6 +18285,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18113,6 +18300,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -18223,6 +18411,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18237,6 +18426,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -18342,6 +18532,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18356,6 +18547,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -18459,6 +18651,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           formalParameters
             requiredPositional a
@@ -18473,6 +18666,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -18619,6 +18813,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -18768,6 +18963,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18792,6 +18988,7 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -18931,6 +19128,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -18945,6 +19143,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -18959,6 +19158,7 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -19097,6 +19297,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19111,6 +19312,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -19125,6 +19327,7 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -19264,6 +19467,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19279,6 +19483,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -19293,6 +19498,7 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -19421,6 +19627,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19437,6 +19644,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -19542,6 +19750,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19556,6 +19765,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -19671,6 +19881,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19688,6 +19899,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -19802,6 +20014,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19818,6 +20031,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -19969,6 +20183,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -19993,6 +20208,7 @@ library
           superConstructor: <testLibraryFragment>::@class::B::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -20108,6 +20324,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20122,6 +20339,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -20224,6 +20442,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20238,6 +20457,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -20386,6 +20606,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20411,6 +20632,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -20512,6 +20734,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A1::@constructor::new
       methods
         _foo
+          reference: <testLibrary>::@class::A1::@method::_foo
           firstFragment: <testLibraryFragment>::@class::A1::@method::_foo
     class A2
       reference: <testLibrary>::@class::A2
@@ -20523,6 +20746,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A1::@constructor::new#element
       methods
         _foo
+          reference: <testLibrary>::@class::A2::@method::_foo
           firstFragment: <testLibraryFragment>::@class::A2::@method::_foo
 ''');
   }
@@ -20623,6 +20847,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20638,6 +20863,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -20799,6 +21025,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20813,6 +21040,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -20829,6 +21057,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a
@@ -20967,6 +21196,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
           formalParameters
             requiredPositional a
@@ -20979,6 +21209,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional a
@@ -20995,6 +21226,7 @@ library
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional a

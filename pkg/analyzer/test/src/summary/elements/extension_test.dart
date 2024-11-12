@@ -345,7 +345,7 @@ library
       topLevelVariables
         const foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
         get <null-name>
@@ -377,6 +377,7 @@ library
           firstFragment: <testLibraryFragment>::@extension::E::@getter::foo
       methods
         bar
+          reference: <testLibrary>::@extension::E::@method::bar
           firstFragment: <testLibraryFragment>::@extension::E::@method::bar
           metadata
             Annotation
@@ -390,6 +391,7 @@ library
               element2: <testLibraryFragment>::@extension::E::@getter::foo#element
   topLevelVariables
     const foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -485,7 +487,7 @@ library
       topLevelVariables
         const a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
         get <null-name>
@@ -504,6 +506,7 @@ library
       firstFragment: <testLibraryFragment>::@extension::E
   topLevelVariables
     const a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -898,8 +901,10 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
       methods
         foo1
+          reference: <testLibrary>::@extension::A::@method::foo1
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::foo1
         foo2
+          reference: <testLibrary>::@extension::A::@method::foo2
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionAugmentation::A::@method::foo2
 ''');
   }
@@ -3127,8 +3132,10 @@ library
       firstFragment: <testLibraryFragment>::@extension::A
       methods
         foo
+          reference: <testLibrary>::@extension::A::@method::foo
           firstFragment: <testLibraryFragment>::@extension::A::@method::foo
         bar
+          reference: <testLibrary>::@extension::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
 ''');
   }
@@ -3233,10 +3240,12 @@ library
       reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       methods
-        foo2
-          firstFragment: <testLibraryFragment>::@extension::A::@method::foo2
         foo1
+          reference: <testLibrary>::@extension::A::@method::foo1
           firstFragment: <testLibraryFragment>::@extension::A::@method::foo1
+        foo2
+          reference: <testLibrary>::@extension::A::@method::foo2
+          firstFragment: <testLibraryFragment>::@extension::A::@method::foo2
 ''');
   }
 
@@ -3377,6 +3386,7 @@ library
       firstFragment: <testLibraryFragment>::@extension::A
       methods
         foo
+          reference: <testLibrary>::@extension::A::@method::foo
           firstFragment: <testLibraryFragment>::@extension::A::@method::foo
 ''');
   }
@@ -3486,8 +3496,10 @@ library
         T
       methods
         foo
+          reference: <testLibrary>::@extension::A::@method::foo
           firstFragment: <testLibraryFragment>::@extension::A::@method::foo
         bar
+          reference: <testLibrary>::@extension::A::@method::bar
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@method::bar
 ''');
   }
@@ -3600,6 +3612,7 @@ library
         T
       methods
         foo
+          reference: <testLibrary>::@extension::A::@method::foo
           firstFragment: <testLibraryFragment>::@extension::A::@method::foo
 ''');
   }
@@ -3712,10 +3725,12 @@ library
       reference: <testLibrary>::@extension::A
       firstFragment: <testLibraryFragment>::@extension::A
       methods
-        bar
-          firstFragment: <testLibraryFragment>::@extension::A::@method::bar
         foo
+          reference: <testLibrary>::@extension::A::@method::foo
           firstFragment: <testLibraryFragment>::@extension::A::@method::foo
+        bar
+          reference: <testLibrary>::@extension::A::@method::bar
+          firstFragment: <testLibraryFragment>::@extension::A::@method::bar
 ''');
   }
 

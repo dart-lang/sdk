@@ -394,7 +394,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     if (args is DartLaunchRequestArguments)
       path.dirname((args as DartLaunchRequestArguments).program),
     ...?args.additionalProjectPaths,
-  ].nonNulls.toList();
+  ].nonNulls.map(normalizePath).toList();
 
   /// Whether we have already sent the [TerminatedEvent] to the client.
   ///
@@ -2681,6 +2681,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     if (cwd != null) {
       Directory.current = Directory(cwd);
     }
+
+    // Also ensure the cwd always has uppercase drive letters to match what
+    // we'll normalize to everywhere else.
+    Directory.current = Directory(normalizePath(Directory.current.path));
 
     // Notify IsolateManager if we'll be debugging so it knows whether to set
     // up breakpoints etc. when isolates are registered.

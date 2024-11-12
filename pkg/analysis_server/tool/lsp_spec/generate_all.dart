@@ -274,7 +274,18 @@ List<LspEntity> getCustomClasses() {
       renameReferences: false,
     ),
 
-    interface('ConnectToDtdParams', [field('uri', type: 'Uri')]),
+    interface('ConnectToDtdParams', [
+      field('uri', type: 'Uri'),
+      field(
+        'registerExperimentalHandlers',
+        type: 'boolean',
+        canBeUndefined: true,
+        comment:
+            'Whether to register experimental LSP handlers with DTD. '
+            'This should not be set by clients automatically but opt-in for '
+            'users that are developing/testing incomplete functionality.',
+      ),
+    ]),
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [

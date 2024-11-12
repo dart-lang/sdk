@@ -326,6 +326,7 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
 ''');
   }
@@ -381,6 +382,7 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
 ''');
   }
@@ -436,6 +438,7 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@class::A::@method::foo
           firstFragment: dart:foo::<fragment>::@class::A::@method::foo
 ''');
   }
@@ -738,6 +741,7 @@ library
           firstFragment: dart:foo::<fragment>::@enum::E::@getter::values
       methods
         foo
+          reference: dart:foo::@enum::E::@method::foo
           firstFragment: dart:foo::<fragment>::@enum::E::@method::foo
 ''');
   }
@@ -793,6 +797,7 @@ library
       sinceSdkVersion: 2.15.0
       methods
         foo
+          reference: dart:foo::@extension::E::@method::foo
           firstFragment: dart:foo::<fragment>::@extension::E::@method::foo
 ''');
   }
@@ -851,6 +856,7 @@ library
         Object
       methods
         foo
+          reference: dart:foo::@mixin::M::@method::foo
           firstFragment: dart:foo::<fragment>::@mixin::M::@method::foo
 ''');
   }
@@ -1216,7 +1222,7 @@ library
       typeAliases
         A @49
           reference: dart:foo::<fragment>::@typeAlias::A
-          element: dart:foo::<fragment>::@typeAlias::A#element
+          element: dart:foo::@typeAlias::A
           sinceSdkVersion: 2.15.0
   typeAliases
     A
@@ -1262,7 +1268,7 @@ library
       topLevelVariables
         final foo @47
           reference: dart:foo::<fragment>::@topLevelVariable::foo
-          element: dart:foo::<fragment>::@topLevelVariable::foo#element
+          element: dart:foo::@topLevelVariable::foo
           sinceSdkVersion: 2.15.0
           getter2: dart:foo::<fragment>::@getter::foo
       getters
@@ -1272,6 +1278,7 @@ library
           sinceSdkVersion: 2.15.0
   topLevelVariables
     final foo
+      reference: dart:foo::@topLevelVariable::foo
       firstFragment: dart:foo::<fragment>::@topLevelVariable::foo
       type: int
       getter: dart:foo::<fragment>::@getter::foo#element

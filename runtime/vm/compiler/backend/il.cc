@@ -7106,13 +7106,7 @@ void MemoryCopyInstr::EmitUnrolledCopy(FlowGraphCompiler* compiler,
   }
 
   if (FLAG_target_memory_sanitizer) {
-#if defined(TARGET_ARCH_X64)
-    RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
-                                     CallingConventions::kVolatileXmmRegisters);
-    __ PushRegisters(kVolatileRegisterSet);
     __ MsanUnpoison(dest_reg, num_bytes);
-    __ PopRegisters(kVolatileRegisterSet);
-#endif
   }
 }
 #endif

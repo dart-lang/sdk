@@ -112,7 +112,7 @@ main() {
         runInTerminalArgs!.args,
         containsAllInOrder([
           Platform.resolvedExecutable,
-          dap.client.uppercaseDriveLetter(testFile.path),
+          uppercaseDriveLetter(testFile.path),
         ]),
       );
       expect(proc!.pid, isPositive);
@@ -520,9 +520,8 @@ main() {
       ({String name, Uri fileLikeUri}) getExpectedMacroSource(File testFile) {
         // Drive letters are always normalized to uppercase so expect
         // uppercase in the path part of the macro URI.
-        final fileLikeUri =
-            Uri.file(dap.client.uppercaseDriveLetter(testFile.path))
-                .replace(scheme: 'dart-macro+file');
+        final fileLikeUri = Uri.file(uppercaseDriveLetter(testFile.path))
+            .replace(scheme: 'dart-macro+file');
         // The expected source name will differ for inside/outside the lib
         // folder.
         final name = folderName == 'lib'

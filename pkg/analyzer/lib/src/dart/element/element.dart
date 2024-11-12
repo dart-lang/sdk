@@ -2530,6 +2530,11 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
+  Fragment get firstFragment {
+    throw UnimplementedError('This is a fragment');
+  }
+
+  @override
   bool get hasAlwaysThrows {
     var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -5339,6 +5344,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   List<MethodElement> methods = [];
 
   @override
+  List<MethodElementImpl2> methods2 = [];
+
+  @override
   InstanceElement2 get baseElement => this;
 
   @override
@@ -5400,10 +5408,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   Metadata get metadata2 => firstFragment.metadata2;
-
-  @override
-  List<MethodElement2> get methods2 =>
-      methods.map((e) => e.asElement2 as MethodElement2?).nonNulls.toList();
 
   @override
   String? get name3 => firstFragment.name;
@@ -6437,6 +6441,12 @@ class LibraryElementImpl extends ElementImpl
   @override
   List<MixinElementImpl2> mixins = [];
 
+  @override
+  List<TopLevelVariableElementImpl2> topLevelVariables = [];
+
+  @override
+  List<TypeAliasElementImpl2> typeAliases = [];
+
   /// The export [Namespace] of this library, `null` if it has not been
   /// computed yet.
   Namespace? _exportNamespace;
@@ -6713,26 +6723,6 @@ class LibraryElementImpl extends ElementImpl
       yield* unit.topLevelVariables;
       yield* unit.typeAliases;
     }
-  }
-
-  @override
-  List<TopLevelVariableElement2> get topLevelVariables {
-    var declarations = <TopLevelVariableElement2>{};
-    for (var unit in units) {
-      declarations.addAll(unit._variables
-          .map((fragment) => (fragment as TopLevelVariableFragment).element));
-    }
-    return declarations.toList();
-  }
-
-  @override
-  List<TypeAliasElement2> get typeAliases {
-    var declarations = <TypeAliasElement2>{};
-    for (var unit in units) {
-      declarations.addAll(unit._typeAliases
-          .map((fragment) => (fragment as TypeAliasFragment).element));
-    }
-    return declarations.toList();
   }
 
   @override
@@ -7611,6 +7601,9 @@ class MethodElementImpl extends ExecutableElementImpl
     with AugmentableElement<MethodElementImpl>
     implements MethodElement, MethodFragment {
   @override
+  late MethodElementImpl2 element;
+
+  @override
   String? name2;
 
   @override
@@ -7624,9 +7617,6 @@ class MethodElementImpl extends ExecutableElementImpl
   /// The error reported during type inference for this variable, or `null` if
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
-
-  /// The element corresponding to this fragment.
-  MethodElement2? _element;
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
@@ -7648,27 +7638,6 @@ class MethodElementImpl extends ExecutableElementImpl
     }
     return displayName;
   }
-
-  @override
-  MethodElement2 get element {
-    if (_element != null) {
-      return _element!;
-    }
-
-    MethodFragment firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    firstFragment as MethodElementImpl;
-
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    return MethodElementImpl2(firstFragment.name2, firstFragment);
-  }
-
-  set element(MethodElement2 element) => _element = element;
 
   @override
   InstanceFragment? get enclosingFragment =>
@@ -7731,17 +7700,17 @@ class MethodElementImpl2 extends ExecutableElementImpl2
         FragmentedElementMixin<MethodFragment>
     implements MethodElement2 {
   @override
+  final Reference reference;
+
+  @override
   final String? name3;
 
   @override
   final MethodElementImpl firstFragment;
 
-  MethodElementImpl2(this.name3, this.firstFragment) {
-    MethodElementImpl? fragment = firstFragment;
-    while (fragment != null) {
-      fragment.element = this;
-      fragment = fragment.nextFragment as MethodElementImpl?;
-    }
+  MethodElementImpl2(this.reference, this.name3, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.element = this;
   }
 
   @override
@@ -9893,8 +9862,8 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     with AugmentableElement<TopLevelVariableElementImpl>
     implements TopLevelVariableElement, TopLevelVariableFragment {
-  /// The element corresponding to this fragment.
-  TopLevelVariableElement2? _element;
+  @override
+  late TopLevelVariableElementImpl2 element;
 
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
@@ -9907,25 +9876,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 
   @override
   TopLevelVariableElement get declaration => this;
-
-  @override
-  TopLevelVariableElement2 get element {
-    if (_element != null) {
-      return _element!;
-    }
-    TopLevelVariableFragment firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    return TopLevelVariableElementImpl2(
-        firstFragment as TopLevelVariableElementImpl);
-  }
-
-  set element(TopLevelVariableElement2 element) => _element = element;
 
   @override
   bool get isExternal {
@@ -9963,14 +9913,14 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
         FragmentedElementMixin<TopLevelVariableFragment>
     implements TopLevelVariableElement2 {
   @override
+  final Reference reference;
+
+  @override
   final TopLevelVariableElementImpl firstFragment;
 
-  TopLevelVariableElementImpl2(this.firstFragment) {
-    TopLevelVariableElementImpl? fragment = firstFragment;
-    while (fragment != null) {
-      fragment.element = this;
-      fragment = fragment.nextFragment as TopLevelVariableElementImpl?;
-    }
+  TopLevelVariableElementImpl2(this.reference, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.element = this;
   }
 
   @override
@@ -10006,7 +9956,7 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   SetterElement? get setter2 =>
@@ -10051,8 +10001,8 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   ElementImpl? _aliasedElement;
   DartType? _aliasedType;
 
-  /// The element corresponding to this fragment.
-  TypeAliasElement2? _element;
+  @override
+  late TypeAliasElementImpl2 element;
 
   TypeAliasElementImpl(String super.name, super.nameOffset);
 
@@ -10087,24 +10037,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   @override
   String get displayName => name;
-
-  @override
-  TypeAliasElement2 get element {
-    if (_element != null) {
-      return _element!;
-    }
-    TypeAliasFragment firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    return TypeAliasElementImpl2(firstFragment as TypeAliasElementImpl);
-  }
-
-  set element(TypeAliasElement2 element) => _element = element;
 
   @override
   CompilationUnitElement get enclosingElement3 =>
@@ -10297,14 +10229,14 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
         FragmentedElementMixin<TypeAliasFragment>
     implements TypeAliasElement2 {
   @override
+  final Reference reference;
+
+  @override
   final TypeAliasElementImpl firstFragment;
 
-  TypeAliasElementImpl2(this.firstFragment) {
-    TypeAliasElementImpl? fragment = firstFragment;
-    while (fragment != null) {
-      fragment.element = this;
-      fragment = fragment.nextFragment as TypeAliasElementImpl?;
-    }
+  TypeAliasElementImpl2(this.reference, this.firstFragment) {
+    reference.element2 = this;
+    firstFragment.element = this;
   }
 
   @override

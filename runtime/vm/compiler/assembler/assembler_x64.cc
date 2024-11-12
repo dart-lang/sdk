@@ -196,6 +196,21 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 
   if (enter_safepoint) {
     EnterFullSafepoint();
+
+    if (FLAG_target_memory_sanitizer) {
+      // If we hit the slow path to enter the safepoint, the call into
+      // MSAN-instrumented runtime code may have clobbered an earlier
+      // MsanUnpoisonParam from FfiCall.
+      RegisterSet kVolatileRegisterSet(
+          CallingConventions::kVolatileCpuRegisters,
+          CallingConventions::kVolatileXmmRegisters);
+      PushRegisters(kVolatileRegisterSet);
+      LoadImmediate(CallingConventions::ArgumentRegisters[0],
+                    CallingConventions::kNumArgRegs);
+      CallCFunction(compiler::Address(
+          THR, kMsanUnpoisonParamRuntimeEntry.OffsetFromThread()));
+      PopRegisters(kVolatileRegisterSet);
+    }
   }
 }
 

@@ -22,6 +22,7 @@ import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:language_server_protocol/json_parsing.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/utilities/cancellation.dart';
@@ -366,6 +367,12 @@ abstract class MessageHandler<P, R, S extends AnalysisServer>
 
   /// The method that this handler can handle.
   Method get handlesMessage;
+
+  /// Whether this handler is experimental (that is, the method is currently
+  /// prefixed with 'experimental/').
+  @nonVirtual
+  bool get isExperimental =>
+      handlesMessage.toString().startsWith('experimental/');
 
   /// A handler that can parse and validate JSON params.
   LspJsonHandler<P> get jsonHandler;

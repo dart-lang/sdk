@@ -112,7 +112,7 @@ class _SuperComputer {
     return _lastFragment(member);
   }
 
-  Fragment? _lastFragment(FragmentedElement? element) {
+  Fragment? _lastFragment(Element2? element) {
     Fragment? fragment = element?.firstFragment;
     while (fragment?.nextFragment != null) {
       fragment = fragment?.nextFragment;

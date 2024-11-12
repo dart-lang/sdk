@@ -53,7 +53,7 @@ library
       topLevelVariables
         f @16
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -69,6 +69,7 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: void Function()
       getter: <testLibraryFragment>::@getter::f#element
@@ -122,7 +123,7 @@ library
       topLevelVariables
         f @17
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -138,6 +139,7 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: void Function()?
       getter: <testLibraryFragment>::@getter::f#element
@@ -266,7 +268,7 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   typeAliases
     F
       firstFragment: <testLibraryFragment>::@typeAlias::F
@@ -328,6 +330,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
 ''');
   }
@@ -412,7 +415,7 @@ library
       topLevelVariables
         v @30
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -428,6 +431,7 @@ library
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int Function(int, String)
       getter: <testLibraryFragment>::@getter::v#element
@@ -682,7 +686,7 @@ library
       topLevelVariables
         v @62
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           metadata
             Annotation
               atSign: @ @29
@@ -753,6 +757,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       metadata
         Annotation
@@ -927,7 +932,7 @@ library
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         get <null-name>
@@ -944,6 +949,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function({int? a})>
       getter: <testLibraryFragment>::@getter::v#element
@@ -1065,7 +1071,7 @@ library
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         get <null-name>
@@ -1082,6 +1088,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function([int?])>
       getter: <testLibraryFragment>::@getter::v#element
@@ -1203,7 +1210,7 @@ library
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         get <null-name>
@@ -1220,6 +1227,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function({required int a})>
       getter: <testLibraryFragment>::@getter::v#element
@@ -1335,7 +1343,7 @@ library
       topLevelVariables
         const v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
         get <null-name>
@@ -1352,6 +1360,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
     const v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function(int)>
       getter: <testLibraryFragment>::@getter::v#element
@@ -1570,10 +1579,10 @@ library
       typeAliases
         F1 @8
           reference: <testLibraryFragment>::@typeAlias::F1
-          element: <testLibraryFragment>::@typeAlias::F1#element
+          element: <testLibrary>::@typeAlias::F1
         F2 @43
           reference: <testLibraryFragment>::@typeAlias::F2
-          element: <testLibraryFragment>::@typeAlias::F2#element
+          element: <testLibrary>::@typeAlias::F2
           typeParameters
             V2 @46
               element: <not-implemented>

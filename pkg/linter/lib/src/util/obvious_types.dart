@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../extensions.dart';
 
@@ -158,8 +160,8 @@ extension ExpressionExtensions on Expression {
         return true;
       case SimpleIdentifier():
         if (self.isQualified) return false;
-        var declaration = self.staticElement?.declaration;
-        if (declaration is! LocalVariableElement) return false;
+        var declaration = self.element;
+        if (declaration is! LocalVariableElement2) return false;
         return self.staticType == declaration.type;
       case InstanceCreationExpression():
         var createdType = self.constructorName.type;
@@ -167,19 +169,14 @@ extension ExpressionExtensions on Expression {
           // Explicit type arguments provided.
           return true;
         } else {
-          DartType? dartType = createdType.type;
-          if (dartType != null) {
-            if (dartType is InterfaceType &&
-                dartType.element.typeParameters.isNotEmpty) {
-              // A raw type is not trivial.
-              return false;
-            }
-            // A non-generic class or extension type.
-            return true;
-          } else {
-            // An unknown type is not trivial.
+          DartType? dartType = createdType.typeOrThrow;
+          if (dartType is InterfaceType &&
+              dartType.element3.typeParameters2.isNotEmpty) {
+            // A raw type is not trivial.
             return false;
           }
+          // A non-generic class or extension type.
+          return true;
         }
       case CascadeExpression():
         return self.target.hasObviousType;

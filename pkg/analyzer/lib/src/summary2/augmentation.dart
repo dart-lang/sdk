@@ -162,6 +162,10 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
   final Map<String, PropertyAccessorElementImpl> setters = {};
   final Map<String, MethodElementImpl> methods = {};
 
+  final Map<String, ElementImpl> fragmentGetters = {};
+  final Map<String, ElementImpl> fragmentSetters = {};
+  final List<MethodElementImpl2> methods2 = [];
+
   InstanceElementBuilder({
     required super.element,
     required super.firstFragment,
@@ -242,6 +246,21 @@ abstract class InstanceElementBuilder<E extends InstanceElementImpl2,
       }
       methods[name] = fragment;
     }
+  }
+
+  ElementImpl? replaceGetter<T extends ElementImpl>(T fragment) {
+    var name = (fragment as Fragment).name2;
+    if (name == null) {
+      return null;
+    }
+
+    var lastFragment = fragmentGetters[name];
+    lastFragment ??= fragmentSetters[name];
+
+    fragmentGetters[name] = fragment;
+    fragmentSetters.remove(name);
+
+    return lastFragment;
   }
 
   void _addFirstFragment() {
@@ -436,7 +455,7 @@ class TypeAliasElementBuilder extends FragmentedElementBuilder<
     if (!identical(fragment, firstFragment)) {
       lastFragment.augmentation = fragment;
       lastFragment = fragment;
-      // fragment.element = element;
+      fragment.element = element;
     }
   }
 }

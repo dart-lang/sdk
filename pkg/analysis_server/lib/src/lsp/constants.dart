@@ -168,6 +168,10 @@ abstract final class CustomMethods {
   static const semanticTokenDynamicRegistration = Method(
     'textDocument/semanticTokens',
   );
+
+  /// An experimental 'echo' handler that can used by tests to verify
+  /// experimental handlers only show up when requested.
+  static const experimentalEcho = Method('experimental/echo');
 }
 
 abstract final class CustomSemanticTokenModifiers {

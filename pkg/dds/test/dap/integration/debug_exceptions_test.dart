@@ -104,7 +104,7 @@ main() {
       // expect.
       expect(
         mainStackFrameEvent.source?.path,
-        dap.client.uppercaseDriveLetter(testFile.path),
+        uppercaseDriveLetter(testFile.path),
       );
       expect(mainStackFrameEvent.line, exceptionLine);
       expect(mainStackFrameEvent.column, 5);

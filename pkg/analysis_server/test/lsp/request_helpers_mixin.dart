@@ -195,10 +195,13 @@ mixin LspRequestHelpersMixin {
     );
   }
 
-  Future<Null> connectToDtd(Uri uri) {
+  Future<Null> connectToDtd(Uri uri, {bool? registerExperimentalHandlers}) {
     var request = makeRequest(
       CustomMethods.connectToDtd,
-      ConnectToDtdParams(uri: uri),
+      ConnectToDtdParams(
+        uri: uri,
+        registerExperimentalHandlers: registerExperimentalHandlers,
+      ),
     );
     return expectSuccessfulResponseTo<Null, Null>(request, (Null n) => n);
   }
@@ -509,10 +512,7 @@ mixin LspRequestHelpersMixin {
     );
   }
 
-  Future<EditableArguments?> getEditableArguments(
-    Uri uri,
-    Position pos,
-  ) {
+  Future<EditableArguments?> getEditableArguments(Uri uri, Position pos) {
     var request = makeRequest(
       CustomMethods.dartTextDocumentEditableArguments,
       TextDocumentPositionParams(
@@ -563,10 +563,7 @@ mixin LspRequestHelpersMixin {
     );
   }
 
-  Future<List<Location>?> getImports(
-    Uri uri,
-    Position pos,
-  ) {
+  Future<List<Location>?> getImports(Uri uri, Position pos) {
     var request = makeRequest(
       CustomMethods.imports,
       TextDocumentPositionParams(
@@ -575,7 +572,9 @@ mixin LspRequestHelpersMixin {
       ),
     );
     return expectSuccessfulResponseTo(
-        request, _fromJsonList(Location.fromJson));
+      request,
+      _fromJsonList(Location.fromJson),
+    );
   }
 
   Future<List<InlayHint>> getInlayHints(Uri uri, Range range) {

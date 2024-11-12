@@ -51,7 +51,7 @@ library
       topLevelVariables
         final f @6
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
       getters
         get <null-name>
@@ -59,6 +59,7 @@ library
           element: <testLibraryFragment>::@getter::f#element
   topLevelVariables
     final f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: V Function<U, V>(U, V)
       getter: <testLibraryFragment>::@getter::f#element
@@ -117,7 +118,7 @@ library
       topLevelVariables
         final f @19
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::f
       getters
         get <null-name>
@@ -125,6 +126,7 @@ library
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::f#element
   topLevelVariables
     final f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
       type: double Function(int)
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::f#element
@@ -353,14 +355,14 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @10
               element: <not-implemented>
       topLevelVariables
         const x @118
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         get <null-name>
@@ -405,6 +407,7 @@ library
       aliasedType: D<T, U> Function<U>()
   topLevelVariables
     const x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: C<int>
       getter: <testLibraryFragment>::@getter::x#element
@@ -541,11 +544,11 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
         const x @101
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
         get <null-name>
@@ -583,6 +586,7 @@ library
       aliasedType: D<T> Function<T>()
   topLevelVariables
     const x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: C
       getter: <testLibraryFragment>::@getter::x#element
@@ -709,7 +713,7 @@ library
       topLevelVariables
         s @74
           reference: <testLibraryFragment>::@topLevelVariable::s
-          element: <testLibraryFragment>::@topLevelVariable::s#element
+          element: <testLibrary>::@topLevelVariable::s
           getter2: <testLibraryFragment>::@getter::s
           setter2: <testLibraryFragment>::@setter::s
       getters
@@ -752,6 +756,7 @@ library
               type: T
   topLevelVariables
     s
+      reference: <testLibrary>::@topLevelVariable::s
       firstFragment: <testLibraryFragment>::@topLevelVariable::s
       type: S<B>
       getter: <testLibraryFragment>::@getter::s#element
@@ -965,12 +970,12 @@ library
       topLevelVariables
         a @111
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         x @128
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -1052,11 +1057,13 @@ library
           superConstructor: <testLibraryFragment>::@class::C::@constructor::new#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: A
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: C
       getter: <testLibraryFragment>::@getter::x#element
@@ -1153,17 +1160,17 @@ library
       topLevelVariables
         x @4
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
         y @40
           reference: <testLibraryFragment>::@topLevelVariable::y
-          element: <testLibraryFragment>::@topLevelVariable::y#element
+          element: <testLibrary>::@topLevelVariable::y
           getter2: <testLibraryFragment>::@getter::y
           setter2: <testLibraryFragment>::@setter::y
         z @53
           reference: <testLibraryFragment>::@topLevelVariable::z
-          element: <testLibraryFragment>::@topLevelVariable::z#element
+          element: <testLibrary>::@topLevelVariable::z
           getter2: <testLibraryFragment>::@getter::z
           setter2: <testLibraryFragment>::@setter::z
       getters
@@ -1197,16 +1204,19 @@ library
               element: <testLibraryFragment>::@setter::z::@parameter::_z#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Iterable<String>
       getter: <testLibraryFragment>::@getter::x#element
       setter: <testLibraryFragment>::@setter::x#element
     y
+      reference: <testLibrary>::@topLevelVariable::y
       firstFragment: <testLibraryFragment>::@topLevelVariable::y
       type: List<int>
       getter: <testLibraryFragment>::@getter::y#element
       setter: <testLibraryFragment>::@setter::y#element
     z
+      reference: <testLibrary>::@topLevelVariable::z
       firstFragment: <testLibraryFragment>::@topLevelVariable::z
       type: List<String>
       getter: <testLibraryFragment>::@getter::z#element
@@ -1346,12 +1356,12 @@ library
       topLevelVariables
         x @25
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
         y @40
           reference: <testLibraryFragment>::@topLevelVariable::y
-          element: <testLibraryFragment>::@topLevelVariable::y#element
+          element: <testLibrary>::@topLevelVariable::y
           getter2: <testLibraryFragment>::@getter::y
           setter2: <testLibraryFragment>::@setter::y
       getters
@@ -1398,11 +1408,13 @@ library
               type: int
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: List<C>
       getter: <testLibraryFragment>::@getter::x#element
       setter: <testLibraryFragment>::@setter::x#element
     y
+      reference: <testLibrary>::@topLevelVariable::y
       firstFragment: <testLibraryFragment>::@topLevelVariable::y
       type: Iterable<int>
       getter: <testLibraryFragment>::@getter::y#element
@@ -1732,6 +1744,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           typeParameters
             U
@@ -2015,7 +2028,7 @@ library
       topLevelVariables
         c @78
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -2046,6 +2059,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::_
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C<dynamic>
       getter: <testLibraryFragment>::@getter::c#element
@@ -2169,6 +2183,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@getter::bar
       methods
         static baz
+          reference: <testLibrary>::@class::A::@method::baz
           firstFragment: <testLibraryFragment>::@class::A::@method::baz
 ''');
   }
@@ -2223,7 +2238,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -2246,6 +2261,7 @@ library
               element: <not-implemented>
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -2344,17 +2360,17 @@ library
       topLevelVariables
         m @19
           reference: <testLibraryFragment>::@topLevelVariable::m
-          element: <testLibraryFragment>::@topLevelVariable::m#element
+          element: <testLibrary>::@topLevelVariable::m
           getter2: <testLibraryFragment>::@getter::m
           setter2: <testLibraryFragment>::@setter::m
         n @53
           reference: <testLibraryFragment>::@topLevelVariable::n
-          element: <testLibraryFragment>::@topLevelVariable::n#element
+          element: <testLibrary>::@topLevelVariable::n
           getter2: <testLibraryFragment>::@getter::n
           setter2: <testLibraryFragment>::@setter::n
         x @73
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -2388,16 +2404,19 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     m
+      reference: <testLibrary>::@topLevelVariable::m
       firstFragment: <testLibraryFragment>::@topLevelVariable::m
       type: int Function<T>()?
       getter: <testLibraryFragment>::@getter::m#element
       setter: <testLibraryFragment>::@setter::m#element
     n
+      reference: <testLibrary>::@topLevelVariable::n
       firstFragment: <testLibraryFragment>::@topLevelVariable::n
       type: int Function<T>()
       getter: <testLibraryFragment>::@getter::n#element
       setter: <testLibraryFragment>::@setter::n#element
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -2475,7 +2494,7 @@ library
       topLevelVariables
         m @30
           reference: <testLibraryFragment>::@topLevelVariable::m
-          element: <testLibraryFragment>::@topLevelVariable::m#element
+          element: <testLibrary>::@topLevelVariable::m
           getter2: <testLibraryFragment>::@getter::m
           setter2: <testLibraryFragment>::@setter::m
       getters
@@ -2491,6 +2510,7 @@ library
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
   topLevelVariables
     m
+      reference: <testLibrary>::@topLevelVariable::m
       firstFragment: <testLibraryFragment>::@topLevelVariable::m
       type: HashMap<dynamic, dynamic>
       getter: <testLibraryFragment>::@getter::m#element
@@ -2602,22 +2622,22 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
           setter2: <testLibraryFragment>::@setter::b
         c @34
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         d @49
           reference: <testLibraryFragment>::@topLevelVariable::d
-          element: <testLibraryFragment>::@topLevelVariable::d#element
+          element: <testLibrary>::@topLevelVariable::d
           getter2: <testLibraryFragment>::@getter::d
           setter2: <testLibraryFragment>::@setter::d
       getters
@@ -2660,21 +2680,25 @@ library
               element: <testLibraryFragment>::@setter::d::@parameter::_d#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
       setter: <testLibraryFragment>::@setter::b#element
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: dynamic
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     d
+      reference: <testLibrary>::@topLevelVariable::d
       firstFragment: <testLibraryFragment>::@topLevelVariable::d
       type: int
       getter: <testLibraryFragment>::@getter::d#element
@@ -2834,7 +2858,7 @@ library
       typeAliases
         F @12
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2928,7 +2952,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -2944,6 +2968,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int
       getter: <testLibraryFragment>::@getter::x#element
@@ -3005,7 +3030,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -3021,6 +3046,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int?
       getter: <testLibraryFragment>::@getter::x#element
@@ -3082,7 +3108,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -3098,6 +3124,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: void Function()
       getter: <testLibraryFragment>::@getter::x#element
@@ -3159,7 +3186,7 @@ library
       topLevelVariables
         x @21
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -3175,6 +3202,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: void Function()?
       getter: <testLibraryFragment>::@getter::x#element
@@ -3428,11 +3456,11 @@ library
       typeAliases
         F @13
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
         v @53
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -3459,6 +3487,7 @@ library
       aliasedType: void Function(int Function(String))
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: dynamic
       getter: <testLibraryFragment>::@getter::v#element
@@ -3619,6 +3648,7 @@ library
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional x
@@ -3636,6 +3666,7 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
       methods
         abstract f
+          reference: <testLibrary>::@class::D::@method::f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
           formalParameters
             requiredPositional x
@@ -3732,6 +3763,7 @@ library
           superConstructor: package:test/a.dart::<fragment>::@class::D::@constructor::new#element
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional x
@@ -3844,6 +3876,7 @@ library
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
       methods
         f
+          reference: <testLibrary>::@class::C::@method::f
           firstFragment: <testLibraryFragment>::@class::C::@method::f
           formalParameters
             requiredPositional x
@@ -3858,6 +3891,7 @@ library
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
       methods
         abstract f
+          reference: <testLibrary>::@class::D::@method::f
           firstFragment: <testLibraryFragment>::@class::D::@method::f
           formalParameters
             requiredPositional x
@@ -3922,7 +3956,7 @@ library
       topLevelVariables
         v @40
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -3945,6 +3979,7 @@ library
               element: <testLibraryFragment>::@function::f::@parameter::g#element
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: dynamic
       getter: <testLibraryFragment>::@getter::v#element
@@ -4027,7 +4062,7 @@ library
       topLevelVariables
         v @42
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -4051,6 +4086,7 @@ library
               element: <testLibraryFragment>::@function::f::@parameter::g#element
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: dynamic
       getter: <testLibraryFragment>::@getter::v#element
@@ -4305,6 +4341,7 @@ library
           superConstructor: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       methods
         m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
           formalParameters
             requiredPositional p
@@ -4407,12 +4444,12 @@ library
       topLevelVariables
         a1 @36
           reference: <testLibraryFragment>::@topLevelVariable::a1
-          element: <testLibraryFragment>::@topLevelVariable::a1#element
+          element: <testLibrary>::@topLevelVariable::a1
           getter2: <testLibraryFragment>::@getter::a1
           setter2: <testLibraryFragment>::@setter::a1
         a2 @50
           reference: <testLibraryFragment>::@topLevelVariable::a2
-          element: <testLibraryFragment>::@topLevelVariable::a2#element
+          element: <testLibrary>::@topLevelVariable::a2
           getter2: <testLibraryFragment>::@getter::a2
           setter2: <testLibraryFragment>::@setter::a2
       getters
@@ -4446,11 +4483,13 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
   topLevelVariables
     a1
+      reference: <testLibrary>::@topLevelVariable::a1
       firstFragment: <testLibraryFragment>::@topLevelVariable::a1
       type: A
       getter: <testLibraryFragment>::@getter::a1#element
       setter: <testLibraryFragment>::@setter::a1#element
     a2
+      reference: <testLibrary>::@topLevelVariable::a2
       firstFragment: <testLibraryFragment>::@topLevelVariable::a2
       type: A
       getter: <testLibraryFragment>::@getter::a2#element
@@ -4548,12 +4587,12 @@ library
       topLevelVariables
         a1 @30
           reference: <testLibraryFragment>::@topLevelVariable::a1
-          element: <testLibraryFragment>::@topLevelVariable::a1#element
+          element: <testLibrary>::@topLevelVariable::a1
           getter2: <testLibraryFragment>::@getter::a1
           setter2: <testLibraryFragment>::@setter::a1
         a2 @48
           reference: <testLibraryFragment>::@topLevelVariable::a2
-          element: <testLibraryFragment>::@topLevelVariable::a2#element
+          element: <testLibrary>::@topLevelVariable::a2
           getter2: <testLibraryFragment>::@getter::a2
           setter2: <testLibraryFragment>::@setter::a2
       getters
@@ -4578,11 +4617,13 @@ library
               element: <testLibraryFragment>::@setter::a2::@parameter::_a2#element
   topLevelVariables
     a1
+      reference: <testLibrary>::@topLevelVariable::a1
       firstFragment: <testLibraryFragment>::@topLevelVariable::a1
       type: A
       getter: <testLibraryFragment>::@getter::a1#element
       setter: <testLibraryFragment>::@setter::a1#element
     a2
+      reference: <testLibrary>::@topLevelVariable::a2
       firstFragment: <testLibraryFragment>::@topLevelVariable::a2
       type: A
       getter: <testLibraryFragment>::@getter::a2#element
@@ -4669,7 +4710,7 @@ library
       topLevelVariables
         v @71
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -4698,6 +4739,7 @@ library
               element: <testLibraryFragment>::@function::g::@parameter::x#element
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: List<Object Function(int Function(String))>
       getter: <testLibraryFragment>::@getter::v#element
@@ -4893,6 +4935,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         abstract m
+          reference: <testLibrary>::@class::A::@method::m
           firstFragment: <testLibraryFragment>::@class::A::@method::m
     abstract class B
       reference: <testLibrary>::@class::B
@@ -4902,6 +4945,7 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
       methods
         abstract m
+          reference: <testLibrary>::@class::B::@method::m
           firstFragment: <testLibraryFragment>::@class::B::@method::m
     abstract class C
       reference: <testLibrary>::@class::C
@@ -5057,7 +5101,7 @@ library
       topLevelVariables
         c @59
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -5080,6 +5124,7 @@ library
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         call
+          reference: <testLibrary>::@class::A::@method::call
           firstFragment: <testLibraryFragment>::@class::A::@method::call
     class B
       reference: <testLibrary>::@class::B
@@ -5104,6 +5149,7 @@ library
               type: A
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: double
       getter: <testLibraryFragment>::@getter::c#element
@@ -5178,12 +5224,12 @@ library
       topLevelVariables
         a @4
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
         b @42
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
           setter2: <testLibraryFragment>::@setter::b
       getters
@@ -5208,11 +5254,13 @@ library
               element: <testLibraryFragment>::@setter::b::@parameter::_b#element
   topLevelVariables
     a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int Function()
       getter: <testLibraryFragment>::@getter::a#element
       setter: <testLibraryFragment>::@setter::a#element
     b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: int
       getter: <testLibraryFragment>::@getter::b#element
@@ -5288,7 +5336,7 @@ library
       topLevelVariables
         x @35
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -5304,6 +5352,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Future<dynamic> Function()
       getter: <testLibraryFragment>::@getter::x#element
@@ -5358,7 +5407,7 @@ library
       topLevelVariables
         x @4
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -5374,6 +5423,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int Function(int Function(String))
       getter: <testLibraryFragment>::@getter::x#element
@@ -5428,7 +5478,7 @@ library
       topLevelVariables
         x @4
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -5444,6 +5494,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int Function(int Function(String))
       getter: <testLibraryFragment>::@getter::x#element
@@ -5506,7 +5557,7 @@ library
       topLevelVariables
         y @21
           reference: <testLibraryFragment>::@topLevelVariable::y
-          element: <testLibraryFragment>::@topLevelVariable::y#element
+          element: <testLibrary>::@topLevelVariable::y
           getter2: <testLibraryFragment>::@getter::y
           setter2: <testLibraryFragment>::@setter::y
       getters
@@ -5522,6 +5573,7 @@ library
               element: <testLibraryFragment>::@setter::y::@parameter::_y#element
   topLevelVariables
     y
+      reference: <testLibrary>::@topLevelVariable::y
       firstFragment: <testLibraryFragment>::@topLevelVariable::y
       type: int
       getter: <testLibraryFragment>::@getter::y#element
@@ -6432,11 +6484,11 @@ library
       topLevelVariables
         final a @26
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
         final b @48
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
         get <null-name>
@@ -6457,10 +6509,12 @@ library
               type: dynamic
   topLevelVariables
     final a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     final b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
@@ -6522,7 +6576,7 @@ library
       topLevelVariables
         v @38
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -6538,6 +6592,7 @@ library
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: InvalidType
       getter: <testLibraryFragment>::@getter::v#element
@@ -6592,7 +6647,7 @@ library
       topLevelVariables
         x @4
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -6608,6 +6663,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: dynamic Function(dynamic) Function(dynamic)
       getter: <testLibraryFragment>::@getter::x#element
@@ -6662,7 +6718,7 @@ library
       topLevelVariables
         x @4
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -6678,6 +6734,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: int Function(int) Function(int)
       getter: <testLibraryFragment>::@getter::x#element
@@ -6732,7 +6789,7 @@ library
       topLevelVariables
         x @4
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
@@ -6748,6 +6805,7 @@ library
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
     x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: dynamic Function([dynamic])
       getter: <testLibraryFragment>::@getter::x#element
@@ -6820,15 +6878,15 @@ library
       topLevelVariables
         final a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
         final b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
         final c @32
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
         get <null-name>
@@ -6842,14 +6900,17 @@ library
           element: <testLibraryFragment>::@getter::c#element
   topLevelVariables
     final a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     final b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
     final c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: dynamic
       getter: <testLibraryFragment>::@getter::c#element
@@ -6919,15 +6980,15 @@ library
       topLevelVariables
         final a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
         final b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
         final c @32
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
         get <null-name>
@@ -6941,14 +7002,17 @@ library
           element: <testLibraryFragment>::@getter::c#element
   topLevelVariables
     final a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     final b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
     final c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: dynamic
       getter: <testLibraryFragment>::@getter::c#element
@@ -7033,19 +7097,19 @@ library
       topLevelVariables
         final a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
         final b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
         final c @36
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
         final d @49
           reference: <testLibraryFragment>::@topLevelVariable::d
-          element: <testLibraryFragment>::@topLevelVariable::d#element
+          element: <testLibrary>::@topLevelVariable::d
           getter2: <testLibraryFragment>::@getter::d
       getters
         get <null-name>
@@ -7062,18 +7126,22 @@ library
           element: <testLibraryFragment>::@getter::d#element
   topLevelVariables
     final a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     final b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
     final c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: dynamic
       getter: <testLibraryFragment>::@getter::c#element
     final d
+      reference: <testLibrary>::@topLevelVariable::d
       firstFragment: <testLibraryFragment>::@topLevelVariable::d
       type: dynamic
       getter: <testLibraryFragment>::@getter::d#element
@@ -7153,15 +7221,15 @@ library
       topLevelVariables
         final a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
         final b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
         final c @36
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
         get <null-name>
@@ -7175,14 +7243,17 @@ library
           element: <testLibraryFragment>::@getter::c#element
   topLevelVariables
     final a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     final b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
     final c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: dynamic
       getter: <testLibraryFragment>::@getter::c#element
@@ -7330,11 +7401,11 @@ library
       topLevelVariables
         final b @98
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
         final c @113
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
         get <null-name>
@@ -7380,10 +7451,12 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::f
   topLevelVariables
     final b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: B
       getter: <testLibraryFragment>::@getter::b#element
     final c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C<B>
       getter: <testLibraryFragment>::@getter::c#element
@@ -7464,7 +7537,7 @@ library
       topLevelVariables
         v @48
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -7492,6 +7565,7 @@ library
           firstFragment: <testLibraryFragment>::@extension::0::@getter::foo
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: int
       getter: <testLibraryFragment>::@getter::v#element
@@ -7607,16 +7681,16 @@ library
       typeAliases
         F @34
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
         V2 @56
           reference: <testLibraryFragment>::@topLevelVariable::V2
-          element: <testLibraryFragment>::@topLevelVariable::V2#element
+          element: <testLibrary>::@topLevelVariable::V2
           getter2: <testLibraryFragment>::@getter::V2
           setter2: <testLibraryFragment>::@setter::V2
         V @71
           reference: <testLibraryFragment>::@topLevelVariable::V
-          element: <testLibraryFragment>::@topLevelVariable::V#element
+          element: <testLibrary>::@topLevelVariable::V
           getter2: <testLibraryFragment>::@getter::V
           setter2: <testLibraryFragment>::@setter::V
       getters
@@ -7662,11 +7736,13 @@ library
       aliasedType: dynamic Function(dynamic)
   topLevelVariables
     V2
+      reference: <testLibrary>::@topLevelVariable::V2
       firstFragment: <testLibraryFragment>::@topLevelVariable::V2
       type: dynamic
       getter: <testLibraryFragment>::@getter::V2#element
       setter: <testLibraryFragment>::@setter::V2#element
     V
+      reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: int
       getter: <testLibraryFragment>::@getter::V#element
@@ -7751,12 +7827,12 @@ library
       topLevelVariables
         V @4
           reference: <testLibraryFragment>::@topLevelVariable::V
-          element: <testLibraryFragment>::@topLevelVariable::V#element
+          element: <testLibrary>::@topLevelVariable::V
           getter2: <testLibraryFragment>::@getter::V
           setter2: <testLibraryFragment>::@setter::V
         V2 @22
           reference: <testLibraryFragment>::@topLevelVariable::V2
-          element: <testLibraryFragment>::@topLevelVariable::V2#element
+          element: <testLibrary>::@topLevelVariable::V2
           getter2: <testLibraryFragment>::@getter::V2
           setter2: <testLibraryFragment>::@setter::V2
       getters
@@ -7781,11 +7857,13 @@ library
               element: <testLibraryFragment>::@setter::V2::@parameter::_V2#element
   topLevelVariables
     V
+      reference: <testLibrary>::@topLevelVariable::V
       firstFragment: <testLibraryFragment>::@topLevelVariable::V
       type: dynamic
       getter: <testLibraryFragment>::@getter::V#element
       setter: <testLibraryFragment>::@setter::V#element
     V2
+      reference: <testLibrary>::@topLevelVariable::V2
       firstFragment: <testLibraryFragment>::@topLevelVariable::V2
       type: List<dynamic>
       getter: <testLibraryFragment>::@getter::V2#element
@@ -7877,6 +7955,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional p
@@ -7921,7 +8000,7 @@ library
       topLevelVariables
         v @4
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
@@ -7937,6 +8016,7 @@ library
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: InvalidType
       getter: <testLibraryFragment>::@getter::v#element
@@ -7988,7 +8068,7 @@ library
       topLevelVariables
         d @6
           reference: <testLibraryFragment>::@topLevelVariable::d
-          element: <testLibraryFragment>::@topLevelVariable::d#element
+          element: <testLibrary>::@topLevelVariable::d
           getter2: <testLibraryFragment>::@getter::d
           setter2: <testLibraryFragment>::@setter::d
       getters
@@ -8004,6 +8084,7 @@ library
               element: <testLibraryFragment>::@setter::d::@parameter::_d#element
   topLevelVariables
     d
+      reference: <testLibrary>::@topLevelVariable::d
       firstFragment: <testLibraryFragment>::@topLevelVariable::d
       type: Never
       getter: <testLibraryFragment>::@getter::d#element
@@ -8401,21 +8482,21 @@ library
       typeAliases
         F @32
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
         c @39
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @44
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @49
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -8482,16 +8563,19 @@ library
       aliasedType: dynamic Function()
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: <testLibraryFragment>::@typeAlias::F
@@ -8673,17 +8757,17 @@ library
       topLevelVariables
         c @28
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @33
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @38
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -8756,7 +8840,7 @@ library
       typeAliases
         F @43
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -8792,16 +8876,19 @@ library
       aliasedType: dynamic Function()
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
@@ -9016,7 +9103,7 @@ library
       typeAliases
         F @58
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -9024,17 +9111,17 @@ library
       topLevelVariables
         c @13
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::c
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::c
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::c
         e @18
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::e
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::e
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::e
         f @23
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::f
       getters
@@ -9101,16 +9188,19 @@ library
       aliasedType: dynamic Function()
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::c
       type: C
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::c#element
       setter: <testLibrary>::@fragment::package:test/a.dart::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::e
       type: E
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::e#element
       setter: <testLibrary>::@fragment::package:test/a.dart::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
       type: dynamic Function()
         alias: <testLibraryFragment>::@typeAlias::F
@@ -9338,7 +9428,7 @@ library
       typeAliases
         F @43
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
       enclosingFragment: <testLibraryFragment>
@@ -9346,17 +9436,17 @@ library
       topLevelVariables
         c @13
           reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::c
-          element: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibrary>::@fragment::package:test/b.dart::@getter::c
           setter2: <testLibrary>::@fragment::package:test/b.dart::@setter::c
         e @18
           reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::e
-          element: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibrary>::@fragment::package:test/b.dart::@getter::e
           setter2: <testLibrary>::@fragment::package:test/b.dart::@setter::e
         f @23
           reference: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::f
-          element: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibrary>::@fragment::package:test/b.dart::@getter::f
           setter2: <testLibrary>::@fragment::package:test/b.dart::@setter::f
       getters
@@ -9423,16 +9513,19 @@ library
       aliasedType: dynamic Function()
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::c
       type: C
       getter: <testLibrary>::@fragment::package:test/b.dart::@getter::c#element
       setter: <testLibrary>::@fragment::package:test/b.dart::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::e
       type: E
       getter: <testLibrary>::@fragment::package:test/b.dart::@getter::e#element
       setter: <testLibrary>::@fragment::package:test/b.dart::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@topLevelVariable::f
       type: dynamic Function()
         alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
@@ -9651,21 +9744,21 @@ library
       typeAliases
         F @43
           reference: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
-          element: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
         c @50
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::c
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::c
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::c
         e @55
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::e
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::e
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::e
         f @60
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
-          element: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::f
       getters
@@ -9732,16 +9825,19 @@ library
       aliasedType: dynamic Function()
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::c
       type: C
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::c#element
       setter: <testLibrary>::@fragment::package:test/a.dart::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::e
       type: E
       getter: <testLibrary>::@fragment::package:test/a.dart::@getter::e#element
       setter: <testLibrary>::@fragment::package:test/a.dart::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
       type: dynamic Function()
         alias: <testLibrary>::@fragment::package:test/a.dart::@typeAlias::F
@@ -9826,7 +9922,7 @@ library
       topLevelVariables
         c @13
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -9849,6 +9945,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
@@ -9927,7 +10024,7 @@ library
       topLevelVariables
         c @32
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -9953,6 +10050,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C<int, String>
       getter: <testLibraryFragment>::@getter::c#element
@@ -10031,7 +10129,7 @@ library
       topLevelVariables
         c @19
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
@@ -10057,6 +10155,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C<dynamic, dynamic>
       getter: <testLibraryFragment>::@getter::c#element
@@ -10186,7 +10285,7 @@ library
       topLevelVariables
         e @15
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
       getters
@@ -10224,6 +10323,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
@@ -10315,17 +10415,17 @@ library
       topLevelVariables
         c @19
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @24
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @29
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -10359,16 +10459,19 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: package:test/a.dart::<fragment>::@typeAlias::F
@@ -10477,17 +10580,17 @@ library
       topLevelVariables
         c @19
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @24
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @29
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -10521,16 +10624,19 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: package:test/b.dart::<fragment>::@typeAlias::F
@@ -10640,17 +10746,17 @@ library
       topLevelVariables
         c @19
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @24
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @29
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -10684,16 +10790,19 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: package:test/c.dart::<fragment>::@typeAlias::F
@@ -10803,17 +10912,17 @@ library
       topLevelVariables
         c @21
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @26
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @31
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -10847,16 +10956,19 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: package:test/a/c/c.dart::<fragment>::@typeAlias::F
@@ -10965,17 +11077,17 @@ library
       topLevelVariables
         c @21
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @26
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @31
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -11009,16 +11121,19 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: package:test/a/b/b.dart::<fragment>::@typeAlias::F
@@ -11127,17 +11242,17 @@ library
       topLevelVariables
         c @19
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @24
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @29
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -11171,16 +11286,19 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: package:test/a.dart::@fragment::package:test/b.dart::@typeAlias::F
@@ -11272,12 +11390,12 @@ library
       topLevelVariables
         c1 @20
           reference: <testLibraryFragment>::@topLevelVariable::c1
-          element: <testLibraryFragment>::@topLevelVariable::c1#element
+          element: <testLibrary>::@topLevelVariable::c1
           getter2: <testLibraryFragment>::@getter::c1
           setter2: <testLibraryFragment>::@setter::c1
         c2 @27
           reference: <testLibraryFragment>::@topLevelVariable::c2
-          element: <testLibraryFragment>::@topLevelVariable::c2#element
+          element: <testLibrary>::@topLevelVariable::c2
           getter2: <testLibraryFragment>::@getter::c2
           setter2: <testLibraryFragment>::@setter::c2
       getters
@@ -11302,11 +11420,13 @@ library
               element: <testLibraryFragment>::@setter::c2::@parameter::_c2#element
   topLevelVariables
     c1
+      reference: <testLibrary>::@topLevelVariable::c1
       firstFragment: <testLibraryFragment>::@topLevelVariable::c1
       type: C1
       getter: <testLibraryFragment>::@getter::c1#element
       setter: <testLibraryFragment>::@setter::c1#element
     c2
+      reference: <testLibrary>::@topLevelVariable::c2
       firstFragment: <testLibraryFragment>::@topLevelVariable::c2
       type: C2
       getter: <testLibraryFragment>::@getter::c2#element
@@ -11406,17 +11526,17 @@ library
       topLevelVariables
         c @21
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @26
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @31
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -11450,16 +11570,19 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: package:test/a/b.dart::@fragment::package:test/a/c.dart::@typeAlias::F
@@ -11567,17 +11690,17 @@ library
       topLevelVariables
         c @19
           reference: <testLibraryFragment>::@topLevelVariable::c
-          element: <testLibraryFragment>::@topLevelVariable::c#element
+          element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
         e @24
           reference: <testLibraryFragment>::@topLevelVariable::e
-          element: <testLibraryFragment>::@topLevelVariable::e#element
+          element: <testLibrary>::@topLevelVariable::e
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
         f @29
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -11611,16 +11734,19 @@ library
               element: <testLibraryFragment>::@setter::f::@parameter::_f#element
   topLevelVariables
     c
+      reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
       type: C
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
     e
+      reference: <testLibrary>::@topLevelVariable::e
       firstFragment: <testLibraryFragment>::@topLevelVariable::e
       type: E
       getter: <testLibraryFragment>::@getter::e#element
       setter: <testLibraryFragment>::@setter::e#element
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: package:test/a.dart::<fragment>::@typeAlias::F
@@ -11697,11 +11823,11 @@ library
       typeAliases
         F @8
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
         f @15
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -11721,6 +11847,7 @@ library
       aliasedType: dynamic Function()
   topLevelVariables
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function()
         alias: <testLibraryFragment>::@typeAlias::F
@@ -11801,7 +11928,7 @@ library
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -11810,7 +11937,7 @@ library
       topLevelVariables
         f @39
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -11833,6 +11960,7 @@ library
       aliasedType: U Function(T)
   topLevelVariables
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: String Function(int)
         alias: <testLibraryFragment>::@typeAlias::F
@@ -11918,7 +12046,7 @@ library
       typeAliases
         F @10
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @12
               element: <not-implemented>
@@ -11927,7 +12055,7 @@ library
       topLevelVariables
         f @26
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
@@ -11950,6 +12078,7 @@ library
       aliasedType: U Function(T)
   topLevelVariables
     f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic Function(dynamic)
         alias: <testLibraryFragment>::@typeAlias::F

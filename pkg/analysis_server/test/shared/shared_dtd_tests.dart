@@ -68,7 +68,13 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   /// Sends a request to connect to DTD and captures all service methods that
   /// are registered/unregistered into [availableMethods] until the `ready`
   /// event is posted.
-  Future<void> sendConnectToDtdRequest([Uri? uri]) async {
+  ///
+  /// [registerExperimentalHandlers] controls whether experimental handlers are
+  /// registered.
+  Future<void> sendConnectToDtdRequest({
+    Uri? uri,
+    bool? registerExperimentalHandlers,
+  }) async {
     // Set up a completer to listen for the 'initialized' event on the Lsp
     // stream so that we know when the services have finished registering.
     var lspInitializedCompleter = Completer<void>();
@@ -81,7 +87,10 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await dtd.streamListen(lspStreamName);
 
     try {
-      await connectToDtd(uri ?? dtdUri);
+      await connectToDtd(
+        uri ?? dtdUri,
+        registerExperimentalHandlers: registerExperimentalHandlers,
+      );
 
       // Wait for the event.
       await lspInitializedCompleter.future;
@@ -147,7 +156,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   test_connectToDtd_failure_invalidUri() async {
     await initializeServer();
     await expectLater(
-      sendConnectToDtdRequest(invalidUri),
+      sendConnectToDtdRequest(uri: invalidUri),
       throwsA(
         isResponseError(
           ErrorCodes.RequestFailed,
@@ -164,7 +173,7 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
 
     // Perform a failed connection.
     await expectLater(
-      sendConnectToDtdRequest(invalidUri),
+      sendConnectToDtdRequest(uri: invalidUri),
       throwsA(
         isResponseError(
           ErrorCodes.RequestFailed,
@@ -203,6 +212,13 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(CustomMethods.connectToDtd, available: false);
   }
 
+  test_connectToDtd_success_doesNotRegister_experimentalMethods() async {
+    await initializeServer();
+    await sendConnectToDtdRequest();
+
+    expectMethod(CustomMethods.experimentalEcho, available: false);
+  }
+
   test_connectToDtd_success_doesNotRegister_fileStateMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -221,6 +237,13 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     // No initialization request/notifications should be available.
     expectMethod(Method.initialize, available: false);
     expectMethod(Method.initialized, available: false);
+  }
+
+  test_connectToDtd_success_registers_experimentalMethods() async {
+    await initializeServer();
+    await sendConnectToDtdRequest(registerExperimentalHandlers: true);
+
+    expectMethod(CustomMethods.experimentalEcho);
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')
@@ -266,6 +289,21 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
         .having((e) => e.message, 'message', 'File does not exist')
         .having((e) => e.data, 'data', nonExistantFilePath);
     await expectLater(call, throwsA(expectedException));
+  }
+
+  test_service_success_echo() async {
+    await initializeServer();
+    await sendConnectToDtdRequest(registerExperimentalHandlers: true);
+
+    var response = await dtd.call(
+      lspServiceName,
+      CustomMethods.experimentalEcho.toString(),
+      params: {'a': 'b'},
+    );
+
+    var result = response.result['result'] as Map<String, Object?>;
+
+    expect(result, equals({'a': 'b'}));
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')

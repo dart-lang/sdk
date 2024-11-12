@@ -114,5 +114,4 @@ test/services/refactoring/legacy/rename_library_test.dart
 test/services/search/element_visitors_test.dart
 test/services/search/hierarchy_test.dart
 test/services/search/search_engine_test.dart
-test/src/cider/rename_test.dart
 tool/code_completion/try_hypothesis.dart

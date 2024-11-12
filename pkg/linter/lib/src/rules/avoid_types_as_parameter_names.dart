@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/extensions.dart';
 
@@ -50,10 +50,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     for (var parameter in node.parameters) {
-      var declaredElement = parameter.declaredElement;
+      var declaredElement = parameter.declaredFragment?.element;
       var name = parameter.name;
       if (declaredElement != null &&
-          declaredElement is! FieldFormalParameterElement &&
+          declaredElement is! FieldFormalParameterElement2 &&
           declaredElement.hasImplicitType &&
           name != null &&
           _isTypeName(node, name)) {
@@ -66,11 +66,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var result =
         resolveNameInScope(name.lexeme, scope, shouldResolveSetter: false);
     if (result.isRequestedName) {
-      var element = result.element;
-      return element is ClassElement ||
-          element is ExtensionTypeElement ||
-          element is TypeAliasElement ||
-          (element is TypeParameterElement && !element.isWildcardVariable);
+      var element = result.element2;
+      return element is ClassElement2 ||
+          element is ExtensionTypeElement2 ||
+          element is TypeAliasElement2 ||
+          (element is TypeParameterElement2 && !element.isWildcardVariable);
     }
     return false;
   }
