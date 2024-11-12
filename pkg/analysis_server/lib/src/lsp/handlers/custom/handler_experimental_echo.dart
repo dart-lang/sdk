@@ -29,6 +29,14 @@ class ExperimentalEchoHandler extends SharedMessageHandler<Object?, Object?> {
     MessageInfo message,
     CancellationToken token,
   ) async {
+    // The DTD client automatically converts `null` params to an empty map, but
+    // (because of a previous bug) we want to test null results. So if the
+    // params are an empty map, return null. This is tested by
+    // `test_service_success_echo_nullResponse` in `SharedDtdTests`.
+    if (params is Map && params.isEmpty) {
+      return success(null);
+    }
+
     return success(params);
   }
 }
