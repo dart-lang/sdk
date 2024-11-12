@@ -1,9 +1,7 @@
 lib/src/ast.dart
 lib/src/extensions.dart
-lib/src/rules/analyzer_use_new_elements.dart
 lib/src/rules/avoid_renaming_method_parameters.dart
 lib/src/rules/avoid_setters_without_getters.dart
-lib/src/rules/avoid_types_as_parameter_names.dart
 lib/src/rules/avoid_void_async.dart
 lib/src/rules/deprecated_member_use_from_same_package.dart
 lib/src/rules/invalid_runtime_check_with_js_interop_types.dart
@@ -12,7 +10,6 @@ lib/src/rules/prefer_final_fields.dart
 lib/src/rules/prefer_initializing_formals.dart
 lib/src/rules/public_member_api_docs.dart
 lib/src/rules/unnecessary_overrides.dart
-lib/src/rules/unnecessary_this.dart
 lib/src/rules/use_build_context_synchronously.dart
 lib/src/rules/use_key_in_widget_constructors.dart
 lib/src/rules/use_late_for_private_fields_and_variables.dart

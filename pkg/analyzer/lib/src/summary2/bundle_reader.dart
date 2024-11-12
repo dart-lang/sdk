@@ -147,7 +147,6 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
       augmented.fields = reader.readElementList();
       augmented.constructors = reader.readElementList();
       augmented.accessors = reader.readElementList();
-      augmented.methods = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();
@@ -372,7 +371,6 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
       augmented.fields = reader.readElementList();
       augmented.constructors = reader.readElementList();
       augmented.accessors = reader.readElementList();
-      augmented.methods = reader.readElementList();
     }
     applyConstantOffsets?.perform();
   }
@@ -405,7 +403,6 @@ class ExtensionElementLinkedData
       var augmented = element.augmentedInternal;
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
-      augmented.methods = reader.readElementList();
       augmented.extendedType = extendedType;
     }
 
@@ -442,7 +439,6 @@ class ExtensionTypeElementLinkedData
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
       augmented.constructors = reader.readElementList();
-      augmented.methods = reader.readElementList();
       augmented
         ..primaryConstructor = element.constructors.first
         ..representation = element.fields.first
@@ -1946,7 +1942,6 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
       augmented.interfaces = reader._readInterfaceTypeList();
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
-      augmented.methods = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();
