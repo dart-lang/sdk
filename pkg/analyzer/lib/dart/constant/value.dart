@@ -121,6 +121,14 @@ abstract class DartObject {
   /// * the value of the object being represented is `null`.
   Map<DartObject?, DartObject?>? toMapValue();
 
+  /// If this [DartObject] represents a record, returns the positional and named
+  /// fields of that record.
+  ///
+  /// If the object being represented is not a [Record] `null` is returned
+  /// instead.
+  ({List<DartObject> positional, Map<String, DartObject> named})?
+      toRecordValue();
+
   /// Return a set corresponding to the value of the object being represented,
   /// or `null` if
   /// * this object is not of type 'Set', or

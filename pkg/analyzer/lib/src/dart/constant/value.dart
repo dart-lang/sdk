@@ -925,6 +925,16 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   @override
+  ({List<DartObject> positional, Map<String, DartObject> named})?
+      toRecordValue() {
+    if (state case RecordState(:var positionalFields, :var namedFields)) {
+      return (positional: positionalFields, named: namedFields);
+    } else {
+      return null;
+    }
+  }
+
+  @override
   Set<DartObjectImpl>? toSetValue() {
     var state = this.state;
     if (state is SetState) {
