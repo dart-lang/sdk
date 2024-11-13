@@ -613,6 +613,80 @@ class MicroAssembler : public AssemblerBase {
   // rd := rs2 != 0 ? 0 : rs1
   void czeronez(Register rd, Register rs1, Register rs2);
 
+  // ==== Zabha: Byte and halfword AMOs ====
+  void amoswapb(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amoaddb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoxorb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoandb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoorb(Register rd,
+              Register rs2,
+              Address addr,
+              std::memory_order order = std::memory_order_relaxed);
+  void amominb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amomaxb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amominub(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amomaxub(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amoswaph(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amoaddh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoxorh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoandh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoorh(Register rd,
+              Register rs2,
+              Address addr,
+              std::memory_order order = std::memory_order_relaxed);
+  void amominh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amomaxh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amominuh(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amomaxuh(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+
   // ==== Zalasr: Load-acquire, store-release ====
   void lb(Register rd, Address addr, std::memory_order order);
   void lh(Register rd, Address addr, std::memory_order order);

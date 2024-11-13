@@ -7261,6 +7261,334 @@ ASSEMBLER_TEST_RUN(CompressedMultiply, test) {
   EXPECT_EQ(68, Call(test->entry(), -17, -4));
 }
 
+ASSEMBLER_TEST_GENERATE(AmoSwapByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoswapb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoSwapByte, test) {
+  EXPECT_DISASSEMBLY(
+      "08b5052f amoswap.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1010, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoAddByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoaddb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoAddByte, test) {
+  EXPECT_DISASSEMBLY(
+      "00b5052f amoadd.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 42;
+
+  EXPECT_EQ(42, Call(test->entry(), reinterpret_cast<intx_t>(&value), 10));
+  EXPECT_EQ(52, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoXorByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoxorb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoXorByte, test) {
+  EXPECT_DISASSEMBLY(
+      "20b5052f amoxor.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b0110, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoAndByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoandb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoAndByte, test) {
+  EXPECT_DISASSEMBLY(
+      "60b5052f amoand.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1000, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoOrByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoorb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoOrByte, test) {
+  EXPECT_DISASSEMBLY(
+      "40b5052f amoor.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1110, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMinByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amominb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMinByte, test) {
+  EXPECT_DISASSEMBLY(
+      "80b5052f amomin.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-11, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMaxByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amomaxb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMaxByte, test) {
+  EXPECT_DISASSEMBLY(
+      "a0b5052f amomax.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-4, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMinUnsignedByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amominub(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMinUnsignedByte, test) {
+  EXPECT_DISASSEMBLY(
+      "c0b5052f amominu.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-11, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMaxUnsignedByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amomaxub(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMaxUnsignedByte, test) {
+  EXPECT_DISASSEMBLY(
+      "e0b5052f amomaxu.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-4, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoSwapHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoswaph(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoSwapHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "08b5152f amoswap.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1010, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoAddHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoaddh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoAddHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "00b5152f amoadd.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 42;
+
+  EXPECT_EQ(42, Call(test->entry(), reinterpret_cast<intx_t>(&value), 10));
+  EXPECT_EQ(52, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoXorHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoxorh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoXorHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "20b5152f amoxor.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b0110, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoAndHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoandh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoAndHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "60b5152f amoand.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1000, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoOrHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoorh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoOrHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "40b5152f amoor.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1110, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMinHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amominh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMinHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "80b5152f amomin.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-11, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMaxHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amomaxh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMaxHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "a0b5152f amomax.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-4, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMinUnsignedHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amominuh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMinUnsignedHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "c0b5152f amominu.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-11, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMaxUnsignedHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amomaxuh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMaxUnsignedHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "e0b5152f amomaxu.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-4, value);
+}
+
 ASSEMBLER_TEST_GENERATE(LoadByteAcquire, assembler) {
   __ SetExtensions(RV_GC | RV_Zalasr);
   __ lb(A0, Address(A1), std::memory_order_acquire);

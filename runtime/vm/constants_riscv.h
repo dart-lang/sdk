@@ -689,11 +689,23 @@ inline int32_t SignExtend(int N, int32_t value) {
          (32 - N);
 }
 
+inline intx_t sign_extend(int8_t x) {
+  return static_cast<intx_t>(x);
+}
+inline intx_t sign_extend(int16_t x) {
+  return static_cast<intx_t>(x);
+}
 inline intx_t sign_extend(int32_t x) {
   return static_cast<intx_t>(x);
 }
 inline intx_t sign_extend(int64_t x) {
   return static_cast<intx_t>(x);
+}
+inline intx_t sign_extend(uint8_t x) {
+  return static_cast<intx_t>(static_cast<int8_t>(x));
+}
+inline intx_t sign_extend(uint16_t x) {
+  return static_cast<intx_t>(static_cast<int16_t>(x));
 }
 inline intx_t sign_extend(uint32_t x) {
   return static_cast<intx_t>(static_cast<int32_t>(x));
@@ -1676,7 +1688,8 @@ static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbs;
 static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
 static constexpr Extension RV_Zicond(10);  // Integer conditional operations
 static constexpr Extension RV_Zcb(11);     // More compressed instructions
-static constexpr Extension RV_Zalasr(12);  // Load-acquire, store-release
+static constexpr Extension RV_Zabha(12);   // Byte and halfword AMOs
+static constexpr Extension RV_Zalasr(13);  // Load-acquire, store-release
 
 #if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
 static constexpr ExtensionSet RV_baseline = RV_GCB;

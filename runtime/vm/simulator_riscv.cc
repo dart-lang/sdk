@@ -2346,6 +2346,33 @@ void Simulator::InterpretSTOREORDERED(Instr instr) {
 
 void Simulator::InterpretAMO8(Instr instr) {
   switch (instr.funct5()) {
+    case AMOSWAP:
+      InterpretAMOSWAP<int8_t>(instr);
+      break;
+    case AMOADD:
+      InterpretAMOADD<int8_t>(instr);
+      break;
+    case AMOXOR:
+      InterpretAMOXOR<int8_t>(instr);
+      break;
+    case AMOAND:
+      InterpretAMOAND<int8_t>(instr);
+      break;
+    case AMOOR:
+      InterpretAMOOR<int8_t>(instr);
+      break;
+    case AMOMIN:
+      InterpretAMOMIN<int8_t>(instr);
+      break;
+    case AMOMAX:
+      InterpretAMOMAX<int8_t>(instr);
+      break;
+    case AMOMINU:
+      InterpretAMOMIN<uint8_t>(instr);
+      break;
+    case AMOMAXU:
+      InterpretAMOMAX<uint8_t>(instr);
+      break;
     case LOADORDERED:
       InterpretLOADORDERED<int8_t>(instr);
       break;
@@ -2360,6 +2387,33 @@ void Simulator::InterpretAMO8(Instr instr) {
 
 void Simulator::InterpretAMO16(Instr instr) {
   switch (instr.funct5()) {
+    case AMOSWAP:
+      InterpretAMOSWAP<int16_t>(instr);
+      break;
+    case AMOADD:
+      InterpretAMOADD<int16_t>(instr);
+      break;
+    case AMOXOR:
+      InterpretAMOXOR<int16_t>(instr);
+      break;
+    case AMOAND:
+      InterpretAMOAND<int16_t>(instr);
+      break;
+    case AMOOR:
+      InterpretAMOOR<int16_t>(instr);
+      break;
+    case AMOMIN:
+      InterpretAMOMIN<int16_t>(instr);
+      break;
+    case AMOMAX:
+      InterpretAMOMAX<int16_t>(instr);
+      break;
+    case AMOMINU:
+      InterpretAMOMIN<uint16_t>(instr);
+      break;
+    case AMOMAXU:
+      InterpretAMOMAX<uint16_t>(instr);
+      break;
     case LOADORDERED:
       InterpretLOADORDERED<int16_t>(instr);
       break;

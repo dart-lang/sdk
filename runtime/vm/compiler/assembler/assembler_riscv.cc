@@ -1711,6 +1711,168 @@ void MicroAssembler::czeronez(Register rd, Register rs1, Register rs2) {
   EmitRType(CZERO, rs2, rs1, CZERONEZ, rd, OP);
 }
 
+void MicroAssembler::amoswapb(Register rd,
+                              Register rs2,
+                              Address addr,
+                              std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOSWAP, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amoaddb(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOADD, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amoxorb(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOXOR, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amoandb(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOAND, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amoorb(Register rd,
+                            Register rs2,
+                            Address addr,
+                            std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOOR, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amominb(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOMIN, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amomaxb(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOMAX, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amominub(Register rd,
+                              Register rs2,
+                              Address addr,
+                              std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOMINU, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amomaxub(Register rd,
+                              Register rs2,
+                              Address addr,
+                              std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOMAXU, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amoswaph(Register rd,
+                              Register rs2,
+                              Address addr,
+                              std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOSWAP, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amoaddh(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOADD, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amoxorh(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOXOR, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amoandh(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOAND, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amoorh(Register rd,
+                            Register rs2,
+                            Address addr,
+                            std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOOR, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amominh(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOMIN, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amomaxh(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOMAX, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amominuh(Register rd,
+                              Register rs2,
+                              Address addr,
+                              std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOMINU, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amomaxuh(Register rd,
+                              Register rs2,
+                              Address addr,
+                              std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zabha));
+  EmitRType(AMOMAXU, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
 void MicroAssembler::lb(Register rd, Address addr, std::memory_order order) {
   ASSERT(addr.offset() == 0);
   ASSERT((order == std::memory_order_acquire) ||
