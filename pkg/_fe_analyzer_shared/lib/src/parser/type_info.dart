@@ -127,8 +127,7 @@ const TypeInfo voidType = const VoidType();
 
 bool isGeneralizedFunctionType(Token token) {
   return token.isA(Keyword.FUNCTION) &&
-      (token.next!.isA2(TokenType.LT) ||
-          token.next!.isA2(TokenType.OPEN_PAREN));
+      (token.next!.isA(TokenType.LT) || token.next!.isA(TokenType.OPEN_PAREN));
 }
 
 bool isPossibleRecordType(Token token) {

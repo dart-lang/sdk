@@ -33,9 +33,9 @@ class CatchParameterIdentifierContext extends IdentifierContext {
     // Recovery
     parser.reportRecoverableError(identifier, codes.messageCatchSyntax);
     if (looksLikeStatementStart(identifier) ||
-        identifier.isA2(TokenType.COMMA) ||
-        identifier.isA2(TokenType.CLOSE_PAREN) ||
-        identifier.isA2(TokenType.EOF)) {
+        identifier.isA(TokenType.COMMA) ||
+        identifier.isA(TokenType.CLOSE_PAREN) ||
+        identifier.isA(TokenType.EOF)) {
       return parser.rewriter.insertSyntheticIdentifier(token);
     } else if (!identifier.isKeywordOrIdentifier) {
       // When in doubt, consume the token to ensure we make progress
@@ -53,16 +53,16 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
             inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   bool _isOneOfFollowingValues(Token token) {
-    return token.isA2(TokenType.LT) ||
-        token.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        token.isA2(Keyword.EXTENDS) ||
-        token.isA2(Keyword.WITH) ||
-        token.isA2(Keyword.IMPLEMENTS) ||
-        token.isA2(Keyword.ON) ||
-        token.isA2(TokenType.EQ) ||
-        token.isA2(TokenType.OPEN_PAREN) ||
-        token.isA2(TokenType.PERIOD) ||
-        token.isA2(TokenType.EOF);
+    return token.isA(TokenType.LT) ||
+        token.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        token.isA(Keyword.EXTENDS) ||
+        token.isA(Keyword.WITH) ||
+        token.isA(Keyword.IMPLEMENTS) ||
+        token.isA(Keyword.ON) ||
+        token.isA(TokenType.EQ) ||
+        token.isA(TokenType.OPEN_PAREN) ||
+        token.isA(TokenType.PERIOD) ||
+        token.isA(TokenType.EOF);
   }
 
   @override
@@ -108,13 +108,13 @@ class CombinatorIdentifierContext extends IdentifierContext {
   const CombinatorIdentifierContext() : super('combinator');
 
   bool _isOneOfFollowingValues(Token token) {
-    return token.isA2(TokenType.SEMICOLON) ||
-        token.isA2(TokenType.COMMA) ||
-        token.isA2(Keyword.IF) ||
-        token.isA2(Keyword.AS) ||
-        token.isA2(Keyword.SHOW) ||
-        token.isA2(Keyword.HIDE) ||
-        token.isA2(TokenType.EOF);
+    return token.isA(TokenType.SEMICOLON) ||
+        token.isA(TokenType.COMMA) ||
+        token.isA(Keyword.IF) ||
+        token.isA(Keyword.AS) ||
+        token.isA(Keyword.SHOW) ||
+        token.isA(Keyword.HIDE) ||
+        token.isA(TokenType.EOF);
   }
 
   @override
@@ -205,10 +205,10 @@ class DottedNameIdentifierContext extends IdentifierContext {
       : super('dottedNameContinuation', isContinuation: true);
 
   bool _isOneOfFollowingValues(Token token) {
-    return token.isA2(TokenType.PERIOD) ||
-        token.isA2(TokenType.EQ_EQ) ||
-        token.isA2(TokenType.CLOSE_PAREN) ||
-        token.isA2(TokenType.EOF);
+    return token.isA(TokenType.PERIOD) ||
+        token.isA(TokenType.EQ_EQ) ||
+        token.isA(TokenType.CLOSE_PAREN) ||
+        token.isA(TokenType.EOF);
   }
 
   @override
@@ -265,8 +265,8 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
 
     // Recovery
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
-        identifier.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.EOF)) {
+        identifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        identifier.isA(TokenType.EOF)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else if (identifier.type.isBuiltIn) {
@@ -304,9 +304,9 @@ class EnumValueDeclarationIdentifierContext extends IdentifierContext {
 
     // Recovery
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
-        identifier.isA2(TokenType.COMMA) ||
-        identifier.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.EOF)) {
+        identifier.isA(TokenType.COMMA) ||
+        identifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        identifier.isA(TokenType.EOF)) {
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateExpectedIdentifier);
       return parser.rewriter.insertSyntheticIdentifier(token);
@@ -371,27 +371,27 @@ class ExpressionIdentifierContext extends IdentifierContext {
     } else if (!looksLikeStatementStart(identifier)) {
       if (identifier.isKeywordOrIdentifier) {
         if (isContinuation ||
-            !(identifier.isA2(Keyword.AS) ||
-                identifier.isA2(Keyword.IS) ||
-                identifier.isA2(TokenType.EOF))) {
+            !(identifier.isA(Keyword.AS) ||
+                identifier.isA(Keyword.IS) ||
+                identifier.isA(TokenType.EOF))) {
           // Use the keyword as the identifier.
           parser.reportRecoverableErrorWithToken(
               identifier, codes.templateExpectedIdentifierButGotKeyword);
           return identifier;
         }
       } else if (!identifier.isOperator &&
-          !(identifier.isA2(TokenType.PERIOD) ||
-              identifier.isA2(TokenType.COMMA) ||
-              identifier.isA2(TokenType.OPEN_PAREN) ||
-              identifier.isA2(TokenType.CLOSE_PAREN) ||
-              identifier.isA2(TokenType.OPEN_SQUARE_BRACKET) ||
-              identifier.isA2(TokenType.CLOSE_SQUARE_BRACKET) ||
-              identifier.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-              identifier.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-              identifier.isA2(TokenType.QUESTION) ||
-              identifier.isA2(TokenType.COLON) ||
-              identifier.isA2(TokenType.SEMICOLON) ||
-              identifier.isA2(TokenType.EOF))) {
+          !(identifier.isA(TokenType.PERIOD) ||
+              identifier.isA(TokenType.COMMA) ||
+              identifier.isA(TokenType.OPEN_PAREN) ||
+              identifier.isA(TokenType.CLOSE_PAREN) ||
+              identifier.isA(TokenType.OPEN_SQUARE_BRACKET) ||
+              identifier.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
+              identifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
+              identifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+              identifier.isA(TokenType.QUESTION) ||
+              identifier.isA(TokenType.COLON) ||
+              identifier.isA(TokenType.SEMICOLON) ||
+              identifier.isA(TokenType.EOF))) {
         // When in doubt, consume the token to ensure we make progress
         token = identifier;
         identifier = token.next!;
@@ -420,11 +420,11 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (identifier.isA2(TokenType.SEMICOLON) ||
-        identifier.isA2(TokenType.EQ) ||
-        identifier.isA2(TokenType.COMMA) ||
-        identifier.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.EOF) ||
+    if (identifier.isA(TokenType.SEMICOLON) ||
+        identifier.isA(TokenType.EQ) ||
+        identifier.isA(TokenType.COMMA) ||
+        identifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        identifier.isA(TokenType.EOF) ||
         looksLikeStartOfNextClassMember(identifier)) {
       // TODO(jensj): Why aren't an error reported here?
       return parser.insertSyntheticIdentifier(token, this);
@@ -494,16 +494,16 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
       : super('formalParameterDeclaration', inDeclaration: true);
 
   bool _isOneOfFollowingValues(Token token) {
-    return token.isA2(TokenType.COLON) ||
-        token.isA2(TokenType.EQ) ||
-        token.isA2(TokenType.COMMA) ||
-        token.isA2(TokenType.OPEN_PAREN) ||
-        token.isA2(TokenType.CLOSE_PAREN) ||
-        token.isA2(TokenType.OPEN_SQUARE_BRACKET) ||
-        token.isA2(TokenType.CLOSE_SQUARE_BRACKET) ||
-        token.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        token.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        token.isA2(TokenType.EOF);
+    return token.isA(TokenType.COLON) ||
+        token.isA(TokenType.EQ) ||
+        token.isA(TokenType.COMMA) ||
+        token.isA(TokenType.OPEN_PAREN) ||
+        token.isA(TokenType.CLOSE_PAREN) ||
+        token.isA(TokenType.OPEN_SQUARE_BRACKET) ||
+        token.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
+        token.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        token.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        token.isA(TokenType.EOF);
   }
 
   @override
@@ -562,16 +562,16 @@ class RecordFieldDeclarationIdentifierContext extends IdentifierContext {
                 looksLikeStartOfNextClassMember(identifier) ||
                 looksLikeStatementStart(identifier)) &&
             !isOkNextValueInFormalParameter(identifier.next!)) ||
-        identifier.isA2(TokenType.COLON) ||
-        identifier.isA2(TokenType.EQ) ||
-        identifier.isA2(TokenType.COMMA) ||
-        identifier.isA2(TokenType.OPEN_PAREN) ||
-        identifier.isA2(TokenType.CLOSE_PAREN) ||
-        identifier.isA2(TokenType.OPEN_SQUARE_BRACKET) ||
-        identifier.isA2(TokenType.CLOSE_SQUARE_BRACKET) ||
-        identifier.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.EOF)) {
+        identifier.isA(TokenType.COLON) ||
+        identifier.isA(TokenType.EQ) ||
+        identifier.isA(TokenType.COMMA) ||
+        identifier.isA(TokenType.OPEN_PAREN) ||
+        identifier.isA(TokenType.CLOSE_PAREN) ||
+        identifier.isA(TokenType.OPEN_SQUARE_BRACKET) ||
+        identifier.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
+        identifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        identifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        identifier.isA(TokenType.EOF)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
@@ -598,13 +598,13 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
             inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   bool _isOneOfFollowingValues(Token token) {
-    return token.isA2(TokenType.SEMICOLON) ||
-        token.isA2(Keyword.IF) ||
-        token.isA2(Keyword.SHOW) ||
-        token.isA2(Keyword.HIDE) ||
-        token.isA2(Keyword.DEFERRED) ||
-        token.isA2(Keyword.AS) ||
-        token.isA2(TokenType.EOF);
+    return token.isA(TokenType.SEMICOLON) ||
+        token.isA(Keyword.IF) ||
+        token.isA(Keyword.SHOW) ||
+        token.isA(Keyword.HIDE) ||
+        token.isA(Keyword.DEFERRED) ||
+        token.isA(Keyword.AS) ||
+        token.isA(TokenType.EOF);
   }
 
   @override
@@ -695,11 +695,11 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (identifier.isA2(TokenType.PERIOD) ||
-        identifier.isA2(TokenType.OPEN_PAREN) ||
-        identifier.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.FUNCTION) ||
-        identifier.isA2(TokenType.EOF) ||
+    if (identifier.isA(TokenType.PERIOD) ||
+        identifier.isA(TokenType.OPEN_PAREN) ||
+        identifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        identifier.isA(TokenType.FUNCTION) ||
+        identifier.isA(TokenType.EOF) ||
         looksLikeStatementStart(identifier)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
@@ -735,8 +735,8 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (identifier.isA2(TokenType.COLON) ||
-        identifier.isA2(TokenType.EOF) ||
+    if (identifier.isA(TokenType.COLON) ||
+        identifier.isA(TokenType.EOF) ||
         looksLikeStatementStart(identifier)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
@@ -771,8 +771,7 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (identifier.isA2(TokenType.SEMICOLON) ||
-        identifier.isA2(TokenType.EOF)) {
+    if (identifier.isA(TokenType.SEMICOLON) || identifier.isA(TokenType.EOF)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
@@ -812,9 +811,9 @@ class LibraryIdentifierContext extends IdentifierContext {
             inLibraryOrPartOfDeclaration: true, isContinuation: true);
 
   bool _isOneOfFollowingValues(Token token) {
-    return token.isA2(TokenType.PERIOD) ||
-        token.isA2(TokenType.SEMICOLON) ||
-        token.isA2(TokenType.EOF);
+    return token.isA(TokenType.PERIOD) ||
+        token.isA(TokenType.SEMICOLON) ||
+        token.isA(TokenType.EOF);
   }
 
   @override
@@ -874,12 +873,12 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (identifier.isA2(TokenType.SEMICOLON) ||
-        identifier.isA2(TokenType.EQ) ||
-        identifier.isA2(TokenType.COMMA) ||
-        identifier.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.EOF) ||
+    if (identifier.isA(TokenType.SEMICOLON) ||
+        identifier.isA(TokenType.EQ) ||
+        identifier.isA(TokenType.COMMA) ||
+        identifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        identifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        identifier.isA(TokenType.EOF) ||
         looksLikeStatementStart(identifier) ||
         identifier.kind == STRING_TOKEN) {
       identifier = parser.insertSyntheticIdentifier(token, this,
@@ -924,12 +923,12 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (identifier.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.OPEN_PAREN) ||
-        identifier.isA2(TokenType.CLOSE_PAREN) ||
-        identifier.isA2(TokenType.CLOSE_SQUARE_BRACKET) ||
-        identifier.isA2(TokenType.EOF) ||
+    if (identifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        identifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        identifier.isA(TokenType.OPEN_PAREN) ||
+        identifier.isA(TokenType.CLOSE_PAREN) ||
+        identifier.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
+        identifier.isA(TokenType.EOF) ||
         looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         looksLikeStartOfNextClassMember(identifier) ||
         looksLikeStatementStart(identifier)) {
@@ -990,12 +989,12 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(identifier, this,
           message: codes.messageMissingOperatorKeyword,
           messageOnToken: identifier);
-    } else if (identifier.isA2(TokenType.PERIOD) ||
-        identifier.isA2(TokenType.OPEN_PAREN) ||
-        identifier.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.FUNCTION) ||
-        identifier.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        identifier.isA2(TokenType.EOF) ||
+    } else if (identifier.isA(TokenType.PERIOD) ||
+        identifier.isA(TokenType.OPEN_PAREN) ||
+        identifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        identifier.isA(TokenType.FUNCTION) ||
+        identifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        identifier.isA(TokenType.EOF) ||
         looksLikeStartOfNextClassMember(identifier)) {
       return parser.insertSyntheticIdentifier(token, this);
     } else if (!identifier.isKeywordOrIdentifier) {
@@ -1048,7 +1047,7 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (identifier.isA2(TokenType.COLON) || identifier.isA2(TokenType.EOF)) {
+    if (identifier.isA(TokenType.COLON) || identifier.isA(TokenType.EOF)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
@@ -1086,7 +1085,7 @@ class NamedRecordFieldReferenceIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    if (identifier.isA2(TokenType.COLON) || identifier.isA2(TokenType.EOF)) {
+    if (identifier.isA(TokenType.COLON) || identifier.isA(TokenType.EOF)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
@@ -1187,11 +1186,11 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
             inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   bool _isOneOfFollowingValues(Token token) {
-    return token.isA2(TokenType.OPEN_PAREN) ||
-        token.isA2(TokenType.LT) ||
-        token.isA2(TokenType.EQ) ||
-        token.isA2(TokenType.SEMICOLON) ||
-        token.isA2(TokenType.EOF);
+    return token.isA(TokenType.OPEN_PAREN) ||
+        token.isA(TokenType.LT) ||
+        token.isA(TokenType.EQ) ||
+        token.isA(TokenType.SEMICOLON) ||
+        token.isA(TokenType.EOF);
   }
 
   @override
@@ -1298,19 +1297,19 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       return next;
     }
     parser.reportRecoverableErrorWithToken(next, codes.templateExpectedType);
-    if (!(next.isA2(TokenType.LT) ||
-        next.isA2(TokenType.GT) ||
-        next.isA2(TokenType.GT_GT) ||
-        next.isA2(TokenType.GT_GT_GT) ||
-        next.isA2(TokenType.CLOSE_PAREN) ||
-        next.isA2(TokenType.OPEN_SQUARE_BRACKET) ||
-        next.isA2(TokenType.CLOSE_SQUARE_BRACKET) ||
-        next.isA2(TokenType.INDEX) ||
-        next.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-        next.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        next.isA2(TokenType.COMMA) ||
-        next.isA2(TokenType.SEMICOLON) ||
-        next.isA2(TokenType.EOF))) {
+    if (!(next.isA(TokenType.LT) ||
+        next.isA(TokenType.GT) ||
+        next.isA(TokenType.GT_GT) ||
+        next.isA(TokenType.GT_GT_GT) ||
+        next.isA(TokenType.CLOSE_PAREN) ||
+        next.isA(TokenType.OPEN_SQUARE_BRACKET) ||
+        next.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
+        next.isA(TokenType.INDEX) ||
+        next.isA(TokenType.OPEN_CURLY_BRACKET) ||
+        next.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        next.isA(TokenType.COMMA) ||
+        next.isA(TokenType.SEMICOLON) ||
+        next.isA(TokenType.EOF))) {
       // When in doubt, consume the token to ensure we make progress
       token = next;
       next = token.next!;
@@ -1327,20 +1326,20 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
             inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   bool _isOneOfFollowingValues(Token token) {
-    return token.isA2(TokenType.LT) ||
-        token.isA2(TokenType.GT) ||
-        token.isA2(TokenType.GT_GT) ||
-        token.isA2(TokenType.GT_GT_GT) ||
-        token.isA2(TokenType.SEMICOLON) ||
-        token.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-        token.isA2(Keyword.EXTENDS) ||
-        token.isA2(Keyword.SUPER) ||
+    return token.isA(TokenType.LT) ||
+        token.isA(TokenType.GT) ||
+        token.isA(TokenType.GT_GT) ||
+        token.isA(TokenType.GT_GT_GT) ||
+        token.isA(TokenType.SEMICOLON) ||
+        token.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        token.isA(Keyword.EXTENDS) ||
+        token.isA(Keyword.SUPER) ||
         // If currently adding type variables to a typedef this could easily
         // occur and we don't want to 'eat' the equal sign.
-        token.isA2(TokenType.EQ) ||
-        token.isA2(TokenType.GT_EQ) ||
+        token.isA(TokenType.EQ) ||
+        token.isA(TokenType.GT_EQ) ||
         // Also EOF.
-        token.isA2(TokenType.EOF);
+        token.isA(TokenType.EOF);
   }
 
   @override
@@ -1396,18 +1395,18 @@ void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
 
 bool looksLikeStartOfNextClassMember(Token token) =>
     token.isModifier ||
-    token.isA2(TokenType.AT) ||
-    token.isA2(Keyword.GET) ||
-    token.isA2(Keyword.SET) ||
-    token.isA2(Keyword.VOID) ||
-    token.isA2(TokenType.EOF);
+    token.isA(TokenType.AT) ||
+    token.isA(Keyword.GET) ||
+    token.isA(Keyword.SET) ||
+    token.isA(Keyword.VOID) ||
+    token.isA(TokenType.EOF);
 
 bool looksLikeStartOfNextTopLevelDeclaration(Token token) =>
     token.isTopLevelKeyword ||
-    token.isA2(Keyword.CONST) ||
-    token.isA2(Keyword.GET) ||
-    token.isA2(Keyword.FINAL) ||
-    token.isA2(Keyword.SET) ||
-    token.isA2(Keyword.VAR) ||
-    token.isA2(Keyword.VOID) ||
-    token.isA2(TokenType.EOF);
+    token.isA(Keyword.CONST) ||
+    token.isA(Keyword.GET) ||
+    token.isA(Keyword.FINAL) ||
+    token.isA(Keyword.SET) ||
+    token.isA(Keyword.VAR) ||
+    token.isA(Keyword.VOID) ||
+    token.isA(TokenType.EOF);

@@ -90,8 +90,8 @@ int offsetForToken(Token? token) {
 
 ProcedureKind computeProcedureKind(Token? token) {
   if (token == null) return ProcedureKind.Method;
-  if (token.isA2(Keyword.GET)) return ProcedureKind.Getter;
-  if (token.isA2(Keyword.SET)) return ProcedureKind.Setter;
+  if (token.isA(Keyword.GET)) return ProcedureKind.Getter;
+  if (token.isA(Keyword.SET)) return ProcedureKind.Setter;
   // Coverage-ignore-block(suite): Not run.
   throw new UnsupportedError("Unexpected get/set token $token.");
 }

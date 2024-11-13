@@ -483,13 +483,13 @@ class VoidType implements TypeInfo {
 
 bool looksLikeName(Token token) {
   return token.kind == IDENTIFIER_TOKEN ||
-      token.isA2(Keyword.THIS) ||
-      token.isA2(Keyword.SUPER) ||
+      token.isA(Keyword.THIS) ||
+      token.isA(Keyword.SUPER) ||
       (token.isIdentifier &&
           // Although `typedef` is a legal identifier,
           // type `typedef` identifier is not legal and in this situation
           // `typedef` is probably a separate declaration.
-          (!token.isA2(Keyword.TYPEDEF) || !token.next!.isIdentifier));
+          (!token.isA(Keyword.TYPEDEF) || !token.next!.isIdentifier));
 }
 
 bool looksLikeNameOrEndOfBlock(Token token) {
@@ -751,7 +751,7 @@ class ComplexTypeInfo implements TypeInfo {
       }
       bool getOrSet = false;
       if (next.isKeyword &&
-          (next.isA2(Keyword.GET) || next.isA2(Keyword.SET)) &&
+          (next.isA(Keyword.GET) || next.isA(Keyword.SET)) &&
           next.next!.isIdentifier) {
         getOrSet = true;
         next = next.next!;
@@ -770,23 +770,23 @@ class ComplexTypeInfo implements TypeInfo {
         // * `}` e.g. `x({(int, int) x}) {}`.
         // * `:` e.g. `x({(int, int) x: (42, 42)}) {}`.
         // * `]` e.g. `x([(int, int) x = (42, 42)]) {}`.
-        if (!(afterIdentifier.isA2(TokenType.SEMICOLON) ||
-            afterIdentifier.isA2(TokenType.EQ) ||
-            afterIdentifier.isA2(TokenType.LT) ||
-            afterIdentifier.isA2(TokenType.OPEN_PAREN) ||
-            afterIdentifier.isA2(TokenType.COMMA) ||
-            afterIdentifier.isA2(TokenType.CLOSE_PAREN) ||
-            afterIdentifier.isA2(Keyword.IN) ||
-            afterIdentifier.isA2(TokenType.CLOSE_CURLY_BRACKET) ||
-            afterIdentifier.isA2(TokenType.COLON) ||
-            afterIdentifier.isA2(TokenType.CLOSE_SQUARE_BRACKET) ||
-            afterIdentifier.isA2(TokenType.EOF))) {
+        if (!(afterIdentifier.isA(TokenType.SEMICOLON) ||
+            afterIdentifier.isA(TokenType.EQ) ||
+            afterIdentifier.isA(TokenType.LT) ||
+            afterIdentifier.isA(TokenType.OPEN_PAREN) ||
+            afterIdentifier.isA(TokenType.COMMA) ||
+            afterIdentifier.isA(TokenType.CLOSE_PAREN) ||
+            afterIdentifier.isA(Keyword.IN) ||
+            afterIdentifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+            afterIdentifier.isA(TokenType.COLON) ||
+            afterIdentifier.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
+            afterIdentifier.isA(TokenType.EOF))) {
           if (getOrSet &&
-              (afterIdentifier.isA2(TokenType.FUNCTION) ||
-                  afterIdentifier.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-                  afterIdentifier.isA2(Keyword.ASYNC) ||
-                  afterIdentifier.isA2(Keyword.SYNC) ||
-                  afterIdentifier.isA2(TokenType.EOF))) {
+              (afterIdentifier.isA(TokenType.FUNCTION) ||
+                  afterIdentifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
+                  afterIdentifier.isA(Keyword.ASYNC) ||
+                  afterIdentifier.isA(Keyword.SYNC) ||
+                  afterIdentifier.isA(TokenType.EOF))) {
             // With a getter/setter in the mix we can accept more stuff, e.g.
             // these would be "fine":
             // * `=>`: e.g. `(int, int) get x => (42, 42);`.
@@ -807,7 +807,7 @@ class ComplexTypeInfo implements TypeInfo {
             return noType;
           }
         }
-      } else if ((next.isA2(Keyword.THIS) || next.isA2(Keyword.SUPER)) &&
+      } else if ((next.isA(Keyword.THIS) || next.isA(Keyword.SUPER)) &&
           next.next!.isA(TokenType.PERIOD)) {
         // E.g.
         // * C(({int n, String s}) this.x);
@@ -823,13 +823,13 @@ class ComplexTypeInfo implements TypeInfo {
         //
         // But don't confuse e.g. `(() => print("hello")) >> 42;` for that.
         if (recovered ||
-            !(next.isA2(TokenType.COMMA) ||
-                next.isA2(TokenType.GT) ||
-                next.isA2(TokenType.GT_GT) ||
-                next.isA2(TokenType.GT_GT_EQ) ||
-                next.isA2(TokenType.GT_GT_GT) ||
-                next.isA2(TokenType.GT_GT_GT_EQ) ||
-                next.isA2(TokenType.EOF))) {
+            !(next.isA(TokenType.COMMA) ||
+                next.isA(TokenType.GT) ||
+                next.isA(TokenType.GT_GT) ||
+                next.isA(TokenType.GT_GT_EQ) ||
+                next.isA(TokenType.GT_GT_GT) ||
+                next.isA(TokenType.GT_GT_GT_EQ) ||
+                next.isA(TokenType.EOF))) {
           return noType;
         }
       }
@@ -1568,9 +1568,9 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     }
 
     if (typeFollowsExtends ||
-        next.isA2(Keyword.DYNAMIC) ||
-        next.isA2(Keyword.VOID) ||
-        next.isA2(Keyword.FUNCTION)) {
+        next.isA(Keyword.DYNAMIC) ||
+        next.isA(Keyword.VOID) ||
+        next.isA(Keyword.FUNCTION)) {
       TypeInfo invalidType = computeType(token, /* required = */ true);
       if (invalidType != noType) {
         if (!errorReported) {
@@ -1675,19 +1675,19 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
 // Return `true` if [token] is one of `in`, `inout`, or `out`
 bool isVariance(Token token) {
-  return token.isA2(Keyword.IN) ||
-      token.isA2(Keyword.INOUT) ||
-      token.isA2(Keyword.OUT);
+  return token.isA(Keyword.IN) ||
+      token.isA(Keyword.INOUT) ||
+      token.isA(Keyword.OUT);
 }
 
 /// Return `true` if [token] is one of `>`, `>>`, `>>>`, `>=`, `>>=`, or `>>>=`.
 bool isCloser(Token token) {
-  return token.isA2(TokenType.GT) ||
-      token.isA2(TokenType.GT_GT) ||
-      token.isA2(TokenType.GT_EQ) ||
-      token.isA2(TokenType.GT_GT_GT) ||
-      token.isA2(TokenType.GT_GT_EQ) ||
-      token.isA2(TokenType.GT_GT_GT_EQ);
+  return token.isA(TokenType.GT) ||
+      token.isA(TokenType.GT_GT) ||
+      token.isA(TokenType.GT_EQ) ||
+      token.isA(TokenType.GT_GT_GT) ||
+      token.isA(TokenType.GT_GT_EQ) ||
+      token.isA(TokenType.GT_GT_GT_EQ);
 }
 
 /// If [beforeCloser].next is one of `>`, `>>`, `>>>`, `>=`, `>>=`, or `>>>=`
@@ -1710,17 +1710,17 @@ bool parseCloser(Token beforeCloser) {
 /// the token and return the leading `>` without updating the token stream.
 /// If [closer] is none of the above, then return null;
 Token? splitCloser(Token closer) {
-  if (closer.isA2(TokenType.GT)) {
+  if (closer.isA(TokenType.GT)) {
     return closer;
-  } else if (closer.isA2(TokenType.GT_GT)) {
+  } else if (closer.isA(TokenType.GT_GT)) {
     return splitGtGt(closer);
-  } else if (closer.isA2(TokenType.GT_EQ)) {
+  } else if (closer.isA(TokenType.GT_EQ)) {
     return splitGtEq(closer);
-  } else if (closer.isA2(TokenType.GT_GT_GT)) {
+  } else if (closer.isA(TokenType.GT_GT_GT)) {
     return splitGtFromGtGtGt(closer);
-  } else if (closer.isA2(TokenType.GT_GT_EQ)) {
+  } else if (closer.isA(TokenType.GT_GT_EQ)) {
     return splitGtFromGtGtEq(closer);
-  } else if (closer.isA2(TokenType.GT_GT_GT_EQ)) {
+  } else if (closer.isA(TokenType.GT_GT_GT_EQ)) {
     return splitGtFromGtGtGtEq(closer);
   }
   return null;
