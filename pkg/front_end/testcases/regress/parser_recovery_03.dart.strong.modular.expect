@@ -7,17 +7,9 @@ library;
 //     final <int> f = [42];
 //           ^
 //
-// pkg/front_end/testcases/regress/parser_recovery_03.dart:8:11: Error: Expected ';' after this.
+// pkg/front_end/testcases/regress/parser_recovery_03.dart:8:11: Error: This couldn't be parsed.
 //     final <int> f = [42];
 //           ^
-//
-// pkg/front_end/testcases/regress/parser_recovery_03.dart:8:17: Error: Undefined name 'f'.
-//     final <int> f = [42];
-//                 ^
-//
-// pkg/front_end/testcases/regress/parser_recovery_03.dart:8:19: Error: Can't assign to this.
-//     final <int> f = [42];
-//                   ^
 //
 // pkg/front_end/testcases/regress/parser_recovery_03.dart:14:13: Error: Undefined name 'a'.
 //     var y = a<int, void>?.c = 42;
@@ -51,17 +43,13 @@ library;
 //                             ^
 //
 import self as self;
+import "dart:core" as core;
 
 static method foo() → dynamic {
   if(true) {
   }
   else {
-    invalid-expression "pkg/front_end/testcases/regress/parser_recovery_03.dart:7:3: Error: This couldn't be parsed.
-  else
-  ^";
+    final invalid-type f = <core::int>[42];
   }
-  invalid-expression "pkg/front_end/testcases/regress/parser_recovery_03.dart:8:19: Error: Can't assign to this.
-    final <int> f = [42];
-                  ^";
 }
 static method bar() → dynamic {}

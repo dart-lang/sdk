@@ -8355,6 +8355,16 @@ class Parser {
       listener.beginMetadataStar(start.next!);
       listener.endMetadataStar(/* count = */ 0);
     }
+    // Having settled on a variable declaration possibly do some error recovery.
+    if (beforeType.next!.isA(TokenType.LT)) {
+      // E.g. `final <int> foo = [42];` where we're missing `List` before
+      // `<int>`.
+      insertSyntheticIdentifier(
+          beforeType, IdentifierContext.localVariableDeclaration,
+          message:
+              codes.templateExpectedIdentifier.withArguments(beforeType.next!));
+      typeInfo = computeType(beforeType, /* required = */ true);
+    }
     token = typeInfo.parseType(beforeType, this);
     next = token.next!;
     listener.beginVariablesDeclaration(next, lateToken, varFinalOrConst);
