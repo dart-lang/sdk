@@ -517,6 +517,74 @@ main() {
     });
   });
 
+  group('performSubtypeConstraintGenerationForLeftNullableType:', () {
+    test('Nullable matches nullable with constraints based on base types', () {
+      // `T? <# int?` reduces to `T <# int?`
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftNullableType(
+              Type('T?'), Type('Null'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: Null']);
+    });
+
+    test('Nullable does not match Nullable because base types fail to match',
+        () {
+      // `int? <# String?` reduces to `int <# String`
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForLeftNullableType(
+              Type('int?'), Type('String?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isFalse();
+      check(tcg._constraints).isEmpty();
+    });
+  });
+
+  group('performSubtypeConstraintGenerationForRightNullableType:', () {
+    test('Null matches Nullable favoring non-Null branch', () {
+      // `Null <# T?` could match in two possible ways:
+      // - `Null <# Null` (taking the "Null" branch of the FutureOr), producing
+      //   the empty constraint set.
+      // - `Null <# T` (taking the "non-Null" branch of the FutureOr),
+      //   producing `Null <: T`
+      // In cases where both branches produce a constraint, the "non-Null"
+      // branch is favored.
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('Null'), Type('T?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['Null <: T']);
+    });
+
+    test('Type matches Nullable favoring the non-Null branch', () {
+      // `T <# int?` could match in two possible ways:
+      // - `T <# Null` (taking the "Null" branch of the Nullable),
+      //   producing `T <: Null`
+      // - `T <# int` (taking the "non-Null" branch of the Nullable),
+      //   producing `T <: int`
+      // In cases where both branches produce a constraint, the "non-Null"
+      // branch is favored.
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('T'), Type('int?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: int']);
+    });
+
+    test('Null matches Nullable with no constraints', () {
+      // `Null <# int?` matches (taking the "Null" branch of
+      // the Nullable) without generating any constraints.
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('Null'), Type('int?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).isEmpty();
+    });
+  });
+
   group('performSubtypeConstraintGenerationForTypeDeclarationTypes', () {
     group('Same base type on both sides:', () {
       test('Covariant, matching', () {
@@ -765,6 +833,16 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
     // If `P` and `Q` are identical types, then the subtype match holds
     // under no constraints.
     if (p == q) {
+      return true;
+    }
+
+    if (performSubtypeConstraintGenerationForRightNullableType(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    if (performSubtypeConstraintGenerationForLeftNullableType(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
       return true;
     }
 

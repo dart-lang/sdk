@@ -304,55 +304,17 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // Or if P is a subtype match for Q0 under non-empty constraint set C.
     // Or if P is a subtype match for Null under constraint set C.
     // Or if P is a subtype match for Q0 under empty constraint set C.
-    if (qNullability == NullabilitySuffix.question) {
-      final int baseConstraintCount = _protoConstraints.length;
-      final DartType rawP = typeOperations
-          .withNullabilitySuffix(new SharedTypeView(p), NullabilitySuffix.none)
-          .unwrapTypeView();
-      final DartType rawQ = typeOperations
-          .withNullabilitySuffix(new SharedTypeView(q), NullabilitySuffix.none)
-          .unwrapTypeView();
-
-      if (pNullability == NullabilitySuffix.question &&
-          _isNullabilityAwareSubtypeMatch(rawP, rawQ,
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-
-      if ((p is SharedDynamicTypeStructure || p is SharedVoidTypeStructure) &&
-          _isNullabilityAwareSubtypeMatch(
-              typeOperations.objectType.unwrapTypeView(), rawQ,
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-
-      bool isMatchWithRawQ = _isNullabilityAwareSubtypeMatch(p, rawQ,
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting);
-      bool matchWithRawQAddsConstraints =
-          _protoConstraints.length != baseConstraintCount;
-      if (isMatchWithRawQ && matchWithRawQAddsConstraints) {
-        return true;
-      }
-
-      if (_isNullabilityAwareSubtypeMatch(
-          p, typeOperations.nullType.unwrapTypeView(),
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-
-      if (isMatchWithRawQ && !matchWithRawQAddsConstraints) {
-        return true;
-      }
+    if (performSubtypeConstraintGenerationForRightNullableType(p, q,
+        leftSchema: constrainSupertype,
+        astNodeForTesting: treeNodeForTesting)) {
+      return true;
     }
 
     // If P is FutureOr<P0> the match holds under constraint set C1 + C2:
     //
     // If Future<P0> is a subtype match for Q under constraint set C1.
     // And if P0 is a subtype match for Q under constraint set C2.
+
     if (typeOperations.matchFutureOrInternal(p) case DartType p0?) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(
@@ -372,23 +334,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     //
     // If P0 is a subtype match for Q under constraint set C1.
     // And if Null is a subtype match for Q under constraint set C2.
-    if (pNullability == NullabilitySuffix.question) {
-      final int baseConstraintCount = _protoConstraints.length;
-      if (_isNullabilityAwareSubtypeMatch(
-              typeOperations
-                  .withNullabilitySuffix(
-                      new SharedTypeView(p), NullabilitySuffix.none)
-                  .unwrapTypeView(),
-              q,
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting) &&
-          _isNullabilityAwareSubtypeMatch(
-              typeOperations.nullType.unwrapTypeView(), q,
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
+    if (performSubtypeConstraintGenerationForLeftNullableType(p, q,
+        leftSchema: constrainSupertype,
+        astNodeForTesting: treeNodeForTesting)) {
+      return true;
     }
 
     // If Q is dynamic, Object?, or void then the match holds under no
