@@ -580,6 +580,309 @@ void Simulator::Interpret(Instr instr) {
   }
 }
 
+static intx_t mul(intx_t a, intx_t b) {
+  return static_cast<uintx_t>(a) * static_cast<uintx_t>(b);
+}
+
+static intx_t mulh(intx_t a, intx_t b) {
+  const uintx_t kLoMask = (static_cast<uintx_t>(1) << (XLEN / 2)) - 1;
+  const uintx_t kHiShift = XLEN / 2;
+
+  uintx_t a_lo = a & kLoMask;
+  intx_t a_hi = a >> kHiShift;
+  uintx_t b_lo = b & kLoMask;
+  intx_t b_hi = b >> kHiShift;
+
+  uintx_t x = a_lo * b_lo;
+  intx_t y = a_hi * b_lo;
+  intx_t z = a_lo * b_hi;
+  intx_t w = a_hi * b_hi;
+
+  intx_t r0 = (x >> kHiShift) + y;
+  intx_t r1 = (r0 & kLoMask) + z;
+  return w + (r0 >> kHiShift) + (r1 >> kHiShift);
+}
+
+static uintx_t mulhu(uintx_t a, uintx_t b) {
+  const uintx_t kLoMask = (static_cast<uintx_t>(1) << (XLEN / 2)) - 1;
+  const uintx_t kHiShift = XLEN / 2;
+
+  uintx_t a_lo = a & kLoMask;
+  uintx_t a_hi = a >> kHiShift;
+  uintx_t b_lo = b & kLoMask;
+  uintx_t b_hi = b >> kHiShift;
+
+  uintx_t x = a_lo * b_lo;
+  uintx_t y = a_hi * b_lo;
+  uintx_t z = a_lo * b_hi;
+  uintx_t w = a_hi * b_hi;
+
+  uintx_t r0 = (x >> kHiShift) + y;
+  uintx_t r1 = (r0 & kLoMask) + z;
+  return w + (r0 >> kHiShift) + (r1 >> kHiShift);
+}
+
+static uintx_t mulhsu(intx_t a, uintx_t b) {
+  const uintx_t kLoMask = (static_cast<uintx_t>(1) << (XLEN / 2)) - 1;
+  const uintx_t kHiShift = XLEN / 2;
+
+  uintx_t a_lo = a & kLoMask;
+  intx_t a_hi = a >> kHiShift;
+  uintx_t b_lo = b & kLoMask;
+  uintx_t b_hi = b >> kHiShift;
+
+  uintx_t x = a_lo * b_lo;
+  intx_t y = a_hi * b_lo;
+  uintx_t z = a_lo * b_hi;
+  intx_t w = a_hi * b_hi;
+
+  intx_t r0 = (x >> kHiShift) + y;
+  uintx_t r1 = (r0 & kLoMask) + z;
+  return w + (r0 >> kHiShift) + (r1 >> kHiShift);
+}
+
+static intx_t div(intx_t a, intx_t b) {
+  if (b == 0) {
+    return -1;
+  } else if (b == -1 && a == kMinIntX) {
+    return kMinIntX;
+  } else {
+    return a / b;
+  }
+}
+
+static uintx_t divu(uintx_t a, uintx_t b) {
+  if (b == 0) {
+    return kMaxUIntX;
+  } else {
+    return a / b;
+  }
+}
+
+static intx_t rem(intx_t a, intx_t b) {
+  if (b == 0) {
+    return a;
+  } else if (b == -1 && a == kMinIntX) {
+    return 0;
+  } else {
+    return a % b;
+  }
+}
+
+static uintx_t remu(uintx_t a, uintx_t b) {
+  if (b == 0) {
+    return a;
+  } else {
+    return a % b;
+  }
+}
+
+#if XLEN >= 64
+static int32_t mulw(int32_t a, int32_t b) {
+  return a * b;
+}
+
+static int32_t divw(int32_t a, int32_t b) {
+  if (b == 0) {
+    return -1;
+  } else if (b == -1 && a == kMinInt32) {
+    return kMinInt32;
+  } else {
+    return a / b;
+  }
+}
+
+static uint32_t divuw(uint32_t a, uint32_t b) {
+  if (b == 0) {
+    return kMaxUint32;
+  } else {
+    return a / b;
+  }
+}
+
+static int32_t remw(int32_t a, int32_t b) {
+  if (b == 0) {
+    return a;
+  } else if (b == -1 && a == kMinInt32) {
+    return 0;
+  } else {
+    return a % b;
+  }
+}
+
+static uint32_t remuw(uint32_t a, uint32_t b) {
+  if (b == 0) {
+    return a;
+  } else {
+    return a % b;
+  }
+}
+#endif  // XLEN >= 64
+
+static uintx_t clz(uintx_t a) {
+  for (int bit = XLEN - 1; bit >= 0; bit--) {
+    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
+      return XLEN - bit - 1;
+    }
+  }
+  return XLEN;
+}
+
+static uintx_t ctz(uintx_t a) {
+  for (int bit = 0; bit < XLEN; bit++) {
+    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
+      return bit;
+    }
+  }
+  return XLEN;
+}
+
+static uintx_t cpop(uintx_t a) {
+  uintx_t count = 0;
+  for (int bit = 0; bit < XLEN; bit++) {
+    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+static uintx_t clzw(uint32_t a) {
+  for (int bit = 32 - 1; bit >= 0; bit--) {
+    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
+      return 32 - bit - 1;
+    }
+  }
+  return 32;
+}
+
+static uintx_t ctzw(uint32_t a) {
+  for (int bit = 0; bit < 32; bit++) {
+    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
+      return bit;
+    }
+  }
+  return 32;
+}
+
+static uintx_t cpopw(uint32_t a) {
+  uintx_t count = 0;
+  for (int bit = 0; bit < 32; bit++) {
+    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+static intx_t max(intx_t a, intx_t b) {
+  return a > b ? a : b;
+}
+static uintx_t maxu(uintx_t a, uintx_t b) {
+  return a > b ? a : b;
+}
+static intx_t min(intx_t a, intx_t b) {
+  return a < b ? a : b;
+}
+static uintx_t minu(uintx_t a, uintx_t b) {
+  return a < b ? a : b;
+}
+static uintx_t clmul(uintx_t a, uintx_t b) {
+  uintx_t result = 0;
+  for (int bit = 0; bit < XLEN; bit++) {
+    if (((b >> bit) & 1) != 0) {
+      result ^= a << bit;
+    }
+  }
+  return result;
+}
+static uintx_t clmulh(uintx_t a, uintx_t b) {
+  uintx_t result = 0;
+  for (int bit = 1; bit < XLEN; bit++) {
+    if (((b >> bit) & 1) != 0) {
+      result ^= a >> (XLEN - bit);
+    }
+  }
+  return result;
+}
+static uintx_t clmulr(uintx_t a, uintx_t b) {
+  uintx_t result = 0;
+  for (int bit = 0; bit < XLEN; bit++) {
+    if (((b >> bit) & 1) != 0) {
+      result ^= a >> (XLEN - bit - 1);
+    }
+  }
+  return result;
+}
+static uintx_t sextb(uintx_t a) {
+  return static_cast<intx_t>(a << (XLEN - 8)) >> (XLEN - 8);
+}
+static uintx_t zextb(uintx_t a) {
+  return a << (XLEN - 8) >> (XLEN - 8);
+}
+static uintx_t sexth(uintx_t a) {
+  return static_cast<intx_t>(a << (XLEN - 16)) >> (XLEN - 16);
+}
+static uintx_t zexth(uintx_t a) {
+  return a << (XLEN - 16) >> (XLEN - 16);
+}
+#if XLEN >= 64
+static uintx_t zextw(uintx_t a) {
+  return a << (XLEN - 32) >> (XLEN - 32);
+}
+#endif
+static uintx_t ror(uintx_t a, uintx_t b) {
+  uintx_t r = b & (XLEN - 1);
+  uintx_t l = (XLEN - r) & (XLEN - 1);
+  return (a << l) | (a >> r);
+}
+static uintx_t rol(uintx_t a, uintx_t b) {
+  uintx_t l = b & (XLEN - 1);
+  uintx_t r = (XLEN - l) & (XLEN - 1);
+  return (a << l) | (a >> r);
+}
+static uintx_t rorw(uintx_t a, uintx_t b) {
+  uint32_t r = b & (XLEN - 1);
+  uint32_t l = (XLEN - r) & (XLEN - 1);
+  uint32_t x = a;
+  return sign_extend((x << l) | (x >> r));
+}
+static uintx_t rolw(uintx_t a, uintx_t b) {
+  uint32_t l = b & (XLEN - 1);
+  uint32_t r = (XLEN - l) & (XLEN - 1);
+  uint32_t x = a;
+  return sign_extend((x << l) | (x >> r));
+}
+static uintx_t orcb(uintx_t a) {
+  uintx_t result = 0;
+  for (int shift = 0; shift < XLEN; shift += 8) {
+    if (((a >> shift) & 0xFF) != 0) {
+      result |= static_cast<uintx_t>(0xFF) << shift;
+    }
+  }
+  return result;
+}
+static uintx_t rev8(uintx_t a) {
+  uintx_t result = 0;
+  for (int shift = 0; shift < XLEN; shift += 8) {
+    result <<= 8;
+    result |= (a >> shift) & 0xFF;
+  }
+  return result;
+}
+static uintx_t bclr(uintx_t a, uintx_t b) {
+  return a & ~(static_cast<uintx_t>(1) << (b & (XLEN - 1)));
+}
+static uintx_t bext(uintx_t a, uintx_t b) {
+  return (a >> (b & (XLEN - 1))) & 1;
+}
+static uintx_t binv(uintx_t a, uintx_t b) {
+  return a ^ (static_cast<uintx_t>(1) << (b & (XLEN - 1)));
+}
+static uintx_t bset(uintx_t a, uintx_t b) {
+  return a | (static_cast<uintx_t>(1) << (b & (XLEN - 1)));
+}
+
 DART_FORCE_INLINE
 void Simulator::Interpret(CInstr instr) {
   switch (instr.opcode()) {
@@ -825,10 +1128,70 @@ void Simulator::Interpret(CInstr instr) {
               set_xreg(instr.rs1p(), sign_extend(a - b));
               break;
             }
+            case C_MUL:
+              set_xreg(instr.rs1p(),
+                       mul(get_xreg(instr.rs1p()), get_xreg(instr.rs2p())));
+              break;
+            case C_EXT:
+              switch (instr.encoding() & C_EXT_MASK) {
+                case C_ZEXTB:
+                  set_xreg(instr.rs1p(), zextb(get_xreg(instr.rs1p())));
+                  break;
+                case C_SEXTB:
+                  set_xreg(instr.rs1p(), sextb(get_xreg(instr.rs1p())));
+                  break;
+                case C_ZEXTH:
+                  set_xreg(instr.rs1p(), zexth(get_xreg(instr.rs1p())));
+                  break;
+                case C_SEXTH:
+                  set_xreg(instr.rs1p(), sexth(get_xreg(instr.rs1p())));
+                  break;
+#if XLEN >= 64
+                case C_ZEXTW:
+                  set_xreg(instr.rs1p(), zextw(get_xreg(instr.rs1p())));
+                  break;
+#endif
+                case C_NOT:
+                  set_xreg(instr.rs1p(), ~get_xreg(instr.rs1p()));
+                  break;
+                default:
+                  IllegalInstruction(instr);
+              }
+              break;
             default:
               IllegalInstruction(instr);
           }
           break;
+        default:
+          IllegalInstruction(instr);
+      }
+      break;
+    case C_LBU:
+      switch (instr.encoding() & 0b1111110000000011) {
+        case C_LBU: {
+          uintx_t addr = get_xreg(instr.rs1p()) + instr.mem1_imm();
+          set_xreg(instr.rdp(), MemoryRead<uint8_t>(addr, instr.rs1p()));
+          break;
+        }
+        case C_LHU: {
+          uintx_t addr = get_xreg(instr.rs1p()) + instr.mem2_imm();
+          if ((instr.encoding() & 0b1000000) == 0) {
+            set_xreg(instr.rdp(), MemoryRead<uint16_t>(addr, instr.rs1p()));
+          } else {
+            set_xreg(instr.rdp(), MemoryRead<int16_t>(addr, instr.rs1p()));
+          }
+          break;
+        }
+        case C_SB: {
+          uintx_t addr = get_xreg(instr.rs1p()) + instr.mem1_imm();
+          MemoryWrite<uint8_t>(addr, get_xreg(instr.rs2p()), instr.rs1p());
+          break;
+        }
+        case C_SH: {
+          uintx_t addr = get_xreg(instr.rs1p()) + instr.mem2_imm();
+          MemoryWrite<uint16_t>(addr, get_xreg(instr.rs2p()), instr.rs1p());
+          break;
+        }
         default:
           IllegalInstruction(instr);
       }
@@ -1008,162 +1371,6 @@ void Simulator::InterpretSTOREFP(Instr instr) {
   pc_ += instr.length();
 }
 
-static uintx_t clz(uintx_t a) {
-  for (int bit = XLEN - 1; bit >= 0; bit--) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      return XLEN - bit - 1;
-    }
-  }
-  return XLEN;
-}
-
-static uintx_t ctz(uintx_t a) {
-  for (int bit = 0; bit < XLEN; bit++) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      return bit;
-    }
-  }
-  return XLEN;
-}
-
-static uintx_t cpop(uintx_t a) {
-  uintx_t count = 0;
-  for (int bit = 0; bit < XLEN; bit++) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      count++;
-    }
-  }
-  return count;
-}
-
-static uintx_t clzw(uint32_t a) {
-  for (int bit = 32 - 1; bit >= 0; bit--) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      return 32 - bit - 1;
-    }
-  }
-  return 32;
-}
-
-static uintx_t ctzw(uint32_t a) {
-  for (int bit = 0; bit < 32; bit++) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      return bit;
-    }
-  }
-  return 32;
-}
-
-static uintx_t cpopw(uint32_t a) {
-  uintx_t count = 0;
-  for (int bit = 0; bit < 32; bit++) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      count++;
-    }
-  }
-  return count;
-}
-
-static intx_t max(intx_t a, intx_t b) {
-  return a > b ? a : b;
-}
-static uintx_t maxu(uintx_t a, uintx_t b) {
-  return a > b ? a : b;
-}
-static intx_t min(intx_t a, intx_t b) {
-  return a < b ? a : b;
-}
-static uintx_t minu(uintx_t a, uintx_t b) {
-  return a < b ? a : b;
-}
-static uintx_t clmul(uintx_t a, uintx_t b) {
-  uintx_t result = 0;
-  for (int bit = 0; bit < XLEN; bit++) {
-    if (((b >> bit) & 1) != 0) {
-      result ^= a << bit;
-    }
-  }
-  return result;
-}
-static uintx_t clmulh(uintx_t a, uintx_t b) {
-  uintx_t result = 0;
-  for (int bit = 1; bit < XLEN; bit++) {
-    if (((b >> bit) & 1) != 0) {
-      result ^= a >> (XLEN - bit);
-    }
-  }
-  return result;
-}
-static uintx_t clmulr(uintx_t a, uintx_t b) {
-  uintx_t result = 0;
-  for (int bit = 0; bit < XLEN; bit++) {
-    if (((b >> bit) & 1) != 0) {
-      result ^= a >> (XLEN - bit - 1);
-    }
-  }
-  return result;
-}
-static uintx_t sextb(uintx_t a) {
-  return static_cast<intx_t>(a << (XLEN - 8)) >> (XLEN - 8);
-}
-static uintx_t sexth(uintx_t a) {
-  return static_cast<intx_t>(a << (XLEN - 16)) >> (XLEN - 16);
-}
-static uintx_t zexth(uintx_t a) {
-  return a << (XLEN - 16) >> (XLEN - 16);
-}
-static uintx_t ror(uintx_t a, uintx_t b) {
-  uintx_t r = b & (XLEN - 1);
-  uintx_t l = (XLEN - r) & (XLEN - 1);
-  return (a << l) | (a >> r);
-}
-static uintx_t rol(uintx_t a, uintx_t b) {
-  uintx_t l = b & (XLEN - 1);
-  uintx_t r = (XLEN - l) & (XLEN - 1);
-  return (a << l) | (a >> r);
-}
-static uintx_t rorw(uintx_t a, uintx_t b) {
-  uint32_t r = b & (XLEN - 1);
-  uint32_t l = (XLEN - r) & (XLEN - 1);
-  uint32_t x = a;
-  return sign_extend((x << l) | (x >> r));
-}
-static uintx_t rolw(uintx_t a, uintx_t b) {
-  uint32_t l = b & (XLEN - 1);
-  uint32_t r = (XLEN - l) & (XLEN - 1);
-  uint32_t x = a;
-  return sign_extend((x << l) | (x >> r));
-}
-static uintx_t orcb(uintx_t a) {
-  uintx_t result = 0;
-  for (int shift = 0; shift < XLEN; shift += 8) {
-    if (((a >> shift) & 0xFF) != 0) {
-      result |= static_cast<uintx_t>(0xFF) << shift;
-    }
-  }
-  return result;
-}
-static uintx_t rev8(uintx_t a) {
-  uintx_t result = 0;
-  for (int shift = 0; shift < XLEN; shift += 8) {
-    result <<= 8;
-    result |= (a >> shift) & 0xFF;
-  }
-  return result;
-}
-static uintx_t bclr(uintx_t a, uintx_t b) {
-  return a & ~(static_cast<uintx_t>(1) << (b & (XLEN - 1)));
-}
-static uintx_t bext(uintx_t a, uintx_t b) {
-  return (a >> (b & (XLEN - 1))) & 1;
-}
-static uintx_t binv(uintx_t a, uintx_t b) {
-  return a ^ (static_cast<uintx_t>(1) << (b & (XLEN - 1)));
-}
-static uintx_t bset(uintx_t a, uintx_t b) {
-  return a | (static_cast<uintx_t>(1) << (b & (XLEN - 1)));
-}
-
 DART_FORCE_INLINE
 void Simulator::InterpretOPIMM(Instr instr) {
   switch (instr.funct3()) {
@@ -1332,6 +1539,9 @@ void Simulator::InterpretOP(Instr instr) {
       pc_ += instr.length();
       break;
 #endif
+    case CZERO:
+      InterpretOP_CZERO(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
@@ -1380,145 +1590,6 @@ void Simulator::InterpretOP_0(Instr instr) {
   }
   pc_ += instr.length();
 }
-
-static intx_t mul(intx_t a, intx_t b) {
-  return static_cast<uintx_t>(a) * static_cast<uintx_t>(b);
-}
-
-static intx_t mulh(intx_t a, intx_t b) {
-  const uintx_t kLoMask = (static_cast<uintx_t>(1) << (XLEN / 2)) - 1;
-  const uintx_t kHiShift = XLEN / 2;
-
-  uintx_t a_lo = a & kLoMask;
-  intx_t a_hi = a >> kHiShift;
-  uintx_t b_lo = b & kLoMask;
-  intx_t b_hi = b >> kHiShift;
-
-  uintx_t x = a_lo * b_lo;
-  intx_t y = a_hi * b_lo;
-  intx_t z = a_lo * b_hi;
-  intx_t w = a_hi * b_hi;
-
-  intx_t r0 = (x >> kHiShift) + y;
-  intx_t r1 = (r0 & kLoMask) + z;
-  return w + (r0 >> kHiShift) + (r1 >> kHiShift);
-}
-
-static uintx_t mulhu(uintx_t a, uintx_t b) {
-  const uintx_t kLoMask = (static_cast<uintx_t>(1) << (XLEN / 2)) - 1;
-  const uintx_t kHiShift = XLEN / 2;
-
-  uintx_t a_lo = a & kLoMask;
-  uintx_t a_hi = a >> kHiShift;
-  uintx_t b_lo = b & kLoMask;
-  uintx_t b_hi = b >> kHiShift;
-
-  uintx_t x = a_lo * b_lo;
-  uintx_t y = a_hi * b_lo;
-  uintx_t z = a_lo * b_hi;
-  uintx_t w = a_hi * b_hi;
-
-  uintx_t r0 = (x >> kHiShift) + y;
-  uintx_t r1 = (r0 & kLoMask) + z;
-  return w + (r0 >> kHiShift) + (r1 >> kHiShift);
-}
-
-static uintx_t mulhsu(intx_t a, uintx_t b) {
-  const uintx_t kLoMask = (static_cast<uintx_t>(1) << (XLEN / 2)) - 1;
-  const uintx_t kHiShift = XLEN / 2;
-
-  uintx_t a_lo = a & kLoMask;
-  intx_t a_hi = a >> kHiShift;
-  uintx_t b_lo = b & kLoMask;
-  uintx_t b_hi = b >> kHiShift;
-
-  uintx_t x = a_lo * b_lo;
-  intx_t y = a_hi * b_lo;
-  uintx_t z = a_lo * b_hi;
-  intx_t w = a_hi * b_hi;
-
-  intx_t r0 = (x >> kHiShift) + y;
-  uintx_t r1 = (r0 & kLoMask) + z;
-  return w + (r0 >> kHiShift) + (r1 >> kHiShift);
-}
-
-static intx_t div(intx_t a, intx_t b) {
-  if (b == 0) {
-    return -1;
-  } else if (b == -1 && a == kMinIntX) {
-    return kMinIntX;
-  } else {
-    return a / b;
-  }
-}
-
-static uintx_t divu(uintx_t a, uintx_t b) {
-  if (b == 0) {
-    return kMaxUIntX;
-  } else {
-    return a / b;
-  }
-}
-
-static intx_t rem(intx_t a, intx_t b) {
-  if (b == 0) {
-    return a;
-  } else if (b == -1 && a == kMinIntX) {
-    return 0;
-  } else {
-    return a % b;
-  }
-}
-
-static uintx_t remu(uintx_t a, uintx_t b) {
-  if (b == 0) {
-    return a;
-  } else {
-    return a % b;
-  }
-}
-
-#if XLEN >= 64
-static int32_t mulw(int32_t a, int32_t b) {
-  return a * b;
-}
-
-static int32_t divw(int32_t a, int32_t b) {
-  if (b == 0) {
-    return -1;
-  } else if (b == -1 && a == kMinInt32) {
-    return kMinInt32;
-  } else {
-    return a / b;
-  }
-}
-
-static uint32_t divuw(uint32_t a, uint32_t b) {
-  if (b == 0) {
-    return kMaxUint32;
-  } else {
-    return a / b;
-  }
-}
-
-static int32_t remw(int32_t a, int32_t b) {
-  if (b == 0) {
-    return a;
-  } else if (b == -1 && a == kMinInt32) {
-    return 0;
-  } else {
-    return a % b;
-  }
-}
-
-static uint32_t remuw(uint32_t a, uint32_t b) {
-  if (b == 0) {
-    return a;
-  } else {
-    return a % b;
-  }
-}
-#endif  // XLEN >= 64
 
 DART_FORCE_INLINE
 void Simulator::InterpretOP_MULDIV(Instr instr) {
@@ -1656,6 +1727,23 @@ void Simulator::InterpretOP_BCLRBEXT(Instr instr) {
       break;
     case BEXT:
       set_xreg(instr.rd(), bext(get_xreg(instr.rs1()), get_xreg(instr.rs2())));
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
+}
+
+DART_FORCE_INLINE
+void Simulator::InterpretOP_CZERO(Instr instr) {
+  switch (instr.funct3()) {
+    case CZEROEQZ:
+      set_xreg(instr.rd(),
+               get_xreg(instr.rs2()) == 0 ? 0 : get_xreg(instr.rs1()));
+      break;
+    case CZERONEZ:
+      set_xreg(instr.rd(),
+               get_xreg(instr.rs2()) != 0 ? 0 : get_xreg(instr.rs1()));
       break;
     default:
       IllegalInstruction(instr);
@@ -2258,6 +2346,33 @@ void Simulator::InterpretSTOREORDERED(Instr instr) {
 
 void Simulator::InterpretAMO8(Instr instr) {
   switch (instr.funct5()) {
+    case AMOSWAP:
+      InterpretAMOSWAP<int8_t>(instr);
+      break;
+    case AMOADD:
+      InterpretAMOADD<int8_t>(instr);
+      break;
+    case AMOXOR:
+      InterpretAMOXOR<int8_t>(instr);
+      break;
+    case AMOAND:
+      InterpretAMOAND<int8_t>(instr);
+      break;
+    case AMOOR:
+      InterpretAMOOR<int8_t>(instr);
+      break;
+    case AMOMIN:
+      InterpretAMOMIN<int8_t>(instr);
+      break;
+    case AMOMAX:
+      InterpretAMOMAX<int8_t>(instr);
+      break;
+    case AMOMINU:
+      InterpretAMOMIN<uint8_t>(instr);
+      break;
+    case AMOMAXU:
+      InterpretAMOMAX<uint8_t>(instr);
+      break;
     case LOADORDERED:
       InterpretLOADORDERED<int8_t>(instr);
       break;
@@ -2272,6 +2387,33 @@ void Simulator::InterpretAMO8(Instr instr) {
 
 void Simulator::InterpretAMO16(Instr instr) {
   switch (instr.funct5()) {
+    case AMOSWAP:
+      InterpretAMOSWAP<int16_t>(instr);
+      break;
+    case AMOADD:
+      InterpretAMOADD<int16_t>(instr);
+      break;
+    case AMOXOR:
+      InterpretAMOXOR<int16_t>(instr);
+      break;
+    case AMOAND:
+      InterpretAMOAND<int16_t>(instr);
+      break;
+    case AMOOR:
+      InterpretAMOOR<int16_t>(instr);
+      break;
+    case AMOMIN:
+      InterpretAMOMIN<int16_t>(instr);
+      break;
+    case AMOMAX:
+      InterpretAMOMAX<int16_t>(instr);
+      break;
+    case AMOMINU:
+      InterpretAMOMIN<uint16_t>(instr);
+      break;
+    case AMOMAXU:
+      InterpretAMOMAX<uint16_t>(instr);
+      break;
     case LOADORDERED:
       InterpretLOADORDERED<int16_t>(instr);
       break;
@@ -2504,6 +2646,33 @@ static float rv_fmaxf(float x, float y) {
   return fmaxf(x, y);
 }
 
+// "The FMINM.S and FMAXM.S instructions are defined like the FMIN.S and FMAX.S
+//  instructions, except that if either input is NaN, the result is the
+//  canonical NaN."
+static double rv_fminm(double x, double y) {
+  if (isnan(x) || isnan(y)) return std::numeric_limits<double>::quiet_NaN();
+  if (x == y) return signbit(x) ? x : y;
+  return fmin(x, y);
+}
+
+static double rv_fmaxm(double x, double y) {
+  if (isnan(x) || isnan(y)) return std::numeric_limits<double>::quiet_NaN();
+  if (x == y) return signbit(x) ? y : x;
+  return fmax(x, y);
+}
+
+static float rv_fminmf(float x, float y) {
+  if (isnan(x) || isnan(y)) return std::numeric_limits<float>::quiet_NaN();
+  if (x == y) return signbit(x) ? x : y;
+  return fminf(x, y);
+}
+
+static float rv_fmaxmf(float x, float y) {
+  if (isnan(x) || isnan(y)) return std::numeric_limits<float>::quiet_NaN();
+  if (x == y) return signbit(x) ? y : x;
+  return fmaxf(x, y);
+}
+
 static bool is_quiet(float x) {
   // Warning: This is true on Intel/ARM, but not everywhere.
   return (bit_cast<uint32_t>(x) & (static_cast<uint32_t>(1) << 22)) != 0;
@@ -2587,6 +2756,13 @@ static double roundeven(double x) {
 }
 
 static float Round(float x, RoundingMode rounding) {
+  switch (fpclassify(x)) {
+    case FP_INFINITE:
+    case FP_ZERO:
+      return x;
+    case FP_NAN:
+      return std::numeric_limits<float>::quiet_NaN();
+  }
   switch (rounding) {
     case RNE:  // Round to Nearest, ties to Even
       return roundevenf(x);
@@ -2606,6 +2782,13 @@ static float Round(float x, RoundingMode rounding) {
 }
 
 static double Round(double x, RoundingMode rounding) {
+  switch (fpclassify(x)) {
+    case FP_INFINITE:
+    case FP_ZERO:
+      return x;
+    case FP_NAN:
+      return std::numeric_limits<double>::quiet_NaN();
+  }
   switch (rounding) {
     case RNE:  // Round to Nearest, ties to Even
       return roundeven(x);
@@ -2674,6 +2857,34 @@ static int32_t fcvtwd(double x, RoundingMode rounding) {
     return static_cast<int32_t>(Round(x, rounding));
   }
   return kMaxInt32;  // Positive infinity, NaN.
+}
+
+static int32_t fcvtmodwd(double x, RoundingMode rounding) {
+  ASSERT(rounding == RTZ);
+  switch (fpclassify(x)) {
+    case FP_INFINITE:
+    case FP_NAN:
+    case FP_ZERO:
+    case FP_SUBNORMAL:
+      return 0;
+  }
+  int biased_exp = (bit_cast<uint64_t>(x) & 0x7FF0000000000000) >> 52;
+  int exponent = biased_exp - 0x3FF - 52;
+  int64_t significand = bit_cast<uint64_t>(x) & 0x000FFFFFFFFFFFFF;
+  significand += 0x0010000000000000;
+  if (x < 0) {
+    significand = -significand;
+  }
+  if (exponent >= 0) {
+    if (exponent >= 64) {
+      return 0;
+    }
+    return significand << exponent;
+  }
+  if (exponent <= -64) {
+    return significand >> 63;
+  }
+  return significand >> -exponent;
 }
 
 static uint32_t fcvtwud(double x, RoundingMode rounding) {
@@ -2770,6 +2981,12 @@ void Simulator::InterpretOPFP(Instr instr) {
         case FMAX:
           set_fregs(instr.frd(), rv_fmaxf(rs1, rs2));
           break;
+        case FMINM:
+          set_fregs(instr.frd(), rv_fminmf(rs1, rs2));
+          break;
+        case FMAXM:
+          set_fregs(instr.frd(), rv_fmaxmf(rs1, rs2));
+          break;
         default:
           IllegalInstruction(instr);
       }
@@ -2783,9 +3000,11 @@ void Simulator::InterpretOPFP(Instr instr) {
           set_xreg(instr.rd(), rs1 == rs2 ? 1 : 0);
           break;
         case FLT:
+        case FLTQ:
           set_xreg(instr.rd(), rs1 < rs2 ? 1 : 0);
           break;
         case FLE:
+        case FLEQ:
           set_xreg(instr.rd(), rs1 <= rs2 ? 1 : 0);
           break;
         default:
@@ -2802,7 +3021,7 @@ void Simulator::InterpretOPFP(Instr instr) {
         case 0:
           // fmv.x.s
           set_xreg(instr.rd(),
-                   sign_extend(bit_cast<int32_t>(get_fregs(instr.frs1()))));
+                   sign_extend(bit_cast<int32_t>(get_fregs_raw(instr.frs1()))));
           break;
         default:
           IllegalInstruction(instr);
@@ -2861,8 +3080,18 @@ void Simulator::InterpretOPFP(Instr instr) {
       }
       break;
     case FMVWX:
-      set_fregs(instr.frd(),
-                bit_cast<float>(static_cast<int32_t>(get_xreg(instr.rs1()))));
+      switch (static_cast<int>(instr.frs2())) {
+        case 0:
+          set_fregs(
+              instr.frd(),
+              bit_cast<float>(static_cast<int32_t>(get_xreg(instr.rs1()))));
+          break;
+        case 1:
+          set_fregs(instr.frd(), bit_cast<float>(kFlisConstants[instr.rs1()]));
+          break;
+        default:
+          IllegalInstruction(instr);
+      }
       break;
     case FADDD: {
       double rs1 = get_fregd(instr.frs1());
@@ -2924,15 +3153,26 @@ void Simulator::InterpretOPFP(Instr instr) {
         case FMAX:
           set_fregd(instr.frd(), rv_fmax(rs1, rs2));
           break;
+        case FMINM:
+          set_fregd(instr.frd(), rv_fminm(rs1, rs2));
+          break;
+        case FMAXM:
+          set_fregd(instr.frd(), rv_fmaxm(rs1, rs2));
+          break;
         default:
           IllegalInstruction(instr);
       }
       break;
     }
     case FCVTS: {
-      switch (static_cast<FcvtRs2>(instr.rs2())) {
+      switch (static_cast<int>(instr.rs2())) {
         case 1:
           set_fregs(instr.frd(), static_cast<float>(get_fregd(instr.frs1())));
+          break;
+        case 4:
+        case 5:
+          set_fregs(instr.frd(),
+                    Round(get_fregs(instr.frs1()), instr.rounding()));
           break;
         default:
           IllegalInstruction(instr);
@@ -2940,9 +3180,14 @@ void Simulator::InterpretOPFP(Instr instr) {
       break;
     }
     case FCVTD: {
-      switch (static_cast<FcvtRs2>(instr.rs2())) {
+      switch (static_cast<int>(instr.rs2())) {
         case 0:
           set_fregd(instr.frd(), static_cast<double>(get_fregs(instr.frs1())));
+          break;
+        case 4:
+        case 5:
+          set_fregd(instr.frd(),
+                    Round(get_fregd(instr.frs1()), instr.rounding()));
           break;
         default:
           IllegalInstruction(instr);
@@ -2958,9 +3203,11 @@ void Simulator::InterpretOPFP(Instr instr) {
           set_xreg(instr.rd(), rs1 == rs2 ? 1 : 0);
           break;
         case FLT:
+        case FLTQ:
           set_xreg(instr.rd(), rs1 < rs2 ? 1 : 0);
           break;
         case FLE:
+        case FLEQ:
           set_xreg(instr.rd(), rs1 <= rs2 ? 1 : 0);
           break;
         default:
@@ -2974,21 +3221,38 @@ void Simulator::InterpretOPFP(Instr instr) {
           // fclass.d
           set_xreg(instr.rd(), fclass(get_fregd(instr.frs1())));
           break;
-#if XLEN >= 64
         case 0:
-          // fmv.x.d
-          set_xreg(instr.rd(), bit_cast<int64_t>(get_fregd(instr.frs1())));
-          break;
+          switch (static_cast<int>(instr.rs2())) {
+#if XLEN >= 64
+            case 0:
+              // fmv.x.d
+              set_xreg(instr.rd(), bit_cast<int64_t>(get_fregd(instr.frs1())));
+              break;
 #endif  // XLEN >= 64
+#if XLEN == 32
+            case 1:
+              // fmvh.x.d
+              set_xreg(instr.rd(),
+                       bit_cast<uint64_t>(get_fregd(instr.frs1())) >> 32);
+              break;
+#endif  // XLEN == 32
+            default:
+              IllegalInstruction(instr);
+          }
+          break;
         default:
           IllegalInstruction(instr);
       }
       break;
     case FCVTintD:
-      switch (static_cast<FcvtRs2>(instr.rs2())) {
+      switch (static_cast<int>(instr.rs2())) {
         case W:
           set_xreg(instr.rd(), sign_extend(fcvtwd(get_fregd(instr.frs1()),
                                                   instr.rounding())));
+          break;
+        case 8:
+          set_xreg(instr.rd(), sign_extend(fcvtmodwd(get_fregd(instr.frs1()),
+                                                     instr.rounding())));
           break;
         case WU:
           set_xreg(instr.rd(), sign_extend(fcvtwud(get_fregd(instr.frs1()),
@@ -3034,11 +3298,28 @@ void Simulator::InterpretOPFP(Instr instr) {
           IllegalInstruction(instr);
       }
       break;
-#if XLEN >= 64
     case FMVDX:
-      set_fregd(instr.frd(), bit_cast<double>(get_xreg(instr.rs1())));
-      break;
+      switch (static_cast<int>(instr.frs2())) {
+#if XLEN >= 64
+        case 0:
+          set_fregd(instr.frd(), bit_cast<double>(get_xreg(instr.rs1())));
+          break;
 #endif  // XLEN >= 64
+        case 1:
+          set_fregd(instr.frd(), bit_cast<double>(kFlidConstants[instr.rs1()]));
+          break;
+        default:
+          IllegalInstruction(instr);
+      }
+      break;
+#if XLEN == 32
+    case FMVPDX: {
+      uint64_t hi = static_cast<uint32_t>(get_xreg(instr.rs2()));
+      uint64_t lo = static_cast<uint32_t>(get_xreg(instr.rs1()));
+      set_fregd(instr.frd(), bit_cast<double>((hi << 32) | lo));
+      break;
+    }
+#endif
     default:
       IllegalInstruction(instr);
   }

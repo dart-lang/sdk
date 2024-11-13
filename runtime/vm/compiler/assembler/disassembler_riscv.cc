@@ -69,6 +69,7 @@ class RISCVDisassembler {
   void DisassembleOP_MINMAXCLMUL(Instr instr);
   void DisassembleOP_ROTATE(Instr instr);
   void DisassembleOP_BCLRBEXT(Instr instr);
+  void DisassembleOP_CZERO(Instr instr);
   void DisassembleOP32(Instr instr);
   void DisassembleOP32_0(Instr instr);
   void DisassembleOP32_SUB(Instr instr);
@@ -368,9 +369,60 @@ void RISCVDisassembler::DisassembleInstruction(CInstr instr) {
               Print("subw 'rs1p, 'rs1p, 'rs2p", instr, RV_C);
               break;
 #endif
+            case C_MUL:
+              Print("mul 'rs1p, 'rs1p, 'rs2p", instr, RV_Zcb);
+              break;
+            case C_EXT:
+              switch (instr.encoding() & C_EXT_MASK) {
+                case C_ZEXTB:
+                  Print("zext.b 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+                case C_SEXTB:
+                  Print("sext.b 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+                case C_ZEXTH:
+                  Print("zext.h 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+                case C_SEXTH:
+                  Print("sext.h 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+#if XLEN >= 64
+                case C_ZEXTW:
+                  Print("zext.w 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+#endif
+                case C_NOT:
+                  Print("not 'rs1p, 'rs1p", instr, RV_Zcb);
+                  break;
+                default:
+                  UnknownInstruction(instr);
+              }
+              break;
             default:
               UnknownInstruction(instr);
           }
+          break;
+        default:
+          UnknownInstruction(instr);
+      }
+      break;
+    case C_LBU:
+      switch (instr.encoding() & 0b1111110000000011) {
+        case C_LBU:
+          Print("lbu 'rdp, 'mem1imm('rs1p)", instr, RV_Zcb);
+          break;
+        case C_LHU:
+          if ((instr.encoding() & 0b1000000) == 0) {
+            Print("lhu 'rdp, 'mem2imm('rs1p)", instr, RV_Zcb);
+          } else {
+            Print("lh 'rdp, 'mem2imm('rs1p)", instr, RV_Zcb);
+          }
+          break;
+        case C_SB:
+          Print("sb 'rs2p, 'mem1imm('rs1p)", instr, RV_Zcb);
+          break;
+        case C_SH:
+          Print("sh 'rs2p, 'mem2imm('rs1p)", instr, RV_Zcb);
           break;
         default:
           UnknownInstruction(instr);
@@ -713,6 +765,9 @@ void RISCVDisassembler::DisassembleOP(Instr instr) {
       Print("zext.h 'rd, 'rs1", instr, RV_Zbb);
       break;
 #endif
+    case CZERO:
+      DisassembleOP_CZERO(instr);
+      break;
     default:
       UnknownInstruction(instr);
   }
@@ -880,6 +935,19 @@ void RISCVDisassembler::DisassembleOP_BCLRBEXT(Instr instr) {
       break;
     case BEXT:
       Print("bext 'rd, 'rs1, 'rs2", instr, RV_Zbs);
+      break;
+    default:
+      UnknownInstruction(instr);
+  }
+}
+
+void RISCVDisassembler::DisassembleOP_CZERO(Instr instr) {
+  switch (instr.funct3()) {
+    case CZEROEQZ:
+      Print("czero.eqz 'rd, 'rs1, 'rs2", instr, RV_Zicond);
+      break;
+    case CZERONEZ:
+      Print("czero.nez 'rd, 'rs1, 'rs2", instr, RV_Zicond);
       break;
     default:
       UnknownInstruction(instr);
@@ -1122,6 +1190,33 @@ void RISCVDisassembler::DisassembleAMO(Instr instr) {
 
 void RISCVDisassembler::DisassembleAMO8(Instr instr) {
   switch (instr.funct5()) {
+    case AMOSWAP:
+      Print("amoswap.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOADD:
+      Print("amoadd.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOXOR:
+      Print("amoxor.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOAND:
+      Print("amoand.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOOR:
+      Print("amoor.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOMIN:
+      Print("amomin.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOMAX:
+      Print("amomax.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOMINU:
+      Print("amominu.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOMAXU:
+      Print("amomaxu.b'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
     case LOADORDERED:
       Print("lb'order 'rd, ('rs1)", instr, RV_Zalasr);
       break;
@@ -1135,6 +1230,33 @@ void RISCVDisassembler::DisassembleAMO8(Instr instr) {
 
 void RISCVDisassembler::DisassembleAMO16(Instr instr) {
   switch (instr.funct5()) {
+    case AMOSWAP:
+      Print("amoswap.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOADD:
+      Print("amoadd.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOXOR:
+      Print("amoxor.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOAND:
+      Print("amoand.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOOR:
+      Print("amoor.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOMIN:
+      Print("amomin.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOMAX:
+      Print("amomax.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOMINU:
+      Print("amominu.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
+    case AMOMAXU:
+      Print("amomaxu.h'order 'rd, 'rs2, ('rs1)", instr, RV_Zabha);
+      break;
     case LOADORDERED:
       Print("lh'order 'rd, ('rs1)", instr, RV_Zalasr);
       break;
@@ -1345,6 +1467,12 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
         case FMAX:
           Print("fmax.s 'frd, 'frs1, 'frs2", instr, RV_F);
           break;
+        case FMINM:
+          Print("fminm.s 'frd, 'frs1, 'frs2", instr, RV_Zfa);
+          break;
+        case FMAXM:
+          Print("fmaxm.s 'frd, 'frs1, 'frs2", instr, RV_Zfa);
+          break;
         default:
           UnknownInstruction(instr);
       }
@@ -1360,6 +1488,12 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
           break;
         case FLE:
           Print("fle.s 'rd, 'frs1, 'frs2", instr, RV_F);
+          break;
+        case FLTQ:
+          Print("fltq.s 'rd, 'frs1, 'frs2", instr, RV_Zfa);
+          break;
+        case FLEQ:
+          Print("fleq.s 'rd, 'frs1, 'frs2", instr, RV_Zfa);
           break;
         default:
           UnknownInstruction(instr);
@@ -1419,7 +1553,16 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
       }
       break;
     case FMVWX:
-      Print("fmv.w.x 'frd, 'rs1", instr, RV_F);
+      switch (instr.frs2()) {
+        case 0:
+          Print("fmv.w.x 'frd, 'rs1", instr, RV_F);
+          break;
+        case 1:
+          Print("flis 'frd, 'flis", instr, RV_Zfa);
+          break;
+        default:
+          UnknownInstruction(instr);
+      }
       break;
     case FADDD:
       Print("fadd.d 'frd, 'frs1, 'frs2'round", instr, RV_D);
@@ -1472,6 +1615,12 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
         case FMAX:
           Print("fmax.d 'frd, 'frs1, 'frs2", instr, RV_D);
           break;
+        case FMINM:
+          Print("fminm.d 'frd, 'frs1, 'frs2", instr, RV_Zfa);
+          break;
+        case FMAXM:
+          Print("fmaxm.d 'frd, 'frs1, 'frs2", instr, RV_Zfa);
+          break;
         default:
           UnknownInstruction(instr);
       }
@@ -1482,6 +1631,12 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
         case 1:
           Print("fcvt.s.d 'frd, 'frs1'round", instr, RV_D);
           break;
+        case 4:
+          Print("fround.s 'frd, 'frs1'round", instr, RV_Zfa);
+          break;
+        case 5:
+          Print("froundnx.s 'frd, 'frs1'round", instr, RV_Zfa);
+          break;
         default:
           UnknownInstruction(instr);
       }
@@ -1491,6 +1646,12 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
       switch (instr.rs2()) {
         case 0:
           Print("fcvt.d.s 'frd, 'frs1'round", instr, RV_D);
+          break;
+        case 4:
+          Print("fround.d 'frd, 'frs1'round", instr, RV_Zfa);
+          break;
+        case 5:
+          Print("froundnx.d 'frd, 'frs1'round", instr, RV_Zfa);
           break;
         default:
           UnknownInstruction(instr);
@@ -1508,6 +1669,12 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
         case FLE:
           Print("fle.d 'rd, 'frs1, 'frs2", instr, RV_D);
           break;
+        case FLTQ:
+          Print("fltq.d 'rd, 'frs1, 'frs2", instr, RV_Zfa);
+          break;
+        case FLEQ:
+          Print("fleq.d 'rd, 'frs1, 'frs2", instr, RV_Zfa);
+          break;
         default:
           UnknownInstruction(instr);
       }
@@ -1518,19 +1685,33 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
         case 1:
           Print("fclass.d 'rd, 'frs1", instr, RV_D);
           break;
-#if XLEN >= 64
         case 0:
-          Print("fmv.x.d 'rd, 'frs1", instr, RV_D);
-          break;
+          switch (static_cast<int>(instr.rs2())) {
+#if XLEN >= 64
+            case 0:
+              Print("fmv.x.d 'rd, 'frs1", instr, RV_D);
+              break;
 #endif
+#if XLEN == 32
+            case 1:
+              Print("fmvh.x.d 'rd, 'frs1", instr, RV_Zfa);
+              break;
+#endif
+            default:
+              UnknownInstruction(instr);
+          }
+          break;
         default:
           UnknownInstruction(instr);
       }
       break;
     case FCVTintD:
-      switch (static_cast<FcvtRs2>(instr.rs2())) {
+      switch (static_cast<int>(instr.rs2())) {
         case W:
           Print("fcvt.w.d 'rd, 'frs1'round", instr, RV_D);
+          break;
+        case 8:
+          Print("fcvtmod.w.d 'rd, 'frs1'round", instr, RV_Zfa);
           break;
         case WU:
           Print("fcvt.wu.d 'rd, 'frs1'round", instr, RV_D);
@@ -1567,9 +1748,23 @@ void RISCVDisassembler::DisassembleOPFP(Instr instr) {
           UnknownInstruction(instr);
       }
       break;
-#if XLEN >= 64
     case FMVDX:
-      Print("fmv.d.x 'frd, 'rs1", instr, RV_D);
+      switch (static_cast<int>(instr.frs2())) {
+#if XLEN >= 64
+        case 0:
+          Print("fmv.d.x 'frd, 'rs1", instr, RV_D);
+          break;
+#endif
+        case 1:
+          Print("flid 'frd, 'flid", instr, RV_Zfa);
+          break;
+        default:
+          UnknownInstruction(instr);
+      }
+      break;
+#if XLEN == 32
+    case FMVPDX:
+      Print("fmvp.d.x 'frd, 'rs1, 'rs2", instr, RV_Zfa);
       break;
 #endif
     default:
@@ -1734,6 +1929,40 @@ const char* RISCVDisassembler::PrintOption(const char* format, Instr instr) {
   } else if (STRING_STARTS_WITH(format, "frs3")) {
     Printf("%s", fpu_reg_names[instr.frs3()]);
     return format + 4;
+  } else if (STRING_STARTS_WITH(format, "flis")) {
+    intptr_t index = instr.frs1();
+    switch (index) {
+      case 1:
+        Printf("min");
+        break;
+      case 30:
+        Printf("inf");
+        break;
+      case 31:
+        Printf("nan");
+        break;
+      default:
+        Printf("%f", bit_cast<float>(kFlisConstants[index]));
+        break;
+    }
+    return format + 4;
+  } else if (STRING_STARTS_WITH(format, "flid")) {
+    intptr_t index = instr.frs1();
+    switch (index) {
+      case 1:
+        Printf("min");
+        break;
+      case 30:
+        Printf("inf");
+        break;
+      case 31:
+        Printf("nan");
+        break;
+      default:
+        Printf("%lf", bit_cast<double>(kFlidConstants[index]));
+        break;
+    }
+    return format + 4;
   }
 
   FATAL("Bad format %s\n", format);
@@ -1789,6 +2018,12 @@ const char* RISCVDisassembler::PrintOption(const char* format, CInstr instr) {
   } else if (STRING_STARTS_WITH(format, "spstore8imm")) {
     Printf("%" Pd, static_cast<intptr_t>(instr.spstore8_imm()));
     return format + 11;
+  } else if (STRING_STARTS_WITH(format, "mem1imm")) {
+    Printf("%" Pd, static_cast<intptr_t>(instr.mem1_imm()));
+    return format + 7;
+  } else if (STRING_STARTS_WITH(format, "mem2imm")) {
+    Printf("%" Pd, static_cast<intptr_t>(instr.mem2_imm()));
+    return format + 7;
   } else if (STRING_STARTS_WITH(format, "mem4imm")) {
     Printf("%" Pd, static_cast<intptr_t>(instr.mem4_imm()));
     return format + 7;

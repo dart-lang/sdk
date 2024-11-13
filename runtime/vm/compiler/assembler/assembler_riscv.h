@@ -174,6 +174,7 @@ class MicroAssembler : public AssemblerBase {
   void mv(Register rd, Register rs) { addi(rd, rs, 0); }
   void not_(Register rd, Register rs) { xori(rd, rs, -1); }
   void neg(Register rd, Register rs) { sub(rd, ZR, rs); }
+  void zextb(Register rd, Register rs) { andi(rd, rs, 0xFF); }
 
   void snez(Register rd, Register rs) { sltu(rd, ZR, rs); }
   void seqz(Register rd, Register rs) { sltiu(rd, rs, 1); }
@@ -606,6 +607,107 @@ class MicroAssembler : public AssemblerBase {
   void bset(Register rd, Register rs1, Register rs2);
   void bseti(Register rd, Register rs1, intx_t shamt);
 
+  // ==== Zicond: Integer conditional operations ====
+  // rd := rs2 == 0 ? 0 : rs1
+  void czeroeqz(Register rd, Register rs1, Register rs2);
+  // rd := rs2 != 0 ? 0 : rs1
+  void czeronez(Register rd, Register rs1, Register rs2);
+
+  // ==== Zabha: Byte and halfword AMOs ====
+  void amoswapb(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amoaddb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoxorb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoandb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoorb(Register rd,
+              Register rs2,
+              Address addr,
+              std::memory_order order = std::memory_order_relaxed);
+  void amominb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amomaxb(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amominub(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amomaxub(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amoswaph(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amoaddh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoxorh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoandh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amoorh(Register rd,
+              Register rs2,
+              Address addr,
+              std::memory_order order = std::memory_order_relaxed);
+  void amominh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amomaxh(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amominuh(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+  void amomaxuh(Register rd,
+                Register rs2,
+                Address addr,
+                std::memory_order order = std::memory_order_relaxed);
+
+  // ==== Zfa: Additional floating-point instructions ====
+  void flis(FRegister rd, intptr_t index);
+  void flid(FRegister rd, intptr_t index);
+  void fminms(FRegister rd, FRegister rs1, FRegister rs2);
+  void fmaxms(FRegister rd, FRegister rs1, FRegister rs2);
+  void fminmd(FRegister rd, FRegister rs1, FRegister rs2);
+  void fmaxmd(FRegister rd, FRegister rs1, FRegister rs2);
+  void frounds(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
+  void froundd(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
+  void froundnxs(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
+  void froundnxd(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
+  void fcvtmodwd(Register rd, FRegister rs1);
+#if XLEN == 32
+  void fmvhxd(Register rd, FRegister rs1);
+  void fmvpdx(FRegister rd, Register rs1, Register rs2);
+#endif
+  void fltqs(Register rd, FRegister rs1, FRegister rs2);
+  void fleqs(Register rd, FRegister rs1, FRegister rs2);
+  void fltqd(Register rd, FRegister rs1, FRegister rs2);
+  void fleqd(Register rd, FRegister rs1, FRegister rs2);
+
   // ==== Zalasr: Load-acquire, store-release ====
   void lb(Register rd, Address addr, std::memory_order order);
   void lh(Register rd, Address addr, std::memory_order order);
@@ -690,6 +792,22 @@ class MicroAssembler : public AssemblerBase {
   void c_nop();
   void c_ebreak();
 
+  // ==== Zcb: Additional code-size saving instructions ====
+  void c_lbu(Register rd, Address addr);
+  void c_lh(Register rd, Address addr);
+  void c_lhu(Register rd, Address addr);
+  void c_sb(Register rs2, Address addr);
+  void c_sh(Register rs2, Address addr);
+  void c_zextb(Register rd, Register rs1);
+  void c_sextb(Register rd, Register rs1);
+  void c_zexth(Register rd, Register rs1);
+  void c_sexth(Register rd, Register rs1);
+#if XLEN >= 64
+  void c_zextw(Register rd, Register rs1);
+#endif
+  void c_mul(Register rd, Register rs1, Register rs2);
+  void c_not(Register rd, Register rs1);
+
  protected:
   intptr_t UpdateCBOffset(intptr_t branch_position, intptr_t new_offset);
   intptr_t UpdateCJOffset(intptr_t branch_position, intptr_t new_offset);
@@ -733,13 +851,13 @@ class MicroAssembler : public AssemblerBase {
                  FRegister rd,
                  Opcode opcode);
   void EmitRType(Funct7 funct7,
-                 FRegister rs2,
+                 Register rs2,
                  Register rs1,
                  RoundingMode round,
                  FRegister rd,
                  Opcode opcode);
   void EmitRType(Funct7 funct7,
-                 FRegister rs2,
+                 Register rs2,
                  Register rs1,
                  Funct3 funct3,
                  FRegister rd,

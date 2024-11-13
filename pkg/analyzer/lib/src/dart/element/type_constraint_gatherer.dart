@@ -218,53 +218,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return true;
     }
 
-    // If `Q` is `Q0?` the match holds under constraint set `C`:
-    if (Q_nullability == NullabilitySuffix.question) {
-      var Q0 = _typeSystemOperations
-          .withNullabilitySuffix(SharedTypeView(Q), NullabilitySuffix.none)
-          .unwrapTypeView();
-      var rewind = _constraints.length;
-
-      // If `P` is `P0?` and `P0` is a subtype match for `Q0` under
-      // constraint set `C`.
-      if (P_nullability == NullabilitySuffix.question) {
-        var P0 = _typeSystemOperations
-            .withNullabilitySuffix(SharedTypeView(P), NullabilitySuffix.none)
-            .unwrapTypeView();
-        if (trySubtypeMatch(P0, Q0, leftSchema,
-            nodeForTesting: nodeForTesting)) {
-          return true;
-        }
-      }
-
-      // Or if `P` is `dynamic` or `void` and `Object` is a subtype match
-      // for `Q0` under constraint set `C`.
-      if (P is SharedDynamicTypeStructure || P is SharedVoidTypeStructure) {
-        if (trySubtypeMatch(_typeSystem.objectNone, Q0, leftSchema,
-            nodeForTesting: nodeForTesting)) {
-          return true;
-        }
-      }
-
-      // Or if `P` is a subtype match for `Q0` under non-empty
-      // constraint set `C`.
-      var P_matches_Q0 =
-          trySubtypeMatch(P, Q0, leftSchema, nodeForTesting: nodeForTesting);
-      if (P_matches_Q0 && _constraints.length != rewind) {
-        return true;
-      }
-
-      // Or if `P` is a subtype match for `Null` under constraint set `C`.
-      if (trySubtypeMatch(P, _typeSystem.nullNone, leftSchema,
-          nodeForTesting: nodeForTesting)) {
-        return true;
-      }
-
-      // Or if `P` is a subtype match for `Q0` under empty
-      // constraint set `C`.
-      if (P_matches_Q0) {
-        return true;
-      }
+    if (performSubtypeConstraintGenerationForRightNullableType(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
+      return true;
     }
 
     // If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
@@ -285,21 +241,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
 
     // If `P` is `P0?` the match holds under constraint set `C1 + C2`:
-    if (P_nullability == NullabilitySuffix.question) {
-      var P0 = _typeSystemOperations
-          .withNullabilitySuffix(SharedTypeView(P), NullabilitySuffix.none)
-          .unwrapTypeView();
-      var rewind = _constraints.length;
-
-      // If `P0` is a subtype match for `Q` under constraint set `C1`.
-      // And if `Null` is a subtype match for `Q` under constraint set `C2`.
-      if (trySubtypeMatch(P0, Q, leftSchema, nodeForTesting: nodeForTesting) &&
-          trySubtypeMatch(_typeSystem.nullNone, Q, leftSchema,
-              nodeForTesting: nodeForTesting)) {
-        return true;
-      }
-
-      _constraints.length = rewind;
+    if (performSubtypeConstraintGenerationForLeftNullableType(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
+      return true;
     }
 
     // If `Q` is `dynamic`, `Object?`, or `void` then the match holds under

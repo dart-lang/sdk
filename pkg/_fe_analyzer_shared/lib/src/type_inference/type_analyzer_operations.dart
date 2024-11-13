@@ -1233,6 +1233,117 @@ abstract class TypeConstraintGenerator<
     }
   }
 
+  /// Matches [p] against [q] as a subtype against supertype.
+  ///
+  /// - If [p] is `p0?` for some `p0` and [p] is a subtype of [q] under some
+  ///   constraints, the constraints making the relation possible are recorded,
+  ///   and `true` is returned.
+  /// - Otherwise, the constraint state is unchanged (or rolled back using
+  ///   [restoreState]), and `false` is returned.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  bool performSubtypeConstraintGenerationForLeftNullableType(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    // If `P` is `P0?` the match holds under constraint set `C1 + C2`:
+    NullabilitySuffix pNullability = p.nullabilitySuffix;
+    if (pNullability == NullabilitySuffix.question) {
+      TypeStructure p0 = typeAnalyzerOperations
+          .withNullabilitySuffix(new SharedTypeView(p), NullabilitySuffix.none)
+          .unwrapTypeView();
+      final TypeConstraintGeneratorState state = currentState;
+
+      // If `P0` is a subtype match for `Q` under constraint set `C1`.
+      // And if `Null` is a subtype match for `Q` under constraint set `C2`.
+      if (performSubtypeConstraintGenerationInternal(p0, q,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting) &&
+          performSubtypeConstraintGenerationInternal(
+              typeAnalyzerOperations.nullType.unwrapTypeView(), q,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return true;
+      }
+
+      restoreState(state);
+    }
+
+    return false;
+  }
+
+  /// Matches [p] against [q] as a subtype against supertype.
+  ///
+  /// - If [q] is `q0?` for some `q0` and [p] is a subtype of [q] under some
+  ///   constraints, the constraints making the relation possible are recorded,
+  ///   and `true` is returned.
+  /// - Otherwise, the constraint state is unchanged (or rolled back using
+  ///   [restoreState]), and `false` is returned.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  bool performSubtypeConstraintGenerationForRightNullableType(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    // If `Q` is `Q0?` the match holds under constraint set `C`:
+    NullabilitySuffix qNullability = q.nullabilitySuffix;
+    if (qNullability == NullabilitySuffix.question) {
+      TypeStructure q0 = typeAnalyzerOperations
+          .withNullabilitySuffix(new SharedTypeView(q), NullabilitySuffix.none)
+          .unwrapTypeView();
+      final TypeConstraintGeneratorState state = currentState;
+
+      // If `P` is `P0?` and `P0` is a subtype match for `Q0` under
+      // constraint set `C`.
+      NullabilitySuffix pNullability = p.nullabilitySuffix;
+      if (pNullability == NullabilitySuffix.question) {
+        TypeStructure p0 = typeAnalyzerOperations
+            .withNullabilitySuffix(
+                new SharedTypeView(p), NullabilitySuffix.none)
+            .unwrapTypeView();
+        if (performSubtypeConstraintGenerationInternal(p0, q0,
+            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+          return true;
+        }
+      }
+
+      // Or if `P` is `dynamic` or `void` and `Object` is a subtype match
+      // for `Q0` under constraint set `C`.
+      if (p is SharedDynamicTypeStructure || p is SharedVoidTypeStructure) {
+        if (performSubtypeConstraintGenerationInternal(
+            typeAnalyzerOperations.objectType.unwrapTypeView(), q0,
+            leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+          return true;
+        }
+      }
+
+      // Or if `P` is a subtype match for `Q0` under non-empty
+      // constraint set `C`.
+      bool pMatchesQ0 = performSubtypeConstraintGenerationInternal(p, q0,
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
+      if (pMatchesQ0 && state != currentState) {
+        return true;
+      }
+
+      // Or if `P` is a subtype match for `Null` under constraint set `C`.
+      if (performSubtypeConstraintGenerationInternal(
+          p, typeAnalyzerOperations.nullType.unwrapTypeView(),
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return true;
+      }
+
+      // Or if `P` is a subtype match for `Q0` under empty
+      // constraint set `C`.
+      if (pMatchesQ0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// Implementation backing [performSubtypeConstraintGenerationLeftSchema] and
   /// [performSubtypeConstraintGenerationRightSchema].
   ///
