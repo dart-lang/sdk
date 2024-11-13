@@ -1,7 +1,6 @@
 lib/src/ast.dart
 lib/src/extensions.dart
 lib/src/rules/avoid_setters_without_getters.dart
-lib/src/rules/avoid_void_async.dart
 lib/src/rules/deprecated_member_use_from_same_package.dart
 lib/src/rules/invalid_runtime_check_with_js_interop_types.dart
 lib/src/rules/prefer_asserts_in_initializer_lists.dart

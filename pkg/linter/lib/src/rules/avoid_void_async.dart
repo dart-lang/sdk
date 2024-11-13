@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -40,8 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.name.lexeme == 'main' && node.parent is CompilationUnit) return;
     _check(
-      declaredElement: node.declaredElement,
-      returnType: node.returnType,
+      fragment: node.declaredFragment,
       errorNode: node.name,
     );
   }
@@ -49,22 +48,19 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _check(
-      declaredElement: node.declaredElement,
-      returnType: node.returnType,
+      fragment: node.declaredFragment,
       errorNode: node.name,
     );
   }
 
   void _check({
-    required ExecutableElement? declaredElement,
-    required TypeAnnotation? returnType,
+    required ExecutableFragment? fragment,
     required Token errorNode,
   }) {
-    if (declaredElement == null) return;
-    if (declaredElement.isGenerator) return;
-    if (!declaredElement.isAsynchronous) return;
-    if (returnType == null) return;
-    if (returnType.type is VoidType) {
+    if (fragment == null) return;
+    if (fragment.isGenerator) return;
+    if (!fragment.isAsynchronous) return;
+    if (fragment.element.returnType is VoidType) {
       rule.reportLintForToken(errorNode);
     }
   }
