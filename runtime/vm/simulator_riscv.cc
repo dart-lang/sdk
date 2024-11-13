@@ -2646,6 +2646,33 @@ static float rv_fmaxf(float x, float y) {
   return fmaxf(x, y);
 }
 
+// "The FMINM.S and FMAXM.S instructions are defined like the FMIN.S and FMAX.S
+//  instructions, except that if either input is NaN, the result is the
+//  canonical NaN."
+static double rv_fminm(double x, double y) {
+  if (isnan(x) || isnan(y)) return std::numeric_limits<double>::quiet_NaN();
+  if (x == y) return signbit(x) ? x : y;
+  return fmin(x, y);
+}
+
+static double rv_fmaxm(double x, double y) {
+  if (isnan(x) || isnan(y)) return std::numeric_limits<double>::quiet_NaN();
+  if (x == y) return signbit(x) ? y : x;
+  return fmax(x, y);
+}
+
+static float rv_fminmf(float x, float y) {
+  if (isnan(x) || isnan(y)) return std::numeric_limits<float>::quiet_NaN();
+  if (x == y) return signbit(x) ? x : y;
+  return fminf(x, y);
+}
+
+static float rv_fmaxmf(float x, float y) {
+  if (isnan(x) || isnan(y)) return std::numeric_limits<float>::quiet_NaN();
+  if (x == y) return signbit(x) ? y : x;
+  return fmaxf(x, y);
+}
+
 static bool is_quiet(float x) {
   // Warning: This is true on Intel/ARM, but not everywhere.
   return (bit_cast<uint32_t>(x) & (static_cast<uint32_t>(1) << 22)) != 0;
@@ -2729,6 +2756,13 @@ static double roundeven(double x) {
 }
 
 static float Round(float x, RoundingMode rounding) {
+  switch (fpclassify(x)) {
+    case FP_INFINITE:
+    case FP_ZERO:
+      return x;
+    case FP_NAN:
+      return std::numeric_limits<float>::quiet_NaN();
+  }
   switch (rounding) {
     case RNE:  // Round to Nearest, ties to Even
       return roundevenf(x);
@@ -2748,6 +2782,13 @@ static float Round(float x, RoundingMode rounding) {
 }
 
 static double Round(double x, RoundingMode rounding) {
+  switch (fpclassify(x)) {
+    case FP_INFINITE:
+    case FP_ZERO:
+      return x;
+    case FP_NAN:
+      return std::numeric_limits<double>::quiet_NaN();
+  }
   switch (rounding) {
     case RNE:  // Round to Nearest, ties to Even
       return roundeven(x);
@@ -2816,6 +2857,34 @@ static int32_t fcvtwd(double x, RoundingMode rounding) {
     return static_cast<int32_t>(Round(x, rounding));
   }
   return kMaxInt32;  // Positive infinity, NaN.
+}
+
+static int32_t fcvtmodwd(double x, RoundingMode rounding) {
+  ASSERT(rounding == RTZ);
+  switch (fpclassify(x)) {
+    case FP_INFINITE:
+    case FP_NAN:
+    case FP_ZERO:
+    case FP_SUBNORMAL:
+      return 0;
+  }
+  int biased_exp = (bit_cast<uint64_t>(x) & 0x7FF0000000000000) >> 52;
+  int exponent = biased_exp - 0x3FF - 52;
+  int64_t significand = bit_cast<uint64_t>(x) & 0x000FFFFFFFFFFFFF;
+  significand += 0x0010000000000000;
+  if (x < 0) {
+    significand = -significand;
+  }
+  if (exponent >= 0) {
+    if (exponent >= 64) {
+      return 0;
+    }
+    return significand << exponent;
+  }
+  if (exponent <= -64) {
+    return significand >> 63;
+  }
+  return significand >> -exponent;
 }
 
 static uint32_t fcvtwud(double x, RoundingMode rounding) {
@@ -2912,6 +2981,12 @@ void Simulator::InterpretOPFP(Instr instr) {
         case FMAX:
           set_fregs(instr.frd(), rv_fmaxf(rs1, rs2));
           break;
+        case FMINM:
+          set_fregs(instr.frd(), rv_fminmf(rs1, rs2));
+          break;
+        case FMAXM:
+          set_fregs(instr.frd(), rv_fmaxmf(rs1, rs2));
+          break;
         default:
           IllegalInstruction(instr);
       }
@@ -2925,9 +3000,11 @@ void Simulator::InterpretOPFP(Instr instr) {
           set_xreg(instr.rd(), rs1 == rs2 ? 1 : 0);
           break;
         case FLT:
+        case FLTQ:
           set_xreg(instr.rd(), rs1 < rs2 ? 1 : 0);
           break;
         case FLE:
+        case FLEQ:
           set_xreg(instr.rd(), rs1 <= rs2 ? 1 : 0);
           break;
         default:
@@ -2944,7 +3021,7 @@ void Simulator::InterpretOPFP(Instr instr) {
         case 0:
           // fmv.x.s
           set_xreg(instr.rd(),
-                   sign_extend(bit_cast<int32_t>(get_fregs(instr.frs1()))));
+                   sign_extend(bit_cast<int32_t>(get_fregs_raw(instr.frs1()))));
           break;
         default:
           IllegalInstruction(instr);
@@ -3003,8 +3080,18 @@ void Simulator::InterpretOPFP(Instr instr) {
       }
       break;
     case FMVWX:
-      set_fregs(instr.frd(),
-                bit_cast<float>(static_cast<int32_t>(get_xreg(instr.rs1()))));
+      switch (static_cast<int>(instr.frs2())) {
+        case 0:
+          set_fregs(
+              instr.frd(),
+              bit_cast<float>(static_cast<int32_t>(get_xreg(instr.rs1()))));
+          break;
+        case 1:
+          set_fregs(instr.frd(), bit_cast<float>(kFlisConstants[instr.rs1()]));
+          break;
+        default:
+          IllegalInstruction(instr);
+      }
       break;
     case FADDD: {
       double rs1 = get_fregd(instr.frs1());
@@ -3066,15 +3153,26 @@ void Simulator::InterpretOPFP(Instr instr) {
         case FMAX:
           set_fregd(instr.frd(), rv_fmax(rs1, rs2));
           break;
+        case FMINM:
+          set_fregd(instr.frd(), rv_fminm(rs1, rs2));
+          break;
+        case FMAXM:
+          set_fregd(instr.frd(), rv_fmaxm(rs1, rs2));
+          break;
         default:
           IllegalInstruction(instr);
       }
       break;
     }
     case FCVTS: {
-      switch (static_cast<FcvtRs2>(instr.rs2())) {
+      switch (static_cast<int>(instr.rs2())) {
         case 1:
           set_fregs(instr.frd(), static_cast<float>(get_fregd(instr.frs1())));
+          break;
+        case 4:
+        case 5:
+          set_fregs(instr.frd(),
+                    Round(get_fregs(instr.frs1()), instr.rounding()));
           break;
         default:
           IllegalInstruction(instr);
@@ -3082,9 +3180,14 @@ void Simulator::InterpretOPFP(Instr instr) {
       break;
     }
     case FCVTD: {
-      switch (static_cast<FcvtRs2>(instr.rs2())) {
+      switch (static_cast<int>(instr.rs2())) {
         case 0:
           set_fregd(instr.frd(), static_cast<double>(get_fregs(instr.frs1())));
+          break;
+        case 4:
+        case 5:
+          set_fregd(instr.frd(),
+                    Round(get_fregd(instr.frs1()), instr.rounding()));
           break;
         default:
           IllegalInstruction(instr);
@@ -3100,9 +3203,11 @@ void Simulator::InterpretOPFP(Instr instr) {
           set_xreg(instr.rd(), rs1 == rs2 ? 1 : 0);
           break;
         case FLT:
+        case FLTQ:
           set_xreg(instr.rd(), rs1 < rs2 ? 1 : 0);
           break;
         case FLE:
+        case FLEQ:
           set_xreg(instr.rd(), rs1 <= rs2 ? 1 : 0);
           break;
         default:
@@ -3116,21 +3221,38 @@ void Simulator::InterpretOPFP(Instr instr) {
           // fclass.d
           set_xreg(instr.rd(), fclass(get_fregd(instr.frs1())));
           break;
-#if XLEN >= 64
         case 0:
-          // fmv.x.d
-          set_xreg(instr.rd(), bit_cast<int64_t>(get_fregd(instr.frs1())));
-          break;
+          switch (static_cast<int>(instr.rs2())) {
+#if XLEN >= 64
+            case 0:
+              // fmv.x.d
+              set_xreg(instr.rd(), bit_cast<int64_t>(get_fregd(instr.frs1())));
+              break;
 #endif  // XLEN >= 64
+#if XLEN == 32
+            case 1:
+              // fmvh.x.d
+              set_xreg(instr.rd(),
+                       bit_cast<uint64_t>(get_fregd(instr.frs1())) >> 32);
+              break;
+#endif  // XLEN == 32
+            default:
+              IllegalInstruction(instr);
+          }
+          break;
         default:
           IllegalInstruction(instr);
       }
       break;
     case FCVTintD:
-      switch (static_cast<FcvtRs2>(instr.rs2())) {
+      switch (static_cast<int>(instr.rs2())) {
         case W:
           set_xreg(instr.rd(), sign_extend(fcvtwd(get_fregd(instr.frs1()),
                                                   instr.rounding())));
+          break;
+        case 8:
+          set_xreg(instr.rd(), sign_extend(fcvtmodwd(get_fregd(instr.frs1()),
+                                                     instr.rounding())));
           break;
         case WU:
           set_xreg(instr.rd(), sign_extend(fcvtwud(get_fregd(instr.frs1()),
@@ -3176,11 +3298,28 @@ void Simulator::InterpretOPFP(Instr instr) {
           IllegalInstruction(instr);
       }
       break;
-#if XLEN >= 64
     case FMVDX:
-      set_fregd(instr.frd(), bit_cast<double>(get_xreg(instr.rs1())));
-      break;
+      switch (static_cast<int>(instr.frs2())) {
+#if XLEN >= 64
+        case 0:
+          set_fregd(instr.frd(), bit_cast<double>(get_xreg(instr.rs1())));
+          break;
 #endif  // XLEN >= 64
+        case 1:
+          set_fregd(instr.frd(), bit_cast<double>(kFlidConstants[instr.rs1()]));
+          break;
+        default:
+          IllegalInstruction(instr);
+      }
+      break;
+#if XLEN == 32
+    case FMVPDX: {
+      uint64_t hi = static_cast<uint32_t>(get_xreg(instr.rs2()));
+      uint64_t lo = static_cast<uint32_t>(get_xreg(instr.rs1()));
+      set_fregd(instr.frd(), bit_cast<double>((hi << 32) | lo));
+      break;
+    }
+#endif
     default:
       IllegalInstruction(instr);
   }

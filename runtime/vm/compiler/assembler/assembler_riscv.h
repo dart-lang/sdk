@@ -687,6 +687,27 @@ class MicroAssembler : public AssemblerBase {
                 Address addr,
                 std::memory_order order = std::memory_order_relaxed);
 
+  // ==== Zfa: Additional floating-point instructions ====
+  void flis(FRegister rd, intptr_t index);
+  void flid(FRegister rd, intptr_t index);
+  void fminms(FRegister rd, FRegister rs1, FRegister rs2);
+  void fmaxms(FRegister rd, FRegister rs1, FRegister rs2);
+  void fminmd(FRegister rd, FRegister rs1, FRegister rs2);
+  void fmaxmd(FRegister rd, FRegister rs1, FRegister rs2);
+  void frounds(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
+  void froundd(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
+  void froundnxs(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
+  void froundnxd(FRegister rd, FRegister rs1, RoundingMode rounding = RNE);
+  void fcvtmodwd(Register rd, FRegister rs1);
+#if XLEN == 32
+  void fmvhxd(Register rd, FRegister rs1);
+  void fmvpdx(FRegister rd, Register rs1, Register rs2);
+#endif
+  void fltqs(Register rd, FRegister rs1, FRegister rs2);
+  void fleqs(Register rd, FRegister rs1, FRegister rs2);
+  void fltqd(Register rd, FRegister rs1, FRegister rs2);
+  void fleqd(Register rd, FRegister rs1, FRegister rs2);
+
   // ==== Zalasr: Load-acquire, store-release ====
   void lb(Register rd, Address addr, std::memory_order order);
   void lh(Register rd, Address addr, std::memory_order order);
@@ -830,13 +851,13 @@ class MicroAssembler : public AssemblerBase {
                  FRegister rd,
                  Opcode opcode);
   void EmitRType(Funct7 funct7,
-                 FRegister rs2,
+                 Register rs2,
                  Register rs1,
                  RoundingMode round,
                  FRegister rd,
                  Opcode opcode);
   void EmitRType(Funct7 funct7,
-                 FRegister rs2,
+                 Register rs2,
                  Register rs1,
                  Funct3 funct3,
                  FRegister rd,

@@ -4371,6 +4371,15 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kSQUARE:
         __ fmuld(result, value, value);
         break;
+      case Token::kTRUNCATE:
+        __ froundd(result, value, RTZ);
+        break;
+      case Token::kFLOOR:
+        __ froundd(result, value, RDN);
+        break;
+      case Token::kCEILING:
+        __ froundd(result, value, RUP);
+        break;
       default:
         UNREACHABLE();
     }
@@ -4399,6 +4408,15 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       case Token::kSQUARE:
         __ fmuls(result, value, value);
+        break;
+      case Token::kTRUNCATE:
+        __ frounds(result, value, RTZ);
+        break;
+      case Token::kFLOOR:
+        __ frounds(result, value, RDN);
+        break;
+      case Token::kCEILING:
+        __ frounds(result, value, RUP);
         break;
       default:
         UNREACHABLE();

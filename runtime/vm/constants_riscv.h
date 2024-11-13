@@ -822,9 +822,13 @@ enum Funct3 {
   JX = 0b010,
   FMIN = 0b000,
   FMAX = 0b001,
+  FMINM = 0b010,
+  FMAXM = 0b011,
   FEQ = 0b010,
   FLT = 0b001,
   FLE = 0b000,
+  FLTQ = 0b101,
+  FLEQ = 0b100,
 
   SH1ADD = 0b010,
   SH2ADD = 0b100,
@@ -890,6 +894,8 @@ enum Funct7 {
   FCVTDint = 0b1101001,
   FMVXD = 0b1110001,
   FMVDX = 0b1111001,
+  FMVHXD = 0b1110001,
+  FMVPDX = 0b1011001,
 
   ADDUW = 0b0000100,
   SHADD = 0b0010000,
@@ -966,6 +972,76 @@ enum HartEffects {
 
 const intptr_t kReleaseShift = 25;
 const intptr_t kAcquireShift = 26;
+
+constexpr uint32_t kFlisConstants[32] = {
+    0xbf800000,  // -1.0
+    0x00800000,  // min positive normal
+    0x37800000,  // 2^-16
+    0x38000000,  // 2^-15
+    0x3b800000,  // 2^-8
+    0x3c000000,  // 2^-7
+    0x3d800000,  // 0.0625
+    0x3e000000,  // 0.125
+    0x3e800000,  // 0.25
+    0x3ea00000,  // 0.3125
+    0x3ec00000,  // 0.375
+    0x3ee00000,  // 0.4375
+    0x3f000000,  // 0.5
+    0x3f200000,  // 0.625
+    0x3f400000,  // 0.75
+    0x3f600000,  // 0.875
+    0x3f800000,  // 1.0
+    0x3fa00000,  // 1.25
+    0x3fc00000,  // 1.5
+    0x3fe00000,  // 1.75
+    0x40000000,  // 2.0
+    0x40200000,  // 2.5
+    0x40400000,  // 3
+    0x40800000,  // 4
+    0x41000000,  // 8
+    0x41800000,  // 16
+    0x43000000,  // 2^7
+    0x43800000,  // 2^8
+    0x47000000,  // 2^15
+    0x47800000,  // 2^16
+    0x7f800000,  // positive infinity
+    0x7fc00000,  // canonical NaN
+};
+
+constexpr uint64_t kFlidConstants[32] = {
+    0xbff0000000000000,  // -1.0
+    0x0010000000000000,  // min positive normal
+    0x3ef0000000000000,  // 2^-16
+    0x3f00000000000000,  // 2^-15
+    0x3f70000000000000,  // 2^-8
+    0x3f80000000000000,  // 2^7
+    0x3fb0000000000000,  // 0.0625
+    0x3fc0000000000000,  // 0.125
+    0x3fd0000000000000,  // 0.25
+    0x3fd4000000000000,  // 0.3125
+    0x3fd8000000000000,  // 0.375
+    0x3fdc000000000000,  // 0.4375
+    0x3fe0000000000000,  // 0.5
+    0x3fe4000000000000,  // 0.625
+    0x3fe8000000000000,  // 0.75
+    0x3fec000000000000,  // 0.875
+    0x3ff0000000000000,  // 1.0
+    0x3ff4000000000000,  // 1.25
+    0x3ff8000000000000,  // 1.5
+    0x3ffc000000000000,  // 1.75
+    0x4000000000000000,  // 2.0
+    0x4004000000000000,  // 2.5
+    0x4008000000000000,  // 3
+    0x4010000000000000,  // 4
+    0x4020000000000000,  // 8
+    0x4030000000000000,  // 16
+    0x4060000000000000,  // 2^7
+    0x4070000000000000,  // 2^8
+    0x40e0000000000000,  // 2^15
+    0x40f0000000000000,  // 2^16
+    0x7ff0000000000000,  // positive infinity
+    0x7ff8000000000000,  // canonical NaN
+};
 
 #define DEFINE_REG_ENCODING(type, name, shift)                                 \
   inline bool Is##name(type r) {                                               \
@@ -1689,7 +1765,8 @@ static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
 static constexpr Extension RV_Zicond(10);  // Integer conditional operations
 static constexpr Extension RV_Zcb(11);     // More compressed instructions
 static constexpr Extension RV_Zabha(12);   // Byte and halfword AMOs
-static constexpr Extension RV_Zalasr(13);  // Load-acquire, store-release
+static constexpr Extension RV_Zfa(13);     // Additional floating-point
+static constexpr Extension RV_Zalasr(14);  // Load-acquire, store-release
 
 #if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
 static constexpr ExtensionSet RV_baseline = RV_GCB;

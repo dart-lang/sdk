@@ -1175,14 +1175,14 @@ void MicroAssembler::fcvtwus(Register rd,
 
 void MicroAssembler::fcvtsw(FRegister rd, Register rs1, RoundingMode rounding) {
   ASSERT(Supports(RV_F));
-  EmitRType(FCVTSint, FRegister(W), rs1, rounding, rd, OPFP);
+  EmitRType(FCVTSint, Register(W), rs1, rounding, rd, OPFP);
 }
 
 void MicroAssembler::fcvtswu(FRegister rd,
                              Register rs1,
                              RoundingMode rounding) {
   ASSERT(Supports(RV_F));
-  EmitRType(FCVTSint, FRegister(WU), rs1, rounding, rd, OPFP);
+  EmitRType(FCVTSint, Register(WU), rs1, rounding, rd, OPFP);
 }
 
 void MicroAssembler::fmvxw(Register rd, FRegister rs1) {
@@ -1192,7 +1192,7 @@ void MicroAssembler::fmvxw(Register rd, FRegister rs1) {
 
 void MicroAssembler::fmvwx(FRegister rd, Register rs1) {
   ASSERT(Supports(RV_F));
-  EmitRType(FMVWX, FRegister(0), rs1, F3_0, rd, OPFP);
+  EmitRType(FMVWX, Register(0), rs1, F3_0, rd, OPFP);
 }
 
 #if XLEN >= 64
@@ -1210,14 +1210,14 @@ void MicroAssembler::fcvtlus(Register rd,
 
 void MicroAssembler::fcvtsl(FRegister rd, Register rs1, RoundingMode rounding) {
   ASSERT(Supports(RV_F));
-  EmitRType(FCVTSint, FRegister(L), rs1, rounding, rd, OPFP);
+  EmitRType(FCVTSint, Register(L), rs1, rounding, rd, OPFP);
 }
 
 void MicroAssembler::fcvtslu(FRegister rd,
                              Register rs1,
                              RoundingMode rounding) {
   ASSERT(Supports(RV_F));
-  EmitRType(FCVTSint, FRegister(LU), rs1, rounding, rd, OPFP);
+  EmitRType(FCVTSint, Register(LU), rs1, rounding, rd, OPFP);
 }
 #endif  // XLEN >= 64
 
@@ -1399,14 +1399,14 @@ void MicroAssembler::fcvtwud(Register rd,
 
 void MicroAssembler::fcvtdw(FRegister rd, Register rs1, RoundingMode rounding) {
   ASSERT(Supports(RV_D));
-  EmitRType(FCVTDint, FRegister(W), rs1, rounding, rd, OPFP);
+  EmitRType(FCVTDint, Register(W), rs1, rounding, rd, OPFP);
 }
 
 void MicroAssembler::fcvtdwu(FRegister rd,
                              Register rs1,
                              RoundingMode rounding) {
   ASSERT(Supports(RV_D));
-  EmitRType(FCVTDint, FRegister(WU), rs1, rounding, rd, OPFP);
+  EmitRType(FCVTDint, Register(WU), rs1, rounding, rd, OPFP);
 }
 
 #if XLEN >= 64
@@ -1429,19 +1429,19 @@ void MicroAssembler::fmvxd(Register rd, FRegister rs1) {
 
 void MicroAssembler::fcvtdl(FRegister rd, Register rs1, RoundingMode rounding) {
   ASSERT(Supports(RV_D));
-  EmitRType(FCVTDint, FRegister(L), rs1, rounding, rd, OPFP);
+  EmitRType(FCVTDint, Register(L), rs1, rounding, rd, OPFP);
 }
 
 void MicroAssembler::fcvtdlu(FRegister rd,
                              Register rs1,
                              RoundingMode rounding) {
   ASSERT(Supports(RV_D));
-  EmitRType(FCVTDint, FRegister(LU), rs1, rounding, rd, OPFP);
+  EmitRType(FCVTDint, Register(LU), rs1, rounding, rd, OPFP);
 }
 
 void MicroAssembler::fmvdx(FRegister rd, Register rs1) {
   ASSERT(Supports(RV_D));
-  EmitRType(FMVDX, FRegister(0), rs1, F3_0, rd, OPFP);
+  EmitRType(FMVDX, Register(0), rs1, F3_0, rd, OPFP);
 }
 #endif  // XLEN >= 64
 
@@ -1871,6 +1871,102 @@ void MicroAssembler::amomaxuh(Register rd,
   ASSERT(addr.offset() == 0);
   ASSERT(Supports(RV_Zabha));
   EmitRType(AMOMAXU, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::flis(FRegister rd, intptr_t index) {
+  ASSERT((index >= 0) && (index < 32));
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FMVWX, FRegister(1), FRegister(index), F3_0, rd, OPFP);
+}
+
+void MicroAssembler::flid(FRegister rd, intptr_t index) {
+  ASSERT((index >= 0) && (index < 32));
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FMVDX, FRegister(1), FRegister(index), F3_0, rd, OPFP);
+}
+
+void MicroAssembler::fminms(FRegister rd, FRegister rs1, FRegister rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FMINMAXS, rs2, rs1, FMINM, rd, OPFP);
+}
+void MicroAssembler::fmaxms(FRegister rd, FRegister rs1, FRegister rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FMINMAXS, rs2, rs1, FMAXM, rd, OPFP);
+}
+
+void MicroAssembler::fminmd(FRegister rd, FRegister rs1, FRegister rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FMINMAXD, rs2, rs1, FMINM, rd, OPFP);
+}
+
+void MicroAssembler::fmaxmd(FRegister rd, FRegister rs1, FRegister rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FMINMAXD, rs2, rs1, FMAXM, rd, OPFP);
+}
+
+void MicroAssembler::frounds(FRegister rd,
+                             FRegister rs1,
+                             RoundingMode rounding) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCVTS, FRegister(4), rs1, rounding, rd, OPFP);
+}
+
+void MicroAssembler::froundnxs(FRegister rd,
+                               FRegister rs1,
+                               RoundingMode rounding) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCVTS, FRegister(5), rs1, rounding, rd, OPFP);
+}
+
+void MicroAssembler::froundd(FRegister rd,
+                             FRegister rs1,
+                             RoundingMode rounding) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCVTD, FRegister(4), rs1, rounding, rd, OPFP);
+}
+
+void MicroAssembler::froundnxd(FRegister rd,
+                               FRegister rs1,
+                               RoundingMode rounding) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCVTD, FRegister(5), rs1, rounding, rd, OPFP);
+}
+
+void MicroAssembler::fcvtmodwd(Register rd, FRegister rs1) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCVTintD, FRegister(8), rs1, RTZ, rd, OPFP);
+}
+
+#if XLEN == 32
+void MicroAssembler::fmvhxd(Register rd, FRegister rs1) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FMVHXD, FRegister(1), rs1, F3_0, rd, OPFP);
+}
+
+void MicroAssembler::fmvpdx(FRegister rd, Register rs1, Register rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FMVPDX, rs2, rs1, F3_0, rd, OPFP);
+}
+#endif  // XLEN == 32
+
+void MicroAssembler::fltqs(Register rd, FRegister rs1, FRegister rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCMPS, rs2, rs1, FLTQ, rd, OPFP);
+}
+
+void MicroAssembler::fleqs(Register rd, FRegister rs1, FRegister rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCMPS, rs2, rs1, FLEQ, rd, OPFP);
+}
+
+void MicroAssembler::fltqd(Register rd, FRegister rs1, FRegister rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCMPD, rs2, rs1, FLTQ, rd, OPFP);
+}
+
+void MicroAssembler::fleqd(Register rd, FRegister rs1, FRegister rs2) {
+  ASSERT(Supports(RV_Zfa));
+  EmitRType(FCMPD, rs2, rs1, FLEQ, rd, OPFP);
 }
 
 void MicroAssembler::lb(Register rd, Address addr, std::memory_order order) {
@@ -2554,14 +2650,14 @@ void MicroAssembler::EmitRType(Funct7 funct7,
 }
 
 void MicroAssembler::EmitRType(Funct7 funct7,
-                               FRegister rs2,
+                               Register rs2,
                                Register rs1,
                                RoundingMode round,
                                FRegister rd,
                                Opcode opcode) {
   uint32_t e = 0;
   e |= EncodeFunct7(funct7);
-  e |= EncodeFRs2(rs2);
+  e |= EncodeRs2(rs2);
   e |= EncodeRs1(rs1);
   e |= EncodeRoundingMode(round);
   e |= EncodeFRd(rd);
@@ -2570,14 +2666,14 @@ void MicroAssembler::EmitRType(Funct7 funct7,
 }
 
 void MicroAssembler::EmitRType(Funct7 funct7,
-                               FRegister rs2,
+                               Register rs2,
                                Register rs1,
                                Funct3 funct3,
                                FRegister rd,
                                Opcode opcode) {
   uint32_t e = 0;
   e |= EncodeFunct7(funct7);
-  e |= EncodeFRs2(rs2);
+  e |= EncodeRs2(rs2);
   e |= EncodeRs1(rs1);
   e |= EncodeFunct3(funct3);
   e |= EncodeFRd(rd);
@@ -4074,10 +4170,19 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
 }
 
 void Assembler::LoadSImmediate(FRegister reg, float imms) {
-  int32_t imm = bit_cast<int32_t, float>(imms);
+  uint32_t imm = bit_cast<uint32_t, float>(imms);
   if (imm == 0) {
     fmvwx(reg, ZR);  // bit_cast uint32_t -> float
   } else {
+    if (Supports(RV_Zfa)) {
+      for (intptr_t i = 0; i < 32; i++) {
+        if (kFlisConstants[i] == imm) {
+          flis(reg, i);
+          return;
+        }
+      }
+    }
+
     ASSERT(constant_pool_allowed());
     intptr_t index = object_pool_builder().FindImmediate(imm);
     intptr_t offset = target::ObjectPool::element_offset(index);
@@ -4086,7 +4191,7 @@ void Assembler::LoadSImmediate(FRegister reg, float imms) {
 }
 
 void Assembler::LoadDImmediate(FRegister reg, double immd) {
-  int64_t imm = bit_cast<int64_t, double>(immd);
+  uint64_t imm = bit_cast<uint64_t, double>(immd);
   if (imm == 0) {
 #if XLEN >= 64
     fmvdx(reg, ZR);  // bit_cast uint64_t -> double
@@ -4094,6 +4199,15 @@ void Assembler::LoadDImmediate(FRegister reg, double immd) {
     fcvtdwu(reg, ZR);  // static_cast uint32_t -> double
 #endif
   } else {
+    if (Supports(RV_Zfa)) {
+      for (intptr_t i = 0; i < 32; i++) {
+        if (kFlidConstants[i] == imm) {
+          flid(reg, i);
+          return;
+        }
+      }
+    }
+
     ASSERT(constant_pool_allowed());
     intptr_t index = object_pool_builder().FindImmediate64(imm);
     intptr_t offset = target::ObjectPool::element_offset(index);

@@ -129,6 +129,16 @@ static double CallD(intx_t entry, intx_t arg0) {
   return reinterpret_cast<F>(entry)(arg0);
 #endif
 }
+#if XLEN == 32
+static double CallD(intx_t entry, int64_t arg0) {
+#if defined(USING_SIMULATOR)
+  return Simulator::Current()->CallD(entry, arg0);
+#else
+  typedef double (*F)(int64_t);
+  return reinterpret_cast<F>(entry)(arg0);
+#endif
+}
+#endif
 static double CallD(intx_t entry, intx_t arg0, double arg1) {
 #if defined(USING_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0, arg1);
@@ -185,6 +195,16 @@ static intx_t CallI(intx_t entry, double arg0, double arg1) {
   return reinterpret_cast<F>(entry)(arg0, arg1);
 #endif
 }
+#if XLEN == 32
+static int64_t CallI64(intx_t entry, double arg0, double arg1 = 0.0) {
+#if defined(USING_SIMULATOR)
+  return Simulator::Current()->CallI64(entry, arg0, arg1);
+#else
+  typedef int64_t (*F)(double, double);
+  return reinterpret_cast<F>(entry)(arg0, arg1);
+#endif
+}
+#endif
 
 ASSEMBLER_TEST_GENERATE(LoadUpperImmediate, assembler) {
   __ SetExtensions(RV_G);
@@ -7587,6 +7607,876 @@ ASSEMBLER_TEST_RUN(AmoMaxUnsignedHalfword, test) {
   EXPECT_EQ(-7, value);
   EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
   EXPECT_EQ(-4, value);
+}
+
+ASSEMBLER_TEST_GENERATE(FloatLoadImmediateSingle, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  for (intptr_t i = 0; i < 32; i++) {
+    __ flis(FRegister(i), i);
+  }
+}
+ASSEMBLER_TEST_RUN(FloatLoadImmediateSingle, test) {
+  EXPECT_DISASSEMBLY(
+      "f0100053 flis ft0, -1.000000\n"
+      "f01080d3 flis ft1, min\n"
+      "f0110153 flis ft2, 0.000015\n"
+      "f01181d3 flis ft3, 0.000031\n"
+      "f0120253 flis ft4, 0.003906\n"
+      "f01282d3 flis ft5, 0.007812\n"
+      "f0130353 flis ft6, 0.062500\n"
+      "f01383d3 flis ft7, 0.125000\n"
+      "f0140453 flis fs0, 0.250000\n"
+      "f01484d3 flis fs1, 0.312500\n"
+      "f0150553 flis fa0, 0.375000\n"
+      "f01585d3 flis fa1, 0.437500\n"
+      "f0160653 flis fa2, 0.500000\n"
+      "f01686d3 flis fa3, 0.625000\n"
+      "f0170753 flis fa4, 0.750000\n"
+      "f01787d3 flis fa5, 0.875000\n"
+      "f0180853 flis fa6, 1.000000\n"
+      "f01888d3 flis fa7, 1.250000\n"
+      "f0190953 flis fs2, 1.500000\n"
+      "f01989d3 flis fs3, 1.750000\n"
+      "f01a0a53 flis fs4, 2.000000\n"
+      "f01a8ad3 flis fs5, 2.500000\n"
+      "f01b0b53 flis fs6, 3.000000\n"
+      "f01b8bd3 flis fs7, 4.000000\n"
+      "f01c0c53 flis fs8, 8.000000\n"
+      "f01c8cd3 flis fs9, 16.000000\n"
+      "f01d0d53 flis fs10, 128.000000\n"
+      "f01d8dd3 flis fs11, 256.000000\n"
+      "f01e0e53 flis ft8, 32768.000000\n"
+      "f01e8ed3 flis ft9, 65536.000000\n"
+      "f01f0f53 flis ft10, inf\n"
+      "f01f8fd3 flis ft11, nan\n");
+}
+
+ASSEMBLER_TEST_GENERATE(FloatLoadImmediateDouble, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  for (intptr_t i = 0; i < 32; i++) {
+    __ flid(FRegister(i), i);
+  }
+}
+ASSEMBLER_TEST_RUN(FloatLoadImmediateDouble, test) {
+  EXPECT_DISASSEMBLY(
+      "f2100053 flid ft0, -1.000000\n"
+      "f21080d3 flid ft1, min\n"
+      "f2110153 flid ft2, 0.000015\n"
+      "f21181d3 flid ft3, 0.000031\n"
+      "f2120253 flid ft4, 0.003906\n"
+      "f21282d3 flid ft5, 0.007812\n"
+      "f2130353 flid ft6, 0.062500\n"
+      "f21383d3 flid ft7, 0.125000\n"
+      "f2140453 flid fs0, 0.250000\n"
+      "f21484d3 flid fs1, 0.312500\n"
+      "f2150553 flid fa0, 0.375000\n"
+      "f21585d3 flid fa1, 0.437500\n"
+      "f2160653 flid fa2, 0.500000\n"
+      "f21686d3 flid fa3, 0.625000\n"
+      "f2170753 flid fa4, 0.750000\n"
+      "f21787d3 flid fa5, 0.875000\n"
+      "f2180853 flid fa6, 1.000000\n"
+      "f21888d3 flid fa7, 1.250000\n"
+      "f2190953 flid fs2, 1.500000\n"
+      "f21989d3 flid fs3, 1.750000\n"
+      "f21a0a53 flid fs4, 2.000000\n"
+      "f21a8ad3 flid fs5, 2.500000\n"
+      "f21b0b53 flid fs6, 3.000000\n"
+      "f21b8bd3 flid fs7, 4.000000\n"
+      "f21c0c53 flid fs8, 8.000000\n"
+      "f21c8cd3 flid fs9, 16.000000\n"
+      "f21d0d53 flid fs10, 128.000000\n"
+      "f21d8dd3 flid fs11, 256.000000\n"
+      "f21e0e53 flid ft8, 32768.000000\n"
+      "f21e8ed3 flid ft9, 65536.000000\n"
+      "f21f0f53 flid ft10, inf\n"
+      "f21f8fd3 flid ft11, nan\n");
+}
+
+ASSEMBLER_TEST_GENERATE(SingleMinM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fminms(FA0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SingleMinM, test) {
+  EXPECT_DISASSEMBLY(
+      "28b52553 fminm.s fa0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(1.0f, CallF(test->entry(), 3.0f, 1.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, 3.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, 5.0f));
+  EXPECT_EQ(-1.0f, CallF(test->entry(), 3.0f, -1.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), 3.0f, -3.0f));
+  EXPECT_EQ(-5.0f, CallF(test->entry(), 3.0f, -5.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, 1.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, 3.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, 5.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -1.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -3.0f));
+  EXPECT_EQ(-5.0f, CallF(test->entry(), -3.0f, -5.0f));
+
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), 0.0f, -0.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f, 0.0f));
+
+  float qNAN = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), 3.0f, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, 3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), -3.0f, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, -3.0f));
+
+  float sNAN = std::numeric_limits<float>::signaling_NaN();
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), 3.0f, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, 3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), -3.0f, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, -3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, qNAN));
+}
+
+ASSEMBLER_TEST_GENERATE(SingleMaxM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fmaxms(FA0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SingleMaxM, test) {
+  EXPECT_DISASSEMBLY(
+      "28b53553 fmaxm.s fa0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, 1.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, 3.0f));
+  EXPECT_EQ(5.0f, CallF(test->entry(), 3.0f, 5.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, -1.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, -3.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, -5.0f));
+  EXPECT_EQ(1.0f, CallF(test->entry(), -3.0f, 1.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), -3.0f, 3.0f));
+  EXPECT_EQ(5.0f, CallF(test->entry(), -3.0f, 5.0f));
+  EXPECT_EQ(-1.0f, CallF(test->entry(), -3.0f, -1.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -3.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -5.0f));
+
+  EXPECT_BITEQ(0.0f, CallF(test->entry(), 0.0f, -0.0f));
+  EXPECT_BITEQ(0.0f, CallF(test->entry(), -0.0f, 0.0f));
+
+  float qNAN = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), 3.0f, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, 3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), -3.0f, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, -3.0f));
+
+  float sNAN = std::numeric_limits<float>::signaling_NaN();
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), 3.0f, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, 3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), -3.0f, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, -3.0f));
+
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, qNAN));
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleMinM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fminmd(FA0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(DoubleMinM, test) {
+  EXPECT_DISASSEMBLY(
+      "2ab52553 fminm.d fa0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(1.0, CallD(test->entry(), 3.0, 1.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, 3.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, 5.0));
+  EXPECT_EQ(-1.0, CallD(test->entry(), 3.0, -1.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), 3.0, -3.0));
+  EXPECT_EQ(-5.0, CallD(test->entry(), 3.0, -5.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, 1.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, 3.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, 5.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -1.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -3.0));
+  EXPECT_EQ(-5.0, CallD(test->entry(), -3.0, -5.0));
+
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), 0.0, -0.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0, 0.0));
+
+  double qNAN = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), 3.0, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, 3.0));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), -3.0, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, -3.0));
+
+  double sNAN = std::numeric_limits<double>::signaling_NaN();
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), 3.0, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, 3.0));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), -3.0, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, -3.0));
+
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, qNAN));
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleMaxM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fmaxmd(FA0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(DoubleMaxM, test) {
+  EXPECT_DISASSEMBLY(
+      "2ab53553 fmaxm.d fa0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, 1.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, 3.0));
+  EXPECT_EQ(5.0, CallD(test->entry(), 3.0, 5.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, -1.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, -3.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, -5.0));
+  EXPECT_EQ(1.0, CallD(test->entry(), -3.0, 1.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), -3.0, 3.0));
+  EXPECT_EQ(5.0, CallD(test->entry(), -3.0, 5.0));
+  EXPECT_EQ(-1.0, CallD(test->entry(), -3.0, -1.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -3.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -5.0));
+
+  EXPECT_BITEQ(0.0, CallD(test->entry(), 0.0, -0.0));
+  EXPECT_BITEQ(0.0, CallD(test->entry(), -0.0, 0.0));
+
+  double qNAN = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), 3.0, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, 3.0));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), -3.0, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, -3.0));
+
+  double sNAN = std::numeric_limits<double>::signaling_NaN();
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), 3.0, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, 3.0));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), -3.0, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, -3.0));
+
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, qNAN));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle, test) {
+  EXPECT_DISASSEMBLY(
+      "40450553 fround.s fa0, fa0\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle_RTZ, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0, RTZ);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle_RTZ, test) {
+  EXPECT_DISASSEMBLY(
+      "40451553 fround.s fa0, fa0, rtz\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle_RDN, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0, RDN);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle_RDN, test) {
+  EXPECT_DISASSEMBLY(
+      "40452553 fround.s fa0, fa0, rdn\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle_RUP, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0, RUP);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle_RUP, test) {
+  EXPECT_DISASSEMBLY(
+      "40453553 fround.s fa0, fa0, rup\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle_RMM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0, RMM);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle_RMM, test) {
+  EXPECT_DISASSEMBLY(
+      "40454553 fround.s fa0, fa0, rmm\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble, test) {
+  EXPECT_DISASSEMBLY(
+      "42450553 fround.d fa0, fa0\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble_RTZ, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0, RTZ);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble_RTZ, test) {
+  EXPECT_DISASSEMBLY(
+      "42451553 fround.d fa0, fa0, rtz\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble_RDN, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0, RDN);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble_RDN, test) {
+  EXPECT_DISASSEMBLY(
+      "42452553 fround.d fa0, fa0, rdn\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble_RUP, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0, RUP);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble_RUP, test) {
+  EXPECT_DISASSEMBLY(
+      "42453553 fround.d fa0, fa0, rup\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble_RMM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0, RMM);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble_RMM, test) {
+  EXPECT_DISASSEMBLY(
+      "42454553 fround.d fa0, fa0, rmm\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(ModularConvertDoubleToWord, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fcvtmodwd(A0, FA0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ModularConvertDoubleToWord, test) {
+  EXPECT_DISASSEMBLY(
+      "c2851553 fcvtmod.w.d a0, fa0, rtz\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-42, CallI(test->entry(), -42.0));
+  EXPECT_EQ(0, CallI(test->entry(), 0.0));
+  EXPECT_EQ(42, CallI(test->entry(), 42.0));
+  EXPECT_EQ(sign_extend(kMinInt32),
+            CallI(test->entry(), static_cast<double>(kMinInt32)));
+  EXPECT_EQ(sign_extend(kMaxInt32),
+            CallI(test->entry(), static_cast<double>(kMaxInt32)));
+  EXPECT_EQ(-1, CallI(test->entry(), static_cast<double>(kMaxUint32)));
+  EXPECT_EQ(0, CallI(test->entry(), static_cast<double>(kMinInt64)));
+  EXPECT_EQ(0, CallI(test->entry(), static_cast<double>(kMaxInt64)));
+  EXPECT_EQ(0, CallI(test->entry(), static_cast<double>(kMaxUint64)));
+  EXPECT_EQ(0,
+            CallI(test->entry(), -std::numeric_limits<double>::denorm_min()));
+  EXPECT_EQ(0, CallI(test->entry(), std::numeric_limits<double>::denorm_min()));
+  EXPECT_EQ(0, CallI(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(0, CallI(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(0,
+            CallI(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+#if XLEN == 32
+ASSEMBLER_TEST_GENERATE(BitCastDoubleToIntegerHigh, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fmvxw(A0, FA0);
+  __ fmvhxd(A1, FA0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitCastDoubleToIntegerHigh, test) {
+  EXPECT_DISASSEMBLY(
+      "e0050553 fmv.x.w a0, fa0\n"
+      "e21505d3 fmvh.x.d a1, fa0\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(bit_cast<int64_t>(0.0), CallI64(test->entry(), 0.0));
+  EXPECT_EQ(bit_cast<int64_t>(-0.0), CallI64(test->entry(), -0.0));
+  EXPECT_EQ(bit_cast<int64_t>(42.0), CallI64(test->entry(), 42.0));
+  EXPECT_EQ(bit_cast<int64_t>(-42.0), CallI64(test->entry(), -42.0));
+  EXPECT_EQ(bit_cast<int64_t>(std::numeric_limits<double>::quiet_NaN()),
+            CallI64(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_EQ(
+      bit_cast<int64_t>(std::numeric_limits<double>::signaling_NaN()),
+      CallI64(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+  EXPECT_EQ(bit_cast<int64_t>(std::numeric_limits<double>::infinity()),
+            CallI64(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(bit_cast<int64_t>(-std::numeric_limits<double>::infinity()),
+            CallI64(test->entry(), -std::numeric_limits<double>::infinity()));
+}
+
+ASSEMBLER_TEST_GENERATE(BitCastIntegerPairToDouble, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fmvpdx(FA0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitCastIntegerPairToDouble, test) {
+  EXPECT_DISASSEMBLY(
+      "b2b50553 fmvp.d.x fa0, a0, a1\n"
+      "00008067 ret\n");
+
+  EXPECT_BITEQ(0.0, CallD(test->entry(), bit_cast<int64_t>(0.0)));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), bit_cast<int64_t>(-0.0)));
+  EXPECT_EQ(42.0, CallD(test->entry(), bit_cast<int64_t>(42.0)));
+  EXPECT_EQ(-42.0, CallD(test->entry(), bit_cast<int64_t>(-42.0)));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(),
+            bit_cast<int64_t>(std::numeric_limits<double>::quiet_NaN())));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::signaling_NaN(),
+      CallD(test->entry(),
+            bit_cast<int64_t>(std::numeric_limits<double>::signaling_NaN())));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::infinity(),
+      CallD(test->entry(),
+            bit_cast<int64_t>(std::numeric_limits<double>::infinity())));
+  EXPECT_BITEQ(
+      -std::numeric_limits<double>::infinity(),
+      CallD(test->entry(),
+            bit_cast<int64_t>(-std::numeric_limits<double>::infinity())));
+}
+#endif  // XLEN == 32
+
+ASSEMBLER_TEST_GENERATE(SingleLessThanQuiet, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fltqs(A0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SingleLessThanQuiet, test) {
+  EXPECT_DISASSEMBLY(
+      "a0b55553 fltq.s a0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, 1.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, 3.0f));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0f, 5.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -1.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -5.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 1.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 3.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 5.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, -1.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, -3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, -5.0f));
+
+  float qNAN = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, 3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0f));
+}
+
+ASSEMBLER_TEST_GENERATE(SingleLessOrEqualQuiet, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fleqs(A0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SingleLessOrEqualQuiet, test) {
+  EXPECT_DISASSEMBLY(
+      "a0b54553 fleq.s a0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, 1.0f));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0f, 3.0f));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0f, 5.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -1.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -5.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 1.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 3.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 5.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, -1.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, -3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, -5.0f));
+
+  float qNAN = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, 3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0f));
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleLessThanQuiet, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fltqd(A0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(DoubleLessThanQuiet, test) {
+  EXPECT_DISASSEMBLY(
+      "a2b55553 fltq.d a0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, 1.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, 3.0));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0, 5.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -1.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -3.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -5.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 1.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 3.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 5.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, -1.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, -3.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, -5.0));
+
+  double qNAN = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, 3.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0));
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleLessOrEqualQuiet, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fleqd(A0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(DoubleLessOrEqualQuiet, test) {
+  EXPECT_DISASSEMBLY(
+      "a2b54553 fleq.d a0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, 1.0));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0, 3.0));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0, 5.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -1.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -3.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -5.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 1.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 3.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 5.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, -1.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, -3.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, -5.0));
+
+  double qNAN = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, 3.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0));
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByteAcquire, assembler) {
