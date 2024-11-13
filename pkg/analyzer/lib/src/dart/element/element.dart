@@ -1422,7 +1422,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  InterfaceElement get enclosingElement3 =>
+  InterfaceElementImpl get enclosingElement3 =>
       super.enclosingElement3 as InterfaceElementImpl;
 
   @override
@@ -1433,7 +1433,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get hasLiteral {
     if (super.hasLiteral) return true;
     var enclosingElement = enclosingElement3;
-    if (enclosingElement is! ExtensionTypeElement) return false;
+    if (enclosingElement is! ExtensionTypeElementImpl) return false;
     return this == enclosingElement.primaryConstructor &&
         enclosingElement.hasLiteral;
   }
@@ -1584,8 +1584,8 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   ConstructorElement2 get baseElement => this;
 
   @override
-  InterfaceElement2 get enclosingElement2 =>
-      (firstFragment._enclosingElement3 as InterfaceFragment).element;
+  InterfaceElementImpl2 get enclosingElement2 =>
+      firstFragment.enclosingElement3.element;
 
   @override
   bool get isConst => firstFragment.isConst;
@@ -1607,6 +1607,11 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
       (firstFragment.redirectedConstructor?.declaration
               as ConstructorElementImpl?)
           ?.element;
+
+  @override
+  InterfaceType get returnType {
+    return firstFragment.returnType;
+  }
 
   @override
   ConstructorElement2? get superConstructor2 =>
@@ -3396,7 +3401,7 @@ class ElementLocationImpl implements ElementLocation {
         }
         ancestor = ancestor.enclosingElement2;
       } else {
-       components.insert(0, ancestor.identifier);
+        components.insert(0, ancestor.identifier);
         if (ancestor is LocalFunctionElementImpl) {
           ancestor = (ancestor.wrappedElement._enclosingElement3
                   as ExecutableElementImpl)
@@ -5744,6 +5749,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   String get displayName => name;
+
+  @override
+  InterfaceElementImpl2 get element;
 
   @override
   List<InterfaceType> get interfaces {
