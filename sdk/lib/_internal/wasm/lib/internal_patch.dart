@@ -226,4 +226,8 @@ external void pushWasmArray<T>(
 );
 
 /// Similar to `pushWasmArray`, but for popping.
-external T? popWasmArray<T>(WasmArray<T?> array, int length);
+///
+/// Note that when [T] is not nullable, this does not clear the popped element
+/// slot in the array, which may cause memory leaks. Callers should manually
+/// clear non-nullable reference element slots in the array when popping.
+external T popWasmArray<T>(WasmArray<T> array, int length);
