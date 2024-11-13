@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 import '../type_inference/assigned_variables.dart';
@@ -5221,12 +5220,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   bool nullCheckOrAssertPattern_begin(
       {required bool isAssert, required Type matchedValueType}) {
-    // When [matchedValueType] is InvalidType,
-    // we cannot determine whether it is strictly non-nullable.
-    if (matchedValueType is InvalidType) {
-      return false;
-    }
-
     if (!isAssert) {
       // Account for the possibility that the pattern might not match.  Note
       // that it's tempting to skip this step if matchedValueType is
