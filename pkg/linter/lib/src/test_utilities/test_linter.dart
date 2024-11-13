@@ -44,20 +44,17 @@ class TestLinter implements AnalysisErrorListener {
     var errors = <AnalysisErrorInfo>[];
     var lintDriver = LintDriver(options, _resourceProvider);
     errors.addAll(await lintDriver.analyze(files.where(isDartFile)));
-    files.where(isPubspecFile).forEach((file) {
-      var errorsForFile = lintPubspecSource(
+    for (var file in files.where(isPubspecFile)) {
+      lintPubspecSource(
         contents: file.readAsStringSync(),
         sourcePath: _resourceProvider.pathContext.normalize(file.absolute.path),
       );
-      errors.addAll(errorsForFile);
-    });
+    }
     return errors;
   }
 
   @visibleForTesting
-  Iterable<AnalysisErrorInfo> lintPubspecSource(
-      {required String contents, String? sourcePath}) {
-    var results = <AnalysisErrorInfo>[];
+  void lintPubspecSource({required String contents, String? sourcePath}) {
     var sourceUrl = sourcePath == null ? null : path.toUri(sourcePath);
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
@@ -78,8 +75,6 @@ class TestLinter implements AnalysisErrorListener {
         }
       }
     }
-
-    return results;
   }
 
   @override
