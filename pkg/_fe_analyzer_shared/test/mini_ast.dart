@@ -3281,6 +3281,13 @@ class MiniAstOperations
     // TODO(paulberry): Implement greatest closure of types in mini ast.
     throw UnimplementedError();
   }
+
+  @override
+  Type leastClosureOfTypeInternal(Type type,
+      List<SharedTypeParameterStructure<Type>> typeParametersToEliminate) {
+    // TODO(paulberry): Implement greatest closure of types in mini ast.
+    throw UnimplementedError();
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

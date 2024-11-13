@@ -879,4 +879,26 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
       {required Node? nodeForTesting}) {
     _constraints.add('$lower <: $typeParameter');
   }
+
+  @override
+  void eliminateTypeParametersInGeneratedConstraints(
+      Object eliminator, TypeConstraintGeneratorState eliminationStartState,
+      {required Node? astNodeForTesting}) {
+    // TODO(paulberry): implement eliminateTypeParametersInGeneratedConstraints
+  }
+
+  @override
+  (
+    Type,
+    Type, {
+    List<TypeParameter> typeParametersToEliminate
+  }) instantiateFunctionTypesAndProvideFreshTypeParameters(
+      SharedFunctionTypeStructure<Type, TypeParameter, NamedFunctionParameter>
+          p,
+      SharedFunctionTypeStructure<Type, TypeParameter, NamedFunctionParameter>
+          q,
+      {required bool leftSchema}) {
+    // TODO(paulberry): implement instantiateFunctionTypesAndProvideEliminator
+    throw UnimplementedError();
+  }
 }
