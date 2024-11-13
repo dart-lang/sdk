@@ -38,6 +38,10 @@ Future<void> main(List<String> args) async {
       negatable: false);
   parser.addFlag("context",
       abbr: "c", help: "Include context messages in output.");
+  parser.addFlag("only-static-error-tests",
+      abbr: "o",
+      help: "Skips files that don't already have static error expectations.",
+      negatable: false);
 
   parser.addSeparator("What operations to perform:");
   parser.addFlag("remove-all",
@@ -76,6 +80,7 @@ Future<void> main(List<String> args) async {
   var dryRun = results["dry-run"] as bool;
 
   var includeContext = results["context"] as bool;
+  var onlyStaticErrorTests = results["only-static-error-tests"] as bool;
 
   var removeSources = <ErrorSource>{};
   var insertSources = <ErrorSource>{};
@@ -133,6 +138,7 @@ Future<void> main(List<String> args) async {
         entry,
         dryRun: dryRun,
         includeContext: includeContext,
+        onlyStaticErrorTests: onlyStaticErrorTests,
         remove: removeSources,
         insert: insertSources,
       );
@@ -172,6 +178,7 @@ void _usageError(ArgParser parser, String message) {
 Future<bool> _processFile(File file,
     {required bool dryRun,
     required bool includeContext,
+    required bool onlyStaticErrorTests,
     required Set<ErrorSource> remove,
     required Set<ErrorSource> insert}) async {
   var testFile = TestFile.read(Path("."), file.absolute.path);
@@ -186,6 +193,11 @@ Future<bool> _processFile(File file,
   // In practice, a test should either be a multitest or a static error test,
   // but not both.
   if (testFile.isMultitest) return false;
+
+  if (onlyStaticErrorTests && testFile.expectedErrors.isEmpty) {
+    print("Skip ${file.path} since it isn't a static error test.");
+    return true;
+  }
 
   stdout.write("${file.path}...");
 
