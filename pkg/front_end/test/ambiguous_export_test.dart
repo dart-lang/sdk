@@ -15,7 +15,7 @@ import 'package:kernel/ast.dart'
 
 Future<void> main() async {
   await asyncTest(() async {
-    Uri uri = Uri.parse("org.dartlang.fasta:library");
+    Uri uri = Uri.parse("org.dartlang.cfe:library");
     Library library = new Library(uri, fileUri: uri);
     Field field = new Field.immutable(
         new Name(unserializableExportName, library),

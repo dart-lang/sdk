@@ -544,6 +544,12 @@ class TypeSystemOperations
   }
 
   @override
+  bool isDartCoreRecord(SharedTypeView<DartType> type) {
+    return type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.unwrapTypeView().isDartCoreRecord;
+  }
+
+  @override
   bool isExtensionType(SharedTypeView<DartType> type) {
     DartType unwrappedType = type.unwrapTypeView();
     return unwrappedType is InterfaceType &&

@@ -120,7 +120,7 @@ class _JsonListener {
 
   GrowableList<dynamic>? stackPop() {
     assert(stackLength != 0);
-    return popWasmArray<GrowableList<dynamic>>(stack, stackLength);
+    return popWasmArray<GrowableList<dynamic>?>(stack, stackLength);
   }
 
   /** Contents of the current container being built, or null if not building a
@@ -328,7 +328,9 @@ abstract class _ChunkedJsonParserState {
 
   // The current parsing state.
   int state = _ChunkedJsonParser.STATE_INITIAL;
-  GrowableList<int> states = GrowableList<int>.empty();
+
+  WasmArray<WasmI64> states = WasmArray<WasmI64>(0);
+  int statesLength = 0;
 
   /**
    * Stores tokenizer state between chunks.
@@ -390,6 +392,7 @@ abstract class _ChunkedJsonParserState {
   ) {
     state = chunkedParserState.state;
     states = chunkedParserState.states;
+    statesLength = chunkedParserState.statesLength;
     partialState = chunkedParserState.partialState;
     _stringBuffer = chunkedParserState._stringBuffer;
     _numberBuffer = chunkedParserState._numberBuffer;
@@ -402,13 +405,21 @@ abstract class _ChunkedJsonParserState {
    * so the parser can go back to the correct value when the literal ends.
    */
   void saveState(int state) {
-    states.add(state);
+    pushWasmArray<WasmI64>(
+      states,
+      statesLength,
+      state.toWasmI64(),
+      (statesLength * 2) | 3,
+    );
   }
 
   /**
    * Restore a state pushed with [saveState].
    */
-  int restoreState() => states.removeLast(); // Throws if empty.
+  int restoreState() {
+    assert(statesLength > 0);
+    return popWasmArray<WasmI64>(states, statesLength).toInt();
+  }
 
   /**
    * Read out the result after successfully closing the parser.

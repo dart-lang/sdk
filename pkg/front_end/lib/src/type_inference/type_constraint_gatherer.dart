@@ -356,7 +356,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       return true;
     }
 
-    if (performSubtypeConstraintGenerationForFutureOr(p, q,
+    if (performSubtypeConstraintGenerationForRightFutureOr(p, q,
         leftSchema: constrainSupertype,
         astNodeForTesting: treeNodeForTesting)) {
       return true;
@@ -380,20 +380,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     //
     // If Future<P0> is a subtype match for Q under constraint set C1.
     // And if P0 is a subtype match for Q under constraint set C2.
-
-    if (typeOperations.matchFutureOrInternal(p) case DartType p0?) {
-      final int baseConstraintCount = _protoConstraints.length;
-      if (_isNullabilityAwareSubtypeMatch(
-              typeOperations.futureTypeInternal(p0), q,
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting) &&
-          // Coverage-ignore(suite): Not run.
-          _isNullabilityAwareSubtypeMatch(p0, q,
-              constrainSupertype: constrainSupertype,
-              treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-      _protoConstraints.length = baseConstraintCount;
+    if (performSubtypeConstraintGenerationForLeftFutureOr(p, q,
+        leftSchema: constrainSupertype,
+        astNodeForTesting: treeNodeForTesting)) {
+      return true;
     }
 
     // If P is P0? the match holds under constraint set C1 + C2:
@@ -480,7 +470,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // constraints:
     //
     // If P is a record type or Record.
-    if (q == _environment.coreTypes.recordNonNullableRawType &&
+    if (typeOperations.isDartCoreRecord(new SharedTypeView(q)) &&
         p is RecordType) {
       return true;
     }

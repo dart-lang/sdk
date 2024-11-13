@@ -54,7 +54,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
-import '../mock_file_system.dart';
+import 'mock_file_system.dart';
 
 void check(String expected, Object generator) {
   Expect.stringEquals(expected, "$generator");

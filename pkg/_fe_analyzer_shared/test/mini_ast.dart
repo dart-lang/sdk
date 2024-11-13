@@ -2960,6 +2960,15 @@ class MiniAstOperations
   }
 
   @override
+  bool isDartCoreRecord(SharedTypeView<Type> type) {
+    Type unwrappedType = type.unwrapTypeView();
+    return unwrappedType is PrimaryType &&
+        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
+        unwrappedType.name == 'Record' &&
+        unwrappedType.args.isEmpty;
+  }
+
+  @override
   bool isExtensionType(SharedTypeView<Type> type) {
     // TODO(cstefantsova): Add the support for extension types in the mini ast
     // testing framework.
