@@ -88,6 +88,7 @@ _DART2WASM_PATHS = _CFE_PATHS + [
     "sdk/lib/_internal/vm/lib/typed_data_patch.dart",
     "sdk/lib/_internal/wasm.+",
     "sdk/lib/_js_interop/.+",
+    "third_party/binaryen/.+",
 ]
 
 _PKG_PATHS = _VM_PATHS + [
