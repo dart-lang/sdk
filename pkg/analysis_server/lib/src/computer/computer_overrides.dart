@@ -7,7 +7,6 @@ import 'package:analysis_server/src/protocol_server.dart' as proto;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:collection/collection.dart';
 
 /// Return the elements that the given [element] overrides.
@@ -211,37 +210,32 @@ class _OverriddenElementsFinder {
   }
 
   Element2? _lookupMember(InterfaceElement2 classElement) {
-    var name = Name.forLibrary(_library, _name);
-
-    /// Helper to find an element in [elements] that matches [targetName].
-    Element2? findMatchingElement(
-      Iterable<Element2> elements,
-      Name targetName,
-    ) {
+    Element2? findMatchingElement(Iterable<Element2> elements) {
       return elements.firstWhereOrNull((Element2 element) {
-        var elementName = element.name3;
-        return elementName != null &&
-            Name.forLibrary(element.library2, elementName) == targetName;
+        if (!identical(element.library2, _library) && _name.startsWith('_')) {
+          return false;
+        }
+        return element.name3 == _name;
       });
     }
 
     // method
     if (_kinds.contains(ElementKind.METHOD)) {
-      var member = findMatchingElement(classElement.methods2, name);
+      var member = findMatchingElement(classElement.methods2);
       if (member != null) {
         return member;
       }
     }
     // getter
     if (_kinds.contains(ElementKind.GETTER)) {
-      var member = findMatchingElement(classElement.getters2, name.forGetter);
+      var member = findMatchingElement(classElement.getters2);
       if (member != null) {
         return member;
       }
     }
     // setter
     if (_kinds.contains(ElementKind.SETTER)) {
-      var member = findMatchingElement(classElement.setters2, name.forSetter);
+      var member = findMatchingElement(classElement.setters2);
       if (member != null) {
         return member;
       }

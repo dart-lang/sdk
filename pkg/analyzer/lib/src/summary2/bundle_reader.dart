@@ -1584,8 +1584,8 @@ class LibraryReader {
           var variableFragment = TopLevelVariableElementImpl(name, -1)
             ..enclosingElement3 = enclosingElement
             ..reference = propertyFragmentReference
-            ..isSynthetic = true;
-          variableFragment.name2 = accessor.name2;
+            ..isSynthetic = true
+            ..name2 = accessor.name2;
           propertyFragment = variableFragment;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(variableFragment);
@@ -1606,7 +1606,8 @@ class LibraryReader {
             ..enclosingElement3 = enclosingElement
             ..reference = propertyFragmentReference
             ..isStatic = accessor.isStatic
-            ..isSynthetic = true;
+            ..isSynthetic = true
+            ..name2 = accessor.name2;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(propertyFragment);
         }

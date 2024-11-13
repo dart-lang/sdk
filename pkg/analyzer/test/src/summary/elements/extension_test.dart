@@ -103,7 +103,7 @@ library
               element: <testLibraryFragment>::@extension::E::@field::x#element
               getter2: <testLibraryFragment>::@extension::E::@getter::x
           getters
-            get <null-name>
+            get x
               reference: <testLibraryFragment>::@extension::E::@getter::x
               element: <testLibraryFragment>::@extension::E::@getter::x#element
   extensions
@@ -325,7 +325,7 @@ library
               element: <testLibraryFragment>::@extension::E::@field::foo#element
               getter2: <testLibraryFragment>::@extension::E::@getter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::E::@getter::foo
               element: <testLibraryFragment>::@extension::E::@getter::foo#element
           methods
@@ -348,7 +348,7 @@ library
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   extensions
@@ -490,7 +490,7 @@ library
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get <null-name>
+        get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
@@ -558,7 +558,7 @@ library
           reference: <testLibraryFragment>::@extension::E
           element: <testLibrary>::@extension::E
           fields
-            <null-name>
+            foo
               reference: <testLibraryFragment>::@extension::E::@field::foo
               element: <testLibraryFragment>::@extension::E::@field::foo#element
               getter2: <testLibraryFragment>::@extension::E::@getter::foo
@@ -627,7 +627,7 @@ library
           reference: <testLibraryFragment>::@extension::E
           element: <testLibrary>::@extension::E
           fields
-            <null-name>
+            foo
               reference: <testLibraryFragment>::@extension::E::@field::foo
               element: <testLibraryFragment>::@extension::E::@field::foo#element
               setter2: <testLibraryFragment>::@extension::E::@setter::foo
@@ -648,7 +648,7 @@ library
           type: int
           setter: <testLibraryFragment>::@extension::E::@setter::foo#element
       setters
-        set foo=
+        set foo
           firstFragment: <testLibraryFragment>::@extension::E::@setter::foo
           formalParameters
             requiredPositional value
@@ -1010,11 +1010,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1048,7 +1048,7 @@ library
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
       setters
-        synthetic static set foo=
+        synthetic static set foo
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
           formalParameters
             requiredPositional _foo
@@ -1186,11 +1186,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1241,7 +1241,7 @@ library
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
       setters
-        synthetic static set foo=
+        synthetic static set foo
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
           formalParameters
             requiredPositional _foo
@@ -1379,12 +1379,12 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1434,7 +1434,7 @@ library
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
       setters
-        synthetic static set foo=
+        synthetic static set foo
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
           formalParameters
             requiredPositional _foo
@@ -1575,11 +1575,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1633,7 +1633,7 @@ library
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
       setters
-        synthetic static set foo=
+        synthetic static set foo
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
           formalParameters
             requiredPositional _foo
@@ -1742,11 +1742,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -1780,7 +1780,7 @@ library
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
       setters
-        synthetic static set foo=
+        synthetic static set foo
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
           formalParameters
             requiredPositional _foo
@@ -1872,7 +1872,7 @@ library
           element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            <null-name>
+            foo
               reference: <testLibraryFragment>::@extension::A::@field::foo
               element: <testLibraryFragment>::@extension::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@fieldAugmentation::foo
@@ -2029,11 +2029,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo1
               setter2: <testLibraryFragment>::@extension::A::@setter::foo1
           getters
-            get <null-name>
+            get foo1
               reference: <testLibraryFragment>::@extension::A::@getter::foo1
               element: <testLibraryFragment>::@extension::A::@getter::foo1#element
           setters
-            set <null-name>
+            set foo1
               reference: <testLibraryFragment>::@extension::A::@setter::foo1
               element: <testLibraryFragment>::@extension::A::@setter::foo1#element
               formalParameters
@@ -2055,11 +2055,11 @@ library
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
           getters
-            get <null-name>
+            get foo2
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2#element
           setters
-            set <null-name>
+            set foo2
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
               formalParameters
@@ -2086,12 +2086,12 @@ library
         synthetic static get foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
       setters
-        synthetic static set foo1=
+        synthetic static set foo1
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo1
           formalParameters
             requiredPositional _foo1
               type: int
-        synthetic static set foo2=
+        synthetic static set foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
           formalParameters
             requiredPositional _foo2
@@ -2188,7 +2188,7 @@ library
           element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            <null-name>
+            foo1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo1
@@ -2206,7 +2206,7 @@ library
           element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           fields
-            <null-name>
+            foo2
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
@@ -2337,7 +2337,7 @@ library
             T1 @27
               element: <not-implemented>
           fields
-            <null-name>
+            foo1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo1
@@ -2358,7 +2358,7 @@ library
             T2 @41
               element: <not-implemented>
           fields
-            <null-name>
+            foo2
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getter::foo2
@@ -2489,12 +2489,12 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -2528,7 +2528,7 @@ library
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
       setters
-        synthetic static set foo=
+        synthetic static set foo
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
           formalParameters
             requiredPositional _foo
@@ -2665,12 +2665,12 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@getterAugmentation::foo
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -2721,7 +2721,7 @@ library
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
       setters
-        synthetic static set foo=
+        synthetic static set foo
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
           formalParameters
             requiredPositional _foo
@@ -2826,11 +2826,11 @@ library
           element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            <null-name>
+            foo1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo1
-            <null-name>
+            foo2
               reference: <testLibraryFragment>::@extension::A::@field::foo2
               element: <testLibraryFragment>::@extension::A::@field::foo2#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo2
@@ -2988,7 +2988,7 @@ library
           element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            <null-name>
+            foo
               reference: <testLibraryFragment>::@extension::A::@field::foo
               element: <testLibraryFragment>::@extension::A::@field::foo#element
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
@@ -3829,7 +3829,7 @@ library
           element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            <null-name>
+            foo1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               setter2: <testLibraryFragment>::@extension::A::@setter::foo1
@@ -3850,7 +3850,7 @@ library
           element: <testLibrary>::@extension::A
           previousFragment: <testLibraryFragment>::@extension::A
           fields
-            <null-name>
+            foo2
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@field::foo2#element
               setter2: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
@@ -3875,12 +3875,12 @@ library
           type: int
           setter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2#element
       setters
-        set foo1=
+        set foo1
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo1
           formalParameters
             requiredPositional _
               type: int
-        set foo2=
+        set foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A::@setter::foo2
           formalParameters
             requiredPositional _
@@ -3991,11 +3991,11 @@ library
               getter2: <testLibraryFragment>::@extension::A::@getter::foo
               setter2: <testLibraryFragment>::@extension::A::@setter::foo
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@extension::A::@getter::foo
               element: <testLibraryFragment>::@extension::A::@getter::foo#element
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@extension::A::@setter::foo
               element: <testLibraryFragment>::@extension::A::@setter::foo#element
               formalParameters
@@ -4033,7 +4033,7 @@ library
         synthetic static get foo
           firstFragment: <testLibraryFragment>::@extension::A::@getter::foo
       setters
-        synthetic static set foo=
+        synthetic static set foo
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo
           formalParameters
             requiredPositional _foo
@@ -4147,11 +4147,11 @@ library
           element: <testLibrary>::@extension::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::A
           fields
-            <null-name>
+            foo1
               reference: <testLibraryFragment>::@extension::A::@field::foo1
               element: <testLibraryFragment>::@extension::A::@field::foo1#element
               setter2: <testLibraryFragment>::@extension::A::@setter::foo1
-            <null-name>
+            foo2
               reference: <testLibraryFragment>::@extension::A::@field::foo2
               element: <testLibraryFragment>::@extension::A::@field::foo2#element
               setter2: <testLibraryFragment>::@extension::A::@setter::foo2
@@ -4200,12 +4200,12 @@ library
           type: int
           setter: <testLibraryFragment>::@extension::A::@setter::foo2#element
       setters
-        set foo2=
+        set foo2
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo2
           formalParameters
             requiredPositional _
               type: int
-        set foo1=
+        set foo1
           firstFragment: <testLibraryFragment>::@extension::A::@setter::foo1
           formalParameters
             requiredPositional _

@@ -51,7 +51,7 @@ class B extends A {
   }
 }
 ''');
-    _checkGetterDifferent(findElement.setter('foo='));
+    _checkGetterDifferent(findElement.setter('foo'));
   }
 
   test_class_getter_different_importScope() async {
@@ -624,7 +624,7 @@ class A {
   }
 }
 ''');
-    _checkSetterRequested(findElement.setter('foo='));
+    _checkSetterRequested(findElement.setter('foo'));
   }
 
   test_class_setter_requested_thisClass_topLevelFunction() async {
@@ -639,7 +639,7 @@ class A {
 
 void foo() {}
 ''');
-    _checkSetterRequested(findElement.setter('foo='));
+    _checkSetterRequested(findElement.setter('foo'));
   }
 
   test_class_typeParameter_inConstructor() async {

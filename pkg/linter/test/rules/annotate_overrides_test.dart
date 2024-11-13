@@ -134,6 +134,21 @@ class B extends A {
 ''');
   }
 
+  test_class_getterWithAnnotation_setter_doesNotOverride() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int get x => 4;
+}
+
+class B extends A {
+  @override
+  int get x => 5;
+
+  set x(int _) {}
+}
+''');
+  }
+
   test_class_getterWithoutAnnotation() async {
     await assertDiagnostics(r'''
 class A {

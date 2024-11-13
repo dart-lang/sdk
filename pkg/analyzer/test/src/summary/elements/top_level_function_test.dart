@@ -1766,11 +1766,11 @@ library
           getter2: <testLibraryFragment>::@getter::main
           setter2: <testLibraryFragment>::@setter::main
       getters
-        get <null-name>
+        get main
           reference: <testLibraryFragment>::@getter::main
           element: <testLibraryFragment>::@getter::main#element
       setters
-        set <null-name>
+        set main
           reference: <testLibraryFragment>::@setter::main
           element: <testLibraryFragment>::@setter::main#element
           formalParameters
@@ -1787,7 +1787,7 @@ library
     synthetic static get main
       firstFragment: <testLibraryFragment>::@getter::main
   setters
-    synthetic static set main=
+    synthetic static set main
       firstFragment: <testLibraryFragment>::@setter::main
       formalParameters
         requiredPositional _main
@@ -2457,7 +2457,7 @@ library
       type: int
       setter: <testLibraryFragment>::@setter::foo#element
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _
@@ -2535,11 +2535,11 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
-        set <null-name>
+        set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
@@ -2564,7 +2564,7 @@ library
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
-    synthetic static set foo=
+    synthetic static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _foo
@@ -2986,7 +2986,7 @@ library
     static get foo
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _
@@ -3080,12 +3080,12 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
       setters
-        set <null-name>
+        set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
@@ -3111,7 +3111,7 @@ library
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
-    synthetic static set foo=
+    synthetic static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _foo
@@ -3211,7 +3211,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::foo::@constructor::new
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
       formalParameters
         requiredPositional _
@@ -3317,7 +3317,7 @@ library
     static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
       formalParameters
         requiredPositional _
@@ -3387,7 +3387,7 @@ library
             _ @41
               element: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo::@parameter::_#element
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo
       formalParameters
         requiredPositional _
@@ -3497,7 +3497,7 @@ library
       type: int
       setter: <testLibraryFragment>::@setter::foo#element
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _
@@ -3594,11 +3594,11 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
-        set <null-name>
+        set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
@@ -3628,7 +3628,7 @@ library
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
-    synthetic static set foo=
+    synthetic static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _foo

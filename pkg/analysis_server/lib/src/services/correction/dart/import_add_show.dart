@@ -144,8 +144,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   void _addName(Token nameToken, Element2? element) {
     if (element != null) {
       var name = nameToken.lexeme;
-      if (namespace[name] == element ||
-          (name != element.name3 && namespace[element.name3] == element)) {
+      if (namespace[name] == element || namespace['$name='] == element) {
         referencedNames.add(element.displayName);
       }
     }

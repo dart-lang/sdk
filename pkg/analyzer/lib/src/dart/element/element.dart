@@ -3237,7 +3237,7 @@ abstract class ElementImpl2 implements Element2 {
   List<Element2> get children2 => const [];
 
   @override
-  String get displayName => name3 ?? '';
+  String get displayName => name3 ?? '<unnamed>';
 
   @override
   // TODO(augmentations): implement enclosingElement2
@@ -5180,7 +5180,7 @@ class GetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.GETTER;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   Element2 get nonSynthetic2 {
@@ -9410,6 +9410,9 @@ class PropertyAccessorElementImpl_ImplicitGetter
   bool get isGetter => true;
 
   @override
+  String? get name2 => variable2.name2;
+
+  @override
   Element get nonSynthetic {
     if (!variable2.isSynthetic) {
       return variable2;
@@ -9466,6 +9469,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   bool get isSetter => true;
+
+  @override
+  String? get name2 => variable2.name2;
 
   @override
   Element get nonSynthetic => variable2;
@@ -9727,15 +9733,6 @@ class SetterElementImpl extends ExecutableElementImpl2
       firstFragment.correspondingGetter2?.element as GetterElement?;
 
   @override
-  String get displayName {
-    if (name3 case var name?) {
-      return name.substring(0, name.length - 1);
-    } else {
-      return '<null-name>';
-    }
-  }
-
-  @override
   Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
 
   @override
@@ -9745,7 +9742,7 @@ class SetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.SETTER;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   Element2 get nonSynthetic2 {

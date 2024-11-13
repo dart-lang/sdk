@@ -178,10 +178,10 @@ library
               element: <testLibraryFragment>::@class::A::@def::0::@constructor::new#element
               typeName: A
           getters
-            get <null-name>
+            get f01
               reference: <testLibraryFragment>::@class::A::@def::0::@getter::f01
               element: <testLibraryFragment>::@class::A::@def::0::@getter::f01#element
-            get <null-name>
+            get f02
               reference: <testLibraryFragment>::@class::A::@def::0::@getter::f02
               element: <testLibraryFragment>::@class::A::@def::0::@getter::f02#element
         class A @69
@@ -202,10 +202,10 @@ library
               element: <testLibraryFragment>::@class::A::@def::1::@constructor::new#element
               typeName: A
           getters
-            get <null-name>
+            get f11
               reference: <testLibraryFragment>::@class::A::@def::1::@getter::f11
               element: <testLibraryFragment>::@class::A::@def::1::@getter::f11#element
-            get <null-name>
+            get f12
               reference: <testLibraryFragment>::@class::A::@def::1::@getter::f12
               element: <testLibraryFragment>::@class::A::@def::1::@getter::f12#element
         class A @132
@@ -226,10 +226,10 @@ library
               element: <testLibraryFragment>::@class::A::@def::2::@constructor::new#element
               typeName: A
           getters
-            get <null-name>
+            get f21
               reference: <testLibraryFragment>::@class::A::@def::2::@getter::f21
               element: <testLibraryFragment>::@class::A::@def::2::@getter::f21#element
-            get <null-name>
+            get f22
               reference: <testLibraryFragment>::@class::A::@def::2::@getter::f22
               element: <testLibraryFragment>::@class::A::@def::2::@getter::f22#element
   classes
@@ -457,20 +457,20 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
           getters
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo::@def::0
               element: <testLibraryFragment>::@class::A::@getter::foo::@def::0#element
-            get <null-name>
+            get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo::@def::1
               element: <testLibraryFragment>::@class::A::@getter::foo::@def::1#element
           setters
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::0
               element: <testLibraryFragment>::@class::A::@setter::foo::@def::0#element
               formalParameters
                 <null-name>
                   element: <testLibraryFragment>::@class::A::@setter::foo::@def::0::@parameter::_foo#element
-            set <null-name>
+            set foo
               reference: <testLibraryFragment>::@class::A::@setter::foo::@def::1
               element: <testLibraryFragment>::@class::A::@setter::foo::@def::1#element
               formalParameters
@@ -500,12 +500,12 @@ library
         synthetic get foo
           firstFragment: <testLibraryFragment>::@class::A::@getter::foo::@def::1
       setters
-        synthetic set foo=
+        synthetic set foo
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo::@def::0
           formalParameters
             requiredPositional _foo
               type: int
-        synthetic set foo=
+        synthetic set foo
           firstFragment: <testLibraryFragment>::@class::A::@setter::foo::@def::1
           formalParameters
             requiredPositional _foo
@@ -980,7 +980,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::b
               element: <testLibraryFragment>::@enum::E::@def::0::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::b
-            <null-name>
+            values
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::values
               element: <testLibraryFragment>::@enum::E::@def::0::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::values
@@ -990,13 +990,13 @@ library
               element: <testLibraryFragment>::@enum::E::@def::0::@constructor::new#element
               typeName: E
           getters
-            get <null-name>
+            get a
               reference: <testLibraryFragment>::@enum::E::@def::0::@getter::a
               element: <testLibraryFragment>::@enum::E::@def::0::@getter::a#element
-            get <null-name>
+            get b
               reference: <testLibraryFragment>::@enum::E::@def::0::@getter::b
               element: <testLibraryFragment>::@enum::E::@def::0::@getter::b#element
-            get <null-name>
+            get values
               reference: <testLibraryFragment>::@enum::E::@def::0::@getter::values
               element: <testLibraryFragment>::@enum::E::@def::0::@getter::values#element
         enum E @19
@@ -1015,7 +1015,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::e
               element: <testLibraryFragment>::@enum::E::@def::1::@field::e#element
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::e
-            <null-name>
+            values
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::values
               element: <testLibraryFragment>::@enum::E::@def::1::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::values
@@ -1025,16 +1025,16 @@ library
               element: <testLibraryFragment>::@enum::E::@def::1::@constructor::new#element
               typeName: E
           getters
-            get <null-name>
+            get c
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::c
               element: <testLibraryFragment>::@enum::E::@def::1::@getter::c#element
-            get <null-name>
+            get d
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::d
               element: <testLibraryFragment>::@enum::E::@def::1::@getter::d#element
-            get <null-name>
+            get e
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::e
               element: <testLibraryFragment>::@enum::E::@def::1::@getter::e#element
-            get <null-name>
+            get values
               reference: <testLibraryFragment>::@enum::E::@def::1::@getter::values
               element: <testLibraryFragment>::@enum::E::@def::1::@getter::values#element
   enums
@@ -1187,11 +1187,11 @@ library
               getter2: <testLibraryFragment>::@extension::E::@def::1::@getter::x
               setter2: <testLibraryFragment>::@extension::E::@def::1::@setter::x
           getters
-            get <null-name>
+            get x
               reference: <testLibraryFragment>::@extension::E::@def::1::@getter::x
               element: <testLibraryFragment>::@extension::E::@def::1::@getter::x#element
           setters
-            set <null-name>
+            set x
               reference: <testLibraryFragment>::@extension::E::@def::1::@setter::x
               element: <testLibraryFragment>::@extension::E::@def::1::@setter::x#element
               formalParameters
@@ -1207,11 +1207,11 @@ library
               getter2: <testLibraryFragment>::@extension::E::@def::2::@getter::y
               setter2: <testLibraryFragment>::@extension::E::@def::2::@setter::y
           getters
-            get <null-name>
+            get y
               reference: <testLibraryFragment>::@extension::E::@def::2::@getter::y
               element: <testLibraryFragment>::@extension::E::@def::2::@getter::y#element
           setters
-            set <null-name>
+            set y
               reference: <testLibraryFragment>::@extension::E::@def::2::@setter::y
               element: <testLibraryFragment>::@extension::E::@def::2::@setter::y#element
               formalParameters
@@ -1234,7 +1234,7 @@ library
         synthetic static get x
           firstFragment: <testLibraryFragment>::@extension::E::@def::1::@getter::x
       setters
-        synthetic static set x=
+        synthetic static set x
           firstFragment: <testLibraryFragment>::@extension::E::@def::1::@setter::x
           formalParameters
             requiredPositional _x
@@ -1252,7 +1252,7 @@ library
         synthetic static get y
           firstFragment: <testLibraryFragment>::@extension::E::@def::2::@getter::y
       setters
-        synthetic static set y=
+        synthetic static set y
           firstFragment: <testLibraryFragment>::@extension::E::@def::2::@setter::y
           formalParameters
             requiredPositional _y
@@ -1347,7 +1347,7 @@ library
                 this.it @21
                   element: <testLibraryFragment>::@extensionType::E::@def::0::@constructor::new::@parameter::it#element
           getters
-            get <null-name>
+            get it
               reference: <testLibraryFragment>::@extensionType::E::@def::0::@getter::it
               element: <testLibraryFragment>::@extensionType::E::@def::0::@getter::it#element
         extension type E @43
@@ -1368,7 +1368,7 @@ library
                 this.it @52
                   element: <testLibraryFragment>::@extensionType::E::@def::1::@constructor::new::@parameter::it#element
           getters
-            get <null-name>
+            get it
               reference: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it
               element: <testLibraryFragment>::@extensionType::E::@def::1::@getter::it#element
   extensionTypes
@@ -1710,11 +1710,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@def::1::@getter::x
               setter2: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
           getters
-            get <null-name>
+            get x
               reference: <testLibraryFragment>::@mixin::A::@def::1::@getter::x
               element: <testLibraryFragment>::@mixin::A::@def::1::@getter::x#element
           setters
-            set <null-name>
+            set x
               reference: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
               element: <testLibraryFragment>::@mixin::A::@def::1::@setter::x#element
               formalParameters
@@ -1730,11 +1730,11 @@ library
               getter2: <testLibraryFragment>::@mixin::A::@def::2::@getter::y
               setter2: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
           getters
-            get <null-name>
+            get y
               reference: <testLibraryFragment>::@mixin::A::@def::2::@getter::y
               element: <testLibraryFragment>::@mixin::A::@def::2::@getter::y#element
           setters
-            set <null-name>
+            set y
               reference: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
               element: <testLibraryFragment>::@mixin::A::@def::2::@setter::y#element
               formalParameters
@@ -1761,7 +1761,7 @@ library
         synthetic get x
           firstFragment: <testLibraryFragment>::@mixin::A::@def::1::@getter::x
       setters
-        synthetic set x=
+        synthetic set x
           firstFragment: <testLibraryFragment>::@mixin::A::@def::1::@setter::x
           formalParameters
             requiredPositional _x
@@ -1781,7 +1781,7 @@ library
         synthetic get y
           firstFragment: <testLibraryFragment>::@mixin::A::@def::2::@getter::y
       setters
-        synthetic set y=
+        synthetic set y
           firstFragment: <testLibraryFragment>::@mixin::A::@def::2::@setter::y
           formalParameters
             requiredPositional _y
@@ -1913,32 +1913,32 @@ library
           getter2: <testLibraryFragment>::@getter::x::@def::3
           setter2: <testLibraryFragment>::@setter::x::@def::2
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x::@def::0
           element: <testLibraryFragment>::@getter::x::@def::0#element
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x::@def::1
           element: <testLibraryFragment>::@getter::x::@def::1#element
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x::@def::2
           element: <testLibraryFragment>::@getter::x::@def::2#element
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x::@def::3
           element: <testLibraryFragment>::@getter::x::@def::3#element
       setters
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x::@def::0
           element: <testLibraryFragment>::@setter::x::@def::0#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::x::@def::0::@parameter::_x#element
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x::@def::1
           element: <testLibraryFragment>::@setter::x::@def::1#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::x::@def::1::@parameter::_x#element
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x::@def::2
           element: <testLibraryFragment>::@setter::x::@def::2#element
           formalParameters
@@ -1978,17 +1978,17 @@ library
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x::@def::3
   setters
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x::@def::0
       formalParameters
         requiredPositional _x
           type: bool
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x::@def::1
       formalParameters
         requiredPositional _x
           type: dynamic
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x::@def::2
       formalParameters
         requiredPositional _x
@@ -2131,12 +2131,12 @@ library
       type: double
       setter: <testLibraryFragment>::@setter::foo::@def::1#element
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo::@def::0
       formalParameters
         requiredPositional _
           type: int
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo::@def::1
       formalParameters
         requiredPositional _
