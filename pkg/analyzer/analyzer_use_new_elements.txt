@@ -116,7 +116,6 @@ lib/src/error/literal_element_verifier.dart
 lib/src/error/must_call_super_verifier.dart
 lib/src/error/nullable_dereference_verifier.dart
 lib/src/error/override_verifier.dart
-lib/src/error/redeclare_verifier.dart
 lib/src/error/required_parameters_verifier.dart
 lib/src/error/super_formal_parameters_verifier.dart
 lib/src/error/type_arguments_verifier.dart
