@@ -68,7 +68,7 @@ DiagnosticMessageHandler _makeDiagnosticMessageHandler(Set<String> names) {
 }
 
 /// Check that by default an error is reported for all unresolved super
-/// invocations: independently of weather they target abstract super members
+/// invocations: independently of whether they target abstract super members
 /// or nonexistent targets.
 Future<void> testSuperMixins() async {
   var missingSuperMethodNames = new Set<String>();

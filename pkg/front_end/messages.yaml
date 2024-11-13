@@ -4895,17 +4895,17 @@ TypeOriginWithFileUri:
 ObjectExtends:
   problemMessage: "The class 'Object' can't have a superclass."
   frontendInternal: true
-  external: test/fasta/object_supertype_test.dart
+  external: test/object_supertype_test.dart
 
 ObjectImplements:
   problemMessage: "The class 'Object' can't implement anything."
   frontendInternal: true
-  external: test/fasta/object_supertype_test.dart
+  external: test/object_supertype_test.dart
 
 ObjectMixesIn:
   problemMessage: "The class 'Object' can't use mixins."
   frontendInternal: true
-  external: test/fasta/object_supertype_test.dart
+  external: test/object_supertype_test.dart
 
 StaticAndInstanceConflict:
   problemMessage: "This static member conflicts with an instance member."
