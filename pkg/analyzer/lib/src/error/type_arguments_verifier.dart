@@ -7,7 +7,7 @@ import "dart:math" as math;
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -17,10 +17,11 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
-  final LibraryElement _libraryElement;
+  final LibraryElement2 _libraryElement;
   final ErrorReporter _errorReporter;
 
   TypeArgumentsVerifier(
@@ -33,12 +34,12 @@ class TypeArgumentsVerifier {
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReference node) {
-    var classElement = node.constructorName.type.element;
-    List<TypeParameterElement> typeParameters;
-    if (classElement is TypeAliasElement) {
-      typeParameters = classElement.typeParameters;
-    } else if (classElement is InterfaceElement) {
-      typeParameters = classElement.typeParameters;
+    var classElement = node.constructorName.type.element2;
+    List<TypeParameterElement2> typeParameters;
+    if (classElement is TypeAliasElement2) {
+      typeParameters = classElement.typeParameters2;
+    } else if (classElement is InterfaceElement2) {
+      typeParameters = classElement.typeParameters2;
     } else {
       return;
     }
@@ -46,6 +47,13 @@ class TypeArgumentsVerifier {
     if (typeParameters.isEmpty) {
       return;
     }
+
+    for (var typeParameter in typeParameters) {
+      if (typeParameter.name3 == null) {
+        return;
+      }
+    }
+
     var typeArgumentList = node.constructorName.type.typeArguments;
     if (typeArgumentList == null) {
       return;
@@ -66,7 +74,7 @@ class TypeArgumentsVerifier {
       return;
     }
     var typeArgumentListLength = typeArgumentList.arguments.length;
-    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    var substitution = Substitution.fromPairs2(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
       var typeArgument = typeArguments[i];
@@ -84,20 +92,26 @@ class TypeArgumentsVerifier {
         _errorReporter.atNode(
           errorNode,
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          arguments: [typeArgument, typeParameter.name, bound],
+          arguments: [typeArgument, typeParameter.name3!, bound],
         );
       }
     }
   }
 
   void checkEnumConstantDeclaration(EnumConstantDeclaration node) {
-    var constructorElement = node.constructorElement;
+    var constructorElement = node.constructorElement2;
     if (constructorElement == null) {
       return;
     }
 
-    var enumElement = constructorElement.enclosingElement3;
-    var typeParameters = enumElement.typeParameters;
+    var enumElement = constructorElement.enclosingElement2;
+    var typeParameters = enumElement.typeParameters2;
+
+    for (var typeParameter in typeParameters) {
+      if (typeParameter.name3 == null) {
+        return;
+      }
+    }
 
     var typeArgumentList = node.arguments?.typeArguments;
     var typeArgumentNodes = typeArgumentList?.arguments;
@@ -117,7 +131,7 @@ class TypeArgumentsVerifier {
 
     // Check that type arguments are regular-bounded.
     var typeArguments = constructorElement.returnType.typeArguments;
-    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    var substitution = Substitution.fromPairs2(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
       var typeArgument = typeArguments[i];
@@ -134,7 +148,7 @@ class TypeArgumentsVerifier {
         _errorReporter.atEntity(
           errorTarget,
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          arguments: [typeArgument, typeParameter.name, bound],
+          arguments: [typeArgument, typeParameter.name3!, bound],
         );
       }
     }
@@ -246,7 +260,7 @@ class TypeArgumentsVerifier {
       return;
     }
     var type = node.typeOrThrow;
-    if (_isMissingTypeArguments(node, type, node.element)) {
+    if (_isMissingTypeArguments(node, type, node.element2)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression ||
           unwrappedParent is CastPattern ||
@@ -272,19 +286,23 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    List<TypeParameterElement> typeParameters;
-    String elementName;
+    List<TypeParameterElement2> typeParameters;
+    String? elementName;
     List<DartType> typeArguments;
     var alias = type.alias;
     if (alias != null) {
-      elementName = alias.element.name;
-      typeParameters = alias.element.typeParameters;
+      elementName = alias.element2.name3;
+      typeParameters = alias.element2.typeParameters2;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
-      elementName = type.element.name;
-      typeParameters = type.element.typeParameters;
+      elementName = type.element3.name3;
+      typeParameters = type.element3.typeParameters2;
       typeArguments = type.typeArguments;
     } else {
+      return;
+    }
+
+    if (elementName == null) {
       return;
     }
 
@@ -294,12 +312,18 @@ class TypeArgumentsVerifier {
 
     // Check for regular-bounded.
     List<_TypeArgumentIssue>? issues;
-    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    var substitution = Substitution.fromPairs2(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
+      var typeParameterName = typeParameter.name3;
+      if (typeParameterName == null) {
+        return;
+      }
+
       var typeArgument = typeArguments[i];
 
-      if (typeArgument is FunctionType && typeArgument.typeFormals.isNotEmpty) {
+      if (typeArgument is FunctionType &&
+          typeArgument.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _errorReporter.atNode(
             _typeArgumentErrorNode(namedType, i),
@@ -319,7 +343,8 @@ class TypeArgumentsVerifier {
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         issues ??= <_TypeArgumentIssue>[];
         issues.add(
-          _TypeArgumentIssue(i, typeParameter, bound, typeArgument),
+          _TypeArgumentIssue(
+              i, typeParameter, typeParameterName, bound, typeArgument),
         );
       }
     }
@@ -378,7 +403,7 @@ class TypeArgumentsVerifier {
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           arguments: [
             issue.argument,
-            issue.parameter.name,
+            issue.parameterName,
             issue.parameterBound
           ],
           contextMessages: buildContextMessages(),
@@ -400,12 +425,17 @@ class TypeArgumentsVerifier {
     }
 
     // Check for super-bounded.
-    var invertedSubstitution = Substitution.fromPairs(
+    var invertedSubstitution = Substitution.fromPairs2(
       typeParameters,
       invertedTypeArguments,
     );
     for (var i = 0; i < invertedTypeArguments.length; i++) {
       var typeParameter = typeParameters[i];
+      var typeParameterName = typeParameter.name3;
+      if (typeParameterName == null) {
+        return;
+      }
+
       var typeArgument = invertedTypeArguments[i];
 
       var bound = typeParameter.bound;
@@ -419,7 +449,7 @@ class TypeArgumentsVerifier {
         _errorReporter.atNode(
           _typeArgumentErrorNode(namedType, i),
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          arguments: [typeArgument, typeParameter.name, bound],
+          arguments: [typeArgument, typeParameterName, bound],
           contextMessages: buildContextMessages(
             invertedTypeArguments: invertedTypeArguments,
           ),
@@ -443,7 +473,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    var fnTypeParams = genericType.typeFormals;
+    var fnTypeParams = genericType.typeParameters;
     var typeArgs = typeArgumentList.map((t) => t.typeOrThrow).toList();
 
     // If the amount mismatches, clean up the lists to be substitutable. The
@@ -464,7 +494,7 @@ class TypeArgumentsVerifier {
       //
       DartType argType = typeArgs[i];
 
-      if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
+      if (argType is FunctionType && argType.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _errorReporter.atNode(
             typeArgumentList[i],
@@ -475,18 +505,23 @@ class TypeArgumentsVerifier {
       }
 
       var fnTypeParam = fnTypeParams[i];
+      var fnTypeParamName = fnTypeParam.name3;
+      if (fnTypeParamName == null) {
+        continue;
+      }
+
       var rawBound = fnTypeParam.bound;
       if (rawBound == null) {
         continue;
       }
 
-      var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
+      var substitution = Substitution.fromPairs2(fnTypeParams, typeArgs);
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argType, bound)) {
         _errorReporter.atNode(
           typeArgumentList[i],
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          arguments: [argType, fnTypeParam.name, bound],
+          arguments: [argType, fnTypeParamName, bound],
         );
       }
     }
@@ -572,7 +607,12 @@ class TypeArgumentsVerifier {
   ///
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
-  bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {
+  bool _isMissingTypeArguments(AstNode node, DartType type, Element2? element) {
+    var elementMetadata = element.ifTypeOrNull<Annotatable>()?.metadata2;
+    if (elementMetadata == null) {
+      return false;
+    }
+
     List<DartType> typeArguments;
     var alias = type.alias;
     if (alias != null) {
@@ -586,7 +626,7 @@ class TypeArgumentsVerifier {
     // Check if this type has type arguments and at least one is dynamic.
     // If so, we may need to issue a strict-raw-types error.
     if (typeArguments.any((t) => t is DynamicType)) {
-      if (element != null && element.hasOptionalTypeArgs) {
+      if (element != null && elementMetadata.hasOptionalTypeArgs) {
         return false;
       }
       return true;
@@ -608,7 +648,7 @@ class TypeArgumentsVerifier {
         return false;
     }
 
-    if (namedType.type?.element is ExtensionTypeElement) {
+    if (namedType.type?.element3 is ExtensionTypeElement2) {
       return false;
     }
 
@@ -630,7 +670,10 @@ class _TypeArgumentIssue {
   final int index;
 
   /// The type parameter with the bound that was violated.
-  final TypeParameterElement parameter;
+  final TypeParameterElement2 parameter;
+
+  /// The non-null name of the [parameter].
+  final String parameterName;
 
   /// The substituted bound of the [parameter].
   final DartType parameterBound;
@@ -641,6 +684,7 @@ class _TypeArgumentIssue {
   _TypeArgumentIssue(
     this.index,
     this.parameter,
+    this.parameterName,
     this.parameterBound,
     this.argument,
   );
