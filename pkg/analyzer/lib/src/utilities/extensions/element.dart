@@ -32,9 +32,25 @@ extension Element2OrNullExtension on Element2? {
   Element? get asElement {
     var self = this;
     switch (self) {
-      case DynamicElementImpl2():
-        return DynamicElementImpl.instance;
-      case GetterElement():
+      case ConstructorElementImpl2():
+        return self.firstFragment as Element;
+      case DynamicElementImpl():
+        return self;
+      case ExecutableMember():
+        return self.declaration as Element;
+      case FieldElementImpl2():
+        return self.firstFragment as Element;
+      case FormalParameterElementImpl():
+        return self.firstFragment as Element;
+      case GetterElementImpl():
+        return self.firstFragment as Element;
+      case LibraryElementImpl():
+        return self as Element;
+      case LocalFunctionElementImpl():
+        return self.wrappedElement as Element;
+      case LocalVariableElementImpl2():
+        return self.wrappedElement as Element;
+      case MethodElementImpl2():
         return self.firstFragment as Element;
       case MultiplyDefinedElementImpl2 element2:
         return element2.asElement;
@@ -42,6 +58,8 @@ extension Element2OrNullExtension on Element2? {
         return NeverElementImpl.instance;
       case PrefixElementImpl():
         return self;
+      case SetterElementImpl():
+        return self.firstFragment as Element;
       case TopLevelFunctionElementImpl():
         return self.firstFragment as Element;
       case TopLevelVariableElementImpl2():
@@ -136,8 +154,21 @@ extension ElementOrNullExtension on Element? {
       return null;
     } else if (self is DynamicElementImpl) {
       return DynamicElementImpl2.instance;
+    } else if (self is ExtensionElementImpl) {
+      return (self as ExtensionFragment).element;
+    } else if (self is ExecutableMember) {
+      return self as ExecutableElement2;
+    } else if (self is FieldMember) {
+      return self as FieldElement2;
+    } else if (self is FieldElementImpl) {
+      return (self as FieldFragment).element;
     } else if (self is FunctionElementImpl) {
-      return self.element;
+      if (self.enclosingElement3 is! CompilationUnitElement) {
+        // TODO(scheglov): update `FunctionElementImpl.element` return type?
+        return self.element;
+      } else {
+        return (self as Fragment).element;
+      }
     } else if (self is InterfaceElementImpl) {
       return self.element;
     } else if (self is LabelElementImpl) {
@@ -158,10 +189,6 @@ extension ElementOrNullExtension on Element? {
       return self;
     } else if (self is PrefixElementImpl) {
       return self.element2;
-    } else if (self is ExecutableMember) {
-      return self as ExecutableElement2;
-    } else if (self is FieldMember) {
-      return self as FieldElement2;
     } else {
       return (self as Fragment?)?.element;
     }

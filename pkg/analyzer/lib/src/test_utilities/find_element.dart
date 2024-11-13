@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
@@ -461,6 +462,15 @@ abstract class _FindElementBase {
   FunctionElement topFunction(String name) {
     for (var function in unitElement.functions) {
       if (function.name == name) {
+        return function;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
+  TopLevelFunctionElement topFunction2(String name) {
+    for (var function in (unitElement.asElement2 as LibraryElement2).functions) {
+      if (function.displayName == name) {
         return function;
       }
     }

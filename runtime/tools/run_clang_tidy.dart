@@ -52,7 +52,7 @@ List<String> compilerFlagsForFile(String filepath) {
     '-Iout/DebugX64/gen/third_party/perfetto/build_config',
     '-DTARGET_ARCH_$arch',
     '-DTESTING',
-    '-std=c++17',
+    '-std=c++20',
     '-x',
     'c++',
   ];

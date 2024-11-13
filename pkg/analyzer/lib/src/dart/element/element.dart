@@ -926,10 +926,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       extensionTypes.cast<ExtensionTypeFragment>();
 
   @override
-  List<LibraryFragmentInclude> get fragmentIncludes =>
-      libraryImportPrefixes.cast<LibraryFragmentInclude>();
-
-  @override
   List<FunctionElementImpl> get functions {
     return _functions;
   }
@@ -1050,6 +1046,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     var index = units.indexOf(this);
     return units.elementAtOrNull(index + 1);
   }
+
+  @override
+  List<PartInclude> get partIncludes =>
+      libraryImportPrefixes.cast<PartInclude>();
 
   @override
   List<PartElementImpl> get parts => _parts;
@@ -3386,8 +3386,25 @@ class ElementLocationImpl implements ElementLocation {
     List<String> components = <String>[];
     Element2? ancestor = element;
     while (ancestor != null) {
-      components.insert(0, (ancestor as ElementImpl2).identifier);
-      ancestor = ancestor.enclosingElement2;
+      if (ancestor is! ElementImpl2) {
+        if (ancestor is LibraryElementImpl) {
+          components.insert(0, ancestor.identifier);
+        } else if (ancestor is AugmentableElement) {
+          components.insert(0, ancestor.identifier);
+        } else {
+          throw '${ancestor.runtimeType} is not an ElementImpl2';
+        }
+        ancestor = ancestor.enclosingElement2;
+      } else {
+       components.insert(0, ancestor.identifier);
+        if (ancestor is LocalFunctionElementImpl) {
+          ancestor = (ancestor.wrappedElement._enclosingElement3
+                  as ExecutableElementImpl)
+              .element;
+        } else {
+          ancestor = ancestor.enclosingElement2;
+        }
+      }
     }
     _components = components.toFixedList();
   }
@@ -3501,7 +3518,8 @@ class EnumElementImpl extends InterfaceElementImpl
   }
 
   @override
-  List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
+  List<FieldElement2> get constants2 =>
+      constants.map((e) => e.asElement2 as FieldElement2).toList();
 
   @override
   EnumElementImpl2 get element {
@@ -3559,7 +3577,8 @@ class EnumElementImpl2 extends InterfaceElementImpl2
   }
 
   @override
-  List<FieldElement2> get constants2 => constants.cast<FieldElement2>();
+  List<FieldElement2> get constants2 =>
+      constants.map((e) => e.asElement2 as FieldElement2).toList();
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -4201,7 +4220,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   ElementKind get kind => ElementKind.FIELD;
 
   @override
-  String? get name3 => firstFragment.name;
+  String get name3 => firstFragment.name;
 
   @override
   SetterElement? get setter2 => firstFragment.setter?.element as SetterElement?;
@@ -5378,6 +5397,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       .map((e) => e.asElement2 as GetterElement?)
       .nonNulls
       .toList();
+
+  @override
+  String get identifier => name3 ?? firstFragment.identifier;
 
   @override
   bool get isPrivate => firstFragment.isPrivate;
@@ -6557,7 +6579,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   TopLevelFunctionElement? get entryPoint2 =>
-      entryPoint as TopLevelFunctionElement?;
+      entryPoint.asElement2 as TopLevelFunctionElement?;
 
   @override
   List<LibraryElementImpl> get exportedLibraries {
@@ -7102,6 +7124,10 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
       _wrappedElement.typeParameters
           .map((fragment) => (fragment as TypeParameterFragment).element)
           .toList();
+
+  FunctionElementImpl get wrappedElement {
+    return _wrappedElement;
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -8886,7 +8912,7 @@ mixin ParameterElementMixin implements ParameterElement {
 }
 
 class PartElementImpl extends _ExistingElementImpl
-    implements PartElement, LibraryFragmentInclude {
+    implements PartElement, PartInclude {
   @override
   final DirectiveUri uri;
 

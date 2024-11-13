@@ -653,7 +653,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
         RELEASE_ASSERT(far_branch_level < 2);
-        far_branch_level++;
+        far_branch_level += 1;
       } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
         // Can only happen with precompilation.
         UNREACHABLE();
@@ -681,14 +681,13 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
 static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
-                                       volatile bool optimized,
+                                       bool optimized,
                                        intptr_t osr_id) {
   Thread* const thread = Thread::Current();
   NoActiveIsolateScope no_active_isolate(thread);
 
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
-  if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     StackZone stack_zone(thread);
@@ -863,9 +862,9 @@ ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
   }
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
+  const bool optimized = function.ForceOptimize();
   const Object& result = Object::Handle(
-      CompileFunctionHelper(pipeline, function, false, /* not optimized */
-                            kNoOSRDeoptId));
+      CompileFunctionHelper(pipeline, function, optimized, kNoOSRDeoptId));
   if (result.IsError()) {
     return Error::Cast(result).ptr();
   }

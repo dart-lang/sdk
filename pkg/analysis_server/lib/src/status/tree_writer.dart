@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -66,7 +66,7 @@ mixin TreeWriter {
         return 'Source (uri="${value.uri}", path="${value.fullName}")';
       } else if (value is ElementAnnotationImpl) {
         var buffer = StringBuffer();
-        buffer.write(_toString(value.element));
+        buffer.write(_toString(value.element2));
         var result = value.evaluationResult;
         switch (result) {
           case null:

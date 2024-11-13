@@ -1039,7 +1039,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   // at the start of the first entry.
   {
     const intptr_t array_size =
-        TypeArguments::Cache::kHeaderSize + TypeArguments::Cache::kEntrySize;
+        static_cast<intptr_t>(TypeArguments::Cache::kHeaderSize) +
+        static_cast<intptr_t>(TypeArguments::Cache::kEntrySize);
     uword address =
         heap->Allocate(thread, Array::InstanceSize(array_size), Heap::kOld);
     InitializeObjectVariant<Array>(address, kImmutableArrayCid, array_size);

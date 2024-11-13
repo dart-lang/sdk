@@ -7,8 +7,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -23,30 +23,23 @@ main() {
   });
 }
 
-class DeprecatedLint extends LintRule {
-  DeprecatedLint()
-      : super(
-          name: 'deprecated_lint',
-          state: State.deprecated(),
-          description: '',
-        );
+class DeprecatedLint extends TestLintRule {
+  DeprecatedLint() : super(name: 'deprecated_lint', state: State.deprecated());
 }
 
-class DeprecatedLintWithReplacement extends LintRule {
+class DeprecatedLintWithReplacement extends TestLintRule {
   DeprecatedLintWithReplacement()
       : super(
           name: 'deprecated_lint_with_replacement',
           state: State.deprecated(replacedBy: 'replacing_lint'),
-          description: '',
         );
 }
 
-class DeprecatedSince3Lint extends LintRule {
+class DeprecatedSince3Lint extends TestLintRule {
   DeprecatedSince3Lint()
       : super(
           name: 'deprecated_since_3_lint',
           state: State.deprecated(since: dart3),
-          description: '',
         );
 }
 
@@ -65,7 +58,6 @@ linter:
 include: included.yaml
 ''',
       [],
-      provider: () => rules,
     );
   }
 
@@ -81,20 +73,19 @@ linter:
 include: included.yaml
 ''',
       [],
-      provider: () => rules,
     );
   }
 }
 
 @reflectiveTest
-class OptionsRuleValidatorTest
-    with OptionsRuleValidatorTestMixin, ResourceProviderMixin {
+class OptionsRuleValidatorTest extends AbstractAnalysisOptionsTest
+    with OptionsRuleValidatorTestMixin {
   test_deprecated_rule() {
     assertErrors('''
 linter:
   rules:
     - deprecated_lint_with_replacement
-      ''', [AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT]);
+''', [AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT]);
   }
 
   test_deprecated_rule_map() {
@@ -102,7 +93,7 @@ linter:
 linter:
   rules:
     deprecated_lint: false
-      ''', [AnalysisOptionsHintCode.DEPRECATED_LINT]);
+''', [AnalysisOptionsHintCode.DEPRECATED_LINT]);
   }
 
   test_deprecated_rule_withReplacement() {
@@ -110,7 +101,7 @@ linter:
 linter:
   rules:
     - deprecated_lint
-      ''', [AnalysisOptionsHintCode.DEPRECATED_LINT]);
+''', [AnalysisOptionsHintCode.DEPRECATED_LINT]);
   }
 
   test_deprecated_rule_withSince_inCurrentSdk() {
@@ -119,7 +110,7 @@ linter:
 linter:
   rules:
     - deprecated_since_3_lint
-      ''',
+''',
       [AnalysisOptionsHintCode.DEPRECATED_LINT],
       sdk: dart3,
     );
@@ -131,7 +122,7 @@ linter:
 linter:
   rules:
     - deprecated_since_3_lint
-      ''',
+''',
       [],
       sdk: Version(2, 17, 0),
     );
@@ -143,7 +134,7 @@ linter:
 linter:
   rules:
     - deprecated_since_3_lint
-      ''',
+''',
       // No error
       [],
     );
@@ -155,7 +146,7 @@ linter:
   rules:
     - stable_lint
     - stable_lint
-      ''', [AnalysisOptionsHintCode.DUPLICATE_RULE]);
+''', [AnalysisOptionsHintCode.DUPLICATE_RULE]);
   }
 
   test_incompatible_rule() {
@@ -164,7 +155,7 @@ linter:
   rules:
     - rule_pos
     - rule_neg
-      ''', [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT]);
+''', [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT]);
   }
 
   test_incompatible_rule_map() {
@@ -173,7 +164,7 @@ linter:
   rules:
     rule_pos: true
     rule_neg: true
-      ''', [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT]);
+''', [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT]);
   }
 
   test_incompatible_rule_map_disabled() {
@@ -182,7 +173,7 @@ linter:
   rules:
     rule_pos: true
     rule_neg: false
-      ''', []);
+''', []);
   }
 
   test_removed_rule() {
@@ -215,7 +206,7 @@ linter:
 linter:
   rules:
     - replaced_lint
-      ''',
+''',
       [AnalysisOptionsWarningCode.REPLACED_LINT],
       sdk: dart3,
     );
@@ -226,7 +217,7 @@ linter:
 linter:
   rules:
     - stable_lint
-      ''', []);
+''', []);
   }
 
   test_stable_rule_map() {
@@ -234,7 +225,7 @@ linter:
 linter:
   rules:
     stable_lint: true
-      ''', []);
+''', []);
   }
 
   test_undefined_rule() {
@@ -242,7 +233,7 @@ linter:
 linter:
   rules:
     - this_rule_does_not_exist
-      ''', [AnalysisOptionsWarningCode.UNDEFINED_LINT]);
+''', [AnalysisOptionsWarningCode.UNDEFINED_LINT]);
   }
 
   test_undefined_rule_map() {
@@ -250,23 +241,11 @@ linter:
 linter:
   rules:
     this_rule_does_not_exist: false
-      ''', [AnalysisOptionsWarningCode.UNDEFINED_LINT]);
+''', [AnalysisOptionsWarningCode.UNDEFINED_LINT]);
   }
 }
 
-mixin OptionsRuleValidatorTestMixin {
-  final rules = [
-    DeprecatedLint(),
-    DeprecatedSince3Lint(),
-    DeprecatedLintWithReplacement(),
-    StableLint(),
-    RuleNeg(),
-    RulePos(),
-    RemovedIn2_12Lint(),
-    ReplacedLint(),
-    ReplacingLint(),
-  ];
-
+mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
   /// Assert that when the validator is used on the given [content] the
   /// [expectedErrorCodes] are produced.
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes,
@@ -276,66 +255,71 @@ mixin OptionsRuleValidatorTestMixin {
       listener,
       StringSource(content, 'analysis_options.yaml'),
     );
-    var validator = LinterRuleOptionsValidator(
-        provider: () => rules, sdkVersionConstraint: sdk);
+    var validator = LinterRuleOptionsValidator(sdkVersionConstraint: sdk);
     validator.validate(reporter, loadYamlNode(content) as YamlMap);
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
+
+  @override
+  void setUp() {
+    Registry.ruleRegistry
+      ..registerLintRule(DeprecatedLint())
+      ..registerLintRule(DeprecatedSince3Lint())
+      ..registerLintRule(DeprecatedLintWithReplacement())
+      ..registerLintRule(StableLint())
+      ..registerLintRule(RuleNeg())
+      ..registerLintRule(RulePos())
+      ..registerLintRule(RemovedIn2_12Lint())
+      ..registerLintRule(ReplacedLint())
+      ..registerLintRule(ReplacingLint());
+    super.setUp();
+  }
 }
 
-class RemovedIn2_12Lint extends LintRule {
+class RemovedIn2_12Lint extends TestLintRule {
   RemovedIn2_12Lint()
       : super(
           name: 'removed_in_2_12_lint',
           state: State.removed(since: dart2_12),
-          description: '',
         );
 }
 
-class ReplacedLint extends LintRule {
+class ReplacedLint extends TestLintRule {
   ReplacedLint()
       : super(
           name: 'replaced_lint',
           state: State.removed(since: dart3, replacedBy: 'replacing_lint'),
-          description: '',
         );
 }
 
-class ReplacingLint extends LintRule {
-  ReplacingLint()
-      : super(
-          name: 'replacing_lint',
-          description: '',
-        );
+class ReplacingLint extends TestLintRule {
+  ReplacingLint() : super(name: 'replacing_lint');
 }
 
-class RuleNeg extends LintRule {
-  RuleNeg()
-      : super(
-          name: 'rule_neg',
-          description: '',
-        );
+class RuleNeg extends TestLintRule {
+  RuleNeg() : super(name: 'rule_neg');
 
   @override
   List<String> get incompatibleRules => ['rule_pos'];
 }
 
-class RulePos extends LintRule {
-  RulePos()
-      : super(
-          name: 'rule_pos',
-          description: '',
-        );
+class RulePos extends TestLintRule {
+  RulePos() : super(name: 'rule_pos');
 
   @override
   List<String> get incompatibleRules => ['rule_neg'];
 }
 
-class StableLint extends LintRule {
-  StableLint()
-      : super(
-          name: 'stable_lint',
-          state: State.stable(),
-          description: '',
-        );
+class StableLint extends TestLintRule {
+  StableLint() : super(name: 'stable_lint', state: State.stable());
+}
+
+abstract class TestLintRule extends LintRule {
+  static const LintCode code =
+      LintCode('lint_code', 'Lint code.', correctionMessage: 'Lint code.');
+
+  TestLintRule({required super.name, super.state}) : super(description: '');
+
+  @override
+  LintCode get lintCode => code;
 }

@@ -34,7 +34,7 @@ class SuggestionBuilderTest extends AbstractSingleUnitTest {
       offset: 0,
     );
     var builder = SuggestionBuilder(request, useFilter: false);
-    builder.suggestTopLevelFunction2(findElement2.topFunction('f'));
+    builder.suggestTopLevelFunction(findElement2.topFunction('f'));
     var suggestions = builder.suggestions.map((e) => e.build()).toList();
     expect(suggestions, hasLength(1));
     return suggestions[0];

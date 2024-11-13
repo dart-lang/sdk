@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Information about a code completion suggestion that might or might not be
@@ -1184,7 +1185,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
     switch (suggestion) {
       case ClassSuggestion():
         suggestInterface(
-          suggestion.element,
+          suggestion.element.asElement2 as ClassElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
         );
@@ -1200,7 +1201,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           break;
         }
         suggestConstructor(
-          suggestion.element,
+          suggestion.element.asElement2 as ConstructorElement2,
           hasClassName: suggestion.hasClassName,
           completion: completion,
           kind: suggestion.kind,
@@ -1210,34 +1211,34 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case EnumSuggestion():
         suggestInterface(
-          suggestion.element,
+          suggestion.element.asElement2 as EnumElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
         );
       case EnumConstantSuggestion():
         if (suggestion.includeEnumName) {
           suggestEnumConstant(
-            suggestion.element,
+            suggestion.element.asElement2 as FieldElement2,
             suggestion.completion,
             relevance: relevance,
           );
         } else {
           suggestField(
-            suggestion.element,
+            suggestion.element.asElement2 as FieldElement2,
             inheritanceDistance: 0.0,
             relevance: relevance,
           );
         }
       case ExtensionSuggestion():
         suggestExtension(
-          suggestion.element,
+          suggestion.element.asElement2 as ExtensionElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
           kind: suggestion.kind,
         );
       case ExtensionTypeSuggestion():
         suggestInterface(
-          suggestion.element,
+          suggestion.element.asElement2 as ExtensionTypeElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
         );
@@ -1245,7 +1246,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         var fieldElement = suggestion.element;
         if (fieldElement.isEnumConstant) {
           suggestEnumConstant(
-            fieldElement,
+            fieldElement.asElement2 as FieldElement2,
             suggestion.completion,
             relevance: relevance,
           );
@@ -1253,15 +1254,19 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           var inheritanceDistance = suggestion.inheritanceDistance(
             request.featureComputer,
           );
+          var field =
+              fieldElement is FieldMember
+                  ? fieldElement.declaration.asElement2
+                  : fieldElement.asElement2;
           suggestField(
-            fieldElement,
+            field as FieldElement2,
             inheritanceDistance: inheritanceDistance,
             relevance: relevance,
           );
         }
       case FormalParameterSuggestion():
         suggestFormalParameter(
-          element: suggestion.element,
+          element: suggestion.element.asElement2 as FormalParameterElement,
           distance: suggestion.distance,
           relevance: relevance,
         );
@@ -1274,7 +1279,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case ImportPrefixSuggestion():
         suggestPrefix(
-          suggestion.libraryElement,
+          suggestion.libraryElement.asElement2 as LibraryElement2,
           suggestion.prefixElement.name,
           relevance: relevance,
         );
@@ -1287,16 +1292,19 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case LabelSuggestion():
         suggestLabel(suggestion.label);
       case LoadLibraryFunctionSuggestion():
-        suggestLoadLibraryFunction(suggestion.element, kind: suggestion.kind);
+        suggestLoadLibraryFunction(
+          suggestion.element.asElement2,
+          kind: suggestion.kind,
+        );
       case LocalFunctionSuggestion():
-        suggestTopLevelFunction(
-          suggestion.element,
+        suggestLocalFunction(
+          suggestion.element.asElement2 as LocalFunctionElement,
           relevance: relevance,
           kind: suggestion.kind,
         );
       case LocalVariableSuggestion():
         suggestLocalVariable(
-          element: suggestion.element,
+          element: suggestion.element.asElement2 as LocalVariableElement2,
           distance: suggestion.distance,
           relevance: relevance,
         );
@@ -1312,20 +1320,20 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           request.featureComputer,
         );
         suggestMethod(
-          suggestion.element,
+          suggestion.element.asElement2 as MethodElement2,
           kind: kind,
           inheritanceDistance: inheritanceDistance,
           relevance: relevance,
         );
       case MixinSuggestion():
         suggestInterface(
-          suggestion.element,
+          suggestion.element.asElement2 as MixinElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
         );
       case NamedArgumentSuggestion():
         suggestNamedArgument(
-          suggestion.parameter,
+          suggestion.parameter.asElement2 as FormalParameterElement,
           appendColon: suggestion.appendColon,
           appendComma: suggestion.appendComma,
           replacementLength: suggestion.replacementLength,
@@ -1337,7 +1345,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         suggestName(suggestion.name);
       case OverrideSuggestion():
         await suggestOverride(
-          element: suggestion.element,
+          element: suggestion.element.asElement2,
           invokeSuper: suggestion.shouldInvokeSuper,
           replacementRange: suggestion.replacementRange,
           skipAt: suggestion.skipAt,
@@ -1346,12 +1354,22 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         var inheritanceDistance = suggestion.inheritanceDistance(
           request.featureComputer,
         );
-        suggestAccessor(
-          suggestion.element,
-          inheritanceDistance: inheritanceDistance,
-          relevance: relevance,
-          completion: suggestion.completion,
-        );
+        var accessor = suggestion.element;
+        if (accessor.isGetter) {
+          suggestGetter(
+            accessor.asElement2 as GetterElement,
+            inheritanceDistance: inheritanceDistance,
+            relevance: relevance,
+            completion: suggestion.completion,
+          );
+        } else {
+          suggestSetter(
+            accessor.asElement2 as SetterElement,
+            inheritanceDistance: inheritanceDistance,
+            relevance: relevance,
+            completion: suggestion.completion,
+          );
+        }
       case RecordFieldSuggestion():
         suggestRecordField(
           field: suggestion.field,
@@ -1369,7 +1387,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           request.featureComputer,
         );
         suggestSetStateMethod(
-          suggestion.element,
+          suggestion.element.asElement2 as MethodElement2,
           kind: suggestion.kind,
           completion: suggestion.completion,
           displayText: suggestion.displayText,
@@ -1379,40 +1397,54 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case StaticFieldSuggestion():
         suggestStaticField(
-          suggestion.element,
+          suggestion.element.asElement2 as FieldElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
           completion: suggestion.completion,
         );
       case SuperParameterSuggestion():
-        suggestSuperFormalParameter(suggestion.element);
+        suggestSuperFormalParameter(
+          suggestion.element.asElement2 as FormalParameterElement,
+        );
       case TopLevelFunctionSuggestion():
         suggestTopLevelFunction(
-          suggestion.element,
+          suggestion.element.asElement2 as TopLevelFunctionElement,
           kind: suggestion.kind,
           prefix: suggestion.prefix,
           relevance: relevance,
         );
       case TopLevelPropertyAccessSuggestion():
-        suggestTopLevelPropertyAccessor(
-          suggestion.element,
-          prefix: suggestion.prefix,
-          relevance: relevance,
-        );
+        var accessor = suggestion.element;
+        if (accessor.isGetter) {
+          suggestTopLevelGetter(
+            accessor.asElement2 as GetterElement,
+            prefix: suggestion.prefix,
+            relevance: relevance,
+          );
+        } else {
+          suggestTopLevelSetter(
+            accessor.asElement2 as SetterElement,
+            prefix: suggestion.prefix,
+            relevance: relevance,
+          );
+        }
       case TopLevelVariableSuggestion():
         suggestTopLevelVariable(
-          suggestion.element,
+          suggestion.element.asElement2 as TopLevelVariableElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
         );
       case TypeAliasSuggestion():
         suggestTypeAlias(
-          suggestion.element,
+          suggestion.element.asElement2 as TypeAliasElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
         );
       case TypeParameterSuggestion():
-        suggestTypeParameter(suggestion.element, relevance: relevance);
+        suggestTypeParameter(
+          suggestion.element.asElement2 as TypeParameterElement2,
+          relevance: relevance,
+        );
       case UriSuggestion():
         suggestUri(suggestion.uriStr);
     }

@@ -91,10 +91,6 @@ lib/src/services/search/element_visitors.dart
 lib/src/services/search/hierarchy.dart
 lib/src/services/search/search_engine.dart
 lib/src/services/search/search_engine_internal.dart
-lib/src/status/ast_writer.dart
-lib/src/status/diagnostics.dart
-lib/src/status/element_writer.dart
-lib/src/status/tree_writer.dart
 lib/src/utilities/extensions/ast.dart
 lib/src/utilities/extensions/completion_request.dart
 lib/src/utilities/extensions/element.dart

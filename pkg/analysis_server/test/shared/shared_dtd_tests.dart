@@ -301,9 +301,24 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
       params: {'a': 'b'},
     );
 
-    var result = response.result['result'] as Map<String, Object?>;
+    var result = response.result['result'] as Map<String, Object?>?;
 
     expect(result, equals({'a': 'b'}));
+  }
+
+  test_service_success_echo_nullResponse() async {
+    await initializeServer();
+    await sendConnectToDtdRequest(registerExperimentalHandlers: true);
+
+    var response = await dtd.call(
+      lspServiceName,
+      CustomMethods.experimentalEcho.toString(),
+    );
+
+    var result = response.result['result'] as Map<String, Object?>?;
+
+    expect(response.type, 'Null');
+    expect(result, isNull);
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')

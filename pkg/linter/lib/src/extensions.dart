@@ -371,6 +371,12 @@ extension ElementExtension on Element {
 }
 
 extension ElementExtension2 on Element2? {
+  Element2? get canonicalElement2 => switch (this) {
+        GetterElement(:var variable3) => variable3,
+        SetterElement(:var variable3) => variable3,
+        _ => this,
+      };
+
   bool get isDartCorePrint {
     var self = this;
     return self is TopLevelFunctionElement &&

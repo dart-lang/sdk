@@ -110,7 +110,10 @@ class DtdServices {
       // boolean (for example). This means we need to put the result in a
       // field, which we're calling 'result'.
       (result) => completer.complete({
-        'type': result?.runtimeType.toString(),
+        // result can be null, but DTD requires that we have a `type`, so don't
+        // use `?.` here because it results in a missing `type` instead of
+        // `Null`.
+        'type': result.runtimeType.toString(),
         'result': result,
       }),
     );

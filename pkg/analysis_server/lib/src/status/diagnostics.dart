@@ -24,7 +24,6 @@ import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -1306,13 +1305,17 @@ class ElementModelPage extends DiagnosticPageWithNav {
       return;
     }
     var result = await driver.getResolvedUnit(filePath);
-    CompilationUnitElement? compilationUnitElement;
-    if (result is ResolvedUnitResult) {
-      compilationUnitElement = result.unit.declaredElement;
+    if (result is! ResolvedUnitResult) {
+      p(
+        'The file <code>${escape(filePath)}</code> could not be resolved.',
+        raw: true,
+      );
+      return;
     }
-    if (compilationUnitElement != null) {
+    var libraryFragment = result.unit.declaredFragment;
+    if (libraryFragment != null) {
       var writer = ElementWriter(buf);
-      compilationUnitElement.accept(writer);
+      writer.write(libraryFragment.element);
     } else {
       p(
         'An element model could not be produced for the file '

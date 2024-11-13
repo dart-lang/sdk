@@ -13,6 +13,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -170,6 +171,13 @@ class EditableArgumentsHandler
     );
   }
 
+  /// Returns the name of an enum constant prefixed with the enum name.
+  String? _qualifiedEnumConstant(FieldElement2 enumConstant) {
+    var enumName = enumConstant.enclosingElement2?.name3;
+    var name = enumConstant.name3;
+    return enumName != null && name != null ? '$enumName.$name' : null;
+  }
+
   /// Converts a [parameter]/[argument] pair into an [EditableArgument] if it
   /// is an argument that can be edited.
   EditableArgument? _toEditableArgument(
@@ -200,20 +208,43 @@ class EditableArgumentsHandler
     } else if (parameter.type.isDartCoreString) {
       type = 'string';
       value = (values.argumentValue ?? values.parameterValue)?.toStringValue();
-    } else {
-      // TODO(dantup): Enums.
+    } else if (parameter.type case InterfaceType(:EnumElement2 element3)) {
+      type = 'enum';
+      options =
+          element3.constants2.map(_qualifiedEnumConstant).nonNulls.toList();
 
+      // Try to match the argument value up with the enum.
+      var valueObject = values.argumentValue ?? values.parameterValue;
+      if (valueObject?.type case InterfaceType(
+        element3: EnumElement2 valueElement,
+      ) when element3 == valueElement) {
+        var index = valueObject?.getField('index')?.toIntValue();
+        if (index != null) {
+          var enumConstant = element3.constants2.elementAtOrNull(index);
+          if (enumConstant != null) {
+            value = _qualifiedEnumConstant(enumConstant);
+          }
+        }
+      }
+    } else {
       // TODO(dantup): Determine which parameters we don't include (such as
       //  Widgets) and which we include just without values.
       return null;
+    }
+
+    // If the value is not a literal, include the source as displayValue.
+    var displayValue =
+        valueExpression is! Literal ? valueExpression?.toSource() : null;
+    // Unless it turns out to match the value (converted to string).
+    if (displayValue != null && displayValue == value?.toString()) {
+      displayValue = null;
     }
 
     return EditableArgument(
       name: parameter.displayName,
       type: type,
       value: value,
-      displayValue:
-          valueExpression is! Literal ? valueExpression?.toSource() : null,
+      displayValue: displayValue,
       options: options,
       isDefault: values.isDefault,
       hasArgument: valueExpression != null,
