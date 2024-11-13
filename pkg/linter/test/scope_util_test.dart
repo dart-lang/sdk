@@ -885,7 +885,7 @@ mixin A<T> {
   void _resultDifferent(
       AstNode node, String id, bool setter, Element2 element) {
     var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
-    if (!result.isDifferentName || result.element2 != element) {
+    if (!result.isDifferentName || result.element != element) {
       fail('Expected different $element, actual: $result');
     }
   }
@@ -900,7 +900,7 @@ mixin A<T> {
   void _resultRequested(
       AstNode node, String id, bool setter, Element2 element) {
     var result = resolveNameInScope(id, node, shouldResolveSetter: setter);
-    if (!result.isRequestedName || result.element2 != element) {
+    if (!result.isRequestedName || result.element != element) {
       fail('Expected requested $element, actual: $result');
     }
   }
