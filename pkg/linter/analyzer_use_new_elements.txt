@@ -14,7 +14,5 @@ lib/src/rules/use_build_context_synchronously.dart
 lib/src/rules/use_late_for_private_fields_and_variables.dart
 lib/src/util/dart_type_utilities.dart
 lib/src/util/flutter_utils.dart
-lib/src/util/leak_detector_visitor.dart
 lib/src/util/scope.dart
 test/rules/use_build_context_synchronously_test.dart
-test/scope_util_test.dart
