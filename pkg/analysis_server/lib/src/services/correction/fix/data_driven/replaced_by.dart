@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/change.d
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' hide ElementKind;
+import 'package:analyzer/dart/element/element2.dart' hide ElementKind;
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -19,7 +19,7 @@ class ReplacedBy extends Change<_Data> {
   /// The replacing element.
   final ElementDescriptor newElement;
 
-  /// Specifies whether the target also needs to be replaced.
+  /// Whether the target also needs to be replaced.
   final bool replaceTarget;
 
   /// The argument list to be used if replaced by a method with arguments.
@@ -100,9 +100,9 @@ class ReplacedBy extends Change<_Data> {
       }
     }
     if (node is SimpleIdentifier) {
-      var staticElement = node.staticElement;
-      if (staticElement is ExecutableElement && !staticElement.isStatic) {
-        return _instance(node, staticElement);
+      var element = node.element;
+      if (element is ExecutableElement2 && !element.isStatic) {
+        return _instance(node, element);
       }
 
       var components = fix.element.components;
@@ -131,7 +131,7 @@ class ReplacedBy extends Change<_Data> {
           // We have a '<container>.<member>()' pattern, so we replace both parts.
           return _Data(range.startEnd(target, node));
         } else if (target is PrefixedIdentifier) {
-          if (target.prefix.staticElement is PrefixElement &&
+          if (target.prefix.element is PrefixElement2 &&
               target.identifier.name == containerName) {
             // We have a '<prefix>.<container>.<member>()' pattern so we leave
             // the prefix while replacing the rest.
@@ -150,7 +150,7 @@ class ReplacedBy extends Change<_Data> {
           return _Data(range.node(grandparent));
         }
       } else if (parent is PrefixedIdentifier) {
-        if (parent.prefix.staticElement is PrefixElement) {
+        if (parent.prefix.element is PrefixElement2) {
           // We have a '<prefix>.<topLevel>' pattern so we leave the prefix
           // while replacing the rest.
           return _Data(range.node(node));
@@ -224,15 +224,13 @@ class ReplacedBy extends Change<_Data> {
     return null;
   }
 
-  /// Return a replacement of an instance kind, not static.
-  _Data? _instance(AstNode node, ExecutableElement staticElement) {
+  /// Returns a replacement of an instance member.
+  _Data? _instance(AstNode node, ExecutableElement2 element) {
     var newComponents = newElement.components;
     var newKind = newElement.kind;
     var suffix = '';
     SourceRange? referenceRange;
-    if (newKind == ElementKind.methodKind &&
-        staticElement is PropertyAccessorElement &&
-        staticElement.isGetter) {
+    if (newKind == ElementKind.methodKind && element is GetterElement) {
       suffix = '()';
       referenceRange = range.node(node);
     } else if (newKind == ElementKind.getterKind) {
