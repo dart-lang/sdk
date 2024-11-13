@@ -331,4 +331,3 @@ test/util/element_printer.dart
 test/util/element_type_matchers.dart
 test/util/id_testing_helper.dart
 test/utils.dart
-tool/benchmark/heap/flutter_elements.dart

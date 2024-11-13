@@ -7,8 +7,8 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -268,7 +268,7 @@ Future<void> _getAvailableLibraries(
       // }
       var result = await analysisDriver.getLibraryByUri(file.uriStr);
       if (result is LibraryElementResult) {
-        result.element.accept(_AllElementVisitor());
+        result.element2.accept2(_AllElementVisitor());
       }
     }
   }
@@ -331,11 +331,13 @@ void _writeResultFile(BenchmarkResultCompound result) {
   io.File(_resultFilePath).writeAsStringSync(result.asXmlText, flush: true);
 }
 
-class _AllElementVisitor extends GeneralizingElementVisitor<void> {
+class _AllElementVisitor extends GeneralizingElementVisitor2<void> {
   @override
-  void visitElement(Element element) {
+  void visitElement(Element2 element) {
     // This triggers lazy reading.
-    element.metadata;
+    if (element case Annotatable element) {
+      element.metadata2;
+    }
     super.visitElement(element);
   }
 }
