@@ -1270,7 +1270,7 @@ abstract class TypeConstraintGenerator<
   /// schema (in other words, may contain the unknown type `_`); the other must
   /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
   /// `false`, [q] may contain `_`.
-  bool performSubtypeConstraintGenerationForFutureOr(
+  bool performSubtypeConstraintGenerationForRightFutureOr(
       TypeStructure p, TypeStructure q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
     // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
@@ -1311,6 +1311,43 @@ abstract class TypeConstraintGenerator<
       if (isMatchWithFuture && !matchWithFutureAddsConstraints) {
         return true;
       }
+    }
+
+    return false;
+  }
+
+  /// Matches [p] against [q].
+  ///
+  /// If [p] is of the form `FutureOr<p0>` for some `p0`, and [p] is a subtype
+  /// of [q] under some constraints, the constraints making the relation
+  /// possible are recorded, and `true` is returned. Otherwise, the constraint
+  /// state is unchanged (or rolled back using [restoreState]), and `false` is
+  /// returned.
+  ///
+  /// An invariant of the type inference is that only [p] or [q] may be a
+  /// schema (in other words, may contain the unknown type `_`); the other must
+  /// be simply a type. If [leftSchema] is `true`, [p] may contain `_`; if it is
+  /// `false`, [q] may contain `_`.
+  bool performSubtypeConstraintGenerationForLeftFutureOr(
+      TypeStructure p, TypeStructure q,
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    // If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
+    NullabilitySuffix pNullability = p.nullabilitySuffix;
+    if (typeAnalyzerOperations.matchFutureOrInternal(p) case var p0?
+        when pNullability == NullabilitySuffix.none) {
+      final TypeConstraintGeneratorState state = currentState;
+
+      // If `Future<P0>` is a subtype match for `Q` under constraint set `C1`.
+      // And if `P0` is a subtype match for `Q` under constraint set `C2`.
+      TypeStructure futureP0 = typeAnalyzerOperations.futureTypeInternal(p0);
+      if (performSubtypeConstraintGenerationInternal(futureP0, q,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting) &&
+          performSubtypeConstraintGenerationInternal(p0, q,
+              leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return true;
+      }
+
+      restoreState(state);
     }
 
     return false;

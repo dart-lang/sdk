@@ -385,7 +385,7 @@ main() {
     test('FutureOr matches FutureOr with constraints based on arguments', () {
       // `FutureOr<T> <# FutureOr<int>` reduces to `T <# int`
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('FutureOr<T>'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -396,7 +396,7 @@ main() {
         () {
       // `FutureOr<int> <# FutureOr<String>` reduces to `int <# String`
       var tcg = _TypeConstraintGatherer({});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('FutureOr<int>'), Type('FutureOr<String>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isFalse();
@@ -412,7 +412,7 @@ main() {
       // In cases where both branches produce a constraint, the "Future" branch
       // is favored.
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('Future<int>'), Type('FutureOr<T>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -428,7 +428,7 @@ main() {
       // In cases where only one branch produces a constraint, that branch is
       // favored.
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('Future<_>'), Type('FutureOr<T>'),
               leftSchema: true, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -444,18 +444,48 @@ main() {
       // In cases where both branches produce a constraint, the "Future" branch
       // is favored.
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('T'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
       check(tcg._constraints).deepEquals(['T <: Future<int>']);
     });
 
+    test('Testing FutureOr as the lower bound of the constraint', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftFutureOr(
+              Type('FutureOr<T>'), Type('dynamic'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: dynamic']);
+    });
+
+    test('FutureOr does not match Future in general', () {
+      // `FutureOr<P0> <# Q` if `Future<P0> <# Q` and `P0 <# Q`. This test case
+      // verifies that if `Future<P0> <# Q` matches but `P0 <# Q` does not, then
+      // the match fails.
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftFutureOr(
+              Type('FutureOr<(T,)>'), Type('Future<(int,)>'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isFalse();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('Testing nested FutureOr as the lower bound of the constraint', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftFutureOr(
+              Type('FutureOr<FutureOr<T>>'), Type('FutureOr<dynamic>'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: dynamic', 'T <: dynamic']);
+    });
+
     test('Future matches FutureOr with no constraints', () {
       // `Future<int> <# FutureOr<int>` matches (taking the "Future" branch of
       // the FutureOr) without generating any constraints.
       var tcg = _TypeConstraintGatherer({});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('Future<int>'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -467,7 +497,7 @@ main() {
       // "non-Future" branch of the FutureOr, so the constraint `T <: int` is
       // produced.
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('List<T>'), Type('FutureOr<List<int>>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -477,7 +507,7 @@ main() {
     group('Nullable FutureOr on RHS:', () {
       test('Does not match, according to spec', () {
         var tcg = _TypeConstraintGatherer({'T'});
-        check(tcg.performSubtypeConstraintGenerationForFutureOr(
+        check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
                 Type('FutureOr<T>'), Type('FutureOr<int>?'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
@@ -487,7 +517,7 @@ main() {
       test('Matches, according to CFE discrepancy', () {
         var tcg = _TypeConstraintGatherer({'T'},
             enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr: true);
-        check(tcg.performSubtypeConstraintGenerationForFutureOr(
+        check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
                 Type('FutureOr<T>'), Type('FutureOr<int>?'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
@@ -498,7 +528,7 @@ main() {
     group('Nullable FutureOr on LHS:', () {
       test('Does not match, according to spec', () {
         var tcg = _TypeConstraintGatherer({'T'});
-        check(tcg.performSubtypeConstraintGenerationForFutureOr(
+        check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
                 Type('FutureOr<T>?'), Type('FutureOr<int>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
@@ -508,7 +538,7 @@ main() {
       test('Matches, according to CFE discrepancy', () {
         var tcg = _TypeConstraintGatherer({'T'},
             enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr: true);
-        check(tcg.performSubtypeConstraintGenerationForFutureOr(
+        check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
                 Type('FutureOr<T>?'), Type('FutureOr<int>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
@@ -844,6 +874,7 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
       case (PrimaryType(name: 'int'), 'String'):
       case (PrimaryType(name: 'List'), 'Future'):
       case (PrimaryType(name: 'String'), 'int'):
+      case (PrimaryType(name: 'Future'), 'String'):
         // Unrelated types
         return null;
       default:
@@ -891,13 +922,29 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
       return true;
     }
 
+    if (performSubtypeConstraintGenerationForRightFutureOr(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
     if (performSubtypeConstraintGenerationForRightNullableType(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    if (performSubtypeConstraintGenerationForLeftFutureOr(p, q,
         leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
       return true;
     }
 
     if (performSubtypeConstraintGenerationForLeftNullableType(p, q,
         leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    if (q is SharedDynamicTypeStructure ||
+        q is SharedVoidTypeStructure ||
+        q == typeAnalyzerOperations.objectQuestionType.unwrapTypeView()) {
       return true;
     }
 

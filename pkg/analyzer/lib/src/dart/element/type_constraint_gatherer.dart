@@ -274,7 +274,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // in case [performSubtypeConstraintGenerationForFutureOr] returns false, as
     // [performSubtypeConstraintGenerationForFutureOr] handles the rewinding of
     // the state itself.
-    if (performSubtypeConstraintGenerationForFutureOr(P, Q,
+    if (performSubtypeConstraintGenerationForRightFutureOr(P, Q,
         leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
       return true;
     }
@@ -285,20 +285,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
 
     // If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
-    if (_typeSystemOperations.matchFutureOrInternal(P) case var P0?
-        when P_nullability == NullabilitySuffix.none) {
-      var rewind = _constraints.length;
-
-      // If `Future<P0>` is a subtype match for `Q` under constraint set `C1`.
-      // And if `P0` is a subtype match for `Q` under constraint set `C2`.
-      var future_P0 = _typeSystemOperations.futureTypeInternal(P0);
-      if (trySubtypeMatch(future_P0, Q, leftSchema,
-              nodeForTesting: nodeForTesting) &&
-          trySubtypeMatch(P0, Q, leftSchema, nodeForTesting: nodeForTesting)) {
-        return true;
-      }
-
-      _constraints.length = rewind;
+    if (performSubtypeConstraintGenerationForLeftFutureOr(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
+      return true;
     }
 
     // If `P` is `P0?` the match holds under constraint set `C1 + C2`:
