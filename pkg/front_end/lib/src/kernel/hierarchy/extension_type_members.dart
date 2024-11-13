@@ -186,7 +186,9 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
             extensionTypeMemberMap: extensionTypeSetableMap);
       }
       if (extensionTypeDeclarationBuilder
-          is SourceExtensionTypeDeclarationBuilder) {
+              is SourceExtensionTypeDeclarationBuilder &&
+          // The check needs parents which aren't set on duplicates.
+          !extensionTypeDeclarationBuilder.isDuplicate) {
         if (getableMember != null &&
             setableMember != null &&
             getableMember.isProperty &&
