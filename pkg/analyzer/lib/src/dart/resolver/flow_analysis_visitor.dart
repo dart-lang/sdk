@@ -737,6 +737,16 @@ class TypeSystemOperations
   }
 
   @override
+  DartType? matchTypeParameterBoundInternal(DartType type) {
+    if (type is TypeParameterTypeImpl &&
+        type.nullabilitySuffix == NullabilitySuffix.none) {
+      return type.promotedBound ?? type.element.bound;
+    } else {
+      return null;
+    }
+  }
+
+  @override
   SharedTypeView<DartType> normalize(SharedTypeView<DartType> type) {
     return SharedTypeView(typeSystem.normalize(type.unwrapTypeView()));
   }

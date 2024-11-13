@@ -3297,6 +3297,20 @@ class MiniAstOperations
     // TODO(paulberry): Implement greatest closure of types in mini ast.
     throw UnimplementedError();
   }
+
+  @override
+  Type? matchTypeParameterBoundInternal(Type type) {
+    if (type
+        case TypeParameterType(
+          :var promotion,
+          :var typeParameter,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return promotion ?? typeParameter.bound;
+    } else {
+      return null;
+    }
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

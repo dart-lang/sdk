@@ -428,17 +428,11 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     //
     // If B is a subtype match for Q with constraint set C.  Note that we have
     // already eliminated the case that X is a variable in L.
-    if (p is TypeParameterType) {
-      if (_isNullabilityAwareSubtypeMatch(p.bound, q,
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting)) {
-        return true;
-      }
-    } else if (p is StructuralParameterType) {
-      // Coverage-ignore-block(suite): Not run.
-      if (_isNullabilityAwareSubtypeMatch(p.bound, q,
-          constrainSupertype: constrainSupertype,
-          treeNodeForTesting: treeNodeForTesting)) {
+    if (typeAnalyzerOperations.matchTypeParameterBoundInternal(p)
+        case DartType bound?) {
+      if (performSubtypeConstraintGenerationInternal(bound, q,
+          leftSchema: constrainSupertype,
+          astNodeForTesting: treeNodeForTesting)) {
         return true;
       }
     }
