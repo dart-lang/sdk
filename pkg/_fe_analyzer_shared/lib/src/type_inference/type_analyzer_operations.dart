@@ -434,6 +434,27 @@ abstract interface class TypeAnalyzerOperations<
   /// step too.
   TypeStructure? matchFutureOrInternal(TypeStructure type);
 
+  /// If [type] is a parameter type with empty nullability suffix, returns its
+  /// bound, whether it is its type parameter bound or its promoted bound.
+  /// Otherwise, returns null.
+  ///
+  /// In the example below matching the appearance of `X` in the parameters of
+  /// `foo` returns `num`, matching the appearance of `Y` in the parameters of
+  /// the function type `int Function<Y extends Object>(Y)` returns `Object`,
+  /// and matching the inferred type of the variable `z`, which is `X & int`,
+  /// `X` promoted to `int`, returns `int`. Matching a non-type parameter type,
+  /// such as `int`, would return null.
+  ///
+  ///   int foo<X extends num>(int Function<Y extends Object>(Y) f, X x) {
+  ///     if (x is int) {
+  ///       var z = x;
+  ///       return z;
+  ///     } else {
+  ///       return f(x);
+  ///     }
+  ///   }
+  TypeStructure? matchTypeParameterBoundInternal(TypeStructure type);
+
   /// If [type] is a parameter type that is of a kind used in type inference,
   /// returns the corresponding parameter.
   ///

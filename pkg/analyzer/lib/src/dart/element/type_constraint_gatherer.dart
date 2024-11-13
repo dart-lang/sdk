@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -326,10 +325,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // variable `X & B`), the match holds with constraint set `C`:
     //   If `B` is a subtype match for `Q` with constraint set `C`.
     // Note: we have already eliminated the case that `X` is a variable in `L`.
-    if (P_nullability == NullabilitySuffix.none && P is TypeParameterTypeImpl) {
-      var B = P.promotedBound ?? P.element.bound;
-      if (B != null &&
-          trySubtypeMatch(B, Q, leftSchema, nodeForTesting: nodeForTesting)) {
+    if (typeAnalyzerOperations.matchTypeParameterBoundInternal(P)
+        case var bound?) {
+      if (performSubtypeConstraintGenerationInternal(bound, Q,
+          leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
         return true;
       }
     }

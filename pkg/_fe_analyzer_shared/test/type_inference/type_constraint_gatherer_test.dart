@@ -828,6 +828,33 @@ main() {
       check(tcg._constraints).isEmpty();
     });
   });
+
+  group('matchTypeParameterBoundInternal', () {
+    test('Non-promoted parameter on LHS', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationInternal(
+              TypeParameterType(TypeRegistry.addTypeParameter('X')
+                ..bound = Type('Future<String>')),
+              Type('Future<T>'),
+              leftSchema: false,
+              astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).unorderedEquals(['String <: T']);
+    });
+
+    test('Promoted parameter on LHS', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationInternal(
+              TypeParameterType(
+                  TypeRegistry.addTypeParameter('X')..bound = Type('Object'),
+                  promotion: Type('Future<num>')),
+              Type('Future<T>'),
+              leftSchema: false,
+              astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).unorderedEquals(['num <: T']);
+    });
+  });
 }
 
 class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
@@ -946,6 +973,14 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
         q is SharedVoidTypeStructure ||
         q == typeAnalyzerOperations.objectQuestionType.unwrapTypeView()) {
       return true;
+    }
+
+    if (typeAnalyzerOperations.matchTypeParameterBoundInternal(p)
+        case var bound?) {
+      if (performSubtypeConstraintGenerationInternal(bound, q,
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return true;
+      }
     }
 
     bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(

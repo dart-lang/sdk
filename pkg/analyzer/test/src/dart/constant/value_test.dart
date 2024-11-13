@@ -1928,6 +1928,25 @@ class DartObjectImplTest {
     _assertTimes(_intValue(null), _intValue(null), _intValue(3));
   }
 
+  void test_toRecordValue_notARecord() {
+    expect(
+      _listValue(_typeProvider.boolType, [_boolValue(true), _boolValue(false)])
+          .toRecordValue(),
+      isNull,
+    );
+  }
+
+  void test_toRecordValue_null() {
+    expect(_nullValue().toRecordValue(), isNull);
+  }
+
+  void test_toRecordValue_record() {
+    var constant = _recordValue([_intValue(1)], {'bool': _boolValue(true)});
+    var (:positional, :named) = constant.toRecordValue()!;
+    expect(positional, [_intValue(1)]);
+    expect(named, {'bool': _boolValue(true)});
+  }
+
   /// Assert that the result of executing [fn] is the [expected] value, or, if
   /// [expected] is `null`, that the operation throws an exception .
   void _assert(DartObjectImpl? expected, DartObjectImpl? Function() fn) {

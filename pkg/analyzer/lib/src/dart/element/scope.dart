@@ -5,11 +5,13 @@
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
@@ -774,6 +776,11 @@ class ScopeLookupResultImpl implements ScopeLookupResult {
     required this.getter,
     required this.setter,
   });
+
+  @override
+  Element2? get getter2 => getter?.asElement2;
+  @override
+  Element2? get setter2 => setter?.asElement2;
 }
 
 class TypeParameterScope extends EnclosedScope {

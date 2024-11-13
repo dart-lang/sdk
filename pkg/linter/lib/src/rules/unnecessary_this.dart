@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // The requested element is inherited, or from an extension.
     if (result.isNone) return true;
 
-    var resultElement = result.element2;
+    var resultElement = result.element;
 
     // The result has the matching name, might be shadowing.
     // Check that the element is the same.

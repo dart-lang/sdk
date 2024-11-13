@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var result =
         resolveNameInScope(name.lexeme, scope, shouldResolveSetter: false);
     if (result.isRequestedName) {
-      var element = result.element2;
+      var element = result.element;
       return element is ClassElement2 ||
           element is ExtensionTypeElement2 ||
           element is TypeAliasElement2 ||

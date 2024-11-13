@@ -1013,6 +1013,23 @@ class OperationsCfe
                 .functionRawType(Nullability.nonNullable))
         .eliminateToLeast(type);
   }
+
+  @override
+  DartType? matchTypeParameterBoundInternal(DartType type) {
+    if (type.nullabilitySuffix != NullabilitySuffix.none) {
+      return null;
+    }
+    if (type is TypeParameterType) {
+      return type.parameter.bound;
+    } else if (type is StructuralParameterType) {
+      // Coverage-ignore-block(suite): Not run.
+      return type.parameter.bound;
+    } else if (type is IntersectionType) {
+      return type.right;
+    } else {
+      return null;
+    }
+  }
 }
 
 /// Type inference results used for testing.
