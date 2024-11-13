@@ -5360,6 +5360,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   List<PropertyAccessorElement> accessors = [];
 
   @override
+  List<MethodElement> methods = [];
+
+  @override
   List<MethodElementImpl2> methods2 = [];
 
   @override
@@ -5427,42 +5430,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   Metadata get metadata2 => firstFragment.metadata2;
-
-  @override
-  List<MethodElement> get methods {
-    return methods2.map((element) {
-      var firstTypeParameters = firstFragment.typeParameters;
-
-      var lastFragment = element.lastFragment;
-      var lastInstance = lastFragment.enclosingFragment;
-      if (identical(lastInstance, firstFragment)) {
-        return lastFragment;
-      }
-
-      var lastTypeParameters = lastInstance.typeParameters2;
-      if (firstTypeParameters.isEmpty && lastTypeParameters.isEmpty) {
-        return lastFragment;
-      }
-
-      MapSubstitution toFirstFragment;
-      if (lastTypeParameters.length == firstTypeParameters.length) {
-        toFirstFragment = Substitution.fromPairs(
-          lastTypeParameters,
-          firstTypeParameters.instantiateNone(),
-        );
-      } else {
-        toFirstFragment = Substitution.fromPairs(
-          lastTypeParameters,
-          List.filled(
-            lastTypeParameters.length,
-            InvalidTypeImpl.instance,
-          ),
-        );
-      }
-
-      return MethodMember(lastFragment, toFirstFragment, Substitution.empty);
-    }).toList();
-  }
 
   @override
   String? get name3 => firstFragment.name;
@@ -7699,8 +7666,8 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  InstanceElementImpl get enclosingFragment =>
-      enclosingElement3 as InstanceElementImpl;
+  InstanceFragment? get enclosingFragment =>
+      enclosingElement3 as InstanceFragment;
 
   /// Set whether this class is abstract.
   set isAbstract(bool isAbstract) {
@@ -7733,7 +7700,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  MethodElementImpl? get nextFragment => augmentation;
+  MethodFragment? get nextFragment => augmentation;
 
   @override
   Element get nonSynthetic {
@@ -7744,7 +7711,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  MethodElementImpl? get previousFragment => augmentationTarget;
+  MethodFragment? get previousFragment => augmentationTarget;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
@@ -7784,17 +7751,6 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   ElementKind get kind => ElementKind.METHOD;
-
-  MethodElementImpl get lastFragment {
-    var lastFragment = firstFragment;
-    while (true) {
-      if (lastFragment.nextFragment case var nextFragment?) {
-        lastFragment = nextFragment;
-      } else {
-        return lastFragment;
-      }
-    }
-  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -10650,8 +10606,8 @@ mixin TypeParameterizedElementMixin on ElementImpl
   }
 
   @override
-  List<TypeParameterElementImpl> get typeParameters2 =>
-      typeParameters.cast<TypeParameterElementImpl>();
+  List<TypeParameterFragment> get typeParameters2 =>
+      typeParameters.cast<TypeParameterFragment>();
 
   List<TypeParameterElement> get typeParameters_unresolved {
     return _typeParameters;

@@ -165,6 +165,7 @@ class BundleWriter {
         _resolutionSink._writeElementList(augmented.fields);
         _resolutionSink._writeElementList(augmented.constructors);
         _resolutionSink._writeElementList(augmented.accessors);
+        _resolutionSink._writeElementList(augmented.methods);
       }
 
       if (!element.isMixinApplication) {
@@ -257,6 +258,7 @@ class BundleWriter {
         _resolutionSink._writeElementList(augmented.fields);
         _resolutionSink._writeElementList(augmented.constructors);
         _resolutionSink._writeElementList(augmented.accessors);
+        _resolutionSink._writeElementList(augmented.methods);
       }
 
       _writeList(
@@ -318,6 +320,7 @@ class BundleWriter {
         _resolutionSink.writeType(augmented.extendedType);
         _resolutionSink._writeElementList(augmented.fields);
         _resolutionSink._writeElementList(augmented.accessors);
+        _resolutionSink._writeElementList(augmented.methods);
       }
 
       _writeList(
@@ -350,6 +353,7 @@ class BundleWriter {
         _resolutionSink._writeElementList(augmented.fields);
         _resolutionSink._writeElementList(augmented.accessors);
         _resolutionSink._writeElementList(augmented.constructors);
+        _resolutionSink._writeElementList(augmented.methods);
         _resolutionSink.writeType(augmented.typeErasure);
       }
 
@@ -528,6 +532,7 @@ class BundleWriter {
         _resolutionSink._writeTypeList(augmented.interfaces);
         _resolutionSink._writeElementList(augmented.fields);
         _resolutionSink._writeElementList(augmented.accessors);
+        _resolutionSink._writeElementList(augmented.methods);
       }
 
       _writeList(
