@@ -73,6 +73,72 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   OperationsCfe get typeAnalyzerOperations => typeOperations;
 
+  @override
+  (DartType, DartType, {List<StructuralParameter> typeParametersToEliminate})
+      instantiateFunctionTypesAndProvideFreshTypeParameters(
+          covariant FunctionType p, covariant FunctionType q,
+          {required bool leftSchema}) {
+    FunctionType instantiatedP;
+    FunctionType instantiatedQ;
+    if (leftSchema) {
+      List<DartType> typeParametersForAlphaRenaming =
+          new List<DartType>.generate(
+              p.typeFormals.length,
+              (int i) => new StructuralParameterType.forAlphaRenaming(
+                  q.typeParameters[i], p.typeParameters[i]));
+      instantiatedP = p.withoutTypeParameters;
+      instantiatedQ = FunctionTypeInstantiator.instantiate(
+          q, typeParametersForAlphaRenaming);
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      List<DartType> typeParametersForAlphaRenaming =
+          new List<DartType>.generate(
+              p.typeFormals.length,
+              (int i) => new StructuralParameterType.forAlphaRenaming(
+                  p.typeParameters[i], q.typeParameters[i]));
+      instantiatedP = FunctionTypeInstantiator.instantiate(
+          p, typeParametersForAlphaRenaming);
+      instantiatedQ = q.withoutTypeParameters;
+    }
+
+    return (
+      instantiatedP,
+      instantiatedQ,
+      typeParametersToEliminate: leftSchema
+          ? p.typeParameters
+          :
+          // Coverage-ignore(suite): Not run.
+          q.typeParameters
+    );
+  }
+
+  @override
+  void eliminateTypeParametersInGeneratedConstraints(
+      covariant List<StructuralParameter> typeParametersToEliminate,
+      shared.TypeConstraintGeneratorState eliminationStartState,
+      {required TreeNode? astNodeForTesting}) {
+    List<GeneratedTypeConstraint> constraints =
+        _protoConstraints.sublist(eliminationStartState.count);
+    _protoConstraints.length = eliminationStartState.count;
+    for (GeneratedTypeConstraint constraint in constraints) {
+      if (constraint.isUpper) {
+        addUpperConstraintForParameter(
+            constraint.typeParameter,
+            typeOperations.leastClosureOfTypeInternal(
+                constraint.constraint.unwrapTypeSchemaView(),
+                typeParametersToEliminate),
+            nodeForTesting: astNodeForTesting);
+      } else {
+        addLowerConstraintForParameter(
+            constraint.typeParameter,
+            typeOperations.greatestClosureOfTypeInternal(
+                constraint.constraint.unwrapTypeSchemaView(),
+                typeParametersToEliminate),
+            nodeForTesting: astNodeForTesting);
+      }
+    }
+  }
+
   /// Applies all the argument constraints implied by trying to make
   /// [actualTypes] assignable to [formalTypes].
   void constrainArguments(
@@ -408,93 +474,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         leftSchema: constrainSupertype,
         astNodeForTesting: treeNodeForTesting)) {
       return true;
-    }
-
-    // A generic function type <T0 extends B00, ..., Tn extends B0n>F0 is a
-    // subtype match for a generic function type <S0 extends B10, ..., Sn
-    // extends B1n>F1 with respect to L under constraint set C2
-    //
-    // If B0i is a subtype match for B1i with constraint set Ci0.  And B1i is a
-    // subtype match for B0i with constraint set Ci1.  And Ci2 is Ci0 + Ci1.
-    //
-    // And Z0...Zn are fresh variables with bounds B20, ..., B2n, Where B2i is
-    // B0i[Z0/T0, ..., Zn/Tn] if P is a type schema.  Or B2i is B1i[Z0/S0, ...,
-    // Zn/Sn] if Q is a type schema.  In other words, we choose the bounds for
-    // the fresh variables from whichever of the two generic function types is a
-    // type schema and does not contain any variables from L.
-    //
-    // And F0[Z0/T0, ..., Zn/Tn] is a subtype match for F1[Z0/S0, ..., Zn/Sn]
-    // with respect to L under constraints C0.  And C1 is C02 + ... + Cn2 + C0.
-    // And C2 is C1 with each constraint replaced with its closure with respect
-    // to [Z0, ..., Zn].
-    if (p is FunctionType &&
-        q is FunctionType &&
-        p.typeParameters.isNotEmpty &&
-        q.typeParameters.isNotEmpty &&
-        p.typeParameters.length == q.typeParameters.length) {
-      final int baseConstraintCount = _protoConstraints.length;
-
-      bool isMatch = true;
-      for (int i = 0; isMatch && i < p.typeParameters.length; ++i) {
-        isMatch = isMatch &&
-            _isNullabilityAwareSubtypeMatch(
-                p.typeParameters[i].bound, q.typeParameters[i].bound,
-                constrainSupertype: constrainSupertype,
-                treeNodeForTesting: treeNodeForTesting) &&
-            _isNullabilityAwareSubtypeMatch(
-                q.typeParameters[i].bound, p.typeParameters[i].bound,
-                constrainSupertype: !constrainSupertype,
-                treeNodeForTesting: treeNodeForTesting);
-      }
-      if (isMatch) {
-        List<DartType> typeParametersOfPAsTypesForQ =
-            new List<DartType>.generate(
-                p.typeParameters.length,
-                (int i) => new StructuralParameterType.forAlphaRenaming(
-                    q.typeParameters[i], p.typeParameters[i]));
-        FunctionType instantiatedP = p.withoutTypeParameters;
-        FunctionType instantiatedQ = FunctionTypeInstantiator.instantiate(
-            q, typeParametersOfPAsTypesForQ);
-        if (_isNullabilityAwareSubtypeMatch(instantiatedP, instantiatedQ,
-            constrainSupertype: constrainSupertype,
-            treeNodeForTesting: treeNodeForTesting)) {
-          List<GeneratedTypeConstraint> constraints =
-              _protoConstraints.sublist(baseConstraintCount);
-          _protoConstraints.length = baseConstraintCount;
-          NullabilityAwareTypeParameterEliminator eliminator =
-              new NullabilityAwareTypeParameterEliminator(
-                  structuralEliminationTargets: p.typeParameters.toSet(),
-                  nominalEliminationTargets: {},
-                  bottomType: typeOperations.neverType.unwrapTypeView(),
-                  topType: typeOperations.objectQuestionType.unwrapTypeView(),
-                  topFunctionType:
-                      _environment.coreTypes.functionNonNullableRawType,
-                  unhandledTypeHandler:
-                      // Coverage-ignore(suite): Not run.
-                      (DartType type, ignored) => type is UnknownType
-                          ? false
-                          : throw new UnsupportedError(
-                              "Unsupported type '${type.runtimeType}'."));
-          for (GeneratedTypeConstraint constraint in constraints) {
-            if (constraint.isUpper) {
-              addUpperConstraintForParameter(
-                  constraint.typeParameter,
-                  eliminator.eliminateToLeast(
-                      constraint.constraint.unwrapTypeSchemaView()),
-                  nodeForTesting: treeNodeForTesting);
-            } else {
-              addLowerConstraintForParameter(
-                  constraint.typeParameter,
-                  eliminator.eliminateToGreatest(
-                      constraint.constraint.unwrapTypeSchemaView()),
-                  nodeForTesting: treeNodeForTesting);
-            }
-          }
-          return true;
-        }
-      }
-      // Coverage-ignore-block(suite): Not run.
-      _protoConstraints.length = baseConstraintCount;
     }
 
     // A type P is a subtype match for Record with respect to L under no

@@ -513,6 +513,7 @@ sealed class TypeNameInfo {
 class TypeParameter extends TypeNameInfo
     implements SharedTypeParameterStructure<Type> {
   /// The type variable's bound. Defaults to `Object?`.
+  @override
   Type bound;
 
   TypeParameter._(super.name) : bound = Type('Object?');

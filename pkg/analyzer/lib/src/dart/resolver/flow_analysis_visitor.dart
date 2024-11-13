@@ -520,7 +520,6 @@ class TypeSystemOperations
   @override
   DartType greatestClosureOfTypeInternal(DartType type,
       List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
-    typeParametersToEliminate.first;
     return typeSystem.greatestClosure(
         type, typeParametersToEliminate.cast<TypeParameterElement>());
   }
@@ -622,6 +621,13 @@ class TypeSystemOperations
       SharedTypeSchemaView<DartType> elementTypeSchema) {
     return SharedTypeSchemaView(typeSystem.typeProvider
         .iterableType(elementTypeSchema.unwrapTypeSchemaView()));
+  }
+
+  @override
+  DartType leastClosureOfTypeInternal(DartType type,
+      List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
+    return typeSystem.leastClosure(
+        type, typeParametersToEliminate.cast<TypeParameterElement>());
   }
 
   @override

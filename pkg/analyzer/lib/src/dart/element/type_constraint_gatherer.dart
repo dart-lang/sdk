@@ -131,6 +131,30 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }
 
   @override
+  void eliminateTypeParametersInGeneratedConstraints(
+      covariant List<TypeParameterElement> eliminator,
+      shared.TypeConstraintGeneratorState eliminationStartState,
+      {required AstNode? astNodeForTesting}) {
+    var constraints = _constraints.sublist(eliminationStartState.count);
+    _constraints.length = eliminationStartState.count;
+    for (var constraint in constraints) {
+      if (constraint.isUpper) {
+        addUpperConstraintForParameter(
+            constraint.typeParameter,
+            typeAnalyzerOperations.leastClosureOfTypeInternal(
+                constraint.constraint.unwrapTypeSchemaView(), eliminator),
+            nodeForTesting: astNodeForTesting);
+      } else {
+        addLowerConstraintForParameter(
+            constraint.typeParameter,
+            typeAnalyzerOperations.greatestClosureOfTypeInternal(
+                constraint.constraint.unwrapTypeSchemaView(), eliminator),
+            nodeForTesting: astNodeForTesting);
+      }
+    }
+  }
+
+  @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, InterfaceElement typeDeclaration) {
     for (var interface in type.element.allSupertypes) {
@@ -142,6 +166,43 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       }
     }
     return null;
+  }
+
+  @override
+  (DartType, DartType, {List<TypeParameterElement> typeParametersToEliminate})
+      instantiateFunctionTypesAndProvideFreshTypeParameters(
+          covariant FunctionType P, covariant FunctionType Q,
+          {required bool leftSchema}) {
+    // And `Z0...Zn` are fresh variables with bounds `B20, ..., B2n`.
+    //   Where `B2i` is `B0i[Z0/T0, ..., Zn/Tn]` if `P` is a type schema.
+    //   Or `B2i` is `B1i[Z0/S0, ..., Zn/Sn]` if `Q` is a type schema.
+    // In other words, we choose the bounds for the fresh variables from
+    // whichever of the two generic function types is a type schema and does
+    // not contain any variables from `L`.
+    var newTypeParameters = <TypeParameterElement>[];
+    for (var i = 0; i < P.typeFormals.length; i++) {
+      var Z = TypeParameterElementImpl('Z$i', -1);
+      if (leftSchema) {
+        Z.bound = P.typeFormals[i].bound;
+      } else {
+        Z.bound = Q.typeFormals[i].bound;
+      }
+      newTypeParameters.add(Z);
+    }
+
+    // And `F0[Z0/T0, ..., Zn/Tn]` is a subtype match for
+    // `F1[Z0/S0, ..., Zn/Sn]` with respect to `L` under constraints `C0`.
+    var typeArguments = newTypeParameters
+        .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
+        .toList();
+    var P_instantiated = P.instantiate(typeArguments);
+    var Q_instantiated = Q.instantiate(typeArguments);
+
+    return (
+      P_instantiated,
+      Q_instantiated,
+      typeParametersToEliminate: newTypeParameters
+    );
   }
 
   @override
@@ -299,8 +360,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       }
     }
 
-    if (P is FunctionType && Q is FunctionType) {
-      return _functionType(P, Q, leftSchema, nodeForTesting: nodeForTesting);
+    if (performSubtypeConstraintGenerationForFunctionTypes(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
+      return true;
     }
 
     // A type `P` is a subtype match for `Record` with respect to `L` under no
@@ -318,96 +380,6 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     }
 
     return false;
-  }
-
-  /// Matches [P] against [Q], where [P] and [Q] are both function types.
-  ///
-  /// If [P] is a subtype of [Q] under some constraints, the constraints making
-  /// the relation possible are recorded to [_constraints], and `true` is
-  /// returned. Otherwise, [_constraints] is left unchanged (or rolled back),
-  /// and `false` is returned.
-  bool _functionType(FunctionType P, FunctionType Q, bool leftSchema,
-      {required AstNode? nodeForTesting}) {
-    if (P.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    if (Q.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    }
-
-    var P_typeFormals = P.typeFormals;
-    var Q_typeFormals = Q.typeFormals;
-    if (P_typeFormals.length != Q_typeFormals.length) {
-      return false;
-    }
-
-    if (P_typeFormals.isEmpty && Q_typeFormals.isEmpty) {
-      return performSubtypeConstraintGenerationForFunctionTypes(P, Q,
-          leftSchema: leftSchema, astNodeForTesting: nodeForTesting);
-    }
-
-    // We match two generic function types:
-    // `<T0 extends B00, ..., Tn extends B0n>F0`
-    // `<S0 extends B10, ..., Sn extends B1n>F1`
-    // with respect to `L` under constraint set `C2`:
-    var rewind = _constraints.length;
-
-    // If `B0i` is a subtype match for `B1i` with constraint set `Ci0`.
-    // If `B1i` is a subtype match for `B0i` with constraint set `Ci1`.
-    // And `Ci2` is `Ci0 + Ci1`.
-    for (var i = 0; i < P_typeFormals.length; i++) {
-      var B0 = P_typeFormals[i].bound ?? _typeSystem.objectQuestion;
-      var B1 = Q_typeFormals[i].bound ?? _typeSystem.objectQuestion;
-      if (!trySubtypeMatch(B0, B1, leftSchema,
-          nodeForTesting: nodeForTesting)) {
-        _constraints.length = rewind;
-        return false;
-      }
-      if (!trySubtypeMatch(B1, B0, !leftSchema,
-          nodeForTesting: nodeForTesting)) {
-        _constraints.length = rewind;
-        return false;
-      }
-    }
-
-    // And `Z0...Zn` are fresh variables with bounds `B20, ..., B2n`.
-    //   Where `B2i` is `B0i[Z0/T0, ..., Zn/Tn]` if `P` is a type schema.
-    //   Or `B2i` is `B1i[Z0/S0, ..., Zn/Sn]` if `Q` is a type schema.
-    // In other words, we choose the bounds for the fresh variables from
-    // whichever of the two generic function types is a type schema and does
-    // not contain any variables from `L`.
-    var newTypeParameters = <TypeParameterElement>[];
-    for (var i = 0; i < P_typeFormals.length; i++) {
-      var Z = TypeParameterElementImpl('Z$i', -1);
-      if (leftSchema) {
-        Z.bound = P_typeFormals[i].bound;
-      } else {
-        Z.bound = Q_typeFormals[i].bound;
-      }
-      newTypeParameters.add(Z);
-    }
-
-    // And `F0[Z0/T0, ..., Zn/Tn]` is a subtype match for
-    // `F1[Z0/S0, ..., Zn/Sn]` with respect to `L` under constraints `C0`.
-    var typeArguments = newTypeParameters
-        .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
-        .toList();
-    var P_instantiated = P.instantiate(typeArguments);
-    var Q_instantiated = Q.instantiate(typeArguments);
-    if (!performSubtypeConstraintGenerationForFunctionTypes(
-        P_instantiated, Q_instantiated,
-        leftSchema: leftSchema, astNodeForTesting: nodeForTesting)) {
-      _constraints.length = rewind;
-      return false;
-    }
-
-    // And `C1` is `C02 + ... + Cn2 + C0`.
-    // And `C2` is `C1` with each constraint replaced with its closure
-    // with respect to `[Z0, ..., Zn]`.
-    // TODO(scheglov): do closure
-
-    return true;
   }
 }
 

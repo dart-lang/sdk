@@ -83,6 +83,9 @@ abstract interface class SharedTypeParameterStructure<
     TypeStructure extends SharedTypeStructure<TypeStructure>> {
   /// The name of the type parameter, for display to the user.
   String get displayName;
+
+  /// The bound of the type parameter.
+  TypeStructure? get bound;
 }
 
 /// Common interface for data structures used by the implementations to

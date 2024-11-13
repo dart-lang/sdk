@@ -2517,6 +2517,7 @@ abstract class TypeParameterElement
   /// if this parameter does not have an explicit bound. Being able to
   /// distinguish between an implicit and explicit bound is needed by the
   /// instantiate to bounds algorithm.
+  @override
   DartType? get bound;
 
   @override

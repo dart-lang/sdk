@@ -246,6 +246,7 @@ class StructuralParameter extends Node
   /// This is set to [unsetBoundSentinel] temporarily during IR construction.
   /// This is set to the `Object?` for type parameters without an explicit
   /// bound.
+  @override
   DartType bound;
 
   /// Sentinel value used for the [defaultType] that has not yet been computed.

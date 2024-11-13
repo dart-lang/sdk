@@ -996,6 +996,17 @@ class OperationsCfe
                 .functionRawType(Nullability.nonNullable))
         .eliminateToGreatest(type);
   }
+
+  @override
+  DartType leastClosureOfTypeInternal(DartType type,
+      List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
+    return new NullabilityAwareFreeTypeParameterEliminator(
+            bottomType: const NeverType.nonNullable(),
+            topType: typeEnvironment.coreTypes.objectNullableRawType,
+            topFunctionType: typeEnvironment.coreTypes
+                .functionRawType(Nullability.nonNullable))
+        .eliminateToLeast(type);
+  }
 }
 
 /// Type inference results used for testing.
