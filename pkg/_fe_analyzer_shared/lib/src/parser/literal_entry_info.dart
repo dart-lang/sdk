@@ -56,15 +56,15 @@ class LiteralEntryInfo {
 /// Compute the [LiteralEntryInfo] for the literal list, map, or set entry.
 LiteralEntryInfo computeLiteralEntry(Token token) {
   Token next = token.next!;
-  if (next.isA2(Keyword.IF)) {
+  if (next.isA(Keyword.IF)) {
     return ifCondition;
-  } else if (next.isA2(Keyword.FOR) ||
-      (next.isA2(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
+  } else if (next.isA(Keyword.FOR) ||
+      (next.isA(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
     return new ForCondition();
-  } else if (next.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
-      next.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
+  } else if (next.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+      next.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
     return spreadOperator;
-  } else if (next.isA2(TokenType.QUESTION)) {
+  } else if (next.isA(TokenType.QUESTION)) {
     return nullAwareEntry;
   }
   return simpleEntry;
@@ -74,9 +74,9 @@ LiteralEntryInfo computeLiteralEntry(Token token) {
 /// a literal entry in a list, set, or map for the purposes of recovery.
 bool looksLikeLiteralEntry(Token token) {
   return looksLikeExpressionStart(token) ||
-      token.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
-      token.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION) ||
-      token.isA2(Keyword.IF) ||
-      token.isA2(Keyword.FOR) ||
-      (token.isA2(Keyword.AWAIT) && token.next!.isA(Keyword.FOR));
+      token.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+      token.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION) ||
+      token.isA(Keyword.IF) ||
+      token.isA(Keyword.FOR) ||
+      (token.isA(Keyword.AWAIT) && token.next!.isA(Keyword.FOR));
 }

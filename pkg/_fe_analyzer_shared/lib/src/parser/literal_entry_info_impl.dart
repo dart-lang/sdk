@@ -62,7 +62,7 @@ class ForCondition extends LiteralEntryInfo {
     Token identifier = token.next!;
     token = parser.parseForLoopPartsMid(token, awaitToken, forToken);
 
-    if (token.next!.isA2(Keyword.IN) || token.next!.isA2(TokenType.COLON)) {
+    if (token.next!.isA(Keyword.IN) || token.next!.isA(TokenType.COLON)) {
       // Process `for ( ... in ... )`
       _inStyle = true;
       token = parser.parseForInLoopPartsRest(
@@ -78,8 +78,8 @@ class ForCondition extends LiteralEntryInfo {
   @override
   LiteralEntryInfo computeNext(Token token) {
     Token next = token.next!;
-    if (next.isA2(Keyword.FOR) ||
-        (next.isA2(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
+    if (next.isA(Keyword.FOR) ||
+        (next.isA(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
       return new Nested(
         new ForCondition(),
         _inStyle ? const ForInComplete() : const ForComplete(),
@@ -89,10 +89,10 @@ class ForCondition extends LiteralEntryInfo {
         ifCondition,
         _inStyle ? const ForInComplete() : const ForComplete(),
       );
-    } else if (next.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
-        next.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
+    } else if (next.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+        next.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
       return _inStyle ? const ForInSpread() : const ForSpread();
-    } else if (next.isA2(TokenType.QUESTION)) {
+    } else if (next.isA(TokenType.QUESTION)) {
       return new Nested(nullAwareEntry,
           _inStyle ? const ForInComplete() : const ForComplete());
     }
@@ -182,15 +182,15 @@ class IfCondition extends LiteralEntryInfo {
   @override
   LiteralEntryInfo computeNext(Token token) {
     Token next = token.next!;
-    if (next.isA2(Keyword.FOR) ||
-        (next.isA2(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
+    if (next.isA(Keyword.FOR) ||
+        (next.isA(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
       return new Nested(new ForCondition(), const IfComplete());
-    } else if (next.isA2(Keyword.IF)) {
+    } else if (next.isA(Keyword.IF)) {
       return new Nested(ifCondition, const IfComplete());
-    } else if (next.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
-        next.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
+    } else if (next.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+        next.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
       return const IfSpread();
-    } else if (next.isA2(TokenType.QUESTION)) {
+    } else if (next.isA(TokenType.QUESTION)) {
       return new Nested(nullAwareEntry, const IfComplete());
     }
     return const IfEntry();
@@ -248,13 +248,13 @@ class IfElse extends LiteralEntryInfo {
   LiteralEntryInfo computeNext(Token token) {
     assert(token.isA(Keyword.ELSE));
     Token next = token.next!;
-    if (next.isA2(Keyword.FOR) ||
-        (next.isA2(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
+    if (next.isA(Keyword.FOR) ||
+        (next.isA(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
       return new Nested(new ForCondition(), const IfElseComplete());
-    } else if (next.isA2(Keyword.IF)) {
+    } else if (next.isA(Keyword.IF)) {
       return new Nested(ifCondition, const IfElseComplete());
-    } else if (next.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
-        next.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
+    } else if (next.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+        next.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
       return const ElseSpread();
     } else if (next.isA(TokenType.QUESTION)) {
       return new Nested(nullAwareEntry, const IfElseComplete());
@@ -298,8 +298,8 @@ class SpreadOperator extends LiteralEntryInfo {
   @override
   Token parse(Token token, Parser parser) {
     final Token operator = token.next!;
-    assert(operator.isA2(TokenType.PERIOD_PERIOD_PERIOD) ||
-        operator.isA2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION));
+    assert(operator.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+        operator.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION));
     token = parser.parseExpression(operator);
     parser.listener.handleSpreadExpression(operator);
     return token;

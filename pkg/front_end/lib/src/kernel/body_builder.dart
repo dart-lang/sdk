@@ -2536,8 +2536,8 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
       ]),
     ]));
-    bool isAnd = token.isA2(TokenType.AMPERSAND_AMPERSAND);
-    if (isAnd || token.isA2(TokenType.BAR_BAR)) {
+    bool isAnd = token.isA(TokenType.AMPERSAND_AMPERSAND);
+    if (isAnd || token.isA(TokenType.BAR_BAR)) {
       Expression lhs = popForValue();
       // This is matched by the call to [endNode] in
       // [doLogicalExpression].
@@ -2566,16 +2566,16 @@ class BodyBuilder extends StackListenerImpl
       ]),
     ]));
     debugEvent("BinaryExpression");
-    if (token.isA2(TokenType.PERIOD) ||
-        token.isA2(TokenType.PERIOD_PERIOD) ||
-        token.isA2(TokenType.QUESTION_PERIOD_PERIOD)) {
+    if (token.isA(TokenType.PERIOD) ||
+        token.isA(TokenType.PERIOD_PERIOD) ||
+        token.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
       doDotOrCascadeExpression(token);
-    } else if (token.isA2(TokenType.AMPERSAND_AMPERSAND) ||
-        token.isA2(TokenType.BAR_BAR)) {
+    } else if (token.isA(TokenType.AMPERSAND_AMPERSAND) ||
+        token.isA(TokenType.BAR_BAR)) {
       doLogicalExpression(token);
-    } else if (token.isA2(TokenType.QUESTION_QUESTION)) {
+    } else if (token.isA(TokenType.QUESTION_QUESTION)) {
       doIfNull(token);
-    } else if (token.isA2(TokenType.QUESTION_PERIOD)) {
+    } else if (token.isA(TokenType.QUESTION_PERIOD)) {
       doIfNotNull(token);
     } else {
       doBinaryExpression(token);

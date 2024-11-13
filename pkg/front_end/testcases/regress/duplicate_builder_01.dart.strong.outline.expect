@@ -1,0 +1,32 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/duplicate_builder_01.dart:8:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   set foo(double x) { }
+//       ^^^
+//
+// pkg/front_end/testcases/regress/duplicate_builder_01.dart:7:16: Error: 'foo' is already declared in this scope.
+// extension type foo(String foo) {
+//                ^^^
+// pkg/front_end/testcases/regress/duplicate_builder_01.dart:5:5: Context: Previous declaration of 'foo'.
+// int foo = 42;
+//     ^^^
+//
+// pkg/front_end/testcases/regress/duplicate_builder_01.dart:7:27: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+// extension type foo(String foo) {
+//                           ^
+//
+// pkg/front_end/testcases/regress/duplicate_builder_01.dart:8:7: Error: 'foo' isn't a type.
+//   set foo(double x) { }
+//       ^
+// pkg/front_end/testcases/regress/duplicate_builder_01.dart:7:27: Context: This isn't a type.
+// extension type foo(String foo) {
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::int foo;

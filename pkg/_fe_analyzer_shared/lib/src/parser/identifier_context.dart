@@ -344,25 +344,25 @@ abstract class IdentifierContext {
 bool looksLikeExpressionStart(Token next) =>
     next.isIdentifier ||
     next.isKeyword && !looksLikeStatementStart(next) ||
-    next.isA2(TokenType.DOUBLE) ||
-    next.isA2(TokenType.DOUBLE_WITH_SEPARATORS) ||
-    next.isA2(TokenType.HASH) ||
-    next.isA2(TokenType.HEXADECIMAL) ||
-    next.isA2(TokenType.HEXADECIMAL_WITH_SEPARATORS) ||
-    next.isA2(TokenType.IDENTIFIER) ||
-    next.isA2(TokenType.INT) ||
-    next.isA2(TokenType.INT_WITH_SEPARATORS) ||
-    next.isA2(TokenType.STRING) ||
-    next.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-    next.isA2(TokenType.OPEN_PAREN) ||
-    next.isA2(TokenType.OPEN_SQUARE_BRACKET) ||
-    next.isA2(TokenType.INDEX) ||
-    next.isA2(TokenType.LT) ||
-    next.isA2(TokenType.BANG) ||
-    next.isA2(TokenType.MINUS) ||
-    next.isA2(TokenType.TILDE) ||
-    next.isA2(TokenType.PLUS_PLUS) ||
-    next.isA2(TokenType.MINUS_MINUS);
+    next.isA(TokenType.DOUBLE) ||
+    next.isA(TokenType.DOUBLE_WITH_SEPARATORS) ||
+    next.isA(TokenType.HASH) ||
+    next.isA(TokenType.HEXADECIMAL) ||
+    next.isA(TokenType.HEXADECIMAL_WITH_SEPARATORS) ||
+    next.isA(TokenType.IDENTIFIER) ||
+    next.isA(TokenType.INT) ||
+    next.isA(TokenType.INT_WITH_SEPARATORS) ||
+    next.isA(TokenType.STRING) ||
+    next.isA(TokenType.OPEN_CURLY_BRACKET) ||
+    next.isA(TokenType.OPEN_PAREN) ||
+    next.isA(TokenType.OPEN_SQUARE_BRACKET) ||
+    next.isA(TokenType.INDEX) ||
+    next.isA(TokenType.LT) ||
+    next.isA(TokenType.BANG) ||
+    next.isA(TokenType.MINUS) ||
+    next.isA(TokenType.TILDE) ||
+    next.isA(TokenType.PLUS_PLUS) ||
+    next.isA(TokenType.MINUS_MINUS);
 
 /// Returns `true` if [next] should be treated like the start of a pattern for
 /// the purposes of recovery.
@@ -371,59 +371,59 @@ bool looksLikeExpressionStart(Token next) =>
 /// we mostly re-use [looksLikeExpressionStart].
 bool looksLikePatternStart(Token next) =>
     next.isIdentifier ||
-    next.isA2(TokenType.DOUBLE) ||
-    next.isA2(TokenType.DOUBLE_WITH_SEPARATORS) ||
-    next.isA2(TokenType.HASH) ||
-    next.isA2(TokenType.HEXADECIMAL) ||
-    next.isA2(TokenType.HEXADECIMAL_WITH_SEPARATORS) ||
-    next.isA2(TokenType.IDENTIFIER) ||
-    next.isA2(TokenType.INT) ||
-    next.isA2(TokenType.INT_WITH_SEPARATORS) ||
-    next.isA2(TokenType.STRING) ||
-    next.isA2(Keyword.NULL) ||
-    next.isA2(Keyword.FALSE) ||
-    next.isA2(Keyword.TRUE) ||
-    next.isA2(TokenType.OPEN_CURLY_BRACKET) ||
-    next.isA2(TokenType.OPEN_PAREN) ||
-    next.isA2(TokenType.OPEN_SQUARE_BRACKET) ||
-    next.isA2(TokenType.INDEX) ||
-    next.isA2(TokenType.LT) ||
-    next.isA2(TokenType.LT_EQ) ||
-    next.isA2(TokenType.GT) ||
-    next.isA2(TokenType.GT_EQ) ||
-    next.isA2(TokenType.BANG_EQ) ||
-    next.isA2(TokenType.EQ_EQ) ||
-    next.isA2(Keyword.VAR) ||
-    next.isA2(Keyword.FINAL) ||
-    next.isA2(Keyword.CONST);
+    next.isA(TokenType.DOUBLE) ||
+    next.isA(TokenType.DOUBLE_WITH_SEPARATORS) ||
+    next.isA(TokenType.HASH) ||
+    next.isA(TokenType.HEXADECIMAL) ||
+    next.isA(TokenType.HEXADECIMAL_WITH_SEPARATORS) ||
+    next.isA(TokenType.IDENTIFIER) ||
+    next.isA(TokenType.INT) ||
+    next.isA(TokenType.INT_WITH_SEPARATORS) ||
+    next.isA(TokenType.STRING) ||
+    next.isA(Keyword.NULL) ||
+    next.isA(Keyword.FALSE) ||
+    next.isA(Keyword.TRUE) ||
+    next.isA(TokenType.OPEN_CURLY_BRACKET) ||
+    next.isA(TokenType.OPEN_PAREN) ||
+    next.isA(TokenType.OPEN_SQUARE_BRACKET) ||
+    next.isA(TokenType.INDEX) ||
+    next.isA(TokenType.LT) ||
+    next.isA(TokenType.LT_EQ) ||
+    next.isA(TokenType.GT) ||
+    next.isA(TokenType.GT_EQ) ||
+    next.isA(TokenType.BANG_EQ) ||
+    next.isA(TokenType.EQ_EQ) ||
+    next.isA(Keyword.VAR) ||
+    next.isA(Keyword.FINAL) ||
+    next.isA(Keyword.CONST);
 
 /// Return `true` if the given [token] should be treated like the start of
 /// a new statement for the purposes of recovery.
 bool looksLikeStatementStart(Token token) =>
-    token.isA2(TokenType.AT) ||
-    token.isA2(Keyword.ASSERT) ||
-    token.isA2(Keyword.BREAK) ||
-    token.isA2(Keyword.CONTINUE) ||
-    token.isA2(Keyword.DO) ||
-    token.isA2(Keyword.ELSE) ||
-    token.isA2(Keyword.FINAL) ||
-    token.isA2(Keyword.FOR) ||
-    token.isA2(Keyword.IF) ||
-    token.isA2(Keyword.RETURN) ||
-    token.isA2(Keyword.SWITCH) ||
-    token.isA2(Keyword.TRY) ||
-    token.isA2(Keyword.VAR) ||
-    token.isA2(Keyword.VOID) ||
-    token.isA2(Keyword.WHILE) ||
-    token.isA2(TokenType.EOF);
+    token.isA(TokenType.AT) ||
+    token.isA(Keyword.ASSERT) ||
+    token.isA(Keyword.BREAK) ||
+    token.isA(Keyword.CONTINUE) ||
+    token.isA(Keyword.DO) ||
+    token.isA(Keyword.ELSE) ||
+    token.isA(Keyword.FINAL) ||
+    token.isA(Keyword.FOR) ||
+    token.isA(Keyword.IF) ||
+    token.isA(Keyword.RETURN) ||
+    token.isA(Keyword.SWITCH) ||
+    token.isA(Keyword.TRY) ||
+    token.isA(Keyword.VAR) ||
+    token.isA(Keyword.VOID) ||
+    token.isA(Keyword.WHILE) ||
+    token.isA(TokenType.EOF);
 
 bool isOkNextValueInFormalParameter(Token token) =>
-    token.isA2(TokenType.EQ) ||
-    token.isA2(TokenType.COLON) ||
-    token.isA2(TokenType.COMMA) ||
-    token.isA2(TokenType.CLOSE_PAREN) ||
-    token.isA2(TokenType.CLOSE_SQUARE_BRACKET) ||
-    token.isA2(TokenType.CLOSE_CURLY_BRACKET);
+    token.isA(TokenType.EQ) ||
+    token.isA(TokenType.COLON) ||
+    token.isA(TokenType.COMMA) ||
+    token.isA(TokenType.CLOSE_PAREN) ||
+    token.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
+    token.isA(TokenType.CLOSE_CURLY_BRACKET);
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.
 typedef _MessageWithArgument<T> = Message Function(T);

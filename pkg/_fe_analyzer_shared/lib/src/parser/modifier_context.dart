@@ -52,7 +52,7 @@ bool isModifier(Token token) {
 }
 
 bool _thisOrSuperWithDot(Token token) {
-  if (token.isA2(Keyword.THIS) || token.isA2(Keyword.SUPER)) {
+  if (token.isA(Keyword.THIS) || token.isA(Keyword.SUPER)) {
     return token.next!.isA(TokenType.PERIOD);
   }
   return false;

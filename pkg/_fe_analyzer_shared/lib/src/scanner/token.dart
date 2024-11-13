@@ -2149,17 +2149,6 @@ extension TokenIsAExtension on Token {
   bool isA(TokenType value) {
     return value.index == typeIndex;
   }
-
-  /// Returns true if this has the token type [value].
-  ///
-  /// Use when doing more isA queries on the same thing, until
-  /// https://github.com/dart-lang/sdk/issues/56828 and
-  /// https://github.com/dart-lang/sdk/issues/56839 are fixed at which point
-  /// `isA` calls should be better.
-  @pragma("vm:prefer-inline")
-  bool isA2(TokenType value) {
-    return identical(value, type);
-  }
 }
 
 extension TokenTypeIsAExtension on TokenType {
