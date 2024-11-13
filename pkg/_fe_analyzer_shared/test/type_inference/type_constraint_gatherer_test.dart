@@ -538,6 +538,34 @@ main() {
           .isFalse();
       check(tcg._constraints).isEmpty();
     });
+
+    test('Nullable does not match non-nullable', () {
+      // `(int, T)? <# (int, String)` does not match
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftNullableType(
+              Type('(int, T)?'), Type('(int, String)'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isFalse();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('Both LHS and RHS nullable, matching', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('T?'), Type('int?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: int']);
+    });
+
+    test('Both LHS and RHS nullable, not matching', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('(T, int)?'), Type('(int, String)?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isFalse();
+      check(tcg._constraints).isEmpty();
+    });
   });
 
   group('performSubtypeConstraintGenerationForRightNullableType:', () {
@@ -579,6 +607,33 @@ main() {
       var tcg = _TypeConstraintGatherer({});
       check(tcg.performSubtypeConstraintGenerationForRightNullableType(
               Type('Null'), Type('int?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('Dynamic matches Object?', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('dynamic'), Type('Object?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('void matches Object?', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('void'), Type('Object?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('LHS not nullable, matches with no constraints', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('int'), Type('int?'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
       check(tcg._constraints).isEmpty();

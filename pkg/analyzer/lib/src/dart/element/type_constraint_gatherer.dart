@@ -368,7 +368,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // A type `P` is a subtype match for `Record` with respect to `L` under no
     // constraints:
     //   If `P` is a record type or `Record`.
-    if (Q_nullability == NullabilitySuffix.none && Q.isDartCoreRecord) {
+    if (_typeSystemOperations.isDartCoreRecord(SharedTypeView(Q))) {
       if (P is SharedRecordTypeStructure<DartType>) {
         return true;
       }

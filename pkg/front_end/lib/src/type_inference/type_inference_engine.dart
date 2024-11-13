@@ -987,6 +987,12 @@ class OperationsCfe
   }
 
   @override
+  bool isDartCoreRecord(SharedTypeView<DartType> type) {
+    return type.unwrapTypeView() ==
+        typeEnvironment.coreTypes.recordNonNullableRawType;
+  }
+
+  @override
   DartType greatestClosureOfTypeInternal(DartType type,
       List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
     return new NullabilityAwareFreeTypeParameterEliminator(

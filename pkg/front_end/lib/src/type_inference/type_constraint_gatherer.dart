@@ -480,7 +480,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     // constraints:
     //
     // If P is a record type or Record.
-    if (q == _environment.coreTypes.recordNonNullableRawType &&
+    if (typeOperations.isDartCoreRecord(new SharedTypeView(q)) &&
         p is RecordType) {
       return true;
     }

@@ -174,8 +174,12 @@ abstract interface class TypeAnalyzerOperations<
       SharedTypeView<TypeStructure> toType);
 
   /// Returns `true` if [type] is `Function` from `dart:core`. The method
-  /// returns `false` for `Object?` and `Object*`.
+  /// returns `false` for `Function?` and `Function*`.
   bool isDartCoreFunction(SharedTypeView<TypeStructure> type);
+
+  /// Returns `true` if [type] is `Record` from `dart:core`. The method
+  /// returns `false` for `Record?` and `Record*`.
+  bool isDartCoreRecord(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if [type] is `E<T1, ..., Tn>`, `E<T1, ..., Tn>?`, or
   /// `E<T1, ..., Tn>*` for some extension type declaration E, some
