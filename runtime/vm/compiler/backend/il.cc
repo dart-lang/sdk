@@ -2285,13 +2285,8 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
     case kUnboxedUint32:
       if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
           (op_kind == Token::kUSHR)) {
-        if (CompilerState::Current().is_aot()) {
-          op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id,
-                                      right_range);
-        } else {
-          op = new SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id,
-                                                 right_range);
-        }
+        op =
+            new ShiftUint32OpInstr(op_kind, left, right, deopt_id, right_range);
       } else {
         op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
       }
@@ -2299,13 +2294,7 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
     case kUnboxedInt64:
       if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
           (op_kind == Token::kUSHR)) {
-        if (CompilerState::Current().is_aot()) {
-          op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id,
-                                     right_range);
-        } else {
-          op = new SpeculativeShiftInt64OpInstr(op_kind, left, right, deopt_id,
-                                                right_range);
-        }
+        op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id, right_range);
       } else {
         op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
       }
@@ -2430,10 +2419,8 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         return right()->definition();
       } else if ((rhs > 0) && Utils::IsPowerOfTwo(rhs)) {
         const int64_t shift_amount = Utils::ShiftForPowerOfTwo(rhs);
-        const Representation shift_amount_rep =
-            CompilerState::Current().is_aot() ? kUnboxedInt64 : kTagged;
         ConstantInstr* constant_shift_amount = flow_graph->GetConstant(
-            Smi::Handle(Smi::New(shift_amount)), shift_amount_rep);
+            Smi::Handle(Smi::New(shift_amount)), kUnboxedInt64);
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
             new Value(constant_shift_amount), GetDeoptId(), can_overflow(),

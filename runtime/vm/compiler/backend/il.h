@@ -503,7 +503,6 @@ struct InstrAttrs {
   M(CaseInsensitiveCompare, kNoGC)                                             \
   M(BinaryInt64Op, kNoGC)                                                      \
   M(ShiftInt64Op, kNoGC)                                                       \
-  M(SpeculativeShiftInt64Op, kNoGC)                                            \
   M(UnaryInt64Op, kNoGC)                                                       \
   M(CheckArrayBound, kNoGC)                                                    \
   M(GenericCheckBound, kNoGC)                                                  \
@@ -529,7 +528,6 @@ struct InstrAttrs {
   M(BoxLanes, _)                                                               \
   M(BinaryUint32Op, kNoGC)                                                     \
   M(ShiftUint32Op, kNoGC)                                                      \
-  M(SpeculativeShiftUint32Op, kNoGC)                                           \
   M(UnaryUint32Op, kNoGC)                                                      \
   M(BoxUint32, _)                                                              \
   M(UnboxUint32, kNoGC)                                                        \
@@ -8739,8 +8737,7 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
 
 bool Definition::IsInt64Definition() {
   return (Type()->ToCid() == kMintCid) || IsBinaryInt64Op() ||
-         IsUnaryInt64Op() || IsShiftInt64Op() || IsSpeculativeShiftInt64Op() ||
-         IsBoxInt64() || IsUnboxInt64();
+         IsUnaryInt64Op() || IsShiftInt64Op() || IsBoxInt64() || IsUnboxInt64();
 }
 
 // Calls into the runtime and performs a case-insensitive comparison of the
@@ -9495,6 +9492,9 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
       : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return !CompilerState::Current().is_aot();
+  }
   virtual bool MayThrow() const { return !IsShiftCountInRange(); }
 
   virtual Representation representation() const { return kUnboxedInt64; }
@@ -9512,37 +9512,6 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(ShiftInt64OpInstr);
 };
 
-// Speculative int64 shift. Takes unboxed int64 and smi.
-// Deoptimizes if right operand is negative or greater than kShiftCountLimit.
-class SpeculativeShiftInt64OpInstr : public ShiftIntegerOpInstr {
- public:
-  SpeculativeShiftInt64OpInstr(Token::Kind op_kind,
-                               Value* left,
-                               Value* right,
-                               intptr_t deopt_id,
-                               Range* right_range = nullptr)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
-
-  virtual bool ComputeCanDeoptimize() const {
-    ASSERT(!can_overflow());
-    return !IsShiftCountInRange();
-  }
-
-  virtual Representation representation() const { return kUnboxedInt64; }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return (idx == 0) ? kUnboxedInt64 : kTagged;
-  }
-
-  DECLARE_INSTRUCTION(SpeculativeShiftInt64Op)
-
-  DECLARE_EMPTY_SERIALIZATION(SpeculativeShiftInt64OpInstr, ShiftIntegerOpInstr)
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(SpeculativeShiftInt64OpInstr);
-};
-
 // Non-speculative uint32 shift. Takes unboxed uint32 and unboxed int64.
 // Throws if right operand is negative.
 class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
@@ -9555,6 +9524,9 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
       : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return !CompilerState::Current().is_aot();
+  }
   virtual bool MayThrow() const {
     return !IsShiftCountInRange(kUint32ShiftCountLimit);
   }
@@ -9574,37 +9546,6 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
   static constexpr intptr_t kUint32ShiftCountLimit = 31;
 
   DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
-};
-
-// Speculative uint32 shift. Takes unboxed uint32 and smi.
-// Deoptimizes if right operand is negative.
-class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
- public:
-  SpeculativeShiftUint32OpInstr(Token::Kind op_kind,
-                                Value* left,
-                                Value* right,
-                                intptr_t deopt_id,
-                                Range* right_range = nullptr)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
-
-  virtual bool ComputeCanDeoptimize() const { return !IsShiftCountInRange(); }
-
-  virtual Representation representation() const { return kUnboxedUint32; }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return (idx == 0) ? kUnboxedUint32 : kTagged;
-  }
-
-  DECLARE_INSTRUCTION(SpeculativeShiftUint32Op)
-
-  DECLARE_EMPTY_SERIALIZATION(SpeculativeShiftUint32OpInstr,
-                              ShiftIntegerOpInstr)
-
- private:
-  static constexpr intptr_t kUint32ShiftCountLimit = 31;
-
-  DISALLOW_COPY_AND_ASSIGN(SpeculativeShiftUint32OpInstr);
 };
 
 class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
