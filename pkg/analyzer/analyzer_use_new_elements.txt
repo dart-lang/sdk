@@ -113,7 +113,6 @@ lib/src/error/getter_setter_types_verifier.dart
 lib/src/error/imports_verifier.dart
 lib/src/error/inheritance_override.dart
 lib/src/error/literal_element_verifier.dart
-lib/src/error/must_call_super_verifier.dart
 lib/src/error/nullable_dereference_verifier.dart
 lib/src/error/override_verifier.dart
 lib/src/error/required_parameters_verifier.dart

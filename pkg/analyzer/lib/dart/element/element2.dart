@@ -1139,6 +1139,18 @@ abstract class InstanceElement2
 
   /// The type of a `this` expression.
   DartType get thisType;
+
+  /// Returns the field from [fields2] that has the given [name].
+  FieldElement2? getField2(String name);
+
+  /// Returns the getter from [getters2] that has the given [name].
+  GetterElement? getGetter2(String name);
+
+  /// Returns the method from [methods2] that has the given [name].
+  MethodElement2? getMethod2(String name);
+
+  /// Returns the setter from [setters2] that has the given [name].
+  SetterElement? getSetter2(String name);
 }
 
 /// The portion of an [InstanceElement2] contributed by a single declaration.
