@@ -326,7 +326,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   final List<String> enabledLegacyPluginNames;
 
   @override
-  List<PluginConfiguration> pluginConfigurations = [];
+  final List<PluginConfiguration> pluginConfigurations;
 
   @override
   final List<ErrorProcessor> errorProcessors;
