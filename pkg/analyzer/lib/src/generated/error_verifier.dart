@@ -489,7 +489,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _isInNativeClass = node.nativeClause != null;
 
-      var augmented = declaredFragment.augmented;
+      var augmented = declaredFragment.element;
       var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement;
 
@@ -535,7 +535,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-      ).checkStaticAccessors(declarationElement.accessors);
+      ).checkStaticGetters(augmented.getters2);
 
       super.visitClassDeclaration(node);
     } finally {
@@ -583,7 +583,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitCompilationUnit(covariant CompilationUnitImpl node) {
-    var element = node.declaredElement as CompilationUnitElement;
+    var fragment = node.declaredFragment!;
     _featureSet = node.featureSet;
     _duplicateDefinitionVerifier.checkUnit(node);
     _checkForDeferredPrefixCollisions(node);
@@ -592,7 +592,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
-    ).checkStaticAccessors(element.accessors);
+    ).checkStaticGetters(fragment.element.getters);
 
     super.visitCompilationUnit(node);
     _featureSet = null;
@@ -734,7 +734,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-      ).checkStaticAccessors(declaredFragment.accessors);
+      ).checkStaticGetters(declaredElement.getters2);
 
       super.visitEnumDeclaration(node);
     } finally {
@@ -793,7 +793,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
-    ).checkExtension(declaredFragment);
+    ).checkExtension(declaredElement);
 
     var name = node.name;
     if (name != null) {
@@ -860,7 +860,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
-      ).checkExtensionType(declaredFragment, interface);
+      ).checkExtensionType(declaredElement, interface);
 
       super.visitExtensionTypeDeclaration(node);
     } finally {

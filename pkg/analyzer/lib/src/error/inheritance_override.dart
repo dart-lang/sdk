@@ -295,7 +295,7 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: reporter,
-    ).checkInterface(declaration, interface);
+    ).checkInterface(fragment.asElement2, interface);
 
     if (declaration is ClassElement && !declaration.isAbstract ||
         declaration is EnumElement) {

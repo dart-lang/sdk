@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -110,6 +112,25 @@ class ErrorReporter {
       errorCode: errorCode,
       offset: nonSynthetic.nameOffset,
       length: nonSynthetic.nameLength,
+      arguments: arguments,
+      contextMessages: contextMessages,
+      data: data,
+    );
+  }
+
+  /// Report an error with the given [errorCode] and [arguments].
+  /// The [element] is used to compute the location of the error.
+  @experimental
+  void atElement2(
+    Element2 element,
+    ErrorCode errorCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+    Object? data,
+  }) {
+    atElement(
+      element.asElement!,
+      errorCode,
       arguments: arguments,
       contextMessages: contextMessages,
       data: data,
