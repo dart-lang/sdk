@@ -72,9 +72,10 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
 
   {
     // Check concurrent modification
-    Map map = newMap()
-      ..[0] = 0
-      ..[1] = 1;
+    Map map =
+        newMap()
+          ..[0] = 0
+          ..[1] = 1;
 
     {
       // Test adding before a moveNext.

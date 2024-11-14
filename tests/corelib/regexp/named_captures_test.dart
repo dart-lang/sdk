@@ -40,10 +40,18 @@ void main() {
     shouldBe(re.firstMatch(input), expectedResult);
   }
 
-  void execString(String pattern, String input, List<String?> expectedResult,
-      {bool unicode = true, bool caseSensitive = false}) {
-    execRE(RegExp(pattern, unicode: unicode, caseSensitive: caseSensitive),
-        input, expectedResult);
+  void execString(
+    String pattern,
+    String input,
+    List<String?> expectedResult, {
+    bool unicode = true,
+    bool caseSensitive = false,
+  }) {
+    execRE(
+      RegExp(pattern, unicode: unicode, caseSensitive: caseSensitive),
+      input,
+      expectedResult,
+    );
   }
 
   void namedRE(RegExp re, String input, Map<String, String?> expectedResults) {
@@ -55,10 +63,17 @@ void main() {
   }
 
   void execStringGroups(
-      String pattern, String input, Map<String, String?> expectedResults,
-      {bool unicode = true, bool caseSensitive = false}) {
-    namedRE(RegExp(pattern, unicode: unicode, caseSensitive: caseSensitive),
-        input, expectedResults);
+    String pattern,
+    String input,
+    Map<String, String?> expectedResults, {
+    bool unicode = true,
+    bool caseSensitive = false,
+  }) {
+    namedRE(
+      RegExp(pattern, unicode: unicode, caseSensitive: caseSensitive),
+      input,
+      expectedResults,
+    );
   }
 
   void hasNames(RegExp re, String input, List<String?> expectedResults) {
@@ -185,25 +200,55 @@ void main() {
   execString(r"(?<a>\w\w)(?<b>\w)", "bab", ["bab", "ba", "b"], unicode: false);
 
   matchesIndexEqual(
-      "bab", RegExp(r"(?<a>a)", unicode: true), RegExp(r"(a)", unicode: true));
-  matchesIndexEqual("bab", RegExp(r"(?<a42>a)", unicode: true),
-      RegExp(r"(a)", unicode: true));
+    "bab",
+    RegExp(r"(?<a>a)", unicode: true),
+    RegExp(r"(a)", unicode: true),
+  );
   matchesIndexEqual(
-      "bab", RegExp(r"(?<_>a)", unicode: true), RegExp(r"(a)", unicode: true));
+    "bab",
+    RegExp(r"(?<a42>a)", unicode: true),
+    RegExp(r"(a)", unicode: true),
+  );
   matchesIndexEqual(
-      "bab", RegExp(r"(?<$>a)", unicode: true), RegExp(r"(a)", unicode: true));
-  matchesIndexEqual("bab", RegExp(r".(?<$>a).", unicode: true),
-      RegExp(r".(a).", unicode: true));
-  matchesIndexEqual("bab", RegExp(r".(?<a>a)(.)", unicode: true),
-      RegExp(r".(a)(.)", unicode: true));
-  matchesIndexEqual("bab", RegExp(r".(?<a>a)(?<b>.)", unicode: true),
-      RegExp(r".(a)(.)", unicode: true));
-  matchesIndexEqual("bab", RegExp(r".(?<a>\w\w)", unicode: true),
-      RegExp(r".(\w\w)", unicode: true));
-  matchesIndexEqual("bab", RegExp(r"(?<a>\w\w\w)", unicode: true),
-      RegExp(r"(\w\w\w)", unicode: true));
-  matchesIndexEqual("bab", RegExp(r"(?<a>\w\w)(?<b>\w)", unicode: true),
-      RegExp(r"(\w\w)(\w)", unicode: true));
+    "bab",
+    RegExp(r"(?<_>a)", unicode: true),
+    RegExp(r"(a)", unicode: true),
+  );
+  matchesIndexEqual(
+    "bab",
+    RegExp(r"(?<$>a)", unicode: true),
+    RegExp(r"(a)", unicode: true),
+  );
+  matchesIndexEqual(
+    "bab",
+    RegExp(r".(?<$>a).", unicode: true),
+    RegExp(r".(a).", unicode: true),
+  );
+  matchesIndexEqual(
+    "bab",
+    RegExp(r".(?<a>a)(.)", unicode: true),
+    RegExp(r".(a)(.)", unicode: true),
+  );
+  matchesIndexEqual(
+    "bab",
+    RegExp(r".(?<a>a)(?<b>.)", unicode: true),
+    RegExp(r".(a)(.)", unicode: true),
+  );
+  matchesIndexEqual(
+    "bab",
+    RegExp(r".(?<a>\w\w)", unicode: true),
+    RegExp(r".(\w\w)", unicode: true),
+  );
+  matchesIndexEqual(
+    "bab",
+    RegExp(r"(?<a>\w\w\w)", unicode: true),
+    RegExp(r"(\w\w\w)", unicode: true),
+  );
+  matchesIndexEqual(
+    "bab",
+    RegExp(r"(?<a>\w\w)(?<b>\w)", unicode: true),
+    RegExp(r"(\w\w)(\w)", unicode: true),
+  );
 
   execString(r"(?<b>b).\1", "bab", ["bab", "b"]);
   execString(r"(.)(?<a>a)\1\2", "baba", ["baba", "b", "a"]);

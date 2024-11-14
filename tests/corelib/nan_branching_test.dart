@@ -12,23 +12,32 @@ double hiddenNaN() => double.parse("NaN");
 
 void main() {
   if (hiddenZero() == hiddenNaN()) throw "==";
-  if (hiddenZero() != hiddenNaN()) {} else throw "!=";
-  if (hiddenZero()  < hiddenNaN()) throw "<";
+  if (hiddenZero() != hiddenNaN()) {
+  } else {
+    throw "!=";
+  }
+  if (hiddenZero() < hiddenNaN()) throw "<";
   if (hiddenZero() <= hiddenNaN()) throw "<=";
-  if (hiddenZero()  > hiddenNaN()) throw ">";
+  if (hiddenZero() > hiddenNaN()) throw ">";
   if (hiddenZero() >= hiddenNaN()) throw ">=";
 
   if (hiddenNaN() == hiddenNaN()) throw "==";
-  if (hiddenNaN() != hiddenNaN()) {} else throw "!=";
-  if (hiddenNaN()  < hiddenNaN()) throw "<";
+  if (hiddenNaN() != hiddenNaN()) {
+  } else {
+    throw "!=";
+  }
+  if (hiddenNaN() < hiddenNaN()) throw "<";
   if (hiddenNaN() <= hiddenNaN()) throw "<=";
-  if (hiddenNaN()  > hiddenNaN()) throw ">";
+  if (hiddenNaN() > hiddenNaN()) throw ">";
   if (hiddenNaN() >= hiddenNaN()) throw ">=";
 
   if (hiddenNaN() == hiddenZero()) throw "==";
-  if (hiddenNaN() != hiddenZero()) {} else throw "!=";
-  if (hiddenNaN()  < hiddenZero()) throw "<";
+  if (hiddenNaN() != hiddenZero()) {
+  } else {
+    throw "!=";
+  }
+  if (hiddenNaN() < hiddenZero()) throw "<";
   if (hiddenNaN() <= hiddenZero()) throw "<=";
-  if (hiddenNaN()  > hiddenZero()) throw ">";
+  if (hiddenNaN() > hiddenZero()) throw ">";
   if (hiddenNaN() >= hiddenZero()) throw ">=";
 }

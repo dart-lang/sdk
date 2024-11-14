@@ -27,19 +27,27 @@ void main() {
   asyncStart();
   var c = new Completer();
   c.completeError(0, stringTrace);
-  c.future.then<Null>((v) {
-    throw "Unexpected value: $v";
-  }, onError: (e, s) {
-    Expect.equals(string, s.toString());
-  }).then((_) {
-    var c = new StreamController();
-    c.stream.listen((v) {
-      throw "Unexpected value: $v";
-    }, onError: (e, s) {
-      Expect.equals(string, s.toString());
-      asyncEnd();
-    });
-    c.addError(0, stringTrace);
-    c.close();
-  });
+  c.future
+      .then<Null>(
+        (v) {
+          throw "Unexpected value: $v";
+        },
+        onError: (e, s) {
+          Expect.equals(string, s.toString());
+        },
+      )
+      .then((_) {
+        var c = new StreamController();
+        c.stream.listen(
+          (v) {
+            throw "Unexpected value: $v";
+          },
+          onError: (e, s) {
+            Expect.equals(string, s.toString());
+            asyncEnd();
+          },
+        );
+        c.addError(0, stringTrace);
+        c.close();
+      });
 }

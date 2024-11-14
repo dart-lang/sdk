@@ -13,10 +13,11 @@ class CollectionTest {
   }
 
   void testFold(Iterable<int> iterable) {
+    Expect.equals(28, iterable.fold<int>(0, (prev, element) => prev + element));
     Expect.equals(
-        28, iterable.fold<int>(0, (prev, element) => prev + element));
-    Expect.equals(
-        3024, iterable.fold<int>(1, (prev, element) => prev * element));
+      3024,
+      iterable.fold<int>(1, (prev, element) => prev * element),
+    );
   }
 }
 

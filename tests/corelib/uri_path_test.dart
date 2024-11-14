@@ -17,14 +17,22 @@ void testPath() {
   test("http:", new Uri(scheme: "http"));
   test("http://host/xxx", new Uri(scheme: "http", host: "host", path: "xxx"));
   test("http://host/xxx", new Uri(scheme: "http", host: "host", path: "/xxx"));
-  test("http://host/xxx",
-      new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]));
-  test("http://host/xxx/yyy",
-      new Uri(scheme: "http", host: "host", path: "xxx/yyy"));
-  test("http://host/xxx/yyy",
-      new Uri(scheme: "http", host: "host", path: "/xxx/yyy"));
-  test("http://host/xxx/yyy",
-      new Uri(scheme: "http", host: "host", pathSegments: ["xxx", "yyy"]));
+  test(
+    "http://host/xxx",
+    new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]),
+  );
+  test(
+    "http://host/xxx/yyy",
+    new Uri(scheme: "http", host: "host", path: "xxx/yyy"),
+  );
+  test(
+    "http://host/xxx/yyy",
+    new Uri(scheme: "http", host: "host", path: "/xxx/yyy"),
+  );
+  test(
+    "http://host/xxx/yyy",
+    new Uri(scheme: "http", host: "host", pathSegments: ["xxx", "yyy"]),
+  );
 
   test("urn:", new Uri(scheme: "urn"));
   test("urn:xxx", new Uri(scheme: "urn", path: "xxx"));
@@ -65,7 +73,8 @@ void testPathSegments() {
   test("name,v=1.1", ["name,v=1.1"]);
   test("name;v=1.1/name,v=1.1", ["name;v=1.1", "name,v=1.1"]);
 
-  var unreserved = "-._~0123456789"
+  var unreserved =
+      "-._~0123456789"
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz";
   var subDelimiters = r"!$&'()*+,;=";
@@ -101,14 +110,16 @@ void testPathSegments() {
   uri = new Uri(scheme: "http", host: "host", pathSegments: pathSegments);
   Expect.equals(3, uri.pathSegments.length);
   uri = new Uri(
-      scheme: "http",
-      host: "host",
-      pathSegments: pathSegments.where((_) => true));
+    scheme: "http",
+    host: "host",
+    pathSegments: pathSegments.where((_) => true),
+  );
   Expect.equals(3, uri.pathSegments.length);
   uri = new Uri(
-      scheme: "http",
-      host: "host",
-      pathSegments: new DoubleLinkedQueue.from(pathSegments));
+    scheme: "http",
+    host: "host",
+    pathSegments: new DoubleLinkedQueue.from(pathSegments),
+  );
   Expect.equals(3, uri.pathSegments.length);
 
   uri = new Uri(scheme: "file", pathSegments: pathSegments);
@@ -116,7 +127,9 @@ void testPathSegments() {
   uri = new Uri(scheme: "file", pathSegments: pathSegments.where((_) => true));
   Expect.equals(3, uri.pathSegments.length);
   uri = new Uri(
-      scheme: "file", pathSegments: new DoubleLinkedQueue.from(pathSegments));
+    scheme: "file",
+    pathSegments: new DoubleLinkedQueue.from(pathSegments),
+  );
   Expect.equals(3, uri.pathSegments.length);
 }
 
@@ -126,18 +139,30 @@ void testPathCompare() {
     Expect.equals(uri2, uri1);
   }
 
-  test(new Uri(scheme: "http", host: "host", path: "xxx"),
-      new Uri(scheme: "http", host: "host", path: "/xxx"));
-  test(new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]),
-      new Uri(scheme: "http", host: "host", path: "/xxx"));
-  test(new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]),
-      new Uri(scheme: "http", host: "host", path: "xxx"));
-  test(new Uri(scheme: "file", path: "xxx"),
-      new Uri(scheme: "file", path: "/xxx"));
-  test(new Uri(scheme: "file", pathSegments: ["xxx"]),
-      new Uri(scheme: "file", path: "/xxx"));
-  test(new Uri(scheme: "file", pathSegments: ["xxx"]),
-      new Uri(scheme: "file", path: "xxx"));
+  test(
+    new Uri(scheme: "http", host: "host", path: "xxx"),
+    new Uri(scheme: "http", host: "host", path: "/xxx"),
+  );
+  test(
+    new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]),
+    new Uri(scheme: "http", host: "host", path: "/xxx"),
+  );
+  test(
+    new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]),
+    new Uri(scheme: "http", host: "host", path: "xxx"),
+  );
+  test(
+    new Uri(scheme: "file", path: "xxx"),
+    new Uri(scheme: "file", path: "/xxx"),
+  );
+  test(
+    new Uri(scheme: "file", pathSegments: ["xxx"]),
+    new Uri(scheme: "file", path: "/xxx"),
+  );
+  test(
+    new Uri(scheme: "file", pathSegments: ["xxx"]),
+    new Uri(scheme: "file", path: "xxx"),
+  );
 }
 
 testPathSegmentsUnmodifiableList() {

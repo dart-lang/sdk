@@ -12,496 +12,496 @@ main() {
   // ----- 'void' is not allowed in a dot-separated multi-part symbol literal.
 
   #void.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter 'foo' isn't defined for the class 'Symbol'.
 
   #foo.void;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'void' can't be used as an identifier because it's a keyword.
 
   // ----- All other reserved words are disallowed.
 
   #assert;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 6]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'assert' can't be used as an identifier because it's a keyword.
 
   #break;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'break' can't be used as an identifier because it's a keyword.
 
   #case;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'case' can't be used as an identifier because it's a keyword.
 
   #catch;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'catch' can't be used as an identifier because it's a keyword.
 
   #class;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'class' can't be used as an identifier because it's a keyword.
 
   #const;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'const' can't be used as an identifier because it's a keyword.
 
   #continue;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 8]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'continue' can't be used as an identifier because it's a keyword.
 
   #default;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'default' can't be used as an identifier because it's a keyword.
 
   #do;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 2]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'do' can't be used as an identifier because it's a keyword.
 
   #else;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'else' can't be used as an identifier because it's a keyword.
 
   #enum;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'enum' can't be used as an identifier because it's a keyword.
 
   #extends;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'extends' can't be used as an identifier because it's a keyword.
 
   #false;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'false' can't be used as an identifier because it's a keyword.
 
   #final;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'final' can't be used as an identifier because it's a keyword.
 
   #finally;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'finally' can't be used as an identifier because it's a keyword.
 
   #for;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 3]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'for' can't be used as an identifier because it's a keyword.
 
   #if;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 2]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'if' can't be used as an identifier because it's a keyword.
 
   #in;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 2]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'in' can't be used as an identifier because it's a keyword.
 
   #is;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 2]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'is' can't be used as an identifier because it's a keyword.
 
   #new;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 3]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 
   #null;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'null' can't be used as an identifier because it's a keyword.
 
   #rethrow;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'rethrow' can't be used as an identifier because it's a keyword.
 
   #return;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 6]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'return' can't be used as an identifier because it's a keyword.
 
   #super;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'super' can't be used as an identifier because it's a keyword.
 
   #switch;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 6]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'switch' can't be used as an identifier because it's a keyword.
 
   #this;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'this' can't be used as an identifier because it's a keyword.
 
   #throw;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'throw' can't be used as an identifier because it's a keyword.
 
   #true;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'true' can't be used as an identifier because it's a keyword.
 
   #try;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 3]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'try' can't be used as an identifier because it's a keyword.
 
   #var;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 3]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'var' can't be used as an identifier because it's a keyword.
 
   #while;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'while' can't be used as an identifier because it's a keyword.
 
   #with;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'with' can't be used as an identifier because it's a keyword.
 
   // ----- Reserved words also disallowed in dot-separated multi-part symbol.
 
   #foo.assert;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'assert' can't be used as an identifier because it's a keyword.
 
   #foo.break;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'break' can't be used as an identifier because it's a keyword.
 
   #foo.case;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'case' can't be used as an identifier because it's a keyword.
 
   #foo.catch;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'catch' can't be used as an identifier because it's a keyword.
 
   #foo.class;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'class' can't be used as an identifier because it's a keyword.
 
   #foo.const;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'const' can't be used as an identifier because it's a keyword.
 
   #foo.continue;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'continue' can't be used as an identifier because it's a keyword.
 
   #foo.default;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'default' can't be used as an identifier because it's a keyword.
 
   #foo.do;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'do' can't be used as an identifier because it's a keyword.
 
   #foo.else;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'else' can't be used as an identifier because it's a keyword.
 
   #foo.enum;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'enum' can't be used as an identifier because it's a keyword.
 
   #foo.extends;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'extends' can't be used as an identifier because it's a keyword.
 
   #foo.false;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'false' can't be used as an identifier because it's a keyword.
 
   #foo.final;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'final' can't be used as an identifier because it's a keyword.
 
   #foo.finally;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'finally' can't be used as an identifier because it's a keyword.
 
   #foo.for;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'for' can't be used as an identifier because it's a keyword.
 
   #foo.if;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'if' can't be used as an identifier because it's a keyword.
 
   #foo.in;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'in' can't be used as an identifier because it's a keyword.
 
   #foo.is;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'is' can't be used as an identifier because it's a keyword.
 
   #foo.new;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 
   #foo.null;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'null' can't be used as an identifier because it's a keyword.
 
   #foo.rethrow;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'rethrow' can't be used as an identifier because it's a keyword.
 
   #foo.return;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'return' can't be used as an identifier because it's a keyword.
 
   #foo.super;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'super' can't be used as an identifier because it's a keyword.
 
   #foo.switch;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'switch' can't be used as an identifier because it's a keyword.
 
   #foo.this;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'this' can't be used as an identifier because it's a keyword.
 
   #foo.throw;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'throw' can't be used as an identifier because it's a keyword.
 
   #foo.true;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'true' can't be used as an identifier because it's a keyword.
 
   #foo.try;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'try' can't be used as an identifier because it's a keyword.
 
   #foo.var;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'var' can't be used as an identifier because it's a keyword.
 
   #foo.while;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'while' can't be used as an identifier because it's a keyword.
 
   #foo.with;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  //   ^^^^
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'with' can't be used as an identifier because it's a keyword.
 
   #assert.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 6]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'assert' can't be used as an identifier because it's a keyword.
 
   #break.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'break' can't be used as an identifier because it's a keyword.
 
   #case.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'case' can't be used as an identifier because it's a keyword.
 
   #catch.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'catch' can't be used as an identifier because it's a keyword.
 
   #class.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'class' can't be used as an identifier because it's a keyword.
 
   #const.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'const' can't be used as an identifier because it's a keyword.
 
   #continue.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 8]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'continue' can't be used as an identifier because it's a keyword.
 
   #default.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'default' can't be used as an identifier because it's a keyword.
 
   #do.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 2]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'do' can't be used as an identifier because it's a keyword.
 
   #else.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'else' can't be used as an identifier because it's a keyword.
 
   #enum.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'enum' can't be used as an identifier because it's a keyword.
 
   #extends.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'extends' can't be used as an identifier because it's a keyword.
 
   #false.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'false' can't be used as an identifier because it's a keyword.
 
   #final.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'final' can't be used as an identifier because it's a keyword.
 
   #finally.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'finally' can't be used as an identifier because it's a keyword.
 
   #for.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 3]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'for' can't be used as an identifier because it's a keyword.
 
   #if.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 2]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'if' can't be used as an identifier because it's a keyword.
 
   #in.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 2]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'in' can't be used as an identifier because it's a keyword.
 
   #is.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 2]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'is' can't be used as an identifier because it's a keyword.
 
   #new.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 3]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'new' can't be used as an identifier because it's a keyword.
 
   #null.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'null' can't be used as an identifier because it's a keyword.
 
   #rethrow.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 7]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'rethrow' can't be used as an identifier because it's a keyword.
 
   #return.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 6]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'return' can't be used as an identifier because it's a keyword.
 
   #super.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'super' can't be used as an identifier because it's a keyword.
 
   #switch.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 6]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'switch' can't be used as an identifier because it's a keyword.
 
   #this.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'this' can't be used as an identifier because it's a keyword.
 
   #throw.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'throw' can't be used as an identifier because it's a keyword.
 
   #true.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'true' can't be used as an identifier because it's a keyword.
 
   #try.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 3]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'try' can't be used as an identifier because it's a keyword.
 
   #var.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 3]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'var' can't be used as an identifier because it's a keyword.
 
   #while.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 5]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'while' can't be used as an identifier because it's a keyword.
 
   #with.foo;
-  //^
-  // [analyzer] unspecified
-  // [cfe] unspecified
+  // [error column 4, length 4]
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'with' can't be used as an identifier because it's a keyword.
 }

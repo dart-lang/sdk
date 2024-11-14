@@ -6,13 +6,17 @@ import "package:expect/expect.dart";
 import "dart:typed_data";
 
 main() {
-  Iterable<int> iter(count, [values]) => values is List
-      ? new Iterable<int>.generate(count, (x) => values[x])
-      : new Iterable<int>.generate(count, (x) => values);
+  Iterable<int> iter(count, [values]) =>
+      values is List
+          ? new Iterable<int>.generate(count, (x) => values[x])
+          : new Iterable<int>.generate(count, (x) => values);
   void test(String expect, Iterable<int> iter, [int start = 0, int? end]) {
     var actual = new String.fromCharCodes(iter, start, end);
-    Expect.equals(expect, actual,
-        '$iter:${iter.runtimeType}[${start > 0 ? start : ""}:${end ?? ""}]');
+    Expect.equals(
+      expect,
+      actual,
+      '$iter:${iter.runtimeType}[${start > 0 ? start : ""}:${end ?? ""}]',
+    );
   }
 
   testThrows(iterable, [start = 0, end]) {
@@ -81,20 +85,23 @@ main() {
   test("\u{10ffff}", [0xDBFF, 0xDFFF]);
   test("\u{10ffff}", const [0xDBFF, 0xDFFF]);
   test(
-      "\u{10ffff}",
-      new List<int>.filled(2, -1)
-        ..[0] = 0xDBFF
-        ..[1] = 0xDFFF);
+    "\u{10ffff}",
+    new List<int>.filled(2, -1)
+      ..[0] = 0xDBFF
+      ..[1] = 0xDFFF,
+  );
   test(
-      "\u{10ffff}",
-      new Uint16List(2)
-        ..[0] = 0xDBFF
-        ..[1] = 0xDFFF);
+    "\u{10ffff}",
+    new Uint16List(2)
+      ..[0] = 0xDBFF
+      ..[1] = 0xDFFF,
+  );
   test(
-      "\u{10ffff}",
-      new Uint32List(2)
-        ..[0] = 0xDBFF
-        ..[1] = 0xDFFF);
+    "\u{10ffff}",
+    new Uint32List(2)
+      ..[0] = 0xDBFF
+      ..[1] = 0xDFFF,
+  );
   test("\u{10FFFF}", "\u{10FFFF}".codeUnits);
 
   var leadSurrogate = "\u{10ffff}"[0];
@@ -171,7 +178,8 @@ main() {
 
   void testThrowsRange(iterable, [start = 0, end]) {
     Expect.throwsRangeError(
-        () => new String.fromCharCodes(iterable, start, end));
+      () => new String.fromCharCodes(iterable, start, end),
+    );
   }
 
   // Test varying slices of the code units of a string.
@@ -203,8 +211,12 @@ main() {
 
       // Positions after end are acceptable.
       test(string, iterable, 0, length + 1);
-      test(string.substring(string.length ~/ 2), iterable, string.length ~/ 2,
-          length + 1);
+      test(
+        string.substring(string.length ~/ 2),
+        iterable,
+        string.length ~/ 2,
+        length + 1,
+      );
       test("", iterable, length + 1);
       test("", iterable, length + 1, length + 2);
     }

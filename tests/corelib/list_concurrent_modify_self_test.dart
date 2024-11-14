@@ -11,7 +11,11 @@ void main() {
 }
 
 testConcurrentAddSelf(List list) {
-  Expect.throws(() {
-    list.addAll(list);
-  }, (e) => e is ConcurrentModificationError, "testConcurrentAddSelf($list)");
+  Expect.throws(
+    () {
+      list.addAll(list);
+    },
+    (e) => e is ConcurrentModificationError,
+    "testConcurrentAddSelf($list)",
+  );
 }

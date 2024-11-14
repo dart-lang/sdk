@@ -29,7 +29,7 @@ main() {
     const <A>[const A()],
     new Set()..add(new A()),
     (new Map()..[new A()] = 0).keys,
-    (new Map()..[0] = new A()).values
+    (new Map()..[0] = new A()).values,
   ];
 
   for (var iterable in iterables) {

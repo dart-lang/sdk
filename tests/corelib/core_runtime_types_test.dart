@@ -49,13 +49,14 @@ class CoreRuntimeTypesTest {
 
   static assertTypeError(void f(), [String? message]) {
     Expect.throws<Error>(
-        f,
-        (exception) =>
-            (exception is TypeError) ||
-            (exception is AssertionError) ||
-            (exception is NoSuchMethodError) ||
-            (exception is ArgumentError),
-        message ?? "");
+      f,
+      (exception) =>
+          (exception is TypeError) ||
+          (exception is AssertionError) ||
+          (exception is NoSuchMethodError) ||
+          (exception is ArgumentError),
+      message ?? "",
+    );
   }
 
   static testBooleanOperators() {
@@ -93,7 +94,7 @@ class CoreRuntimeTypesTest {
       [3],
       null,
       true,
-      new Map()
+      new Map(),
     ];
     for (var i = 0; i < objs.length; i++) {
       for (var j = i + 1; j < objs.length; j++) {

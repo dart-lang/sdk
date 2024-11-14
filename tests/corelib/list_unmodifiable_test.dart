@@ -155,10 +155,11 @@ class Test<E> {
           return true;
         }, '$name :: $opName should throw for $list');
         Expect.equals(
-            e1.runtimeType,
-            e2.runtimeType,
-            "$name :: $opName threw different errors for $elements and $list: "
-            "${e1.runtimeType} vs ${e2.runtimeType}");
+          e1.runtimeType,
+          e2.runtimeType,
+          "$name :: $opName threw different errors for $elements and $list: "
+          "${e1.runtimeType} vs ${e2.runtimeType}",
+        );
         return;
       }
       var expect = op(elements);
@@ -202,9 +203,10 @@ class Test<E> {
     success("fold", (l) => l.fold("--", (a, b) => "$a/$b"));
     if (elements is List<num> && list is List<num>) {
       success(
-          "reduce",
-          (l) => (l as List<num>).reduce((a, b) => (a + b).floor()),
-          list.isEmpty);
+        "reduce",
+        (l) => (l as List<num>).reduce((a, b) => (a + b).floor()),
+        list.isEmpty,
+      );
     }
     success("every", (l) => l.every((x) => x == 0));
     success("any", (l) => l.any((x) => x == 2));
@@ -220,8 +222,10 @@ class Test<E> {
     Expect.isFalse(it.moveNext());
 
     if (elements is List<int> && list is List<int>) {
-      success("String.fromCharCodes",
-          (l) => new String.fromCharCodes(l as List<int>));
+      success(
+        "String.fromCharCodes",
+        (l) => new String.fromCharCodes(l as List<int>),
+      );
     }
   }
 }

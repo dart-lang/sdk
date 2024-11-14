@@ -65,12 +65,13 @@ main() {
   Expect.equals(47, d.inHours);
   Expect.equals(1, d.inDays);
   d = const Duration(
-      days: 0,
-      hours: 23,
-      minutes: 59,
-      seconds: 59,
-      milliseconds: 999,
-      microseconds: 999);
+    days: 0,
+    hours: 23,
+    minutes: 59,
+    seconds: 59,
+    milliseconds: 999,
+    microseconds: 999,
+  );
   Expect.equals(0, d.inDays);
 
   d = new Duration(days: -1);
@@ -216,24 +217,26 @@ main() {
   Expect.isTrue(d >= d);
 
   d = const Duration(
-      days: 1,
-      hours: 3,
-      minutes: 17,
-      seconds: 42,
-      milliseconds: 823,
-      microseconds: 127);
+    days: 1,
+    hours: 3,
+    minutes: 17,
+    seconds: 42,
+    milliseconds: 823,
+    microseconds: 127,
+  );
   Expect.equals("27:17:42.823127", d.toString());
 
   d = const Duration(hours: 1999, minutes: 17, seconds: 42);
   Expect.equals("1999:17:42.000000", d.toString());
 
   d = const Duration(
-      days: -1,
-      hours: -3,
-      minutes: -17,
-      seconds: -42,
-      milliseconds: -823,
-      microseconds: -127);
+    days: -1,
+    hours: -3,
+    minutes: -17,
+    seconds: -42,
+    milliseconds: -823,
+    microseconds: -127,
+  );
   Expect.equals("-27:17:42.823127", d.toString());
 
   d = const Duration(hours: -1999, minutes: -17, seconds: -42);
@@ -286,7 +289,11 @@ main() {
   Expect.equals("-2562047788:00:54.775808", d.toString());
 
   d = const Duration(
-      hours: -2562047788, minutes: 0, seconds: -54, microseconds: -775808);
+    hours: -2562047788,
+    minutes: 0,
+    seconds: -54,
+    microseconds: -775808,
+  );
   Expect.equals(-0x8000000000000000, d.inMicroseconds);
 
   d1 = const Duration(hours: 1);
@@ -323,11 +330,12 @@ main() {
 
   // Adding -0.0's gives -0.0 again.
   d = const Duration(
-      days: -0,
-      hours: -0,
-      minutes: -0,
-      seconds: -0,
-      milliseconds: -0,
-      microseconds: -0);
+    days: -0,
+    hours: -0,
+    minutes: -0,
+    seconds: -0,
+    milliseconds: -0,
+    microseconds: -0,
+  );
   Expect.equals("0:00:00.000000", d.toString());
 }

@@ -34,6 +34,8 @@ import 'v8_regexp_utils.dart';
 
 void main() {
   final s = "a" * 10000000 + "\u1234";
-  shouldBe(
-      RegExp(r"(\u1234)", unicode: true).firstMatch(s), ["\u1234", "\u1234"]);
+  shouldBe(RegExp(r"(\u1234)", unicode: true).firstMatch(s), [
+    "\u1234",
+    "\u1234",
+  ]);
 }

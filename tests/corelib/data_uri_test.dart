@@ -63,15 +63,20 @@ void testMediaType() {
 
         // Creating the URI using a constructor:
         var encoding = Encoding.getByName(charset);
-        uri = UriData.fromString("",
-            mimeType: mimeType, encoding: encoding, base64: isBase64);
+        uri = UriData.fromString(
+          "",
+          mimeType: mimeType,
+          encoding: encoding,
+          base64: isBase64,
+        );
         expectedMimeType =
             (mimeType.isEmpty || mimeType.toLowerCase() == "text/plain")
                 ? "text/plain"
                 : mimeType;
         expectedEncoding = encoding;
         expectedCharset = expectedEncoding?.name ?? "US-ASCII";
-        var expectedText = "data:"
+        var expectedText =
+            "data:"
             "${expectedMimeType == "text/plain" ? "" : expectedMimeType}"
             "${charset.isEmpty ? "" : ";charset=$expectedCharset"}"
             "${isBase64 ? ";base64" : ""}"
@@ -102,8 +107,10 @@ void testRoundTrip(String content, [Encoding? encoding]) {
   expectUriEquals(new Uri.dataFromString(content, encoding: encoding), uri);
 
   if (encoding != null) {
-    UriData dataUriParams =
-        new UriData.fromString(content, parameters: {"charset": encoding.name});
+    UriData dataUriParams = new UriData.fromString(
+      content,
+      parameters: {"charset": encoding.name},
+    );
     Expect.equals("$dataUri", "$dataUriParams");
   }
 
@@ -141,10 +148,12 @@ void testInvalidCharacters() {
       '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x7f'
       ' ()<>@,;:"/[]?=%#\x80\u{1000}\u{10000}';
   var invalidNoSlash = invalid.replaceAll('/', '');
-  var dataUri = new UriData.fromString(invalid,
-      encoding: utf8,
-      mimeType: "$invalidNoSlash/$invalidNoSlash",
-      parameters: {invalid: invalid});
+  var dataUri = new UriData.fromString(
+    invalid,
+    encoding: utf8,
+    mimeType: "$invalidNoSlash/$invalidNoSlash",
+    parameters: {invalid: invalid},
+  );
 
   Expect.equals(invalid, dataUri.contentAsString());
   Expect.equals("$invalidNoSlash/$invalidNoSlash", dataUri.mimeType);
@@ -202,58 +211,79 @@ void testNormalization() {
 
   // Normalized URI-alphabet characters.
   Expect.equals(
-      "data:;base64,AA/+", UriData.parse("data:;base64,AA_-").toString());
+    "data:;base64,AA/+",
+    UriData.parse("data:;base64,AA_-").toString(),
+  );
   // Normalized escapes.
   Expect.equals(
-      "data:;base64,AB==", UriData.parse("data:;base64,A%42=%3D").toString());
-  Expect.equals("data:;base64,/+/+",
-      UriData.parse("data:;base64,%5F%2D%2F%2B").toString());
+    "data:;base64,AB==",
+    UriData.parse("data:;base64,A%42=%3D").toString(),
+  );
+  Expect.equals(
+    "data:;base64,/+/+",
+    UriData.parse("data:;base64,%5F%2D%2F%2B").toString(),
+  );
   // Normalized padded data.
   Expect.equals(
-      "data:;base64,AA==", UriData.parse("data:;base64,AA%3D%3D").toString());
+    "data:;base64,AA==",
+    UriData.parse("data:;base64,AA%3D%3D").toString(),
+  );
   Expect.equals(
-      "data:;base64,AAA=", UriData.parse("data:;base64,AAA%3D").toString());
+    "data:;base64,AAA=",
+    UriData.parse("data:;base64,AAA%3D").toString(),
+  );
   // Normalized unpadded data.
   Expect.equals(
-      "data:;base64,AA==", UriData.parse("data:;base64,AA").toString());
+    "data:;base64,AA==",
+    UriData.parse("data:;base64,AA").toString(),
+  );
   Expect.equals(
-      "data:;base64,AAA=", UriData.parse("data:;base64,AAA").toString());
+    "data:;base64,AAA=",
+    UriData.parse("data:;base64,AAA").toString(),
+  );
 
   // "URI normalization" of non-base64 content.
   var uri = UriData.parse("data:,\x20\xa0");
   Expect.equals("data:,%20%C2%A0", uri.toString());
   uri = UriData.parse("data:,x://x@y:[z]:42/p/./?q=x&y=z#?#\u1234\u{12345}");
   Expect.equals(
-      "data:,x://x@y:%5Bz%5D:42/p/./?q=x&y=z%23?%23%E1%88%B4%F0%92%8D%85",
-      uri.toString());
+    "data:,x://x@y:%5Bz%5D:42/p/./?q=x&y=z%23?%23%E1%88%B4%F0%92%8D%85",
+    uri.toString(),
+  );
 }
 
 void testErrors() {
   // Invalid constructor parameters.
   Expect.throwsArgumentError(
-      () => new UriData.fromBytes([], mimeType: "noslash"));
+    () => new UriData.fromBytes([], mimeType: "noslash"),
+  );
   Expect.throwsArgumentError(() => new UriData.fromBytes([257]));
   Expect.throwsArgumentError(() => new UriData.fromBytes([-1]));
   Expect.throwsArgumentError(() => new UriData.fromBytes([0x10000000]));
   Expect.throwsArgumentError(
-      () => new UriData.fromString("", mimeType: "noslash"));
+    () => new UriData.fromString("", mimeType: "noslash"),
+  );
 
   Expect.throwsArgumentError(
-      () => new Uri.dataFromBytes([], mimeType: "noslash"));
+    () => new Uri.dataFromBytes([], mimeType: "noslash"),
+  );
   Expect.throwsArgumentError(() => new Uri.dataFromBytes([257]));
   Expect.throwsArgumentError(() => new Uri.dataFromBytes([-1]));
   Expect.throwsArgumentError(() => new Uri.dataFromBytes([0x10000000]));
   Expect.throwsArgumentError(
-      () => new Uri.dataFromString("", mimeType: "noslash"));
+    () => new Uri.dataFromString("", mimeType: "noslash"),
+  );
 
   // Empty parameters allowed, not an error.
   var uri = new UriData.fromString("", mimeType: "", parameters: {});
   Expect.equals("data:,", "$uri");
   // Empty parameter key or value is an error.
   Expect.throwsArgumentError(
-      () => new UriData.fromString("", parameters: {"": "X"}));
+    () => new UriData.fromString("", parameters: {"": "X"}),
+  );
   Expect.throwsArgumentError(
-      () => new UriData.fromString("", parameters: {"X": ""}));
+    () => new UriData.fromString("", parameters: {"X": ""}),
+  );
 
   // Not recognizing charset is an error.
   uri = UriData.parse("data:;charset=arglebargle,X");
@@ -269,16 +299,20 @@ void testErrors() {
   Expect.throwsFormatException(() => UriData.parse("data:noseparator"));
   Expect.throwsFormatException(() => UriData.parse("data:noslash,text"));
   Expect.throwsFormatException(
-      () => UriData.parse("data:type/sub;noequals,text"));
+    () => UriData.parse("data:type/sub;noequals,text"),
+  );
   Expect.throwsFormatException(() => UriData.parse("data:type/sub;knocomma="));
   Expect.throwsFormatException(
-      () => UriData.parse("data:type/sub;k=v;nocomma"));
+    () => UriData.parse("data:type/sub;k=v;nocomma"),
+  );
   Expect.throwsFormatException(() => UriData.parse("data:type/sub;k=nocomma"));
   Expect.throwsFormatException(() => UriData.parse("data:type/sub;k=v;base64"));
 
   void formatError(String input) {
     Expect.throwsFormatException(
-        () => UriData.parse("data:;base64,$input"), input);
+      () => UriData.parse("data:;base64,$input"),
+      input,
+    );
   }
 
   // Invalid base64 format (detected when parsed).

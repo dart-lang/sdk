@@ -101,7 +101,7 @@ testFileUriWindowsWin32Namespace() {
     [
       "\\\\?\\UNC\\server\\share\\file",
       "file://server/share/file",
-      "\\\\server\\share\\file"
+      "\\\\server\\share\\file",
     ],
   ];
 
@@ -113,11 +113,14 @@ testFileUriWindowsWin32Namespace() {
 
   Expect.throwsArgumentError(() => new Uri.file("\\\\?\\file", windows: true));
   Expect.throwsArgumentError(
-      () => new Uri.file("\\\\?\\UNX\\server\\share\\file", windows: true));
+    () => new Uri.file("\\\\?\\UNX\\server\\share\\file", windows: true),
+  );
   Expect.throwsArgumentError(
-      () => new Uri.directory("\\\\?\\file", windows: true));
-  Expect.throwsArgumentError(() =>
-      new Uri.directory("\\\\?\\UNX\\server\\share\\file", windows: true));
+    () => new Uri.directory("\\\\?\\file", windows: true),
+  );
+  Expect.throwsArgumentError(
+    () => new Uri.directory("\\\\?\\UNX\\server\\share\\file", windows: true),
+  );
 }
 
 testFileUriDriveLetter() {
@@ -192,15 +195,16 @@ testFileUriIllegalCharacters() {
     "a|b",
     "a?b",
     "a*b",
-    "\\\\?\\c:\\a/b"
+    "\\\\?\\c:\\a/b",
   ];
 
   for (var test in illegalWindowsPaths) {
     Expect.throwsArgumentError(() => new Uri.file(test, windows: true));
     Expect.throwsArgumentError(() => new Uri.file("\\$test", windows: true));
     Expect.throwsArgumentError(() => new Uri.directory(test, windows: true));
-    Expect
-        .throwsArgumentError(() => new Uri.directory("\\$test", windows: true));
+    Expect.throwsArgumentError(
+      () => new Uri.directory("\\$test", windows: true),
+    );
 
     // It is possible to create non-Windows URIs, but not Windows URIs.
     Uri uri = new Uri.file(test, windows: false);
@@ -210,8 +214,9 @@ testFileUriIllegalCharacters() {
     Expect.throwsArgumentError(() => new Uri.file(test, windows: true));
     Expect.throwsArgumentError(() => new Uri.file("\\$test", windows: true));
     Expect.throwsArgumentError(() => new Uri.directory(test, windows: true));
-    Expect
-        .throwsArgumentError(() => new Uri.directory("\\$test", windows: true));
+    Expect.throwsArgumentError(
+      () => new Uri.directory("\\$test", windows: true),
+    );
 
     // It is possible to extract non-Windows file path, but not
     // Windows file path.
@@ -222,8 +227,9 @@ testFileUriIllegalCharacters() {
     Expect.throwsUnsupportedError(() => uri.toFilePath(windows: true));
     Expect.throwsUnsupportedError(() => absoluteUri.toFilePath(windows: true));
     Expect.throwsUnsupportedError(() => dirUri.toFilePath(windows: true));
-    Expect
-        .throwsUnsupportedError(() => dirAbsoluteUri.toFilePath(windows: true));
+    Expect.throwsUnsupportedError(
+      () => dirAbsoluteUri.toFilePath(windows: true),
+    );
   }
 
   // Backslash
@@ -247,8 +253,9 @@ testFileUriIllegalCharacters() {
     Expect.throwsUnsupportedError(() => uri.toFilePath(windows: true));
     Expect.throwsUnsupportedError(() => absoluteUri.toFilePath(windows: true));
     Expect.throwsUnsupportedError(() => dirUri.toFilePath(windows: true));
-    Expect
-        .throwsUnsupportedError(() => dirAbsoluteUri.toFilePath(windows: true));
+    Expect.throwsUnsupportedError(
+      () => dirAbsoluteUri.toFilePath(windows: true),
+    );
   }
 }
 

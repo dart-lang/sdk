@@ -40,14 +40,19 @@ testCollections() {
   var ic = new IC();
   testJoin("0,1,2,3", [ic, ic, ic, ic], ",");
 
-  var set = new Set()..add(1)..add(2)..add(3);
-  var perm = new Set()
-    ..add("123")
-    ..add("132")
-    ..add("213")
-    ..add("231")
-    ..add("312")
-    ..add("321");
+  var set =
+      new Set()
+        ..add(1)
+        ..add(2)
+        ..add(3);
+  var perm =
+      new Set()
+        ..add("123")
+        ..add("132")
+        ..add("213")
+        ..add("231")
+        ..add("312")
+        ..add("321");
   var setString = set.join();
   Expect.isTrue(perm.contains(setString), "set: $setString");
 
@@ -94,7 +99,10 @@ void testStringVariants() {
   testJoin("a\u2000" * 255 + "a", new List.generate(256, (_) => "a"), "\u2000");
   testJoin("\u2000" * 256, new List.generate(256, (_) => "\u2000"));
   testJoin(
-      "\u2000x" * 255 + "\u2000", new List.generate(256, (_) => "\u2000"), "x");
+    "\u2000x" * 255 + "\u2000",
+    new List.generate(256, (_) => "\u2000"),
+    "x",
+  );
 
   var o1 = new Stringable("x");
   var o2 = new Stringable("\ufeff");

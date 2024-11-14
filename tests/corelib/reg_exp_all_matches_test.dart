@@ -72,25 +72,40 @@ class RegExpAllMatchesTest {
 
   static testEvery() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    Expect.equals(true, matches.every((Match m) {
-      return m.group(0)!.startsWith("fo");
-    }));
-    Expect.equals(false, matches.every((Match m) {
-      return m.group(0)!.startsWith("foo");
-    }));
+    Expect.equals(
+      true,
+      matches.every((Match m) {
+        return m.group(0)!.startsWith("fo");
+      }),
+    );
+    Expect.equals(
+      false,
+      matches.every((Match m) {
+        return m.group(0)!.startsWith("foo");
+      }),
+    );
   }
 
   static testSome() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    Expect.equals(true, matches.any((Match m) {
-      return m.group(0)!.startsWith("fo");
-    }));
-    Expect.equals(true, matches.any((Match m) {
-      return m.group(0)!.startsWith("foo");
-    }));
-    Expect.equals(false, matches.any((Match m) {
-      return m.group(0)!.startsWith("fooo");
-    }));
+    Expect.equals(
+      true,
+      matches.any((Match m) {
+        return m.group(0)!.startsWith("fo");
+      }),
+    );
+    Expect.equals(
+      true,
+      matches.any((Match m) {
+        return m.group(0)!.startsWith("foo");
+      }),
+    );
+    Expect.equals(
+      false,
+      matches.any((Match m) {
+        return m.group(0)!.startsWith("fooo");
+      }),
+    );
   }
 
   static testIsEmpty() {

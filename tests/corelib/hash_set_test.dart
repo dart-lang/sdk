@@ -66,9 +66,10 @@ testSet(Set newSet(), Set newSetFrom(Iterable from)) {
 
   {
     // Check concurrent modification
-    Set set = newSet()
-      ..add(0)
-      ..add(1);
+    Set set =
+        newSet()
+          ..add(0)
+          ..add(1);
 
     {
       // Test adding before a moveNext.
@@ -313,15 +314,16 @@ void testIdentitySet(Set create()) {
     false,
     true,
     #bif,
-    testIdentitySet
+    testIdentitySet,
   ];
   set.addAll(constants);
   if (v.jsNumbers) {
     // 0.0 and -0.0 are identical in JS.
     Expect.equals(constants.length - 1, set.length);
     Expect.isTrue(
-        set.containsAll(constants.where((e) => !(e is double && e.isNaN))),
-        "constants: $set");
+      set.containsAll(constants.where((e) => !(e is double && e.isNaN))),
+      "constants: $set",
+    );
   } else {
     Expect.equals(constants.length, set.length);
     Expect.isTrue(set.containsAll(constants), "constants: $set");
@@ -360,10 +362,18 @@ void main() {
   testIdentitySet(() => new Set.identity());
   testIdentitySet(() => new HashSet.identity());
   testIdentitySet(() => new LinkedHashSet.identity());
-  testIdentitySet(() => new HashSet(
-      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
-  testIdentitySet(() => new LinkedHashSet(
-      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
+  testIdentitySet(
+    () => new HashSet(
+      equals: (x, y) => identical(x, y),
+      hashCode: (x) => identityHashCode(x),
+    ),
+  );
+  testIdentitySet(
+    () => new LinkedHashSet(
+      equals: (x, y) => identical(x, y),
+      hashCode: (x) => identityHashCode(x),
+    ),
+  );
 }
 
 class BadHashCode {

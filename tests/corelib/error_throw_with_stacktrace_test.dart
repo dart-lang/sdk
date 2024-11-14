@@ -182,22 +182,25 @@ main() {
     {
       asyncStart();
       var error = ArgumentError("e8");
-      await runZonedGuarded(() {
-        // Make an uncaught asynchronous error.
-        (() async {
-          await theFuture;
-          Error.throwWithStackTrace(error, systemStack);
-          Expect.fail("Didn't throw: e8.1");
-          await theFuture;
-        }());
-      }, (e, s) {
-        Expect.identical(error, e, "e8.2");
-        // No not expect *identical* stack trace objects.
-        Expect.equals("$systemStack", "$s", "e8.3");
-        Expect.isNotNull(error.stackTrace, "e8.4");
-        Expect.equals("$systemStack", "${error.stackTrace}", "e8.5");
-        asyncEnd();
-      });
+      await runZonedGuarded(
+        () {
+          // Make an uncaught asynchronous error.
+          (() async {
+            await theFuture;
+            Error.throwWithStackTrace(error, systemStack);
+            Expect.fail("Didn't throw: e8.1");
+            await theFuture;
+          }());
+        },
+        (e, s) {
+          Expect.identical(error, e, "e8.2");
+          // No not expect *identical* stack trace objects.
+          Expect.equals("$systemStack", "$s", "e8.3");
+          Expect.isNotNull(error.stackTrace, "e8.4");
+          Expect.equals("$systemStack", "${error.stackTrace}", "e8.5");
+          asyncEnd();
+        },
+      );
     }
   });
 }

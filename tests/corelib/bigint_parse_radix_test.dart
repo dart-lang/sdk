@@ -17,10 +17,12 @@ import 'dart:math' show pow;
 void testParseRadix() {
   bool checkedMode = false;
   assert((checkedMode = true));
-  const String oneByteWhiteSpace = "\x09\x0a\x0b\x0c\x0d\x20"
+  const String oneByteWhiteSpace =
+      "\x09\x0a\x0b\x0c\x0d\x20"
       // "\x85" // Might make troubles on some systems. Was marked as OK test.
       "\xa0";
-  const String whiteSpace = "$oneByteWhiteSpace\u1680"
+  const String whiteSpace =
+      "$oneByteWhiteSpace\u1680"
       "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
       "\u2028\u2029\u202f\u205f\u3000\ufeff";
 
@@ -35,9 +37,15 @@ void testParseRadix() {
   void testParse(BigInt result, String radixString, int radix) {
     var m = "$radixString/$radix->$result";
     Expect.equals(
-        result, BigInt.parse(radixString.toLowerCase(), radix: radix), m);
+      result,
+      BigInt.parse(radixString.toLowerCase(), radix: radix),
+      m,
+    );
     Expect.equals(
-        result, BigInt.parse(radixString.toUpperCase(), radix: radix), m);
+      result,
+      BigInt.parse(radixString.toUpperCase(), radix: radix),
+      m,
+    );
     Expect.equals(result, BigInt.parse(" $radixString", radix: radix), m);
     Expect.equals(result, BigInt.parse("$radixString ", radix: radix), m);
     Expect.equals(result, BigInt.parse(" $radixString ", radix: radix), m);
@@ -50,24 +58,39 @@ void testParseRadix() {
     Expect.equals(-result, BigInt.parse("-$radixString ", radix: radix), m);
     Expect.equals(-result, BigInt.parse(" -$radixString ", radix: radix), m);
     Expect.equals(
-        result,
-        BigInt.parse("$oneByteWhiteSpace$radixString$oneByteWhiteSpace",
-            radix: radix),
-        m);
+      result,
+      BigInt.parse(
+        "$oneByteWhiteSpace$radixString$oneByteWhiteSpace",
+        radix: radix,
+      ),
+      m,
+    );
     Expect.equals(
-        -result,
-        BigInt.parse("$oneByteWhiteSpace-$radixString$oneByteWhiteSpace",
-            radix: radix),
-        m);
-    Expect.equals(result,
-        BigInt.parse("$whiteSpace$radixString$whiteSpace", radix: radix), m);
-    Expect.equals(-result,
-        BigInt.parse("$whiteSpace-$radixString$whiteSpace", radix: radix), m);
+      -result,
+      BigInt.parse(
+        "$oneByteWhiteSpace-$radixString$oneByteWhiteSpace",
+        radix: radix,
+      ),
+      m,
+    );
+    Expect.equals(
+      result,
+      BigInt.parse("$whiteSpace$radixString$whiteSpace", radix: radix),
+      m,
+    );
+    Expect.equals(
+      -result,
+      BigInt.parse("$whiteSpace-$radixString$whiteSpace", radix: radix),
+      m,
+    );
 
     Expect.equals(result, BigInt.parse("$zeros$radixString", radix: radix), m);
     Expect.equals(result, BigInt.parse("+$zeros$radixString", radix: radix), m);
     Expect.equals(
-        -result, BigInt.parse("-$zeros$radixString", radix: radix), m);
+      -result,
+      BigInt.parse("-$zeros$radixString", radix: radix),
+      m,
+    );
   }
 
   for (int r = 2; r <= 36; r++) {
@@ -89,11 +112,12 @@ void testParseRadix() {
   Expect.equals(new BigInt.from(15628859), BigInt.parse("09azAZ", radix: 36));
 
   Expect.equals(
-      (new BigInt.from(0x12345678) << 96) +
-          (new BigInt.from(0x12345678) << 64) +
-          (new BigInt.from(0x12345678) << 32) +
-          new BigInt.from(0x12345678),
-      BigInt.parse("0x12345678123456781234567812345678"));
+    (new BigInt.from(0x12345678) << 96) +
+        (new BigInt.from(0x12345678) << 64) +
+        (new BigInt.from(0x12345678) << 32) +
+        new BigInt.from(0x12345678),
+    BigInt.parse("0x12345678123456781234567812345678"),
+  );
 
   // Allow whitespace before and after the number.
   Expect.equals(BigInt.one, BigInt.parse(" 1", radix: 2));
@@ -105,9 +129,13 @@ void testParseRadix() {
   Expect.equals(BigInt.one, BigInt.parse("+1", radix: 2));
 
   void testFails(String source, int? radix) {
-    Expect.throws(() {
-      BigInt.parse(source, radix: radix);
-    }, (e) => e is FormatException, "$source/$radix");
+    Expect.throws(
+      () {
+        BigInt.parse(source, radix: radix);
+      },
+      (e) => e is FormatException,
+      "$source/$radix",
+    );
   }
 
   for (int i = 2; i < 36; i++) {
@@ -128,7 +156,9 @@ void testParseRadix() {
   testBadArguments(String source, int radix) {
     // If the types match, it should be an ArgumentError of some sort.
     Expect.throws(
-        () => BigInt.parse(source, radix: radix), (e) => e is ArgumentError);
+      () => BigInt.parse(source, radix: radix),
+      (e) => e is ArgumentError,
+    );
   }
 
   testBadArguments("0", -1);

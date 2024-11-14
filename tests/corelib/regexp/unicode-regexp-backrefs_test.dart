@@ -42,8 +42,10 @@ void test(List<String>? expectation, String regexp_source, String subject) {
   if (expectation != null) expectation = expectation.map(replace).toList();
   subject = replace(subject);
   regexp_source = replace(regexp_source);
-  shouldBe(new RegExp(regexp_source, unicode: true).firstMatch(subject),
-      expectation);
+  shouldBe(
+    new RegExp(regexp_source, unicode: true).firstMatch(subject),
+    expectation,
+  );
 }
 
 void main() {

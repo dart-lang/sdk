@@ -10,15 +10,20 @@ void testEncodeQueryComponent() {
   // This exact data is from posting a form in Chrome 26 with the one
   // exception that * is encoded as %30 and ~ is not encoded as %7E.
   Expect.equals(
-      "%21%22%23%24%25%26%27%28%29%2A%2B%2C-.%2F%"
-      "3A%3B%3C%3D%3E%3F%40%5B%5C%5D%5E_%60%7B%7C%7D~",
-      Uri.encodeQueryComponent("!\"#\$%&'()*+,-./:;<=>?@[\\]^_`{|}~"));
+    "%21%22%23%24%25%26%27%28%29%2A%2B%2C-.%2F%"
+    "3A%3B%3C%3D%3E%3F%40%5B%5C%5D%5E_%60%7B%7C%7D~",
+    Uri.encodeQueryComponent("!\"#\$%&'()*+,-./:;<=>?@[\\]^_`{|}~"),
+  );
   Expect.equals("+%2B+", Uri.encodeQueryComponent(" + "));
   Expect.equals("%2B+%2B", Uri.encodeQueryComponent("+ +"));
 }
 
 void testQueryParameters() {
-  test(String query, Map<String, String?> parameters, [String? normalizedQuery]) {
+  test(
+    String query,
+    Map<String, String?> parameters, [
+    String? normalizedQuery,
+  ]) {
     if (normalizedQuery == null) normalizedQuery = query;
     check(uri) {
       Expect.isTrue(uri.hasQuery);
@@ -77,7 +82,8 @@ void testQueryParameters() {
   test("A=a&B=b", {"A": "a", "B": "b"});
   test("%41=%61&%42=%62", {"A": "a", "B": "b"}, "A=a&B=b");
 
-  var unreserved = "-._~0123456789"
+  var unreserved =
+      "-._~0123456789"
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz";
   var encoded = new StringBuffer();
@@ -126,7 +132,8 @@ testInvalidQueryParameters() {
       } else {
         Expect.equals("?$query", uri.toString());
       }
-      if (parameters.containsValue(null)) {} else {
+      if (parameters.containsValue(null)) {
+      } else {
         Expect.mapEquals(parameters, uri.queryParameters);
       }
     }

@@ -15,7 +15,10 @@ main() {
     const <num, int>{}.keys,
     const <int, num>{}.values,
     new Iterable<num>.generate(0),
-    new Set<num>()..add(1)..add(2)..add(4),
+    new Set<num>()
+      ..add(1)
+      ..add(2)
+      ..add(4),
     <num>[1, 2, 4],
     new Iterable<num>.generate(3, (i) => [1, 2, 4][i]),
     const <num>[1, 2, 4],

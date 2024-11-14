@@ -25,90 +25,130 @@ expectRemainder(aString, bString, expectedString) {
 
 main() {
   expectRemainder(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "3b04b6a8ac2e74f9845c182e303993e0efa8184");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "3b04b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectRemainder(
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e");
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+  );
   expectRemainder(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "a13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "1fdbde7efec117ff81df42cc8367092a65e4");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "1fdbde7efec117ff81df42cc8367092a65e4",
+  );
   expectRemainder(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3fac3ee22b996ff6856c27c1f6d88aef0e",
-      "359d4ac0e4440150310acc0e96fdb973c");
-  expectRemainder("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "ac3ee22b996ff6856c27c1f6d88aef0e", "84c9b202365aef6ea4b442ff6897d72e");
-  expectRemainder("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3ee22b996ff6856c27c1f6d88aef0e", "2c66626e41743605244c026579e4f0");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "359d4ac0e4440150310acc0e96fdb973c",
+  );
+  expectRemainder(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "ac3ee22b996ff6856c27c1f6d88aef0e",
+    "84c9b202365aef6ea4b442ff6897d72e",
+  );
+  expectRemainder(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3ee22b996ff6856c27c1f6d88aef0e",
+    "2c66626e41743605244c026579e4f0",
+  );
   expectRemainder("d87becaa3701c97b31b5b8084f2b5b34e7857092", "1", "0");
 
   expectRemainder(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d11b55d5217bfadc012a3502892428b8c9906d8a");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d11b55d5217bfadc012a3502892428b8c9906d8a",
+  );
   expectRemainder(
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3b04b6a8ac2e74f9845c182e303993e0efa8184");
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3b04b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectRemainder(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "a13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "8163cdbfe36a817074a6295b3e8fcf60892a");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "8163cdbfe36a817074a6295b3e8fcf60892a",
+  );
   expectRemainder(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3fac3ee22b996ff6856c27c1f6d88aef0e",
-      "3c526a361d552fe1825b7b010d68af57d2");
-  expectRemainder("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "ac3ee22b996ff6856c27c1f6d88aef0e", "2775302963150716c7737ef76ff317e0");
-  expectRemainder("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3ee22b996ff6856c27c1f6d88aef0e", "127bc92b2e824f670375f473110a1e");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "3c526a361d552fe1825b7b010d68af57d2",
+  );
+  expectRemainder(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "ac3ee22b996ff6856c27c1f6d88aef0e",
+    "2775302963150716c7737ef76ff317e0",
+  );
+  expectRemainder(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3ee22b996ff6856c27c1f6d88aef0e",
+    "127bc92b2e824f670375f473110a1e",
+  );
   expectRemainder("-d87becaa3701c97b31b5b8084f2b5b34e7857092", "1", "0");
 
   expectRemainder(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "3b04b6a8ac2e74f9845c182e303993e0efa8184");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "3b04b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectRemainder(
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e");
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+  );
   expectRemainder(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "1fdbde7efec117ff81df42cc8367092a65e4");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "1fdbde7efec117ff81df42cc8367092a65e4",
+  );
   expectRemainder(
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3fac3ee22b996ff6856c27c1f6d88aef0e",
-      "359d4ac0e4440150310acc0e96fdb973c");
-  expectRemainder("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-ac3ee22b996ff6856c27c1f6d88aef0e", "84c9b202365aef6ea4b442ff6897d72e");
-  expectRemainder("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3ee22b996ff6856c27c1f6d88aef0e", "2c66626e41743605244c026579e4f0");
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "359d4ac0e4440150310acc0e96fdb973c",
+  );
+  expectRemainder(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-ac3ee22b996ff6856c27c1f6d88aef0e",
+    "84c9b202365aef6ea4b442ff6897d72e",
+  );
+  expectRemainder(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3ee22b996ff6856c27c1f6d88aef0e",
+    "2c66626e41743605244c026579e4f0",
+  );
   expectRemainder("d87becaa3701c97b31b5b8084f2b5b34e7857092", "-1", "0");
 
   expectRemainder(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d11b55d5217bfadc012a3502892428b8c9906d8a");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d11b55d5217bfadc012a3502892428b8c9906d8a",
+  );
   expectRemainder(
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3b04b6a8ac2e74f9845c182e303993e0efa8184");
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3b04b6a8ac2e74f9845c182e303993e0efa8184",
+  );
   expectRemainder(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "8163cdbfe36a817074a6295b3e8fcf60892a");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "8163cdbfe36a817074a6295b3e8fcf60892a",
+  );
   expectRemainder(
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3fac3ee22b996ff6856c27c1f6d88aef0e",
-      "3c526a361d552fe1825b7b010d68af57d2");
-  expectRemainder("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-ac3ee22b996ff6856c27c1f6d88aef0e", "2775302963150716c7737ef76ff317e0");
-  expectRemainder("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3ee22b996ff6856c27c1f6d88aef0e", "127bc92b2e824f670375f473110a1e");
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "3c526a361d552fe1825b7b010d68af57d2",
+  );
+  expectRemainder(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-ac3ee22b996ff6856c27c1f6d88aef0e",
+    "2775302963150716c7737ef76ff317e0",
+  );
+  expectRemainder(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3ee22b996ff6856c27c1f6d88aef0e",
+    "127bc92b2e824f670375f473110a1e",
+  );
   expectRemainder("-d87becaa3701c97b31b5b8084f2b5b34e7857092", "-1", "0");
 }

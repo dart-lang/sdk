@@ -30,8 +30,10 @@ void testWithoutModification(List list) {
 
 void testWithModification(List list) {
   if (list.isEmpty) return;
-  Expect.throws(() => list.forEach((_) => list.add(0)),
-      (e) => e is ConcurrentModificationError);
+  Expect.throws(
+    () => list.forEach((_) => list.add(0)),
+    (e) => e is ConcurrentModificationError,
+  );
 }
 
 main() {

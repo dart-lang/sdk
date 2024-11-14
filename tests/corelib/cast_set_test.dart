@@ -61,8 +61,10 @@ void testNewSet() {
   // Specified custom newSet as empty HashSet.
   var setEls = new Set<C?>.from(elements);
   var customNewSet;
-  var objectSet2 = Set.castFrom<C?, Object?>(setEls,
-      newSet: <T>() => customNewSet = new HashSet<T>());
+  var objectSet2 = Set.castFrom<C?, Object?>(
+    setEls,
+    newSet: <T>() => customNewSet = new HashSet<T>(),
+  );
 
   var customToSet = objectSet2.toSet();
   Expect.isTrue(customToSet is HashSet<Object?>);
