@@ -2845,7 +2845,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  ClassFragment? get declaredFragment => declaredElement as ClassFragment;
+  ClassElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -3052,7 +3052,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @experimental
   @override
-  ClassFragment? get declaredFragment => declaredElement as ClassFragment?;
+  ClassElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -12267,7 +12267,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  MixinFragment? get declaredFragment => declaredElement as MixinFragment?;
+  MixinElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;

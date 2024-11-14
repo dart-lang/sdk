@@ -2196,6 +2196,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+    var declaredFragment = node.declaredFragment!;
+    var declaredElement = declaredFragment.element;
+
     //
     // Continue the class resolution.
     //
@@ -2210,16 +2213,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement!, node.implementsClause);
+        declaredElement, node.implementsClause);
   }
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+    var declaredFragment = node.declaredFragment!;
+    var declaredElement = declaredFragment.element;
+
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitClassTypeAlias(node);
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement!, node.implementsClause);
+        declaredElement, node.implementsClause);
   }
 
   @override
@@ -3262,6 +3268,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+    var declaredFragment = node.declaredFragment!;
+    var declaredElement = declaredFragment.element;
+
     //
     // Continue the class resolution.
     //
@@ -3276,7 +3285,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement!, node.implementsClause);
+        declaredElement, node.implementsClause);
   }
 
   @override
