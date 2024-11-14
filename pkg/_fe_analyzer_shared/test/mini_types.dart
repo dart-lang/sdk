@@ -180,13 +180,19 @@ class InvalidType extends _SpecialSimpleType
 }
 
 /// A named parameter of a function type.
-class NamedFunctionParameter extends NamedType
+class NamedFunctionParameter
     implements SharedNamedFunctionParameterStructure<Type> {
+  @override
+  final String name;
+
+  @override
+  final Type type;
+
   @override
   final bool isRequired;
 
   NamedFunctionParameter(
-      {required this.isRequired, required super.name, required super.type});
+      {required this.isRequired, required this.name, required this.type});
 
   @override
   String toString() => [if (isRequired) 'required', type, name].join(' ');
