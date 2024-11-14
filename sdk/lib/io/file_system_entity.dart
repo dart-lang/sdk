@@ -213,6 +213,17 @@ FileStat: type $type
   }
 }
 
+/// The mode value as a Unix octal string.
+String modeOctalString() {
+    var permissions = mode & 0xFFF;
+    var result = [];
+    result
+      ..add((permissions >> 6) & 0x7)
+      ..add((permissions >> 3) & 0x7)
+      ..add(permissions & 0x7);
+    return result.join();
+}
+
 /// The common superclass of [File], [Directory], and [Link].
 ///
 /// [FileSystemEntity] objects are returned from directory listing
