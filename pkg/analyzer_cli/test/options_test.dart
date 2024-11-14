@@ -14,7 +14,6 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:args/args.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -285,34 +284,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(
       result,
       orderedEquals(['--a', '--c=0', '-Da=b', '-e=2', '-f', 'bar']),
-    );
-  }
-
-  void test_updateAnalysisOptions_defaultLanguageVersion() {
-    _applyAnalysisOptions(
-      ['a.dart'],
-      (_) {},
-      (analysisOptions) {
-        expect(
-          analysisOptions.nonPackageLanguageVersion,
-          ExperimentStatus.currentVersion,
-        );
-        var featureSet = analysisOptions.nonPackageFeatureSet;
-        expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
-      },
-    );
-
-    _applyAnalysisOptions(
-      ['--default-language-version=2.7', 'a.dart'],
-      (_) {},
-      (analysisOptions) {
-        expect(
-          analysisOptions.nonPackageLanguageVersion,
-          Version.parse('2.7.0'),
-        );
-        var featureSet = analysisOptions.nonPackageFeatureSet;
-        expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
-      },
     );
   }
 

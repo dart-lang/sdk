@@ -309,12 +309,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   ExperimentStatus _contextFeatures;
 
-  /// The language version to use for libraries that are not in a package.
-  ///
-  /// If a library is in a package, this language version is *not* used,
-  /// even if the package does not specify the language version.
-  Version nonPackageLanguageVersion = ExperimentStatus.currentVersion;
-
   /// The set of features to use for libraries that are not in a package.
   ///
   /// If a library is in a package, this feature set is *not* used, even if the
@@ -326,7 +320,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   final List<String> enabledLegacyPluginNames;
 
   @override
-  List<PluginConfiguration> pluginConfigurations = [];
+  final List<PluginConfiguration> pluginConfigurations;
 
   @override
   final List<ErrorProcessor> errorProcessors;
@@ -485,6 +479,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _contextFeatures = featureSet as ExperimentStatus;
     nonPackageFeatureSet = featureSet;
   }
+
+  /// The language version to use for libraries that are not in a package.
+  ///
+  /// If a library is in a package, this language version is *not* used,
+  /// even if the package does not specify the language version.
+  Version get nonPackageLanguageVersion => ExperimentStatus.currentVersion;
 
   Uint32List get signature {
     if (_signature == null) {

@@ -158,7 +158,7 @@ class AnalysisDriver {
   final DeclaredVariables declaredVariables;
 
   /// The analysis context that created this driver / session.
-  DriverBasedAnalysisContext? analysisContext;
+  final DriverBasedAnalysisContext? analysisContext;
 
   /// The salt to mix into all hashes used as keys for unlinked data.
   Uint32List _saltForUnlinked = Uint32List(0);
@@ -236,7 +236,7 @@ class AnalysisDriver {
 
   final AnalysisDriverTestView? testView;
 
-  late FileSystemState _fsState;
+  late final FileSystemState _fsState;
 
   /// The [FileTracker] used by this driver.
   late FileTracker _fileTracker;
@@ -265,7 +265,7 @@ class AnalysisDriver {
   bool _disposed = false;
 
   /// A map that associates files to corresponding analysis options.
-  late final AnalysisOptionsMap analysisOptionsMap;
+  final AnalysisOptionsMap analysisOptionsMap;
 
   /// Whether timing data should be gathered during lint rule execution.
   final bool _enableLintRuleTiming;
@@ -311,24 +311,20 @@ class AnalysisDriver {
         _externalSummaries = externalSummaries,
         declaredVariables = declaredVariables ?? DeclaredVariables(),
         testingData = retainDataForTesting ? TestingData() : null,
-        _enableLintRuleTiming = enableLintRuleTiming {
+        _enableLintRuleTiming = enableLintRuleTiming,
+        // This extra work is temporary and will get simplified when the
+        // deprecated support for passing in an `analysisOptions` is removed.
+        assert(
+          analysisOptionsMap == null || analysisOptions == null,
+          'An analysisOptionsMap or analysisOptions can be specified, but not both',
+        ),
+        // This '!' is temporary. The analysisOptionsMap is effectively
+        // required but can't be until Google3 is updated.
+        analysisOptionsMap = analysisOptions == null
+            ? analysisOptionsMap!
+            : AnalysisOptionsMap.forSharedOptions(analysisOptions) {
     analysisContext?.driver = this;
     testView?.driver = this;
-
-    // Setup the options map.
-    // This extra work is temporary and will get simplified when the deprecated support for
-    // passing in a single analysisOptions is removed.
-    if (analysisOptionsMap != null && analysisOptions != null) {
-      throw AssertionError(
-          'An analysisOptionsMap or analysisOptions can be specified, but not both');
-    }
-    if (analysisOptions != null) {
-      this.analysisOptionsMap =
-          AnalysisOptionsMap.forSharedOptions(analysisOptions);
-    } else {
-      // This '!' is temporary. The analysisOptionsMap is effectively required but can't be until Google3 is updated.
-      this.analysisOptionsMap = analysisOptionsMap!;
-    }
 
     _fileContentStrategy = StoredFileContentStrategy(_fileContentCache);
 
@@ -973,14 +969,11 @@ class AnalysisDriver {
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
   SomeParsedLibraryResult getParsedLibraryByUri(Uri uri) {
     var fileOr = _fsState.getFileForUri(uri);
-    switch (fileOr) {
-      case null:
-        return CannotResolveUriResult();
-      case UriResolutionFile(:var file):
-        return getParsedLibrary(file.path);
-      case UriResolutionExternalLibrary():
-        return UriOfExternalLibraryResult();
-    }
+    return switch (fileOr) {
+      null => CannotResolveUriResult(),
+      UriResolutionFile(:var file) => getParsedLibrary(file.path),
+      UriResolutionExternalLibrary() => UriOfExternalLibraryResult(),
+    };
   }
 
   /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
@@ -1168,7 +1161,7 @@ class AnalysisDriver {
       return InvalidPathResult();
     }
 
-    FileState file = _fsState.getFileForPath(path);
+    var file = _fsState.getFileForPath(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(
       errorListener: listener,
@@ -1596,8 +1589,7 @@ class AnalysisDriver {
 
   /// Creates new [FileSystemState] and [FileTracker] objects.
   ///
-  /// This is used both on initial construction and whenever the configuration
-  /// changes.
+  /// This is used on initial construction.
   void _createFileTracker() {
     _fillSalt();
 
@@ -1864,7 +1856,7 @@ class AnalysisDriver {
     await scheduler.accumulatedPerformance.runAsync(
       'getUnitElement',
       (performance) async {
-        FileState file = _fsState.getFileForPath(path);
+        var file = _fsState.getFileForPath(path);
 
         // Prepare the library - the file itself, or the known library.
         var kind = file.kind;

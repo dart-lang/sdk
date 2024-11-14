@@ -441,13 +441,8 @@ class Driver implements CommandLineStarter {
     return analyzer.analyze(formatter);
   }
 
-  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) {
-    if (severity == ErrorSeverity.ERROR) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) =>
+      severity == ErrorSeverity.ERROR;
 
   void _verifyAnalysisOptionsFileExists(CommandLineOptions options) {
     var path = options.defaultAnalysisOptionsPath;
@@ -470,10 +465,8 @@ class Driver implements CommandLineStarter {
         newOptions.defaultPackagesPath == previous.defaultPackagesPath &&
         _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
         newOptions.log == previous.log &&
-        newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
-        _equalLists(
-            newOptions.enabledExperiments!, previous.enabledExperiments!);
+        _equalLists(newOptions.enabledExperiments, previous.enabledExperiments);
   }
 
   /// Perform a deep comparison of two string lists.
