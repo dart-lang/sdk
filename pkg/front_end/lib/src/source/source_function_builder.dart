@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.procedure_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
@@ -314,6 +312,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   bool get isNative => nativeMethodName != null;
 
+  bool get supportsTypeParameters => true;
+
   void buildFunction() {
     function.asyncMarker = asyncModifier;
     function.body = body;
@@ -332,7 +332,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     if (typeParameters != null) {
       for (NominalParameterBuilder t in typeParameters!) {
         TypeParameter parameter = t.parameter;
-        function.typeParameters.add(parameter);
+        if (supportsTypeParameters) {
+          function.typeParameters.add(parameter);
+        }
         if (needsCheckVisitor != null) {
           if (parameter.bound.accept(needsCheckVisitor)) {
             parameter.isCovariantByClass = true;

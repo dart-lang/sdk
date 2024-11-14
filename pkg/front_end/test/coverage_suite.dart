@@ -50,7 +50,7 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
     futures.add(Process.run(Platform.resolvedExecutable, [
       "--enable-asserts",
       "--deterministic",
-      "pkg/front_end/test/fasta/strong_suite.dart",
+      "pkg/front_end/test/strong_suite.dart",
       "-DskipVm=true",
       "--shards=${options.numberOfWorkers}",
       "--shard=${i + 1}",

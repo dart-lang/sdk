@@ -16,7 +16,7 @@
 /// Furthermore due to the lowering of certain constructs in the front-end
 /// (e.g. '??') we need to support a super-set of the normal constant expression
 /// language.  Issue(http://dartbug.com/31799)
-library fasta.constant_evaluator;
+library;
 
 import 'dart:io' as io;
 

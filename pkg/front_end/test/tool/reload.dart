@@ -128,15 +128,15 @@ class RemoteVm {
   }
 
   /// Close any connections used to communicate with the VM.
-  Future disconnect() async {
-    if (_rpc == null) return null;
+  Future disconnect() {
+    if (_rpc == null) return new Future.value();
     this._mainId = null;
     if (!_rpc!.isClosed) {
       var future = _rpc!.close();
       _rpc = null;
       return future;
     }
-    return null;
+    return new Future.value();
   }
 }
 

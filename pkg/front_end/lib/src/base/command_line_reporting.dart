@@ -6,7 +6,7 @@
 /// [CompilerContext] that are suitable for command-line tools. The methods in
 /// this library aren't intended to be called directly, instead, one should use
 /// [CompilerContext].
-library fasta.command_line_reporting;
+library;
 
 import 'dart:math' show min;
 import 'dart:typed_data' show Uint8List;

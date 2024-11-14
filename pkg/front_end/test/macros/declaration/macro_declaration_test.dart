@@ -299,39 +299,40 @@ class TestMacroExecutor extends MultiMacroExecutor {
   }
 
   @override
-  Future<void> close() async {
+  Future<void> close() {
     // TODO: implement close
+    return new Future.value();
   }
 
   @override
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
       MacroTarget target,
-      DeclarationPhaseIntrospector introspector) async {
-    return new _MacroExecutionResult();
+      DeclarationPhaseIntrospector introspector) {
+    return new Future.value(new _MacroExecutionResult());
   }
 
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
       MacroTarget target,
-      DefinitionPhaseIntrospector introspector) async {
-    return new _MacroExecutionResult();
+      DefinitionPhaseIntrospector introspector) {
+    return new Future.value(new _MacroExecutionResult());
   }
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-      MacroTarget target, TypePhaseIntrospector introspector) async {
-    return new _MacroExecutionResult();
+      MacroTarget target, TypePhaseIntrospector introspector) {
+    return new Future.value(new _MacroExecutionResult());
   }
 
   @override
   Future<MacroInstanceIdentifier> instantiateMacro(
-      Uri library, String name, String constructor, Arguments arguments) async {
+      Uri library, String name, String constructor, Arguments arguments) {
     _MacroInstanceIdentifier id =
         new _MacroInstanceIdentifier(library, name, constructor, arguments);
     macroInstances.add(id);
-    return id;
+    return new Future.value(id);
   }
 }
 

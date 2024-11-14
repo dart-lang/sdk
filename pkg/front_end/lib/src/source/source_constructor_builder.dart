@@ -466,6 +466,9 @@ class DeclaredSourceConstructorBuilder
   Builder get parent => declarationBuilder;
 
   @override
+  bool get supportsTypeParameters => false;
+
+  @override
   // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
 

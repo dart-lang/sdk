@@ -34,9 +34,9 @@ import "package:testing/testing.dart"
 import "package:vm/modular/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
-import "../../tool/_fasta/entry_points.dart" show BatchCompiler;
-import '../spell_checking_utils.dart' as spell;
-import 'suite_utils.dart' show internalMain;
+import "../tool/_fasta/entry_points.dart" show BatchCompiler;
+import 'spell_checking_utils.dart' as spell;
+import 'utils/suite_utils.dart' show internalMain;
 
 class MessageTestDescription extends TestDescription {
   @override
@@ -96,7 +96,7 @@ class MessageTestSuite extends ChainContext {
   Future<void> postRun() {
     String dartPath = Platform.resolvedExecutable;
     Uri suiteUri =
-        spell.repoDir.resolve("pkg/front_end/test/fasta/messages_suite.dart");
+        spell.repoDir.resolve("pkg/front_end/test/messages_suite.dart");
     File suiteFile = new File.fromUri(suiteUri).absolute;
     if (!suiteFile.existsSync()) {
       throw "Specified suite path is invalid.";
@@ -890,5 +890,6 @@ Future<void> main([List<String> arguments = const []]) async {
     createContext,
     arguments: arguments,
     displayName: "messages suite",
+    configurationPath: "../testing.json",
   );
 }

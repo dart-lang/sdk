@@ -29,7 +29,7 @@ import 'package:kernel/ast.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
-import 'fasta/suite_utils.dart';
+import 'utils/suite_utils.dart';
 import 'testing/environment_keys.dart';
 import 'parser_test_listener.dart' show ParserTestListener;
 import 'parser_test_parser.dart' show TestParser;
@@ -54,8 +54,7 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     displayName: "parser suite",
     configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
     EnvironmentKeys.updateExpectations,
     EnvironmentKeys.trace,
@@ -68,7 +67,8 @@ Future<Context> createContext(
   bool trace = environment[EnvironmentKeys.trace] == "true";
   bool annotateLines = environment[EnvironmentKeys.annotateLines] == "true";
 
-  return new Context(suite.name, updateExpectations, trace, annotateLines);
+  return new Future.value(
+      new Context(suite.name, updateExpectations, trace, annotateLines));
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(

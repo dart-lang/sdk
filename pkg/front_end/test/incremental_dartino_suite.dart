@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.test.incremental_test;
-
 import "dart:convert" show JsonEncoder;
 import "dart:io" show File;
 
@@ -33,7 +31,7 @@ import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;
 import "incremental_source_files.dart" show expandDiff, expandUpdates;
-import "suite_utils.dart";
+import "utils/suite_utils.dart";
 
 const JsonEncoder json = const JsonEncoder.withIndent("  ");
 
@@ -234,4 +232,5 @@ void main([List<String> arguments = const []]) => internalMain(
       createContext,
       arguments: arguments,
       displayName: "incremental dartino suite",
+      configurationPath: "../testing.json",
     );

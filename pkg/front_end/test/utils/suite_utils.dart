@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.test.suite_utils;
-
 import 'dart:io';
 
 import 'package:testing/src/chain.dart' show CreateContext;
@@ -22,7 +20,7 @@ Future<void> internalMain(
   int? shards,
   int? shard,
   required String displayName,
-  String? configurationPath,
+  required String configurationPath,
 }) async {
   Logger logger = const StdoutLogger();
   List<String>? argumentsTrimmed;
@@ -66,7 +64,7 @@ Future<void> internalMain(
   await runMe(
     arguments,
     createContext,
-    configurationPath: configurationPath ?? "../../testing.json",
+    configurationPath: configurationPath,
     shards: shards,
     shard: shard,
     limitTo: limitTo,

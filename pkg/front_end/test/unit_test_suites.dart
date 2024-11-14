@@ -16,15 +16,15 @@ import 'package:testing/src/suite.dart' as testing show Suite;
 import 'package:testing/src/test_description.dart' show TestDescription;
 
 import 'dartdoctest_suite.dart' as dartdoctest show createContext;
-import 'fasta/expression_suite.dart' as expression show createContext;
-import 'fasta/incremental_dartino_suite.dart' as incremental_dartino
+import 'expression_suite.dart' as expression show createContext;
+import 'incremental_dartino_suite.dart' as incremental_dartino
     show createContext;
-import 'fasta/messages_suite.dart' as messages show createContext;
-import 'fasta/modular_suite.dart' as modular show createContext;
-import 'fasta/outline_suite.dart' as outline show createContext;
-import 'fasta/strong_suite.dart' as strong show createContext;
-import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
-import 'fasta/weak_suite.dart' as weak show createContext;
+import 'messages_suite.dart' as messages show createContext;
+import 'modular_suite.dart' as modular show createContext;
+import 'outline_suite.dart' as outline show createContext;
+import 'strong_suite.dart' as strong show createContext;
+import 'textual_outline_suite.dart' as textual_outline show createContext;
+import 'weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_suite.dart' as incremental show createContext;
@@ -361,35 +361,35 @@ const List<Suite> suites = [
     shardCount: 1,
   ),
   const Suite(
-    "fasta/expression",
+    "expression",
     expression.createContext,
-    "../../testing.json",
+    "../testing.json",
     shardCount: 1,
   ),
   const Suite(
-    "fasta/outline",
+    "outline",
     outline.createContext,
-    "../../testing.json",
+    "../testing.json",
     shardCount: 2,
   ),
   const Suite(
-    "fasta/incremental_dartino",
+    "incremental_dartino",
     incremental_dartino.createContext,
-    "../../testing.json",
+    "../testing.json",
     shardCount: 1,
   ),
   const Suite(
-    "fasta/messages",
+    "messages",
     messages.createContext,
-    "../../testing.json",
+    "../testing.json",
     shardCount: 1,
     requiresGit: true,
   ),
   const Suite(
-    "fasta/strong",
+    "strong",
     strong.createContext,
-    "../../testing.json",
-    path: "fasta/strong_suite.dart",
+    "../testing.json",
+    path: "strong_suite.dart",
     shardCount: 10,
   ),
   const Suite(
@@ -448,23 +448,23 @@ const List<Suite> suites = [
     requiresGit: true,
   ),
   const Suite(
-    "fasta/modular",
+    "modular",
     modular.createContext,
-    "../../testing.json",
-    path: "fasta/modular_suite.dart",
+    "../testing.json",
+    path: "modular_suite.dart",
     shardCount: 4,
   ),
   const Suite(
-    "fasta/weak",
+    "weak",
     weak.createContext,
-    "../../testing.json",
-    path: "fasta/weak_suite.dart",
+    "../testing.json",
+    path: "weak_suite.dart",
     shardCount: 10,
   ),
   const Suite(
-    "fasta/textual_outline",
+    "textual_outline",
     textual_outline.createContext,
-    "../../testing.json",
+    "../testing.json",
     shardCount: 1,
   ),
   const Suite(
