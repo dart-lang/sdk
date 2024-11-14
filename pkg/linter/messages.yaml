@@ -12975,7 +12975,7 @@ LintCode:
       by a `StatefulWidget` after an asynchronous gap without first checking the
       `mounted` property.
 
-      Storing a `BuildContext` for later use can lead to difficult to diagnose
+      Storing a `BuildContext` for later use can lead to difficult-to-diagnose
       crashes. Asynchronous gaps implicitly store a `BuildContext`, making them
       easy to overlook for diagnosis.
 
@@ -13027,7 +13027,7 @@ LintCode:
     deprecatedDetails: |-
       **DON'T** use `BuildContext` across asynchronous gaps.
 
-      Storing `BuildContext` for later usage can easily lead to difficult to diagnose
+      Storing `BuildContext` for later usage can easily lead to difficult-to-diagnose
       crashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of
       the easiest to overlook when writing code.
 
