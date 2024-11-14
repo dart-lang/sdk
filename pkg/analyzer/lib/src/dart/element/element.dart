@@ -4230,7 +4230,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   ElementKind get kind => ElementKind.FIELD;
 
   @override
-  String get name3 => firstFragment.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   SetterElement? get setter2 => firstFragment.setter?.element as SetterElement?;

@@ -14903,7 +14903,7 @@ library
           type: Object
           getter: <testLibraryFragment>::@class::C::@getter::a#element
           setter: <testLibraryFragment>::@class::C::@setter::a#element
-        
+        <null-name>
           firstFragment: <testLibraryFragment>::@class::C::@field::0
           type: Object
           getter: <testLibraryFragment>::@class::C::@getter::0#element

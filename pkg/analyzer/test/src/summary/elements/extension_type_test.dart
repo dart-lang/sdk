@@ -2524,7 +2524,7 @@ library
       primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
       typeErasure: InvalidType
       fields
-        final <empty>
+        final <null-name>
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::<empty>
           type: InvalidType
           getter: <testLibraryFragment>::@extensionType::A::@getter::<empty>#element

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 extension AstNodeExtension on AstNode {
   /// Returns all tokens, from [beginToken] to [endToken] including.
@@ -177,5 +178,15 @@ extension CompilationUnitExtension on CompilationUnit {
         ].any(path.contains),
       _ => false,
     };
+  }
+}
+
+extension VariableDeclarationExtension on VariableDeclaration {
+  FieldElementImpl2 get declaredFieldElement {
+    return declaredFragment!.element as FieldElementImpl2;
+  }
+
+  TopLevelVariableElementImpl2 get declaredTopLevelVariableElement {
+    return declaredFragment!.element as TopLevelVariableElementImpl2;
   }
 }
