@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    var element = node.declaredElement2 ?? node.declaredFragment?.element;
+    var element = node.declaredFragment?.element;
     if (element?.name3 != '' || node.body.keyword != null) {
       return;
     }
@@ -140,8 +140,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var functionElement =
-        node.declaredElement2 ?? node.declaredFragment?.element;
+    var functionElement = node.declaredFragment?.element;
 
     var nodeType = functionElement?.type;
     var invocationType = expression.constructorName.element?.type;

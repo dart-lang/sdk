@@ -227,7 +227,7 @@ class ErrorHandlerVerifier {
       _checkErrorHandlerFunctionType(
           callback, callbackType, expectedReturnType);
       var catchErrorOnErrorExecutable = EnclosingExecutableContext.tmp(
-          callback.declaredElement2,
+          callback.declaredFragment!.element,
           isAsynchronous: true,
           catchErrorOnErrorReturnType: expectedReturnType);
       var returnStatementVerifier =

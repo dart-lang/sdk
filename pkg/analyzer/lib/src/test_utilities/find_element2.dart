@@ -211,7 +211,7 @@ class FindElement2 extends _FindElementBase {
     unit.accept(
       FunctionAstVisitor(functionExpression: (node, local) {
         if (local) {
-          var functionElement = node.declaredElement2!;
+          var functionElement = node.declaredFragment!.element;
           findIn(functionElement.formalParameters);
         }
       }),
