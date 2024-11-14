@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -17,25 +17,25 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var node = this.node;
-    Element? element;
+    Element2? element;
     String? prefix;
     if (node is NamedType) {
-      element = node.element;
+      element = node.element2;
       prefix = node.importPrefix?.name.lexeme;
     } else if (node is SimpleIdentifier) {
-      element = node.staticElement;
+      element = node.element;
       if (node.parent case PrefixedIdentifier(prefix: var currentPrefix)) {
         prefix = currentPrefix.name;
       }
     }
-    if (element is! MultiplyDefinedElement) {
+    if (element is! MultiplyDefinedElement2) {
       return const [];
     }
-    var elements = element.conflictingElements;
-    var records = <({Element element, String uri, String? prefix}),
+    var elements = element.conflictingElements2;
+    var records = <({Element2 element, String uri, String? prefix}),
         List<ImportDirective>>{};
     for (var element in elements) {
-      var library = element.enclosingElement3?.library;
+      var library = element.enclosingElement2?.library2;
       if (library == null) {
         continue;
       }
@@ -45,7 +45,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       // and have the same prefix
       for (var directive in unit.directives.whereType<ImportDirective>()) {
         // Get import directive that
-        var imported = directive.element?.importedLibrary;
+        var imported = directive.libraryImport?.importedLibrary2;
         if (imported == null) {
           continue;
         }
@@ -54,7 +54,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
         }
         // If the directive exports the library, then the library is also
         // imported.
-        if (imported.exportedLibraries.contains(library) &&
+        if (imported.exportedLibraries2.contains(library) &&
             directive.prefix?.name == prefix) {
           directives.add(directive);
         }
@@ -91,7 +91,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
 
 class _ImportAddHide extends ResolvedCorrectionProducer {
   final Set<ImportDirective> importDirectives;
-  final Element element;
+  final Element2 element;
   final String uri;
   final String? prefix;
 
@@ -115,7 +115,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_HIDE;
 
-  String get _elementName => element.name ?? '';
+  String get _elementName => element.name3 ?? '';
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -128,7 +128,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
     for (var directive in importDirectives) {
       var show = directive.combinators.whereType<ShowCombinator>().firstOrNull;
-      // If there is an import with a show combinator, then we don't want to 
+      // If there is an import with a show combinator, then we don't want to
       // deal with this case here.
       if (show != null) {
         return;
@@ -159,7 +159,7 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
 class _ImportRemoveShow extends ResolvedCorrectionProducer {
   final Set<ImportDirective> importDirectives;
-  final Element element;
+  final Element2 element;
   final String uri;
   final String? prefix;
 
@@ -183,7 +183,7 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
 
-  String get _elementName => element.name ?? '';
+  String get _elementName => element.name3 ?? '';
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -194,7 +194,7 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
     var showCombinator = <({ImportDirective directive, ShowCombinator show})>[];
     for (var directive in importDirectives) {
       var show = directive.combinators.whereType<ShowCombinator>().firstOrNull;
-      // If there is no show combinator, then we don't want to deal with this 
+      // If there is no show combinator, then we don't want to deal with this
       // case here.
       if (show == null) {
         return;

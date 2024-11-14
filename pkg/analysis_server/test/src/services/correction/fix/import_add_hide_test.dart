@@ -299,7 +299,14 @@ void f(l.N? n) {
   print(n);
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+import 'lib1.dart' as l show N;
+import 'lib2.dart' as l hide N;
+
+void f(l.N? n) {
+  print(n);
+}
+''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart' as l");
   }
 
   Future<void> test_triple() async {
@@ -426,7 +433,7 @@ import 'lib2.dart' as lib;
 void f() {
   print(lib.foo);
 }
-''', matchFixMessage: "Remove show to use 'foo' from 'lib1.dart' as lib");
+''', matchFixMessage: "Remove show to use 'foo' from 'lib2.dart' as lib");
   }
 
   Future<void> test_double_oneHide() async {
@@ -491,18 +498,18 @@ class N {}''');
 import 'lib1.dart' show N;
 import 'lib2.dart' show N;
 
-void f(l.N? n) {
+void f(N? n) {
   print(n);
 }
 ''');
     await assertHasFix('''
-import 'lib1.dart' as l hide N;
-import 'lib2.dart' as l show N;
+import 'lib1.dart' hide N;
+import 'lib2.dart' show N;
 
-void f(l.N? n) {
+void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart' as l");
+''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
   }
 
   Future<void> test_moreShow() async {
