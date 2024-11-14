@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A [SearchEngine] implementation.
 class SearchEngineImpl implements SearchEngine {
@@ -41,6 +43,16 @@ class SearchEngineImpl implements SearchEngine {
     }
 
     await addSubtypes(type);
+  }
+
+  Future<void> appendAllSubtypes2(
+    InterfaceElement2 type,
+    Set<InterfaceElement2> allSubtypes,
+    OperationPerformanceImpl performance,
+  ) async {
+    var subtypes = <InterfaceElement>{};
+    await appendAllSubtypes(type.asElement, subtypes, performance);
+    allSubtypes.addAll(subtypes.map((e) => e.asElement2));
   }
 
   @override
@@ -84,6 +96,10 @@ class SearchEngineImpl implements SearchEngine {
       return null;
     }
     return members;
+  }
+
+  Future<Set<String>?> membersOfSubtypes2(InterfaceElement2 type) async {
+    return await membersOfSubtypes(type.asElement);
   }
 
   @override
@@ -133,6 +149,10 @@ class SearchEngineImpl implements SearchEngine {
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
+  }
+
+  Future<List<SearchMatch>> searchReferences2(Element2 element) async {
+    return await searchReferences(element.asElement!);
   }
 
   @override
@@ -254,6 +274,13 @@ class SearchMatchImpl implements SearchMatch {
     this.kind,
     this.sourceRange,
   );
+
+  @override
+  Element2 get element2 => element.asElement2!;
+
+  @override
+  LibraryElement2 get libraryElement2 =>
+      libraryElement.asElement2 as LibraryElement2;
 
   @override
   String toString() {

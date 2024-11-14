@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
     show ArgumentsTrailingComma;
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -108,25 +108,30 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     );
   }
 
-  String _elementToReferenceString(Element element) {
-    var enclosingElement = element.enclosingElement3;
-    var reference = (element as ElementImpl).reference;
+  String _elementToReferenceString(Element2 element) {
+    var enclosingElement = element.enclosingElement2;
+    var reference = switch (element) {
+      ElementImpl() => element.reference,
+      ElementImpl2() =>
+        element.reference ?? (element.firstFragment as ElementImpl).reference,
+      _ => null,
+    };
     if (reference != null) {
       return _referenceToString(reference);
-    } else if (element is ParameterElement) {
+    } else if (element is FormalParameterElement) {
       var enclosingStr =
           enclosingElement != null
               ? _elementToReferenceString(enclosingElement)
               : 'root';
-      return '$enclosingStr::@parameter::${element.name}';
+      return '$enclosingStr::@parameter::${element.name3}';
     } else {
-      return '${element.name}@${element.nameOffset}';
+      return '${element.name3}';
     }
   }
 
   String _referenceToString(Reference reference) {
-    var selfLibrary = refactoringContext.resolvedLibraryResult.element;
-    var selfUriStr = '${selfLibrary.source.uri}';
+    var selfLibrary = refactoringContext.resolvedLibraryResult.element2;
+    var selfUriStr = '${selfLibrary.firstFragment.source.uri}';
 
     var name = reference.name;
     if (name == selfUriStr) {
@@ -357,7 +362,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@method::test
+element: self::@class::A::@method::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -375,7 +380,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -400,7 +405,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -432,7 +437,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -455,7 +460,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -478,7 +483,7 @@ void test({
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -498,7 +503,7 @@ void test(int a, [!int b, int c,!] int d) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -527,7 +532,7 @@ void test(int ^a, int b) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -547,7 +552,7 @@ void ^test({int? a}) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: optionalNamed
@@ -562,7 +567,7 @@ void ^test([int? a]) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: optionalPositional
@@ -577,7 +582,7 @@ void ^test({required int a}) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredNamed
@@ -592,7 +597,7 @@ void ^test(int a, String b) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -653,7 +658,7 @@ void test(int a) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -678,7 +683,7 @@ void ^test(int a) {}
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@function::test
+element: self::@function::test
 formalParameters
   id: 0
     kind: requiredPositional
@@ -720,7 +725,7 @@ NotAvailableNoExecutableElement
         buffer.writeln('UnexpectedSelectionState');
       case ValidSelectionState():
         buffer.write('element: ');
-        buffer.writeln(_elementToReferenceString(selectionState.element));
+        buffer.writeln(_elementToReferenceString(selectionState.element2));
         buffer.writeln('formalParameters');
         for (var formalParameter in selectionState.formalParameters) {
           buffer.writeln('  id: ${formalParameter.id}');

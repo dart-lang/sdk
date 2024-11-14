@@ -16,9 +16,11 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -252,6 +254,10 @@ final class ValidSelectionState extends SelectionState {
     required this.element,
     required this.formalParameters,
   });
+
+  /// The element of the target method, used to find corresponding methods
+  /// in the class hierarchy.
+  ExecutableElement2 get element2 => element.asElement2;
 }
 
 class _AvailabilityAnalyzer {
