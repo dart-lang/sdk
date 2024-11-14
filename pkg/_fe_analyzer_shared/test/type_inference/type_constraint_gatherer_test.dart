@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:checks/checks.dart';
@@ -862,7 +861,8 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
     with
         TypeConstraintGeneratorMixin<Type, NamedFunctionParameter, Var,
             TypeParameter, Type, String, Node> {
-  final _typeVariablesBeingConstrained = <TypeParameter>{};
+  @override
+  final Set<TypeParameter> typeParametersToConstrain = <TypeParameter>{};
 
   @override
   final bool enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
@@ -876,7 +876,7 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
       {this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr = false})
       : super(inferenceUsingBoundsIsEnabled: false) {
     for (var typeVariableName in typeVariablesBeingConstrained) {
-      _typeVariablesBeingConstrained
+      typeParametersToConstrain
           .add(TypeRegistry.addTypeParameter(typeVariableName));
     }
   }
@@ -911,109 +911,19 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
   }
 
   @override
-  bool performSubtypeConstraintGenerationInternal(Type p, Type q,
-      {required bool leftSchema, required Node? astNodeForTesting}) {
-    // If `P` is `_` then the match holds with no constraints.
-    if (p is SharedUnknownTypeStructure) {
-      return true;
-    }
-
-    // If `Q` is `_` then the match holds with no constraints.
-    if (q is SharedUnknownTypeStructure) {
-      return true;
-    }
-
-    // If T is a type variable being constrained, then `T <# Q` matches,
-    // generating the constraint `T <: Q`.
-    if (typeAnalyzerOperations.matchInferableParameter(SharedTypeView(p))
-        case var typeVar?
-        when p.nullabilitySuffix == NullabilitySuffix.none &&
-            _typeVariablesBeingConstrained.contains(typeVar)) {
-      addUpperConstraintForParameter(typeVar, q, nodeForTesting: null);
-      return true;
-    }
-
-    // If T is a type variable being constrained, then `P <# T` matches,
-    // generating the constraint `P <: T`.
-    if (typeAnalyzerOperations.matchInferableParameter(SharedTypeView(q))
-        case var typeVar?
-        when q.nullabilitySuffix == NullabilitySuffix.none &&
-            _typeVariablesBeingConstrained.contains(typeVar)) {
-      addLowerConstraintForParameter(typeVar, p, nodeForTesting: null);
-      return true;
-    }
-
-    // If `P` and `Q` are identical types, then the subtype match holds
-    // under no constraints.
-    if (p == q) {
-      return true;
-    }
-
-    if (performSubtypeConstraintGenerationForRightFutureOr(p, q,
-        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-      return true;
-    }
-
-    if (performSubtypeConstraintGenerationForRightNullableType(p, q,
-        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-      return true;
-    }
-
-    if (performSubtypeConstraintGenerationForLeftFutureOr(p, q,
-        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-      return true;
-    }
-
-    if (performSubtypeConstraintGenerationForLeftNullableType(p, q,
-        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-      return true;
-    }
-
-    if (q is SharedDynamicTypeStructure ||
-        q is SharedVoidTypeStructure ||
-        q == typeAnalyzerOperations.objectQuestionType.unwrapTypeView()) {
-      return true;
-    }
-
-    if (typeAnalyzerOperations.matchTypeParameterBoundInternal(p)
-        case var bound?) {
-      if (performSubtypeConstraintGenerationInternal(bound, q,
-          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-        return true;
-      }
-    }
-
-    bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(
-        p, q,
-        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
-    if (result != null) {
-      return result;
-    }
-
-    if (performSubtypeConstraintGenerationForRecordTypes(p, q,
-        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
-      return true;
-    }
-
-    // Assume for the moment that nothing else matches.
-    // TODO(paulberry): expand this as needed.
-    return false;
-  }
-
-  @override
   void restoreState(TypeConstraintGeneratorState state) {
     _constraints.length = state.count;
   }
 
   @override
   void addUpperConstraintForParameter(TypeParameter typeParameter, Type upper,
-      {required Node? nodeForTesting}) {
+      {required Node? astNodeForTesting}) {
     _constraints.add('$typeParameter <: $upper');
   }
 
   @override
   void addLowerConstraintForParameter(TypeParameter typeParameter, Type lower,
-      {required Node? nodeForTesting}) {
+      {required Node? astNodeForTesting}) {
     _constraints.add('$lower <: $typeParameter');
   }
 

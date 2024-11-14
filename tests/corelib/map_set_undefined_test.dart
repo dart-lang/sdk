@@ -10,17 +10,23 @@ main() {
   // JS compilers shouldn't produce `undefined` when a Map/Set key is not found.
   testMap({});
   testMap(Map.identity());
-  testMap(LinkedHashMap(
+  testMap(
+    LinkedHashMap(
       equals: (x, y) => x == y,
       hashCode: (x) => x.hashCode,
-      isValidKey: (_) => true));
+      isValidKey: (_) => true,
+    ),
+  );
 
   testSet(Set());
   testSet(Set.identity());
-  testSet(LinkedHashSet(
+  testSet(
+    LinkedHashSet(
       equals: (x, y) => x == y,
       hashCode: (x) => x.hashCode,
-      isValidKey: (_) => true));
+      isValidKey: (_) => true,
+    ),
+  );
 }
 
 testMap(Map<Object, Object?> map) {
@@ -52,6 +58,8 @@ checkUndefined(String method, [Object? x = 'error']) {
   // current calling conventions. These conventions may change.
   // Ideally we'd have an `undefined` constant in "package:js" and use that
   // here instead.
-  Expect.isNull(x,
-      'error in $method: result treated as missing argument (JS undefined?)');
+  Expect.isNull(
+    x,
+    'error in $method: result treated as missing argument (JS undefined?)',
+  );
 }

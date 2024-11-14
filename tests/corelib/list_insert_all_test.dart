@@ -86,8 +86,10 @@ main() {
 
   Expect.throwsRangeError(() => test([1, 2, 3], -1, [4, 5]));
   Expect.throwsUnsupportedError(
-      () => test([1, 2, 3].toList(growable: false), -1, [4, 5]));
+    () => test([1, 2, 3].toList(growable: false), -1, [4, 5]),
+  );
   Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), -1, [4, 5]));
   Expect.throwsUnsupportedError(
-      () => test([1, 2, 3].toList(growable: false), 0, [4, 5]));
+    () => test([1, 2, 3].toList(growable: false), 0, [4, 5]),
+  );
 }

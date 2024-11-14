@@ -112,15 +112,20 @@ main() {
   Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), 0, -1, []));
   Expect.throwsRangeError(() => test(new MyList([1, 2, 3]), 1, 4, []));
   Expect.throwsUnsupportedError(
-      () => test([1, 2, 3].toList(growable: false), 2, 3, []));
+    () => test([1, 2, 3].toList(growable: false), 2, 3, []),
+  );
   Expect.throwsUnsupportedError(
-      () => test([1, 2, 3].toList(growable: false), -1, 0, []));
+    () => test([1, 2, 3].toList(growable: false), -1, 0, []),
+  );
   Expect.throwsUnsupportedError(
-      () => test([1, 2, 3].toList(growable: false), 2, 1, []));
+    () => test([1, 2, 3].toList(growable: false), 2, 1, []),
+  );
   Expect.throwsUnsupportedError(
-      () => test([1, 2, 3].toList(growable: false), 0, -1, []));
+    () => test([1, 2, 3].toList(growable: false), 0, -1, []),
+  );
   Expect.throwsUnsupportedError(
-      () => test([1, 2, 3].toList(growable: false), 1, 4, []));
+    () => test([1, 2, 3].toList(growable: false), 1, 4, []),
+  );
   Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 2, 3, []));
   Expect.throwsUnsupportedError(() => test(const [1, 2, 3], -1, 0, []));
   Expect.throwsUnsupportedError(() => test(const [1, 2, 3], 2, 1, []));

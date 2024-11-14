@@ -51,7 +51,10 @@ void testNonNulls() {
   // Dynamic behavior.
 
   void test<T extends Object>(
-      String name, Iterable<T?> input, List<T> expectedResults) {
+    String name,
+    Iterable<T?> input,
+    List<T> expectedResults,
+  ) {
     var actualResults = input.nonNulls;
     Expect.type<Iterable<T>>(actualResults, "$name type");
     Expect.listEquals(expectedResults, [...actualResults], "$name result");
@@ -94,7 +97,10 @@ void testFirstOrNull() {
   }
   // Dynamic behavior.
   void test<T extends Object>(
-      String name, Iterable<T?> source, T? expectedResult) {
+    String name,
+    Iterable<T?> source,
+    T? expectedResult,
+  ) {
     var actualResult = source.firstOrNull;
     Expect.equals(expectedResult, actualResult, "firstOrNull $name");
   }
@@ -106,8 +112,11 @@ void testFirstOrNull() {
   test<int>("Multiple values", numbers(3), 1);
   test<int>("Nullable values", numbers(3, where: even), null);
   test<int>("Stops after first", numbers(3, throwAt: 2), 1);
-  Expect.throws<UnimplementedError>(() => numbers(3, throwAt: 1).firstOrNull,
-      null, "firstOrNull first throws");
+  Expect.throws<UnimplementedError>(
+    () => numbers(3, throwAt: 1).firstOrNull,
+    null,
+    "firstOrNull first throws",
+  );
 }
 
 void testLastOrNull() {
@@ -140,13 +149,20 @@ void testLastOrNull() {
   test<int?>("Multiple values", numbers(3), 3);
   test<int?>("Nullable values", numbers(3, where: even), null);
   Expect.throws<UnimplementedError>(
-      () => numbers(3, throwAt: 1).lastOrNull, null, "lastOrNull first throws");
+    () => numbers(3, throwAt: 1).lastOrNull,
+    null,
+    "lastOrNull first throws",
+  );
   Expect.throws<UnimplementedError>(
-      () => numbers(3, throwAt: 3).lastOrNull, null, "lastOrNull last throws");
+    () => numbers(3, throwAt: 3).lastOrNull,
+    null,
+    "lastOrNull last throws",
+  );
   Expect.throws<UnimplementedError>(
-      () => CurrentThrowIterable<int?>(numbers(3), 2).lastOrNull,
-      null,
-      "lastOrNull throw on current");
+    () => CurrentThrowIterable<int?>(numbers(3), 2).lastOrNull,
+    null,
+    "lastOrNull throw on current",
+  );
 }
 
 void testSingleOrNull() {
@@ -178,10 +194,16 @@ void testSingleOrNull() {
   test<int?>("Single value", numbers(1), 1);
   test<int?>("Multiple values", numbers(3), null);
   test<int?>("Nullable values", numbers(3, where: even), null);
-  Expect.throws<UnimplementedError>(() => numbers(3, throwAt: 1).singleOrNull,
-      null, "singleOrNull first throws");
-  Expect.throws<UnimplementedError>(() => numbers(3, throwAt: 2).singleOrNull,
-      null, "singleOrNull second throws");
+  Expect.throws<UnimplementedError>(
+    () => numbers(3, throwAt: 1).singleOrNull,
+    null,
+    "singleOrNull first throws",
+  );
+  Expect.throws<UnimplementedError>(
+    () => numbers(3, throwAt: 2).singleOrNull,
+    null,
+    "singleOrNull second throws",
+  );
   test<int?>("Throws after two", numbers(3, throwAt: 3), null);
 }
 
@@ -206,11 +228,16 @@ void testElementAtOrNull() {
   void test<T>(String name, Iterable<T> source, int index, T? expectedResult) {
     var actualResult = source.elementAtOrNull(index);
     Expect.equals(
-        expectedResult, actualResult, "elementAtOrNull($index) $name");
+      expectedResult,
+      actualResult,
+      "elementAtOrNull($index) $name",
+    );
   }
 
-  Expect.throwsArgumentError(() => numbers(3).elementAtOrNull(-1),
-      "elementAtOrNull(negative) first throws");
+  Expect.throwsArgumentError(
+    () => numbers(3).elementAtOrNull(-1),
+    "elementAtOrNull(negative) first throws",
+  );
 
   test<int>("Empty iterable", Iterable<int>.empty(), 0, null);
   test<int>("Empty iterable", Iterable<int>.empty(), 1000000, null);
@@ -225,13 +252,15 @@ void testElementAtOrNull() {
   test<int?>("Nullable values found", numbers(3, where: even), 2, null);
   test<int?>("Nullable values not found", numbers(3, where: even), 3, null);
   Expect.throws<UnimplementedError>(
-      () => numbers(3, throwAt: 1).elementAtOrNull(1),
-      null,
-      "elementAtOrNull(1) first throws");
+    () => numbers(3, throwAt: 1).elementAtOrNull(1),
+    null,
+    "elementAtOrNull(1) first throws",
+  );
   Expect.throws<UnimplementedError>(
-      () => numbers(3, throwAt: 2).elementAtOrNull(2),
-      null,
-      "elementAtOrNull(2) second throws");
+    () => numbers(3, throwAt: 2).elementAtOrNull(2),
+    null,
+    "elementAtOrNull(2) second throws",
+  );
   test<int?>("Throws after two", numbers(3, throwAt: 3), 1, 2);
 
   var currentThrow2 = CurrentThrowIterable<int?>(numbers(3), 2);
@@ -265,14 +294,20 @@ void testIndexed() {
 //
 // If [rec] is true, we're doing a recursive test on skip/take/both,
 // and `start` the number of leading elements skipped.
-void testRec<T>(String name, List<T> values, Iterable<(int, T)> indexed,
-    int start, bool rec) {
+void testRec<T>(
+  String name,
+  List<T> values,
+  Iterable<(int, T)> indexed,
+  int start,
+  bool rec,
+) {
   var length = values.length;
   Expect.equals(length, indexed.length, "$values length");
   Expect.equals(values.isEmpty, indexed.isEmpty);
   Expect.equals(values.isNotEmpty, indexed.isNotEmpty);
-  Expect.listEquals([for (var i = 0; i < length; i++) (start + i, values[i])],
-      indexed.toList());
+  Expect.listEquals([
+    for (var i = 0; i < length; i++) (start + i, values[i]),
+  ], indexed.toList());
 
   int index = 0;
   indexed.forEach((pair) {
@@ -302,13 +337,28 @@ void testRec<T>(String name, List<T> values, Iterable<(int, T)> indexed,
       Expect.throws<StateError>(() => indexed.single);
       // More than one element, so test skip/take.
       testRec("$name.skip(1)", values.sublist(1), indexed.skip(1), 1, true);
-      testRec("$name.take(l-1)", values.sublist(0, length - 1),
-          indexed.take(length - 1), 0, true);
+      testRec(
+        "$name.take(l-1)",
+        values.sublist(0, length - 1),
+        indexed.take(length - 1),
+        0,
+        true,
+      );
       if (length > 2) {
-        testRec("$name.skip(1).take(l-2)", values.sublist(1, length - 1),
-            indexed.skip(1).take(length - 2), 1, true);
-        testRec("$name.take(l-1).skip(1)", values.sublist(1, length - 1),
-            indexed.take(length - 1).skip(1), 1, true);
+        testRec(
+          "$name.skip(1).take(l-2)",
+          values.sublist(1, length - 1),
+          indexed.skip(1).take(length - 2),
+          1,
+          true,
+        );
+        testRec(
+          "$name.take(l-1).skip(1)",
+          values.sublist(1, length - 1),
+          indexed.take(length - 1).skip(1),
+          1,
+          true,
+        );
       }
     }
   }
@@ -321,8 +371,11 @@ void testRec<T>(String name, List<T> values, Iterable<(int, T)> indexed,
 /// If [throwAt] is provided, the iterable throws an `UnimplementedError`
 /// (which shouldn't conflict with an actual error) instead of emitting
 /// a value at the [throwAt] index.
-Iterable<int?> numbers(int length,
-    {bool Function(int) where = all, int? throwAt}) sync* {
+Iterable<int?> numbers(
+  int length, {
+  bool Function(int) where = all,
+  int? throwAt,
+}) sync* {
   for (var i = 1; i <= length; i++) {
     if (i == throwAt) throw UnimplementedError("Error");
     yield where(i) ? i : null;

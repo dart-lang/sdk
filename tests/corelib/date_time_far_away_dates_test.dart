@@ -10,8 +10,10 @@ import "package:expect/expect.dart";
 // are 'web' integers.
 
 void testFarAwayDates() {
-  DateTime dt =
-      DateTime.fromMillisecondsSinceEpoch(1000000000000001, isUtc: true);
+  DateTime dt = DateTime.fromMillisecondsSinceEpoch(
+    1000000000000001,
+    isUtc: true,
+  );
   Expect.equals(33658, dt.year);
   Expect.equals(9, dt.month);
   Expect.equals(27, dt.day);

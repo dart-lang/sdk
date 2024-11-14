@@ -40,8 +40,10 @@ void check(int length, BigInt base) {
 
     if (debugPrint) {
       final printLength = length + 4;
-      final nDigits =
-          n.toUnsigned(printLength).toRadixString(2).padLeft(printLength);
+      final nDigits = n
+          .toUnsigned(printLength)
+          .toRadixString(2)
+          .padLeft(printLength);
       final mDigits = m.toUnsigned(printLength).toRadixString(2);
       print('$nDigits: $nLength');
       print('$mDigits: $mLength');

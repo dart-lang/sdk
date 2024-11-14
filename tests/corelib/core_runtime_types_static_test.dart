@@ -21,9 +21,9 @@ class CoreStaticTypesTest {
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
     q[0] = 'x';
-//   ^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-// [cfe] The operator '[]=' isn't defined for the class 'String'.
+    // [error column 6, length 3]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
+    // [cfe] The operator '[]=' isn't defined for the class 'String'.
   }
 
   static testStringMethods() {

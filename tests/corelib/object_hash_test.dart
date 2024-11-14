@@ -19,8 +19,10 @@ main() {
 
   Expect.notEquals(hash1234, Object.hash(1, 2, 3, 4, null));
 
-  Expect.equals(Object.hash(1, 2, 3, 4, 5, 6, 7, 8, 9),
-      Object.hashAll([1, 2, 3, 4, 5, 6, 7, 8, 9]));
+  Expect.equals(
+    Object.hash(1, 2, 3, 4, 5, 6, 7, 8, 9),
+    Object.hashAll([1, 2, 3, 4, 5, 6, 7, 8, 9]),
+  );
 
   // Check that we can call `hash` with 2-20 arguments,
   // and they all agree with `hashAll`.
@@ -30,32 +32,45 @@ main() {
     var hashAll = Object.hashAll(arguments);
     var hash = Function.apply(Object.hash, arguments);
     Expect.equals(
-        hashAll,
-        hash,
-        "hashAll and hash disagrees for $i values:\n"
-        "$arguments");
+      hashAll,
+      hash,
+      "hashAll and hash disagrees for $i values:\n"
+      "$arguments",
+    );
   }
 
   // Works for all kinds of objects;
   int varHash = Object.hash(
-      "string", 3, nan, true, null, Type, #Symbol, const Object(), function);
+    "string",
+    3,
+    nan,
+    true,
+    null,
+    Type,
+    #Symbol,
+    const Object(),
+    function,
+  );
   Expect.equals(
-      varHash,
-      Object.hashAll([
-        "string",
-        3,
-        nan,
-        true,
-        null,
-        Type,
-        #Symbol,
-        const Object(),
-        function
-      ]));
+    varHash,
+    Object.hashAll([
+      "string",
+      3,
+      nan,
+      true,
+      null,
+      Type,
+      #Symbol,
+      const Object(),
+      function,
+    ]),
+  );
 
   // Object doesn't matter, just its hash code.
-  Expect.equals(hash1234,
-      Object.hash(Hashable(1), Hashable(2), Hashable(3), Hashable(4)));
+  Expect.equals(
+    hash1234,
+    Object.hash(Hashable(1), Hashable(2), Hashable(3), Hashable(4)),
+  );
 
   // It's potentially possible to get a conflict, but it doesn't happen here.
   Expect.notEquals("str".hashCode, Object.hashAll(["str"]));
@@ -65,13 +80,19 @@ main() {
     Expect.equals(hash12345, Object.hashAllUnordered(p));
   }
   Expect.notEquals(
-      Object.hashAllUnordered(["a", "a"]), Object.hashAllUnordered(["a"]));
+    Object.hashAllUnordered(["a", "a"]),
+    Object.hashAllUnordered(["a"]),
+  );
 
-  Expect.notEquals(Object.hashAllUnordered(["a", "a"]),
-      Object.hashAllUnordered(["a", "a", "a", "a"]));
+  Expect.notEquals(
+    Object.hashAllUnordered(["a", "a"]),
+    Object.hashAllUnordered(["a", "a", "a", "a"]),
+  );
 
-  Expect.notEquals(Object.hashAllUnordered(["a", "b"]),
-      Object.hashAllUnordered(["a", "a", "a", "b"]));
+  Expect.notEquals(
+    Object.hashAllUnordered(["a", "b"]),
+    Object.hashAllUnordered(["a", "a", "a", "b"]),
+  );
 
   /// Unordered hashing works for all kinds of objects.
   var unorderHash = Object.hashAllUnordered([

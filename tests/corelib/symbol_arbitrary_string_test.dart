@@ -32,10 +32,13 @@ main() {
   var s15 = new Symbol('\udc00');
 
   // The multi-line string below is "abcd\ne:X42truenullz".
-  var s16 = new Symbol("""
+  var s16 = new Symbol(
+    """
 a${"b" // line break
-          "c"}d
-e:$string$integer$boolean$none""""z");
+        "c"}d
+e:$string$integer$boolean$none"""
+    "z",
+  );
 
   Expect.isTrue(s00 == new Symbol(''));
   Expect.isTrue(s01 == new Symbol(r'@!#$%^&*(()\\|_-]['));
@@ -55,11 +58,16 @@ e:$string$integer$boolean$none""""z");
   Expect.isTrue(s15 == new Symbol('\udc00'));
 
   // The multi-line string below is "abcd\ne:X42truenullz".
-  Expect.isTrue(s16 ==
-      new Symbol("""
+  Expect.isTrue(
+    s16 ==
+        new Symbol(
+          """
 a${"b" // line break
               "c"}d
-e:$string$integer$boolean$none""""z"));
+e:$string$integer$boolean$none"""
+          "z",
+        ),
+  );
 
   const s00c = const Symbol('');
   const s01c = const Symbol(r'@!#$%^&*(()\\|_-][');
@@ -79,10 +87,13 @@ e:$string$integer$boolean$none""""z"));
   const s15c = const Symbol('\udc00');
 
   // The multi-line string below is "abcd\ne:X42truenullz".
-  const s16c = const Symbol("""
+  const s16c = const Symbol(
+    """
 a${"b" // line break
-          "c"}d
-e:$string$integer$boolean$none""""z");
+        "c"}d
+e:$string$integer$boolean$none"""
+    "z",
+  );
 
   Expect.isTrue(identical(s00c, const Symbol('')));
   Expect.isTrue(identical(s01c, const Symbol(r'@!#$%^&*(()\\|_-][')));
@@ -102,10 +113,16 @@ e:$string$integer$boolean$none""""z");
   Expect.isTrue(identical(s15c, const Symbol('\udc00')));
 
   // The multi-line string below is "abcd\ne:X42truenullz".
-  Expect.isTrue(identical(
+  Expect.isTrue(
+    identical(
       s16c,
-      const Symbol("""
+      const Symbol(
+        """
 a${"b" // line break
-              "c"}d
-e:$string$integer$boolean$none""""z")));
+            "c"}d
+e:$string$integer$boolean$none"""
+        "z",
+      ),
+    ),
+  );
 }

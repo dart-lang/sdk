@@ -34,18 +34,30 @@ void testOperations() {
   List subr = [8, 7, 6, 5, 4, 3];
   Expect.listEquals(subr, reversed.skip(2).take(6).toList());
   Expect.listEquals(subr, reversed.take(8).skip(2).toList());
-  Expect.listEquals(subr,
-      reversed.toList().reversed.skip(2).take(6).toList().reversed.toList());
-  Expect.listEquals(subr,
-      reversed.toList().reversed.take(8).skip(2).toList().reversed.toList());
-  Expect.listEquals(subr,
-      reversed.take(8).toList().reversed.take(6).toList().reversed.toList());
-  Expect.listEquals(subr,
-      reversed.toList().reversed.take(8).toList().reversed.take(6).toList());
-  Expect.listEquals(subr,
-      reversed.toList().reversed.skip(2).toList().reversed.skip(2).toList());
-  Expect.listEquals(subr,
-      reversed.skip(2).toList().reversed.skip(2).toList().reversed.toList());
+  Expect.listEquals(
+    subr,
+    reversed.toList().reversed.skip(2).take(6).toList().reversed.toList(),
+  );
+  Expect.listEquals(
+    subr,
+    reversed.toList().reversed.take(8).skip(2).toList().reversed.toList(),
+  );
+  Expect.listEquals(
+    subr,
+    reversed.take(8).toList().reversed.take(6).toList().reversed.toList(),
+  );
+  Expect.listEquals(
+    subr,
+    reversed.toList().reversed.take(8).toList().reversed.take(6).toList(),
+  );
+  Expect.listEquals(
+    subr,
+    reversed.toList().reversed.skip(2).toList().reversed.skip(2).toList(),
+  );
+  Expect.listEquals(
+    subr,
+    reversed.skip(2).toList().reversed.skip(2).toList().reversed.toList(),
+  );
 
   void testList(List<int> list) {
     var throws = const ThrowMarker();
@@ -55,14 +67,17 @@ void testOperations() {
         Iterator i2 = v2.iterator;
         int index = 0;
         while (i1.moveNext()) {
-          Expect.isTrue(i2.moveNext(),
-              "Too few actual values. Expected[$index] == ${i1.current}");
+          Expect.isTrue(
+            i2.moveNext(),
+            "Too few actual values. Expected[$index] == ${i1.current}",
+          );
           testEquals(i1.current, i2.current, "$path[$index]");
           index++;
         }
         if (i2.moveNext()) {
           Expect.fail(
-              "Too many actual values. Actual[$index] == ${i2.current}");
+            "Too many actual values. Actual[$index] == ${i2.current}",
+          );
         }
       } else {
         Expect.equals(v1, v2, path);
@@ -71,7 +86,7 @@ void testOperations() {
 
     void testOp(operation(Iterable<int> reversedList), name) {
       var reversedList = [
-        for (var i = 0; i < list.length; i++) list[list.length - 1 - i]
+        for (var i = 0; i < list.length; i++) list[list.length - 1 - i],
       ];
 
       var reversed = list.reversed;

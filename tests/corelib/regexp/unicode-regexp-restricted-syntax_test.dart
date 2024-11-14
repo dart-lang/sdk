@@ -67,8 +67,10 @@ void main() {
   assertThrows(() => RegExp(r"[\00]", unicode: true));
   assertThrows(() => RegExp(r"[\01]", unicode: true));
   assertThrows(() => RegExp(r"[\09]", unicode: true));
-  shouldBe(RegExp(r"[1\0a]+", unicode: true).firstMatch("b\u{0}1\u{0}a\u{0}2"),
-      ["\u{0}1\u{0}a\u{0}"]);
+  shouldBe(
+    RegExp(r"[1\0a]+", unicode: true).firstMatch("b\u{0}1\u{0}a\u{0}2"),
+    ["\u{0}1\u{0}a\u{0}"],
+  );
   // escaped \- is allowed inside a character class.
   shouldBe(RegExp(r"[a\-z]", unicode: true).firstMatch("12-34"), ["-"]);
 }

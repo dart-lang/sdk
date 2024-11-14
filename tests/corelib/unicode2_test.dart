@@ -50,7 +50,7 @@ const List<int> testCodepoints = const <int>[
   100,
   111,
   103,
-  46
+  46,
 ];
 
 main() {

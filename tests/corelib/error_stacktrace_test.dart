@@ -68,7 +68,9 @@ Future<void> testAsyncStar() async {
   Future<Never> throwError(Error error) => throwErrorStream(error).first;
 
   Stream<Never> throwErrorWithStackStream(
-      Error error, StackTrace stack) async* {
+    Error error,
+    StackTrace stack,
+  ) async* {
     yield Error.throwWithStackTrace(error, stack);
   }
 
@@ -85,29 +87,39 @@ Future<void> testAsyncStar() async {
 }
 
 void _testSync(
-    String functionKind,
-    Never Function(Error) throwError,
-    Never Function(Error, StackTrace) throwWithStack,
-    dynamic Function(dynamic) throwNSM) {
+  String functionKind,
+  Never Function(Error) throwError,
+  Never Function(Error, StackTrace) throwWithStack,
+  dynamic Function(dynamic) throwNSM,
+) {
   // Checks that an error first thrown with [firstStack] as [Error.stackTrace],
   // will keep that stack trace if thrown again asynchronously.
   void testErrorSet(String throwKind, Error error, StackTrace firstStack) {
     var desc = "$functionKind $throwKind";
     // Was thrown with [stackTrace] as stack trace.
     Expect.isNotNull(error.stackTrace, "$desc throw - did not set .stackTrace");
-    Expect.stringEquals(firstStack.toString(), error.stackTrace.toString(),
-        "$desc, caught stack/set stack - not same");
+    Expect.stringEquals(
+      firstStack.toString(),
+      error.stackTrace.toString(),
+      "$desc, caught stack/set stack - not same",
+    );
     // Throw same error again, using `throw`, with different stack.
     try {
       throwError(error);
     } on Error catch (e, s) {
       var redesc = "$functionKind throw again";
       Expect.identical(error, e, "$redesc - not same error");
-      Expect.notEquals(firstStack.toString(), s.toString(),
-          "$redesc, set stack/new stack - not different");
+      Expect.notEquals(
+        firstStack.toString(),
+        s.toString(),
+        "$redesc, set stack/new stack - not different",
+      );
       // Did not overwrite existing `error.stackTrace`.
-      Expect.equals(firstStack.toString(), e.stackTrace.toString(),
-          "$redesc - changed .stackTrace");
+      Expect.equals(
+        firstStack.toString(),
+        e.stackTrace.toString(),
+        "$redesc - changed .stackTrace",
+      );
     }
 
     // Throw same error again using `Error.throwWithStackTrace`.
@@ -117,13 +129,22 @@ void _testSync(
     } on Error catch (e, s) {
       var redesc = "$functionKind E.tWST again";
       Expect.identical(error, e, "$redesc - not same error");
-      Expect.equals(stack2.toString(), s.toString(),
-          "$redesc, thrown stack/caught stack - not same");
-      Expect.notEquals(firstStack.toString(), s.toString(),
-          "$redesc, first stack/new stack - not different");
+      Expect.equals(
+        stack2.toString(),
+        s.toString(),
+        "$redesc, thrown stack/caught stack - not same",
+      );
+      Expect.notEquals(
+        firstStack.toString(),
+        s.toString(),
+        "$redesc, first stack/new stack - not different",
+      );
       // Did not overwrite existing `error.stackTrace`.
-      Expect.equals(firstStack.toString(), e.stackTrace.toString(),
-          "$redesc - changed .stackTrace");
+      Expect.equals(
+        firstStack.toString(),
+        e.stackTrace.toString(),
+        "$redesc - changed .stackTrace",
+      );
     }
   }
 
@@ -144,8 +165,11 @@ void _testSync(
     try {
       throwError(error);
     } on Error catch (e, s) {
-      Expect.identical(error, e,
-          "$functionKind throw: thrown error/caught error - not same");
+      Expect.identical(
+        error,
+        e,
+        "$functionKind throw: thrown error/caught error - not same",
+      );
       testErrorSet("throw", e, s);
     }
   }
@@ -158,29 +182,42 @@ void _testSync(
     try {
       throwWithStack(error, stack);
     } on Error catch (e, s) {
-      Expect.identical(error, e,
-          "$functionKind E.tWST: thrown error/caught error - not same");
-      Expect.stringEquals(stack.toString(), s.toString(),
-          "$functionKind E.tWST: thrown stack/caught stack - not same");
+      Expect.identical(
+        error,
+        e,
+        "$functionKind E.tWST: thrown error/caught error - not same",
+      );
+      Expect.stringEquals(
+        stack.toString(),
+        s.toString(),
+        "$functionKind E.tWST: thrown stack/caught stack - not same",
+      );
       testErrorSet("E.tWST", e, s);
     }
   }
 }
 
 Future<void> _testAsync(
-    String functionKind,
-    Future<Never> Function(Error) throwError,
-    Future<Never> Function(Error, StackTrace) throwWithStack,
-    Future<dynamic> Function(dynamic) throwNSM) async {
+  String functionKind,
+  Future<Never> Function(Error) throwError,
+  Future<Never> Function(Error, StackTrace) throwWithStack,
+  Future<dynamic> Function(dynamic) throwNSM,
+) async {
   // Checks that an error first thrown with [firstStack] as [Error.stackTrace],
   // will keep that stack trace if thrown again asynchronously.
   Future<void> testErrorSet(
-      String throwKind, Error error, StackTrace firstStack) async {
+    String throwKind,
+    Error error,
+    StackTrace firstStack,
+  ) async {
     var desc = "$functionKind $throwKind";
     // Was thrown with [stackTrace] as stack trace.
     Expect.isNotNull(error.stackTrace, "$desc throw - did not set .stackTrace");
-    Expect.stringEquals(firstStack.toString(), error.stackTrace.toString(),
-        "$desc, caught stack/set stack - not same");
+    Expect.stringEquals(
+      firstStack.toString(),
+      error.stackTrace.toString(),
+      "$desc, caught stack/set stack - not same",
+    );
     // Throw same error again, using `throw`, with different stack.
     try {
       await throwError(error);
@@ -190,12 +227,18 @@ Future<void> _testAsync(
       if (functionKind != "async*") {
         // An async* throw happens asynchronously, so its stack trace
         // can be just the same short stack from the event loop every time.
-        Expect.notEquals(firstStack.toString(), s.toString(),
-            "$redesc, set stack/new stack - not different");
+        Expect.notEquals(
+          firstStack.toString(),
+          s.toString(),
+          "$redesc, set stack/new stack - not different",
+        );
       }
       // Did not overwrite existing `error.stackTrace`.
-      Expect.equals(firstStack.toString(), e.stackTrace.toString(),
-          "$redesc - changed .stackTrace");
+      Expect.equals(
+        firstStack.toString(),
+        e.stackTrace.toString(),
+        "$redesc - changed .stackTrace",
+      );
     }
 
     // Throw same error again using `Error.throwWithStackTrace`.
@@ -205,15 +248,24 @@ Future<void> _testAsync(
     } on Error catch (e, s) {
       var redesc = "$functionKind E.tWST again";
       Expect.identical(error, e, "$redesc - not same error");
-      Expect.equals(stack2.toString(), s.toString(),
-          "$redesc, thrown stack/caught stack - not same");
+      Expect.equals(
+        stack2.toString(),
+        s.toString(),
+        "$redesc, thrown stack/caught stack - not same",
+      );
       if (functionKind != "async*") {
-        Expect.notEquals(firstStack.toString(), s.toString(),
-            "$redesc, first stack/new stack - not different");
+        Expect.notEquals(
+          firstStack.toString(),
+          s.toString(),
+          "$redesc, first stack/new stack - not different",
+        );
       }
       // Did not overwrite existing `error.stackTrace`.
-      Expect.equals(firstStack.toString(), e.stackTrace.toString(),
-          "$redesc - changed .stackTrace");
+      Expect.equals(
+        firstStack.toString(),
+        e.stackTrace.toString(),
+        "$redesc - changed .stackTrace",
+      );
     }
   }
 
@@ -236,8 +288,11 @@ Future<void> _testAsync(
     try {
       await throwError(error);
     } on Error catch (e, s) {
-      Expect.identical(error, e,
-          "$functionKind throw: thrown error/caught error - not same");
+      Expect.identical(
+        error,
+        e,
+        "$functionKind throw: thrown error/caught error - not same",
+      );
       await testErrorSet("throw", e, s);
     }
   }
@@ -250,10 +305,16 @@ Future<void> _testAsync(
     try {
       await throwWithStack(error, stack);
     } on Error catch (e, s) {
-      Expect.identical(error, e,
-          "$functionKind E.tWST: thrown error/caught error - not same");
-      Expect.stringEquals(stack.toString(), s.toString(),
-          "$functionKind E.tWST: thrown stack/caught stack - not same");
+      Expect.identical(
+        error,
+        e,
+        "$functionKind E.tWST: thrown error/caught error - not same",
+      );
+      Expect.stringEquals(
+        stack.toString(),
+        s.toString(),
+        "$functionKind E.tWST: thrown stack/caught stack - not same",
+      );
       await testErrorSet("E.tWST", e, s);
     }
   }

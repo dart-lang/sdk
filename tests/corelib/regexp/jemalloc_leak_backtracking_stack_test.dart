@@ -7,7 +7,9 @@
 String escape(String string) {
   var regex = new RegExp("(\\?|\\\$|\\*|\\(|\\)|\\[)|\\+|\\.|\\\\");
   return string.replaceAllMapped(
-      regex, (Match m) => "\\" + string.substring(m.start, m.end));
+    regex,
+    (Match m) => "\\" + string.substring(m.start, m.end),
+  );
 }
 
 main() {

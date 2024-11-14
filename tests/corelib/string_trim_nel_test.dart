@@ -24,11 +24,15 @@ const int i = 0x69;
 
 void main() {
   Expect.equals(
-      "hi", String.fromCharCodes([space, nel, space, h, i]).trimLeft());
+    "hi",
+    String.fromCharCodes([space, nel, space, h, i]).trimLeft(),
+  );
   Expect.equals(
-      "hi", String.fromCharCodes([h, i, space, nel, space]).trimRight());
+    "hi",
+    String.fromCharCodes([h, i, space, nel, space]).trimRight(),
+  );
   Expect.equals(
-      "hi",
-      String.fromCharCodes([space, nel, space, h, i, space, nel, space])
-          .trim());
+    "hi",
+    String.fromCharCodes([space, nel, space, h, i, space, nel, space]).trim(),
+  );
 }

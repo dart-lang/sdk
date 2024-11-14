@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 main() {
   var trebleClef = "\u{1D11E}";
   if (trebleClef.length != 2) throw "String should be a surrogate pair";

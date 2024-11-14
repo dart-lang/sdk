@@ -25,8 +25,10 @@ main() {
     Expect.listEquals(expectedUnits, res);
 
     // .map
-    Expect.listEquals(expectedUnits.map((x) => x.toRadixString(16)).toList(),
-        units.map((x) => x.toRadixString(16)).toList());
+    Expect.listEquals(
+      expectedUnits.map((x) => x.toRadixString(16)).toList(),
+      units.map((x) => x.toRadixString(16)).toList(),
+    );
 
     if (s == "") {
       Expect.throwsStateError(() => units.first);
@@ -47,7 +49,9 @@ main() {
       Expect.equals(0, units.indexOf(units[0]));
       Expect.equals(-1, units.lastIndexOf(-1));
       Expect.equals(
-          units.length - 1, units.lastIndexOf(units[units.length - 1]));
+        units.length - 1,
+        units.lastIndexOf(units[units.length - 1]),
+      );
     }
 
     Iterable reversed = units.reversed;
@@ -61,10 +65,21 @@ main() {
   test("abc");
   test("\x00\u0000\u{000000}");
   test("\u{ffff}\u{10000}\u{10ffff}");
-  String string = new String.fromCharCodes(
-      [0xdc00, 0xd800, 61, 0xd9ab, 0xd9ab, 0xddef, 0xddef, 62, 0xdc00, 0xd800]);
+  String string = new String.fromCharCodes([
+    0xdc00,
+    0xd800,
+    61,
+    0xd9ab,
+    0xd9ab,
+    0xddef,
+    0xddef,
+    62,
+    0xdc00,
+    0xd800,
+  ]);
   test(string);
-  string = "\x00\x7f\xff\u0100\ufeff\uffef\uffff"
+  string =
+      "\x00\x7f\xff\u0100\ufeff\uffef\uffff"
       "\u{10000}\u{12345}\u{1d800}\u{1dc00}\u{1ffef}\u{1ffff}";
   test(string);
 

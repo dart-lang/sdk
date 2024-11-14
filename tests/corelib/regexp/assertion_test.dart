@@ -105,8 +105,9 @@ void main() {
   shouldBe(regex21.firstMatch('aab'), ['aab']);
 
   var regex22 = new RegExp(
-      r"(?!(u|m{0,}g+)u{1,}|2{2,}!1%n|(?!K|(?=y)|(?=ip))+?)(?=(?=(((?:7))*?)*?))p",
-      multiLine: true);
+    r"(?!(u|m{0,}g+)u{1,}|2{2,}!1%n|(?!K|(?=y)|(?=ip))+?)(?=(?=(((?:7))*?)*?))p",
+    multiLine: true,
+  );
   shouldBeNull(regex22.firstMatch('55up'));
 
   var regex23 = new RegExp(r"(?=(a)b|c?)()*d");

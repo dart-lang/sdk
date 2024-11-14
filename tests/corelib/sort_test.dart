@@ -65,7 +65,7 @@ main() {
     2,
     2,
     2,
-    2
+    2,
   ];
   list.sort(intCompare);
   Expect.listEquals(list, <int>[
@@ -113,7 +113,7 @@ main() {
     2,
     2,
     2,
-    2
+    2,
   ]);
 
   list = [
@@ -161,7 +161,7 @@ main() {
     2,
     2,
     2,
-    2
+    2,
   ];
   list.sort(intCompare);
   Expect.listEquals(list, <int>[
@@ -209,7 +209,7 @@ main() {
     2,
     2,
     2,
-    2
+    2,
   ]);
 
   // Pivots: 1 and 8.
@@ -260,7 +260,7 @@ main() {
     8,
     5,
     6,
-    8
+    8,
   ];
   list.sort(intCompare);
   Expect.listEquals(list, <int>[
@@ -308,6 +308,6 @@ main() {
     9,
     9,
     9,
-    9
+    9,
   ]);
 }

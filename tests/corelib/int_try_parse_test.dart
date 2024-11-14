@@ -7,7 +7,8 @@ import "dart:math" show pow, log;
 
 void main() {
   const String oneByteWhiteSpace = "\x09\x0a\x0b\x0c\x0d\x20\xa0";
-  const String whiteSpace = "$oneByteWhiteSpace\u1680"
+  const String whiteSpace =
+      "$oneByteWhiteSpace\u1680"
       "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
       "\u2028\u2029\u202f\u205f\u3000\ufeff";
 
@@ -22,9 +23,15 @@ void main() {
   void testParse(int result, String radixString, int radix) {
     var m = "$radixString/$radix->$result";
     Expect.equals(
-        result, int.tryParse(radixString.toLowerCase(), radix: radix), m);
+      result,
+      int.tryParse(radixString.toLowerCase(), radix: radix),
+      m,
+    );
     Expect.equals(
-        result, int.tryParse(radixString.toUpperCase(), radix: radix), m);
+      result,
+      int.tryParse(radixString.toUpperCase(), radix: radix),
+      m,
+    );
     Expect.equals(result, int.tryParse(" $radixString", radix: radix), m);
     Expect.equals(result, int.tryParse("$radixString ", radix: radix), m);
     Expect.equals(result, int.tryParse(" $radixString ", radix: radix), m);
@@ -37,24 +44,39 @@ void main() {
     Expect.equals(-result, int.tryParse("-$radixString ", radix: radix), m);
     Expect.equals(-result, int.tryParse(" -$radixString ", radix: radix), m);
     Expect.equals(
-        result,
-        int.tryParse("$oneByteWhiteSpace$radixString$oneByteWhiteSpace",
-            radix: radix),
-        m);
+      result,
+      int.tryParse(
+        "$oneByteWhiteSpace$radixString$oneByteWhiteSpace",
+        radix: radix,
+      ),
+      m,
+    );
     Expect.equals(
-        -result,
-        int.tryParse("$oneByteWhiteSpace-$radixString$oneByteWhiteSpace",
-            radix: radix),
-        m);
-    Expect.equals(result,
-        int.tryParse("$whiteSpace$radixString$whiteSpace", radix: radix), m);
-    Expect.equals(-result,
-        int.tryParse("$whiteSpace-$radixString$whiteSpace", radix: radix), m);
+      -result,
+      int.tryParse(
+        "$oneByteWhiteSpace-$radixString$oneByteWhiteSpace",
+        radix: radix,
+      ),
+      m,
+    );
+    Expect.equals(
+      result,
+      int.tryParse("$whiteSpace$radixString$whiteSpace", radix: radix),
+      m,
+    );
+    Expect.equals(
+      -result,
+      int.tryParse("$whiteSpace-$radixString$whiteSpace", radix: radix),
+      m,
+    );
 
     Expect.equals(result, int.tryParse("$zeros$radixString", radix: radix), m);
     Expect.equals(result, int.tryParse("+$zeros$radixString", radix: radix), m);
     Expect.equals(
-        -result, int.tryParse("-$zeros$radixString", radix: radix), m);
+      -result,
+      int.tryParse("-$zeros$radixString", radix: radix),
+      m,
+    );
   }
 
   for (int r = 2; r <= 36; r++) {
@@ -129,17 +151,26 @@ void main() {
 
   // Regression test for http://dartbug.com/32858
   Expect.equals(
-      -0x8000000000000000, int.tryParse("-0x8000000000000000"), "-minint");
+    -0x8000000000000000,
+    int.tryParse("-0x8000000000000000"),
+    "-minint",
+  );
 
   // Tests run only with 64-bit integers.
   if (0x8000000000000000 < 0) {
     // `int` is 64-bit signed integers.
     Expect.equals(
-        -0x8000000000000000, int.tryParse("0x8000000000000000"), "0xUnsigned");
+      -0x8000000000000000,
+      int.tryParse("0x8000000000000000"),
+      "0xUnsigned",
+    );
     Expect.equals(-1, int.tryParse("0xFFFFFFFFFFFFFFFF"), "0xUnsigned2");
 
     Expect.equals(
-        0x8000000000000000 - 1, int.tryParse("0x7FFFFFFFFFFFFFFF"), "maxint");
+      0x8000000000000000 - 1,
+      int.tryParse("0x7FFFFFFFFFFFFFFF"),
+      "maxint",
+    );
     testFails("8000000000000000", 16, "2^63 radix: 16");
     testFails("FFFFFFFFFFFFFFFF", 16, "maxuint64 radix: 16");
   }

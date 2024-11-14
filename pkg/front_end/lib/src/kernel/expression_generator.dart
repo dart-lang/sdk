@@ -4416,7 +4416,6 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   Expression buildSelectorAccess(
       Selector send, int operatorOffset, bool isNullAware) {
     return buildProblem();

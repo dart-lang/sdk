@@ -43,7 +43,7 @@ main() {
     'w',
     'x',
     'y',
-    'z'
+    'z',
   ];
   for (var radix = 2; radix <= 36; radix++) {
     for (var i = 0; i < radix; i++) {
@@ -81,7 +81,10 @@ main() {
       String digits = bignum.toRadixString(radix);
       int result = int.parse(digits, radix: radix);
       Expect.equals(
-          bignum, result, "${bignum.toRadixString(16)} -> $digits/$radix");
+        bignum,
+        result,
+        "${bignum.toRadixString(16)} -> $digits/$radix",
+      );
     }
   }
 }

@@ -42,26 +42,36 @@ main() {
 
   // Test startIndex.
   Expect.equals(
-      "foo-AAA-foo-bar", "foo-bar-foo-bar".replaceFirst("bar", "AAA", 4));
+    "foo-AAA-foo-bar",
+    "foo-bar-foo-bar".replaceFirst("bar", "AAA", 4),
+  );
 
   // Test startIndex skipping one case at the beginning.
   Expect.equals(
-      "foo-bar-AAA-bar", "foo-bar-foo-bar".replaceFirst("foo", "AAA", 1));
+    "foo-bar-AAA-bar",
+    "foo-bar-foo-bar".replaceFirst("foo", "AAA", 1),
+  );
 
   // Test startIndex skipping one case at the beginning.
   Expect.equals(
-      "foo-bar-foo-AAA", "foo-bar-foo-bar".replaceFirst("bar", "AAA", 5));
+    "foo-bar-foo-AAA",
+    "foo-bar-foo-bar".replaceFirst("bar", "AAA", 5),
+  );
 
   // Test startIndex replacing with the empty string.
   Expect.equals("foo-bar--bar", "foo-bar-foo-bar".replaceFirst("foo", "", 1));
 
   // Test startIndex with a RegExp with carat
-  Expect.equals("foo-bar-foo-bar",
-      "foo-bar-foo-bar".replaceFirst(new RegExp(r"^foo"), "", 8));
+  Expect.equals(
+    "foo-bar-foo-bar",
+    "foo-bar-foo-bar".replaceFirst(new RegExp(r"^foo"), "", 8),
+  );
 
   // Test startIndex with a RegExp
   Expect.equals(
-      "aaa{3}X{3}", "aaa{3}aaa{3}".replaceFirst(new RegExp(r"a{3}"), "X", 1));
+    "aaa{3}X{3}",
+    "aaa{3}aaa{3}".replaceFirst(new RegExp(r"a{3}"), "X", 1),
+  );
 
   // Test startIndex with regexp-looking String
   Expect.equals("aaa{3}aaX", "aaa{3}aaa{3}".replaceFirst("a{3}", "X", 3));
@@ -74,15 +84,21 @@ main() {
 
   // Test replaceFirstMapped.
   Expect.equals(
-      "AtoBtoCDtoE", "AfromBtoCDtoE".replaceFirstMapped("from", (_) => "to"));
+    "AtoBtoCDtoE",
+    "AfromBtoCDtoE".replaceFirstMapped("from", (_) => "to"),
+  );
 
   // Test with the replaced string at the beginning.
   Expect.equals(
-      "toABtoCDtoE", "fromABtoCDtoE".replaceFirstMapped("from", (_) => "to"));
+    "toABtoCDtoE",
+    "fromABtoCDtoE".replaceFirstMapped("from", (_) => "to"),
+  );
 
   // Test with the replaced string at the end.
-  Expect.equals("toABtoCDtoEto",
-      "fromABtoCDtoEto".replaceFirstMapped("from", (_) => "to"));
+  Expect.equals(
+    "toABtoCDtoEto",
+    "fromABtoCDtoEto".replaceFirstMapped("from", (_) => "to"),
+  );
 
   // Test when there are no occurrence of the string to replace.
   Expect.equals("ABC", "ABC".replaceFirstMapped("from", (_) => "to"));
@@ -111,64 +127,88 @@ main() {
   Expect.equals("toAtoBtoCto", "AtoBtoCto".replaceFirstMapped("", (_) => "to"));
 
   // Test startIndex.
-  Expect.equals("foo-AAA-foo-bar",
-      "foo-bar-foo-bar".replaceFirstMapped("bar", (_) => "AAA", 4));
+  Expect.equals(
+    "foo-AAA-foo-bar",
+    "foo-bar-foo-bar".replaceFirstMapped("bar", (_) => "AAA", 4),
+  );
 
   // Test startIndex skipping one case at the beginning.
-  Expect.equals("foo-bar-AAA-bar",
-      "foo-bar-foo-bar".replaceFirstMapped("foo", (_) => "AAA", 1));
+  Expect.equals(
+    "foo-bar-AAA-bar",
+    "foo-bar-foo-bar".replaceFirstMapped("foo", (_) => "AAA", 1),
+  );
 
   // Test startIndex skipping one case at the beginning.
-  Expect.equals("foo-bar-foo-AAA",
-      "foo-bar-foo-bar".replaceFirstMapped("bar", (_) => "AAA", 5));
+  Expect.equals(
+    "foo-bar-foo-AAA",
+    "foo-bar-foo-bar".replaceFirstMapped("bar", (_) => "AAA", 5),
+  );
 
   // Test startIndex replacing with the empty string.
-  Expect.equals("foo-bar--bar",
-      "foo-bar-foo-bar".replaceFirstMapped("foo", (_) => "", 1));
+  Expect.equals(
+    "foo-bar--bar",
+    "foo-bar-foo-bar".replaceFirstMapped("foo", (_) => "", 1),
+  );
 
   // Test startIndex with a RegExp with carat
-  Expect.equals("foo-bar-foo-bar",
-      "foo-bar-foo-bar".replaceFirstMapped(new RegExp(r"^foo"), (_) => "", 8));
+  Expect.equals(
+    "foo-bar-foo-bar",
+    "foo-bar-foo-bar".replaceFirstMapped(new RegExp(r"^foo"), (_) => "", 8),
+  );
 
   // Test startIndex with a RegExp
-  Expect.equals("aaa{3}X{3}",
-      "aaa{3}aaa{3}".replaceFirstMapped(new RegExp(r"a{3}"), (_) => "X", 1));
+  Expect.equals(
+    "aaa{3}X{3}",
+    "aaa{3}aaa{3}".replaceFirstMapped(new RegExp(r"a{3}"), (_) => "X", 1),
+  );
 
   // Test startIndex with regexp-looking String
   Expect.equals(
-      "aaa{3}aaX", "aaa{3}aaa{3}".replaceFirstMapped("a{3}", (_) => "X", 3));
+    "aaa{3}aaX",
+    "aaa{3}aaa{3}".replaceFirstMapped("a{3}", (_) => "X", 3),
+  );
 
   // Test negative startIndex
   Expect.throwsRangeError(
-      () => "hello".replaceFirstMapped("h", (_) => "X", -1));
+    () => "hello".replaceFirstMapped("h", (_) => "X", -1),
+  );
 
   // Test startIndex too large
   Expect.throwsRangeError(() => "hello".replaceFirstMapped("h", (_) => "X", 6));
 
   // Test replacement depending on argument.
-  Expect.equals("foo-BAR-foo-bar",
-      "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => v[0]!.toUpperCase()));
+  Expect.equals(
+    "foo-BAR-foo-bar",
+    "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => v[0]!.toUpperCase()),
+  );
 
-  Expect.equals("foo-[bar]-foo-bar",
-      "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => "[${v[0]}]"));
+  Expect.equals(
+    "foo-[bar]-foo-bar",
+    "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => "[${v[0]}]"),
+  );
 
-  Expect.equals("foo-foo-bar-foo-bar-foo-bar",
-      "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => v.input));
+  Expect.equals(
+    "foo-foo-bar-foo-bar-foo-bar",
+    "foo-bar-foo-bar".replaceFirstMapped("bar", (v) => v.input),
+  );
 
   // Test replacement throwing.
-  Expect.throws(() => "foo-bar".replaceFirstMapped("bar", (v) => throw 42),
-      (e) => e == 42);
+  Expect.throws(
+    () => "foo-bar".replaceFirstMapped("bar", (v) => throw 42),
+    (e) => e == 42,
+  );
 
   // Test replacement returning non-String.
   var o = new Object();
   Expect.equals(
-      "foo-$o",
-      "foo-bar".replaceFirstMapped("bar", (v) {
-        // TODO(jmesserly): in strong mode, this function must return a string.
-        // If we want to allow any Object, we'll have to fix the API signature.
-        // See https://github.com/dart-lang/sdk/issues/30248.
-        return '$o';
-      }));
+    "foo-$o",
+    "foo-bar".replaceFirstMapped("bar", (v) {
+      // TODO(jmesserly): in strong mode, this function must return a string.
+      // If we want to allow any Object, we'll have to fix the API signature.
+      // See https://github.com/dart-lang/sdk/issues/30248.
+      return '$o';
+    }),
+  );
 
   for (var string in ["", "x", "foo", "x\u2000z"]) {
     for (var replacement in ["", "foo", string]) {
@@ -177,12 +217,18 @@ main() {
         for (int end = start; end <= string.length; end++) {
           expect =
               string.substring(0, start) + replacement + string.substring(end);
-          Expect.equals(expect, string.replaceRange(start, end, replacement),
-              '"$string"[$start:$end]="$replacement"');
+          Expect.equals(
+            expect,
+            string.replaceRange(start, end, replacement),
+            '"$string"[$start:$end]="$replacement"',
+          );
         }
         // Reuse expect from "end == string.length" case when omitting end.
-        Expect.equals(expect, string.replaceRange(start, null, replacement),
-            '"$string"[$start:]="$replacement"');
+        Expect.equals(
+          expect,
+          string.replaceRange(start, null, replacement),
+          '"$string"[$start:]="$replacement"',
+        );
       }
     }
     Expect.throws(() => string.replaceRange(-1, 0, "x"));

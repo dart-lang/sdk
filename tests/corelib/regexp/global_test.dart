@@ -42,18 +42,22 @@ void main() {
   // Test zero-length matches that have non-zero-length sub-captures.
   str = "It was a pleasure to burn.";
   str = str.replaceAllMapped(
-      new RegExp(r"(?=(\w+))\b"), (Match m) => m.group(1)!.length.toString());
+    new RegExp(r"(?=(\w+))\b"),
+    (Match m) => m.group(1)!.length.toString(),
+  );
   assertEquals("2It 3was 1a 8pleasure 2to 4burn.", str);
 
   // Test multiple captures.
   str = "Try not. Do, or do not. There is no try.";
   str = str.replaceAllMapped(
-      new RegExp(r"(not?)|(do)|(try)", caseSensitive: false), (m) {
-    if (m.group(1) != null) return "-";
-    if (m.group(2) != null) return "+";
-    if (m.group(3) != null) return "=";
-    throw 'Unexpected match $m';
-  });
+    new RegExp(r"(not?)|(do)|(try)", caseSensitive: false),
+    (m) {
+      if (m.group(1) != null) return "-";
+      if (m.group(2) != null) return "+";
+      if (m.group(3) != null) return "=";
+      throw 'Unexpected match $m';
+    },
+  );
   assertEquals("= -. +, or + -. There is - =.", str);
 
   // Test multiple alternate captures.
@@ -79,18 +83,22 @@ void main() {
   // Test zero-length matches that have non-zero-length sub-captures.
   str = "It was a pleasure to \u70e7.";
   str = str.replaceAllMapped(
-      new RegExp(r"(?=(\w+))\b"), (m) => "${m.group(1)!.length}");
+    new RegExp(r"(?=(\w+))\b"),
+    (m) => "${m.group(1)!.length}",
+  );
   assertEquals("2It 3was 1a 8pleasure 2to \u70e7.", str);
 
   // Test multiple captures.
   str = "Try not. D\u26aa, or d\u26aa not. There is no try.";
   str = str.replaceAllMapped(
-      new RegExp(r"(not?)|(d\u26aa)|(try)", caseSensitive: false), (m) {
-    if (m.group(1) != null) return "-";
-    if (m.group(2) != null) return "+";
-    if (m.group(3) != null) return "=";
-    throw 'Unexpected match $m';
-  });
+    new RegExp(r"(not?)|(d\u26aa)|(try)", caseSensitive: false),
+    (m) {
+      if (m.group(1) != null) return "-";
+      if (m.group(2) != null) return "+";
+      if (m.group(3) != null) return "=";
+      throw 'Unexpected match $m';
+    },
+  );
   assertEquals("= -. +, or + -. There is - =.", str);
 
   // Test multiple alternate captures.
@@ -111,7 +119,9 @@ void main() {
   // start at the match start position.
   str = "up up up up";
   str = str.replaceAllMapped(
-      new RegExp(r"\b(?=u(p))"), (m) => "${m.group(1)!.length}");
+    new RegExp(r"\b(?=u(p))"),
+    (m) => "${m.group(1)!.length}",
+  );
 
   assertEquals("1up 1up 1up 1up", str);
 
@@ -148,7 +158,9 @@ void main() {
     for (var i = 0; i < regexps.length; i++) {
       // Conduct tests.
       assertEquals(
-          result_expectation, subject.replaceAll(regexps[i], replacement));
+        result_expectation,
+        subject.replaceAll(regexps[i], replacement),
+      );
     }
   }
 

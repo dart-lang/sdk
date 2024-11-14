@@ -21,7 +21,7 @@ class StringBaseTest {
 
     int numBottles = 33;
     String wall = "wall";
-    s = "${numBottles*3} bottles of beer on the $wall.";
+    s = "${numBottles * 3} bottles of beer on the $wall.";
     Expect.equals("99 bottles of beer on the wall.", s);
   }
 

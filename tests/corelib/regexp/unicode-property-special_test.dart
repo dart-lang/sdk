@@ -55,12 +55,15 @@ void main() {
 
   t(RegExp(r"\p{Any}+", unicode: true), "🄰🄱🄲①②③");
 
-  shouldBe(
-      RegExp(r"\p{Any}", unicode: true).firstMatch("\ud800\ud801"), ["\ud800"]);
-  shouldBe(
-      RegExp(r"\p{Any}", unicode: true).firstMatch("\udc00\udc01"), ["\udc00"]);
-  shouldBe(RegExp(r"\p{Any}", unicode: true).firstMatch("\ud800\udc01"),
-      ["\ud800\udc01"]);
+  shouldBe(RegExp(r"\p{Any}", unicode: true).firstMatch("\ud800\ud801"), [
+    "\ud800",
+  ]);
+  shouldBe(RegExp(r"\p{Any}", unicode: true).firstMatch("\udc00\udc01"), [
+    "\udc00",
+  ]);
+  shouldBe(RegExp(r"\p{Any}", unicode: true).firstMatch("\ud800\udc01"), [
+    "\ud800\udc01",
+  ]);
   shouldBe(RegExp(r"\p{Any}", unicode: true).firstMatch("\udc01"), ["\udc01"]);
 
   f(RegExp(r"\P{Any}+", unicode: true), "123");
@@ -89,11 +92,12 @@ void main() {
   t(RegExp(r"[x\P{ASCII}]+", unicode: true), "x");
   t(RegExp(r"[\u1234\p{ASCII}]+", unicode: true), "\u1234");
 
-// Contributory binary properties are not supported.
+  // Contributory binary properties are not supported.
   assertThrows(() => RegExp("\\p{Other_Alphabetic}", unicode: true));
   assertThrows(() => RegExp("\\P{OAlpha}", unicode: true));
   assertThrows(
-      () => RegExp("\\p{Other_Default_Ignorable_Code_Point}", unicode: true));
+    () => RegExp("\\p{Other_Default_Ignorable_Code_Point}", unicode: true),
+  );
   assertThrows(() => RegExp("\\P{ODI}", unicode: true));
   assertThrows(() => RegExp("\\p{Other_Grapheme_Extend}", unicode: true));
   assertThrows(() => RegExp("\\P{OGr_Ext}", unicode: true));

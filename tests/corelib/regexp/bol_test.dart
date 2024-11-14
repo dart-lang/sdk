@@ -36,8 +36,11 @@ void main() {
   shouldBe(firstMatch(s, new RegExp(r"(^abc|c)123")), ["abc123", "abc"]);
   shouldBe(firstMatch(s, new RegExp(r"(c|^abc)123")), ["abc123", "abc"]);
   shouldBe(firstMatch(s, new RegExp(r"(^ab|abc)123")), ["abc123", "abc"]);
-  shouldBe(firstMatch(s, new RegExp(r"(bc|^abc)([0-9]*)a")),
-      ["bc789a", "bc", "789"]);
+  shouldBe(firstMatch(s, new RegExp(r"(bc|^abc)([0-9]*)a")), [
+    "bc789a",
+    "bc",
+    "789",
+  ]);
   shouldBeNull(new RegExp(r"(?:(Y)X)|(X)").firstMatch("abc"));
   shouldBeNull(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abc"));
   shouldBeNull(new RegExp(r"(?:(?:^|Y)X)|(X)").firstMatch("abcd"));

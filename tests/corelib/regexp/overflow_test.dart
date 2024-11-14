@@ -27,7 +27,8 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-      "This test checks expressions with alternative lengths of approx. 2^31.");
+    "This test checks expressions with alternative lengths of approx. 2^31.",
+  );
 
   var regexp1 = new RegExp(r"(?:(?=g))|(?:m).{2147483648,}");
   shouldBeNull(regexp1.firstMatch(''));

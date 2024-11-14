@@ -56,16 +56,26 @@ main() {
     Expect.equals(expectedRunes[0], it.current);
 
     // .map
-    Expect.listEquals(expectedRunes.map((x) => x.toRadixString(16)).toList(),
-        runes.map((x) => x.toRadixString(16)).toList());
+    Expect.listEquals(
+      expectedRunes.map((x) => x.toRadixString(16)).toList(),
+      runes.map((x) => x.toRadixString(16)).toList(),
+    );
   }
 
   // First character must be single-code-unit for test.
   test("abc", [0x61, 0x62, 0x63]);
   test("\x00\u0000\u{000000}", [0, 0, 0]);
   test("\u{ffff}\u{10000}\u{10ffff}", [0xffff, 0x10000, 0x10ffff]);
-  String string = new String.fromCharCodes(
-      [0xdc00, 0xd800, 61, 0xd800, 0xdc00, 62, 0xdc00, 0xd800]);
+  String string = new String.fromCharCodes([
+    0xdc00,
+    0xd800,
+    61,
+    0xd800,
+    0xdc00,
+    62,
+    0xdc00,
+    0xd800,
+  ]);
   test(string, [0xdc00, 0xd800, 61, 0x10000, 62, 0xdc00, 0xd800]);
 
   // Setting position in the middle of a surrogate pair is not allowed.
