@@ -51,10 +51,10 @@ import "package:testing/testing.dart"
 import 'package:vm/modular/target/vm.dart' show VmTarget;
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
-import '../testing_utils.dart' show checkEnvironment;
-import '../utils/kernel_chain.dart' show runDiff, openWrite;
-import 'suite_utils.dart';
-import '../testing/environment_keys.dart';
+import 'testing_utils.dart' show checkEnvironment;
+import 'utils/kernel_chain.dart' show runDiff, openWrite;
+import 'utils/suite_utils.dart';
+import 'testing/environment_keys.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
@@ -740,4 +740,5 @@ void main([List<String> arguments = const []]) => internalMain(
       createContext,
       arguments: arguments,
       displayName: "expression suite",
+      configurationPath: "../testing.json",
     );

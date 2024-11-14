@@ -9,7 +9,7 @@ import "package:testing/src/suite.dart";
 import "package:testing/testing.dart";
 import 'package:testing/src/log.dart' show Logger, StdoutLogger;
 
-import "fasta/strong_suite.dart" as strong;
+import "strong_suite.dart" as strong;
 
 const bool doPrint = false;
 

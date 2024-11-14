@@ -7,14 +7,14 @@
     {
       "name": "messages",
       "kind": "Chain",
-      "source": "test/fasta/messages_suite.dart",
+      "source": "test/messages_suite.dart",
       "root": "./",
       "status": "messages.status"
     },
     {
       "name": "textual_outline",
       "kind": "Chain",
-      "source": "test/fasta/textual_outline_suite.dart",
+      "source": "test/textual_outline_suite.dart",
       "root": "testcases/",
       "status": "testcases/textual_outline.status",
       "includeEndsWith": [
@@ -31,7 +31,7 @@
     {
       "name": "outline",
       "kind": "Chain",
-      "source": "test/fasta/outline_suite.dart",
+      "source": "test/outline_suite.dart",
       "root": "testcases/",
       "status": "testcases/outline.status",
       "includeEndsWith": [
@@ -49,7 +49,7 @@
     {
       "name": "strong",
       "kind": "Chain",
-      "source": "test/fasta/strong_suite.dart",
+      "source": "test/strong_suite.dart",
       "root": "testcases/",
       "status": "testcases/strong.status",
       "includeEndsWith": [
@@ -67,7 +67,7 @@
     {
       "name": "modular",
       "kind": "Chain",
-      "source": "test/fasta/modular_suite.dart",
+      "source": "test/modular_suite.dart",
       "root": "testcases/",
       "status": "testcases/modular.status",
       "includeEndsWith": [
@@ -85,7 +85,7 @@
     {
       "name": "weak",
       "kind": "Chain",
-      "source": "test/fasta/weak_suite.dart",
+      "source": "test/weak_suite.dart",
       "root": "testcases/",
       "status": "testcases/weak.status",
       "includeEndsWith": [
@@ -148,7 +148,7 @@
     {
       "name": "incremental_dartino",
       "kind": "Chain",
-      "source": "test/fasta/incremental_dartino_suite.dart",
+      "source": "test/incremental_dartino_suite.dart",
       "root": "testcases/dartino",
       "status": "testcases/incremental_dartino.status",
       "includeEndsWith": [
@@ -158,7 +158,7 @@
     {
       "name": "expression",
       "kind": "Chain",
-      "source": "test/fasta/expression_suite.dart",
+      "source": "test/expression_suite.dart",
       "root": "testcases/expression/",
       "status": "testcases/expression.status",
       "includeEndsWith": [
@@ -327,9 +327,7 @@
       ],
       "exclude": [
         "lib/",
-        "test/fasta/super_mixins_test\\.dart$",
         "test/types/subtypes_benchmark\\.dart$",
-        "test/fasta/unlinked_scope_test\\.dart$",
         "test/memory_file_system_test\\.dart$",
         "test/scanner_fasta_test\\.dart$",
         "test/scanner_test\\.dart$",

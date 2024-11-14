@@ -22,7 +22,7 @@ Future<void> internalMain(
   int? shards,
   int? shard,
   required String displayName,
-  String? configurationPath,
+  required String configurationPath,
 }) async {
   Logger logger = const StdoutLogger();
   List<String>? argumentsTrimmed;
@@ -66,7 +66,7 @@ Future<void> internalMain(
   await runMe(
     arguments,
     createContext,
-    configurationPath: configurationPath ?? "../../testing.json",
+    configurationPath: configurationPath,
     shards: shards,
     shard: shard,
     limitTo: limitTo,

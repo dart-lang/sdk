@@ -4,9 +4,9 @@
 
 library fasta.test.outline_suite;
 
-import 'suite_utils.dart' show internalMain;
-import '../testing/environment_keys.dart';
-import '../testing/suite.dart';
+import 'utils/suite_utils.dart' show internalMain;
+import 'testing/environment_keys.dart';
+import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
@@ -19,5 +19,6 @@ Future<void> main([List<String> arguments = const []]) async {
     createContext,
     arguments: arguments,
     displayName: "outline suite",
+    configurationPath: "../testing.json",
   );
 }

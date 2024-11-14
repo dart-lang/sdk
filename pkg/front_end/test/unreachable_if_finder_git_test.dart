@@ -17,12 +17,10 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 
 import '../tool/unreachable_if_finder.dart';
-import 'testing_utils.dart' show getGitFiles;
+import 'testing_utils.dart' show computeSourceFiles;
 import "utils/io_utils.dart";
 
 final Uri repoDir = computeRepoDirUri();
-
-Set<Uri> libUris = {};
 
 Future<void> main(List<String> args) async {
   api.CompilerOptions compilerOptions = getOptions();
@@ -35,22 +33,7 @@ Future<void> main(List<String> args) async {
 
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
 
-  libUris.add(repoDir.resolve("pkg/front_end/lib/"));
-  libUris.add(repoDir.resolve("pkg/front_end/test/fasta/"));
-  libUris.add(repoDir.resolve("pkg/front_end/tool/"));
-
-  for (Uri uri in libUris) {
-    Set<Uri> gitFiles = await getGitFiles(uri);
-    List<FileSystemEntity> entities =
-        new Directory.fromUri(uri).listSync(recursive: true);
-    for (FileSystemEntity entity in entities) {
-      if (entity is File &&
-          entity.path.endsWith(".dart") &&
-          gitFiles.contains(entity.uri)) {
-        options.inputs.add(entity.uri);
-      }
-    }
-  }
+  options.inputs.addAll(await computeSourceFiles(repoDir));
 
   Stopwatch stopwatch = new Stopwatch()..start();
 

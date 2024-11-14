@@ -23,10 +23,10 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
-import '../utils/kernel_chain.dart' show MatchContext;
-import 'suite_utils.dart';
-import '../testing/environment_keys.dart';
-import '../testing/folder_options.dart';
+import 'utils/kernel_chain.dart' show MatchContext;
+import 'utils/suite_utils.dart';
+import 'testing/environment_keys.dart';
+import 'testing/folder_options.dart';
 
 const int minSupportedMajorVersion = 2;
 const int minSupportedMinorVersion = 12;
@@ -62,6 +62,7 @@ void main([List<String> arguments = const []]) => internalMain(
       createContext,
       arguments: arguments,
       displayName: "textual outline suite",
+      configurationPath: "../testing.json",
     );
 
 class Context extends ChainContext with MatchContext {

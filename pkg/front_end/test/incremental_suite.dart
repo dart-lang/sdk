@@ -69,7 +69,7 @@ import "package:vm/modular/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'binary_md_dill_reader.dart' show DillComparer;
-import 'fasta/suite_utils.dart';
+import 'utils/suite_utils.dart';
 import 'testing/environment_keys.dart';
 import "incremental_utils.dart" as util;
 import 'test_utils.dart';

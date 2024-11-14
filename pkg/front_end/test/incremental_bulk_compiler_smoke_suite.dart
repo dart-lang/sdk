@@ -4,7 +4,7 @@
 
 import 'package:testing/testing.dart' show Chain;
 
-import 'fasta/suite_utils.dart';
+import 'utils/suite_utils.dart';
 import 'incremental_bulk_compiler_full.dart' show Context;
 
 void main([List<String> arguments = const []]) => internalMain(createContext,
@@ -13,6 +13,6 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     configurationPath: "../testing.json");
 
 Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new Context();
+    Chain suite, Map<String, String> environment) {
+  return new Future.value(new Context());
 }

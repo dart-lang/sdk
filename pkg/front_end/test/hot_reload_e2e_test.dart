@@ -69,9 +69,10 @@ abstract class TestCase {
     await rebuild(compiler, outputUri); // this is a full compile.
   }
 
-  Future<void> tearDown() async {
+  Future<void> tearDown() {
     outDir.deleteSync(recursive: true);
     lines = const [];
+    return new Future.value();
   }
 
   Future<int> computeVmPort() async {

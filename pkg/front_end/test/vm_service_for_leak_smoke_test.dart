@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'fasta/suite_utils.dart' show limitToArgument;
+import 'utils/suite_utils.dart' show limitToArgument;
 import "vm_service_for_leak_detection.dart" as helper;
 
 Future<void> main(List<String> args) async {

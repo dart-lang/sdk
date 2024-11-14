@@ -4,7 +4,7 @@
 
 import 'package:testing/testing.dart' show Chain, ChainContext;
 
-import 'fasta/suite_utils.dart';
+import 'utils/suite_utils.dart';
 import 'parser_suite.dart';
 
 void main([List<String> arguments = const []]) => internalMain(createContext,
@@ -13,6 +13,6 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     configurationPath: "../testing.json");
 
 Future<ChainContext> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new ContextChecksOnly(suite.name);
+    Chain suite, Map<String, String> environment) {
+  return new Future.value(new ContextChecksOnly(suite.name));
 }
