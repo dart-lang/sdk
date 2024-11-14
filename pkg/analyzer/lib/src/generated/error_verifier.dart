@@ -105,6 +105,15 @@ class EnclosingExecutableContext {
 
   EnclosingExecutableContext.empty() : this(null);
 
+  factory EnclosingExecutableContext.tmp(ExecutableElement2? element,
+      {bool? isAsynchronous, InterfaceType? catchErrorOnErrorReturnType}) {
+    return EnclosingExecutableContext(
+      element.asElement,
+      isAsynchronous: isAsynchronous,
+      catchErrorOnErrorReturnType: catchErrorOnErrorReturnType,
+    );
+  }
+
   String? get displayName {
     return element?.displayName;
   }
@@ -835,7 +844,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           .addConstructors(errorReporter, declaredElement, members);
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, declaredFragment);
-      _checkForExtensionTypeRepresentationDependsOnItself(node, declaredFragment);
+      _checkForExtensionTypeRepresentationDependsOnItself(
+          node, declaredFragment);
       _checkForExtensionTypeRepresentationTypeBottom(node, declaredFragment);
       _checkForExtensionTypeImplementsDeferred(node);
       _checkForExtensionTypeImplementsItself(node, declaredFragment);

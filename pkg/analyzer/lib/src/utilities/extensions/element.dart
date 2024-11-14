@@ -201,6 +201,12 @@ extension ExecutableElement2Extension on ExecutableElement2 {
   }
 }
 
+extension ExecutableElement2OrNullExtension on ExecutableElement2? {
+  ExecutableElement? get asElement {
+    return this?.asElement;
+  }
+}
+
 extension ExecutableElementExtension on ExecutableElement {
   ExecutableElement2 get asElement2 {
     return switch (this) {
