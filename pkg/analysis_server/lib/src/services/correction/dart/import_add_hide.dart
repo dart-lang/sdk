@@ -12,12 +12,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 
-typedef _CorrectionProducerParameters = ({
-  Element2 element,
-  String uri,
-  String? prefix,
-});
-
 class AmbiguousImportFix extends MultiCorrectionProducer {
   AmbiguousImportFix({required super.context});
 
@@ -39,20 +33,24 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       return const [];
     }
     var conflictingElements = element.conflictingElements2;
+    var name = element.name3;
+    if (name == null || name.isEmpty) {
+      return const [];
+    }
 
-    // This stores the parameters for the CorrectionProducers along with the
-    // list of ImportDirectives that import the declaration.
-    var fixes = <_CorrectionProducerParameters, List<ImportDirective>>{};
+    var uris = <String>{};
+    var importDirectives = <ImportDirective>{};
     for (var conflictingElement in conflictingElements) {
       var library = conflictingElement.enclosingElement2?.library2;
       if (library == null) {
         continue;
       }
 
-      var directives = <ImportDirective>[];
       // Find all ImportDirective that import this library in this unit
       // and have the same prefix.
-      for (var directive in unit.directives.whereType<ImportDirective>()) {
+      for (var directive in unit.directives
+          .whereType<ImportDirective>()
+          .whereNot(importDirectives.contains)) {
         var imported = directive.libraryImport?.importedLibrary2;
         if (imported == null) {
           continue;
@@ -66,49 +64,41 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
         // library for this element.
         if (imported == library ||
             imported.exportedLibraries2.contains(library)) {
-          directives.add(directive);
-        }
-      }
-
-      for (var directive in directives) {
-        var uri = directive.uri.stringValue;
-        var prefix = directive.prefix?.name;
-        if (uri != null) {
-          var key = (element: conflictingElement, uri: uri, prefix: prefix);
-          fixes[key] = directives;
+          var uri = directive.uri.stringValue;
+          if (uri != null) {
+            uris.add(uri);
+            importDirectives.add(directive);
+          }
         }
       }
     }
 
-    if (fixes.isEmpty) {
+    if (uris.isEmpty) {
       return const [];
     }
 
-    var producers = <ResolvedCorrectionProducer>[];
-    for (var key in fixes.keys) {
-      var directives = fixes.entries
-          .whereNot((e) => e.key == key)
-          .expand((e) => e.value)
-          .whereNot((d) =>
-              (d.prefix?.name == key.prefix) && (d.uri.stringValue == key.uri))
+    var producers = <ResolvedCorrectionProducer>{};
+    for (var uri in uris) {
+      var directives = importDirectives
+          .where((directive) => directive.uri.stringValue != uri)
           .toSet();
-      producers.add(_ImportAddHide(key.element, key.uri, key.prefix, directives,
-          context: context));
-      producers.add(_ImportRemoveShow(
-          key.element, key.uri, key.prefix, directives,
-          context: context));
+      producers.addAll([
+        _ImportAddHide(name, uri, prefix, directives, context: context),
+        _ImportRemoveShow(name, uri, prefix, directives, context: context)
+      ]);
     }
-    return producers;
+    return producers.toList();
   }
 }
 
 class _ImportAddHide extends ResolvedCorrectionProducer {
   final Set<ImportDirective> importDirectives;
-  final Element2 element;
   final String uri;
   final String? prefix;
+  final String _elementName;
 
-  _ImportAddHide(this.element, this.uri, this.prefix, this.importDirectives,
+  _ImportAddHide(
+      this._elementName, this.uri, this.prefix, this.importDirectives,
       {required super.context});
 
   @override
@@ -127,8 +117,6 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_HIDE;
-
-  String get _elementName => element.name3 ?? '';
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -171,11 +159,12 @@ class _ImportAddHide extends ResolvedCorrectionProducer {
 
 class _ImportRemoveShow extends ResolvedCorrectionProducer {
   final Set<ImportDirective> importDirectives;
-  final Element2 element;
+  final String _elementName;
   final String uri;
   final String? prefix;
 
-  _ImportRemoveShow(this.element, this.uri, this.prefix, this.importDirectives,
+  _ImportRemoveShow(
+      this._elementName, this.uri, this.prefix, this.importDirectives,
       {required super.context});
 
   @override
@@ -194,8 +183,6 @@ class _ImportRemoveShow extends ResolvedCorrectionProducer {
 
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
-
-  String get _elementName => element.name3 ?? '';
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
