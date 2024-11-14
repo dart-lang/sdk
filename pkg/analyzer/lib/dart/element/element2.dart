@@ -292,6 +292,9 @@ abstract class ConstructorElement2 implements ExecutableElement2 {
   /// resolved.
   ConstructorElement2? get redirectedConstructor2;
 
+  @override
+  InterfaceType get returnType;
+
   /// The constructor of the superclass that this constructor invokes, or
   /// `null` if this constructor redirects to another constructor, or if the
   /// library containing this constructor has not yet been resolved.
@@ -1814,7 +1817,6 @@ abstract class Metadata {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodElement2 implements ExecutableElement2 {
-
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
   static final String CALL_METHOD_NAME = "call";

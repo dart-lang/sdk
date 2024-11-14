@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Generates a fresh copy of the given type parameters, with their bounds
 /// substituted to reference the new parameters.
@@ -212,6 +214,16 @@ abstract class Substitution {
         types,
       ),
     );
+  }
+
+  /// Substitutes the Nth parameter in [parameters] with the Nth type in
+  /// [types].
+  static MapSubstitution fromPairs2(
+    List<TypeParameterElement2> parameters,
+    List<DartType> types,
+  ) {
+    var fragments = parameters.map((e) => e.asElement).toList();
+    return fromPairs(fragments, types);
   }
 
   /// Substitutes all occurrences of the given type parameters with the

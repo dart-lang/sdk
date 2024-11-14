@@ -416,7 +416,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var valuesField = ConstFieldElementImpl('values', -1)
         ..isConst = true
         ..isStatic = true
-        ..isSynthetic = true;
+        ..isSynthetic = true
+        ..name2 = 'values';
       var initializer = ListLiteralImpl(
         constKeyword: null,
         typeArguments: null,
@@ -1681,8 +1682,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       if (property == null) {
         var reference = containerRef.addChild(name);
         var variable = property = TopLevelVariableElementImpl(name, -1)
-          ..isSynthetic = true;
-        variable.name2 = accessorElement.name2;
+          ..isSynthetic = true
+          ..name2 = accessorElement.name2;
         _enclosingContext.addTopLevelVariableSynthetic(reference, variable);
 
         var variableElementReference = _libraryBuilder.reference
@@ -1711,7 +1712,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         var reference = containerRef.addChild(name);
         var field = property = FieldElementImpl(name, -1)
           ..isStatic = accessorElement.isStatic
-          ..isSynthetic = true;
+          ..isSynthetic = true
+          ..name2 = accessorElement.name2;
         _enclosingContext.addFieldSynthetic(reference, field);
       }
     }

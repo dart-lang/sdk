@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -16,22 +16,17 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
   /// The inheritance manager used to find redeclared members.
   final InheritanceManager3 _inheritance;
 
-  /// The URI of the library being verified.
-  final Uri _libraryUri;
-
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
 
   /// The current extension type.
-  InterfaceElement? _currentExtensionType;
+  InterfaceElement2? _currentExtensionType;
 
-  RedeclareVerifier(
-      this._inheritance, LibraryElement library, this._errorReporter)
-      : _libraryUri = library.source.uri;
+  RedeclareVerifier(this._inheritance, this._errorReporter);
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _currentExtensionType = node.declaredElement;
+    _currentExtensionType = node.declaredFragment!.element;
     super.visitExtensionTypeDeclaration(node);
     _currentExtensionType = null;
   }
@@ -41,22 +36,22 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
     // Only check if we're in an extension type declaration.
     if (_currentExtensionType == null) return;
 
-    var element = node.declaredElement!;
+    var element = node.declaredFragment!.element;
 
     // Static members can't redeclare.
     if (element.isStatic) return;
 
-    if (element.hasRedeclare && !_redeclaresMember(element)) {
-      if (element is MethodElement) {
-        _errorReporter.atToken(
-          node.name,
-          WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
-          arguments: [
-            'method',
-          ],
-        );
-      } else if (element is PropertyAccessorElement) {
-        if (element.isGetter) {
+    if (element.metadata2.hasRedeclare && !_redeclaresMember(element)) {
+      switch (element) {
+        case MethodElement2():
+          _errorReporter.atToken(
+            node.name,
+            WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
+            arguments: [
+              'method',
+            ],
+          );
+        case GetterElement():
           _errorReporter.atToken(
             node.name,
             WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
@@ -64,7 +59,7 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
               'getter',
             ],
           );
-        } else {
+        case SetterElement():
           _errorReporter.atToken(
             node.name,
             WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
@@ -72,18 +67,17 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
               'setter',
             ],
           );
-        }
       }
     }
   }
 
   /// Return `true` if the [member] redeclares a member from a superinterface.
-  bool _redeclaresMember(ExecutableElement member) {
+  bool _redeclaresMember(ExecutableElement2 member) {
     var currentType = _currentExtensionType;
     if (currentType != null) {
-      var interface = _inheritance.getInterface(currentType);
-      var redeclared = interface.redeclared;
-      var name = Name(_libraryUri, member.name);
+      var interface = _inheritance.getInterface2(currentType);
+      var redeclared = interface.redeclared2;
+      var name = Name.forElement(member);
       return redeclared.containsKey(name);
     }
 

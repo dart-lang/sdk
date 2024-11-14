@@ -282,7 +282,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           fields
-            <null-name>
+            f
               reference: <testLibraryFragment>::@class::C::@field::f
               element: <testLibraryFragment>::@class::C::@field::f#element
               getter2: <testLibraryFragment>::@class::C::@getter::f
@@ -300,7 +300,7 @@ library
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
           fields
-            <null-name>
+            f
               reference: <testLibraryFragment>::@class::D::@field::f
               element: <testLibraryFragment>::@class::D::@field::f#element
               getter2: <testLibraryFragment>::@class::D::@getter::f
@@ -532,7 +532,7 @@ library
     static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    static set x=
+    static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional value
@@ -601,7 +601,7 @@ library
     static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    static set x=
+    static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional value
@@ -663,7 +663,7 @@ library
       type: dynamic
       setter: <testLibraryFragment>::@setter::x#element
   setters
-    static set x=
+    static set x
       firstFragment: <testLibraryFragment>::@setter::x
       documentationComment: /**\n * Docs\n */
       formalParameters
@@ -719,7 +719,7 @@ library
       type: int
       setter: <testLibraryFragment>::@setter::x#element
   setters
-    static external set x=
+    static external set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional value
@@ -774,7 +774,7 @@ library
       type: int
       setter: <testLibraryFragment>::@setter::f#element
   setters
-    static set f=
+    static set f
       firstFragment: <testLibraryFragment>::@setter::f
       formalParameters
         requiredPositional value
@@ -856,12 +856,12 @@ library
       type: dynamic
       setter: <testLibraryFragment>::@setter::y#element
   setters
-    static set x=
+    static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional value
           type: int
-    static set y=
+    static set y
       firstFragment: <testLibraryFragment>::@setter::y
       formalParameters
         requiredPositional value
@@ -910,11 +910,11 @@ library
           getter2: <testLibraryFragment>::@getter::i
           setter2: <testLibraryFragment>::@setter::i
       getters
-        get <null-name>
+        get i
           reference: <testLibraryFragment>::@getter::i
           element: <testLibraryFragment>::@getter::i#element
       setters
-        set <null-name>
+        set i
           reference: <testLibraryFragment>::@setter::i
           element: <testLibraryFragment>::@setter::i#element
           formalParameters
@@ -931,7 +931,7 @@ library
     synthetic static get i
       firstFragment: <testLibraryFragment>::@getter::i
   setters
-    synthetic static set i=
+    synthetic static set i
       firstFragment: <testLibraryFragment>::@setter::i
       formalParameters
         requiredPositional _i
@@ -1002,7 +1002,7 @@ library
     static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    static set x=
+    static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional value
@@ -1073,7 +1073,7 @@ library
     static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    static set x=
+    static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional value
@@ -1148,14 +1148,14 @@ library
           element: <testLibrary>::@topLevelVariable::foo::@def::1
           getter2: <testLibraryFragment>::@getter::foo::@def::1
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo::@def::0
           element: <testLibraryFragment>::@getter::foo::@def::0#element
         get foo @21
           reference: <testLibraryFragment>::@getter::foo::@def::1
           element: <testLibraryFragment>::@getter::foo::@def::1#element
       setters
-        set <null-name>
+        set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
@@ -1179,7 +1179,7 @@ library
     static get foo
       firstFragment: <testLibraryFragment>::@getter::foo::@def::1
   setters
-    synthetic static set foo=
+    synthetic static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _foo
@@ -1257,11 +1257,11 @@ library
           element: <testLibrary>::@topLevelVariable::foo::@def::1
           setter2: <testLibraryFragment>::@setter::foo::@def::1
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
-        set <null-name>
+        set foo
           reference: <testLibraryFragment>::@setter::foo::@def::0
           element: <testLibraryFragment>::@setter::foo::@def::0#element
           formalParameters
@@ -1289,12 +1289,12 @@ library
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
-    synthetic static set foo=
+    synthetic static set foo
       firstFragment: <testLibraryFragment>::@setter::foo::@def::0
       formalParameters
         requiredPositional _foo
           type: int
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo::@def::1
       formalParameters
         requiredPositional _
@@ -1353,7 +1353,7 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
@@ -1374,7 +1374,7 @@ library
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional newValue
@@ -1422,11 +1422,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -1443,7 +1443,7 @@ library
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
@@ -1487,7 +1487,7 @@ library
           element: <testLibrary>::@topLevelVariable::i
           getter2: <testLibraryFragment>::@getter::i
       getters
-        get <null-name>
+        get i
           reference: <testLibraryFragment>::@getter::i
           element: <testLibraryFragment>::@getter::i#element
   topLevelVariables
@@ -1538,7 +1538,7 @@ library
           element: <testLibrary>::@topLevelVariable::i
           getter2: <testLibraryFragment>::@getter::i
       getters
-        get <null-name>
+        get i
           reference: <testLibraryFragment>::@getter::i
           element: <testLibraryFragment>::@getter::i#element
   topLevelVariables
@@ -1599,11 +1599,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -1621,7 +1621,7 @@ library
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
@@ -1661,7 +1661,7 @@ library
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
@@ -1772,7 +1772,7 @@ library
     static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    static set x=
+    static set x
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::x
       formalParameters
         requiredPositional _
@@ -1877,7 +1877,7 @@ library
     static get x
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::x
   setters
-    static set x=
+    static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _
@@ -1989,7 +1989,7 @@ library
     static get x
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@getter::x
   setters
-    static set x=
+    static set x
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@setter::x
       formalParameters
         requiredPositional _
@@ -2056,11 +2056,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -2077,7 +2077,7 @@ library
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
@@ -2125,11 +2125,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get <null-name>
+        get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set <null-name>
+        set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -2146,7 +2146,7 @@ library
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
   setters
-    synthetic static set v=
+    synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
@@ -2186,7 +2186,7 @@ library
           element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
-        get <null-name>
+        get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
   topLevelVariables
@@ -2233,7 +2233,7 @@ library
           element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
       getters
-        get <null-name>
+        get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
   topLevelVariables
@@ -2294,7 +2294,7 @@ library
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
@@ -2390,11 +2390,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -2426,7 +2426,7 @@ library
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
@@ -2474,11 +2474,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get <null-name>
+        get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set <null-name>
+        set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -2495,7 +2495,7 @@ library
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
   setters
-    synthetic static set v=
+    synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
@@ -2543,11 +2543,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -2564,7 +2564,7 @@ library
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
@@ -2611,11 +2611,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set <null-name>
+        set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -2632,7 +2632,7 @@ library
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
@@ -2672,7 +2672,7 @@ library
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
@@ -2748,14 +2748,14 @@ library
           getter2: <testLibraryFragment>::@getter::0
           setter2: <testLibraryFragment>::@setter::0
       getters
-        get <null-name>
+        get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
         get <null-name>
           reference: <testLibraryFragment>::@getter::0
           element: <testLibraryFragment>::@getter::0#element
       setters
-        set <null-name>
+        set a
           reference: <testLibraryFragment>::@setter::a
           element: <testLibraryFragment>::@setter::a#element
           formalParameters
@@ -2783,15 +2783,15 @@ library
   getters
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
-    synthetic static get 
+    synthetic static get <null-name>
       firstFragment: <testLibraryFragment>::@getter::0
   setters
-    synthetic static set a=
+    synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
           type: Object?
-    synthetic static set =
+    synthetic static set <null-name>
       firstFragment: <testLibraryFragment>::@setter::0
       formalParameters
         requiredPositional _
@@ -2835,7 +2835,7 @@ library
           element: <testLibrary>::@topLevelVariable::i
           getter2: <testLibraryFragment>::@getter::i
       getters
-        get <null-name>
+        get i
           reference: <testLibraryFragment>::@getter::i
           element: <testLibraryFragment>::@getter::i#element
   topLevelVariables
@@ -2888,7 +2888,7 @@ library
           element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
-        get <null-name>
+        get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
   topLevelVariables
@@ -2959,7 +2959,7 @@ library
           element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
-        get <null-name>
+        get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
     <testLibrary>::@fragment::package:test/a.dart
@@ -2972,7 +2972,7 @@ library
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
       getters
-        get <null-name>
+        get a
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
   topLevelVariables
@@ -3026,7 +3026,7 @@ library
           element: <testLibrary>::@topLevelVariable::i
           getter2: <testLibraryFragment>::@getter::i
       getters
-        get <null-name>
+        get i
           reference: <testLibraryFragment>::@getter::i
           element: <testLibraryFragment>::@getter::i#element
   topLevelVariables
@@ -3081,7 +3081,7 @@ library
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get <null-name>
+        get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
@@ -3200,7 +3200,7 @@ library
     static get x
       firstFragment: <testLibrary>::@fragment::package:test/b.dart::@getter::x
   setters
-    static set x=
+    static set x
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@setter::x
       formalParameters
         requiredPositional _
@@ -3248,11 +3248,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get <null-name>
+        get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set <null-name>
+        set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -3269,7 +3269,7 @@ library
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
   setters
-    synthetic static set v=
+    synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
@@ -3320,11 +3320,11 @@ library
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
       getters
-        get <null-name>
+        get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       setters
-        set <null-name>
+        set a
           reference: <testLibraryFragment>::@setter::a
           element: <testLibraryFragment>::@setter::a#element
           formalParameters
@@ -3341,7 +3341,7 @@ library
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
   setters
-    synthetic static set a=
+    synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
@@ -3391,11 +3391,11 @@ library
           getter2: <testLibraryFragment>::@getter::a
           setter2: <testLibraryFragment>::@setter::a
       getters
-        get <null-name>
+        get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       setters
-        set <null-name>
+        set a
           reference: <testLibraryFragment>::@setter::a
           element: <testLibraryFragment>::@setter::a#element
           formalParameters
@@ -3412,7 +3412,7 @@ library
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
   setters
-    synthetic static set a=
+    synthetic static set a
       firstFragment: <testLibraryFragment>::@setter::a
       formalParameters
         requiredPositional _a
@@ -3497,7 +3497,7 @@ library
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get <null-name>
+        get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
@@ -3580,20 +3580,20 @@ library
           getter2: <testLibraryFragment>::@getter::j
           setter2: <testLibraryFragment>::@setter::j
       getters
-        get <null-name>
+        get i
           reference: <testLibraryFragment>::@getter::i
           element: <testLibraryFragment>::@getter::i#element
-        get <null-name>
+        get j
           reference: <testLibraryFragment>::@getter::j
           element: <testLibraryFragment>::@getter::j#element
       setters
-        set <null-name>
+        set i
           reference: <testLibraryFragment>::@setter::i
           element: <testLibraryFragment>::@setter::i#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::i::@parameter::_i#element
-        set <null-name>
+        set j
           reference: <testLibraryFragment>::@setter::j
           element: <testLibraryFragment>::@setter::j#element
           formalParameters
@@ -3618,12 +3618,12 @@ library
     synthetic static get j
       firstFragment: <testLibraryFragment>::@getter::j
   setters
-    synthetic static set i=
+    synthetic static set i
       firstFragment: <testLibraryFragment>::@setter::i
       formalParameters
         requiredPositional _i
           type: int
-    synthetic static set j=
+    synthetic static set j
       firstFragment: <testLibraryFragment>::@setter::j
       formalParameters
         requiredPositional _j
@@ -4020,7 +4020,7 @@ library
       type: int
       setter: <testLibraryFragment>::@setter::foo#element
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _
@@ -4115,11 +4115,11 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
-        set <null-name>
+        set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
@@ -4145,7 +4145,7 @@ library
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
-    synthetic static set foo=
+    synthetic static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional _foo
@@ -4236,7 +4236,7 @@ library
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get <null-name>
+        get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart

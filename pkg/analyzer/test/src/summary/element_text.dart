@@ -262,14 +262,6 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(element.nonSynthetic2, same(element));
   }
 
-  String _elementName(Element2 e) {
-    var name = e.name3 ?? '<null-name>';
-    if (e is SetterElement) {
-      expect(name, endsWith('='));
-    }
-    return name;
-  }
-
   void _writeConstructorElement(ConstructorElement2 e) {
     // Check that the reference exists, and filled with the element.
     // var reference = e.reference;
@@ -455,7 +447,8 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeElementName(Element2 e) {
-    _sink.write(_elementName(e));
+    var name = e.name3 ?? '<null-name>';
+    _sink.write(name);
   }
 
   void _writeElementReference(String name, Element2? e) {

@@ -497,11 +497,12 @@ class LibraryAnalyzer {
       errorReporter,
     ));
 
-    unit.accept(RedeclareVerifier(
-      _inheritance,
-      _libraryElement,
-      errorReporter,
-    ));
+    unit.accept(
+      RedeclareVerifier(
+        _inheritance,
+        errorReporter,
+      ),
+    );
 
     TodoFinder(errorReporter).findIn(unit);
     LanguageVersionOverrideVerifier(errorReporter).verify(unit);

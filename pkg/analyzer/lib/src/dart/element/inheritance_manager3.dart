@@ -1132,8 +1132,10 @@ class InheritanceManager3 {
 
     if (first is MethodElement) {
       var firstMethod = first;
+      var fragmentName = first.asElement2.firstFragment.name2;
       var result = MethodElementImpl(firstMethod.name, -1);
       result.enclosingElement3 = targetClass;
+      result.name2 = fragmentName;
       result.typeParameters = resultType.typeFormals;
       result.returnType = resultType.returnType;
       result.parameters = resultType.parameters;
@@ -1145,10 +1147,12 @@ class InheritanceManager3 {
       return result;
     } else {
       var firstAccessor = first as PropertyAccessorElement;
+      var fragmentName = first.asElement2.firstFragment.name2;
       var variableName = firstAccessor.displayName;
 
       var result = PropertyAccessorElementImpl(variableName, -1);
       result.enclosingElement3 = targetClass;
+      result.name2 = fragmentName;
       result.isGetter = firstAccessor.isGetter;
       result.isSetter = firstAccessor.isSetter;
       result.returnType = resultType.returnType;
@@ -1156,6 +1160,7 @@ class InheritanceManager3 {
 
       var field = FieldElementImpl(variableName, -1);
       field.enclosingElement3 = targetClass;
+      field.name2 = fragmentName;
       if (firstAccessor.isGetter) {
         field.getter = result;
         field.type = result.returnType;
@@ -1350,6 +1355,29 @@ class Name {
 
   @override
   String toString() => libraryUri != null ? '$libraryUri::$name' : name;
+
+  /// Returns the name that corresponds to [element].
+  ///
+  /// If the element is private, the name includes the library URI.
+  ///
+  /// If the name is a setter, the name ends with `=`.
+  static Name? forElement(ExecutableElement2 element) {
+    var name = element.name3;
+    if (name == null) {
+      return null;
+    }
+
+    if (element is SetterElement) {
+      name = '$name=';
+    }
+
+    if (name.startsWith('_')) {
+      var libraryUri = element.firstFragment.libraryFragment.source.uri;
+      return Name(libraryUri, name);
+    } else {
+      return Name(null, name);
+    }
+  }
 }
 
 /// Failure because of not unique extension type member.

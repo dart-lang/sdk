@@ -1129,7 +1129,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement3;
-      if (enclosing is ClassElement && enclosing.isMixinApplication) {
+      if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
         var superInvocation = constructor.constantInitializers
             .whereType<SuperConstructorInvocation>()
             .singleOrNull;

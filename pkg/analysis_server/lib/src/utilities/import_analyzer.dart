@@ -320,9 +320,20 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   /// in [node].
   LibraryImport? _getImportForElement(AstNode? node, Element2 element) {
     var prefix = _getPrefixFromExpression(node)?.name3;
-    var elementName = element.name3;
+
+    var lookupName = () {
+      var name = element.name3;
+      if (name == null) {
+        return null;
+      }
+      if (element is SetterElement) {
+        return '$name=';
+      }
+      return name;
+    }();
+
     // We cannot locate imports for unnamed elements.
-    if (elementName == null) {
+    if (lookupName == null) {
       return null;
     }
 
@@ -332,8 +343,8 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
           // prefix/name.
           var exportedElement =
               prefix != null
-                  ? import.namespace.getPrefixed2(prefix, elementName)
-                  : import.namespace.get2(elementName);
+                  ? import.namespace.getPrefixed2(prefix, lookupName)
+                  : import.namespace.get2(lookupName);
           return exportedElement == element;
         }).firstOrNull;
 
@@ -347,7 +358,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
                     // Because we don't know what prefix we're looking for (any is
                     // allowed), use the imports own prefix when checking for the
                     // element.
-                    import.namespace.getPrefixed2(import.prefix2?.element.name3 ?? '', elementName) ==
+                    import.namespace.getPrefixed2(import.prefix2?.element.name3 ?? '', lookupName) ==
                     element,
               )
               .firstOrNull;

@@ -1422,7 +1422,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  InterfaceElement get enclosingElement3 =>
+  InterfaceElementImpl get enclosingElement3 =>
       super.enclosingElement3 as InterfaceElementImpl;
 
   @override
@@ -1433,7 +1433,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get hasLiteral {
     if (super.hasLiteral) return true;
     var enclosingElement = enclosingElement3;
-    if (enclosingElement is! ExtensionTypeElement) return false;
+    if (enclosingElement is! ExtensionTypeElementImpl) return false;
     return this == enclosingElement.primaryConstructor &&
         enclosingElement.hasLiteral;
   }
@@ -1584,8 +1584,8 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   ConstructorElement2 get baseElement => this;
 
   @override
-  InterfaceElement2 get enclosingElement2 =>
-      (firstFragment._enclosingElement3 as InterfaceFragment).element;
+  InterfaceElementImpl2 get enclosingElement2 =>
+      firstFragment.enclosingElement3.element;
 
   @override
   bool get isConst => firstFragment.isConst;
@@ -1607,6 +1607,11 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
       (firstFragment.redirectedConstructor?.declaration
               as ConstructorElementImpl?)
           ?.element;
+
+  @override
+  InterfaceType get returnType {
+    return firstFragment.returnType;
+  }
 
   @override
   ConstructorElement2? get superConstructor2 =>
@@ -3237,7 +3242,7 @@ abstract class ElementImpl2 implements Element2 {
   List<Element2> get children2 => const [];
 
   @override
-  String get displayName => name3 ?? '';
+  String get displayName => name3 ?? '<unnamed>';
 
   @override
   // TODO(augmentations): implement enclosingElement2
@@ -3396,7 +3401,7 @@ class ElementLocationImpl implements ElementLocation {
         }
         ancestor = ancestor.enclosingElement2;
       } else {
-       components.insert(0, ancestor.identifier);
+        components.insert(0, ancestor.identifier);
         if (ancestor is LocalFunctionElementImpl) {
           ancestor = (ancestor.wrappedElement._enclosingElement3
                   as ExecutableElementImpl)
@@ -5180,7 +5185,7 @@ class GetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.GETTER;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   Element2 get nonSynthetic2 {
@@ -5360,6 +5365,9 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   List<PropertyAccessorElement> accessors = [];
 
   @override
+  List<MethodElement> methods = [];
+
+  @override
   List<MethodElementImpl2> methods2 = [];
 
   @override
@@ -5427,42 +5435,6 @@ abstract class InstanceElementImpl2 extends ElementImpl2
 
   @override
   Metadata get metadata2 => firstFragment.metadata2;
-
-  @override
-  List<MethodElement> get methods {
-    return methods2.map((element) {
-      var firstTypeParameters = firstFragment.typeParameters;
-
-      var lastFragment = element.lastFragment;
-      var lastInstance = lastFragment.enclosingFragment;
-      if (identical(lastInstance, firstFragment)) {
-        return lastFragment;
-      }
-
-      var lastTypeParameters = lastInstance.typeParameters2;
-      if (firstTypeParameters.isEmpty && lastTypeParameters.isEmpty) {
-        return lastFragment;
-      }
-
-      MapSubstitution toFirstFragment;
-      if (lastTypeParameters.length == firstTypeParameters.length) {
-        toFirstFragment = Substitution.fromPairs(
-          lastTypeParameters,
-          firstTypeParameters.instantiateNone(),
-        );
-      } else {
-        toFirstFragment = Substitution.fromPairs(
-          lastTypeParameters,
-          List.filled(
-            lastTypeParameters.length,
-            InvalidTypeImpl.instance,
-          ),
-        );
-      }
-
-      return MethodMember(lastFragment, toFirstFragment, Substitution.empty);
-    }).toList();
-  }
 
   @override
   String? get name3 => firstFragment.name;
@@ -5777,6 +5749,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   String get displayName => name;
+
+  @override
+  InterfaceElementImpl2 get element;
 
   @override
   List<InterfaceType> get interfaces {
@@ -7699,8 +7674,8 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  InstanceElementImpl get enclosingFragment =>
-      enclosingElement3 as InstanceElementImpl;
+  InstanceFragment? get enclosingFragment =>
+      enclosingElement3 as InstanceFragment;
 
   /// Set whether this class is abstract.
   set isAbstract(bool isAbstract) {
@@ -7733,7 +7708,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  MethodElementImpl? get nextFragment => augmentation;
+  MethodFragment? get nextFragment => augmentation;
 
   @override
   Element get nonSynthetic {
@@ -7744,7 +7719,7 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  MethodElementImpl? get previousFragment => augmentationTarget;
+  MethodFragment? get previousFragment => augmentationTarget;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
@@ -7784,17 +7759,6 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   ElementKind get kind => ElementKind.METHOD;
-
-  MethodElementImpl get lastFragment {
-    var lastFragment = firstFragment;
-    while (true) {
-      if (lastFragment.nextFragment case var nextFragment?) {
-        lastFragment = nextFragment;
-      } else {
-        return lastFragment;
-      }
-    }
-  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -9410,6 +9374,9 @@ class PropertyAccessorElementImpl_ImplicitGetter
   bool get isGetter => true;
 
   @override
+  String? get name2 => variable2.name2;
+
+  @override
   Element get nonSynthetic {
     if (!variable2.isSynthetic) {
       return variable2;
@@ -9466,6 +9433,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   bool get isSetter => true;
+
+  @override
+  String? get name2 => variable2.name2;
 
   @override
   Element get nonSynthetic => variable2;
@@ -9727,15 +9697,6 @@ class SetterElementImpl extends ExecutableElementImpl2
       firstFragment.correspondingGetter2?.element as GetterElement?;
 
   @override
-  String get displayName {
-    if (name3 case var name?) {
-      return name.substring(0, name.length - 1);
-    } else {
-      return '<null-name>';
-    }
-  }
-
-  @override
   Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
 
   @override
@@ -9745,7 +9706,7 @@ class SetterElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.SETTER;
 
   @override
-  String? get name3 => firstFragment.name;
+  String? get name3 => firstFragment.name2;
 
   @override
   Element2 get nonSynthetic2 {
@@ -10653,8 +10614,8 @@ mixin TypeParameterizedElementMixin on ElementImpl
   }
 
   @override
-  List<TypeParameterElementImpl> get typeParameters2 =>
-      typeParameters.cast<TypeParameterElementImpl>();
+  List<TypeParameterFragment> get typeParameters2 =>
+      typeParameters.cast<TypeParameterFragment>();
 
   List<TypeParameterElement> get typeParameters_unresolved {
     return _typeParameters;

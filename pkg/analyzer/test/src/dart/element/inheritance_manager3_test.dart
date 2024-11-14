@@ -1145,7 +1145,7 @@ class X extends A implements B {}
     _assertGetMember4(
       className: 'X',
       name: 'foo=',
-      expected: 'B.foo=: void Function(Object?)',
+      expected: 'B.foo: void Function(Object?)',
     );
   }
 
@@ -1165,7 +1165,7 @@ abstract class X extends A implements B {}
     _assertGetMember4(
       className: 'X',
       name: 'foo=',
-      expected: 'X.foo=: void Function(Future<Object?>)',
+      expected: 'X.foo: void Function(Future<Object?>)',
     );
   }
 

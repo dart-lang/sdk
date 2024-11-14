@@ -283,3 +283,9 @@ extension ParameterElementExtension on ParameterElement {
     return declaration as ParameterElementImpl;
   }
 }
+
+extension TypeParameterElement2Extension on TypeParameterElement2 {
+  TypeParameterElement get asElement {
+    return firstFragment as TypeParameterElement;
+  }
+}

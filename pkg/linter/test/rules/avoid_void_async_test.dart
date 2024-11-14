@@ -145,6 +145,17 @@ void get f => null;
 ''');
   }
 
+  test_localFunction_async() async {
+    await assertDiagnostics(r'''
+Future<void> f() async {
+  void g() async {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 32, 1),
+      lint(32, 1),
+    ]);
+  }
+
   test_main_async() async {
     await assertNoDiagnostics(r'''
 Future<void> f() async { }

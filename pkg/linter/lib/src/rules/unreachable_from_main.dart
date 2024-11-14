@@ -92,14 +92,22 @@ class _DeclarationGatherer {
     required Element2? containerElement,
     required List<ClassMember> members,
   }) {
-    bool isOverride(String? rawName) {
-      if (rawName == null || containerElement is! InterfaceElement2) {
+    bool isOverride(ExecutableElement2? element) {
+      if (containerElement is! InterfaceElement2) {
         return false;
       }
-      var libraryUri = containerElement.library2.firstFragment.source.uri;
-      var name = Name(libraryUri, rawName);
+
+      if (element == null) {
+        return false;
+      }
+
+      var nameObj = Name.forElement(element);
+      if (nameObj == null) {
+        return false;
+      }
+
       var inheritance = linterContext.inheritanceManager;
-      return inheritance.getOverridden(containerElement, name) != null;
+      return inheritance.getOverridden(containerElement, nameObj) != null;
     }
 
     for (var member in members) {
@@ -112,8 +120,8 @@ class _DeclarationGatherer {
         case FieldDeclaration():
           for (var field in member.fields.variables) {
             var element = field.declaredFragment?.element;
-            if (element != null && element.isPublic) {
-              if (!isOverride(element.name3)) {
+            if (element is FieldElement2 && element.isPublic) {
+              if (!isOverride(element.getter2)) {
                 declarations.add(field);
               }
             }
@@ -126,7 +134,7 @@ class _DeclarationGatherer {
                 rawName.startsWith('solo_test_') ||
                 rawName == 'setUp' ||
                 rawName == 'tearDown';
-            if (!isOverride(element.name3) && !isTestMethod) {
+            if (!isOverride(element) && !isTestMethod) {
               declarations.add(member);
             }
           }

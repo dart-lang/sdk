@@ -545,21 +545,33 @@ extension InhertanceManager3Extension on InheritanceManager3 {
   /// Returns the class member that is overridden by [member], if there is one,
   /// as defined by [getInherited].
   ExecutableElement2? overriddenMember2(Element2? member) {
-    if (member == null) {
+    ExecutableElement2? executable;
+    switch (member) {
+      case FieldElement2():
+        executable = member.getter2;
+      case GetterElement():
+        executable = member;
+      case MethodElement2():
+        executable = member;
+      case SetterElement():
+        executable = member;
+    }
+
+    if (executable == null) {
       return null;
     }
 
-    var interfaceElement = member.thisOrAncestorOfType2<InterfaceElement2>();
-    if (interfaceElement == null) {
-      return null;
-    }
-    var name = member.name3;
-    if (name == null) {
+    var interfaceElement = executable.enclosingElement2;
+    if (interfaceElement is! InterfaceElement2) {
       return null;
     }
 
-    var libraryUri = interfaceElement.library2.firstFragment.source.uri;
-    return getInherited3(interfaceElement.thisType, Name(libraryUri, name));
+    var nameObj = Name.forElement(executable);
+    if (nameObj == null) {
+      return null;
+    }
+
+    return getInherited3(interfaceElement.thisType, nameObj);
   }
 }
 

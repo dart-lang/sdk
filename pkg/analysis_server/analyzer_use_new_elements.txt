@@ -52,9 +52,6 @@ lib/src/services/correction/dart/add_extension_override.dart
 lib/src/services/correction/dart/create_extension_member.dart
 lib/src/services/correction/dart/import_library.dart
 lib/src/services/correction/dart/use_different_division_operator.dart
-lib/src/services/correction/fix/data_driven/element_matcher.dart
-lib/src/services/correction/fix/data_driven/rename_parameter.dart
-lib/src/services/correction/fix/data_driven/replaced_by.dart
 lib/src/services/correction/namespace.dart
 lib/src/services/correction/util.dart
 lib/src/services/flutter/class_description.dart
@@ -110,4 +107,3 @@ test/services/refactoring/legacy/rename_library_test.dart
 test/services/search/element_visitors_test.dart
 test/services/search/hierarchy_test.dart
 test/services/search/search_engine_test.dart
-tool/code_completion/try_hypothesis.dart

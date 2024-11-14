@@ -127,6 +127,7 @@ source_set("binaryen_sources") {
   include_dirs += [ "$target_gen_dir" ]
 
   configs += [
+    "//build/config/compiler:cxx_version_17",
     "//build/config/compiler:enable_exceptions",
     ":binaryen_flags",
   ]
@@ -148,6 +149,7 @@ template("wasm_tool") {
     forward_variables_from(invoker, "*")
 
     configs += [
+      "//build/config/compiler:cxx_version_17",
       "//build/config/compiler:enable_exceptions",
       ":binaryen_flags",
     ]

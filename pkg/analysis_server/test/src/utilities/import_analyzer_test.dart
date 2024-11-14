@@ -211,7 +211,7 @@ int v2 = 0;
         element<ExtensionElement2>(name: 'X1'),
         element<TopLevelFunctionElement>(name: 'f1'),
         element<GetterElement>(name: 'g1'),
-        element<SetterElement>(name: 's1='),
+        element<SetterElement>(name: 's1'),
         element<TopLevelVariableElement2>(name: 'v1'),
       ],
       expectedStayingDeclarations: [
@@ -225,7 +225,7 @@ int v2 = 0;
         element<ExtensionElement2>(name: 'X2'),
         element<TopLevelFunctionElement>(name: 'f2'),
         element<GetterElement>(name: 'g2'),
-        element<SetterElement>(name: 's2='),
+        element<SetterElement>(name: 's2'),
         element<TopLevelVariableElement2>(name: 'v2'),
       ],
     );
@@ -675,7 +675,7 @@ int set s(x) {}
 !]
 ''',
       expectedStayingReferences: {
-        element<SetterElement>(name: 's='): [''],
+        element<SetterElement>(name: 's'): [''],
       },
     );
   }
@@ -691,7 +691,7 @@ void f() {
 !]
 ''',
       expectedMovingReferences: {
-        element<SetterElement>(name: 's='): [''],
+        element<SetterElement>(name: 's'): [''],
       },
     );
   }
@@ -707,7 +707,7 @@ set v(num _) {}
 !]
 ''',
       expectedStayingReferences: {
-        element<SetterElement>(name: 'v='): [''],
+        element<SetterElement>(name: 'v'): [''],
         element<GetterElement>(name: 'v'): [''],
       },
     );
@@ -724,7 +724,7 @@ void f() => v += 1;
 !]
 ''',
       expectedMovingReferences: {
-        element<SetterElement>(name: 'v='): [''],
+        element<SetterElement>(name: 'v'): [''],
         element<GetterElement>(name: 'v'): [''],
       },
     );
@@ -799,7 +799,7 @@ set v(num _) {}
 !]
 ''',
       expectedStayingReferences: {
-        element<SetterElement>(name: 'v='): [''],
+        element<SetterElement>(name: 'v'): [''],
         element<GetterElement>(name: 'v'): [''],
       },
     );
@@ -816,7 +816,7 @@ void f() => v++;
 !]
 ''',
       expectedMovingReferences: {
-        element<SetterElement>(name: 'v='): [''],
+        element<SetterElement>(name: 'v'): [''],
         element<GetterElement>(name: 'v'): [''],
       },
     );
@@ -863,7 +863,7 @@ set v(num _) {}
 !]
 ''',
       expectedStayingReferences: {
-        element<SetterElement>(name: 'v='): [''],
+        element<SetterElement>(name: 'v'): [''],
         element<GetterElement>(name: 'v'): [''],
       },
     );
@@ -880,7 +880,7 @@ void f() => ++v;
 !]
 ''',
       expectedMovingReferences: {
-        element<SetterElement>(name: 'v='): [''],
+        element<SetterElement>(name: 'v'): [''],
         element<GetterElement>(name: 'v'): [''],
       },
     );

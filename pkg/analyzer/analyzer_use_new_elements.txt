@@ -114,14 +114,9 @@ lib/src/error/imports_verifier.dart
 lib/src/error/inheritance_override.dart
 lib/src/error/literal_element_verifier.dart
 lib/src/error/must_call_super_verifier.dart
-lib/src/error/null_safe_api_verifier.dart
 lib/src/error/nullable_dereference_verifier.dart
 lib/src/error/override_verifier.dart
-lib/src/error/redeclare_verifier.dart
 lib/src/error/required_parameters_verifier.dart
-lib/src/error/return_type_verifier.dart
-lib/src/error/super_formal_parameters_verifier.dart
-lib/src/error/type_arguments_verifier.dart
 lib/src/error/unused_local_elements_verifier.dart
 lib/src/error/use_result_verifier.dart
 lib/src/generated/element_resolver.dart
@@ -326,9 +321,7 @@ test/src/task/strong/inferred_type_test.dart
 test/src/utilities/extensions/analysis_session_test.dart
 test/src/utilities/extensions/library_element_test.dart
 test/src/wolf/ir/ast_to_ir_test.dart
-test/src/workspace/blaze_test.dart
 test/util/element_printer.dart
 test/util/element_type_matchers.dart
 test/util/id_testing_helper.dart
 test/utils.dart
-tool/benchmark/heap/flutter_elements.dart

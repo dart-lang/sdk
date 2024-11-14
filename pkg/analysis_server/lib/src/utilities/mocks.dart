@@ -6,11 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -162,32 +159,7 @@ class TestPluginManager implements PluginManager {
       StreamController.broadcast();
 
   @override
-  String get byteStorePath {
-    fail('Unexpected invocation of byteStorePath');
-  }
-
-  @override
-  InstrumentationService get instrumentationService {
-    fail('Unexpected invocation of instrumentationService');
-  }
-
-  @override
-  AbstractNotificationManager get notificationManager {
-    fail('Unexpected invocation of notificationManager');
-  }
-
-  @override
   Stream<void> get pluginsChanged => pluginsChangedController.stream;
-
-  @override
-  ResourceProvider get resourceProvider {
-    fail('Unexpected invocation of resourceProvider');
-  }
-
-  @override
-  String get sdkPath {
-    fail('Unexpected invocation of sdkPath');
-  }
 
   @override
   Future<void> addPluginToContextRoot(
@@ -203,27 +175,19 @@ class TestPluginManager implements PluginManager {
     analyzer.ContextRoot? contextRoot,
   }) {
     broadcastedRequest = params;
-    return handleRequest?.call(params) ??
-        broadcastResults ??
-        <PluginInfo, Future<plugin.Response>>{};
+    return handleRequest?.call(params) ?? broadcastResults ?? {};
   }
 
   @override
   Future<List<Future<plugin.Response>>> broadcastWatchEvent(
     WatchEvent watchEvent,
   ) async {
-    return <Future<plugin.Response>>[];
+    return [];
   }
 
   @override
-  PluginFiles filesFor(String pluginPath) {
-    fail('Unexpected invocation of filesFor');
-  }
-
-  @override
-  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot? contextRoot) {
-    fail('Unexpected invocation of pluginsForContextRoot');
-  }
+  dynamic noSuchMethod(Invocation invocation) =>
+      fail('Unexpected invocation of ${invocation.memberName}');
 
   @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
@@ -233,7 +197,6 @@ class TestPluginManager implements PluginManager {
   @override
   Future<void> restartPlugins() async {
     // Nothing to restart.
-    return;
   }
 
   @override
@@ -255,10 +218,5 @@ class TestPluginManager implements PluginManager {
     plugin.AnalysisUpdateContentParams params,
   ) {
     analysisUpdateContentParams = params;
-  }
-
-  @override
-  Future<List<void>> stopAll() async {
-    fail('Unexpected invocation of stopAll');
   }
 }

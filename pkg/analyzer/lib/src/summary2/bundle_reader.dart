@@ -147,6 +147,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
       augmented.fields = reader.readElementList();
       augmented.constructors = reader.readElementList();
       augmented.accessors = reader.readElementList();
+      augmented.methods = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();
@@ -371,6 +372,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
       augmented.fields = reader.readElementList();
       augmented.constructors = reader.readElementList();
       augmented.accessors = reader.readElementList();
+      augmented.methods = reader.readElementList();
     }
     applyConstantOffsets?.perform();
   }
@@ -403,6 +405,7 @@ class ExtensionElementLinkedData
       var augmented = element.augmentedInternal;
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
+      augmented.methods = reader.readElementList();
       augmented.extendedType = extendedType;
     }
 
@@ -439,6 +442,7 @@ class ExtensionTypeElementLinkedData
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
       augmented.constructors = reader.readElementList();
+      augmented.methods = reader.readElementList();
       augmented
         ..primaryConstructor = element.constructors.first
         ..representation = element.fields.first
@@ -1584,8 +1588,8 @@ class LibraryReader {
           var variableFragment = TopLevelVariableElementImpl(name, -1)
             ..enclosingElement3 = enclosingElement
             ..reference = propertyFragmentReference
-            ..isSynthetic = true;
-          variableFragment.name2 = accessor.name2;
+            ..isSynthetic = true
+            ..name2 = accessor.name2;
           propertyFragment = variableFragment;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(variableFragment);
@@ -1606,7 +1610,8 @@ class LibraryReader {
             ..enclosingElement3 = enclosingElement
             ..reference = propertyFragmentReference
             ..isStatic = accessor.isStatic
-            ..isSynthetic = true;
+            ..isSynthetic = true
+            ..name2 = accessor.name2;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(propertyFragment);
         }
@@ -1942,6 +1947,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
       augmented.interfaces = reader._readInterfaceTypeList();
       augmented.fields = reader.readElementList();
       augmented.accessors = reader.readElementList();
+      augmented.methods = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();
