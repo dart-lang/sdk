@@ -196,12 +196,17 @@ abstract interface class TypeAnalyzerOperations<
   @override
   bool isNever(SharedTypeView<TypeStructure> type);
 
-  /// Returns `true` if `Null` is not a subtype of all types matching
-  /// [typeSchema].
+  /// Returns `true` if `Null` is a subtype of all types matching [type].
   ///
-  /// The predicate of [isNonNullable] could be computed directly with a subtype
-  /// query, but the implementations can do that more efficiently.
-  bool isNonNullable(SharedTypeSchemaView<TypeStructure> typeSchema);
+  /// The predicate of [isNullableInternal] could be computed directly with a
+  /// subtype query, but the implementations can do that more efficiently.
+  bool isNullableInternal(TypeStructure type);
+
+  /// Returns `true` if `Null` is not a subtype of all types matching [type].
+  ///
+  /// The predicate of [isNonNullableInternal] could be computed directly with
+  /// a subtype query, but the implementations can do that more efficiently.
+  bool isNonNullableInternal(TypeStructure type);
 
   /// Returns `true` if [type] is `Null`.
   bool isNull(SharedTypeView<TypeStructure> type);
@@ -943,12 +948,12 @@ abstract class TypeConstraintGenerator<
   /// Add constraint: [lower] <: [typeParameter] <: TOP.
   void addLowerConstraintForParameter(
       TypeParameterStructure typeParameter, TypeStructure lower,
-      {required AstNode? nodeForTesting});
+      {required AstNode? astNodeForTesting});
 
   /// Add constraint: BOTTOM <: [typeParameter] <: [upper].
   void addUpperConstraintForParameter(
       TypeParameterStructure typeParameter, TypeStructure upper,
-      {required AstNode? nodeForTesting});
+      {required AstNode? astNodeForTesting});
 
   /// Returns the type arguments of the supertype of [type] that is an
   /// instantiation of [typeDeclaration]. If none of the supertypes of [type]
@@ -1543,6 +1548,9 @@ abstract class TypeConstraintGenerator<
     return false;
   }
 
+  /// Type parameters being constrained by [TypeConstraintGenerator].
+  Iterable<TypeParameterStructure> get typeParametersToConstrain;
+
   /// Implementation backing [performSubtypeConstraintGenerationLeftSchema] and
   /// [performSubtypeConstraintGenerationRightSchema].
   ///
@@ -1568,7 +1576,154 @@ abstract class TypeConstraintGenerator<
   /// [performSubtypeConstraintGenerationRightSchema] from the mixin.
   bool performSubtypeConstraintGenerationInternal(
       TypeStructure p, TypeStructure q,
-      {required bool leftSchema, required AstNode? astNodeForTesting});
+      {required bool leftSchema, required AstNode? astNodeForTesting}) {
+    // If `P` is `_` then the match holds with no constraints.
+    if (p is SharedUnknownTypeStructure) {
+      return true;
+    }
+
+    // If `Q` is `_` then the match holds with no constraints.
+    if (q is SharedUnknownTypeStructure) {
+      return true;
+    }
+
+    // If `P` is a type variable `X` in `L`, then the match holds:
+    //   Under constraint `_ <: X <: Q`.
+    NullabilitySuffix pNullability = p.nullabilitySuffix;
+    if (typeAnalyzerOperations.matchInferableParameter(new SharedTypeView(p))
+        case var pParameter?
+        when pNullability == NullabilitySuffix.none &&
+            typeParametersToConstrain.contains(pParameter)) {
+      addUpperConstraintForParameter(pParameter, q,
+          astNodeForTesting: astNodeForTesting);
+      return true;
+    }
+
+    // If `Q` is a type variable `X` in `L`, then the match holds:
+    //   Under constraint `P <: X <: _`.
+    NullabilitySuffix qNullability = q.nullabilitySuffix;
+    if (typeAnalyzerOperations.matchInferableParameter(new SharedTypeView(q))
+        case var qParameter?
+        when qNullability == NullabilitySuffix.none &&
+            typeParametersToConstrain.contains(qParameter) &&
+            (!inferenceUsingBoundsIsEnabled ||
+                (qParameter.bound == null ||
+                    typeAnalyzerOperations.isSubtypeOfInternal(
+                        p,
+                        typeAnalyzerOperations.greatestClosureOfTypeInternal(
+                            qParameter.bound!,
+                            [...typeParametersToConstrain]))))) {
+      addLowerConstraintForParameter(qParameter, p,
+          astNodeForTesting: astNodeForTesting);
+      return true;
+    }
+
+    // If `P` and `Q` are identical types, then the subtype match holds
+    // under no constraints.
+    if (p == q) {
+      return true;
+    }
+
+    // Note that it's not necessary to rewind [_constraints] to its prior state
+    // in case [performSubtypeConstraintGenerationForFutureOr] returns false, as
+    // [performSubtypeConstraintGenerationForFutureOr] handles the rewinding of
+    // the state itself.
+    if (performSubtypeConstraintGenerationForRightFutureOr(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    if (performSubtypeConstraintGenerationForRightNullableType(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    // If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:
+    if (performSubtypeConstraintGenerationForLeftFutureOr(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    // If `P` is `P0?` the match holds under constraint set `C1 + C2`:
+    if (performSubtypeConstraintGenerationForLeftNullableType(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    // If `Q` is `dynamic`, `Object?`, or `void` then the match holds under
+    // no constraints.
+    if (q is SharedDynamicTypeStructure ||
+        q is SharedVoidTypeStructure ||
+        q == typeAnalyzerOperations.objectQuestionType.unwrapTypeView()) {
+      return true;
+    }
+
+    // If `P` is `Never` then the match holds under no constraints.
+    if (typeAnalyzerOperations.isNever(new SharedTypeView(p))) {
+      return true;
+    }
+
+    // If `Q` is `Object`, then the match holds under no constraints:
+    //  Only if `P` is non-nullable.
+    if (q == typeAnalyzerOperations.objectType.unwrapTypeView()) {
+      return typeAnalyzerOperations.isNonNullableInternal(p);
+    }
+
+    // If `P` is `Null`, then the match holds under no constraints:
+    //  Only if `Q` is nullable.
+    if (pNullability == NullabilitySuffix.none &&
+        typeAnalyzerOperations.isNull(new SharedTypeView(p))) {
+      return typeAnalyzerOperations.isNullableInternal(q);
+    }
+
+    // If `P` is a type variable `X` with bound `B` (or a promoted type
+    // variable `X & B`), the match holds with constraint set `C`:
+    //   If `B` is a subtype match for `Q` with constraint set `C`.
+    // Note: we have already eliminated the case that `X` is a variable in `L`.
+    if (typeAnalyzerOperations.matchTypeParameterBoundInternal(p)
+        case var bound?) {
+      if (performSubtypeConstraintGenerationInternal(bound, q,
+          leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+        return true;
+      }
+    }
+
+    bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(
+        p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
+    if (result != null) {
+      return result;
+    }
+
+    // If `Q` is `Function` then the match holds under no constraints:
+    //   If `P` is a function type.
+    if (typeAnalyzerOperations.isDartCoreFunction(new SharedTypeView(q))) {
+      if (p is SharedFunctionTypeStructure) {
+        return true;
+      }
+    }
+
+    if (performSubtypeConstraintGenerationForFunctionTypes(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    // A type `P` is a subtype match for `Record` with respect to `L` under no
+    // constraints:
+    //   If `P` is a record type or `Record`.
+    if (typeAnalyzerOperations.isDartCoreRecord(new SharedTypeView(q))) {
+      if (p is SharedRecordTypeStructure<TypeStructure>) {
+        return true;
+      }
+    }
+
+    if (performSubtypeConstraintGenerationForRecordTypes(p, q,
+        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
+      return true;
+    }
+
+    return false;
+  }
 
   /// Matches type schema [p] against type [q] as a subtype against supertype,
   /// assuming [p] is the constraining type schema, and [q] contains the type

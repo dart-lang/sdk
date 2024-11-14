@@ -769,14 +769,13 @@ class GenericInferrer {
 
     DartType typeParameterToInferBound = typeParameterToInfer.bound!;
     TypeConstraintGatherer typeConstraintGatherer = TypeConstraintGatherer(
-        typeSystem: _typeSystem,
         typeSystemOperations: _typeSystemOperations,
         typeParameters: _typeFormals,
         inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         dataForTesting: null);
-    typeConstraintGatherer.trySubtypeMatch(
-        lower, typeParameterToInferBound, /* leftSchema */ true,
-        nodeForTesting: null);
+    typeConstraintGatherer.performSubtypeConstraintGenerationInternal(
+        lower, typeParameterToInferBound,
+        leftSchema: true, astNodeForTesting: null);
     var constraintsPerTypeVariable =
         typeConstraintGatherer.computeConstraints();
     for (var typeParameter in constraintsPerTypeVariable.keys) {
@@ -887,13 +886,12 @@ class GenericInferrer {
       {required bool covariant,
       required AstNode? nodeForTesting}) {
     var gatherer = TypeConstraintGatherer(
-        typeSystem: _typeSystem,
         typeParameters: _typeParameters,
         typeSystemOperations: _typeSystemOperations,
         inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         dataForTesting: dataForTesting);
-    var success = gatherer.trySubtypeMatch(t1, t2, !covariant,
-        nodeForTesting: nodeForTesting);
+    var success = gatherer.performSubtypeConstraintGenerationInternal(t1, t2,
+        leftSchema: !covariant, astNodeForTesting: nodeForTesting);
     if (success) {
       var constraints = gatherer.computeConstraints();
       for (var entry in constraints.entries) {

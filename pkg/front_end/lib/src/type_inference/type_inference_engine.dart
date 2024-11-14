@@ -926,12 +926,6 @@ class OperationsCfe
   }
 
   @override
-  bool isNonNullable(SharedTypeSchemaView<DartType> typeSchema) {
-    return typeSchema.unwrapTypeSchemaView().nullability ==
-        Nullability.nonNullable;
-  }
-
-  @override
   StructuralParameter? matchInferableParameter(SharedTypeView<DartType> type) {
     DartType unwrappedType = type.unwrapTypeView();
     if (unwrappedType is StructuralParameterType) {
@@ -1029,6 +1023,16 @@ class OperationsCfe
     } else {
       return null;
     }
+  }
+
+  @override
+  bool isNonNullableInternal(DartType type) {
+    return type.nullability == Nullability.nonNullable;
+  }
+
+  @override
+  bool isNullableInternal(DartType type) {
+    return type.nullability == Nullability.nullable;
   }
 }
 

@@ -579,13 +579,18 @@ class TypeSystemOperations
   }
 
   @override
-  bool isNonNullable(SharedTypeSchemaView<DartType> typeSchema) {
-    return typeSystem.isNonNullable(typeSchema.unwrapTypeSchemaView());
+  bool isNonNullableInternal(DartType type) {
+    return typeSystem.isNonNullable(type);
   }
 
   @override
   bool isNull(SharedTypeView<DartType> type) {
     return type.unwrapTypeView().isDartCoreNull;
+  }
+
+  @override
+  bool isNullableInternal(DartType type) {
+    return typeSystem.isNullable(type);
   }
 
   @override
