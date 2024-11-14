@@ -273,7 +273,7 @@ template("mac_toolchain") {
 # Toolchain used for iOS device targets.
 mac_toolchain("ios_clang_arm64") {
   toolchain_cpu = "arm64"
-  toolchain_os = "mac"
+  toolchain_os = "ios"
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
@@ -296,7 +296,7 @@ mac_toolchain("ios_clang_arm64") {
 # Toolchain used for iOS simulator targets (arm64).
 mac_toolchain("ios_clang_arm64_sim") {
   toolchain_cpu = "arm64"
-  toolchain_os = "mac"
+  toolchain_os = "ios"
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
@@ -320,7 +320,7 @@ mac_toolchain("ios_clang_arm64_sim") {
 # Toolchain used for iOS simulator targets (x64).
 mac_toolchain("ios_clang_x64_sim") {
   toolchain_cpu = "x64"
-  toolchain_os = "mac"
+  toolchain_os = "ios"
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
