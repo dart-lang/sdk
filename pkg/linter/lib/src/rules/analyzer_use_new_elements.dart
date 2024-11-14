@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Use new element model in opted-in files.';
 
@@ -54,6 +55,15 @@ bool _isOldModelElement(Element2? element) {
 }
 
 bool _isOldModelType(DartType? type) {
+  if (type is InterfaceType) {
+    if (type.element3.isExactly(
+        'FlowAnalysis',
+        Uri.parse(
+            'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'))) {
+      return false;
+    }
+  }
+
   var visitor = _TypeVisitor();
   type?.accept(visitor);
   return visitor.result;
