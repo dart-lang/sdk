@@ -13,11 +13,9 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:args/args.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 const _analysisOptionsFileOption = 'options';
 const _binaryName = 'dartanalyzer';
-const _defaultLanguageVersionOption = 'default-language-version';
 const _defineVariableOption = 'D';
 const _enableExperimentOption = 'enable-experiment';
 const _enableInitializingFormalAccessFlag = 'initializing-formal-access';
@@ -29,10 +27,6 @@ const _sdkPathOption = 'dart-sdk';
 ///
 /// *Visible for testing.*
 ExitHandler exitHandler = io.exit;
-
-T cast<T>(dynamic value) => value as T;
-
-T? castNullable<T>(dynamic value) => value as T?;
 
 /// Print the given [message] to stderr and exit with the given [exitCode].
 void printAndFail(String message, {int exitCode = 15}) {
@@ -110,30 +104,28 @@ class CommandLineOptions {
     ResourceProvider resourceProvider,
     ArgResults args,
   )   : _argResults = args,
-        dartSdkPath = castNullable(args[_sdkPathOption]),
-        disableCacheFlushing = cast(args['disable-cache-flushing']),
-        displayVersion = cast(args['version']),
-        ignoreUnrecognizedFlags = cast(args[_ignoreUnrecognizedFlagsFlag]),
-        log = cast(args['log']),
+        dartSdkPath = args.option(_sdkPathOption),
+        disableCacheFlushing = args.flag('disable-cache-flushing'),
+        displayVersion = args.flag('version'),
+        ignoreUnrecognizedFlags = args.flag(_ignoreUnrecognizedFlagsFlag),
+        log = args.flag('log'),
         jsonFormat = args['format'] == 'json',
         machineFormat = args['format'] == 'machine',
-        perfReport = castNullable(args['x-perf-report']),
-        batchMode = cast(args['batch']),
+        perfReport = args.option('x-perf-report'),
+        batchMode = args.flag('batch'),
         sourceFiles = args.rest,
-        trainSnapshot = cast(args['train-snapshot']),
-        verbose = cast(args['verbose']),
-        color = cast(args['color']) {
+        trainSnapshot = args.flag('train-snapshot'),
+        verbose = args.flag('verbose'),
+        color = args.flag('color') {
     //
     // File locations.
     //
     defaultAnalysisOptionsPath = _absoluteNormalizedPath(
       resourceProvider,
-      castNullable(args[_analysisOptionsFileOption]),
+      args.option(_analysisOptionsFileOption),
     );
-    defaultPackagesPath = _absoluteNormalizedPath(
-      resourceProvider,
-      castNullable(args[_packagesOption]),
-    );
+    defaultPackagesPath =
+        _absoluteNormalizedPath(resourceProvider, args.option(_packagesOption));
 
     //
     // Declared variables.
@@ -158,15 +150,9 @@ class CommandLineOptions {
     }
   }
 
-  /// The default language version for files that are not in a package.
-  /// (Or null if no default language version to force.)
-  String? get defaultLanguageVersion {
-    return castNullable(_argResults[_defaultLanguageVersionOption]);
-  }
-
   /// A list of the names of the experiments that are to be enabled.
-  List<String>? get enabledExperiments {
-    return castNullable(_argResults[_enableExperimentOption]);
+  List<String> get enabledExperiments {
+    return _argResults.multiOption(_enableExperimentOption);
   }
 
   /// Update the [analysisOptions] with flags that the user specified
@@ -175,16 +161,6 @@ class CommandLineOptions {
   /// flags that the user specified as command line options more important,
   /// so override the corresponding options.
   void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
-    var defaultLanguageVersion = this.defaultLanguageVersion;
-    if (defaultLanguageVersion != null) {
-      var nonPackageLanguageVersion =
-          Version.parse('$defaultLanguageVersion.0');
-      analysisOptions.nonPackageLanguageVersion = nonPackageLanguageVersion;
-      analysisOptions.nonPackageFeatureSet = FeatureSet.latestLanguageVersion()
-          .restrictToVersion(nonPackageLanguageVersion);
-    }
-
-    var enabledExperiments = this.enabledExperiments!;
     if (enabledExperiments.isNotEmpty) {
       analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
@@ -406,10 +382,6 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addOption(_defaultLanguageVersionOption,
-          help: 'The default language version when it is not specified via '
-              'other ways (internal, tests only).',
-          hide: false)
       ..addFlag('disable-cache-flushing', defaultsTo: false, hide: hide)
       ..addOption('x-perf-report',
           help: 'Writes a performance report to the given file (experimental).',
@@ -449,21 +421,21 @@ class CommandLineOptions {
       var results = parser.parse(args);
 
       // Help requests.
-      if (cast(results['help'])) {
+      if (results.flag('help')) {
         _showUsage(parser, fromHelp: true);
         exitHandler(0);
         return null; // Only reachable in testing.
       }
 
       // Batch mode and input files.
-      if (cast(results['batch'])) {
+      if (results.flag('batch')) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln('No source files expected in the batch mode.');
           _showUsage(parser);
           exitHandler(15);
           return null; // Only reachable in testing.
         }
-      } else if (cast(results['version'])) {
+      } else if (results.flag('version')) {
         outSink.writeln('$_binaryName version ${_getVersion()}');
         exitHandler(0);
         return null; // Only reachable in testing.
@@ -476,8 +448,7 @@ class CommandLineOptions {
       }
 
       if (results.wasParsed(_enableExperimentOption)) {
-        var names =
-            (results[_enableExperimentOption] as List).cast<String>().toList();
+        var names = results.multiOption(_enableExperimentOption);
         var errorFound = false;
         for (var validationResult in validateFlags(names)) {
           if (validationResult.isError) {
