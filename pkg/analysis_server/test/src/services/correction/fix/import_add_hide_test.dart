@@ -21,43 +21,6 @@ class ImportAddHideTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_HIDE;
 
-  Future<void> test_double_aliased() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
-class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
-class N {}''');
-    await resolveTestCode('''
-import 'lib1.dart' as i;
-import 'lib2.dart' as i;
-
-void f(i.N? n) {
-  print(n);
-}
-''');
-    await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Hide others to use 'N' from 'lib1.dart' as i",
-          "Hide others to use 'N' from 'lib2.dart' as i",
-        ]);
-    await assertHasFix('''
-import 'lib1.dart' as i;
-import 'lib2.dart' as i hide N;
-
-void f(i.N? n) {
-  print(n);
-}
-''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart' as i");
-    await assertHasFix('''
-import 'lib1.dart' as i hide N;
-import 'lib2.dart' as i;
-
-void f(i.N? n) {
-  print(n);
-}
-''', matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as i");
-  }
-
   Future<void> test_double() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 class N {}''');
@@ -93,6 +56,43 @@ void f(N? n) {
   print(n);
 }
 ''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart'");
+  }
+
+  Future<void> test_double_aliased() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class N {}''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+class N {}''');
+    await resolveTestCode('''
+import 'lib1.dart' as i;
+import 'lib2.dart' as i;
+
+void f(i.N? n) {
+  print(n);
+}
+''');
+    await assertHasFixesWithoutApplying(
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessages: [
+          "Hide others to use 'N' from 'lib1.dart' as i",
+          "Hide others to use 'N' from 'lib2.dart' as i",
+        ]);
+    await assertHasFix('''
+import 'lib1.dart' as i;
+import 'lib2.dart' as i hide N;
+
+void f(i.N? n) {
+  print(n);
+}
+''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart' as i");
+    await assertHasFix('''
+import 'lib1.dart' as i hide N;
+import 'lib2.dart' as i;
+
+void f(i.N? n) {
+  print(n);
+}
+''', matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as i");
   }
 
   Future<void> test_double_constant() async {
@@ -299,7 +299,14 @@ void f(l.N? n) {
   print(n);
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+import 'lib1.dart' as l show N;
+import 'lib2.dart' as l hide N;
+
+void f(l.N? n) {
+  print(n);
+}
+''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart' as l");
   }
 
   Future<void> test_triple() async {
@@ -404,45 +411,27 @@ class ImportRemoveShowTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
 
-  Future<void> test_triple_twoAliased() async {
+  Future<void> test_double() async {
     newFile('$testPackageLibPath/lib1.dart', '''
-const foo = 0;''');
+class N {}''');
     newFile('$testPackageLibPath/lib2.dart', '''
-const foo = 0;''');
+class N {}''');
     await resolveTestCode('''
-import 'lib1.dart';
-import 'lib1.dart' as lib show foo;
-import 'lib2.dart' as lib;
+import 'lib1.dart' show N;
+import 'lib2.dart' show N;
 
-void f() {
-  print(lib.foo);
+void f(N? n) {
+  print(n);
 }
 ''');
     await assertHasFix('''
-import 'lib1.dart';
-import 'lib1.dart' as lib hide foo;
-import 'lib2.dart' as lib;
+import 'lib1.dart' hide N;
+import 'lib2.dart' show N;
 
-void f() {
-  print(lib.foo);
+void f(N? n) {
+  print(n);
 }
-''', matchFixMessage: "Remove show to use 'foo' from 'lib1.dart' as lib");
-  }
-
-  Future<void> test_double_oneHide() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
-const foo = 0;''');
-    newFile('$testPackageLibPath/lib2.dart', '''
-const foo = 0;''');
-    await resolveTestCode('''
-import 'lib1.dart' hide foo;
-import 'lib2.dart' show foo;
-
-void f() {
-  print(foo);
-}
-''');
-    await assertNoFix();
+''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
   }
 
   Future<void> test_double_aliased() async {
@@ -482,27 +471,20 @@ void f(l.N? n) {
 ''', matchFixMessage: "Remove show to use 'N' from 'lib1.dart' as l");
   }
 
-  Future<void> test_double() async {
+  Future<void> test_double_oneHide() async {
     newFile('$testPackageLibPath/lib1.dart', '''
-class N {}''');
+const foo = 0;''');
     newFile('$testPackageLibPath/lib2.dart', '''
-class N {}''');
+const foo = 0;''');
     await resolveTestCode('''
-import 'lib1.dart' show N;
-import 'lib2.dart' show N;
+import 'lib1.dart' hide foo;
+import 'lib2.dart' show foo;
 
-void f(l.N? n) {
-  print(n);
+void f() {
+  print(foo);
 }
 ''');
-    await assertHasFix('''
-import 'lib1.dart' as l hide N;
-import 'lib2.dart' as l show N;
-
-void f(l.N? n) {
-  print(n);
-}
-''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart' as l");
+    await assertNoFix();
   }
 
   Future<void> test_moreShow() async {
@@ -555,5 +537,30 @@ void f() {
   print(foo);
 }
 ''', matchFixMessage: "Remove show to use 'foo' from 'lib2.dart'");
+  }
+
+  Future<void> test_triple_twoAliased() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+const foo = 0;''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+const foo = 0;''');
+    await resolveTestCode('''
+import 'lib1.dart';
+import 'lib1.dart' as lib show foo;
+import 'lib2.dart' as lib;
+
+void f() {
+  print(lib.foo);
+}
+''');
+    await assertHasFix('''
+import 'lib1.dart';
+import 'lib1.dart' as lib hide foo;
+import 'lib2.dart' as lib;
+
+void f() {
+  print(lib.foo);
+}
+''', matchFixMessage: "Remove show to use 'foo' from 'lib2.dart' as lib");
   }
 }
