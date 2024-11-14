@@ -6981,6 +6981,10 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 ///        [TypeAnnotation])?
 ///        'this' '.' name ([TypeParameterList]? [FormalParameterList])?
 abstract final class FieldFormalParameter implements NormalFormalParameter {
+  @experimental
+  @override
+  FieldFormalParameterFragment? get declaredFragment;
+
   /// The token representing either the `final`, `const` or `var` keyword, or
   /// `null` if no keyword was used.
   Token? get keyword;
@@ -7073,6 +7077,11 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     _becomeParentOf(_type);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
+  }
+
+  @override
+  FieldFormalParameterElementImpl? get declaredFragment {
+    return super.declaredFragment as FieldFormalParameterElementImpl?;
   }
 
   @override

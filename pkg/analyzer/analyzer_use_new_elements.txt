@@ -101,7 +101,6 @@ lib/src/diagnostic/diagnostic_factory.dart
 lib/src/error/assignment_verifier.dart
 lib/src/error/base_or_final_type_verifier.dart
 lib/src/error/best_practices_verifier.dart
-lib/src/error/constructor_fields_verifier.dart
 lib/src/error/correct_override.dart
 lib/src/error/dead_code_verifier.dart
 lib/src/error/deprecated_member_use_verifier.dart
