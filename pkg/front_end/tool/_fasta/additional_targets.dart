@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.tool.additional_targets;
-
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:dart2wasm/target.dart' as wasm show Mode;
 import 'package:dart2wasm/target.dart' show WasmTarget;

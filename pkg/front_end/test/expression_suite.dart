@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.test.expression_test;
-
 import "dart:io" show File, IOSink;
 import 'dart:typed_data' show Uint8List;
 

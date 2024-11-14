@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.tool.additional_targets_test;
-
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:front_end/src/codes/cfe_codes.dart'
     show MessageCode, messageFastaUsageLong;
