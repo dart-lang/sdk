@@ -132,11 +132,11 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "dc13a2f8e667825980cbc1a06ed645620f9bed70", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "24c2a966c253111318dc50813718eaa2816871fa",
+  "dartdoc_rev": "6bbd3d7b535ee4ed889beaeea68d66e54b196aee",
   "ecosystem_rev": "52e4ceb6f0715bab5c47495429c4a2b7ce708a66",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "b6319d6c2880b44039e75dfed80f7ce150f76d51",
-  "http_rev": "03ced4da4fbf62b9a88cf078608cd56ee7e4e0d4",
+  "http_rev": "2f954e13948201f2c1df2b722e5583d0ae85b738",
   "http_multi_server_rev": "c8aabe36268aa38c906eae46728c10d883b9aced",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
@@ -150,7 +150,7 @@ vars = {
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
   "pub_rev": "8c2e621c2403cb503cc9959be387d1061a16846a", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "ab3eab50cc9f3df650ba7f5571aa2a1ea715dcc8",
-  "shelf_rev": "1a141c71e201ed361aabc1d89a21181667f0b39c",
+  "shelf_rev": "0bb44cb7b54f856c4c20ff00eed7f006d865bb3e",
   "source_maps_rev": "b20b97003a48d78a1ecba7e46d932ea4b480dd94",
   "source_span_rev": "f147469ba02108c1ade3680de548b7b447de8c72",
   "sse_rev": "befbd6d35118f59525903242db3888942ac34180",
@@ -164,7 +164,7 @@ vars = {
   "test_descriptor_rev": "71195671e00f2d330a9ebda0bd48f99364bb30f2",
   "test_process_rev": "7c76f470173366ec90525e49961f2ce1fcf516d3",
   "test_reflective_loader_rev": "30a552df6421e1f68cdc33c98c2512984b6f42b9",
-  "tools_rev": "66afa68006679dcfd9cca0410f01a057ff884fa2",
+  "tools_rev": "a6603a45374fc2ed9de4cf0297bde003f141dc9b",
   "vector_math_rev": "ec5080d5e6731bef4deffae78eb778ae787ba92f",
   "watcher_rev": "7a15a903f7ce0737cce7d08ff30402d41b9f7b62",
   "web_rev": "8d243766b45c163a9d18a89de059eba24398d163",
