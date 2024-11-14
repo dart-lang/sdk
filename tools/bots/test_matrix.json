@@ -73,7 +73,6 @@
     "dart2wasm_hostasserts": [
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
-      "out/ReleaseX64/dart_precompiled_runtime",
       "out/ReleaseX64/dartaotruntime",
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2wasm.snapshot",
@@ -2771,7 +2770,7 @@
             "runtime",
             "dart2wasm",
             "create_sdk",
-            "dart_precompiled_runtime"
+            "dartaotruntime"
           ]
         },
         {
@@ -2806,7 +2805,7 @@
             "runtime",
             "dart2wasm",
             "create_sdk",
-            "dart_precompiled_runtime"
+            "dartaotruntime"
           ]
         },
         {
@@ -2839,7 +2838,7 @@
             "runtime",
             "dart2wasm",
             "create_sdk",
-            "dart_precompiled_runtime"
+            "dartaotruntime"
           ]
         },
         {
@@ -2872,7 +2871,7 @@
             "runtime",
             "dart2wasm",
             "create_sdk",
-            "dart_precompiled_runtime"
+            "dartaotruntime"
           ]
         },
         {
@@ -3372,7 +3371,6 @@
             "runtime",
             "gen_snapshot",
             "dartaotruntime",
-            "dart_precompiled_runtime",
             "dart2js_platform.dill",
             "dart2js_platform_unsound.dill",
             "kernel-service.dart.snapshot",
