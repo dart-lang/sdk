@@ -188,7 +188,7 @@ class ErrorHandlerVerifier {
       );
     }
 
-    var parameters = expressionType.parameters;
+    var parameters = expressionType.formalParameters;
     if (parameters.isEmpty) {
       return report();
     }
@@ -226,8 +226,8 @@ class ErrorHandlerVerifier {
       var callbackType = callback.staticType as FunctionType;
       _checkErrorHandlerFunctionType(
           callback, callbackType, expectedReturnType);
-      var catchErrorOnErrorExecutable = EnclosingExecutableContext(
-          callback.declaredElement,
+      var catchErrorOnErrorExecutable = EnclosingExecutableContext.tmp(
+          callback.declaredElement2,
           isAsynchronous: true,
           catchErrorOnErrorReturnType: expectedReturnType);
       var returnStatementVerifier =
@@ -263,8 +263,8 @@ class ErrorHandlerVerifier {
   /// the 'dart:async' library.
   bool _isDartCoreAsyncType(DartType type, String typeName) =>
       type is InterfaceType &&
-      type.element.name == typeName &&
-      type.element.library.isDartAsync;
+      type.element3.name3 == typeName &&
+      type.element3.library2.isDartAsync;
 }
 
 /// Visits a function body, looking for return statements.

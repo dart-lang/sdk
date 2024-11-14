@@ -3789,6 +3789,11 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
     implements ExecutableElement2 {
   @override
   ExecutableElement2 get baseElement => this;
+
+  bool get invokesSuperSelf {
+    var firstFragment = this.firstFragment as ExecutableElementImpl;
+    return firstFragment.hasModifier(Modifier.INVOKES_SUPER_SELF);
+  }
 }
 
 /// A concrete implementation of an [ExtensionElement].
@@ -5478,6 +5483,11 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
+  FieldElement2? getField2(String name) {
+    return fields2.firstWhereOrNull((e) => e.name3 == name);
+  }
+
+  @override
   PropertyAccessorElement? getGetter(String name) {
     var length = accessors.length;
     for (var i = 0; i < length; i++) {
@@ -5487,6 +5497,11 @@ abstract class InstanceElementImpl2 extends ElementImpl2
       }
     }
     return null;
+  }
+
+  @override
+  GetterElement? getGetter2(String name) {
+    return getters2.firstWhereOrNull((e) => e.name3 == name);
   }
 
   @override
@@ -5502,12 +5517,22 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
+  MethodElement2? getMethod2(String name) {
+    return methods2.firstWhereOrNull((e) => e.name3 == name);
+  }
+
+  @override
   PropertyAccessorElement? getSetter(String name) {
     if (!name.endsWith('=')) {
       name += '=';
     }
     return accessors.firstWhereOrNull(
         (accessor) => accessor.isSetter && accessor.name == name);
+  }
+
+  @override
+  SetterElement? getSetter2(String name) {
+    return setters2.firstWhereOrNull((e) => e.name3 == name);
   }
 
   @override
@@ -7058,8 +7083,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl2
   Element2? get enclosingElement2 => null;
 
   @override
-  LocalFunctionFragment get firstFragment =>
-      _wrappedElement as LocalFunctionFragment;
+  FunctionElementImpl get firstFragment => _wrappedElement;
 
   @override
   List<FormalParameterElement> get formalParameters =>

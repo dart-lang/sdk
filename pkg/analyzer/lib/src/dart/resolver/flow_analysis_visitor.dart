@@ -459,7 +459,10 @@ class TypeSystemOperations
   @override
   TypeClassification classifyType(SharedTypeView<DartType> type) {
     DartType unwrapped = type.unwrapTypeView();
-    if (isSubtypeOfInternal(unwrapped, typeSystem.typeProvider.objectType)) {
+    if (type is InvalidType) {
+      return TypeClassification.potentiallyNullable;
+    } else if (isSubtypeOfInternal(
+        unwrapped, typeSystem.typeProvider.objectType)) {
       return TypeClassification.nonNullable;
     } else if (isSubtypeOfInternal(
         unwrapped, typeSystem.typeProvider.nullType)) {

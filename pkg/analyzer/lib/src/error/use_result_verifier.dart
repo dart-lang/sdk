@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.g.dart';
@@ -15,7 +15,7 @@ class UseResultVerifier {
   UseResultVerifier(this._errorReporter);
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var element = node.staticElement;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -24,7 +24,7 @@ class UseResultVerifier {
   }
 
   void checkInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement;
+    var element = node.constructorName.element;
     if (element == null) {
       return;
     }
@@ -33,7 +33,7 @@ class UseResultVerifier {
   }
 
   void checkMethodInvocation(MethodInvocation node) {
-    var element = node.methodName.staticElement;
+    var element = node.methodName.element;
     if (element == null) {
       return;
     }
@@ -42,7 +42,7 @@ class UseResultVerifier {
   }
 
   void checkPropertyAccess(PropertyAccess node) {
-    var element = node.propertyName.staticElement;
+    var element = node.propertyName.element;
     if (element == null) {
       return;
     }
@@ -64,7 +64,7 @@ class UseResultVerifier {
       return;
     }
 
-    var element = node.staticElement;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -72,7 +72,7 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void _check(AstNode node, Element element) {
+  void _check(AstNode node, Element2 element) {
     var parent = node.parent;
     if (parent is PrefixedIdentifier) {
       parent = parent.parent;
@@ -123,7 +123,7 @@ class UseResultVerifier {
   }
 
   String? _getUseResultMessage(ElementAnnotation annotation) {
-    if (annotation.element is PropertyAccessorElement) {
+    if (annotation.element2 is GetterElement) {
       return null;
     }
     var constantValue = annotation.computeConstantValue();
@@ -146,13 +146,13 @@ class UseResultVerifier {
     }
 
     var argumentList = node.argumentList as ArgumentListImpl;
-    var parameters = argumentList.correspondingStaticParameters;
+    var parameters = argumentList.correspondingStaticParameters2;
     if (parameters == null) {
       return false;
     }
 
     for (var param in parameters) {
-      var name = param?.name;
+      var name = param?.name3;
       if (unlessParam == name) {
         return true;
       }
@@ -174,16 +174,31 @@ class UseResultVerifier {
     return node;
   }
 
-  static ElementAnnotation? _getUseResultMetadata(Element element) {
+  static ElementAnnotation? _getUseResultMetadata(Element2 element) {
     // Implicit getters/setters.
-    if (element.isSynthetic && element is PropertyAccessorElement) {
-      var variable = element.variable2;
-      if (variable == null) {
-        return null;
+    if (element.isSynthetic) {
+      switch (element) {
+        case GetterElement getter:
+          if (getter.variable3 case var variable?) {
+            element = variable;
+          } else {
+            return null;
+          }
+        case SetterElement setter:
+          if (setter.variable3 case var variable?) {
+            element = variable;
+          } else {
+            return null;
+          }
       }
-      element = variable;
     }
-    return element.metadata.firstWhereOrNull((e) => e.isUseResult);
+
+    if (element case Annotatable annotatable) {
+      return annotatable.metadata2.annotations
+          .firstWhereOrNull((e) => e.isUseResult);
+    }
+
+    return null;
   }
 
   static bool _isUsed(AstNode node) {

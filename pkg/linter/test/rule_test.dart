@@ -4,10 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -75,53 +72,22 @@ void defineRuleUnitTests() {
   });
 }
 
-void testRule(String ruleName, File file, {bool useMockSdk = true}) {
+void testRule(String ruleName, File file) {
   test(ruleName, () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');
     }
 
-    var errorInfos =
-        await _getErrorInfos(ruleName, file, useMockSdk: useMockSdk);
+    registerLintRules();
+    var rule = Registry.ruleRegistry[ruleName];
+    if (rule == null) {
+      fail('rule `$ruleName` is not registered; unable to test.');
+    }
+
+    var driver = buildDriver(rule, file);
+    var errorInfos = await driver.lintFiles([file]);
     _validateExpectedLints(file, errorInfos);
   });
-}
-
-Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
-    {required bool useMockSdk}) async {
-  registerLintRules();
-  var rule = Registry.ruleRegistry[ruleName];
-  if (rule == null) {
-    fail('rule `$ruleName` is not registered; unable to test.');
-  }
-
-  if (useMockSdk) {
-    var driver = buildDriver(rule, file);
-    return await driver.lintFiles([file]);
-  }
-
-  var path = p.normalize(file.absolute.path);
-  var collection = AnalysisContextCollection(
-    includedPaths: [path],
-    resourceProvider: PhysicalResourceProvider.INSTANCE,
-  );
-
-  var context = collection.contexts.first;
-  var contextFile = (context.currentSession.getFile(path) as FileResult).file;
-  var options =
-      context.getAnalysisOptionsForFile(contextFile) as AnalysisOptionsImpl;
-  options.lintRules = options.lintRules.toList();
-
-  // TODO(pq): consider a different way to configure lints
-  // https://github.com/dart-lang/sdk/issues/54045
-  options.lintRules.add(rule);
-  options.lint = true;
-
-  var result =
-      await context.currentSession.getResolvedUnit(path) as ResolvedUnitResult;
-  return [
-    AnalysisErrorInfo(result.errors, result.lineInfo),
-  ];
 }
 
 /// Parse lint annotations in the given [file] and validate that they correspond
