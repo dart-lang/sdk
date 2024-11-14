@@ -1,16 +1,16 @@
 name: analysis_server_plugin
-# This package is not yet intended for consumption on pub.dev. DO NOT publish.
-publish_to: none
+description: A framework and support code for building plugins for the analysis server.
+version: 0.1.0-dev
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server_plugin
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
 
-# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  _fe_analyzer_shared: any
-  analyzer: any
-  analyzer_plugin: any
-  meta: any
+  _fe_analyzer_shared: ^76.0.0
+  analyzer: ^7.0.0
+  analyzer_plugin: ^0.12.0
+  meta: ^1.16.0
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
