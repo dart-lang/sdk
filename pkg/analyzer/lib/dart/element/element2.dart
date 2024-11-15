@@ -2102,6 +2102,9 @@ abstract class PropertyInducingElement2
   /// getter associated with it will be synthetic.
   GetterElement? get getter2;
 
+  /// Whether any fragment of this variable has an initializer at declaration.
+  bool get hasInitializer;
+
   /// The setter associated with this variable.
   ///
   /// Returns `null` if the variable is effectively `final` and therefore does

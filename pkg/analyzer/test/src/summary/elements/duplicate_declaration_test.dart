@@ -164,11 +164,11 @@ library
           reference: <testLibraryFragment>::@class::A::@def::0
           element: <testLibrary>::@class::A::@def::0
           fields
-            f01 @25
+            hasInitializer f01 @25
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f01
               element: <testLibraryFragment>::@class::A::@def::0::@field::f01#element
               getter2: <testLibraryFragment>::@class::A::@def::0::@getter::f01
-            f02 @49
+            hasInitializer f02 @49
               reference: <testLibraryFragment>::@class::A::@def::0::@field::f02
               element: <testLibraryFragment>::@class::A::@def::0::@field::f02#element
               getter2: <testLibraryFragment>::@class::A::@def::0::@getter::f02
@@ -188,11 +188,11 @@ library
           reference: <testLibraryFragment>::@class::A::@def::1
           element: <testLibrary>::@class::A::@def::1
           fields
-            f11 @88
+            hasInitializer f11 @88
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f11
               element: <testLibraryFragment>::@class::A::@def::1::@field::f11#element
               getter2: <testLibraryFragment>::@class::A::@def::1::@getter::f11
-            f12 @112
+            hasInitializer f12 @112
               reference: <testLibraryFragment>::@class::A::@def::1::@field::f12
               element: <testLibraryFragment>::@class::A::@def::1::@field::f12#element
               getter2: <testLibraryFragment>::@class::A::@def::1::@getter::f12
@@ -212,11 +212,11 @@ library
           reference: <testLibraryFragment>::@class::A::@def::2
           element: <testLibrary>::@class::A::@def::2
           fields
-            f21 @151
+            hasInitializer f21 @151
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f21
               element: <testLibraryFragment>::@class::A::@def::2::@field::f21#element
               getter2: <testLibraryFragment>::@class::A::@def::2::@getter::f21
-            f22 @175
+            hasInitializer f22 @175
               reference: <testLibraryFragment>::@class::A::@def::2::@field::f22
               element: <testLibraryFragment>::@class::A::@def::2::@field::f22#element
               getter2: <testLibraryFragment>::@class::A::@def::2::@getter::f22
@@ -237,11 +237,11 @@ library
       reference: <testLibrary>::@class::A::@def::0
       firstFragment: <testLibraryFragment>::@class::A::@def::0
       fields
-        static const f01
+        static const hasInitializer f01
           firstFragment: <testLibraryFragment>::@class::A::@def::0::@field::f01
           type: int
           getter: <testLibraryFragment>::@class::A::@def::0::@getter::f01#element
-        static const f02
+        static const hasInitializer f02
           firstFragment: <testLibraryFragment>::@class::A::@def::0::@field::f02
           type: int
           getter: <testLibraryFragment>::@class::A::@def::0::@getter::f02#element
@@ -257,11 +257,11 @@ library
       reference: <testLibrary>::@class::A::@def::1
       firstFragment: <testLibraryFragment>::@class::A::@def::1
       fields
-        static const f11
+        static const hasInitializer f11
           firstFragment: <testLibraryFragment>::@class::A::@def::1::@field::f11
           type: int
           getter: <testLibraryFragment>::@class::A::@def::1::@getter::f11#element
-        static const f12
+        static const hasInitializer f12
           firstFragment: <testLibraryFragment>::@class::A::@def::1::@field::f12
           type: int
           getter: <testLibraryFragment>::@class::A::@def::1::@getter::f12#element
@@ -277,11 +277,11 @@ library
       reference: <testLibrary>::@class::A::@def::2
       firstFragment: <testLibraryFragment>::@class::A::@def::2
       fields
-        static const f21
+        static const hasInitializer f21
           firstFragment: <testLibraryFragment>::@class::A::@def::2::@field::f21
           type: int
           getter: <testLibraryFragment>::@class::A::@def::2::@getter::f21#element
-        static const f22
+        static const hasInitializer f22
           firstFragment: <testLibraryFragment>::@class::A::@def::2::@field::f22
           type: int
           getter: <testLibraryFragment>::@class::A::@def::2::@getter::f22#element
@@ -972,11 +972,11 @@ library
           reference: <testLibraryFragment>::@enum::E::@def::0
           element: <testLibrary>::@enum::E::@def::0
           fields
-            a @8
+            hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::a
               element: <testLibraryFragment>::@enum::E::@def::0::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::a
-            b @11
+            hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@def::0::@field::b
               element: <testLibraryFragment>::@enum::E::@def::0::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@def::0::@getter::b
@@ -1003,15 +1003,15 @@ library
           reference: <testLibraryFragment>::@enum::E::@def::1
           element: <testLibrary>::@enum::E::@def::1
           fields
-            c @22
+            hasInitializer c @22
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::c
               element: <testLibraryFragment>::@enum::E::@def::1::@field::c#element
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::c
-            d @25
+            hasInitializer d @25
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::d
               element: <testLibraryFragment>::@enum::E::@def::1::@field::d#element
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::d
-            e @28
+            hasInitializer e @28
               reference: <testLibraryFragment>::@enum::E::@def::1::@field::e
               element: <testLibraryFragment>::@enum::E::@def::1::@field::e#element
               getter2: <testLibraryFragment>::@enum::E::@def::1::@getter::e
@@ -1043,11 +1043,11 @@ library
       firstFragment: <testLibraryFragment>::@enum::E::@def::0
       supertype: Enum
       fields
-        static const enumConstant a
+        static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@def::0::@field::a
           type: E
           getter: <testLibraryFragment>::@enum::E::@def::0::@getter::a#element
-        static const enumConstant b
+        static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@def::0::@field::b
           type: E
           getter: <testLibraryFragment>::@enum::E::@def::0::@getter::b#element
@@ -1070,15 +1070,15 @@ library
       firstFragment: <testLibraryFragment>::@enum::E::@def::1
       supertype: Enum
       fields
-        static const enumConstant c
+        static const enumConstant hasInitializer c
           firstFragment: <testLibraryFragment>::@enum::E::@def::1::@field::c
           type: E
           getter: <testLibraryFragment>::@enum::E::@def::1::@getter::c#element
-        static const enumConstant d
+        static const enumConstant hasInitializer d
           firstFragment: <testLibraryFragment>::@enum::E::@def::1::@field::d
           type: E
           getter: <testLibraryFragment>::@enum::E::@def::1::@getter::d#element
-        static const enumConstant e
+        static const enumConstant hasInitializer e
           firstFragment: <testLibraryFragment>::@enum::E::@def::1::@field::e
           type: E
           getter: <testLibraryFragment>::@enum::E::@def::1::@getter::e#element
@@ -1201,7 +1201,7 @@ library
           reference: <testLibraryFragment>::@extension::E::@def::2
           element: <testLibrary>::@extension::E::@def::2
           fields
-            y @95
+            hasInitializer y @95
               reference: <testLibraryFragment>::@extension::E::@def::2::@field::y
               element: <testLibraryFragment>::@extension::E::@def::2::@field::y#element
               getter2: <testLibraryFragment>::@extension::E::@def::2::@getter::y
@@ -1243,7 +1243,7 @@ library
       reference: <testLibrary>::@extension::E::@def::2
       firstFragment: <testLibraryFragment>::@extension::E::@def::2
       fields
-        static y
+        static hasInitializer y
           firstFragment: <testLibraryFragment>::@extension::E::@def::2::@field::y
           type: int
           getter: <testLibraryFragment>::@extension::E::@def::2::@getter::y#element
@@ -1724,7 +1724,7 @@ library
           reference: <testLibraryFragment>::@mixin::A::@def::2
           element: <testLibrary>::@mixin::A::@def::2
           fields
-            y @48
+            hasInitializer y @48
               reference: <testLibraryFragment>::@mixin::A::@def::2::@field::y
               element: <testLibraryFragment>::@mixin::A::@def::2::@field::y#element
               getter2: <testLibraryFragment>::@mixin::A::@def::2::@getter::y
@@ -1772,7 +1772,7 @@ library
       superclassConstraints
         Object
       fields
-        y
+        hasInitializer y
           firstFragment: <testLibraryFragment>::@mixin::A::@def::2::@field::y
           type: int
           getter: <testLibraryFragment>::@mixin::A::@def::2::@getter::y#element
@@ -1903,11 +1903,11 @@ library
           element: <testLibrary>::@topLevelVariable::x::@def::1
           getter2: <testLibraryFragment>::@getter::x::@def::1
           setter2: <testLibraryFragment>::@setter::x::@def::1
-        x @21
+        hasInitializer x @21
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::2
           element: <testLibrary>::@topLevelVariable::x::@def::2
           getter2: <testLibraryFragment>::@getter::x::@def::2
-        x @32
+        hasInitializer x @32
           reference: <testLibraryFragment>::@topLevelVariable::x::@def::3
           element: <testLibrary>::@topLevelVariable::x::@def::3
           getter2: <testLibraryFragment>::@getter::x::@def::3
@@ -1957,12 +1957,12 @@ library
       type: dynamic
       getter: <testLibraryFragment>::@getter::x::@def::1#element
       setter: <testLibraryFragment>::@setter::x::@def::1#element
-    final x
+    final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x::@def::2
       firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::2
       type: int
       getter: <testLibraryFragment>::@getter::x::@def::2#element
-    x
+    hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x::@def::3
       firstFragment: <testLibraryFragment>::@topLevelVariable::x::@def::3
       type: double

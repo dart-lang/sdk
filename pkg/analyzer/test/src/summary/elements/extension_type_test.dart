@@ -832,7 +832,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @46
+            hasInitializer foo @46
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
@@ -855,7 +855,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static const foo
+        static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -927,7 +927,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @42
+            hasInitializer foo @42
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
@@ -950,7 +950,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static const foo
+        static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -1018,7 +1018,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @35
+            hasInitializer foo @35
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
@@ -1041,7 +1041,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -2025,7 +2025,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
-        _it
+        hasInitializer _it
           firstFragment: <testLibraryFragment>::@class::B::@field::_it
           type: int
           getter: <testLibraryFragment>::@class::B::@getter::_it#element
@@ -4442,7 +4442,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @55
+            hasInitializer foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
@@ -4481,7 +4481,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
-            augment foo @77
+            augment hasInitializer foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
@@ -4497,7 +4497,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo
+        static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -4675,7 +4675,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @70
+            hasInitializer foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
@@ -4716,7 +4716,7 @@ library
           previousFragment: <testLibraryFragment>::@extensionType::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A
           fields
-            augment foo @77
+            augment hasInitializer foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
@@ -4731,7 +4731,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
-            augment foo @77
+            augment hasInitializer foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
@@ -4747,7 +4747,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo
+        static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -4925,7 +4925,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @70
+            hasInitializer foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
@@ -4981,7 +4981,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
-            augment foo @77
+            augment hasInitializer foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
@@ -4997,7 +4997,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo
+        static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -5178,7 +5178,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @70
+            hasInitializer foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
@@ -5237,7 +5237,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A
           fields
-            augment foo @77
+            augment hasInitializer foo @77
               reference: <testLibrary>::@fragment::package:test/b.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
@@ -5253,7 +5253,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo
+        static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -5402,7 +5402,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @55
+            hasInitializer foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
@@ -5441,7 +5441,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
-            augment foo @80
+            augment hasInitializer foo @80
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
@@ -5457,7 +5457,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo
+        static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -5627,7 +5627,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
-            augment foo @77
+            augment hasInitializer foo @77
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@extensionType::A::@field::foo
@@ -5643,7 +5643,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        synthetic static foo
+        synthetic static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -5804,7 +5804,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo1 @55
+            hasInitializer foo1 @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo1
               element: <testLibraryFragment>::@extensionType::A::@field::foo1#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo1
@@ -5842,7 +5842,7 @@ library
           element: <testLibrary>::@extensionType::A
           previousFragment: <testLibraryFragment>::@extensionType::A
           fields
-            foo2 @69
+            hasInitializer foo2 @69
               reference: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2
@@ -5870,12 +5870,12 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo1
+        static hasInitializer foo1
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo1
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo1#element
           setter: <testLibraryFragment>::@extensionType::A::@setter::foo1#element
-        static foo2
+        static hasInitializer foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@field::foo2
           type: int
           getter: <testLibrary>::@fragment::package:test/a.dart::@extensionTypeAugmentation::A::@getter::foo2#element
@@ -6435,7 +6435,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @55
+            hasInitializer foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
@@ -6490,7 +6490,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo
+        static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -6668,7 +6668,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @70
+            hasInitializer foo @70
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
@@ -6740,7 +6740,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo
+        static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element
@@ -9738,7 +9738,7 @@ library
               reference: <testLibraryFragment>::@extensionType::A::@field::it
               element: <testLibraryFragment>::@extensionType::A::@field::it#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::it
-            foo @55
+            hasInitializer foo @55
               reference: <testLibraryFragment>::@extensionType::A::@field::foo
               element: <testLibraryFragment>::@extensionType::A::@field::foo#element
               getter2: <testLibraryFragment>::@extensionType::A::@getter::foo
@@ -9796,7 +9796,7 @@ library
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
-        static foo
+        static hasInitializer foo
           firstFragment: <testLibraryFragment>::@extensionType::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@extensionType::A::@getter::foo#element

@@ -3457,7 +3457,7 @@ library
           element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
-            foo @59
+            hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
@@ -3478,7 +3478,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           type: int
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
@@ -4081,7 +4081,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
-        static const x
+        static const hasInitializer x
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
           type: int
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x#element
@@ -4118,7 +4118,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
-        final x
+        final hasInitializer x
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
           type: int
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x#element
@@ -4153,7 +4153,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
-        final x
+        final hasInitializer x
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
           type: int
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x#element
@@ -4188,7 +4188,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
-        static const x
+        static const hasInitializer x
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::x
           type: Type
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::x#element
@@ -4223,7 +4223,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
-    const x
+    const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       type: int
@@ -4260,7 +4260,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
-    const x
+    const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       type: int
@@ -4303,7 +4303,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
-    const x
+    const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       metadata
@@ -4331,7 +4331,7 @@ library
           element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
-    const y
+    const hasInitializer y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::y
       metadata
@@ -4392,7 +4392,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
-    const x
+    const hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       type: Type
@@ -4525,7 +4525,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
           type: int
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo#element
@@ -4564,11 +4564,11 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       fields
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::foo
           type: int
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::foo#element
-        final bar
+        final hasInitializer bar
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@field::bar
           type: int
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::B::@getter::bar#element
@@ -5076,7 +5076,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
-    final foo
+    final hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
       metadata
@@ -5139,7 +5139,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
   topLevelVariables
-    final foo
+    final hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::foo
       metadata
@@ -5167,7 +5167,7 @@ library
           element2: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
       type: int
       getter: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::foo#element
-    final bar
+    final hasInitializer bar
       reference: <testLibrary>::@topLevelVariable::bar
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::bar
       metadata
@@ -5654,7 +5654,7 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
-        x @41
+        hasInitializer x @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
@@ -5667,7 +5667,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
   topLevelVariables
-    final x
+    final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
       type: int
@@ -5972,7 +5972,7 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-            augment foo @193
+            augment hasInitializer foo @193
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
@@ -5992,7 +5992,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           type: int
           getter: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
@@ -7505,7 +7505,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           fields
-            foo @80
+            hasInitializer foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
@@ -7518,7 +7518,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -8063,7 +8063,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           fields
-            foo @102
+            hasInitializer foo @102
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
@@ -8076,7 +8076,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -8641,7 +8641,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           fields
-            foo @98
+            hasInitializer foo @98
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
@@ -8654,7 +8654,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -8931,7 +8931,7 @@ library
       libraryImports
         package:test/diagnostic.dart
       topLevelVariables
-        foo @80
+        hasInitializer foo @80
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -8940,7 +8940,7 @@ library
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    final foo
+    final hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
@@ -9393,7 +9393,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           fields
-            foo @145
+            hasInitializer foo @145
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
@@ -9406,7 +9406,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           type: (bool, {int a, String b})?
           getter: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -9486,7 +9486,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           fields
-            foo @138
+            hasInitializer foo @138
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
@@ -9499,7 +9499,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           type: (int, String)?
           getter: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -10063,7 +10063,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           fields
-            foo @80
+            hasInitializer foo @80
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
@@ -10084,7 +10084,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::foo#element
@@ -11608,7 +11608,7 @@ library
           reference: <testLibraryFragment>::@enum::B
           element: <testLibrary>::@enum::B
           fields
-            v @107
+            hasInitializer v @107
               reference: <testLibraryFragment>::@enum::B::@field::v
               element: <testLibraryFragment>::@enum::B::@field::v#element
               getter2: <testLibraryFragment>::@enum::B::@getter::v
@@ -11637,7 +11637,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
           type: B
           getter: <testLibraryFragment>::@enum::B::@getter::v#element

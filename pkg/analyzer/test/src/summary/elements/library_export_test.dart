@@ -1836,7 +1836,7 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
-        a @25
+        hasInitializer a @25
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
@@ -1853,7 +1853,7 @@ library
             <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::a::@parameter::_a#element
   topLevelVariables
-    a
+    hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
       type: int
@@ -1933,7 +1933,7 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
-        a @27
+        hasInitializer a @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
@@ -1942,7 +1942,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
       type: int

@@ -493,6 +493,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isEnumConstant, 'enumConstant ');
       _sink.writeIf(e.isPromotable, 'promotable ');
+      _sink.writeIf(e.hasInitializer, 'hasInitializer ');
 
       _writeElementName(e);
     });
@@ -550,6 +551,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
+      _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
       _writeFragmentName(f);
     });
@@ -1808,6 +1810,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isLate, 'late ');
       _sink.writeIf(e.isFinal, 'final ');
       _sink.writeIf(e.isConst, 'const ');
+      _sink.writeIf(e.hasInitializer, 'hasInitializer ');
 
       _writeElementName(e);
     });
@@ -1863,6 +1866,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _sink.writeIf(f.isAugmentation, 'augment ');
       _sink.writeIf(f.isSynthetic, 'synthetic ');
+      _sink.writeIf(f.hasInitializer, 'hasInitializer ');
 
       _writeFragmentName(f);
     });

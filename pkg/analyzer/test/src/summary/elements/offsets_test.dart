@@ -1729,7 +1729,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           fields
-            withInit @16
+            hasInitializer withInit @16
               reference: <testLibraryFragment>::@class::C::@field::withInit
               element: <testLibraryFragment>::@class::C::@field::withInit#element
               getter2: <testLibraryFragment>::@class::C::@getter::withInit
@@ -1739,7 +1739,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::withoutInit#element
               getter2: <testLibraryFragment>::@class::C::@getter::withoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::withoutInit
-            multiWithInit @57
+            hasInitializer multiWithInit @57
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit
               element: <testLibraryFragment>::@class::C::@field::multiWithInit#element
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit
@@ -1749,7 +1749,7 @@ library
               element: <testLibraryFragment>::@class::C::@field::multiWithoutInit#element
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithoutInit
               setter2: <testLibraryFragment>::@class::C::@setter::multiWithoutInit
-            multiWithInit2 @94
+            hasInitializer multiWithInit2 @94
               reference: <testLibraryFragment>::@class::C::@field::multiWithInit2
               element: <testLibraryFragment>::@class::C::@field::multiWithInit2#element
               getter2: <testLibraryFragment>::@class::C::@getter::multiWithInit2
@@ -1811,7 +1811,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
-        withInit
+        hasInitializer withInit
           firstFragment: <testLibraryFragment>::@class::C::@field::withInit
           type: int
           getter: <testLibraryFragment>::@class::C::@getter::withInit#element
@@ -1821,7 +1821,7 @@ library
           type: int
           getter: <testLibraryFragment>::@class::C::@getter::withoutInit#element
           setter: <testLibraryFragment>::@class::C::@setter::withoutInit#element
-        multiWithInit
+        hasInitializer multiWithInit
           firstFragment: <testLibraryFragment>::@class::C::@field::multiWithInit
           type: int
           getter: <testLibraryFragment>::@class::C::@getter::multiWithInit#element
@@ -1831,7 +1831,7 @@ library
           type: int
           getter: <testLibraryFragment>::@class::C::@getter::multiWithoutInit#element
           setter: <testLibraryFragment>::@class::C::@setter::multiWithoutInit#element
-        multiWithInit2
+        hasInitializer multiWithInit2
           firstFragment: <testLibraryFragment>::@class::C::@field::multiWithInit2
           type: int
           getter: <testLibraryFragment>::@class::C::@getter::multiWithInit2#element
@@ -3452,7 +3452,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        withInit @4
+        hasInitializer withInit @4
           reference: <testLibraryFragment>::@topLevelVariable::withInit
           element: <testLibrary>::@topLevelVariable::withInit
           getter2: <testLibraryFragment>::@getter::withInit
@@ -3462,7 +3462,7 @@ library
           element: <testLibrary>::@topLevelVariable::withoutInit
           getter2: <testLibraryFragment>::@getter::withoutInit
           setter2: <testLibraryFragment>::@setter::withoutInit
-        multiWithInit @49
+        hasInitializer multiWithInit @49
           reference: <testLibraryFragment>::@topLevelVariable::multiWithInit
           element: <testLibrary>::@topLevelVariable::multiWithInit
           getter2: <testLibraryFragment>::@getter::multiWithInit
@@ -3472,7 +3472,7 @@ library
           element: <testLibrary>::@topLevelVariable::multiWithoutInit
           getter2: <testLibraryFragment>::@getter::multiWithoutInit
           setter2: <testLibraryFragment>::@setter::multiWithoutInit
-        multiWithInit2 @86
+        hasInitializer multiWithInit2 @86
           reference: <testLibraryFragment>::@topLevelVariable::multiWithInit2
           element: <testLibrary>::@topLevelVariable::multiWithInit2
           getter2: <testLibraryFragment>::@getter::multiWithInit2
@@ -3525,7 +3525,7 @@ library
             <null-name>
               element: <testLibraryFragment>::@setter::multiWithInit2::@parameter::_multiWithInit2#element
   topLevelVariables
-    withInit
+    hasInitializer withInit
       reference: <testLibrary>::@topLevelVariable::withInit
       firstFragment: <testLibraryFragment>::@topLevelVariable::withInit
       type: int
@@ -3537,7 +3537,7 @@ library
       type: int
       getter: <testLibraryFragment>::@getter::withoutInit#element
       setter: <testLibraryFragment>::@setter::withoutInit#element
-    multiWithInit
+    hasInitializer multiWithInit
       reference: <testLibrary>::@topLevelVariable::multiWithInit
       firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithInit
       type: int
@@ -3549,7 +3549,7 @@ library
       type: int
       getter: <testLibraryFragment>::@getter::multiWithoutInit#element
       setter: <testLibraryFragment>::@setter::multiWithoutInit#element
-    multiWithInit2
+    hasInitializer multiWithInit2
       reference: <testLibrary>::@topLevelVariable::multiWithInit2
       firstFragment: <testLibraryFragment>::@topLevelVariable::multiWithInit2
       type: int
@@ -4673,7 +4673,7 @@ library
           reference: <testLibraryFragment>::@class::A
           element: <testLibrary>::@class::A
           fields
-            foo @16
+            hasInitializer foo @16
               reference: <testLibraryFragment>::@class::A::@field::foo
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
@@ -4699,7 +4699,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::foo#element

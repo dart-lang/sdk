@@ -684,7 +684,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        v @62
+        hasInitializer v @62
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
           metadata
@@ -756,7 +756,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
-    v
+    hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       metadata
@@ -930,7 +930,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        v @35
+        hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
@@ -948,7 +948,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
-    const v
+    const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function({int? a})>
@@ -1069,7 +1069,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        v @35
+        hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
@@ -1087,7 +1087,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
-    const v
+    const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function([int?])>
@@ -1208,7 +1208,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        v @35
+        hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
@@ -1226,7 +1226,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
-    const v
+    const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function({required int a})>
@@ -1341,7 +1341,7 @@ library
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        v @35
+        hasInitializer v @35
           reference: <testLibraryFragment>::@topLevelVariable::v
           element: <testLibrary>::@topLevelVariable::v
           getter2: <testLibraryFragment>::@getter::v
@@ -1359,7 +1359,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
-    const v
+    const hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
       type: A<String Function(int)>

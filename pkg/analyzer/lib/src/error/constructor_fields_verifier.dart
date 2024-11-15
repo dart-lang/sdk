@@ -81,8 +81,7 @@ class ConstructorFieldsVerifier {
       if (element is EnumElement2 && field.name3 == 'index') {
         continue;
       }
-      // TODO(scheglov): this is wrong
-      fieldMap[field] = field.firstFragment.hasInitializer
+      fieldMap[field] = field.hasInitializer
           ? _InitState.initInDeclaration
           : _InitState.notInit;
     }
