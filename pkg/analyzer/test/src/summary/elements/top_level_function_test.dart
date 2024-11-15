@@ -1766,11 +1766,11 @@ library
           getter2: <testLibraryFragment>::@getter::main
           setter2: <testLibraryFragment>::@setter::main
       getters
-        get main
+        synthetic get main
           reference: <testLibraryFragment>::@getter::main
           element: <testLibraryFragment>::@getter::main#element
       setters
-        set main
+        synthetic set main
           reference: <testLibraryFragment>::@setter::main
           element: <testLibraryFragment>::@setter::main#element
           formalParameters
@@ -2535,11 +2535,11 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get foo
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
-        set foo
+        synthetic set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
@@ -3080,12 +3080,12 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get foo
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@getterAugmentation::foo
       setters
-        set foo
+        synthetic set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
@@ -3594,11 +3594,11 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get foo
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
-        set foo
+        synthetic set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters

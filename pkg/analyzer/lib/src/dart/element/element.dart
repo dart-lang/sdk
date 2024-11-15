@@ -4362,7 +4362,7 @@ class FormalParameterElementImpl extends PromotableElementImpl2
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isFinal => firstFragment.isFinal;
+  bool get isFinal => wrappedElement.isFinal;
 
   @override
   bool get isInitializingFormal => wrappedElement.isInitializingFormal;

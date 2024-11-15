@@ -83,11 +83,11 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::C::@getter::foo
               element: <testLibraryFragment>::@class::C::@getter::foo#element
           setters
-            set foo
+            synthetic set foo
               reference: <testLibraryFragment>::@class::C::@setter::foo
               element: <testLibraryFragment>::@class::C::@setter::foo#element
               formalParameters
@@ -164,7 +164,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           fields
-            foo
+            synthetic foo
               reference: <testLibraryFragment>::@class::C::@field::foo
               element: <testLibraryFragment>::@class::C::@field::foo#element
               getter2: <testLibraryFragment>::@class::C::@getter::foo
@@ -245,7 +245,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           fields
-            foo
+            synthetic foo
               reference: <testLibraryFragment>::@class::C::@field::foo
               element: <testLibraryFragment>::@class::C::@field::foo#element
               setter2: <testLibraryFragment>::@class::C::@setter::foo
@@ -395,15 +395,15 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            enumConstant a @11
+            a @11
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@getter::a
-            enumConstant b @14
+            b @14
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@getter::b
-            values
+            synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
@@ -413,13 +413,13 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               typeName: E
           getters
-            get a
+            synthetic get a
               reference: <testLibraryFragment>::@enum::E::@getter::a
               element: <testLibraryFragment>::@enum::E::@getter::a#element
-            get b
+            synthetic get b
               reference: <testLibraryFragment>::@enum::E::@getter::b
               element: <testLibraryFragment>::@enum::E::@getter::b#element
-            get values
+            synthetic get values
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   enums
@@ -428,11 +428,11 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const a
+        static const enumConstant a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
-        static const b
+        static const enumConstant b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
@@ -512,11 +512,11 @@ library
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
               element: <testLibraryFragment>::@mixin::M::@getter::foo#element
           setters
-            set foo
+            synthetic set foo
               reference: <testLibraryFragment>::@mixin::M::@setter::foo
               element: <testLibraryFragment>::@mixin::M::@setter::foo#element
               formalParameters
@@ -589,7 +589,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           fields
-            foo
+            synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -661,7 +661,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           fields
-            foo
+            synthetic foo
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               setter2: <testLibraryFragment>::@mixin::M::@setter::foo
@@ -927,11 +927,11 @@ library
           getter2: <testLibraryFragment>::@getter::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get foo
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
-        set foo
+        synthetic set foo
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters

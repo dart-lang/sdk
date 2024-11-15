@@ -210,7 +210,7 @@ library
                   reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
                   element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f#element
           getters
-            get f
+            synthetic get f
               reference: <testLibraryFragment>::@class::X::@getter::f
               element: <testLibraryFragment>::@class::X::@getter::f#element
       typeAliases

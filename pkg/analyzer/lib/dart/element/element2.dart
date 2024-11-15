@@ -658,6 +658,13 @@ abstract class ExecutableFragment implements FunctionTypedFragment {
   /// Whether the body is marked as being synchronous.
   bool get isSynchronous;
 
+  /// Whether this fragment is synthetic.
+  ///
+  /// A synthetic fragment is a fragment that is not represented in the source
+  /// code explicitly, but is implied by the source code, such as the default
+  /// constructor for a class that does not explicitly define any constructors.
+  bool get isSynthetic;
+
   @override
   LibraryFragment get libraryFragment;
 
@@ -2123,15 +2130,9 @@ abstract class PropertyInducingFragment
 
   /// Whether the element is an augmentation.
   ///
-  /// Property indicing fragments are augmentations if they are explicitly
+  /// Property inducing fragments are augmentations if they are explicitly
   /// marked as such using the 'augment' modifier.
   bool get isAugmentation;
-
-  /// Whether the fragment is a static fragment.
-  ///
-  /// A static fragment is a fragment that is not associated with a particular
-  /// instance, but rather with an entire library or class.
-  bool get isStatic;
 
   /// Whether this fragment is synthetic.
   ///
@@ -2546,15 +2547,6 @@ abstract class VariableElement2 implements Element2 {
 abstract class VariableFragment implements Fragment {
   @override
   VariableElement2 get element;
-
-  /// Whether the variable was declared with the 'const' modifier.
-  bool get isConst;
-
-  /// Whether the variable was declared with the 'final' modifier.
-  ///
-  /// Variables that are declared with the 'const' modifier will return `false`
-  /// even though they are implicitly final.
-  bool get isFinal;
 
   @override
   VariableFragment? get nextFragment;

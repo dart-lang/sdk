@@ -3119,7 +3119,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::f#element
               getter2: <testLibraryFragment>::@class::A::@getter::f
           getters
-            get f
+            synthetic get f
               reference: <testLibraryFragment>::@class::A::@getter::f
               element: <testLibraryFragment>::@class::A::@getter::f#element
     <testLibrary>::@fragment::package:test/test.macro.dart
@@ -3463,11 +3463,11 @@ library
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
           setters
-            set foo
+            synthetic set foo
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               formalParameters
@@ -3580,7 +3580,7 @@ library
           element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
-            foo
+            synthetic foo
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
@@ -3792,7 +3792,7 @@ library
           element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
-            foo
+            synthetic foo
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
@@ -5654,12 +5654,12 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
-        final x @41
+        x @41
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
       getters
-        get x
+        synthetic get x
           reference: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x
           element: <testLibrary>::@fragment::package:test/test.macro.dart::@accessor::x#element
   classes
@@ -5972,16 +5972,16 @@ library
               nextFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
-            foo @193
+            augment foo @193
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo#element
           setters
-            set foo
+            synthetic set foo
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo#element
               formalParameters
@@ -6137,7 +6137,7 @@ library
           element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
-            foo
+            synthetic foo
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               getter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
@@ -6432,7 +6432,7 @@ library
           element: <testLibrary>::@class::A
           previousFragment: <testLibraryFragment>::@class::A
           fields
-            foo
+            synthetic foo
               reference: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo
               element: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@field::foo#element
               setter2: <testLibrary>::@fragment::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
@@ -7510,7 +7510,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
@@ -8068,7 +8068,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
@@ -8646,7 +8646,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
@@ -8931,12 +8931,12 @@ library
       libraryImports
         package:test/diagnostic.dart
       topLevelVariables
-        final foo @80
+        foo @80
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
@@ -9398,7 +9398,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
@@ -9491,7 +9491,7 @@ library
               element: <testLibraryFragment>::@class::A::@field::foo#element
               getter2: <testLibraryFragment>::@class::A::@getter::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
   classes
@@ -10069,11 +10069,11 @@ library
               getter2: <testLibraryFragment>::@class::A::@getter::foo
               setter2: <testLibraryFragment>::@class::A::@setter::foo
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
           setters
-            set foo
+            synthetic set foo
               reference: <testLibraryFragment>::@class::A::@setter::foo
               element: <testLibraryFragment>::@class::A::@setter::foo#element
               formalParameters
@@ -11608,19 +11608,19 @@ library
           reference: <testLibraryFragment>::@enum::B
           element: <testLibrary>::@enum::B
           fields
-            enumConstant v @107
+            v @107
               reference: <testLibraryFragment>::@enum::B::@field::v
               element: <testLibraryFragment>::@enum::B::@field::v#element
               getter2: <testLibraryFragment>::@enum::B::@getter::v
-            values
+            synthetic values
               reference: <testLibraryFragment>::@enum::B::@field::values
               element: <testLibraryFragment>::@enum::B::@field::values#element
               getter2: <testLibraryFragment>::@enum::B::@getter::values
           getters
-            get v
+            synthetic get v
               reference: <testLibraryFragment>::@enum::B::@getter::v
               element: <testLibraryFragment>::@enum::B::@getter::v#element
-            get values
+            synthetic get values
               reference: <testLibraryFragment>::@enum::B::@getter::values
               element: <testLibraryFragment>::@enum::B::@getter::values#element
   classes
@@ -11637,7 +11637,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::B
       supertype: Enum
       fields
-        static const v
+        static const enumConstant v
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
           type: B
           getter: <testLibraryFragment>::@enum::B::@getter::v#element
@@ -12336,10 +12336,10 @@ library
               element: <testLibraryFragment>::@class::A::@field::bar#element
               getter2: <testLibraryFragment>::@class::A::@getter::bar
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
-            get bar
+            synthetic get bar
               reference: <testLibraryFragment>::@class::A::@getter::bar
               element: <testLibraryFragment>::@class::A::@getter::bar#element
     <testLibrary>::@fragment::package:test/test.macro.dart
@@ -12550,10 +12550,10 @@ library
               element: <testLibraryFragment>::@class::A::@field::bar#element
               getter2: <testLibraryFragment>::@class::A::@getter::bar
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
-            get bar
+            synthetic get bar
               reference: <testLibraryFragment>::@class::A::@getter::bar
               element: <testLibraryFragment>::@class::A::@getter::bar#element
     <testLibrary>::@fragment::package:test/test.macro.dart

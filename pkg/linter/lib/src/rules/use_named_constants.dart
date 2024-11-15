@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 

@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/constants.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';

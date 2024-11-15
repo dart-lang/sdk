@@ -68,7 +68,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
           getters
-            get x
+            synthetic get x
               reference: <testLibraryFragment>::@class::A::@getter::x
               element: <testLibraryFragment>::@class::A::@getter::x#element
   classes
@@ -142,7 +142,7 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
           getters
-            get x
+            synthetic get x
               reference: <testLibraryFragment>::@class::A::@getter::x
               element: <testLibraryFragment>::@class::A::@getter::x#element
   classes
@@ -814,12 +814,12 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final x @20
+        x @20
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
@@ -863,12 +863,12 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final x @6
+        x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
@@ -946,12 +946,12 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const x @6
+        x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
@@ -1025,12 +1025,12 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const x @6
+        x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables

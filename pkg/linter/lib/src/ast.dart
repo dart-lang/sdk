@@ -13,7 +13,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/workspace/workspace.dart'; // ignore: implementation_imports
 import 'package:path/path.dart' as path;
 

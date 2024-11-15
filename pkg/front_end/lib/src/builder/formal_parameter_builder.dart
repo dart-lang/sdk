@@ -15,6 +15,7 @@ import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/wildcard_lowering.dart';
 import '../source/builder_factory.dart';
 import '../source/constructor_declaration.dart';
 import '../source/source_factory_builder.dart';
@@ -237,7 +238,8 @@ class FormalParameterBuilder extends BuilderImpl
       DeclarationBuilder declarationBuilder,
       ConstructorDeclaration constructorDeclaration,
       ClassHierarchyBase hierarchy) {
-    Builder? fieldBuilder = declarationBuilder.lookupLocalMember(name);
+    String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
+    Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
     if (fieldBuilder is SourceFieldBuilder) {
       DartType fieldType = fieldBuilder.inferType(hierarchy);
       fieldType = constructorDeclaration.substituteFieldType(fieldType);

@@ -172,12 +172,12 @@ library
               getter2: dart:foo::<fragment>::@class::A::@getter::foo
               setter2: dart:foo::<fragment>::@class::A::@setter::foo
           getters
-            get foo
+            synthetic get foo
               reference: dart:foo::<fragment>::@class::A::@getter::foo
               element: dart:foo::<fragment>::@class::A::@getter::foo#element
               sinceSdkVersion: 2.15.0
           setters
-            set foo
+            synthetic set foo
               reference: dart:foo::<fragment>::@class::A::@setter::foo
               element: dart:foo::<fragment>::@class::A::@setter::foo#element
               sinceSdkVersion: 2.15.0
@@ -251,7 +251,7 @@ library
           reference: dart:foo::<fragment>::@class::A
           element: dart:foo::@class::A
           fields
-            foo
+            synthetic foo
               reference: dart:foo::<fragment>::@class::A::@field::foo
               element: dart:foo::<fragment>::@class::A::@field::foo#element
               getter2: dart:foo::<fragment>::@class::A::@getter::foo
@@ -490,7 +490,7 @@ library
           reference: dart:foo::<fragment>::@class::A
           element: dart:foo::@class::A
           fields
-            foo
+            synthetic foo
               reference: dart:foo::<fragment>::@class::A::@field::foo
               element: dart:foo::<fragment>::@class::A::@field::foo#element
               setter2: dart:foo::<fragment>::@class::A::@setter::foo
@@ -585,27 +585,27 @@ library
           reference: dart:foo::<fragment>::@enum::E
           element: dart:foo::@enum::E
           fields
-            enumConstant v1 @37
+            v1 @37
               reference: dart:foo::<fragment>::@enum::E::@field::v1
               element: dart:foo::<fragment>::@enum::E::@field::v1#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v1
-            enumConstant v2 @60
+            v2 @60
               reference: dart:foo::<fragment>::@enum::E::@field::v2
               element: dart:foo::<fragment>::@enum::E::@field::v2#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v2
-            values
+            synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
               element: dart:foo::<fragment>::@enum::E::@field::values#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::values
           getters
-            get v1
+            synthetic get v1
               reference: dart:foo::<fragment>::@enum::E::@getter::v1
               element: dart:foo::<fragment>::@enum::E::@getter::v1#element
-            get v2
+            synthetic get v2
               reference: dart:foo::<fragment>::@enum::E::@getter::v2
               element: dart:foo::<fragment>::@enum::E::@getter::v2#element
               sinceSdkVersion: 2.15.0
-            get values
+            synthetic get values
               reference: dart:foo::<fragment>::@enum::E::@getter::values
               element: dart:foo::<fragment>::@enum::E::@getter::values#element
   enums
@@ -614,11 +614,11 @@ library
       firstFragment: dart:foo::<fragment>::@enum::E
       supertype: Enum
       fields
-        static const v1
+        static const enumConstant v1
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v1
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v1#element
-        static const v2
+        static const enumConstant v2
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v2
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v2#element
@@ -698,20 +698,20 @@ library
           reference: dart:foo::<fragment>::@enum::E
           element: dart:foo::@enum::E
           fields
-            enumConstant v @52
+            v @52
               reference: dart:foo::<fragment>::@enum::E::@field::v
               element: dart:foo::<fragment>::@enum::E::@field::v#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v
-            values
+            synthetic values
               reference: dart:foo::<fragment>::@enum::E::@field::values
               element: dart:foo::<fragment>::@enum::E::@field::values#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::values
           getters
-            get v
+            synthetic get v
               reference: dart:foo::<fragment>::@enum::E::@getter::v
               element: dart:foo::<fragment>::@enum::E::@getter::v#element
               sinceSdkVersion: 2.15.0
-            get values
+            synthetic get values
               reference: dart:foo::<fragment>::@enum::E::@getter::values
               element: dart:foo::<fragment>::@enum::E::@getter::values#element
           methods
@@ -726,7 +726,7 @@ library
       sinceSdkVersion: 2.15.0
       supertype: Enum
       fields
-        static const v
+        static const enumConstant v
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v#element
@@ -1266,13 +1266,13 @@ library
     dart:foo::<fragment>
       element: dart:foo
       topLevelVariables
-        final foo @47
+        foo @47
           reference: dart:foo::<fragment>::@topLevelVariable::foo
           element: dart:foo::@topLevelVariable::foo
           sinceSdkVersion: 2.15.0
           getter2: dart:foo::<fragment>::@getter::foo
       getters
-        get foo
+        synthetic get foo
           reference: dart:foo::<fragment>::@getter::foo
           element: dart:foo::<fragment>::@getter::foo#element
           sinceSdkVersion: 2.15.0

@@ -314,32 +314,6 @@ void DeoptContext::FillDestFrame() {
   }
 }
 
-const CatchEntryMoves* DeoptContext::ToCatchEntryMoves(intptr_t num_vars) {
-  const Code& code = Code::Handle(code_);
-  const TypedData& deopt_info = TypedData::Handle(deopt_info_);
-  GrowableArray<DeoptInstr*> deopt_instructions;
-  const Array& deopt_table = Array::Handle(code.deopt_info_array());
-  ASSERT(!deopt_table.IsNull());
-  DeoptInfo::Unpack(deopt_table, deopt_info, &deopt_instructions);
-
-  CatchEntryMoves* moves = CatchEntryMoves::Allocate(num_vars);
-
-  Function& function = Function::Handle(zone(), code.function());
-  intptr_t params =
-      function.MakesCopyOfParameters() ? 0 : function.num_fixed_parameters();
-  for (intptr_t i = 0; i < num_vars; i++) {
-    const intptr_t len = deopt_instructions.length();
-    intptr_t slot = i < params ? i
-                               : i + kParamEndSlotFromFp -
-                                     runtime_frame_layout.first_local_from_fp;
-    DeoptInstr* instr = deopt_instructions[len - 1 - slot];
-    intptr_t dest_index = i - params;
-    moves->At(i) = instr->ToCatchEntryMove(this, dest_index);
-  }
-
-  return moves;
-}
-
 static void FillDeferredSlots(DeoptContext* deopt_context,
                               DeferredSlot** slot_list) {
   DeferredSlot* slot = *slot_list;
@@ -477,11 +451,6 @@ class DeoptConstantInstr : public DeoptInstr {
     *reinterpret_cast<ObjectPtr*>(dest_addr) = obj.ptr();
   }
 
-  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
-                                  intptr_t dest_slot) {
-    return CatchEntryMove::FromConstant(object_table_index_, dest_slot);
-  }
-
  private:
   const intptr_t object_table_index_;
 
@@ -507,13 +476,6 @@ class DeoptWordInstr : public DeoptInstr {
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     *dest_addr = source_.Value<intptr_t>(deopt_context);
-  }
-
-  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
-                                  intptr_t dest_slot) {
-    return CatchEntryMove::FromSlot(CatchEntryMove::SourceKind::kTaggedSlot,
-                                    source_.StackSlot(deopt_context),
-                                    dest_slot);
   }
 
  private:
@@ -569,15 +531,6 @@ class DeoptMintPairInstr : public DeoptIntegerInstrBase {
                                   hi_.Value<int32_t>(deopt_context));
   }
 
-  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
-                                  intptr_t dest_slot) {
-    return CatchEntryMove::FromSlot(
-        CatchEntryMove::SourceKind::kInt64PairSlot,
-        CatchEntryMove::EncodePairSource(lo_.StackSlot(deopt_context),
-                                         hi_.StackSlot(deopt_context)),
-        dest_slot);
-  }
-
  private:
   static constexpr intptr_t kFieldWidth = kBitsPerWord / 2;
   using LoRegister = BitField<intptr_t, intptr_t, 0, kFieldWidth>;
@@ -606,12 +559,6 @@ class DeoptIntInstr : public DeoptIntegerInstrBase {
 
   virtual int64_t GetValue(DeoptContext* deopt_context) {
     return static_cast<int64_t>(source_.Value<T>(deopt_context));
-  }
-
-  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
-                                  intptr_t dest_slot) {
-    return CatchEntryMove::FromSlot(slot_kind, source_.StackSlot(deopt_context),
-                                    dest_slot);
   }
 
  private:
@@ -652,12 +599,6 @@ class DeoptFpuInstr : public DeoptInstr {
     *dest_addr = Smi::RawValue(0);
     deopt_context->DeferMaterialization(source_.Value<Type>(deopt_context),
                                         reinterpret_cast<PtrType*>(dest_addr));
-  }
-
-  CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
-                                  intptr_t dest_slot) {
-    return CatchEntryMove::FromSlot(slot_kind, source_.StackSlot(deopt_context),
-                                    dest_slot);
   }
 
  private:

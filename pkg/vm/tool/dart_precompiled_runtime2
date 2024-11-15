@@ -33,4 +33,4 @@ fi
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
 
-exec "$BIN_DIR"/dart_precompiled_runtime "$@"
+exec "$BIN_DIR"/dartaotruntime "$@"

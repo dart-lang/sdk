@@ -18002,16 +18002,12 @@ void Code::set_num_variables(intptr_t num_variables) const {
 }
 #endif
 
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
 TypedDataPtr Code::catch_entry_moves_maps() const {
-  ASSERT(FLAG_precompiled_mode);
   return TypedData::RawCast(untag()->catch_entry());
 }
 void Code::set_catch_entry_moves_maps(const TypedData& maps) const {
-  ASSERT(FLAG_precompiled_mode);
   untag()->set_catch_entry(maps.ptr());
 }
-#endif
 
 void Code::set_deopt_info_array(const Array& array) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
