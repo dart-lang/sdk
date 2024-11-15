@@ -13,9 +13,10 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 int test_resetCount = 0;
 
@@ -219,30 +220,26 @@ class RefactoringManager {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          if (element is PropertyAccessorElement) {
-            refactoring = ConvertGetterToMethodRefactoring(
-              refactoringWorkspace,
-              resolvedUnit.session,
-              element,
-            );
-          }
+        var element = server.getElementOfNode(node).asElement2;
+        if (element is GetterElement) {
+          refactoring = ConvertGetterToMethodRefactoring(
+            refactoringWorkspace,
+            resolvedUnit.session,
+            element,
+          );
         }
       }
     } else if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
         var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          if (element is ExecutableElement) {
-            refactoring = ConvertMethodToGetterRefactoring(
-              refactoringWorkspace,
-              resolvedUnit.session,
-              element,
-            );
-          }
+        var element = server.getElementOfNode(node).asElement2;
+        if (element is ExecutableElement2) {
+          refactoring = ConvertMethodToGetterRefactoring(
+            refactoringWorkspace,
+            resolvedUnit.session,
+            element,
+          );
         }
       }
     } else if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {

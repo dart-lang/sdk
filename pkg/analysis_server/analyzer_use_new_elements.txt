@@ -93,12 +93,8 @@ lib/src/utilities/extensions/completion_request.dart
 lib/src/utilities/extensions/element.dart
 test/abstract_single_unit.dart
 test/plugin/protocol_dart_test.dart
-test/services/correction/name_suggestion_test.dart
 test/services/correction/status_test.dart
 test/services/refactoring/legacy/abstract_rename.dart
-test/services/refactoring/legacy/convert_getter_to_method_test.dart
-test/services/refactoring/legacy/convert_method_to_getter_test.dart
-test/services/refactoring/legacy/extract_method_test.dart
 test/services/refactoring/legacy/rename_class_member_test.dart
 test/services/refactoring/legacy/rename_constructor_test.dart
 test/services/refactoring/legacy/rename_import_test.dart

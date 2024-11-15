@@ -14,8 +14,9 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _manager = LspRefactorManager._();
 
@@ -126,38 +127,34 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
 
       case RefactoringKind.CONVERT_GETTER_TO_METHOD:
         var node = NodeLocator(offset).searchWithin(result.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          if (element is PropertyAccessorElement) {
-            var refactor = ConvertGetterToMethodRefactoring(
-              server.refactoringWorkspace,
-              result.session,
-              element,
-            );
-            return success(refactor);
-          }
+        var element = server.getElementOfNode(node).asElement2;
+        if (element is GetterElement) {
+          var refactor = ConvertGetterToMethodRefactoring(
+            server.refactoringWorkspace,
+            result.session,
+            element,
+          );
+          return success(refactor);
         }
         return error(
           ServerErrorCodes.InvalidCommandArguments,
-          'Location supplied to $commandName $kind is not longer valid',
+          'Location supplied to $commandName $kind is no longer valid',
         );
 
       case RefactoringKind.CONVERT_METHOD_TO_GETTER:
         var node = NodeLocator(offset).searchWithin(result.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          if (element is ExecutableElement) {
-            var refactor = ConvertMethodToGetterRefactoring(
-              server.refactoringWorkspace,
-              result.session,
-              element,
-            );
-            return success(refactor);
-          }
+        var element = server.getElementOfNode(node).asElement2;
+        if (element is ExecutableElement2) {
+          var refactor = ConvertMethodToGetterRefactoring(
+            server.refactoringWorkspace,
+            result.session,
+            element,
+          );
+          return success(refactor);
         }
         return error(
           ServerErrorCodes.InvalidCommandArguments,
-          'Location supplied to $commandName $kind is not longer valid',
+          'Location supplied to $commandName $kind is no longer valid',
         );
 
       default:

@@ -44,9 +44,13 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
   factory ConvertGetterToMethodRefactoring(
     RefactoringWorkspace workspace,
     AnalysisSession session,
-    PropertyAccessorElement element,
+    GetterElement element,
   ) {
-    return ConvertGetterToMethodRefactoringImpl(workspace, session, element);
+    return ConvertGetterToMethodRefactoringImpl(
+      workspace,
+      session,
+      element.asElement as PropertyAccessorElement,
+    );
   }
 
   /// Return `true` if refactoring is available, possibly without checking all
@@ -67,9 +71,13 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
   factory ConvertMethodToGetterRefactoring(
     RefactoringWorkspace workspace,
     AnalysisSession session,
-    ExecutableElement element,
+    ExecutableElement2 element,
   ) {
-    return ConvertMethodToGetterRefactoringImpl(workspace, session, element);
+    return ConvertMethodToGetterRefactoringImpl(
+      workspace,
+      session,
+      element.asElement,
+    );
   }
 
   /// Return `true` if refactoring is available, possibly without checking all

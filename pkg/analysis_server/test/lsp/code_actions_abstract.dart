@@ -42,7 +42,16 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       triggerKind: triggerKind,
     );
 
-    return findAction(codeActions, kind: kind, command: command, title: title)!;
+    var action = findAction(
+      codeActions,
+      kind: kind,
+      command: command,
+      title: title,
+    );
+    if (action == null) {
+      fail('Failed to find a code action titled "$title".');
+    }
+    return action;
   }
 
   /// Expects that command [commandName] was logged to the analytics manager.

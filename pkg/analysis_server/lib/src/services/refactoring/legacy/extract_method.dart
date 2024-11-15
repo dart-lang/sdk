@@ -23,6 +23,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -35,6 +36,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
@@ -47,16 +49,19 @@ const String _tokenSeparator = '\uFFFF';
 Future<void> addLibraryImports(
   AnalysisSession session,
   SourceChange change,
-  LibraryElement targetLibrary,
+  LibraryElement2 targetLibrary2,
   Set<Source> libraries,
 ) async {
-  var libraryPath = targetLibrary.source.fullName;
+  var libraryPath = targetLibrary2.firstFragment.source.fullName;
 
   var resolveResult = await session.getResolvedUnit(libraryPath);
   if (resolveResult is! ResolvedUnitResult) {
     return;
   }
 
+  // TODO(brianwilkerson): Use `targetLibrary2` everywhere below and rename it
+  //  to `targetLibrary`.
+  var targetLibrary = targetLibrary2.asElement as LibraryElement;
   var libUtils = CorrectionUtils(resolveResult);
   var eol = libUtils.endOfLine;
   // Prepare information about existing imports.
@@ -582,7 +587,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     await addLibraryImports(
       _resolveResult.session,
       change,
-      _resolveResult.libraryElement,
+      _resolveResult.libraryElement2,
       _librariesToImport,
     );
     return change;
