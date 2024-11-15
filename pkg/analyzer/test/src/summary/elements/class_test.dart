@@ -12694,6 +12694,80 @@ library
 ''');
   }
 
+  test_class_field_isPromotable_abstractGetter() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  int? get _foo;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        abstract class A @15
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          fields
+            synthetic promotable _foo @-1
+              reference: <testLibraryFragment>::@class::A::@field::_foo
+              enclosingElement3: <testLibraryFragment>::@class::A
+              type: int?
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::A
+          accessors
+            abstract get _foo @30
+              reference: <testLibraryFragment>::@class::A::@getter::_foo
+              enclosingElement3: <testLibraryFragment>::@class::A
+              returnType: int?
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @15
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibrary>::@class::A
+          fields
+            promotable _foo
+              reference: <testLibraryFragment>::@class::A::@field::_foo
+              element: <testLibraryFragment>::@class::A::@field::_foo#element
+              getter2: <testLibraryFragment>::@class::A::@getter::_foo
+          constructors
+            synthetic new
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+          getters
+            get _foo @30
+              reference: <testLibraryFragment>::@class::A::@getter::_foo
+              element: <testLibraryFragment>::@class::A::@getter::_foo#element
+  classes
+    abstract class A
+      reference: <testLibrary>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
+      fields
+        synthetic _foo
+          firstFragment: <testLibraryFragment>::@class::A::@field::_foo
+          type: int?
+          getter: <testLibraryFragment>::@class::A::@getter::_foo#element
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      getters
+        abstract get _foo
+          firstFragment: <testLibraryFragment>::@class::A::@getter::_foo
+''');
+  }
+
   test_class_field_isPromotable_hasGetter() async {
     var library = await buildLibrary(r'''
 class A {

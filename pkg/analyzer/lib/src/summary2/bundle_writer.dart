@@ -634,6 +634,11 @@ class BundleWriter {
             ?.element
             .reference,
       );
+      switch (variableFragment) {
+        case FieldElementImpl fieldFragment:
+          var field = fieldFragment.element;
+          _sink.writeBool(field.isPromotable);
+      }
     }
   }
 
