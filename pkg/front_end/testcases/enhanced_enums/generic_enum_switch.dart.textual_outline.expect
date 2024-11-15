@@ -1,6 +1,10 @@
 // @dart = 2.19
 
-enum Enum<T> { a<num>(), b<String>(), c<bool>() }
+enum Enum<T> {
+  a<num>(),
+  b<String>(),
+  c<bool>(),
+}
 
 method1(Enum<dynamic> e) {}
 

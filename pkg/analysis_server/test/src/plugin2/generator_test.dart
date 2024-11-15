@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/plugin2/analyzer_version.g.dart';
 import 'package:analysis_server/src/plugin2/generator.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
@@ -68,6 +69,7 @@ import 'package:no_ints/main.dart' as no_ints;
       pluginPackageGenerator.generatePubspec(),
       contains('''
 dependencies:
+  analyzer: '$analyzerVersion'
   no_bools:
     git:
       url: https://example.com/example.git
@@ -90,6 +92,7 @@ dependencies:
       pluginPackageGenerator.generatePubspec(),
       contains('''
 dependencies:
+  analyzer: '$analyzerVersion'
   no_bools:
     path: ../no_bools_plugin
   no_ints:
@@ -113,6 +116,7 @@ dependencies:
       pluginPackageGenerator.generatePubspec(),
       contains('''
 dependencies:
+  analyzer: '$analyzerVersion'
   no_bools: ^1.0.0
   no_ints: ^1.2.0
 '''),

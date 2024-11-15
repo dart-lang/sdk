@@ -2441,6 +2441,13 @@ LintCode.unrelated_type_equality_checks_in_expression:
   status: needsEvaluation
 LintCode.unrelated_type_equality_checks_in_pattern:
   status: needsEvaluation
+LintCode.unsafe_variance:
+  status: noFix
+  notes: |-
+    A type like `X Function([X])` could be replaced by `X Function()`,
+    or by `X Function([Never])`, or by `Function`, depending on the
+    situation and the preferences of the developer. There is no
+    universally applicable fix.
 LintCode.use_build_context_synchronously_async_use:
   status: noFix
 LintCode.use_build_context_synchronously_wrong_mounted:
