@@ -35,7 +35,7 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 BINARYEN="$BIN_DIR/wasm-opt"
 DART="$BIN_DIR/dart"
-DART_AOT_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
+DART_AOT_RUNTIME="$BIN_DIR/dartaotruntime"
 LIBRARIES_JSON_ARG="--libraries-spec=$SDK_DIR/sdk/lib/libraries.json"
 
 function find_flags {
