@@ -576,9 +576,10 @@ class ContextLocatorImpl {
             AnalysisOptionsProvider(workspace.createSourceFactory(null, null))
                 .getOptionsFromFile(optionsFile);
 
-        var analyzerOptions = doc.valueAt(AnalyzerOptions.analyzer);
+        var analyzerOptions = doc.valueAt(AnalysisOptionsFile.analyzer);
         if (analyzerOptions is YamlMap) {
-          var excludeOptions = analyzerOptions.valueAt(AnalyzerOptions.exclude);
+          var excludeOptions =
+              analyzerOptions.valueAt(AnalysisOptionsFile.exclude);
           if (excludeOptions is YamlList) {
             var pathContext = resourceProvider.pathContext;
 

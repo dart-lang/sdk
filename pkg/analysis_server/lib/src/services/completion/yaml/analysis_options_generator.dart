@@ -21,29 +21,29 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   //  For example, the lint rules can either be a list or a map, but we only
   //  suggest list items.
   static MapProducer analysisOptionsProducer = MapProducer({
-    AnalyzerOptions.analyzer: MapProducer({
-      AnalyzerOptions.enableExperiment: ListProducer(_ExperimentProducer()),
-      AnalyzerOptions.errors: _ErrorProducer(),
-      AnalyzerOptions.exclude: EmptyProducer(),
-      AnalyzerOptions.language: MapProducer({
-        AnalyzerOptions.strictCasts: EmptyProducer(),
-        AnalyzerOptions.strictInference: EmptyProducer(),
-        AnalyzerOptions.strictRawTypes: EmptyProducer(),
+    AnalysisOptionsFile.analyzer: MapProducer({
+      AnalysisOptionsFile.enableExperiment: ListProducer(_ExperimentProducer()),
+      AnalysisOptionsFile.errors: _ErrorProducer(),
+      AnalysisOptionsFile.exclude: EmptyProducer(),
+      AnalysisOptionsFile.language: MapProducer({
+        AnalysisOptionsFile.strictCasts: EmptyProducer(),
+        AnalysisOptionsFile.strictInference: EmptyProducer(),
+        AnalysisOptionsFile.strictRawTypes: EmptyProducer(),
       }),
-      AnalyzerOptions.optionalChecks: MapProducer({
-        AnalyzerOptions.chromeOsManifestChecks: EmptyProducer(),
+      AnalysisOptionsFile.optionalChecks: MapProducer({
+        AnalysisOptionsFile.chromeOsManifestChecks: EmptyProducer(),
       }),
-      AnalyzerOptions.plugins: EmptyProducer(),
-      AnalyzerOptions.propagateLinterExceptions: EmptyProducer(),
+      AnalysisOptionsFile.plugins: EmptyProducer(),
+      AnalysisOptionsFile.propagateLinterExceptions: EmptyProducer(),
     }),
-    AnalyzerOptions.codeStyle: MapProducer({
-      AnalyzerOptions.format: BooleanProducer(),
+    AnalysisOptionsFile.codeStyle: MapProducer({
+      AnalysisOptionsFile.format: BooleanProducer(),
     }),
-    AnalyzerOptions.formatter: MapProducer({
-      AnalyzerOptions.pageWidth: EmptyProducer(),
+    AnalysisOptionsFile.formatter: MapProducer({
+      AnalysisOptionsFile.pageWidth: EmptyProducer(),
     }),
     // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
-    AnalyzerOptions.include: EmptyProducer(),
+    AnalysisOptionsFile.include: EmptyProducer(),
     // TODO(brianwilkerson): Create constants for 'linter' and 'rules'.
     'linter': MapProducer({'rules': ListProducer(_LintRuleProducer())}),
   });
