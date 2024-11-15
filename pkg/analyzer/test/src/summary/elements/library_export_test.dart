@@ -1842,11 +1842,11 @@ library
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::a
       getters
-        get a
+        synthetic get a
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
       setters
-        set a
+        synthetic set a
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::a
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::a#element
           formalParameters
@@ -1933,12 +1933,12 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
-        const a @27
+        a @27
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::a
       getters
-        get a
+        synthetic get a
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::a
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::a#element
   topLevelVariables

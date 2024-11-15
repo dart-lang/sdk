@@ -49,12 +49,12 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final f @6
+        f @6
           reference: <testLibraryFragment>::@topLevelVariable::f
           element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
       getters
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
   topLevelVariables
@@ -116,12 +116,12 @@ library
       enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       topLevelVariables
-        final f @19
+        f @19
           reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariable::f
           element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::f
       getters
-        get f
+        synthetic get f
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::f#element
   topLevelVariables
@@ -195,7 +195,7 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
           getters
-            get f
+            synthetic get f
               reference: <testLibraryFragment>::@class::C::@getter::f
               element: <testLibraryFragment>::@class::C::@getter::f#element
   classes
@@ -360,12 +360,12 @@ library
             T @10
               element: <not-implemented>
       topLevelVariables
-        const x @118
+        x @118
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       functions
@@ -546,12 +546,12 @@ library
           reference: <testLibraryFragment>::@typeAlias::F
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        const x @101
+        x @101
           reference: <testLibraryFragment>::@topLevelVariable::x
           element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       functions
@@ -717,11 +717,11 @@ library
           getter2: <testLibraryFragment>::@getter::s
           setter2: <testLibraryFragment>::@setter::s
       getters
-        get s
+        synthetic get s
           reference: <testLibraryFragment>::@getter::s
           element: <testLibraryFragment>::@getter::s#element
       setters
-        set s
+        synthetic set s
           reference: <testLibraryFragment>::@setter::s
           element: <testLibraryFragment>::@setter::s#element
           formalParameters
@@ -915,11 +915,11 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
           getters
-            get b
+            synthetic get b
               reference: <testLibraryFragment>::@class::A::@getter::b
               element: <testLibraryFragment>::@class::A::@getter::b#element
           setters
-            set b
+            synthetic set b
               reference: <testLibraryFragment>::@class::A::@setter::b
               element: <testLibraryFragment>::@class::A::@setter::b#element
               formalParameters
@@ -929,7 +929,7 @@ library
           reference: <testLibraryFragment>::@class::B
           element: <testLibrary>::@class::B
           fields
-            c
+            synthetic c
               reference: <testLibraryFragment>::@class::B::@field::c
               element: <testLibraryFragment>::@class::B::@field::c#element
               getter2: <testLibraryFragment>::@class::B::@getter::c
@@ -979,20 +979,20 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get a
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set a
+        synthetic set a
           reference: <testLibraryFragment>::@setter::a
           element: <testLibraryFragment>::@setter::a#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::a::@parameter::_a#element
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -1174,29 +1174,29 @@ library
           getter2: <testLibraryFragment>::@getter::z
           setter2: <testLibraryFragment>::@setter::z
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
-        get y
+        synthetic get y
           reference: <testLibraryFragment>::@getter::y
           element: <testLibraryFragment>::@getter::y#element
-        get z
+        synthetic get z
           reference: <testLibraryFragment>::@getter::z
           element: <testLibraryFragment>::@getter::z#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
-        set y
+        synthetic set y
           reference: <testLibraryFragment>::@setter::y
           element: <testLibraryFragment>::@setter::y#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::y::@parameter::_y#element
-        set z
+        synthetic set z
           reference: <testLibraryFragment>::@setter::z
           element: <testLibraryFragment>::@setter::z#element
           formalParameters
@@ -1343,11 +1343,11 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
           getters
-            get p
+            synthetic get p
               reference: <testLibraryFragment>::@class::C::@getter::p
               element: <testLibraryFragment>::@class::C::@getter::p#element
           setters
-            set p
+            synthetic set p
               reference: <testLibraryFragment>::@class::C::@setter::p
               element: <testLibraryFragment>::@class::C::@setter::p#element
               formalParameters
@@ -1365,20 +1365,20 @@ library
           getter2: <testLibraryFragment>::@getter::y
           setter2: <testLibraryFragment>::@setter::y
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
-        get y
+        synthetic get y
           reference: <testLibraryFragment>::@getter::y
           element: <testLibraryFragment>::@getter::y#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
-        set y
+        synthetic set y
           reference: <testLibraryFragment>::@setter::y
           element: <testLibraryFragment>::@setter::y#element
           formalParameters
@@ -1555,7 +1555,7 @@ library
               typeName: C
               typeNameOffset: 29
           getters
-            get x
+            synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
               element: <testLibraryFragment>::@class::C::@getter::x#element
   classes
@@ -1633,7 +1633,7 @@ library
             V @11
               element: <not-implemented>
           fields
-            x
+            synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
@@ -1811,7 +1811,7 @@ library
             V @11
               element: <not-implemented>
           fields
-            x
+            synthetic x
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               setter2: <testLibraryFragment>::@class::C::@setter::x
@@ -2032,11 +2032,11 @@ library
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
@@ -2150,10 +2150,10 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
           getters
-            get foo
+            synthetic get foo
               reference: <testLibraryFragment>::@class::A::@getter::foo
               element: <testLibraryFragment>::@class::A::@getter::foo#element
-            get bar
+            synthetic get bar
               reference: <testLibraryFragment>::@class::A::@getter::bar
               element: <testLibraryFragment>::@class::A::@getter::bar#element
           methods
@@ -2242,11 +2242,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -2374,29 +2374,29 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get m
+        synthetic get m
           reference: <testLibraryFragment>::@getter::m
           element: <testLibraryFragment>::@getter::m#element
-        get n
+        synthetic get n
           reference: <testLibraryFragment>::@getter::n
           element: <testLibraryFragment>::@getter::n#element
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set m
+        synthetic set m
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::m::@parameter::_m#element
-        set n
+        synthetic set n
           reference: <testLibraryFragment>::@setter::n
           element: <testLibraryFragment>::@setter::n#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::n::@parameter::_n#element
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -2498,11 +2498,11 @@ library
           getter2: <testLibraryFragment>::@getter::m
           setter2: <testLibraryFragment>::@setter::m
       getters
-        get m
+        synthetic get m
           reference: <testLibraryFragment>::@getter::m
           element: <testLibraryFragment>::@getter::m#element
       setters
-        set m
+        synthetic set m
           reference: <testLibraryFragment>::@setter::m
           element: <testLibraryFragment>::@setter::m#element
           formalParameters
@@ -2641,38 +2641,38 @@ library
           getter2: <testLibraryFragment>::@getter::d
           setter2: <testLibraryFragment>::@setter::d
       getters
-        get a
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get d
+        synthetic get d
           reference: <testLibraryFragment>::@getter::d
           element: <testLibraryFragment>::@getter::d#element
       setters
-        set a
+        synthetic set a
           reference: <testLibraryFragment>::@setter::a
           element: <testLibraryFragment>::@setter::a#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::a::@parameter::_a#element
-        set b
+        synthetic set b
           reference: <testLibraryFragment>::@setter::b
           element: <testLibraryFragment>::@setter::b#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::b::@parameter::_b#element
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set d
+        synthetic set d
           reference: <testLibraryFragment>::@setter::d
           element: <testLibraryFragment>::@setter::d#element
           formalParameters
@@ -2828,11 +2828,11 @@ library
               typeName: C
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
           getters
-            get v
+            synthetic get v
               reference: <testLibraryFragment>::@class::C::@getter::v
               element: <testLibraryFragment>::@class::C::@getter::v#element
           setters
-            set v
+            synthetic set v
               reference: <testLibraryFragment>::@class::C::@setter::v
               element: <testLibraryFragment>::@class::C::@setter::v#element
               formalParameters
@@ -2842,7 +2842,7 @@ library
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
           fields
-            v
+            synthetic v
               reference: <testLibraryFragment>::@class::D::@field::v
               element: <testLibraryFragment>::@class::D::@field::v#element
               getter2: <testLibraryFragment>::@class::D::@getter::v
@@ -2956,11 +2956,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -3034,11 +3034,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -3112,11 +3112,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -3190,11 +3190,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -3317,11 +3317,11 @@ library
                 base: <testLibraryFragment>::@class::D::@constructor::new
                 substitution: {U: int, V: T}
           getters
-            get v
+            synthetic get v
               reference: <testLibraryFragment>::@class::C::@getter::v
               element: <testLibraryFragment>::@class::C::@getter::v#element
           setters
-            set v
+            synthetic set v
               reference: <testLibraryFragment>::@class::C::@setter::v
               element: <testLibraryFragment>::@class::C::@setter::v#element
               formalParameters
@@ -3336,7 +3336,7 @@ library
             V @62
               element: <not-implemented>
           fields
-            v
+            synthetic v
               reference: <testLibraryFragment>::@class::D::@field::v
               element: <testLibraryFragment>::@class::D::@field::v#element
               getter2: <testLibraryFragment>::@class::D::@getter::v
@@ -3464,11 +3464,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get v
+        synthetic get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set v
+        synthetic set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -3960,11 +3960,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get v
+        synthetic get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set v
+        synthetic set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -4066,11 +4066,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get v
+        synthetic get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set v
+        synthetic set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -4184,7 +4184,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           fields
-            f
+            synthetic f
               reference: <testLibraryFragment>::@class::C::@field::f
               element: <testLibraryFragment>::@class::C::@field::f#element
               setter2: <testLibraryFragment>::@class::C::@setter::f
@@ -4205,7 +4205,7 @@ library
           reference: <testLibraryFragment>::@class::D
           element: <testLibrary>::@class::D
           fields
-            f
+            synthetic f
               reference: <testLibraryFragment>::@class::D::@field::f
               element: <testLibraryFragment>::@class::D::@field::f#element
               setter2: <testLibraryFragment>::@class::D::@setter::f
@@ -4453,20 +4453,20 @@ library
           getter2: <testLibraryFragment>::@getter::a2
           setter2: <testLibraryFragment>::@setter::a2
       getters
-        get a1
+        synthetic get a1
           reference: <testLibraryFragment>::@getter::a1
           element: <testLibraryFragment>::@getter::a1#element
-        get a2
+        synthetic get a2
           reference: <testLibraryFragment>::@getter::a2
           element: <testLibraryFragment>::@getter::a2#element
       setters
-        set a1
+        synthetic set a1
           reference: <testLibraryFragment>::@setter::a1
           element: <testLibraryFragment>::@setter::a1#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::a1::@parameter::_a1#element
-        set a2
+        synthetic set a2
           reference: <testLibraryFragment>::@setter::a2
           element: <testLibraryFragment>::@setter::a2#element
           formalParameters
@@ -4596,20 +4596,20 @@ library
           getter2: <testLibraryFragment>::@getter::a2
           setter2: <testLibraryFragment>::@setter::a2
       getters
-        get a1
+        synthetic get a1
           reference: <testLibraryFragment>::@getter::a1
           element: <testLibraryFragment>::@getter::a1#element
-        get a2
+        synthetic get a2
           reference: <testLibraryFragment>::@getter::a2
           element: <testLibraryFragment>::@getter::a2#element
       setters
-        set a1
+        synthetic set a1
           reference: <testLibraryFragment>::@setter::a1
           element: <testLibraryFragment>::@setter::a1#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::a1::@parameter::_a1#element
-        set a2
+        synthetic set a2
           reference: <testLibraryFragment>::@setter::a2
           element: <testLibraryFragment>::@setter::a2#element
           formalParameters
@@ -4714,11 +4714,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get v
+        synthetic get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set v
+        synthetic set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -4916,11 +4916,11 @@ library
               typeName: D
               superConstructor: <testLibraryFragment>::@class::C::@constructor::new
           getters
-            get f
+            synthetic get f
               reference: <testLibraryFragment>::@class::D::@getter::f
               element: <testLibraryFragment>::@class::D::@getter::f#element
           setters
-            set f
+            synthetic set f
               reference: <testLibraryFragment>::@class::D::@setter::f
               element: <testLibraryFragment>::@class::D::@setter::f#element
               formalParameters
@@ -5088,11 +5088,11 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
           getters
-            get a
+            synthetic get a
               reference: <testLibraryFragment>::@class::B::@getter::a
               element: <testLibraryFragment>::@class::B::@getter::a#element
           setters
-            set a
+            synthetic set a
               reference: <testLibraryFragment>::@class::B::@setter::a
               element: <testLibraryFragment>::@class::B::@setter::a#element
               formalParameters
@@ -5105,11 +5105,11 @@ library
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
@@ -5233,20 +5233,20 @@ library
           getter2: <testLibraryFragment>::@getter::b
           setter2: <testLibraryFragment>::@setter::b
       getters
-        get a
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
       setters
-        set a
+        synthetic set a
           reference: <testLibraryFragment>::@setter::a
           element: <testLibraryFragment>::@setter::a#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::a::@parameter::_a#element
-        set b
+        synthetic set b
           reference: <testLibraryFragment>::@setter::b
           element: <testLibraryFragment>::@setter::b#element
           formalParameters
@@ -5340,11 +5340,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -5411,11 +5411,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -5482,11 +5482,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -5561,11 +5561,11 @@ library
           getter2: <testLibraryFragment>::@getter::y
           setter2: <testLibraryFragment>::@setter::y
       getters
-        get y
+        synthetic get y
           reference: <testLibraryFragment>::@getter::y
           element: <testLibraryFragment>::@getter::y#element
       setters
-        set y
+        synthetic set y
           reference: <testLibraryFragment>::@setter::y
           element: <testLibraryFragment>::@setter::y#element
           formalParameters
@@ -5661,10 +5661,10 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
           getters
-            get x
+            synthetic get x
               reference: <testLibraryFragment>::@class::A::@getter::x
               element: <testLibraryFragment>::@class::A::@getter::x#element
-            get y
+            synthetic get y
               reference: <testLibraryFragment>::@class::A::@getter::y
               element: <testLibraryFragment>::@class::A::@getter::y#element
   classes
@@ -5776,13 +5776,13 @@ library
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               typeName: A
           getters
-            get a
+            synthetic get a
               reference: <testLibraryFragment>::@class::A::@getter::a
               element: <testLibraryFragment>::@class::A::@getter::a#element
-            get b
+            synthetic get b
               reference: <testLibraryFragment>::@class::A::@getter::b
               element: <testLibraryFragment>::@class::A::@getter::b#element
-            get c
+            synthetic get c
               reference: <testLibraryFragment>::@class::A::@getter::c
               element: <testLibraryFragment>::@class::A::@getter::c#element
   classes
@@ -5920,11 +5920,11 @@ library
                 this.value @34
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::value#element
           getters
-            get value
+            synthetic get value
               reference: <testLibraryFragment>::@class::A::@getter::value
               element: <testLibraryFragment>::@class::A::@getter::value#element
           setters
-            set value
+            synthetic set value
               reference: <testLibraryFragment>::@class::A::@setter::value
               element: <testLibraryFragment>::@class::A::@setter::value#element
               formalParameters
@@ -5945,11 +5945,11 @@ library
               element: <testLibraryFragment>::@class::B::@constructor::new#element
               typeName: B
           getters
-            get a
+            synthetic get a
               reference: <testLibraryFragment>::@class::B::@getter::a
               element: <testLibraryFragment>::@class::B::@getter::a#element
           setters
-            set a
+            synthetic set a
               reference: <testLibraryFragment>::@class::B::@setter::a
               element: <testLibraryFragment>::@class::B::@setter::a#element
               formalParameters
@@ -6154,11 +6154,11 @@ library
                 this.value @34
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::value#element
           getters
-            get value
+            synthetic get value
               reference: <testLibraryFragment>::@class::A::@getter::value
               element: <testLibraryFragment>::@class::A::@getter::value#element
           setters
-            set value
+            synthetic set value
               reference: <testLibraryFragment>::@class::A::@setter::value
               element: <testLibraryFragment>::@class::A::@setter::value#element
               formalParameters
@@ -6210,11 +6210,11 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
           getters
-            get a
+            synthetic get a
               reference: <testLibraryFragment>::@class::C::@getter::a
               element: <testLibraryFragment>::@class::C::@getter::a#element
           setters
-            set a
+            synthetic set a
               reference: <testLibraryFragment>::@class::C::@setter::a
               element: <testLibraryFragment>::@class::C::@setter::a#element
               formalParameters
@@ -6372,11 +6372,11 @@ library
                 this.f @35
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::f#element
           getters
-            get f
+            synthetic get f
               reference: <testLibraryFragment>::@class::A::@getter::f
               element: <testLibraryFragment>::@class::A::@getter::f#element
           setters
-            set f
+            synthetic set f
               reference: <testLibraryFragment>::@class::A::@setter::f
               element: <testLibraryFragment>::@class::A::@setter::f#element
               formalParameters
@@ -6482,19 +6482,19 @@ library
                 _ @14
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
       topLevelVariables
-        final a @26
+        a @26
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        final b @48
+        b @48
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
-        get a
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
   classes
@@ -6580,11 +6580,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get v
+        synthetic get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set v
+        synthetic set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -6651,11 +6651,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -6722,11 +6722,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -6793,11 +6793,11 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get x
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
@@ -6876,26 +6876,26 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final a @6
+        a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        final b @19
+        b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
-        final c @32
+        c @32
           reference: <testLibraryFragment>::@topLevelVariable::c
           element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
-        get a
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
   topLevelVariables
@@ -6978,26 +6978,26 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final a @6
+        a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        final b @19
+        b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
-        final c @32
+        c @32
           reference: <testLibraryFragment>::@topLevelVariable::c
           element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
-        get a
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
   topLevelVariables
@@ -7095,33 +7095,33 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final a @6
+        a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        final b @23
+        b @23
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
-        final c @36
+        c @36
           reference: <testLibraryFragment>::@topLevelVariable::c
           element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
-        final d @49
+        d @49
           reference: <testLibraryFragment>::@topLevelVariable::d
           element: <testLibrary>::@topLevelVariable::d
           getter2: <testLibraryFragment>::@getter::d
       getters
-        get a
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get d
+        synthetic get d
           reference: <testLibraryFragment>::@getter::d
           element: <testLibraryFragment>::@getter::d#element
   topLevelVariables
@@ -7219,26 +7219,26 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final a @6
+        a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        final b @19
+        b @19
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
-        final c @36
+        c @36
           reference: <testLibraryFragment>::@topLevelVariable::c
           element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
-        get a
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
   topLevelVariables
@@ -7395,23 +7395,23 @@ library
                 this.f @85
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::f#element
           getters
-            get f
+            synthetic get f
               reference: <testLibraryFragment>::@class::C::@getter::f
               element: <testLibraryFragment>::@class::C::@getter::f#element
       topLevelVariables
-        final b @98
+        b @98
           reference: <testLibraryFragment>::@topLevelVariable::b
           element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
-        final c @113
+        c @113
           reference: <testLibraryFragment>::@topLevelVariable::c
           element: <testLibrary>::@topLevelVariable::c
           getter2: <testLibraryFragment>::@getter::c
       getters
-        get b
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
   classes
@@ -7526,7 +7526,7 @@ library
           reference: <testLibraryFragment>::@extension::0
           element: <testLibrary>::@extension::0
           fields
-            foo
+            synthetic foo
               reference: <testLibraryFragment>::@extension::0::@field::foo
               element: <testLibraryFragment>::@extension::0::@field::foo#element
               getter2: <testLibraryFragment>::@extension::0::@getter::foo
@@ -7541,11 +7541,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get v
+        synthetic get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set v
+        synthetic set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -7694,20 +7694,20 @@ library
           getter2: <testLibraryFragment>::@getter::V
           setter2: <testLibraryFragment>::@setter::V
       getters
-        get V2
+        synthetic get V2
           reference: <testLibraryFragment>::@getter::V2
           element: <testLibraryFragment>::@getter::V2#element
-        get V
+        synthetic get V
           reference: <testLibraryFragment>::@getter::V
           element: <testLibraryFragment>::@getter::V#element
       setters
-        set V2
+        synthetic set V2
           reference: <testLibraryFragment>::@setter::V2
           element: <testLibraryFragment>::@setter::V2#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::V2::@parameter::_V2#element
-        set V
+        synthetic set V
           reference: <testLibraryFragment>::@setter::V
           element: <testLibraryFragment>::@setter::V#element
           formalParameters
@@ -7836,20 +7836,20 @@ library
           getter2: <testLibraryFragment>::@getter::V2
           setter2: <testLibraryFragment>::@setter::V2
       getters
-        get V
+        synthetic get V
           reference: <testLibraryFragment>::@getter::V
           element: <testLibraryFragment>::@getter::V#element
-        get V2
+        synthetic get V2
           reference: <testLibraryFragment>::@getter::V2
           element: <testLibraryFragment>::@getter::V2#element
       setters
-        set V
+        synthetic set V
           reference: <testLibraryFragment>::@setter::V
           element: <testLibraryFragment>::@setter::V#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::V::@parameter::_V#element
-        set V2
+        synthetic set V2
           reference: <testLibraryFragment>::@setter::V2
           element: <testLibraryFragment>::@setter::V2#element
           formalParameters
@@ -8004,11 +8004,11 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get v
+        synthetic get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set v
+        synthetic set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
@@ -8072,11 +8072,11 @@ library
           getter2: <testLibraryFragment>::@getter::d
           setter2: <testLibraryFragment>::@setter::d
       getters
-        get d
+        synthetic get d
           reference: <testLibraryFragment>::@getter::d
           element: <testLibraryFragment>::@getter::d#element
       setters
-        set d
+        synthetic set d
           reference: <testLibraryFragment>::@setter::d
           element: <testLibraryFragment>::@setter::d#element
           formalParameters
@@ -8167,11 +8167,11 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
           getters
-            get t
+            synthetic get t
               reference: <testLibraryFragment>::@class::C::@getter::t
               element: <testLibraryFragment>::@class::C::@getter::t#element
           setters
-            set t
+            synthetic set t
               reference: <testLibraryFragment>::@class::C::@setter::t
               element: <testLibraryFragment>::@class::C::@setter::t#element
               formalParameters
@@ -8270,11 +8270,11 @@ library
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               typeName: C
           getters
-            get t
+            synthetic get t
               reference: <testLibraryFragment>::@class::C::@getter::t
               element: <testLibraryFragment>::@class::C::@getter::t#element
           setters
-            set t
+            synthetic set t
               reference: <testLibraryFragment>::@class::C::@setter::t
               element: <testLibraryFragment>::@class::C::@setter::t#element
               formalParameters
@@ -8459,11 +8459,11 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            enumConstant v @20
+            v @20
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
-            values
+            synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
@@ -8473,10 +8473,10 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               typeName: E
           getters
-            get v
+            synthetic get v
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values
+            synthetic get values
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       typeAliases
@@ -8500,29 +8500,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -8541,7 +8541,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const v
+        static const enumConstant v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -8771,29 +8771,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -8817,11 +8817,11 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            enumConstant v @31
+            v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
-            values
+            synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
@@ -8831,10 +8831,10 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
               typeName: E
           getters
-            get v
+            synthetic get v
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
-            get values
+            synthetic get values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values#element
       typeAliases
@@ -8854,7 +8854,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
       fields
-        static const v
+        static const enumConstant v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
           type: E
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
@@ -9080,11 +9080,11 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            enumConstant v @46
+            v @46
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
-            values
+            synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
@@ -9094,10 +9094,10 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               typeName: E
           getters
-            get v
+            synthetic get v
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values
+            synthetic get values
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       typeAliases
@@ -9125,29 +9125,29 @@ library
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::c
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::e
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::c
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::e
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::f
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::f#element
           formalParameters
@@ -9166,7 +9166,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const v
+        static const enumConstant v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -9405,11 +9405,11 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            enumConstant v @31
+            v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
-            values
+            synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
@@ -9419,10 +9419,10 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
               typeName: E
           getters
-            get v
+            synthetic get v
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
-            get values
+            synthetic get values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values#element
       typeAliases
@@ -9450,29 +9450,29 @@ library
           getter2: <testLibrary>::@fragment::package:test/b.dart::@getter::f
           setter2: <testLibrary>::@fragment::package:test/b.dart::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibrary>::@fragment::package:test/b.dart::@getter::c
           element: <testLibrary>::@fragment::package:test/b.dart::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibrary>::@fragment::package:test/b.dart::@getter::e
           element: <testLibrary>::@fragment::package:test/b.dart::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibrary>::@fragment::package:test/b.dart::@getter::f
           element: <testLibrary>::@fragment::package:test/b.dart::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibrary>::@fragment::package:test/b.dart::@setter::c
           element: <testLibrary>::@fragment::package:test/b.dart::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibrary>::@fragment::package:test/b.dart::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibrary>::@fragment::package:test/b.dart::@setter::e
           element: <testLibrary>::@fragment::package:test/b.dart::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibrary>::@fragment::package:test/b.dart::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibrary>::@fragment::package:test/b.dart::@setter::f
           element: <testLibrary>::@fragment::package:test/b.dart::@setter::f#element
           formalParameters
@@ -9491,7 +9491,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
       fields
-        static const v
+        static const enumConstant v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
           type: E
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
@@ -9721,11 +9721,11 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            enumConstant v @31
+            v @31
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
-            values
+            synthetic values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::values#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
@@ -9735,10 +9735,10 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@constructor::new#element
               typeName: E
           getters
-            get v
+            synthetic get v
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
-            get values
+            synthetic get values
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::values#element
       typeAliases
@@ -9762,29 +9762,29 @@ library
           getter2: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           setter2: <testLibrary>::@fragment::package:test/a.dart::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::c
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::e
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibrary>::@fragment::package:test/a.dart::@getter::f
           element: <testLibrary>::@fragment::package:test/a.dart::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::c
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::e
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibrary>::@fragment::package:test/a.dart::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibrary>::@fragment::package:test/a.dart::@setter::f
           element: <testLibrary>::@fragment::package:test/a.dart::@setter::f#element
           formalParameters
@@ -9803,7 +9803,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E
       supertype: Enum
       fields
-        static const v
+        static const enumConstant v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@field::v
           type: E
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::E::@getter::v#element
@@ -9926,11 +9926,11 @@ library
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
@@ -10028,11 +10028,11 @@ library
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
@@ -10133,11 +10133,11 @@ library
           getter2: <testLibraryFragment>::@getter::c
           setter2: <testLibraryFragment>::@setter::c
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
@@ -10262,11 +10262,11 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            enumConstant v @9
+            v @9
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
-            values
+            synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
@@ -10276,10 +10276,10 @@ library
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
               typeName: E
           getters
-            get v
+            synthetic get v
               reference: <testLibraryFragment>::@enum::E::@getter::v
               element: <testLibraryFragment>::@enum::E::@getter::v#element
-            get values
+            synthetic get values
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
@@ -10289,11 +10289,11 @@ library
           getter2: <testLibraryFragment>::@getter::e
           setter2: <testLibraryFragment>::@setter::e
       getters
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
       setters
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
@@ -10305,7 +10305,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const v
+        static const enumConstant v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -10429,29 +10429,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -10594,29 +10594,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -10760,29 +10760,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -10926,29 +10926,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -11091,29 +11091,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -11256,29 +11256,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -11399,20 +11399,20 @@ library
           getter2: <testLibraryFragment>::@getter::c2
           setter2: <testLibraryFragment>::@setter::c2
       getters
-        get c1
+        synthetic get c1
           reference: <testLibraryFragment>::@getter::c1
           element: <testLibraryFragment>::@getter::c1#element
-        get c2
+        synthetic get c2
           reference: <testLibraryFragment>::@getter::c2
           element: <testLibraryFragment>::@getter::c2#element
       setters
-        set c1
+        synthetic set c1
           reference: <testLibraryFragment>::@setter::c1
           element: <testLibraryFragment>::@setter::c1#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c1::@parameter::_c1#element
-        set c2
+        synthetic set c2
           reference: <testLibraryFragment>::@setter::c2
           element: <testLibraryFragment>::@setter::c2#element
           formalParameters
@@ -11540,29 +11540,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -11704,29 +11704,29 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get c
+        synthetic get c
           reference: <testLibraryFragment>::@getter::c
           element: <testLibraryFragment>::@getter::c#element
-        get e
+        synthetic get e
           reference: <testLibraryFragment>::@getter::e
           element: <testLibraryFragment>::@getter::e#element
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set c
+        synthetic set c
           reference: <testLibraryFragment>::@setter::c
           element: <testLibraryFragment>::@setter::c#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::c::@parameter::_c#element
-        set e
+        synthetic set e
           reference: <testLibraryFragment>::@setter::e
           element: <testLibraryFragment>::@setter::e#element
           formalParameters
             <null-name>
               element: <testLibraryFragment>::@setter::e::@parameter::_e#element
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -11831,11 +11831,11 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -11941,11 +11941,11 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
@@ -12059,11 +12059,11 @@ library
           getter2: <testLibraryFragment>::@getter::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get f
+        synthetic get f
           reference: <testLibraryFragment>::@getter::f
           element: <testLibraryFragment>::@getter::f#element
       setters
-        set f
+        synthetic set f
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           formalParameters
