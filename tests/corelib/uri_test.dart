@@ -879,6 +879,28 @@ main() {
   testReplace();
   testPackageUris();
   testBackslashes();
+
+  testNonBmpEncodingRegression();
+}
+
+void testNonBmpEncodingRegression() {
+  // Regression test for bug in encoding of some non-BMP characters
+  // in host names. The failing character has to be one that doesn't have
+  // the 0x10000 bit set in its code point, and which is not in the BMP.
+  const char = "\u{2003E}"; // CJK Unified Ideo­graph.
+  const echar = "%F0%A0%80%BE"; // UTF-8 encoding of page2Char, %-encoded.
+  var nonBmpUri =
+      Uri.parse("http://$char.example.com/x${char}x?y${char}y#z${char}z");
+  Expect.equals("http://$echar.example.com/x${echar}x?y${echar}y#z${echar}z",
+      nonBmpUri.toString());
+  Expect.equals("$echar.example.com", nonBmpUri.host);
+  Expect.equals("$char.example.com", Uri.decodeComponent(nonBmpUri.host));
+  Expect.equals("/x${echar}x", nonBmpUri.path);
+  Expect.equals("/x${char}x", Uri.decodeComponent(nonBmpUri.path));
+  Expect.equals("y${echar}y", nonBmpUri.query);
+  Expect.equals("y${char}y", Uri.decodeComponent(nonBmpUri.query));
+  Expect.equals("z${echar}z", nonBmpUri.fragment);
+  Expect.equals("z${char}z", Uri.decodeComponent(nonBmpUri.fragment));
 }
 
 String dump(Uri uri) {

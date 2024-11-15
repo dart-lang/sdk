@@ -2276,7 +2276,7 @@ final class _Uri implements _PlatformUri {
         if ((char & 0xFC00) == 0xD800 && (index + 1) < end) {
           int tail = host.codeUnitAt(index + 1);
           if ((tail & 0xFC00) == 0xDC00) {
-            char = 0x10000 | ((char & 0x3ff) << 10) | (tail & 0x3ff);
+            char = 0x10000 + ((char & 0x3ff) << 10) + (tail & 0x3ff);
             sourceLength = 2;
           }
         }
@@ -2354,7 +2354,7 @@ final class _Uri implements _PlatformUri {
         if ((char & 0xFC00) == 0xD800 && (index + 1) < end) {
           int tail = host.codeUnitAt(index + 1);
           if ((tail & 0xFC00) == 0xDC00) {
-            char = 0x10000 | ((char & 0x3ff) << 10) | (tail & 0x3ff);
+            char = 0x10000 + ((char & 0x3ff) << 10) + (tail & 0x3ff);
             sourceLength = 2;
           }
         }
@@ -2580,7 +2580,7 @@ final class _Uri implements _PlatformUri {
   static String _escapeChar(int char) {
     assert(char <= 0x10ffff); // It's a valid unicode code point.
     List<int> codeUnits;
-    if (char < 0x80) {
+    if (char <= 0x7f) {
       // ASCII, a single percent encoded sequence.
       codeUnits = Uint8List(3);
       codeUnits[0] = _PERCENT;
@@ -2692,7 +2692,7 @@ final class _Uri implements _PlatformUri {
               if ((tail & 0xFC00) == 0xDC00) {
                 // Tail surrogate.
                 sourceLength = 2;
-                char = 0x10000 | ((char & 0x3ff) << 10) | (tail & 0x3ff);
+                char = 0x10000 + ((char & 0x3ff) << 10) + (tail & 0x3ff);
               }
             }
           }
