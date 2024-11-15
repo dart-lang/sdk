@@ -225,6 +225,7 @@ import 'rules/unnecessary_to_list_in_spreads.dart';
 import 'rules/unreachable_from_main.dart';
 import 'rules/unrelated_type_equality_checks.dart';
 import 'rules/unsafe_html.dart';
+import 'rules/unsafe_variance.dart';
 import 'rules/use_build_context_synchronously.dart';
 import 'rules/use_colored_box.dart';
 import 'rules/use_decorated_box.dart';
@@ -470,6 +471,7 @@ void registerLintRules() {
     ..registerLintRule(UnreachableFromMain())
     ..registerLintRule(UnrelatedTypeEqualityChecks())
     ..registerLintRule(UnsafeHtml())
+    ..registerLintRule(UnsafeVariance())
     ..registerLintRule(UseBuildContextSynchronously())
     ..registerLintRule(UseColoredBox())
     ..registerLintRule(UseDecoratedBox())

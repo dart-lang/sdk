@@ -546,6 +546,8 @@ abstract final class LintNames {
 
   static const String unsafe_html = 'unsafe_html';
 
+  static const String unsafe_variance = 'unsafe_variance';
+
   static const String use_build_context_synchronously =
       'use_build_context_synchronously';
 

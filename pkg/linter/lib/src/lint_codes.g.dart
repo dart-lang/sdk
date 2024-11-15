@@ -1762,6 +1762,14 @@ class LinterLintCode extends LintCode {
         uniqueName: 'unrelated_type_equality_checks_in_pattern',
       );
 
+  static const LintCode unsafe_variance = LinterLintCode(
+    LintNames.unsafe_variance,
+    "This type is unsafe: a type parameter occurs in a non-covariant position.",
+    correctionMessage:
+        "Try using a more general type that doesn't contain any type "
+        "parameters in such a position.",
+  );
+
   static const LintCode
   use_build_context_synchronously_async_use = LinterLintCode(
     LintNames.use_build_context_synchronously,
