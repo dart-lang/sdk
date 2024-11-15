@@ -6788,6 +6788,9 @@ class LibraryElementImpl extends ElementImpl
     ];
   }
 
+  @override
+  Uri get uri => firstFragment.source.uri;
+
   List<CompilationUnitElementImpl> get _partUnits {
     var result = <CompilationUnitElementImpl>[];
 

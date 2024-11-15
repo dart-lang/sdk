@@ -1510,6 +1510,11 @@ abstract class LibraryElement2 implements Element2, Annotatable {
 
   /// The [TypeSystem] that is used in this library.
   TypeSystem get typeSystem;
+
+  /// The canonical URI of the library.
+  ///
+  /// This is the same URI as `firstFragment.source.uri` returns.
+  Uri get uri;
 }
 
 /// An `export` directive within a library fragment.

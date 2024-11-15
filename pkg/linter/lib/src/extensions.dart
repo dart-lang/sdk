@@ -579,7 +579,7 @@ extension InterfaceElement2Extension on InterfaceElement2 {
   /// Whether this element has the exact [name] and defined in the file with
   /// the given [uri].
   bool isExactly(String name, Uri uri) =>
-      name3 == name && enclosingElement2.firstFragment.source.uri == uri;
+      name3 == name && enclosingElement2.uri == uri;
 }
 
 extension InterfaceTypeExtension on InterfaceType {
@@ -614,10 +614,6 @@ extension InterfaceTypeExtension on InterfaceType {
 
   SetterElement? getSetter2(String name) =>
       setters.firstWhereOrNull((s) => s.canonicalName == name);
-}
-
-extension LibraryElementExtension2 on LibraryElement2? {
-  Uri? get uri => this?.library2.firstFragment.source.uri;
 }
 
 extension LinterContextExtension on LinterContext {

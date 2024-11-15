@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
-import '../extensions.dart';
 import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';

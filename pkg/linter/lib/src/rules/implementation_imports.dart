@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r"Don't import implementation files from another package.";
 

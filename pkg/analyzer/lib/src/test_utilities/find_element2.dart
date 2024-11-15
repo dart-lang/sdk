@@ -21,8 +21,7 @@ class FindElement2 extends _FindElementBase {
     LibraryExport? result;
 
     for (var export in libraryFragment.libraryExports2) {
-      var exportedUri =
-          export.exportedLibrary2?.firstFragment.source.uri.toString();
+      var exportedUri = export.exportedLibrary2?.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
           throw StateError('Not unique: $targetUri');
@@ -55,8 +54,7 @@ class FindElement2 extends _FindElementBase {
 
     for (var libraryFragment in libraryFragment.withEnclosing2) {
       for (var import in libraryFragment.libraryImports2) {
-        var importedUri =
-            import.importedLibrary2?.firstFragment.source.uri.toString();
+        var importedUri = import.importedLibrary2?.uri.toString();
         if (importedUri == targetUri) {
           if (importElement == null) {
             importElement = import;

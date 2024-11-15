@@ -36,7 +36,7 @@ class OverrideHelper {
     var interface = inheritanceManager.getInterface2(interfaceElement);
     var interfaceMap = interface.map2;
     var namesToOverride = _namesToOverride(
-      interfaceElement.library2.firstFragment.source.uri,
+      interfaceElement.library2.uri,
       interface,
     );
 

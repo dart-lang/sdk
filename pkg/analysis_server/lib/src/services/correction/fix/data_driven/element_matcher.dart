@@ -172,7 +172,7 @@ class ElementMatcher {
       for (var libraryImport in part.libraryImports2) {
         // TODO(brianwilkerson): Filter based on combinators to help avoid making
         //  invalid suggestions.
-        var uri = libraryImport.importedLibrary2?.firstFragment.source.uri;
+        var uri = libraryImport.importedLibrary2?.uri;
         if (uri != null) {
           // The [uri] is `null` if the literal string is not a valid URI.
           importedUris.add(uri);

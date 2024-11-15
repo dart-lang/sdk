@@ -140,7 +140,7 @@ class _Flutter {
   bool isKDebugMode(Element2? element) =>
       element != null &&
       element.name3 == 'kDebugMode' &&
-      element.library2.uri == _uriFoundation;
+      element.library2?.uri == _uriFoundation;
 
   bool isState(InterfaceElement element) =>
       isExactly(element, _nameState, _uriFramework) ||

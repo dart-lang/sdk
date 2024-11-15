@@ -103,7 +103,7 @@ extension on DartType? {
     if (self is! InterfaceType) return false;
     var element = self.element3;
     if (element.name3 != 'Int32' && element.name3 != 'Int64') return false;
-    var uri = element.library2.firstFragment.source.uri;
+    var uri = element.library2.uri;
     if (!uri.isScheme('package')) return false;
     return uri.pathSegments.firstOrNull == 'fixnum';
   }

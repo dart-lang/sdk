@@ -97,7 +97,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = member.name3;
     if (name == null) return false;
 
-    var libraryUri = classElement.library2.firstFragment.source.uri;
+    var libraryUri = classElement.library2.uri;
     return context.inheritanceManager
             .getInherited3(classElement.thisType, Name(libraryUri, name)) !=
         null;
