@@ -6358,7 +6358,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
-        static const 
+        static const <null-name>
           firstFragment: <testLibraryFragment>::@enum::E::@field::0
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::0#element

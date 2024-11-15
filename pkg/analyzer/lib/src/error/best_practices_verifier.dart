@@ -64,7 +64,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final InheritanceManager3 _inheritanceManager;
 
   /// The current library.
-  final LibraryElement _currentLibrary;
+  final LibraryElementImpl _currentLibrary;
 
   final AnnotationVerifier _annotationVerifier;
 

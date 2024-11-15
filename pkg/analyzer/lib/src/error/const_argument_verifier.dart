@@ -6,11 +6,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 /// Checks if the arguments for a parameter annotated with `@mustBeConst` are
@@ -27,7 +26,8 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         arguments: [node.rightHandSide],
         errorNode: node.operator,
       );
-    } else if (node.rightHandSide.staticParameterElement?.hasMustBeConst ??
+    } else if (node
+            .rightHandSide.correspondingParameter?.metadata2.hasMustBeConst ??
         false) {
       // If the operator is not `=`, then the argument cannot be const, as it
       // depends on the value of the left hand side.
@@ -104,8 +104,17 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
     required SyntacticEntity errorNode,
   }) {
     for (var argument in arguments) {
-      var parameter = argument.staticParameterElement;
-      if (parameter != null && parameter.hasMustBeConst) {
+      var parameter = argument.correspondingParameter;
+      if (parameter == null) {
+        continue;
+      }
+
+      var parameterName = parameter.name3;
+      if (parameterName == null) {
+        continue;
+      }
+
+      if (parameter.metadata2.hasMustBeConst) {
         Expression resolvedArgument;
         if (parameter.isNamed) {
           resolvedArgument = (argument as NamedExpression).expression;
@@ -116,7 +125,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
           _errorReporter.atNode(
             argument,
             WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER,
-            arguments: [parameter.name],
+            arguments: [parameterName],
           );
         }
       }
@@ -143,12 +152,12 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         StringInterpolation() => false,
       };
     } else if (expression is Identifier) {
-      var staticElement = expression.staticElement;
-      if (staticElement != null) {
-        if ((staticElement is VariableElement && staticElement.isConst) ||
-            staticElement.nonSynthetic is ConstVariableElement) {
-          return true;
-        }
+      var element = expression.element;
+      switch (element) {
+        case GetterElement(variable3: var variable?):
+          return variable.isConst;
+        case VariableElement2():
+          return element.isConst;
       }
     }
     return false;

@@ -18,6 +18,28 @@ extension DartTypeExtension on DartType {
 }
 
 extension Element2Extension on Element2 {
+  /// Return `true` if this element is an instance member of a class or mixin.
+  ///
+  /// Only [MethodElement2]s, [GetterElement]s, and  [SetterElement]s are
+  /// supported.
+  ///
+  /// We intentionally exclude [ConstructorElement2]s - they can only be
+  /// invoked in instance creation expressions, and [FieldElement2]s - they
+  /// cannot be invoked directly and are always accessed using corresponding
+  /// [GetterElement]s or [SetterElement]s.
+  bool get isInstanceMember {
+    assert(this is! PropertyInducingElement2,
+        'Check the GetterElement or SetterElement instead');
+    var this_ = this;
+    var enclosing = this_.enclosingElement2;
+    if (enclosing is InterfaceElement2) {
+      return this_ is MethodElement2 && !this_.isStatic ||
+          this_ is GetterElement && !this_.isStatic ||
+          this_ is SetterElement && !this_.isStatic;
+    }
+    return false;
+  }
+
   /// Whether this element is a wildcard variable.
   bool get isWildcardVariable {
     return name3 == '_' &&
