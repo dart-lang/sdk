@@ -9,7 +9,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
