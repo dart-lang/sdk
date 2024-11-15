@@ -37,9 +37,8 @@ final s8 = s7[0];
 final s9 = s7[0] = 0;
 
 final t = StreamTransformer.fromHandlers(
-  handleData: (data, sink) => Future.microtask(() => sink.add(data)),
-  handleDone: (sink) => Future.microtask(() => sink.close()),
-);
+    handleData: (data, sink) => Future.microtask(() => sink.add(data)),
+    handleDone: (sink) => Future.microtask(() => sink.close()));
 
 int? s5;
 

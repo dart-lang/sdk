@@ -15,15 +15,15 @@ class Y extends B {}
 class Z implements A, B {}
 
 int unsound1(S s) => switch (s) {
-  X() as A => 0,
-  Y() as B => 1,
-};
+      X() as A => 0,
+      Y() as B => 1,
+    };
 
 int? sound1(S s) => switch (s) {
-  X() as A => 0,
-  Y() as B => 1,
-  _ => null,
-};
+      X() as A => 0,
+      Y() as B => 1,
+      _ => null,
+    };
 
 int unsound2(S s) {}
 
