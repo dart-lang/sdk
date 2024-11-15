@@ -5157,7 +5157,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   int getInt16(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 1);
+    // Check bounds for range [byteOffset, byteOffset + 1].
+    _byteDataByteOffsetCheck(this, byteOffset + 1, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     var result = _typedData._getInt16(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
@@ -5167,7 +5169,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 1);
+    // Check bounds for range [byteOffset, byteOffset + 1].
+    _byteDataByteOffsetCheck(this, byteOffset + 1, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     _typedData._setInt16(
       offsetInBytes + byteOffset,
       identical(endian, Endian.host) ? value : _byteSwap16(value),
@@ -5176,7 +5180,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   int getUint16(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 1);
+    // Check bounds for range [byteOffset, byteOffset + 1].
+    _byteDataByteOffsetCheck(this, byteOffset + 1, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     var result = _typedData._getUint16(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
@@ -5186,7 +5192,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 1);
+    // Check bounds for range [byteOffset, byteOffset + 1].
+    _byteDataByteOffsetCheck(this, byteOffset + 1, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     _typedData._setUint16(
       offsetInBytes + byteOffset,
       identical(endian, Endian.host) ? value : _byteSwap16(value),
@@ -5195,7 +5203,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   int getInt32(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 3);
+    // Check bounds for range [byteOffset, byteOffset + 3].
+    _byteDataByteOffsetCheck(this, byteOffset + 3, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     var result = _typedData._getInt32(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
@@ -5205,7 +5215,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 3);
+    // Check bounds for range [byteOffset, byteOffset + 3].
+    _byteDataByteOffsetCheck(this, byteOffset + 3, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     _typedData._setInt32(
       offsetInBytes + byteOffset,
       identical(endian, Endian.host) ? value : _byteSwap32(value),
@@ -5214,7 +5226,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   int getUint32(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 3);
+    // Check bounds for range [byteOffset, byteOffset + 3].
+    _byteDataByteOffsetCheck(this, byteOffset + 3, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     var result = _typedData._getUint32(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
@@ -5224,7 +5238,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 3);
+    // Check bounds for range [byteOffset, byteOffset + 3].
+    _byteDataByteOffsetCheck(this, byteOffset + 3, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     _typedData._setUint32(
       offsetInBytes + byteOffset,
       identical(endian, Endian.host) ? value : _byteSwap32(value),
@@ -5233,7 +5249,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   int getInt64(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 7);
+    // Check bounds for range [byteOffset, byteOffset + 7].
+    _byteDataByteOffsetCheck(this, byteOffset + 7, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     var result = _typedData._getInt64(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
@@ -5243,7 +5261,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 7);
+    // Check bounds for range [byteOffset, byteOffset + 7].
+    _byteDataByteOffsetCheck(this, byteOffset + 7, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     _typedData._setInt64(
       offsetInBytes + byteOffset,
       identical(endian, Endian.host) ? value : _byteSwap64(value),
@@ -5252,7 +5272,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   int getUint64(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 7);
+    // Check bounds for range [byteOffset, byteOffset + 7].
+    _byteDataByteOffsetCheck(this, byteOffset + 7, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     var result = _typedData._getUint64(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
@@ -5262,7 +5284,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 7);
+    // Check bounds for range [byteOffset, byteOffset + 7].
+    _byteDataByteOffsetCheck(this, byteOffset + 7, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     _typedData._setUint64(
       offsetInBytes + byteOffset,
       identical(endian, Endian.host) ? value : _byteSwap64(value),
@@ -5271,7 +5295,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   double getFloat32(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 3);
+    // Check bounds for range [byteOffset, byteOffset + 3].
+    _byteDataByteOffsetCheck(this, byteOffset + 3, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     if (identical(endian, Endian.host)) {
       return _typedData._getFloat32(offsetInBytes + byteOffset);
     }
@@ -5283,7 +5309,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   void setFloat32(int byteOffset, double value, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 3);
+    // Check bounds for range [byteOffset, byteOffset + 3].
+    _byteDataByteOffsetCheck(this, byteOffset + 3, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     if (identical(endian, Endian.host)) {
       _typedData._setFloat32(offsetInBytes + byteOffset, value);
       return;
@@ -5294,7 +5322,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   double getFloat64(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 7);
+    // Check bounds for range [byteOffset, byteOffset + 7].
+    _byteDataByteOffsetCheck(this, byteOffset + 7, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     if (identical(endian, Endian.host)) {
       return _typedData._getFloat64(offsetInBytes + byteOffset);
     }
@@ -5306,7 +5336,9 @@ final class _ByteDataView implements ByteData {
 
   @pragma("vm:prefer-inline")
   void setFloat64(int byteOffset, double value, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 7);
+    // Check bounds for range [byteOffset, byteOffset + 7].
+    _byteDataByteOffsetCheck(this, byteOffset + 7, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     if (identical(endian, Endian.host)) {
       _typedData._setFloat64(offsetInBytes + byteOffset, value);
       return;
@@ -5316,7 +5348,9 @@ final class _ByteDataView implements ByteData {
   }
 
   Float32x4 getFloat32x4(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 15);
+    // Check bounds for range [byteOffset, byteOffset + 15].
+    _byteDataByteOffsetCheck(this, byteOffset + 15, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     // TODO(johnmccutchan) : Need to resolve this for endianity.
     return _typedData._getFloat32x4(offsetInBytes + byteOffset);
   }
@@ -5326,13 +5360,17 @@ final class _ByteDataView implements ByteData {
     Float32x4 value, [
     Endian endian = Endian.big,
   ]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 15);
+    // Check bounds for range [byteOffset, byteOffset + 15].
+    _byteDataByteOffsetCheck(this, byteOffset + 15, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     // TODO(johnmccutchan) : Need to resolve this for endianity.
     _typedData._setFloat32x4(offsetInBytes + byteOffset, value);
   }
 
   Float64x2 getFloat64x2(int byteOffset, [Endian endian = Endian.big]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 15);
+    // Check bounds for range [byteOffset, byteOffset + 15].
+    _byteDataByteOffsetCheck(this, byteOffset + 15, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     // TODO(johnmccutchan) : Need to resolve this for endianity.
     return _typedData._getFloat64x2(offsetInBytes + byteOffset);
   }
@@ -5342,7 +5380,9 @@ final class _ByteDataView implements ByteData {
     Float64x2 value, [
     Endian endian = Endian.big,
   ]) {
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length - 15);
+    // Check bounds for range [byteOffset, byteOffset + 15].
+    _byteDataByteOffsetCheck(this, byteOffset + 15, length);
+    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
     // TODO(johnmccutchan) : Need to resolve this for endianity.
     _typedData._setFloat64x2(offsetInBytes + byteOffset, value);
   }
@@ -5402,6 +5442,7 @@ void _throwIfNull(val, String name) {
   }
 }
 
+// Length should be non-negative.
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
 int _typedDataIndexCheck(Object indexable, int index, int length) {
@@ -5416,6 +5457,7 @@ int _typedDataIndexCheck(Object indexable, int index, int length) {
   return index;
 }
 
+// Length should be non-negative.
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
 int _byteDataByteOffsetCheck(ByteData indexable, int byteOffset, int length) {
