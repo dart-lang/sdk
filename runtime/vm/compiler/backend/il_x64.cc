@@ -6075,46 +6075,6 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* SpeculativeShiftInt64OpInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, LocationFixedRegisterOrSmiConstant(right(), RCX));
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
-}
-
-void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register left = locs()->in(0).reg();
-  const Register out = locs()->out(0).reg();
-  ASSERT(left == out);
-  ASSERT(!can_overflow());
-
-  if (locs()->in(1).IsConstant()) {
-    EmitShiftInt64ByConstant(compiler, op_kind(), left,
-                             locs()->in(1).constant());
-  } else {
-    ASSERT(locs()->in(1).reg() == RCX);
-    __ SmiUntag(RCX);
-
-    // Deoptimize if shift count is > 63 or negative (or not a smi).
-    if (!IsShiftCountInRange()) {
-      ASSERT(CanDeoptimize());
-      compiler::Label* deopt =
-          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-
-      __ cmpq(RCX, compiler::Immediate(kShiftCountLimit));
-      __ j(ABOVE, deopt);
-    }
-
-    EmitShiftInt64ByRCX(compiler, op_kind(), left);
-  }
-}
-
 class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
  public:
   explicit ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction)
@@ -6188,56 +6148,6 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (slow_path != nullptr) {
       __ Bind(slow_path->exit_label());
     }
-  }
-}
-
-LocationSummary* SpeculativeShiftUint32OpInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, LocationFixedRegisterOrSmiConstant(right(), RCX));
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
-}
-
-void SpeculativeShiftUint32OpInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  Register left = locs()->in(0).reg();
-  Register out = locs()->out(0).reg();
-  ASSERT(left == out);
-
-  if (locs()->in(1).IsConstant()) {
-    EmitShiftUint32ByConstant(compiler, op_kind(), left,
-                              locs()->in(1).constant());
-  } else {
-    ASSERT(locs()->in(1).reg() == RCX);
-    __ SmiUntag(RCX);
-
-    if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
-      if (!IsShiftCountInRange()) {
-        // Deoptimize if shift count is negative.
-        ASSERT(CanDeoptimize());
-        compiler::Label* deopt =
-            compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-
-        __ OBJ(test)(RCX, RCX);
-        __ j(LESS, deopt);
-      }
-
-      compiler::Label cont;
-      __ OBJ(cmp)(RCX, compiler::Immediate(kUint32ShiftCountLimit));
-      __ j(LESS_EQUAL, &cont);
-
-      __ xorl(left, left);
-
-      __ Bind(&cont);
-    }
-
-    EmitShiftUint32ByRCX(compiler, op_kind(), left);
   }
 }
 

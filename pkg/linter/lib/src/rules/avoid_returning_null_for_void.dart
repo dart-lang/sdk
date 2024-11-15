@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -59,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var (type, isAsync, code) = switch (parent) {
       FunctionExpression() => (
-          parent.element?.returnType,
+          parent.declaredFragment?.element.returnType,
           parent.body.isAsynchronous,
           LinterLintCode.avoid_returning_null_for_void_from_function,
         ),
@@ -80,9 +79,4 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(node, errorCode: code);
     }
   }
-}
-
-extension on FunctionExpression {
-  ExecutableElement2? get element =>
-      declaredFragment?.element ?? declaredElement2;
 }

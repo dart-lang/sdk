@@ -2845,7 +2845,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  ClassFragment? get declaredFragment => declaredElement as ClassFragment;
+  ClassElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -3052,7 +3052,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @experimental
   @override
-  ClassFragment? get declaredFragment => declaredElement as ClassFragment?;
+  ClassElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -6981,6 +6981,10 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 ///        [TypeAnnotation])?
 ///        'this' '.' name ([TypeParameterList]? [FormalParameterList])?
 abstract final class FieldFormalParameter implements NormalFormalParameter {
+  @experimental
+  @override
+  FieldFormalParameterFragment? get declaredFragment;
+
   /// The token representing either the `final`, `const` or `var` keyword, or
   /// `null` if no keyword was used.
   Token? get keyword;
@@ -7073,6 +7077,11 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     _becomeParentOf(_type);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
+  }
+
+  @override
+  FieldFormalParameterElementImpl? get declaredFragment {
+    return super.declaredFragment as FieldFormalParameterElementImpl?;
   }
 
   @override
@@ -8406,15 +8415,6 @@ abstract final class FunctionExpression implements Expression {
   /// hasn't been resolved.
   ExecutableElement? get declaredElement;
 
-  /// The element defined by this function expression.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved.
-  ///
-  /// Returns `null` if this expression is not a closure, and the parent is
-  /// not a local function.
-  @experimental
-  LocalFunctionElement? get declaredElement2;
-
   /// The fragment declared by this function expression.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -8451,7 +8451,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   ExecutableElementImpl? declaredElement;
 
   @override
-  LocalFunctionElementImpl? declaredElement2;
+  ExecutableElementImpl? declaredFragment;
 
   /// Initializes a newly created function declaration.
   FunctionExpressionImpl({
@@ -8484,14 +8484,6 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @override
-  ExecutableFragment? get declaredFragment {
-    if (declaredElement?.enclosingElement3 is CompilationUnitElement) {
-      return declaredElement;
-    }
-    return null;
-  }
-
-  @override
   Token get endToken {
     return _body.endToken;
   }
@@ -8505,15 +8497,6 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   Precedence get precedence => Precedence.primary;
-
-  DartType get returnType {
-    // If a closure, or a local function.
-    if (declaredElement2 case var declaredElement?) {
-      return declaredElement.returnType;
-    }
-    // SAFETY: must be a top-level function.
-    return declaredFragment!.element.returnType;
-  }
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -12284,7 +12267,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @experimental
   @override
-  MixinFragment? get declaredFragment => declaredElement as MixinFragment?;
+  MixinElementImpl? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => rightBracket;

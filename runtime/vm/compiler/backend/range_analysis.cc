@@ -150,8 +150,7 @@ void RangeAnalysis::CollectValues() {
           values_.Add(defn);
           if (defn->IsBinaryInt64Op()) {
             binary_int64_ops_.Add(defn->AsBinaryInt64Op());
-          } else if (defn->IsShiftInt64Op() ||
-                     defn->IsSpeculativeShiftInt64Op()) {
+          } else if (defn->IsShiftInt64Op()) {
             shift_int64_ops_.Add(defn->AsShiftIntegerOp());
           }
         }
@@ -1541,7 +1540,6 @@ bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
   // & untagged of intermediate results.
   // TODO(johnmccutchan): Consider phis.
   return def->IsBoxInt64() || def->IsUnboxInt64() || def->IsShiftInt64Op() ||
-         def->IsSpeculativeShiftInt64Op() ||
          (def->IsBinaryInt64Op() && BinaryUint32OpInstr::IsSupported(
                                         def->AsBinaryInt64Op()->op_kind())) ||
          (def->IsUnaryInt64Op() &&
@@ -1638,7 +1636,7 @@ bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
   }
   // A right shift with an input outside of Uint32 range cannot be converted
   // because we need the high bits.
-  if (def->IsShiftInt64Op() || def->IsSpeculativeShiftInt64Op()) {
+  if (def->IsShiftInt64Op()) {
     ShiftIntegerOpInstr* op = def->AsShiftIntegerOp();
     if ((op->op_kind() == Token::kSHR) || (op->op_kind() == Token::kUSHR)) {
       Definition* shift_input = op->left()->definition();

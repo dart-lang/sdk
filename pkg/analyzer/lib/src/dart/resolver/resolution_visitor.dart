@@ -698,12 +698,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           : _elementWalker!.getFunction();
       node.declaredElement = element;
       expression.declaredElement = element;
+      expression.declaredFragment = element;
     } else {
       var functionElement = node.declaredElement as FunctionElementImpl;
+      functionElement.element = LocalFunctionElementImpl(functionElement);
+
       element = functionElement;
       expression.declaredElement = functionElement;
-      expression.declaredElement2 =
-          functionElement.element as LocalFunctionElementImpl?;
+      expression.declaredFragment = functionElement;
 
       _setCodeRange(element, node);
       setElementDocumentationComment(element, node);
@@ -767,11 +769,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     var fragment = FunctionElementImpl.forOffset(node.offset);
+    fragment.element = LocalFunctionElementImpl(fragment);
+
     _elementHolder.enclose(fragment);
     node.declaredElement = fragment;
-
-    var element = LocalFunctionElementImpl(fragment);
-    node.declaredElement2 = element;
+    node.declaredFragment = fragment;
 
     fragment.hasImplicitReturnType = true;
     fragment.returnType = DynamicTypeImpl.instance;
@@ -1480,8 +1482,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
     node.declaredElement = fragment;
 
-    var element = LocalFunctionElementImpl(fragment);
-    node.functionExpression.declaredElement2 = element;
+    fragment.element = LocalFunctionElementImpl(fragment);
+    node.functionExpression.declaredFragment = fragment;
 
     // The fragment's old enclosing element needs to be set before we can get
     // the new element for it.

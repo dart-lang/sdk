@@ -647,30 +647,24 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                             call->deopt_id(), call->source());
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
+    left =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(left), call->deopt_id(),
+                           UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, left, call->env(), FlowGraph::kValue);
+    right =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(right),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    BinaryIntegerOpInstr* bin_op = nullptr;
     if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
         (op_kind == Token::kUSHR)) {
-      // left is unboxed, right is tagged.
-      left = UnboxInstr::Create(kUnboxedInt64, new (Z) Value(left),
-                                call->deopt_id(),
-                                UnboxInstr::ValueMode::kCheckType);
-      InsertBefore(call, left, call->env(), FlowGraph::kValue);
-      SpeculativeShiftInt64OpInstr* shift_op = new (Z)
-          SpeculativeShiftInt64OpInstr(op_kind, new (Z) Value(left),
-                                       new (Z) Value(right), call->deopt_id());
-      ReplaceCall(call, shift_op);
-    } else {
-      left = UnboxInstr::Create(kUnboxedInt64, new (Z) Value(left),
-                                call->deopt_id(),
-                                UnboxInstr::ValueMode::kCheckType);
-      InsertBefore(call, left, call->env(), FlowGraph::kValue);
-      right = UnboxInstr::Create(kUnboxedInt64, new (Z) Value(right),
-                                 call->deopt_id(),
-                                 UnboxInstr::ValueMode::kCheckType);
-      InsertBefore(call, right, call->env(), FlowGraph::kValue);
-      BinaryInt64OpInstr* bin_op = new (Z) BinaryInt64OpInstr(
+      bin_op = new (Z) ShiftInt64OpInstr(
           op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
-      ReplaceCall(call, bin_op);
+    } else {
+      bin_op = new (Z) BinaryInt64OpInstr(
+          op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
     }
+    ReplaceCall(call, bin_op);
   } else if ((operands_type == kFloat32x4Cid) ||
              (operands_type == kInt32x4Cid) ||
              (operands_type == kFloat64x2Cid)) {

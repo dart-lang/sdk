@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
@@ -173,6 +174,25 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
 /// If [includeParametersForFields] is true and [member] is a [FieldElement],
 /// any [FieldFormalParameterElement]s for the member will also be provided
 /// (otherwise, the parameter set will be empty in the result).
+Future<Set<Element2>> getHierarchyMembers2(
+  SearchEngine searchEngine,
+  Element2 member, {
+  OperationPerformanceImpl? performance,
+}) async {
+  var result = await getHierarchyMembers(
+    searchEngine,
+    member.asElement as ClassMemberElement,
+    performance: performance,
+  );
+  return result.map((e) => e.asElement2!).toSet();
+}
+
+/// Return all implementations of the given [member], including in its
+/// superclasses and their subclasses.
+///
+/// If [includeParametersForFields] is true and [member] is a [FieldElement],
+/// any [FieldFormalParameterElement]s for the member will also be provided
+/// (otherwise, the parameter set will be empty in the result).
 Future<(Set<ClassMemberElement>, Set<ParameterElement>)>
 getHierarchyMembersAndParameters(
   SearchEngine searchEngine,
@@ -274,6 +294,19 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
     }
   }
   return [element];
+}
+
+/// If the [element] is a named parameter in a [MethodElement], return all
+/// corresponding named parameters in the method hierarchy.
+Future<List<FormalParameterElement>> getHierarchyNamedParameters2(
+  SearchEngine searchEngine,
+  FormalParameterElement element,
+) async {
+  var result = await getHierarchyNamedParameters(
+    searchEngine,
+    element.asElement as ParameterElement,
+  );
+  return result.map((e) => e.asElement2 as FormalParameterElement).toList();
 }
 
 /// Returns non-synthetic members of the given [InterfaceElement] and its super

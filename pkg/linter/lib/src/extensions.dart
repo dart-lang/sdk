@@ -575,6 +575,13 @@ extension InhertanceManager3Extension on InheritanceManager3 {
   }
 }
 
+extension InterfaceElement2Extension on InterfaceElement2 {
+  /// Whether this element has the exact [name] and defined in the file with
+  /// the given [uri].
+  bool isExactly(String name, Uri uri) =>
+      name3 == name && enclosingElement2.firstFragment.source.uri == uri;
+}
+
 extension InterfaceTypeExtension on InterfaceType {
   /// Returns the collection of all interfaces that this type implements,
   /// including itself.

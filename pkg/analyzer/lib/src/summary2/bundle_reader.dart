@@ -1603,15 +1603,17 @@ class LibraryReader {
           variables2!.add(variableElement);
         }
       } else {
+        var isPromotable = _reader.readBool();
         if (existing is FieldElementImpl && canUseExisting(existing)) {
           propertyFragment = existing;
         } else {
           propertyFragment = FieldElementImpl(name, -1)
             ..enclosingElement3 = enclosingElement
             ..reference = propertyFragmentReference
+            ..name2 = accessor.name2
             ..isStatic = accessor.isStatic
             ..isSynthetic = true
-            ..name2 = accessor.name2;
+            ..isPromotable = isPromotable;
           propertyFragmentReference.element ??= propertyFragment;
           propertyFragments.add(propertyFragment);
         }

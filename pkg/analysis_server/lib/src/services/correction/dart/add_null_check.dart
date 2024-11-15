@@ -160,7 +160,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       if (enclosingExecutable is MethodDeclaration) {
         toType = enclosingExecutable.returnType?.type;
       } else if (enclosingExecutable is FunctionExpressionImpl) {
-        toType = enclosingExecutable.returnType;
+        toType = enclosingExecutable.declaredFragment!.element.returnType;
       }
     } else if (parent is BinaryExpression) {
       if (typeSystem.isNonNullable(fromType)) {

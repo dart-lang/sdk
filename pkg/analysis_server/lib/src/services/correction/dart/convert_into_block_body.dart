@@ -185,7 +185,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     } else if (node is ConstructorDeclaration) {
       return node.declaredFragment?.element;
     } else if (node is FunctionExpression) {
-      return node.declaredFragment?.element ?? node.declaredElement2;
+      return node.declaredFragment?.element;
     }
     return null;
   }

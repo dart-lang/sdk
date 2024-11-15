@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -147,6 +148,9 @@ abstract class SearchMatch {
   /// Return the [Element] containing the match.
   Element get element;
 
+  /// Return the element containing the match.
+  Element2 get element2;
+
   /// The absolute path of the file containing the match.
   String get file;
 
@@ -161,6 +165,9 @@ abstract class SearchMatch {
 
   /// Return the [LibraryElement] for the [file].
   LibraryElement get libraryElement;
+
+  /// Return the library element for the [file].
+  LibraryElement2 get libraryElement2;
 
   /// The library [Source] of the reference.
   Source get librarySource;
