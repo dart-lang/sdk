@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
@@ -126,6 +127,19 @@ class AnalysisSessionImpl implements AnalysisSession {
     }
 
     return await _driver.getResolvedLibraryByUri(element.source.uri);
+  }
+
+  @override
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+    LibraryElement2 element,
+  ) async {
+    checkConsistency();
+
+    if (element.session != this) {
+      return NotElementOfThisSessionResult();
+    }
+
+    return await _driver.getResolvedLibraryByUri(element.uri);
   }
 
   @override
