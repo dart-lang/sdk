@@ -4172,8 +4172,8 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
 class FieldElementImpl2 extends PropertyInducingElementImpl2
     with
-        FragmentedAnnotatableElementMixin<FieldFragment>,
-        FragmentedElementMixin<FieldFragment>
+        FragmentedAnnotatableElementMixin<FieldElementImpl>,
+        FragmentedElementMixin<FieldElementImpl>
     implements FieldElement2 {
   @override
   final FieldElementImpl firstFragment;
@@ -9689,7 +9689,14 @@ abstract class PropertyInducingElementImpl
 }
 
 abstract class PropertyInducingElementImpl2 extends VariableElementImpl2
-    implements PropertyInducingElement2 {}
+    implements PropertyInducingElement2 {
+  @override
+  bool get hasInitializer {
+    return _fragments.any((f) => f.hasInitializer);
+  }
+
+  List<PropertyInducingElementImpl> get _fragments;
+}
 
 /// Instances of this class are set for fields and top-level variables
 /// to perform top-level type inference during linking.
@@ -9967,8 +9974,8 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 
 class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
     with
-        FragmentedAnnotatableElementMixin<TopLevelVariableFragment>,
-        FragmentedElementMixin<TopLevelVariableFragment>
+        FragmentedAnnotatableElementMixin<TopLevelVariableElementImpl>,
+        FragmentedElementMixin<TopLevelVariableElementImpl>
     implements TopLevelVariableElement2 {
   @override
   final Reference reference;

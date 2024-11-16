@@ -416,6 +416,23 @@ print();
     String [!a^bc!] = '';
     ''', contains('This is a string.'));
 
+  Future<void> test_method_mixin_onImplementation() async {
+    var content = '''
+abstract class A {
+  /// Documentation for [f].
+  void f();
+}
+
+abstract class B implements A {}
+
+mixin M on B {
+  @override
+  void [!f^!]() {}
+}
+''';
+    await assertStringContents(content, contains('Documentation for [f].'));
+  }
+
   Future<void> test_method_startOfParameterList() => assertStringContents('''
     class A {
       /// This is a method.

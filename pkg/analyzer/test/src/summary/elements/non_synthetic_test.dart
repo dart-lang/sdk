@@ -72,7 +72,7 @@ library
           reference: <testLibraryFragment>::@class::C
           element: <testLibrary>::@class::C
           fields
-            foo @16
+            hasInitializer foo @16
               reference: <testLibraryFragment>::@class::C::@field::foo
               element: <testLibraryFragment>::@class::C::@field::foo#element
               getter2: <testLibraryFragment>::@class::C::@getter::foo
@@ -98,7 +98,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
           type: int
           getter: <testLibraryFragment>::@class::C::@getter::foo#element
@@ -395,11 +395,11 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            a @11
+            hasInitializer a @11
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@getter::a
-            b @14
+            hasInitializer b @14
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@getter::b
@@ -428,11 +428,11 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant a
+        static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
-        static const enumConstant b
+        static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
@@ -506,7 +506,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           fields
-            foo @16
+            hasInitializer foo @16
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
@@ -529,7 +529,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
@@ -921,7 +921,7 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        foo @4
+        hasInitializer foo @4
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -938,7 +938,7 @@ library
             <null-name>
               element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
   topLevelVariables
-    foo
+    hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int

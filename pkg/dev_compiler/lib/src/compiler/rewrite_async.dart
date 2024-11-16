@@ -127,8 +127,11 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
   /// The current returned value (a finally block may overwrite it).
   late final js_ast.Identifier _returnValue = TemporaryId('t\$returnValue');
 
-  /// Stores the current error when we are in the process of handling an error.
-  late final js_ast.Identifier _currentError = TemporaryId('t\$currentError');
+  /// Stores a stack of the current set of errors when we are in the process of
+  /// handling an error. Errors are pushed onto this stack when error handling
+  /// begins and the current error is popped off when error handling ends. This
+  /// prevents nested error handling from overwriting state.
+  late final js_ast.Identifier _errorStack = TemporaryId('t\$errorStack');
 
   /// The label of the outer loop.
   ///
@@ -727,8 +730,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
     if (_hasHandlerLabels) {
       variables.add(_makeVariableInitializer(
           _handler, js_ast.number(_rethrowLabel), bodySourceInformation));
-      variables.add(
-          _makeVariableInitializer(_currentError, null, bodySourceInformation));
+      variables.add(_makeVariableInitializer(_errorStack,
+          js_ast.ArrayInitializer(const []), bodySourceInformation));
     }
     if (_analysis.hasFinally || (_isAsyncStar && _analysis.hasYield)) {
       variables.add(_makeVariableInitializer(
@@ -1631,7 +1634,8 @@ abstract class AsyncRewriterBase extends js_ast.NodeVisitor<Object?> {
       // section 12.14.
       var errorName = visitExpression(catchPart.declaration);
       _hoistIfNecessary(errorName);
-      _addStatement(js_ast.js.statement('# = #;', [errorName, _currentError]));
+      _addStatement(
+          js_ast.js.statement('# = #.pop();', [errorName, _errorStack]));
       _visitStatement(catchPart.body);
       if (finallyPart != null) {
         // The error has been caught, so after the finally, continue after the
@@ -1974,9 +1978,10 @@ class AsyncRewriter extends AsyncRewriterBase {
   void addErrorExit(Object? sourceInformation) {
     if (!_hasHandlerLabels) return; // rethrow handled in method boilerplate.
     _beginLabel(_rethrowLabel);
-    var thenHelperCall = js_ast.js('#thenHelper(#currentError, #completer)', {
+    var thenHelperCall = js_ast.js(
+        '#thenHelper(#errorStack.at(-1), #completer)', {
       'thenHelper': asyncRethrow,
-      'currentError': _currentError,
+      'errorStack': _errorStack,
       'completer': completer
     }).withSourceInformation(sourceInformation);
     _addStatement(
@@ -2048,12 +2053,12 @@ class AsyncRewriter extends AsyncRewriterBase {
     if (_hasHandlerLabels) {
       errorCheck = js_ast.js.statement('''
             if (#errorCode === #ERROR) {
-              #currentError = #result;
+              #errorStack.push(#result);
               #goto = #handler;
             }''', {
         'errorCode': _errorCode,
         'ERROR': js_ast.number(status_codes.ERROR),
-        'currentError': _currentError,
+        'errorStack': _errorStack,
         'result': _result,
         'goto': _goto,
         'handler': _handler,
@@ -2204,9 +2209,9 @@ class SyncStarRewriter extends AsyncRewriterBase {
     var innerDeclarations =
         js_ast.VariableDeclarationList('let', innerDeclarationsList);
 
-    var setCurrentError = js_ast.js('#currentError = #result', {
+    var pushError = js_ast.js('#errorStack.push(#result)', {
       'result': _result,
-      'currentError': _currentError,
+      'errorStack': _errorStack,
     });
     var setGoto = js_ast.js('#goto = #handler', {
       'goto': _goto,
@@ -2214,12 +2219,12 @@ class SyncStarRewriter extends AsyncRewriterBase {
     });
     var checkErrorCode = js_ast.js.statement('''
           if (#errorCode === #ERROR) {
-              #setCurrentError;
+              #pushError;
               #setGoto;
           }''', {
       'errorCode': _errorCode,
       'ERROR': js_ast.number(status_codes.ERROR),
-      'setCurrentError': setCurrentError,
+      'pushError': pushError,
       'setGoto': setGoto,
     });
     // Use an arrow function so that we can access 'this' from the outer scope.
@@ -2280,7 +2285,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
     // This stashes the exception on the Iterator and returns the
     // SYNC_STAR_UNCAUGHT_EXCEPTION status code.
     final store = js_ast.Assignment(
-        js_ast.PropertyAccess(iterator, iteratorDatumProperty), _currentError);
+        js_ast.PropertyAccess(iterator, iteratorDatumProperty),
+        js_ast.js('#.at(-1)', [_errorStack]));
     _addStatement(js_ast.Return(js_ast.Binary(',', store,
             js_ast.number(status_codes.SYNC_STAR_UNCAUGHT_EXCEPTION)))
         .withSourceInformation(sourceInformation));
@@ -2431,8 +2437,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       'goto': _goto,
       'callPop': callPop,
     });
-    var updateError = js_ast.js('#currentError = #result', {
-      'currentError': _currentError,
+    var pushError = js_ast.js('#errorStack.push(#result)', {
+      'errorStack': _errorStack,
       'result': _result,
     });
     var gotoError = js_ast.js('#goto = #handler', {
@@ -2447,7 +2453,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
             #gotoCancelled;
             #break;
           case #ERROR:
-            #updateError;
+            #pushError;
             #gotoError;
         }''', {
       'errorCode': _errorCode,
@@ -2456,17 +2462,17 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       'gotoCancelled': gotoCancelled,
       'break': breakStatement,
       'ERROR': js_ast.number(status_codes.ERROR),
-      'updateError': updateError,
+      'pushError': pushError,
       'gotoError': gotoError,
     });
     var ifError = js_ast.js.statement('''
         if (#errorCode === #ERROR) {
-          #updateError;
+          #pushError;
           #gotoError;
         }''', {
       'errorCode': _errorCode,
       'ERROR': js_ast.number(status_codes.ERROR),
-      'updateError': updateError,
+      'pushError': pushError,
       'gotoError': gotoError,
     });
     var ifHasYield = js_ast.js.statement('''
@@ -2523,10 +2529,10 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     _hasHandlerLabels = true;
     _beginLabel(_rethrowLabel);
     var asyncHelperCall =
-        js_ast.js('#asyncHelper(#currentError, #errorCode, #controller)', {
+        js_ast.js('#asyncHelper(#errorStack.at(-1), #errorCode, #controller)', {
       'asyncHelper': asyncStarHelper,
       'errorCode': js_ast.number(status_codes.ERROR),
-      'currentError': _currentError,
+      'errorStack': _errorStack,
       'controller': controller
     }).withSourceInformation(sourceInformation);
     _addStatement(js_ast.Return(asyncHelperCall)

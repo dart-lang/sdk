@@ -178,6 +178,11 @@ class _OverriddenElementsFinder {
     }
     // super
     _addInterfaceOverrides(class_.supertype?.element3, checkType);
+    if (class_ is MixinElement2) {
+      for (var constraint in class_.superclassConstraints) {
+        _addInterfaceOverrides(constraint.element3, true);
+      }
+    }
   }
 
   void _addSuperOverrides(

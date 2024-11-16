@@ -373,7 +373,7 @@ library
           reference: <testLibraryFragment>::@mixin::M
           element: <testLibrary>::@mixin::M
           fields
-            x @18
+            hasInitializer x @18
               reference: <testLibraryFragment>::@mixin::M::@field::x
               element: <testLibraryFragment>::@mixin::M::@field::x#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::x
@@ -388,7 +388,7 @@ library
       superclassConstraints
         Object
       fields
-        final x
+        final hasInitializer x
           firstFragment: <testLibraryFragment>::@mixin::M::@field::x
           type: int
           getter: <testLibraryFragment>::@mixin::M::@getter::x#element
@@ -3195,7 +3195,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @31
+            hasInitializer foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
@@ -3222,7 +3222,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
-            augment foo @53
+            augment hasInitializer foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
@@ -3233,7 +3233,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element
@@ -3376,7 +3376,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @46
+            hasInitializer foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
@@ -3405,7 +3405,7 @@ library
           previousFragment: <testLibraryFragment>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A
           fields
-            augment foo @53
+            augment hasInitializer foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
@@ -3420,7 +3420,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            augment foo @53
+            augment hasInitializer foo @53
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
@@ -3431,7 +3431,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element
@@ -3574,7 +3574,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @46
+            hasInitializer foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
@@ -3618,7 +3618,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            augment foo @53
+            augment hasInitializer foo @53
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
@@ -3629,7 +3629,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element
@@ -3775,7 +3775,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @46
+            hasInitializer foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
@@ -3822,7 +3822,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            augment foo @53
+            augment hasInitializer foo @53
               reference: <testLibrary>::@fragment::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
@@ -3833,7 +3833,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element
@@ -3947,7 +3947,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @31
+            hasInitializer foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
@@ -3974,7 +3974,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
-            augment foo @56
+            augment hasInitializer foo @56
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
@@ -3985,7 +3985,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element
@@ -4108,7 +4108,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
-            augment foo @53
+            augment hasInitializer foo @53
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@mixin::A::@field::foo
@@ -4119,7 +4119,7 @@ library
       superclassConstraints
         Object
       fields
-        synthetic foo
+        synthetic hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element
@@ -4245,7 +4245,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo1 @31
+            hasInitializer foo1 @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo1
               element: <testLibraryFragment>::@mixin::A::@field::foo1#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo1
@@ -4271,7 +4271,7 @@ library
           element: <testLibrary>::@mixin::A
           previousFragment: <testLibraryFragment>::@mixin::A
           fields
-            foo2 @45
+            hasInitializer foo2 @45
               reference: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
@@ -4294,12 +4294,12 @@ library
       superclassConstraints
         Object
       fields
-        foo1
+        hasInitializer foo1
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo1
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo1#element
           setter: <testLibraryFragment>::@mixin::A::@setter::foo1#element
-        foo2
+        hasInitializer foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@field::foo2
           type: int
           getter: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A::@getter::foo2#element
@@ -4932,7 +4932,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @31
+            hasInitializer foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -4970,7 +4970,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element
@@ -5113,7 +5113,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @46
+            hasInitializer foo @46
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -5168,7 +5168,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element
@@ -6805,7 +6805,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@mixinAugmentation::A
           fields
-            foo @31
+            hasInitializer foo @31
               reference: <testLibraryFragment>::@mixin::A::@field::foo
               element: <testLibraryFragment>::@mixin::A::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::A::@getter::foo
@@ -6846,7 +6846,7 @@ library
       superclassConstraints
         Object
       fields
-        foo
+        hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::A::@getter::foo#element

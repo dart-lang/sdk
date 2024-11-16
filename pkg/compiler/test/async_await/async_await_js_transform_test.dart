@@ -154,10 +154,10 @@ function(a) {
 function(b) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
-    __returnValue, __handler = 2, __currentError, __next = [], __helper;
+    __returnValue, __handler = 2, __errorStack = [], __next = [], __helper;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
-      __currentError = __result;
+      __errorStack.push(__result);
       __goto = __handler;
     }
     while (true)
@@ -247,7 +247,7 @@ function(b) {
             return returnHelper(__returnValue, __completer);
           case 2:
             // rethrow
-            return rethrowHelper(__currentError, __completer);
+            return rethrowHelper(__errorStack.at(-1), __completer);
         }
   });
   return startHelper(body, __completer);
@@ -764,10 +764,10 @@ function(c, i) async {
 function(c, i) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
-    __handler = 1, __currentError, __next = [], x, y, __error, __error1;
+    __handler = 1, __errorStack = [], __next = [], x, y, __error, __error1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
-      __currentError = __result;
+      __errorStack.push(__result);
       __goto = __handler;
     }
     while (true)
@@ -800,7 +800,7 @@ function(c, i) {
         case 3:
           // catch
           __handler = 2;
-          __error = __currentError;
+          __error = __errorStack.pop();
           __handler = 11;
           __goto = c ? 14 : 16;
           break;
@@ -826,7 +826,7 @@ function(c, i) {
         case 11:
           // catch
           __handler = 10;
-          __error1 = __currentError;
+          __error1 = __errorStack.pop();
           y.x = foo(__error1);
           __next.push(13);
           // goto finally
@@ -858,7 +858,7 @@ function(c, i) {
           return returnHelper(null, __completer);
         case 1:
           // rethrow
-          return rethrowHelper(__currentError, __completer);
+          return rethrowHelper(__errorStack.at(-1), __completer);
       }
   });
   return startHelper(body, __completer);
@@ -1225,10 +1225,10 @@ function(b, l) {
 function(m) {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
-    __handler = 1, __currentError, exception, __exception;
+    __handler = 1, __errorStack = [], exception, __exception;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
-      __currentError = __result;
+      __errorStack.push(__result);
       __goto = __handler;
     }
     while (true)
@@ -1249,7 +1249,7 @@ function(m) {
         case 3:
           // catch
           __handler = 2;
-          __exception = __currentError;
+          __exception = __errorStack.pop();
           __goto = 7;
           return awaitHelper(10, body);
         case 7:
@@ -1280,7 +1280,7 @@ function(m) {
           return returnHelper(null, __completer);
         case 1:
           // rethrow
-          return rethrowHelper(__currentError, __completer);
+          return rethrowHelper(__errorStack.at(-1), __completer);
       }
   });
   return startHelper(body, __completer);
@@ -1295,10 +1295,10 @@ function(a) sync* {
 function(__a) {
   return function() {
     var a = __a;
-    var __goto = 0, __handler = 2, __currentError;
+    var __goto = 0, __handler = 2, __errorStack = [];
     return function body(__iterator, __errorCode, __result) {
       if (__errorCode === 1) {
-        __currentError = __result;
+        __errorStack.push(__result);
         __goto = __handler;
       }
       while (true)
@@ -1314,7 +1314,7 @@ function(__a) {
             return 0;
           case 2:
             // rethrow
-            return __iterator._datum = __currentError, 3;
+            return __iterator._datum = __errorStack.at(-1), 3;
         }
     };
   };

@@ -166,7 +166,7 @@ library
           reference: dart:foo::<fragment>::@class::A
           element: dart:foo::@class::A
           fields
-            foo @57
+            hasInitializer foo @57
               reference: dart:foo::<fragment>::@class::A::@field::foo
               element: dart:foo::<fragment>::@class::A::@field::foo#element
               getter2: dart:foo::<fragment>::@class::A::@getter::foo
@@ -190,7 +190,7 @@ library
       firstFragment: dart:foo::<fragment>::@class::A
       sinceSdkVersion: 2.15.0
       fields
-        foo
+        hasInitializer foo
           firstFragment: dart:foo::<fragment>::@class::A::@field::foo
           type: int
           getter: dart:foo::<fragment>::@class::A::@getter::foo#element
@@ -585,11 +585,11 @@ library
           reference: dart:foo::<fragment>::@enum::E
           element: dart:foo::@enum::E
           fields
-            v1 @37
+            hasInitializer v1 @37
               reference: dart:foo::<fragment>::@enum::E::@field::v1
               element: dart:foo::<fragment>::@enum::E::@field::v1#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v1
-            v2 @60
+            hasInitializer v2 @60
               reference: dart:foo::<fragment>::@enum::E::@field::v2
               element: dart:foo::<fragment>::@enum::E::@field::v2#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v2
@@ -614,11 +614,11 @@ library
       firstFragment: dart:foo::<fragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v1
+        static const enumConstant hasInitializer v1
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v1
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v1#element
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v2
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v2#element
@@ -698,7 +698,7 @@ library
           reference: dart:foo::<fragment>::@enum::E
           element: dart:foo::@enum::E
           fields
-            v @52
+            hasInitializer v @52
               reference: dart:foo::<fragment>::@enum::E::@field::v
               element: dart:foo::<fragment>::@enum::E::@field::v#element
               getter2: dart:foo::<fragment>::@enum::E::@getter::v
@@ -726,7 +726,7 @@ library
       sinceSdkVersion: 2.15.0
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: dart:foo::<fragment>::@enum::E::@field::v
           type: E
           getter: dart:foo::<fragment>::@enum::E::@getter::v#element
@@ -1266,7 +1266,7 @@ library
     dart:foo::<fragment>
       element: dart:foo
       topLevelVariables
-        foo @47
+        hasInitializer foo @47
           reference: dart:foo::<fragment>::@topLevelVariable::foo
           element: dart:foo::@topLevelVariable::foo
           sinceSdkVersion: 2.15.0
@@ -1277,7 +1277,7 @@ library
           element: dart:foo::<fragment>::@getter::foo#element
           sinceSdkVersion: 2.15.0
   topLevelVariables
-    final foo
+    final hasInitializer foo
       reference: dart:foo::@topLevelVariable::foo
       firstFragment: dart:foo::<fragment>::@topLevelVariable::foo
       type: int

@@ -2529,7 +2529,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        foo @20
+        hasInitializer foo @20
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -2554,7 +2554,7 @@ library
           reference: <testLibrary>::@fragment::package:test/a.dart::@functionAugmentation::foo
           element: <testLibrary>::@function::foo
   topLevelVariables
-    foo
+    hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
@@ -3074,7 +3074,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        foo @19
+        hasInitializer foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -3101,7 +3101,7 @@ library
           element: <testLibraryFragment>::@getter::foo#element
           previousFragment: <testLibraryFragment>::@getter::foo
   topLevelVariables
-    foo
+    hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
@@ -3588,7 +3588,7 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        foo @19
+        hasInitializer foo @19
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -3618,7 +3618,7 @@ library
               element: <testLibrary>::@fragment::package:test/a.dart::@setterAugmentation::foo::@parameter::_#element
           previousFragment: <testLibraryFragment>::@setter::foo
   topLevelVariables
-    foo
+    hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int

@@ -162,15 +162,15 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            aaa @11
+            hasInitializer aaa @11
               reference: <testLibraryFragment>::@enum::E::@field::aaa
               element: <testLibraryFragment>::@enum::E::@field::aaa#element
               getter2: <testLibraryFragment>::@enum::E::@getter::aaa
-            bbb @16
+            hasInitializer bbb @16
               reference: <testLibraryFragment>::@enum::E::@field::bbb
               element: <testLibraryFragment>::@enum::E::@field::bbb#element
               getter2: <testLibraryFragment>::@enum::E::@getter::bbb
-            ccc @21
+            hasInitializer ccc @21
               reference: <testLibraryFragment>::@enum::E::@field::ccc
               element: <testLibraryFragment>::@enum::E::@field::ccc#element
               getter2: <testLibraryFragment>::@enum::E::@getter::ccc
@@ -202,15 +202,15 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant aaa
+        static const enumConstant hasInitializer aaa
           firstFragment: <testLibraryFragment>::@enum::E::@field::aaa
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::aaa#element
-        static const enumConstant bbb
+        static const enumConstant hasInitializer bbb
           firstFragment: <testLibraryFragment>::@enum::E::@field::bbb
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::bbb#element
-        static const enumConstant ccc
+        static const enumConstant hasInitializer ccc
           firstFragment: <testLibraryFragment>::@enum::E::@field::ccc
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::ccc#element
@@ -359,11 +359,11 @@ library
             T @7
               element: <not-implemented>
           fields
-            int @14
+            hasInitializer int @14
               reference: <testLibraryFragment>::@enum::E::@field::int
               element: <testLibraryFragment>::@enum::E::@field::int#element
               getter2: <testLibraryFragment>::@enum::E::@getter::int
-            string @22
+            hasInitializer string @22
               reference: <testLibraryFragment>::@enum::E::@field::string
               element: <testLibraryFragment>::@enum::E::@field::string#element
               getter2: <testLibraryFragment>::@enum::E::@getter::string
@@ -398,11 +398,11 @@ library
         T
       supertype: Enum
       fields
-        static const enumConstant int
+        static const enumConstant hasInitializer int
           firstFragment: <testLibraryFragment>::@enum::E::@field::int
           type: E<int>
           getter: <testLibraryFragment>::@enum::E::@getter::int#element
-        static const enumConstant string
+        static const enumConstant hasInitializer string
           firstFragment: <testLibraryFragment>::@enum::E::@field::string
           type: E<String>
           getter: <testLibraryFragment>::@enum::E::@getter::string#element
@@ -504,7 +504,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            _name @11
+            hasInitializer _name @11
               reference: <testLibraryFragment>::@enum::E::@field::_name
               element: <testLibraryFragment>::@enum::E::@field::_name#element
               getter2: <testLibraryFragment>::@enum::E::@getter::_name
@@ -530,7 +530,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant _name
+        static const enumConstant hasInitializer _name
           firstFragment: <testLibraryFragment>::@enum::E::@field::_name
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::_name#element
@@ -651,7 +651,7 @@ library
             T @7
               element: <not-implemented>
           fields
-            v @14
+            hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -683,7 +683,7 @@ library
         T
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E<double>
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -782,7 +782,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            _ @11
+            hasInitializer _ @11
               reference: <testLibraryFragment>::@enum::E::@field::_
               element: <testLibraryFragment>::@enum::E::@field::_#element
               getter2: <testLibraryFragment>::@enum::E::@getter::_
@@ -808,7 +808,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant _
+        static const enumConstant hasInitializer _
           firstFragment: <testLibraryFragment>::@enum::E::@field::_
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::_#element
@@ -910,7 +910,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -942,7 +942,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -1041,7 +1041,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -1068,7 +1068,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -1181,7 +1181,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -1218,7 +1218,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -1350,7 +1350,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -1394,7 +1394,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -1510,7 +1510,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -1540,7 +1540,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -1667,7 +1667,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -1705,7 +1705,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -1825,7 +1825,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -1862,7 +1862,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -1981,7 +1981,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -2018,7 +2018,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -2137,7 +2137,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -2174,7 +2174,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -2295,7 +2295,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -2326,7 +2326,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -2433,7 +2433,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -2463,7 +2463,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -2611,7 +2611,7 @@ library
             T @7
               element: <not-implemented>
           fields
-            v @14
+            hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -2678,7 +2678,7 @@ library
         T
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E<dynamic>
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -2785,7 +2785,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @69
+            hasInitializer v @69
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -2812,7 +2812,7 @@ library
       documentationComment: /**\n * Docs\n */
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -2922,7 +2922,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -2930,7 +2930,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
-            foo @22
+            hasInitializer foo @22
               reference: <testLibraryFragment>::@enum::E::@field::foo
               element: <testLibraryFragment>::@enum::E::@field::foo#element
               getter2: <testLibraryFragment>::@enum::E::@getter::foo
@@ -2955,7 +2955,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -2963,7 +2963,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E>
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::E::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::E::@getter::foo#element
@@ -3030,7 +3030,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -3144,7 +3144,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @10
+            hasInitializer v @10
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -3177,7 +3177,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -3299,7 +3299,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @35
+            hasInitializer v @35
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -3334,7 +3334,7 @@ library
       interfaces
         I
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -3439,7 +3439,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @78
+            hasInitializer v @78
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -3483,7 +3483,7 @@ library
         A
         C
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -3625,7 +3625,7 @@ library
             U @21
               element: <not-implemented>
           fields
-            v @44
+            hasInitializer v @44
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -3664,7 +3664,7 @@ library
       interfaces
         I<U>
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E<dynamic>
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -3797,7 +3797,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @52
+            hasInitializer v @52
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -3839,7 +3839,7 @@ library
         X
         Z
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -3957,7 +3957,7 @@ library
             T @7
               element: <not-implemented>
           fields
-            v @14
+            hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -3997,7 +3997,7 @@ library
         T
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E<dynamic>
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -4110,7 +4110,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @11
+            hasInitializer v @11
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -4140,7 +4140,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -4238,7 +4238,7 @@ library
           reference: <testLibraryFragment>::@enum::0
           element: <testLibrary>::@enum::0
           fields
-            v @6
+            hasInitializer v @6
               reference: <testLibraryFragment>::@enum::0::@field::v
               element: <testLibraryFragment>::@enum::0::@field::v#element
               getter2: <testLibraryFragment>::@enum::0::@getter::v
@@ -4264,7 +4264,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::0
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::0::@field::v
           type: 
           getter: <testLibraryFragment>::@enum::0::@getter::v#element
@@ -4369,7 +4369,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @29
+            hasInitializer v @29
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -4401,7 +4401,7 @@ library
       mixins
         M
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -4512,7 +4512,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @72
+            hasInitializer v @72
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -4556,7 +4556,7 @@ library
         A
         C
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -4686,7 +4686,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @67
+            hasInitializer v @67
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -4728,7 +4728,7 @@ library
         M1<int>
         M2<int>
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -4851,7 +4851,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @10
+            hasInitializer v @10
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -4888,7 +4888,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -5002,7 +5002,7 @@ library
             T @7
               element: <not-implemented>
           fields
-            v @14
+            hasInitializer v @14
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -5030,7 +5030,7 @@ library
         T
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E<dynamic>
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -5140,7 +5140,7 @@ library
             U @22
               element: <not-implemented>
           fields
-            v @39
+            hasInitializer v @39
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -5171,7 +5171,7 @@ library
           bound: T
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E<num, num>
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -5933,11 +5933,11 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            a @32
+            hasInitializer a @32
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@getter::a
-            b @47
+            hasInitializer b @47
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@getter::b
@@ -5966,11 +5966,11 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant a
+        static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
-        static const enumConstant b
+        static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
@@ -6142,11 +6142,11 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            a @46
+            hasInitializer a @46
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@getter::a
-            b @75
+            hasInitializer b @75
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@getter::b
@@ -6170,7 +6170,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
-        annotation @91
+        hasInitializer annotation @91
           reference: <testLibraryFragment>::@topLevelVariable::annotation
           element: <testLibrary>::@topLevelVariable::annotation
           getter2: <testLibraryFragment>::@getter::annotation
@@ -6184,11 +6184,11 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant a
+        static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
-        static const enumConstant b
+        static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
@@ -6207,7 +6207,7 @@ library
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
-    const annotation
+    const hasInitializer annotation
       reference: <testLibrary>::@topLevelVariable::annotation
       firstFragment: <testLibraryFragment>::@topLevelVariable::annotation
       type: int
@@ -6321,11 +6321,11 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @8
+            hasInitializer v @8
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
-            <null-name>
+            hasInitializer <null-name>
               reference: <testLibraryFragment>::@enum::E::@field::0
               element: <testLibraryFragment>::@enum::E::@field::0#element
               getter2: <testLibraryFragment>::@enum::E::@getter::0
@@ -6354,11 +6354,11 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
-        static const enumConstant <null-name>
+        static const enumConstant hasInitializer <null-name>
           firstFragment: <testLibraryFragment>::@enum::E::@field::0
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::0#element
@@ -6480,11 +6480,11 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v1 @9
+            hasInitializer v1 @9
               reference: <testLibraryFragment>::@enum::E::@field::v1
               element: <testLibraryFragment>::@enum::E::@field::v1#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v1
-            v2 @13
+            hasInitializer v2 @13
               reference: <testLibraryFragment>::@enum::E::@field::v2
               element: <testLibraryFragment>::@enum::E::@field::v2#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v2
@@ -6513,11 +6513,11 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v1
+        static const enumConstant hasInitializer v1
           firstFragment: <testLibraryFragment>::@enum::E::@field::v1
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v1#element
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: <testLibraryFragment>::@enum::E::@field::v2
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v2#element
@@ -6663,7 +6663,7 @@ library
           reference: <testLibraryFragment>::@enum::E1
           element: <testLibrary>::@enum::E1
           fields
-            v1 @10
+            hasInitializer v1 @10
               reference: <testLibraryFragment>::@enum::E1::@field::v1
               element: <testLibraryFragment>::@enum::E1::@field::v1#element
               getter2: <testLibraryFragment>::@enum::E1::@getter::v1
@@ -6687,7 +6687,7 @@ library
           reference: <testLibraryFragment>::@enum::E2
           element: <testLibrary>::@enum::E2
           fields
-            v2 @25
+            hasInitializer v2 @25
               reference: <testLibraryFragment>::@enum::E2::@field::v2
               element: <testLibraryFragment>::@enum::E2::@field::v2#element
               getter2: <testLibraryFragment>::@enum::E2::@getter::v2
@@ -6713,7 +6713,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E1
       supertype: Enum
       fields
-        static const enumConstant v1
+        static const enumConstant hasInitializer v1
           firstFragment: <testLibraryFragment>::@enum::E1::@field::v1
           type: E1
           getter: <testLibraryFragment>::@enum::E1::@getter::v1#element
@@ -6734,7 +6734,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E2
       supertype: Enum
       fields
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: <testLibraryFragment>::@enum::E2::@field::v2
           type: E2
           getter: <testLibraryFragment>::@enum::E2::@getter::v2#element
@@ -7028,15 +7028,15 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            a @8
+            hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@getter::a
-            b @11
+            hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@getter::b
-            c @14
+            hasInitializer c @14
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
               getter2: <testLibraryFragment>::@enum::E::@getter::c
@@ -7119,15 +7119,15 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant a
+        static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
-        static const enumConstant b
+        static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
-        static const enumConstant c
+        static const enumConstant hasInitializer c
           firstFragment: <testLibraryFragment>::@enum::E::@field::c
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::c#element
@@ -7248,7 +7248,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -7269,7 +7269,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
-        a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
@@ -7283,7 +7283,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -7300,7 +7300,7 @@ library
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
-    const a
+    const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
@@ -7529,15 +7529,15 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            a @78
+            hasInitializer a @78
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@getter::a
-            b @83
+            hasInitializer b @83
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@getter::b
-            c @96
+            hasInitializer c @96
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
               getter2: <testLibraryFragment>::@enum::E::@getter::c
@@ -7587,15 +7587,15 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant a
+        static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
-        static const enumConstant b
+        static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
-        static const enumConstant c
+        static const enumConstant hasInitializer c
           firstFragment: <testLibraryFragment>::@enum::E::@field::c
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::c#element
@@ -7706,7 +7706,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @16
+            hasInitializer v @16
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -7732,7 +7732,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -7856,7 +7856,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @25
+            hasInitializer v @25
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -7888,7 +7888,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
-        a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
@@ -7902,7 +7902,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -7929,7 +7929,7 @@ library
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
-    const a
+    const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
@@ -8050,7 +8050,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @25
+            hasInitializer v @25
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -8085,7 +8085,7 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
-        a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
@@ -8099,7 +8099,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -8130,7 +8130,7 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
@@ -8305,7 +8305,7 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           fields
-            v @40
+            hasInitializer v @40
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -8313,7 +8313,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
-            foo @58
+            hasInitializer foo @58
               reference: <testLibraryFragment>::@enum::E::@field::foo
               element: <testLibraryFragment>::@enum::E::@field::foo#element
               getter2: <testLibraryFragment>::@enum::E::@getter::foo
@@ -8347,7 +8347,7 @@ library
                   element: <testLibraryFragment>::@enum::E::@getter::foo
                   element2: <testLibraryFragment>::@enum::E::@getter::foo#element
       topLevelVariables
-        foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
           element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
@@ -8373,7 +8373,7 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E<dynamic>
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -8381,7 +8381,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::E::@field::values
           type: List<E<dynamic>>
           getter: <testLibraryFragment>::@enum::E::@getter::values#element
-        static const foo
+        static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::E::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::E::@getter::foo#element
@@ -8410,7 +8410,7 @@ library
               element: <testLibraryFragment>::@enum::E::@getter::foo
               element2: <testLibraryFragment>::@enum::E::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
@@ -8542,7 +8542,7 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
           fields
-            v @31
+            hasInitializer v @31
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -8563,7 +8563,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
-        a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
@@ -8589,7 +8589,7 @@ library
               element2: <testLibraryFragment>::@getter::a#element
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E<dynamic>
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -8606,7 +8606,7 @@ library
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
-    const a
+    const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
@@ -8715,7 +8715,7 @@ library
           reference: <testLibraryFragment>::@enum::E
           element: <testLibrary>::@enum::E
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::E::@field::v
               element: <testLibraryFragment>::@enum::E::@field::v#element
               getter2: <testLibraryFragment>::@enum::E::@getter::v
@@ -8736,7 +8736,7 @@ library
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
-        a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
           element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
@@ -8750,7 +8750,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::E::@field::v
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::v#element
@@ -8767,7 +8767,7 @@ library
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
-    const a
+    const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
@@ -8887,7 +8887,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @33
+            hasInitializer v @33
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
@@ -8925,7 +8925,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
           type: A
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v#element
@@ -9135,7 +9135,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a1.dart::@enumAugmentation::A
           fields
-            v @43
+            hasInitializer v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -9225,7 +9225,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -9402,7 +9402,7 @@ library
           element: <testLibrary>::@enum::A::@def::1
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::1
           fields
-            v @71
+            hasInitializer v @71
               reference: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
               element: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v
@@ -9459,7 +9459,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@field::v
           type: A
           getter: <testLibrary>::@fragment::package:test/a.dart::@enum::A::@getter::v#element
@@ -9807,7 +9807,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v1 @26
+            hasInitializer v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v1
@@ -9837,7 +9837,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            v2 @40
+            hasInitializer v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
@@ -9851,7 +9851,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v1
+        static const enumConstant hasInitializer v1
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v1#element
@@ -9859,7 +9859,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
           type: A
           getter: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2#element
@@ -10091,7 +10091,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v1 @41
+            hasInitializer v1 @41
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v1
@@ -10123,7 +10123,7 @@ library
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           fields
-            v2 @40
+            hasInitializer v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
@@ -10141,7 +10141,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v3 @40
+            hasInitializer v3 @40
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3
               element: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3#element
               getter2: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3
@@ -10155,7 +10155,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v1
+        static const enumConstant hasInitializer v1
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v1#element
@@ -10163,11 +10163,11 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
           type: A
           getter: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2#element
-        static const enumConstant v3
+        static const enumConstant hasInitializer v3
           firstFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@field::v3
           type: A
           getter: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@getter::v3#element
@@ -10367,7 +10367,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v1 @26
+            hasInitializer v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v1
@@ -10397,12 +10397,12 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            v2 @40
+            hasInitializer v2 @40
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2
-            augment v2 @54
+            augment hasInitializer v2 @54
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
@@ -10416,7 +10416,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v1
+        static const enumConstant hasInitializer v1
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v1#element
@@ -10424,7 +10424,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::v2
           type: A
           getter: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::v2#element
@@ -10655,16 +10655,16 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v1 @26
+            hasInitializer v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v1
-            v2 @30
+            hasInitializer v2 @30
               reference: <testLibraryFragment>::@enum::A::@field::v2
               element: <testLibraryFragment>::@enum::A::@field::v2#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               getter2: <testLibraryFragment>::@enum::A::@getter::v2
-            v3 @34
+            hasInitializer v3 @34
               reference: <testLibraryFragment>::@enum::A::@field::v3
               element: <testLibraryFragment>::@enum::A::@field::v3#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v3
@@ -10700,7 +10700,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            augment v2 @48
+            augment hasInitializer v2 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v2
               element: <testLibraryFragment>::@enum::A::@field::v2#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::v2
@@ -10710,11 +10710,11 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v1
+        static const enumConstant hasInitializer v1
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v1#element
-        static const enumConstant v3
+        static const enumConstant hasInitializer v3
           firstFragment: <testLibraryFragment>::@enum::A::@field::v3
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v3#element
@@ -10722,7 +10722,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: <testLibraryFragment>::@enum::A::@field::v2
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v2#element
@@ -10936,12 +10936,12 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v1 @26
+            hasInitializer v1 @26
               reference: <testLibraryFragment>::@enum::A::@field::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
               getter2: <testLibraryFragment>::@enum::A::@getter::v1
-            v2 @33
+            hasInitializer v2 @33
               reference: <testLibraryFragment>::@enum::A::@field::v2
               element: <testLibraryFragment>::@enum::A::@field::v2#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v2
@@ -10978,7 +10978,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            augment v1 @48
+            augment hasInitializer v1 @48
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v1
               element: <testLibraryFragment>::@enum::A::@field::v1#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::v1
@@ -10988,7 +10988,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: <testLibraryFragment>::@enum::A::@field::v2
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v2#element
@@ -10996,7 +10996,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        static const enumConstant v1
+        static const enumConstant hasInitializer v1
           firstFragment: <testLibraryFragment>::@enum::A::@field::v1
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v1#element
@@ -11127,12 +11127,12 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
               getter2: <testLibraryFragment>::@enum::A::@getter::v
-            v2 @29
+            hasInitializer v2 @29
               reference: <testLibraryFragment>::@enum::A::@field::v2
               element: <testLibraryFragment>::@enum::A::@field::v2#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v2
@@ -11163,7 +11163,7 @@ library
             T @36
               element: <not-implemented>
           fields
-            augment v @51
+            augment hasInitializer v @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::v
@@ -11173,7 +11173,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v2
+        static const enumConstant hasInitializer v2
           firstFragment: <testLibraryFragment>::@enum::A::@field::v2
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v2#element
@@ -11181,7 +11181,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
       getters
@@ -11284,7 +11284,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -11321,7 +11321,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -11444,7 +11444,7 @@ library
             T1 @22
               element: <not-implemented>
           fields
-            v @30
+            hasInitializer v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -11489,7 +11489,7 @@ library
         T1
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<int>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -11607,7 +11607,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -11650,7 +11650,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -11759,7 +11759,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -11795,7 +11795,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -11910,7 +11910,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -11953,7 +11953,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -12079,7 +12079,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -12126,7 +12126,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -12266,7 +12266,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -12321,7 +12321,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -12469,7 +12469,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -12477,7 +12477,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @41
+            hasInitializer foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
@@ -12507,7 +12507,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            augment foo @59
+            augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
@@ -12517,7 +12517,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -12525,7 +12525,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -12694,7 +12694,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @41
+            hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -12702,7 +12702,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @56
+            hasInitializer foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
@@ -12734,7 +12734,7 @@ library
           previousFragment: <testLibraryFragment>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A
           fields
-            augment foo @59
+            augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
@@ -12749,7 +12749,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment foo @59
+            augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
@@ -12759,7 +12759,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -12767,7 +12767,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -12936,7 +12936,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @41
+            hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -12944,7 +12944,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @56
+            hasInitializer foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
@@ -12991,7 +12991,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment foo @59
+            augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
@@ -13001,7 +13001,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -13009,7 +13009,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -13181,7 +13181,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @41
+            hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -13189,7 +13189,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @56
+            hasInitializer foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
@@ -13237,7 +13237,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            augment foo @59
+            augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
@@ -13247,7 +13247,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -13255,7 +13255,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -13401,7 +13401,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -13409,7 +13409,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @41
+            hasInitializer foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
@@ -13439,7 +13439,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            augment foo @62
+            augment hasInitializer foo @62
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
@@ -13449,7 +13449,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -13457,7 +13457,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -13622,7 +13622,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -13630,7 +13630,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @52
+            hasInitializer foo @52
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
@@ -13660,7 +13660,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            augment foo @70
+            augment hasInitializer foo @70
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
@@ -13670,7 +13670,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -13678,7 +13678,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int Function()
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -13819,7 +13819,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -13857,7 +13857,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            augment foo @59
+            augment hasInitializer foo @59
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@fieldAugmentation::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               previousFragment: <testLibraryFragment>::@enum::A::@field::foo
@@ -13867,7 +13867,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -13875,7 +13875,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        synthetic foo
+        synthetic hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -14023,7 +14023,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -14031,7 +14031,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo1 @41
+            hasInitializer foo1 @41
               reference: <testLibraryFragment>::@enum::A::@field::foo1
               element: <testLibraryFragment>::@enum::A::@field::foo1#element
               getter2: <testLibraryFragment>::@enum::A::@getter::foo1
@@ -14060,7 +14060,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: <testLibraryFragment>::@enum::A
           fields
-            foo2 @51
+            hasInitializer foo2 @51
               reference: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
               element: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2#element
               getter2: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2
@@ -14074,7 +14074,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -14082,11 +14082,11 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo1
+        final hasInitializer foo1
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo1
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo1#element
-        final foo2
+        final hasInitializer foo2
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@field::foo2
           type: int
           getter: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@getter::foo2#element
@@ -14247,7 +14247,7 @@ library
             T1 @22
               element: <not-implemented>
           fields
-            v @30
+            hasInitializer v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -14303,7 +14303,7 @@ library
         T1
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<int>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -14439,7 +14439,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -14487,7 +14487,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -14627,7 +14627,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -14683,7 +14683,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -14837,7 +14837,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -14888,7 +14888,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -15061,7 +15061,7 @@ library
             T1 @22
               element: <not-implemented>
           fields
-            v @30
+            hasInitializer v @30
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -15117,7 +15117,7 @@ library
         T1
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<int>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -15271,7 +15271,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -15279,7 +15279,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @41
+            hasInitializer foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               getter2: <testLibraryFragment>::@enum::A::@getter::foo
@@ -15319,7 +15319,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -15327,7 +15327,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -15496,7 +15496,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @41
+            hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -15504,7 +15504,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @56
+            hasInitializer foo @56
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               getter2: <testLibraryFragment>::@enum::A::@getter::foo
@@ -15561,7 +15561,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -15569,7 +15569,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -15723,7 +15723,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -15778,7 +15778,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -15940,7 +15940,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -15993,7 +15993,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -16169,7 +16169,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @41
+            hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -16234,7 +16234,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -16360,7 +16360,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -16394,7 +16394,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -16532,7 +16532,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @40
+            hasInitializer v @40
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -16592,7 +16592,7 @@ library
         I1
         I2
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -16762,7 +16762,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @40
+            hasInitializer v @40
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -16849,7 +16849,7 @@ library
         I2
         I3
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -17000,7 +17000,7 @@ library
             T @22
               element: <not-implemented>
           fields
-            v @43
+            hasInitializer v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -17070,7 +17070,7 @@ library
         I1
         I2<T>
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<int>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -17222,7 +17222,7 @@ library
             T @22
               element: <not-implemented>
           fields
-            v @43
+            hasInitializer v @43
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -17293,7 +17293,7 @@ library
       interfaces
         I1
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<dynamic>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -17414,7 +17414,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -17457,7 +17457,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -17609,7 +17609,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -17651,7 +17651,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -17786,7 +17786,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -17834,7 +17834,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -17970,7 +17970,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -18020,7 +18020,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -18161,7 +18161,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A::@def::0
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -18217,7 +18217,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -18371,7 +18371,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -18433,7 +18433,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -18569,7 +18569,7 @@ library
             T @22
               element: <not-implemented>
           fields
-            v @29
+            hasInitializer v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -18617,7 +18617,7 @@ library
         T
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<int>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -18757,7 +18757,7 @@ library
             T @22
               element: <not-implemented>
           fields
-            v @29
+            hasInitializer v @29
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -18807,7 +18807,7 @@ library
         T
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<int>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -18937,7 +18937,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @34
+            hasInitializer v @34
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -18983,7 +18983,7 @@ library
         M1
         M2
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -19169,7 +19169,7 @@ library
             T1 @37
               element: <not-implemented>
           fields
-            v @57
+            hasInitializer v @57
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -19248,7 +19248,7 @@ library
         M2<T1>
         M3<T1>
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<int>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -19424,7 +19424,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -19482,7 +19482,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -19646,7 +19646,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -19654,7 +19654,7 @@ library
               reference: <testLibraryFragment>::@enum::A::@field::values
               element: <testLibraryFragment>::@enum::A::@field::values#element
               getter2: <testLibraryFragment>::@enum::A::@getter::values
-            foo @41
+            hasInitializer foo @41
               reference: <testLibraryFragment>::@enum::A::@field::foo
               element: <testLibraryFragment>::@enum::A::@field::foo#element
               getter2: <testLibraryFragment>::@enum::A::@getter::foo
@@ -19695,7 +19695,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -19703,7 +19703,7 @@ library
           firstFragment: <testLibraryFragment>::@enum::A::@field::values
           type: List<A>
           getter: <testLibraryFragment>::@enum::A::@getter::values#element
-        final foo
+        final hasInitializer foo
           firstFragment: <testLibraryFragment>::@enum::A::@field::foo
           type: int
           getter: <testLibraryFragment>::@enum::A::@getter::foo#element
@@ -19835,7 +19835,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -19877,7 +19877,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -20048,7 +20048,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -20113,7 +20113,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -20242,7 +20242,7 @@ library
           reference: <testLibraryFragment>::@enum::A
           element: <testLibrary>::@enum::A
           fields
-            v @39
+            hasInitializer v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -20286,7 +20286,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -20401,7 +20401,7 @@ library
           reference: <testLibraryFragment>::@enum::A
           element: <testLibrary>::@enum::A::@def::0
           fields
-            v @39
+            hasInitializer v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -20452,7 +20452,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -20607,7 +20607,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @41
+            hasInitializer v @41
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -20673,7 +20673,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -20821,7 +20821,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -20867,7 +20867,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -21005,7 +21005,7 @@ library
           element: <testLibrary>::@enum::A
           nextFragment: <testLibrary>::@fragment::package:test/a.dart::@enumAugmentation::A
           fields
-            v @26
+            hasInitializer v @26
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -21049,7 +21049,7 @@ library
       firstFragment: <testLibraryFragment>::@enum::A
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
@@ -21183,7 +21183,7 @@ library
           element: <testLibrary>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           fields
-            v @57
+            hasInitializer v @57
               reference: <testLibraryFragment>::@enum::B::@field::v
               element: <testLibraryFragment>::@enum::B::@field::v#element
               getter2: <testLibraryFragment>::@enum::B::@getter::v
@@ -21227,7 +21227,7 @@ library
       interfaces
         A
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
           type: B
           getter: <testLibraryFragment>::@enum::B::@getter::v#element
@@ -21365,7 +21365,7 @@ library
           element: <testLibrary>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           fields
-            v @27
+            hasInitializer v @27
               reference: <testLibraryFragment>::@enum::B::@field::v
               element: <testLibraryFragment>::@enum::B::@field::v#element
               getter2: <testLibraryFragment>::@enum::B::@getter::v
@@ -21411,7 +21411,7 @@ library
       interfaces
         A
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
           type: B
           getter: <testLibraryFragment>::@enum::B::@getter::v#element
@@ -21549,7 +21549,7 @@ library
           element: <testLibrary>::@enum::B
           nextFragment: <testLibrary>::@fragment::package:test/b.dart::@enumAugmentation::B
           fields
-            v @27
+            hasInitializer v @27
               reference: <testLibraryFragment>::@enum::B::@field::v
               element: <testLibraryFragment>::@enum::B::@field::v#element
               getter2: <testLibraryFragment>::@enum::B::@getter::v
@@ -21595,7 +21595,7 @@ library
       mixins
         A
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::B::@field::v
           type: B
           getter: <testLibraryFragment>::@enum::B::@getter::v#element
@@ -21736,7 +21736,7 @@ library
             T @22
               element: <not-implemented>
           fields
-            v @39
+            hasInitializer v @39
               reference: <testLibraryFragment>::@enum::A::@field::v
               element: <testLibraryFragment>::@enum::A::@field::v#element
               getter2: <testLibraryFragment>::@enum::A::@getter::v
@@ -21784,7 +21784,7 @@ library
           bound: B
       supertype: Enum
       fields
-        static const enumConstant v
+        static const enumConstant hasInitializer v
           firstFragment: <testLibraryFragment>::@enum::A::@field::v
           type: A<B>
           getter: <testLibraryFragment>::@enum::A::@getter::v#element
