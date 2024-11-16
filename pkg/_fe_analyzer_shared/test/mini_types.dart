@@ -6,6 +6,9 @@
 // but light weight enough to be suitable for unit testing of code in the
 // `_fe_analyzer_shared` package.
 
+import 'dart:core' as core show Type;
+import 'dart:core' hide Type;
+
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 
@@ -163,7 +166,7 @@ class FutureOrType extends PrimaryType {
 
 /// A type name that represents an ordinary interface type.
 class InterfaceTypeName extends TypeNameInfo {
-  InterfaceTypeName._(super.name);
+  InterfaceTypeName._(super.name) : super(expectedRuntimeType: PrimaryType);
 }
 
 /// Representation of an invalid type suitable for unit testing of code in the
@@ -261,7 +264,12 @@ class PrimaryType extends Type {
 
   PrimaryType._(this.nameInfo,
       {this.args = const [], super.nullabilitySuffix = NullabilitySuffix.none})
-      : super._();
+      : super._() {
+    assert(
+        runtimeType == nameInfo._expectedRuntimeType,
+        '${nameInfo.name} should use ${nameInfo._expectedRuntimeType}, but '
+        'constructed $runtimeType instead');
+  }
 
   PrimaryType._special(SpecialTypeName nameInfo,
       {List<Type> args = const [],
@@ -427,7 +435,7 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
 /// - `Null`
 /// - `void`
 class SpecialTypeName extends TypeNameInfo {
-  SpecialTypeName._(super.name);
+  SpecialTypeName._(super.name, {required super.expectedRuntimeType});
 }
 
 /// Representation of a type suitable for unit testing of code in the
@@ -512,7 +520,21 @@ abstract class Type implements SharedTypeStructure<Type> {
 sealed class TypeNameInfo {
   final String name;
 
-  TypeNameInfo(this.name);
+  /// The runtime type that should be used for [Type] objects that refer to
+  /// `this`.
+  ///
+  /// An assertion in the [PrimaryType] constructor verifies this.
+  ///
+  /// This ensures that the methods [Type.closureWithRespectToUnknown],
+  /// [Type.recursivelyDemote], and [Type.withNullability] (which create new
+  /// instances of [Type] based on old ones) create the appropriate subtype of
+  /// [Type]. It also ensures that when [Type] objects are directly constructed
+  /// (as they are in this file and in `mini_ast.dart`), the appropriate subtype
+  /// of [Type] is used.
+  final core.Type _expectedRuntimeType;
+
+  TypeNameInfo(this.name, {required core.Type expectedRuntimeType})
+      : _expectedRuntimeType = expectedRuntimeType;
 }
 
 /// A type name that represents a type variable.
@@ -522,7 +544,9 @@ class TypeParameter extends TypeNameInfo
   @override
   Type bound;
 
-  TypeParameter._(super.name) : bound = Type('Object?');
+  TypeParameter._(super.name)
+      : bound = Type('Object?'),
+        super(expectedRuntimeType: TypeParameterType);
 
   @override
   String get displayName => name;
@@ -607,16 +631,19 @@ abstract final class TypeRegistry {
   static Map<String, TypeNameInfo>? _typeNameInfoMap;
 
   /// The [TypeNameInfo] object representing the special type `dynamic`.
-  static final dynamic_ = SpecialTypeName._('dynamic');
+  static final dynamic_ =
+      SpecialTypeName._('dynamic', expectedRuntimeType: DynamicType);
 
   /// The [TypeNameInfo] object representing the special type `error`.
-  static final error_ = SpecialTypeName._('error');
+  static final error_ =
+      SpecialTypeName._('error', expectedRuntimeType: InvalidType);
 
   /// The [TypeNameInfo] object representing the interface type `Future`.
   static final future = InterfaceTypeName._('Future');
 
   /// The [TypeNameInfo] object representing the special type `FutureOr`.
-  static final futureOr = SpecialTypeName._('FutureOr');
+  static final futureOr =
+      SpecialTypeName._('FutureOr', expectedRuntimeType: FutureOrType);
 
   /// The [TypeNameInfo] object representing the interface type `Iterable`.
   static final iterable = InterfaceTypeName._('Iterable');
@@ -628,16 +655,17 @@ abstract final class TypeRegistry {
   static final map = InterfaceTypeName._('Map');
 
   /// The [TypeNameInfo] object representing the special type `Never`.
-  static final never = SpecialTypeName._('Never');
+  static final never =
+      SpecialTypeName._('Never', expectedRuntimeType: NeverType);
 
   /// The [TypeNameInfo] object representing the special type `Null`.
-  static final null_ = SpecialTypeName._('Null');
+  static final null_ = SpecialTypeName._('Null', expectedRuntimeType: NullType);
 
   /// The [TypeNameInfo] object representing the interface type `Stream`.
   static final stream = InterfaceTypeName._('Stream');
 
   /// The [TypeNameInfo] object representing the special type `void`.
-  static final void_ = SpecialTypeName._('void');
+  static final void_ = SpecialTypeName._('void', expectedRuntimeType: VoidType);
 
   /// Gets [_typeNameInfoMap], throwing an exception if it has not been
   /// initialized.
