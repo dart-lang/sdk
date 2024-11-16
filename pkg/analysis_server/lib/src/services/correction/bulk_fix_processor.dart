@@ -527,8 +527,8 @@ class BulkFixProcessor {
         if (library is NotLibraryButPartResult) {
           var unit = await context.currentSession.getResolvedUnit(path);
           if (unit is ResolvedUnitResult) {
-            library = await context.currentSession.getResolvedLibraryByElement(
-              unit.libraryElement,
+            library = await context.currentSession.getResolvedLibraryByElement2(
+              unit.libraryElement2,
             );
           }
         }
