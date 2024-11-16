@@ -21,8 +21,9 @@ import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Produces [CodeAction]s from Dart source commands, fixes, assists and
 /// refactors from the server.
@@ -320,10 +321,10 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       // Converts/Rewrites
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
         var node = NodeLocator(offset).searchWithin(unit.unit);
-        var element = server.getElementOfNode(node);
+        var element = server.getElementOfNode(node).asElement2;
 
         // Getter to Method
-        if (element is PropertyAccessorElement &&
+        if (element is GetterElement &&
             ConvertGetterToMethodRefactoring(
               server.refactoringWorkspace,
               unit.session,
@@ -339,7 +340,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         }
 
         // Method to Getter
-        if (element is ExecutableElement &&
+        if (element is ExecutableElement2 &&
             ConvertMethodToGetterRefactoring(
               server.refactoringWorkspace,
               unit.session,

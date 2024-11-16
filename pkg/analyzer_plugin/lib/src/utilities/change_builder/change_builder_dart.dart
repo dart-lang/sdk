@@ -1529,7 +1529,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     var import = dartFileEditBuilder._getImportElement2(element);
     if (import == null) {
-      var library = element.library2?.firstFragment.source.uri;
+      var library = element.library2?.uri;
       if (library != null) {
         import = dartFileEditBuilder._importLibrary(library);
       }
@@ -2183,7 +2183,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         // Fall back to the element's library if we didn't find a better one.
         element.library2;
 
-    var uriToImport = libraryToImport?.firstFragment.source.uri;
+    var uriToImport = libraryToImport?.uri;
     if (uriToImport != null) {
       var newImport = elementLibrariesToImport[element] = _importLibrary(
         uriToImport,
@@ -2802,7 +2802,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         var importedLibrary = import.importedLibrary2;
         if (importedLibrary != null) {
           return _LibraryImport(
-            uriText: importedLibrary.firstFragment.source.uri.toString(),
+            uriText: importedLibrary.uri.toString(),
             isExplicitlyImported: true,
             shownNames: [
               for (var combinator in import.combinators)

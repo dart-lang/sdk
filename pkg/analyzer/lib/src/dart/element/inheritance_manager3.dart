@@ -1319,8 +1319,7 @@ class Name {
   }
 
   factory Name.forLibrary(LibraryElement2? library, String name) {
-    var uri = library?.firstFragment.source.uri;
-    return Name(uri, name);
+    return Name(library?.uri, name);
   }
 
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);

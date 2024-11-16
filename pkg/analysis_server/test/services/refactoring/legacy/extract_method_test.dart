@@ -332,7 +332,7 @@ import 'package:ddd/ddd.dart';
     await addLibraryImports(
       testAnalysisResult.session,
       change,
-      testLibraryElement,
+      testLibraryElement2,
       newLibraries.toSet(),
     );
     var testEdit = change.getFileEdit(testFile.path);
@@ -2119,7 +2119,7 @@ class A {
 
     await indexTestUnit('''
 import 'macros.dart';
-    
+
 void f() {
   print('!');
 }

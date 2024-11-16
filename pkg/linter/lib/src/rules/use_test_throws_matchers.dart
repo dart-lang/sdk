@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Use throwsA matcher instead of fail().';
 
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression is! MethodInvocation) return false;
     var element = expression.methodName.element;
     return element is TopLevelFunctionElement &&
-        element.library2.uri ==
+        element.library2?.uri ==
             Uri.parse('package:test_api/src/frontend/expect.dart') &&
         element.name3 == functionName;
   }

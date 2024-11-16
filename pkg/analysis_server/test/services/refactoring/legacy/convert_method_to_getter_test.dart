@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity;
 import 'package:matcher/expect.dart';
@@ -31,7 +31,7 @@ void f() {
   var b = test();
 }
 ''');
-    var element = findElement.topFunction('test');
+    var element = findElement2.topFunction('test');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -64,7 +64,7 @@ void f(A a, B b, C c, D d) {
   var vd = d.test();
 }
 ''');
-    var element = findElement.method('test', of: 'B');
+    var element = findElement2.method('test', of: 'B');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -101,7 +101,7 @@ class A {
 }
 ''');
 
-    var element = findElement.method('x', of: 'A');
+    var element = findElement2.method('x', of: 'A');
     _createRefactoringForElement(element);
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
@@ -129,7 +129,7 @@ void f(A a, B b) {
   b.test();
 }
 ''');
-    var element = findElement.method('test', of: 'B');
+    var element = findElement2.method('test', of: 'B');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -152,7 +152,7 @@ void f() {
   var b = test;
 }
 ''');
-    var element = findElement.topGet('test');
+    var element = findElement2.topGet('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -167,7 +167,7 @@ void f() {
   var v = test(1);
 }
 ''');
-    var element = findElement.topFunction('test');
+    var element = findElement2.topFunction('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -182,7 +182,7 @@ void f() {
   var v = test();
 }
 ''');
-    var element = findElement.localFunction('test');
+    var element = findElement2.localFunction('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -196,7 +196,7 @@ class A {
   A.test();
 }
 ''');
-    var element = findElement.constructor('test');
+    var element = findElement2.constructor('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -213,7 +213,7 @@ String foo() => '';
 
     await indexTestUnit(''); // Initialize project.
 
-    var element = FindElement(externalUnit.unit).topFunction('foo');
+    var element = FindElement2(externalUnit.unit).topFunction('foo');
     _createRefactoringForElement(element);
 
     // check conditions
@@ -226,7 +226,7 @@ String foo() => '';
     await indexTestUnit('''
 void test() {}
 ''');
-    var element = findElement.topFunction('test');
+    var element = findElement2.topFunction('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -252,7 +252,7 @@ void test() {}
     assertTestChangeResult(expectedCode);
   }
 
-  void _createRefactoringForElement(ExecutableElement element) {
+  void _createRefactoringForElement(ExecutableElement2 element) {
     refactoring = ConvertMethodToGetterRefactoring(
       refactoringWorkspace,
       testAnalysisResult.session,

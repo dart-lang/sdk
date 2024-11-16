@@ -51,7 +51,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
 analyzer:
   ^
 ''');
-    assertSuggestion('${AnalyzerOptions.enableExperiment}:');
+    assertSuggestion('${AnalysisOptionsFile.enableExperiment}:');
   }
 
   void test_analyzer_enableExperiment() {
@@ -112,7 +112,7 @@ analyzer:
 code-style:
   ^
 ''');
-    assertSuggestion('${AnalyzerOptions.format}: ');
+    assertSuggestion('${AnalysisOptionsFile.format}: ');
   }
 
   void test_codeStyle_format() {
@@ -126,10 +126,10 @@ code-style:
 
   void test_empty() {
     getCompletions('^');
-    assertSuggestion('${AnalyzerOptions.analyzer}: ');
-    assertSuggestion('${AnalyzerOptions.codeStyle}: ');
-    assertSuggestion('${AnalyzerOptions.formatter}: ');
-    assertSuggestion('${AnalyzerOptions.include}: ');
+    assertSuggestion('${AnalysisOptionsFile.analyzer}: ');
+    assertSuggestion('${AnalysisOptionsFile.codeStyle}: ');
+    assertSuggestion('${AnalysisOptionsFile.formatter}: ');
+    assertSuggestion('${AnalysisOptionsFile.include}: ');
     // TODO(brianwilkerson): Replace this with a constant.
     assertSuggestion('linter: ');
   }
@@ -139,7 +139,7 @@ code-style:
 formatter:
   ^
 ''');
-    assertSuggestion('${AnalyzerOptions.pageWidth}: ');
+    assertSuggestion('${AnalysisOptionsFile.pageWidth}: ');
   }
 
   void test_linter() {
@@ -257,7 +257,7 @@ analyzer:
     - '*.g.dart'
 ^
 ''');
-    assertSuggestion('${AnalyzerOptions.include}: ');
+    assertSuggestion('${AnalysisOptionsFile.include}: ');
   }
 
   @failingTest

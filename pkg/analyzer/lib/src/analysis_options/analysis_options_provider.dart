@@ -73,7 +73,7 @@ class AnalysisOptionsProvider {
       if (_sourceFactory == null) {
         return options;
       }
-      var includeValue = options.valueAt(AnalyzerOptions.include);
+      var includeValue = options.valueAt(AnalysisOptionsFile.include);
       if (includeValue case YamlScalar(value: String path)) {
         var includeUri = _sourceFactory.resolveUri(source, path);
         if (includeUri != null) {

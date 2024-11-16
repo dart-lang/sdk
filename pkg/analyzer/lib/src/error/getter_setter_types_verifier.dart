@@ -34,7 +34,7 @@ class GetterSetterTypesVerifier {
   }
 
   void checkInterface(InterfaceElement2 element, Interface interface) {
-    var libraryUri = element.library2.firstFragment.source.uri;
+    var libraryUri = element.library2.uri;
 
     var interfaceMap = interface.map2;
     for (var entry in interfaceMap.entries) {

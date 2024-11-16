@@ -200,12 +200,11 @@ extension on InterfaceType? {
     var element = self.element3;
 
     var library = element.library2 as LibraryElementImpl;
-    var libraryUri = library.firstFragment.source.uri;
-
     var inheritanceManager = library.session.inheritanceManager;
+
     var concrete = inheritanceManager.getMember4(
       element,
-      Name(libraryUri, name),
+      Name.forLibrary(library, name),
       concrete: true,
     );
 

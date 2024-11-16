@@ -141,9 +141,7 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
       var childWidget = element.enclosingElement2.name3!;
       var library = element.library2;
       if (library != null &&
-          !library.firstFragment.source.uri.toString().startsWith(
-            'package:flutter/',
-          )) {
+          !library.uri.toString().startsWith('package:flutter/')) {
         childWidget = 'user-defined';
       }
       data.recordWidgetCreation(childWidget, parentWidget);

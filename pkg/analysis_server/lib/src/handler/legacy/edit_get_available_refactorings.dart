@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/file_paths.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// The handler for the `edit.getAvailableRefactorings` request.
@@ -88,7 +89,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
           if (ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
             resolvedUnit.session,
-            element,
+            element.asElement2,
           ).isAvailable()) {
             kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
           }
