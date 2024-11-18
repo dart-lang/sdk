@@ -145,12 +145,10 @@ class Driver implements ServerStarter {
 
   HttpAnalysisServer? httpServer;
 
-  Driver();
-
   /// Use the given command-line [arguments] to start this server.
   ///
   /// If [sendPort] is not null, assumes this is launched in an isolate and will
-  /// connect to the original isolate via an [IsolateChannel].
+  /// connect to the original isolate via an isolate channel.
   @override
   void start(
     List<String> arguments, {
@@ -163,40 +161,39 @@ class Driver implements ServerStarter {
 
     var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.newAnalysisDriverLog =
-        (results[ANALYSIS_DRIVER_LOG] ?? results[ANALYSIS_DRIVER_LOG_ALIAS])
-            as String?;
+        results.option(ANALYSIS_DRIVER_LOG) ??
+        results.option(ANALYSIS_DRIVER_LOG_ALIAS);
     if (results.wasParsed(USE_LSP)) {
-      analysisServerOptions.useLanguageServerProtocol =
-          results[USE_LSP] as bool;
+      analysisServerOptions.useLanguageServerProtocol = results.flag(USE_LSP);
     } else {
       analysisServerOptions.useLanguageServerProtocol =
-          results[SERVER_PROTOCOL] == PROTOCOL_LSP;
+          results.option(SERVER_PROTOCOL) == PROTOCOL_LSP;
     }
     // For clients that don't supply their own identifier, use a default based
     // on whether the server will run in LSP mode or not.
     var clientId =
-        (results[CLIENT_ID] as String?) ??
+        results.option(CLIENT_ID) ??
         (analysisServerOptions.useLanguageServerProtocol
             ? 'unknown.client.lsp'
             : 'unknown.client.classic');
     analysisServerOptions.clientId = clientId;
-    analysisServerOptions.clientVersion = results[CLIENT_VERSION] as String?;
-    analysisServerOptions.cacheFolder = results[CACHE_FOLDER] as String?;
-    analysisServerOptions.packagesFile = results[PACKAGES_FILE] as String?;
-    analysisServerOptions.reportProtocolVersion =
-        results[REPORT_PROTOCOL_VERSION] as String?;
+    analysisServerOptions.clientVersion = results.option(CLIENT_VERSION);
+    analysisServerOptions.cacheFolder = results.option(CACHE_FOLDER);
+    analysisServerOptions.packagesFile = results.option(PACKAGES_FILE);
+    analysisServerOptions.reportProtocolVersion = results.option(
+      REPORT_PROTOCOL_VERSION,
+    );
 
-    analysisServerOptions.enabledExperiments =
-        results.wasParsed(ENABLE_EXPERIMENT)
-            ? results[ENABLE_EXPERIMENT] as List<String>
-            : <String>[];
+    analysisServerOptions.enabledExperiments = results.multiOption(
+      ENABLE_EXPERIMENT,
+    );
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
 
     // Analytics (legacy, and unified)
-    var disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG] as bool;
+    var disableAnalyticsForSession = results.flag(SUPPRESS_ANALYTICS_FLAG);
 
     if (results.wasParsed(TRAIN_USING)) {
       disableAnalyticsForSession = true;
@@ -247,9 +244,8 @@ class Driver implements ServerStarter {
     );
 
     {
-      var disableCompletion =
-          results[DISABLE_SERVER_FEATURE_COMPLETION] as bool;
-      var disableSearch = results[DISABLE_SERVER_FEATURE_SEARCH] as bool;
+      var disableCompletion = results.flag(DISABLE_SERVER_FEATURE_COMPLETION);
+      var disableSearch = results.flag(DISABLE_SERVER_FEATURE_SEARCH);
       if (disableCompletion || disableSearch) {
         analysisServerOptions.featureSet = FeatureSet(
           completion: !disableCompletion,
@@ -258,7 +254,7 @@ class Driver implements ServerStarter {
       }
     }
 
-    if (results[HELP_OPTION] as bool) {
+    if (results.flag(HELP_OPTION)) {
       _printUsage(parser, fromHelp: true);
       return;
     }
@@ -274,8 +270,8 @@ class Driver implements ServerStarter {
     // Initialize the instrumentation service.
     //
     var logFilePath =
-        (results[PROTOCOL_TRAFFIC_LOG] ?? results[PROTOCOL_TRAFFIC_LOG_ALIAS])
-            as String?;
+        results.option(PROTOCOL_TRAFFIC_LOG) ??
+        results.option(PROTOCOL_TRAFFIC_LOG_ALIAS);
     var allInstrumentationServices =
         this.instrumentationService == null
             ? <InstrumentationService>[]
@@ -301,7 +297,7 @@ class Driver implements ServerStarter {
     this.instrumentationService = instrumentationService;
 
     instrumentationService.logVersion(
-      results[TRAIN_USING] != null
+      results.option(TRAIN_USING) != null
           ? 'training-0'
           : _readUuid(instrumentationService),
       analysisServerOptions.clientId ?? '',
@@ -313,7 +309,8 @@ class Driver implements ServerStarter {
 
     int? diagnosticServerPort;
     var portValue =
-        (results[DIAGNOSTIC_PORT] ?? results[DIAGNOSTIC_PORT_ALIAS]) as String?;
+        results.option(DIAGNOSTIC_PORT) ??
+        results.option(DIAGNOSTIC_PORT_ALIAS);
     if (portValue != null) {
       try {
         diagnosticServerPort = int.parse(portValue);
@@ -380,10 +377,10 @@ class Driver implements ServerStarter {
     SendPort? sendPort,
   ) {
     var capture =
-        results[DISABLE_SERVER_EXCEPTION_HANDLING] as bool
-            ? (_, Function f, {Function(String)? print}) => f()
+        results.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
+            ? (_, Function f, {void Function(String)? print}) => f()
             : _captureExceptions;
-    var trainDirectory = results[TRAIN_USING] as String?;
+    var trainDirectory = results.option(TRAIN_USING);
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
         print("Training directory '$trainDirectory' not found.\n");
@@ -472,7 +469,7 @@ class Driver implements ServerStarter {
             serveResult = isolateAnalysisServer.serveIsolate(sendPort);
           }
           errorNotifier.server = socketServer.analysisServer;
-          if (results[DISABLE_SILENT_ANALYSIS_EXCEPTIONS] as bool) {
+          if (results.flag(DISABLE_SILENT_ANALYSIS_EXCEPTIONS)) {
             errorNotifier.sendSilentExceptionsToClient = true;
           }
           serveResult.then((_) async {
@@ -486,7 +483,7 @@ class Driver implements ServerStarter {
           });
         },
         print:
-            results[INTERNAL_PRINT_TO_CONSOLE] as bool
+            results.flag(INTERNAL_PRINT_TO_CONSOLE)
                 ? null
                 : httpServer!.recordPrint,
       );
@@ -503,8 +500,8 @@ class Driver implements ServerStarter {
     ErrorNotifier errorNotifier,
   ) {
     var capture =
-        args[DISABLE_SERVER_EXCEPTION_HANDLING] as bool
-            ? (_, Function f, {Function(String)? print}) => f()
+        args.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
+            ? (_, Function f, {void Function(String)? print}) => f()
             : _captureExceptions;
 
     linter.registerLintRules();
