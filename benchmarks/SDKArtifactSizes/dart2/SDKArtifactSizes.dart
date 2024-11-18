@@ -8,10 +8,7 @@
 
 import 'dart:io';
 
-const executables = <String>[
-  'dart',
-  'dartaotruntime',
-];
+const executables = <String>['dart', 'dartaotruntime'];
 
 const libs = <String>[
   'vm_platform_strong.dill',
@@ -31,9 +28,7 @@ const snapshots = <String>[
   'kernel_worker',
 ];
 
-const resources = <String>[
-  'devtools',
-];
+const resources = <String>['devtools'];
 
 void reportFileSize(String path, String name) {
   try {
@@ -62,8 +57,9 @@ void reportDirectorySize(String path, String name) async {
 }
 
 void main() {
-  final topDirIndex =
-      Platform.resolvedExecutable.lastIndexOf(Platform.pathSeparator);
+  final topDirIndex = Platform.resolvedExecutable.lastIndexOf(
+    Platform.pathSeparator,
+  );
   final rootDir = Platform.resolvedExecutable.substring(0, topDirIndex);
 
   for (final executable in executables) {

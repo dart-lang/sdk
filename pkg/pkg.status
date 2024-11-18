@@ -342,10 +342,6 @@ analysis_server/test/socket_server_test: Skip # Pass, Slow
 [ $mode == debug || $runtime != vm || $system == android ]
 vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir
 
-[ $mode != release || $runtime != vm ]
-front_end/test/fasta/*: Skip
-front_end/tool/_fasta/*: Skip
-
 [ $browser || $jscl ]
 compiler/test/*: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
 mmap/*: SkipByDesign # Only meant to run on vm

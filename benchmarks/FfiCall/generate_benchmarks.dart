@@ -82,8 +82,12 @@ part of 'FfiCall.dart';
 
 ''';
 
-void generateTypedefs(StringBuffer buffer, String namePrefix,
-    List<String> types, List<int> numbers) {
+void generateTypedefs(
+  StringBuffer buffer,
+  String namePrefix,
+  List<String> types,
+  List<int> numbers,
+) {
   for (String type in types) {
     for (int number in numbers) {
       final String name = '$namePrefix$number${toIdentifier(type)}';
@@ -106,8 +110,10 @@ void generateBenchmarkInt(StringBuffer buffer, List<String> types) {
       final String argument = IntVariation(type, number).argument;
       final String arguments = repeat(argument, number, ', ');
       final String functionNameDart = 'function$number$typeName';
-      final String dartArguments =
-          List.generate(number, (i) => '$dartType a$i').join(', ');
+      final String dartArguments = List.generate(
+        number,
+        (i) => '$dartType a$i',
+      ).join(', ');
 
       buffer.write('''
 class $name extends FfiBenchmarkBase {
@@ -160,17 +166,20 @@ void generateBenchmarkDouble(StringBuffer buffer, List<String> types) {
     final String dartType = toIdentifier(nativeToDartType[type]!);
     for (int number in generateFor[type]!) {
       final String name = '${typeName}x${'$number'.padLeft(2, '0')}';
-      final String expected = number == 1
-          ? 'N + N * 42.0' // Do work with single arg.
-          : 'N * $number * ($number + 1) / 2 '; // The rest sums arguments.
+      final String expected =
+          number == 1
+              ? 'N + N * 42.0' // Do work with single arg.
+              : 'N * $number * ($number + 1) / 2 '; // The rest sums arguments.
       final String functionType = 'Function$number$dartType';
       final String functionNativeType = 'NativeFunction$number$typeName';
       final String functionNameC = 'Function$number$typeName';
       final List<double> argVals = List.generate(number, (i) => 1.0 * (i + 1));
       final String arguments = argVals.join(', ');
       final String functionNameDart = 'function$number$typeName';
-      final String dartArguments =
-          List.generate(number, (i) => '$dartType a$i').join(', ');
+      final String dartArguments = List.generate(
+        number,
+        (i) => '$dartType a$i',
+      ).join(', ');
       buffer.write('''
 class $name extends FfiBenchmarkBase {
   final $functionType f;
@@ -226,19 +235,27 @@ void generateBenchmarkPointer(StringBuffer buffer, List<String> types) {
     final String dartTypeName = toIdentifier(dartType);
     for (int number in generateFor[type]!) {
       final String name = '${typeName}x${'$number'.padLeft(2, '0')}';
-      final List<String> pointerNames =
-          List.generate(number, (i) => 'p${i + 1}');
-      final String pointers =
-          pointerNames.map((n) => '$type $n = nullptr;').join('\n');
-      final String setup = List.generate(
-          number - 1, (i) => 'p${i + 2} = p1.elementAt(${i + 1});').join();
+      final List<String> pointerNames = List.generate(
+        number,
+        (i) => 'p${i + 1}',
+      );
+      final String pointers = pointerNames
+          .map((n) => '$type $n = nullptr;')
+          .join('\n');
+      final String setup =
+          List.generate(
+            number - 1,
+            (i) => 'p${i + 2} = p1.elementAt(${i + 1});',
+          ).join();
       final String functionType = 'Function$number$dartTypeName';
       final String functionNativeType = 'NativeFunction$number$typeName';
       final String functionNameC = 'Function$number$typeName';
       final String arguments = pointerNames.skip(1).join(', ');
       final String functionNameDart = 'function$number$typeName';
-      final String dartArguments =
-          List.generate(number, (i) => '$dartType a$i').join(', ');
+      final String dartArguments = List.generate(
+        number,
+        (i) => '$dartType a$i',
+      ).join(', ');
       buffer.write('''
 class $name extends FfiBenchmarkBase {
   final $functionType f;
@@ -317,18 +334,22 @@ void generateBenchmarkHandle(StringBuffer buffer, List<String> types) {
     final String dartType = toIdentifier(nativeToDartType[type]!);
     for (int number in generateFor[type]!) {
       final String name = '${typeName}x${'$number'.padLeft(2, '0')}';
-      final String setup =
-          List.generate(number + 1, (i) => 'final m$i = MyClass($i);')
-              .skip(2)
-              .join('\n');
+      final String setup = List.generate(
+        number + 1,
+        (i) => 'final m$i = MyClass($i);',
+      ).skip(2).join('\n');
       final String functionType = 'Function$number$dartType';
       final String functionNativeType = 'NativeFunction$number$typeName';
       final String functionNameC = 'Function$number$typeName';
-      final String arguments =
-          List.generate(number - 1, (i) => 'm${i + 2}').join(', ');
+      final String arguments = List.generate(
+        number - 1,
+        (i) => 'm${i + 2}',
+      ).join(', ');
       final String functionNameDart = 'function$number$typeName';
-      final String dartArguments =
-          List.generate(number, (i) => '$dartType a$i').join(', ');
+      final String dartArguments = List.generate(
+        number,
+        (i) => '$dartType a$i',
+      ).join(', ');
       buffer.write('''
 class $name extends FfiBenchmarkBase {
   final $functionType f;
@@ -385,21 +406,21 @@ class IntVariation {
 
   /// These benchmarks sum all arguments over all iterations.
   IntVariation.LargeIntManyArguments()
-      : argument = 'i',
-        expectedValue = ((int number) => 'N * (N - 1) * $number / 2');
+    : argument = 'i',
+      expectedValue = ((int number) => 'N * (N - 1) * $number / 2');
 
   /// Benchmarks with only one argument return 42 added to the argument.
   IntVariation.LargeIntOneArgument()
-      : argument = 'i',
-        expectedValue = ((int number) => 'N * (N - 1) / 2 + N * 42');
+    : argument = 'i',
+      expectedValue = ((int number) => 'N * (N - 1) / 2 + N * 42');
 
   /// The benchmarks with small ints (`int8_t`, `uint8_t`, etc.) we pass an
   /// arbitrary fixed argument between 0 and 127 to prevent truncation.
   ///
   /// The C function returns 42 added to the argument.
   IntVariation.SmallInt()
-      : argument = '17',
-        expectedValue = ((int number) => 'N * 17 + N * 42');
+    : argument = '17',
+      expectedValue = ((int number) => 'N * 17 + N * 42');
 
   factory IntVariation(String type, int number) {
     if (isSmallInt(type)) {

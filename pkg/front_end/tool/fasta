@@ -12,7 +12,7 @@ REPO_DIR="$(cd ${BASH_SOURCE%/*} && git rev-parse --show-toplevel)"
 
 DART_VM=${DART_VM-"${REPO_DIR}/sdk/bin/dart"}
 
-TOOL_DIR="${REPO_DIR}/pkg/front_end/tool/_fasta"
+TOOL_DIR="${REPO_DIR}/pkg/front_end/tool"
 
 KERNEL_BIN="${REPO_DIR}/pkg/kernel/bin"
 

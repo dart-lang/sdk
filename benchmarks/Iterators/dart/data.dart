@@ -21,7 +21,7 @@ const Map<int, Map<int, int>> constMapIntIntTable = {
   0: constMapIntInt0,
   1: constMapIntInt1,
   2: constMapIntInt2,
-  100: constMapIntInt100
+  100: constMapIntInt100,
 };
 
 const Map<int, int> constMapIntInt0 = {};
@@ -127,14 +127,14 @@ const Map<int, int> constMapIntInt100 = {
   96: 96,
   97: 97,
   98: 98,
-  99: 99
+  99: 99,
 };
 
 const Map<int, Set<int>> constSetOfIntTable = {
   0: constSetOfInt0,
   1: constSetOfInt1,
   2: constSetOfInt2,
-  100: constSetOfInt100
+  100: constSetOfInt100,
 };
 
 const Set<int> constSetOfInt0 = {};
@@ -150,14 +150,14 @@ const Set<int> constSetOfInt100 = {
   ...{60, 61, 62, 63, 64, 65, 66, 67, 68, 69},
   ...{70, 71, 72, 73, 74, 75, 76, 77, 78, 79},
   ...{80, 81, 82, 83, 84, 85, 86, 87, 88, 89},
-  ...{90, 91, 92, 93, 94, 95, 96, 97, 98, 99}
+  ...{90, 91, 92, 93, 94, 95, 96, 97, 98, 99},
 };
 
 const Map<int, List<int>> constListOfIntTable = {
   0: constListOfInt0,
   1: constListOfInt1,
   2: constListOfInt2,
-  100: constListOfInt100
+  100: constListOfInt100,
 };
 
 const List<int> constListOfInt0 = [];
@@ -173,5 +173,5 @@ const List<int> constListOfInt100 = [
   ...[60, 61, 62, 63, 64, 65, 66, 67, 68, 69],
   ...[70, 71, 72, 73, 74, 75, 76, 77, 78, 79],
   ...[80, 81, 82, 83, 84, 85, 86, 87, 88, 89],
-  ...[90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+  ...[90, 91, 92, 93, 94, 95, 96, 97, 98, 99],
 ];

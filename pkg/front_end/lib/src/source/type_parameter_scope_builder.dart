@@ -1459,6 +1459,10 @@ class DeclarationNameSpaceBuilder {
         // TODO(johnniwinther): Handle constructors in extensions consistently.
         // Currently they are not part of the name space but still processed
         // for instance when inferring redirecting factories.
+        // They are part of the name space for extension types though.
+        // Note that we have to remove [RedirectingFactoryBuilder]s in
+        // [SourceLoader.inferRedirectingFactories] as we don't build them
+        // because we don't add them here.
         constructors: includeConstructors ? constructors : null);
   }
 }

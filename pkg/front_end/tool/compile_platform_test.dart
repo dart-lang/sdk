@@ -11,7 +11,7 @@ void main(List<String> arguments) {
   Uri dartVm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
   Uri librariesJson = Uri.base.resolve("sdk/lib/libraries.json");
   Uri compilePlatform =
-      Uri.base.resolve("pkg/front_end/tool/_fasta/compile_platform.dart");
+      Uri.base.resolve("pkg/front_end/tool/compile_platform.dart");
   asyncTest(() async {
     await withTemporaryDirectory("compile_platform_test_", (Uri tmp) async {
       Uri platformDill = tmp.resolve("vm_platform.dill");

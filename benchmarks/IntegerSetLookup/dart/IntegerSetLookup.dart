@@ -24,7 +24,7 @@ class SetBenchmark extends BenchmarkBase {
 
 void main() {
   final list = [
-    for (int i = 0; i < 14790; i++) (i + 1) * 0x10000000 + 123456789
+    for (int i = 0; i < 14790; i++) (i + 1) * 0x10000000 + 123456789,
   ];
 
   final r = Random();
@@ -37,7 +37,9 @@ void main() {
     () =>
         SetBenchmark('IntegerSetLookup.DefaultHashSet_Random', {...randomList}),
     () => SetBenchmark(
-        'IntegerSetLookup.HashSet_Random', HashSet<int>()..addAll(randomList)),
+      'IntegerSetLookup.HashSet_Random',
+      HashSet<int>()..addAll(randomList),
+    ),
   ];
   for (final benchmark in benchmarks) {
     benchmark().report();

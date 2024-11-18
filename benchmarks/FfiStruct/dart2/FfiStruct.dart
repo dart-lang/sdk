@@ -71,9 +71,7 @@ class FieldLoadStore extends BenchmarkBase {
 //
 
 void main() {
-  final benchmarks = [
-    () => FieldLoadStore(),
-  ];
+  final benchmarks = [() => FieldLoadStore()];
   for (final benchmark in benchmarks) {
     benchmark().report();
   }

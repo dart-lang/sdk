@@ -13,10 +13,14 @@ import 'types.dart';
 
 DynamicLibrary openSsl() {
   // Force load crypto.
-  dlopenPlatformSpecific('crypto',
-      path: Platform.script.resolve('../native/out/').path);
-  final ssl = dlopenPlatformSpecific('ssl',
-      path: Platform.script.resolve('../native/out/').path);
+  dlopenPlatformSpecific(
+    'crypto',
+    path: Platform.script.resolve('../native/out/').path,
+  );
+  final ssl = dlopenPlatformSpecific(
+    'ssl',
+    path: Platform.script.resolve('../native/out/').path,
+  );
   return ssl;
 }
 
@@ -28,9 +32,10 @@ final DynamicLibrary ssl = openSsl();
 /// ```c
 /// const EVP_MD *EVP_sha512(void);
 /// ```
-final Pointer<EVP_MD> Function() EVP_sha512 =
-    ssl.lookupFunction<Pointer<EVP_MD> Function(), Pointer<EVP_MD> Function()>(
-        'EVP_sha512');
+final Pointer<EVP_MD> Function() EVP_sha512 = ssl
+    .lookupFunction<Pointer<EVP_MD> Function(), Pointer<EVP_MD> Function()>(
+      'EVP_sha512',
+    );
 
 /// EVP_MD_CTX_new allocates and initialises a fresh EVP_MD_CTX and returns it,
 /// or NULL on allocation failure. The caller must use EVP_MD_CTX_free to
@@ -40,8 +45,9 @@ final Pointer<EVP_MD> Function() EVP_sha512 =
 /// EVP_MD_CTX *EVP_MD_CTX_new(void);
 /// ```
 final Pointer<EVP_MD_CTX> Function() EVP_MD_CTX_new = ssl.lookupFunction<
-    Pointer<EVP_MD_CTX> Function(),
-    Pointer<EVP_MD_CTX> Function()>('EVP_MD_CTX_new');
+  Pointer<EVP_MD_CTX> Function(),
+  Pointer<EVP_MD_CTX> Function()
+>('EVP_MD_CTX_new');
 
 /// EVP_MD_CTX_free calls EVP_MD_CTX_cleanup and then frees ctx itself.
 ///
@@ -49,8 +55,9 @@ final Pointer<EVP_MD_CTX> Function() EVP_MD_CTX_new = ssl.lookupFunction<
 /// void EVP_MD_CTX_free(EVP_MD_CTX *ctx);
 /// ```
 final void Function(Pointer<EVP_MD_CTX>) EVP_MD_CTX_free = ssl.lookupFunction<
-    Void Function(Pointer<EVP_MD_CTX>),
-    void Function(Pointer<EVP_MD_CTX>)>('EVP_MD_CTX_free');
+  Void Function(Pointer<EVP_MD_CTX>),
+  void Function(Pointer<EVP_MD_CTX>)
+>('EVP_MD_CTX_free');
 
 /// EVP_DigestInit acts like EVP_DigestInit_ex except that ctx is initialised
 /// before use.
@@ -58,9 +65,11 @@ final void Function(Pointer<EVP_MD_CTX>) EVP_MD_CTX_free = ssl.lookupFunction<
 /// ```c
 /// int EVP_DigestInit(EVP_MD_CTX *ctx, const EVP_MD *type);
 /// ```
-final int Function(Pointer<EVP_MD_CTX>, Pointer<EVP_MD>) EVP_DigestInit =
-    ssl.lookupFunction<Int32 Function(Pointer<EVP_MD_CTX>, Pointer<EVP_MD>),
-        int Function(Pointer<EVP_MD_CTX>, Pointer<EVP_MD>)>('EVP_DigestInit');
+final int Function(Pointer<EVP_MD_CTX>, Pointer<EVP_MD>) EVP_DigestInit = ssl
+    .lookupFunction<
+      Int32 Function(Pointer<EVP_MD_CTX>, Pointer<EVP_MD>),
+      int Function(Pointer<EVP_MD_CTX>, Pointer<EVP_MD>)
+    >('EVP_DigestInit');
 
 /// EVP_DigestUpdate hashes len bytes from data into the hashing operation
 /// in ctx. It returns one.
@@ -71,9 +80,9 @@ final int Function(Pointer<EVP_MD_CTX>, Pointer<EVP_MD>) EVP_DigestInit =
 /// ```
 final int Function(Pointer<EVP_MD_CTX>, Pointer<Data>, int) EVP_DigestUpdate =
     ssl.lookupFunction<
-        Int32 Function(Pointer<EVP_MD_CTX>, Pointer<Data>, IntPtr),
-        int Function(
-            Pointer<EVP_MD_CTX>, Pointer<Data>, int)>('EVP_DigestUpdate');
+      Int32 Function(Pointer<EVP_MD_CTX>, Pointer<Data>, IntPtr),
+      int Function(Pointer<EVP_MD_CTX>, Pointer<Data>, int)
+    >('EVP_DigestUpdate');
 
 /// EVP_DigestFinal acts like EVP_DigestFinal_ex except that EVP_MD_CTX_cleanup
 /// is called on ctx before returning.
@@ -83,10 +92,10 @@ final int Function(Pointer<EVP_MD_CTX>, Pointer<Data>, int) EVP_DigestUpdate =
 ///                                    unsigned int *out_size);
 /// ```
 final int Function(Pointer<EVP_MD_CTX>, Pointer<Bytes>, Pointer<Uint32>)
-    EVP_DigestFinal = ssl.lookupFunction<
-        Int32 Function(Pointer<EVP_MD_CTX>, Pointer<Bytes>, Pointer<Uint32>),
-        int Function(Pointer<EVP_MD_CTX>, Pointer<Bytes>,
-            Pointer<Uint32>)>('EVP_DigestFinal');
+EVP_DigestFinal = ssl.lookupFunction<
+  Int32 Function(Pointer<EVP_MD_CTX>, Pointer<Bytes>, Pointer<Uint32>),
+  int Function(Pointer<EVP_MD_CTX>, Pointer<Bytes>, Pointer<Uint32>)
+>('EVP_DigestFinal');
 
 /// EVP_MD_CTX_size returns the digest size of ctx, in bytes. It will crash if
 /// a digest hasn't been set on ctx.
@@ -95,5 +104,6 @@ final int Function(Pointer<EVP_MD_CTX>, Pointer<Bytes>, Pointer<Uint32>)
 /// size_t EVP_MD_CTX_size(const EVP_MD_CTX *ctx);
 /// ```
 final int Function(Pointer<EVP_MD_CTX>) EVP_MD_CTX_size = ssl.lookupFunction<
-    IntPtr Function(Pointer<EVP_MD_CTX>),
-    int Function(Pointer<EVP_MD_CTX>)>('EVP_MD_CTX_size');
+  IntPtr Function(Pointer<EVP_MD_CTX>),
+  int Function(Pointer<EVP_MD_CTX>)
+>('EVP_MD_CTX_size');

@@ -2948,6 +2948,13 @@ severity: $severity
       if (redirectingFactoryBuilders != null) {
         for (RedirectingFactoryBuilder redirectingFactoryBuilder
             in redirectingFactoryBuilders) {
+          if (redirectingFactoryBuilder.parent.isExtension) {
+            // Extensions don't build their redirecting factories so we can't
+            // process them. Once they are added in
+            // [DeclarationNameSpaceBuilder.buildNameSpace] this skipping can
+            // likely be removed.
+            continue;
+          }
           redirectingFactoryBuilder.buildOutlineExpressions(
               classHierarchy, delayedDefaultValueCloners);
         }

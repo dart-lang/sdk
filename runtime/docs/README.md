@@ -235,10 +235,10 @@ At this point enough information is loaded from Kernel binary for runtime to suc
 >     $ dart pkg/vm/bin/dump_kernel.dart hello.dill hello.kernel.txt
 >     ```
 >
-> When you try using `gen_kernel.dart` you will notice that it requires something called *platform*, a Kernel binary containing AST for all core libraries (`dart:core`, `dart:async`, etc). If you have Dart SDK build configured then you can just use platform file from the `out` directory, e.g. `out/ReleaseX64/vm_platform_strong.dill`. Alternatively you can use [`pkg/front_end/tool/_fasta/compile_platform.dart`][] to generate the platform:
+> When you try using `gen_kernel.dart` you will notice that it requires something called *platform*, a Kernel binary containing AST for all core libraries (`dart:core`, `dart:async`, etc). If you have Dart SDK build configured then you can just use platform file from the `out` directory, e.g. `out/ReleaseX64/vm_platform_strong.dill`. Alternatively you can use [`pkg/front_end/tool/compile_platform.dart`][] to generate the platform:
 >
 > ```console
-> $ dart pkg/front_end/tool/_fasta/compile_platform.dart \
+> $ dart pkg/front_end/tool/compile_platform.dart \
 >        dart:core                                       \
 >        sdk/lib/libraries.json                          \
 >        vm_outline.dill vm_platform.dill vm_outline.dill
@@ -945,7 +945,7 @@ See [Glossary](glossary.md)
 [`dart::JitCallSpecializer`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/runtime/vm/compiler/jit/jit_call_specializer.h#L16
 [`pkg/vm/bin/gen_kernel.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/vm/bin/gen_kernel.dart
 [`pkg/vm/bin/dump_kernel.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/vm/bin/dump_kernel.dart
-[`pkg/front_end/tool/_fasta/compile_platform.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/front_end/tool/_fasta/compile_platform.dart
+[`pkg/front_end/tool/compile_platform.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/front_end/tool/_fasta/compile_platform.dart
 [`package:kernel/ast.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/kernel/lib/ast.dart
 [`package:front_end`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/front_end/lib
 [`dart::kernel::KernelLoader::LoadEntireProgram`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/runtime/vm/kernel_loader.cc#L236

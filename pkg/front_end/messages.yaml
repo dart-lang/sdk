@@ -4,7 +4,7 @@
 
 # Run
 #
-#     dart run pkg/front_end/tool/_fasta/generate_messages.dart
+#     dart run pkg/front_end/tool/generate_messages.dart
 #
 # to regenerate messages after having edited this file.
 #

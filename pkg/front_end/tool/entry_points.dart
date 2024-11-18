@@ -34,7 +34,7 @@ import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:kernel/verifier.dart';
 
-import '../../test/coverage_helper.dart';
+import '../test/coverage_helper.dart';
 import 'additional_targets.dart' show installAdditionalTargets;
 import 'bench_maker.dart' show BenchMaker;
 import 'command_line.dart' show runProtectedFromAbort, withGlobalOptions;

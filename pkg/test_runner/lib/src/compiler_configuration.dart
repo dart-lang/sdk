@@ -1485,7 +1485,7 @@ abstract mixin class VMKernelCompilerMixin {
 
 class FastaCompilerConfiguration extends CompilerConfiguration {
   static final _compilerLocation =
-      Repository.uri.resolve("pkg/front_end/tool/_fasta/compile.dart");
+      Repository.uri.resolve("pkg/front_end/tool/compile.dart");
 
   final Uri _platformDill;
 

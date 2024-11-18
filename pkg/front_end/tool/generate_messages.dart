@@ -6,7 +6,7 @@ import 'dart:io' show File;
 
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-import '../../test/utils/io_utils.dart' show computeRepoDirUri;
+import '../test/utils/io_utils.dart' show computeRepoDirUri;
 import 'generate_messages_lib.dart';
 
 export 'generate_messages_lib.dart';

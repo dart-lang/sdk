@@ -362,7 +362,7 @@
         "testcases/rasta/switch_execution_case_t02\\.dart$",
         "testcases/set_literals/disambiguation_rule\\.dart$",
         "testcases/set_literals/disambiguation_rule2\\.dart$",
-        "tool/_fasta/abcompile\\.dart$"
+        "tool/abcompile\\.dart$"
       ]
     },
     {

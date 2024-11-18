@@ -44,38 +44,17 @@ final Map<String, Lib> benchmarks = {
     lib_BigIntParsePrint.loadLibrary,
     () => lib_BigIntParsePrint.main(),
   ),
-  'Iterators': Lib(
-    lib_Iterators.loadLibrary,
-    () => lib_Iterators.main([]),
-  ),
-  'ListCopy': Lib(
-    lib_ListCopy.loadLibrary,
-    () => lib_ListCopy.main(),
-  ),
-  'MapCopy': Lib(
-    lib_MapCopy.loadLibrary,
-    () => lib_MapCopy.main([]),
-  ),
-  'MD5': Lib(
-    lib_MD5.loadLibrary,
-    () => lib_MD5.main(),
-  ),
+  'Iterators': Lib(lib_Iterators.loadLibrary, () => lib_Iterators.main([])),
+  'ListCopy': Lib(lib_ListCopy.loadLibrary, () => lib_ListCopy.main()),
+  'MapCopy': Lib(lib_MapCopy.loadLibrary, () => lib_MapCopy.main([])),
+  'MD5': Lib(lib_MD5.loadLibrary, () => lib_MD5.main()),
   'RecordCollections': Lib(
     lib_RecordCollections.loadLibrary,
     () => lib_RecordCollections.main(),
   ),
-  'RuntimeType': Lib(
-    lib_RuntimeType.loadLibrary,
-    () => lib_RuntimeType.main(),
-  ),
-  'SHA1': Lib(
-    lib_SHA1.loadLibrary,
-    () => lib_SHA1.main(),
-  ),
-  'SHA256': Lib(
-    lib_SHA256.loadLibrary,
-    () => lib_SHA256.main(),
-  ),
+  'RuntimeType': Lib(lib_RuntimeType.loadLibrary, () => lib_RuntimeType.main()),
+  'SHA1': Lib(lib_SHA1.loadLibrary, () => lib_SHA1.main()),
+  'SHA256': Lib(lib_SHA256.loadLibrary, () => lib_SHA256.main()),
   'SkeletalAnimation': Lib(
     lib_SkeletalAnimation.loadLibrary,
     () => lib_SkeletalAnimation.main(),
@@ -84,26 +63,14 @@ final Map<String, Lib> benchmarks = {
     lib_SkeletalAnimationSIMD.loadLibrary,
     () => lib_SkeletalAnimationSIMD.main(),
   ),
-  'SwitchFSM': Lib(
-    lib_SwitchFSM.loadLibrary,
-    () => lib_SwitchFSM.main(),
-  ),
+  'SwitchFSM': Lib(lib_SwitchFSM.loadLibrary, () => lib_SwitchFSM.main()),
   'TypedDataDuplicate': Lib(
     lib_TypedDataDuplicate.loadLibrary,
     () => lib_TypedDataDuplicate.main(),
   ),
-  'UiMatrix': Lib(
-    lib_UiMatrix.loadLibrary,
-    () => lib_UiMatrix.main(),
-  ),
-  'Utf8Decode': Lib(
-    lib_Utf8Decode.loadLibrary,
-    () => lib_Utf8Decode.main([]),
-  ),
-  'Utf8Encode': Lib(
-    lib_Utf8Encode.loadLibrary,
-    () => lib_Utf8Encode.main([]),
-  ),
+  'UiMatrix': Lib(lib_UiMatrix.loadLibrary, () => lib_UiMatrix.main()),
+  'Utf8Decode': Lib(lib_Utf8Decode.loadLibrary, () => lib_Utf8Decode.main([])),
+  'Utf8Encode': Lib(lib_Utf8Encode.loadLibrary, () => lib_Utf8Encode.main([])),
 };
 
 void main(List<String> originalArguments) async {

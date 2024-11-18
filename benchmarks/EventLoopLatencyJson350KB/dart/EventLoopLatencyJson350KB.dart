@@ -16,8 +16,10 @@ Future<void> main() async {
   // Measure event loop latency.
   const tickDuration = Duration(milliseconds: 1);
   const numberOfTicks = 8 * 1000; // min 8 seconds.
-  final EventLoopLatencyStats stats =
-      await measureEventLoopLatency(tickDuration, numberOfTicks);
+  final EventLoopLatencyStats stats = await measureEventLoopLatency(
+    tickDuration,
+    numberOfTicks,
+  );
 
   // Kill isolate & wait until it's dead.
   isolate.kill(priority: Isolate.immediate);

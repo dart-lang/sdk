@@ -18,7 +18,7 @@ List<List<String> Function(String)> version2x1500() {
     _h12,
     _h13,
     _h14,
-    _h15
+    _h15,
   ];
 }
 

@@ -128,7 +128,7 @@ void check(String result, List<int> sequence) {
     bytes0tag => targetSize,
     bytes1tag => 7144,
     bytes2tag => 5266,
-    _ => throw 'Unexpected sequence start: ${sequence[0]}'
+    _ => throw 'Unexpected sequence start: ${sequence[0]}',
   };
   Expect.equals(expectedLength, result.length);
 }
@@ -136,13 +136,16 @@ void check(String result, List<int> sequence) {
 /// Expands a sequence by repetition and padding to `targetSize` bytes.
 Uint8List makeSequence(List<int> bytes) {
   Expect.equals(
-      1,
-      bytes.length.gcd(chunkSize),
-      'Bad repeated size (${bytes.length}).'
-      ' Repeated sequence should be co-prime with chunk size ($chunkSize)'
-      ' to exercise more UTF-8 boundaries');
-  final repeats =
-      List.filled(targetSize ~/ bytes.length, bytes).expand((byte) => byte);
+    1,
+    bytes.length.gcd(chunkSize),
+    'Bad repeated size (${bytes.length}).'
+    ' Repeated sequence should be co-prime with chunk size ($chunkSize)'
+    ' to exercise more UTF-8 boundaries',
+  );
+  final repeats = List.filled(
+    targetSize ~/ bytes.length,
+    bytes,
+  ).expand((byte) => byte);
   final padding = List.filled(targetSize.remainder(bytes.length), 0); // NULs.
   final sequence = Uint8List.fromList([...repeats, ...padding]);
   Expect.equals(targetSize, sequence.length);
@@ -212,7 +215,8 @@ abstract class ChunkedBase extends Utf8DecodeBenchmarkBase {
   void run() {
     late final String result;
     final byteSink = const Utf8Decoder().startChunkedConversion(
-        StringConversionSink.withCallback((s) => result = s));
+      StringConversionSink.withCallback((s) => result = s),
+    );
 
     for (final chunk in chunks) {
       byteSink.add(chunk);
@@ -263,11 +267,17 @@ void mainPoly() {
     Simple('poly.simple.list.1byte.10k', List.of(sequence1)),
     Simple('poly.simple.list.2byte.10k', List.of(sequence2)),
     Simple(
-        'poly.simple.unmodifiable.ascii.10k', sequence0.asUnmodifiableView()),
+      'poly.simple.unmodifiable.ascii.10k',
+      sequence0.asUnmodifiableView(),
+    ),
     Simple(
-        'poly.simple.unmodifiable.1byte.10k', sequence1.asUnmodifiableView()),
+      'poly.simple.unmodifiable.1byte.10k',
+      sequence1.asUnmodifiableView(),
+    ),
     Simple(
-        'poly.simple.unmodifiable.2byte.10k', sequence2.asUnmodifiableView()),
+      'poly.simple.unmodifiable.2byte.10k',
+      sequence2.asUnmodifiableView(),
+    ),
     Chunked('poly.chunked.ascii.10k', sequence0),
     Chunked('poly.chunked.1byte.10k', sequence1),
     Chunked('poly.chunked.2byte.10k', sequence2),
@@ -275,11 +285,17 @@ void mainPoly() {
     Chunked('poly.chunked.list.1byte.10k', List.of(sequence1)),
     Chunked('poly.chunked.list.2byte.10k', List.of(sequence2)),
     ChunkedUnmodifiable(
-        'poly.chunked.unmodifiable.ascii.10k', sequence0.asUnmodifiableView()),
+      'poly.chunked.unmodifiable.ascii.10k',
+      sequence0.asUnmodifiableView(),
+    ),
     ChunkedUnmodifiable(
-        'poly.chunked.unmodifiable.1byte.10k', sequence1.asUnmodifiableView()),
+      'poly.chunked.unmodifiable.1byte.10k',
+      sequence1.asUnmodifiableView(),
+    ),
     ChunkedUnmodifiable(
-        'poly.chunked.unmodifiable.2byte.10k', sequence2.asUnmodifiableView()),
+      'poly.chunked.unmodifiable.2byte.10k',
+      sequence2.asUnmodifiableView(),
+    ),
   ];
   runAll(benchmarks);
 }
@@ -314,17 +330,29 @@ void mainMono3() {
   // Monomorphic: All inputs are unmodifiable `Uint8List`s.
   final benchmarks = [
     Simple(
-        'mono.simple.unmodifiable.ascii.10k', sequence0.asUnmodifiableView()),
+      'mono.simple.unmodifiable.ascii.10k',
+      sequence0.asUnmodifiableView(),
+    ),
     Simple(
-        'mono.simple.unmodifiable.1byte.10k', sequence1.asUnmodifiableView()),
+      'mono.simple.unmodifiable.1byte.10k',
+      sequence1.asUnmodifiableView(),
+    ),
     Simple(
-        'mono.simple.unmodifiable.2byte.10k', sequence2.asUnmodifiableView()),
+      'mono.simple.unmodifiable.2byte.10k',
+      sequence2.asUnmodifiableView(),
+    ),
     ChunkedUnmodifiable(
-        'mono.chunked.unmodifiable.ascii.10k', sequence0.asUnmodifiableView()),
+      'mono.chunked.unmodifiable.ascii.10k',
+      sequence0.asUnmodifiableView(),
+    ),
     ChunkedUnmodifiable(
-        'mono.chunked.unmodifiable.1byte.10k', sequence1.asUnmodifiableView()),
+      'mono.chunked.unmodifiable.1byte.10k',
+      sequence1.asUnmodifiableView(),
+    ),
     ChunkedUnmodifiable(
-        'mono.chunked.unmodifiable.2byte.10k', sequence2.asUnmodifiableView()),
+      'mono.chunked.unmodifiable.2byte.10k',
+      sequence2.asUnmodifiableView(),
+    ),
   ];
   runAll(benchmarks);
 }

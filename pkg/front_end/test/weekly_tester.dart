@@ -4,7 +4,7 @@
 
 import 'dart:async' show Future;
 import 'dart:convert' show LineSplitter, utf8;
-import 'dart:io' show File, Platform, Process, exitCode;
+import 'dart:io' show File, Platform, Process;
 
 Future<void> main(List<String> args) async {
   // General idea: Launch - in separate processes - whatever we want to run
@@ -18,14 +18,18 @@ Future<void> main(List<String> args) async {
       "\n\n");
 
   List<WrappedProcess> startedProcesses = [];
+  List<String> missingScripts = [];
+  void noteMissingScript(String message) {
+    missingScripts.add(message);
+    print(message);
+  }
 
   {
     // Very slow: Leak-test.
     Uri leakTester =
         Platform.script.resolve("flutter_gallery_leak_tester.dart");
     if (!new File.fromUri(leakTester).existsSync()) {
-      exitCode = 1;
-      print("Couldn't find $leakTester");
+      noteMissingScript("Couldn't find $leakTester");
     } else {
       // The tools/bots/flutter/compile_flutter.sh script passes `--path`
       // --- we'll just pass everything along.
@@ -41,10 +45,9 @@ Future<void> main(List<String> args) async {
 
   {
     // Weak suite with fuzzing.
-    Uri weakSuite = Platform.script.resolve("fasta/weak_suite.dart");
+    Uri weakSuite = Platform.script.resolve("weak_suite.dart");
     if (!new File.fromUri(weakSuite).existsSync()) {
-      exitCode = 1;
-      print("Couldn't find $weakSuite");
+      noteMissingScript("Couldn't find $weakSuite");
     } else {
       startedProcesses.add(await run(
         [
@@ -58,10 +61,9 @@ Future<void> main(List<String> args) async {
 
   {
     // Strong suite with fuzzing.
-    Uri strongSuite = Platform.script.resolve("fasta/strong_suite.dart");
+    Uri strongSuite = Platform.script.resolve("strong_suite.dart");
     if (!new File.fromUri(strongSuite).existsSync()) {
-      exitCode = 1;
-      print("Couldn't find $strongSuite");
+      noteMissingScript("Couldn't find $strongSuite");
     } else {
       startedProcesses.add(await run(
         [
@@ -78,8 +80,7 @@ Future<void> main(List<String> args) async {
     Uri incrementalLeakTest =
         Platform.script.resolve("vm_service_for_leak_detection.dart");
     if (!new File.fromUri(incrementalLeakTest).existsSync()) {
-      exitCode = 1;
-      print("Couldn't find $incrementalLeakTest");
+      noteMissingScript("Couldn't find $incrementalLeakTest");
     } else {
       startedProcesses.add(await run([
         incrementalLeakTest.toString(),
@@ -90,11 +91,9 @@ Future<void> main(List<String> args) async {
 
   {
     // Expression suite with fuzzing.
-    Uri expressionSuite =
-        Platform.script.resolve("fasta/expression_suite.dart");
+    Uri expressionSuite = Platform.script.resolve("expression_suite.dart");
     if (!new File.fromUri(expressionSuite).existsSync()) {
-      exitCode = 1;
-      print("Couldn't find $expressionSuite");
+      noteMissingScript("Couldn't find $expressionSuite");
     } else {
       startedProcesses.add(await run(
         [
@@ -107,9 +106,11 @@ Future<void> main(List<String> args) async {
   }
 
   // Wait for everything to finish.
+  bool shouldThrow = false;
   List<int> exitCodes =
       await Future.wait(startedProcesses.map((e) => e.process.exitCode));
   if (exitCodes.where((e) => e != 0).isNotEmpty) {
+    shouldThrow = true;
     print("\n\nFound failures!:\n");
     // At least one failed.
     for (WrappedProcess p in startedProcesses) {
@@ -118,9 +119,15 @@ Future<void> main(List<String> args) async {
         print("${p.id} failed with exist-code $pExitCode");
       }
     }
-
-    throw "There were failures!";
   }
+  if (missingScripts.isNotEmpty) {
+    print("\n\nThere were missing scripts!");
+    for (String message in missingScripts) {
+      print(" - $message");
+    }
+    shouldThrow = true;
+  }
+  if (shouldThrow) throw "There were failures!";
 }
 
 Future<WrappedProcess> run(List<String> args, String id) async {

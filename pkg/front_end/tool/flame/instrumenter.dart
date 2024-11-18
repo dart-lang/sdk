@@ -13,9 +13,9 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart';
 
-import '../_fasta/additional_targets.dart';
-import '../_fasta/command_line.dart';
-import '../_fasta/compile.dart' as fasta_compile;
+import '../additional_targets.dart';
+import '../command_line.dart';
+import '../compile.dart' as fasta_compile;
 
 /// Instrumenter that can produce flame graphs, count invocations,
 /// perform time tracking etc.
@@ -23,12 +23,12 @@ import '../_fasta/compile.dart' as fasta_compile;
 /// ### Example of using this to produce data for a flame graph
 ///
 /// ```
-/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/_fasta/compile.dart
-/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/_fasta/compile.dart
-/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/_fasta/compile.dart --candidates=cfe_compile_trace_candidates.txt
-/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/_fasta/compile.dart
-/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/_fasta/compile.dart --candidates=cfe_compile_trace_candidates_subsequent.txt
-/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/_fasta/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/compile.dart --candidates=cfe_compile_trace_candidates.txt
+/// out/ReleaseX64/dart pkg/front_end/tool/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/compile.dart --candidates=cfe_compile_trace_candidates_subsequent.txt
+/// out/ReleaseX64/dart pkg/front_end/tool/compile.dart.dill.instrumented.dill --omit-platform pkg/front_end/tool/compile.dart
 /// ```
 ///
 /// Where it's instrumented in several passes to automatically find the
@@ -42,8 +42,8 @@ import '../_fasta/compile.dart' as fasta_compile;
 /// ### Example of using this to count method calls
 ///
 /// ```
-/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/_fasta/compile.dart --count
-/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill pkg/front_end/tool/_fasta/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart pkg/front_end/tool/compile.dart --count
+/// out/ReleaseX64/dart pkg/front_end/tool/compile.dart.dill.instrumented.dill pkg/front_end/tool/compile.dart
 /// ```
 ///
 /// It will produce an output like this:
@@ -63,8 +63,8 @@ import '../_fasta/compile.dart' as fasta_compile;
 /// ### Example of using this to get combined time on stack
 ///
 /// ```
-/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart -Diterations=10 pkg/front_end/tool/_fasta/compile.dart --single-timer "--candidates-raw=flow_analysis.dart|*"
-/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill pkg/front_end/tool/_fasta/compile.dart
+/// out/ReleaseX64/dart pkg/front_end/tool/flame/instrumenter.dart -Diterations=10 pkg/front_end/tool/compile.dart --single-timer "--candidates-raw=flow_analysis.dart|*"
+/// out/ReleaseX64/dart pkg/front_end/tool/compile.dart.dill.instrumented.dill pkg/front_end/tool/compile.dart
 /// ```
 ///
 /// This will give a combined runtime of when any of the instrumented procedures
@@ -85,8 +85,8 @@ import '../_fasta/compile.dart' as fasta_compile;
 /// ### Example of using this to get timings for when on stack:
 ///
 /// ```
-/// out/ReleaseX64/dart --enable-asserts pkg/front_end/tool/flame/instrumenter.dart -Diterations=10 pkg/front_end/tool/_fasta/compile.dart --timer "--candidates-raw=flow_analysis.dart|*"
-/// out/ReleaseX64/dart pkg/front_end/tool/_fasta/compile.dart.dill.instrumented.dill pkg/front_end/tool/_fasta/compile.dart
+/// out/ReleaseX64/dart --enable-asserts pkg/front_end/tool/flame/instrumenter.dart -Diterations=10 pkg/front_end/tool/compile.dart --timer "--candidates-raw=flow_analysis.dart|*"
+/// out/ReleaseX64/dart pkg/front_end/tool/compile.dart.dill.instrumented.dill pkg/front_end/tool/compile.dart
 /// ```
 ///
 /// This will give runtime info for all instrumented procedures, timing when

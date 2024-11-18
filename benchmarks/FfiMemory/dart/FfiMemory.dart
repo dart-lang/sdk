@@ -92,7 +92,10 @@ void doStoreDouble(Pointer<Double> pointer, int length) {
 }
 
 void doStorePointer(
-    Pointer<Pointer<Int8>> pointer, int length, Pointer<Int8> data) {
+  Pointer<Pointer<Int8>> pointer,
+  int length,
+  Pointer<Int8> data,
+) {
   for (int i = 0; i < length; i++) {
     pointer[i] = data;
   }

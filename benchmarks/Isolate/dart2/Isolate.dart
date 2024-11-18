@@ -12,9 +12,11 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:meta/meta.dart';
 
 class SendReceiveBytes extends AsyncBenchmarkBase {
-  SendReceiveBytes(String name,
-      {@required this.size, @required this.useTransferable})
-      : super(name);
+  SendReceiveBytes(
+    String name, {
+    @required this.size,
+    @required this.useTransferable,
+  }) : super(name);
 
   @override
   Future<void> run() async {
@@ -55,11 +57,13 @@ class SendReceiveHelper {
     port = ReceivePort();
     inbox = StreamIterator<dynamic>(port);
     workerCompleted = Completer<bool>();
-    workerExitedPort = ReceivePort()
-      ..listen((_) => workerCompleted.complete(true));
+    workerExitedPort =
+        ReceivePort()..listen((_) => workerCompleted.complete(true));
     worker = await Isolate.spawn(
-        isolate, StartMessage(port.sendPort, useTransferable, size),
-        onExit: workerExitedPort.sendPort);
+      isolate,
+      StartMessage(port.sendPort, useTransferable, size),
+      onExit: workerExitedPort.sendPort,
+    );
     await inbox.moveNext();
     outbox = inbox.current;
   }
@@ -130,18 +134,20 @@ const List<SizeName> sizes = <SizeName>[
   SizeName(100 * 1024, '100KB'),
   SizeName(1 * 1024 * 1024, '1MB'),
   SizeName(10 * 1024 * 1024, '10MB'),
-  SizeName(100 * 1024 * 1024, '100MB')
+  SizeName(100 * 1024 * 1024, '100MB'),
 ];
 
 Future<void> main() async {
   for (final sizeName in sizes) {
-    await SendReceiveBytes('Isolate.SendReceiveBytes${sizeName.name}',
-            size: sizeName.size, useTransferable: false)
-        .report();
     await SendReceiveBytes(
-            'Isolate.SendReceiveBytesTransferable${sizeName.name}',
-            size: sizeName.size,
-            useTransferable: true)
-        .report();
+      'Isolate.SendReceiveBytes${sizeName.name}',
+      size: sizeName.size,
+      useTransferable: false,
+    ).report();
+    await SendReceiveBytes(
+      'Isolate.SendReceiveBytesTransferable${sizeName.name}',
+      size: sizeName.size,
+      useTransferable: true,
+    ).report();
   }
 }

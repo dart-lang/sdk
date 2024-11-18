@@ -30,8 +30,12 @@ void main() {
   }
 }
 
-void generateMap(StringBuffer buffer, String name, int mapSize,
-    {bool isConst = true}) {
+void generateMap(
+  StringBuffer buffer,
+  String name,
+  int mapSize, {
+  bool isConst = true,
+}) {
   final constOrFinal = isConst ? 'const' : 'final';
   buffer.write('$constOrFinal $name = <String, String>{');
   for (int i = 0; i < mapSize; i++) {

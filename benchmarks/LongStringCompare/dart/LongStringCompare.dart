@@ -20,7 +20,7 @@ class LongStringCompare extends BenchmarkBase {
   }
 
   LongStringCompare(int lengthPower, this.reps)
-      : super('LongStringCompare.${1 << lengthPower}.${reps}reps') {
+    : super('LongStringCompare.${1 << lengthPower}.${reps}reps') {
     final single = generateLongString(lengthPower);
     s.add(single + '.' + single);
     s.add(single + '!' + single);

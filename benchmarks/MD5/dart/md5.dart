@@ -13,8 +13,8 @@ class MD5Bench extends BenchmarkBase {
   List<int> data;
 
   MD5Bench()
-      : data = List<int>.generate(size, (i) => i % 256, growable: false),
-        super('MD5');
+    : data = List<int>.generate(size, (i) => i % 256, growable: false),
+      super('MD5');
 
   @override
   void run() {

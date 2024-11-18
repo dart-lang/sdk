@@ -128,7 +128,7 @@ abstract class Benchmark extends BenchmarkBase {
   final int size;
   bool selected = false;
   Benchmark._(String name, this.size)
-      : super('Iterators.$name.$size', emitter: Emitter());
+    : super('Iterators.$name.$size', emitter: Emitter());
 
   factory Benchmark(String name, int size, Iterable Function(int) generate) =
       PolyBenchmark;
@@ -137,8 +137,8 @@ abstract class Benchmark extends BenchmarkBase {
 abstract class MonoBenchmark extends Benchmark {
   final int _repeats;
   MonoBenchmark(String name, int size)
-      : _repeats = size == 0 ? targetSize : targetSize ~/ size,
-        super._('mono.$name', size);
+    : _repeats = size == 0 ? targetSize : targetSize ~/ size,
+      super._('mono.$name', size);
 
   @override
   void run() {
@@ -155,7 +155,7 @@ class PolyBenchmark extends Benchmark {
   final List<Iterable> inputs = [];
 
   PolyBenchmark(String name, int size, this.generate)
-      : super._('poly.$name', size);
+    : super._('poly.$name', size);
 
   @override
   void setup() {
@@ -304,8 +304,8 @@ class BenchmarkNothing extends MonoBenchmark {
 
 class BenchmarkCodeUnits extends MonoBenchmark {
   BenchmarkCodeUnits(int size)
-      : string = generateString(size),
-        super('CodeUnits', size);
+    : string = generateString(size),
+      super('CodeUnits', size);
 
   final String string;
 
@@ -319,8 +319,8 @@ class BenchmarkCodeUnits extends MonoBenchmark {
 
 class BenchmarkListIntGrowable extends MonoBenchmark {
   BenchmarkListIntGrowable(int size)
-      : _list = List.generate(size, (i) => i),
-        super('List.int.growable', size);
+    : _list = List.generate(size, (i) => i),
+      super('List.int.growable', size);
 
   final List<int> _list;
 
@@ -341,9 +341,9 @@ class BenchmarkListIntSystem1 extends MonoBenchmark {
   // Ideally some combination of the class hierarchy or compiler tricks would
   // ensure there is little cost of having this gentle polymorphism.
   BenchmarkListIntSystem1(int size)
-      : _list1 = List.generate(size, (i) => i),
-        _list2 = generateConstListOfInt(size),
-        super('List.int.growable.and.const', size);
+    : _list1 = List.generate(size, (i) => i),
+      _list2 = generateConstListOfInt(size),
+      super('List.int.growable.and.const', size);
 
   final List<int> _list1;
   final List<int> _list2;
@@ -368,9 +368,9 @@ class BenchmarkListIntSystem2 extends MonoBenchmark {
   // Ideally some combination of the class hierarchy or compiler tricks would
   // ensure there is little cost of having this gentle polymorphism.
   BenchmarkListIntSystem2(int size)
-      : _list1 = List.generate(size, (i) => i, growable: false),
-        _list2 = generateConstListOfInt(size),
-        super('List.int.fixed.and.const', size);
+    : _list1 = List.generate(size, (i) => i, growable: false),
+      _list2 = generateConstListOfInt(size),
+      super('List.int.fixed.and.const', size);
 
   final List<int> _list1;
   final List<int> _list2;
@@ -458,12 +458,13 @@ List<Thing<Iterable<Comparable>>> generateThingList(int n) {
 }
 
 Map<Thing<Iterable<Comparable>>, Thing<Iterable<Comparable>>> generateThingMap(
-    int n) {
+  int n,
+) {
   return Map.fromIterables(generateThingList(n), generateThingList(n));
 }
 
 Map<Thing<Iterable<Comparable>>, Thing<Iterable<Comparable>>>
-    generateThingHashMap(int n) {
+generateThingHashMap(int n) {
   return HashMap.fromIterables(generateThingList(n), generateThingList(n));
 }
 
@@ -484,10 +485,12 @@ Map<int, int> generateIdentityMapIntInt(int n) {
 void pollute() {
   // This iterable reads `sink` mid-loop, making it infeasible for the compiler
   // to move the write to `sink` out of the loop.
-  sinkAll(UpTo(100).map((i) {
-    if (i > 0 && sink != i - 1) throw StateError('sink');
-    return i;
-  }));
+  sinkAll(
+    UpTo(100).map((i) {
+      if (i > 0 && sink != i - 1) throw StateError('sink');
+      return i;
+    }),
+  );
 
   // TODO(sra): Do we need to add anything here? There are a lot of benchmarks,
   // so that is probably sufficient to make the necessary places polymorphic.
@@ -549,12 +552,21 @@ void main(List<String> commandLineArguments) {
       BenchmarkListIntGrowable(size),
       BenchmarkListIntSystem1(size),
       BenchmarkListIntSystem2(size),
-      Benchmark('List.int.growable', size,
-          (n) => List<int>.of(UpTo(n), growable: true)),
-      Benchmark('List.int.fixed', size,
-          (n) => List<int>.of(UpTo(n), growable: false)),
-      Benchmark('List.int.unmodifiable', size,
-          (n) => List<int>.unmodifiable(UpTo(n))),
+      Benchmark(
+        'List.int.growable',
+        size,
+        (n) => List<int>.of(UpTo(n), growable: true),
+      ),
+      Benchmark(
+        'List.int.fixed',
+        size,
+        (n) => List<int>.of(UpTo(n), growable: false),
+      ),
+      Benchmark(
+        'List.int.unmodifiable',
+        size,
+        (n) => List<int>.unmodifiable(UpTo(n)),
+      ),
       // ---
       Benchmark('List.Hard.growable', size, generateThingList),
       // ---
@@ -566,33 +578,63 @@ void main(List<String> commandLineArguments) {
       Benchmark('Map.int.values', size, (n) => generateMapIntInt(n).values),
       Benchmark('Map.int.entries', size, (n) => generateMapIntInt(n).entries),
       // ---
-      Benchmark('Map.identity.int.keys', size,
-          (n) => generateIdentityMapIntInt(n).keys),
-      Benchmark('Map.identity.int.values', size,
-          (n) => generateIdentityMapIntInt(n).values),
-      Benchmark('Map.identity.int.entries', size,
-          (n) => generateIdentityMapIntInt(n).entries),
+      Benchmark(
+        'Map.identity.int.keys',
+        size,
+        (n) => generateIdentityMapIntInt(n).keys,
+      ),
+      Benchmark(
+        'Map.identity.int.values',
+        size,
+        (n) => generateIdentityMapIntInt(n).values,
+      ),
+      Benchmark(
+        'Map.identity.int.entries',
+        size,
+        (n) => generateIdentityMapIntInt(n).entries,
+      ),
       // ---
       Benchmark(
-          'const.Map.int.keys', size, (n) => generateConstMapIntInt(n).keys),
-      Benchmark('const.Map.int.values', size,
-          (n) => generateConstMapIntInt(n).values),
-      Benchmark('const.Map.int.entries', size,
-          (n) => generateConstMapIntInt(n).entries),
+        'const.Map.int.keys',
+        size,
+        (n) => generateConstMapIntInt(n).keys,
+      ),
+      Benchmark(
+        'const.Map.int.values',
+        size,
+        (n) => generateConstMapIntInt(n).values,
+      ),
+      Benchmark(
+        'const.Map.int.entries',
+        size,
+        (n) => generateConstMapIntInt(n).entries,
+      ),
       // ---
       Benchmark('Map.Hard.keys', size, (n) => generateThingMap(n).keys),
       Benchmark('Map.Hard.values', size, (n) => generateThingMap(n).values),
       // ---
-      Benchmark('HashMap.int.keys', size,
-          (n) => HashMap<int, int>.fromIterables(UpTo(n), UpTo(n)).keys),
-      Benchmark('HashMap.int.values', size,
-          (n) => HashMap<int, int>.fromIterables(UpTo(n), UpTo(n)).values),
-      Benchmark('HashMap.int.entries', size,
-          (n) => HashMap<int, int>.fromIterables(UpTo(n), UpTo(n)).entries),
+      Benchmark(
+        'HashMap.int.keys',
+        size,
+        (n) => HashMap<int, int>.fromIterables(UpTo(n), UpTo(n)).keys,
+      ),
+      Benchmark(
+        'HashMap.int.values',
+        size,
+        (n) => HashMap<int, int>.fromIterables(UpTo(n), UpTo(n)).values,
+      ),
+      Benchmark(
+        'HashMap.int.entries',
+        size,
+        (n) => HashMap<int, int>.fromIterables(UpTo(n), UpTo(n)).entries,
+      ),
       // ---
       Benchmark('HashMap.Hard.keys', size, (n) => generateThingHashMap(n).keys),
       Benchmark(
-          'HashMap.Hard.values', size, (n) => generateThingHashMap(n).values),
+        'HashMap.Hard.values',
+        size,
+        (n) => generateThingHashMap(n).values,
+      ),
     ];
   }
 

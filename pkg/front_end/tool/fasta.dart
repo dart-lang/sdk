@@ -8,20 +8,20 @@ import 'package:kernel/src/tool/dump.dart' as dump;
 import "package:testing/src/run_tests.dart" as run_tests;
 
 import '../test/utils/io_utils.dart' show computeRepoDir;
-import '_fasta/abcompile.dart' as abcompile;
-import '_fasta/compile.dart' as compile;
-import '_fasta/compile_platform.dart' as compile_platform;
-import '_fasta/generate_experimental_flags.dart' as generate_experimental_flags;
-import '_fasta/generate_messages.dart' as generate_messages;
-import '_fasta/log_analyzer.dart' as log_analyzer;
-import '_fasta/log_collector.dart' as log_collector;
-import '_fasta/outline.dart' as outline;
-import '_fasta/parser.dart' as parser;
-import '_fasta/scanner.dart' as scanner;
+import 'abcompile.dart' as abcompile;
+import 'compile.dart' as compile;
+import 'compile_platform.dart' as compile_platform;
+import 'generate_experimental_flags.dart' as generate_experimental_flags;
+import 'generate_messages.dart' as generate_messages;
+import 'log_analyzer.dart' as log_analyzer;
+import 'log_collector.dart' as log_collector;
+import 'outline.dart' as outline;
+import 'parser.dart' as parser;
+import 'scanner.dart' as scanner;
 
 final String repoDir = computeRepoDir();
 
-final String toolDir = '$repoDir/pkg/front_end/tool/_fasta';
+final String toolDir = '$repoDir/pkg/front_end/tool';
 
 final String kernelBin = '$repoDir/pkg/kernel/bin';
 

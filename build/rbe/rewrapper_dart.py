@@ -320,7 +320,7 @@ trace to find the place to insert the appropriate support.
             elif arg == 'gen/utils/analysis_server/analysis_server.dart.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_analysis_server()
-            elif arg == '../../pkg/front_end/tool/_fasta/compile_platform.dart':
+            elif arg == '../../pkg/front_end/tool/compile_platform.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_compile_platform()
             elif arg == '../../utils/compiler/create_snapshot_entry.dart':

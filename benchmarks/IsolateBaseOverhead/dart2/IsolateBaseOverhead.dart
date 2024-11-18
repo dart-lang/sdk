@@ -17,8 +17,11 @@ void main() async {
   final lastIsolatePort = ReceivePort();
   final startRss = ProcessInfo.currentRss;
   final startUs = DateTime.now().microsecondsSinceEpoch;
-  await Isolate.spawn(worker, WorkerInfo(count, lastIsolatePort.sendPort),
-      onExit: onDone.sendPort);
+  await Isolate.spawn(
+    worker,
+    WorkerInfo(count, lastIsolatePort.sendPort),
+    onExit: onDone.sendPort,
+  );
   final result = await lastIsolatePort.first as List;
   final lastIsolateRss = result[0] as int;
   final lastIsolateUs = result[1] as int;
@@ -31,9 +34,11 @@ void main() async {
 
   print('IsolateBaseOverhead.Rss(MemoryUse): $averageMemoryUsageInKB');
   print(
-      'IsolateBaseOverhead.StartLatency(Latency): $averageStartLatencyInUs us.');
+    'IsolateBaseOverhead.StartLatency(Latency): $averageStartLatencyInUs us.',
+  );
   print(
-      'IsolateBaseOverhead.FinishLatency(Latency): $averageFinishLatencyInUs us.');
+    'IsolateBaseOverhead.FinishLatency(Latency): $averageFinishLatencyInUs us.',
+  );
 }
 
 class WorkerInfo {
@@ -45,12 +50,17 @@ class WorkerInfo {
 
 Future worker(WorkerInfo workerInfo) async {
   if (workerInfo.id == 1) {
-    workerInfo.result
-        .send([ProcessInfo.currentRss, DateTime.now().microsecondsSinceEpoch]);
+    workerInfo.result.send([
+      ProcessInfo.currentRss,
+      DateTime.now().microsecondsSinceEpoch,
+    ]);
     return;
   }
   final onExit = ReceivePort();
-  await Isolate.spawn(worker, WorkerInfo(workerInfo.id - 1, workerInfo.result),
-      onExit: onExit.sendPort);
+  await Isolate.spawn(
+    worker,
+    WorkerInfo(workerInfo.id - 1, workerInfo.result),
+    onExit: onExit.sendPort,
+  );
   await onExit.first;
 }

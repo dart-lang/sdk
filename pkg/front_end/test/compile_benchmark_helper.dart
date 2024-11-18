@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../tool/_fasta/entry_points.dart' show compileEntryPoint;
+import '../tool/entry_points.dart' show compileEntryPoint;
 
 Future<void> main(List<String> arguments) async {
   await compileEntryPoint(arguments);

@@ -95,7 +95,7 @@ template("compile_platform") {
       if (defined(invoker.pool)) {
         pool = invoker.pool
       }
-      script = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
+      script = "$_dart_root/pkg/front_end/tool/compile_platform.dart"
 
       packages = "$_dart_root/.dart_tool/package_config.json"
 

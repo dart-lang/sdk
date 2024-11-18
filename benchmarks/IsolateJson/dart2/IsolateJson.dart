@@ -14,10 +14,12 @@ import 'package:benchmark_harness/benchmark_harness.dart' show BenchmarkBase;
 import 'package:meta/meta.dart';
 
 class JsonDecodingBenchmark {
-  JsonDecodingBenchmark(this.name,
-      {@required this.sample,
-      @required this.numTasks,
-      @required this.useSendAndExit});
+  JsonDecodingBenchmark(
+    this.name, {
+    @required this.sample,
+    @required this.numTasks,
+    @required this.useSendAndExit,
+  });
 
   Future<void> report() async {
     final stopwatch = Stopwatch()..start();
@@ -66,9 +68,12 @@ Future<Map> decodeJson(bool useSendAndExit, Uint8List encodedJson) async {
     stderr.writeln('worker errored out $v');
     completer.completeError(true);
   });
-  await Isolate.spawn(jsonDecodingIsolate,
-      JsonDecodeRequest(useSendAndExit, port.sendPort, encodedJson),
-      onError: workerErroredPort.sendPort, onExit: workerExitedPort.sendPort);
+  await Isolate.spawn(
+    jsonDecodingIsolate,
+    JsonDecodeRequest(useSendAndExit, port.sendPort, encodedJson),
+    onError: workerErroredPort.sendPort,
+    onExit: workerExitedPort.sendPort,
+  );
   await completer.future;
   workerExitedPort.close();
   workerErroredPort.close();
@@ -88,9 +93,11 @@ Future<void> jsonDecodingIsolate(JsonDecodeRequest request) async {
 }
 
 class SyncJsonDecodingBenchmark extends BenchmarkBase {
-  SyncJsonDecodingBenchmark(String name,
-      {@required this.sample, @required this.iterations})
-      : super(name);
+  SyncJsonDecodingBenchmark(
+    String name, {
+    @required this.sample,
+    @required this.iterations,
+  }) : super(name);
 
   @override
   void run() {
@@ -140,22 +147,22 @@ Future<void> main() async {
   for (final config in configs) {
     for (final iterations in <int>[1, 4]) {
       await JsonDecodingBenchmark(
-              'IsolateJson.Decode${config.suffix}x$iterations',
-              useSendAndExit: false,
-              sample: config.sample,
-              numTasks: iterations)
-          .report();
+        'IsolateJson.Decode${config.suffix}x$iterations',
+        useSendAndExit: false,
+        sample: config.sample,
+        numTasks: iterations,
+      ).report();
       await JsonDecodingBenchmark(
-              'IsolateJson.SendAndExit_Decode${config.suffix}x$iterations',
-              useSendAndExit: true,
-              sample: config.sample,
-              numTasks: iterations)
-          .report();
+        'IsolateJson.SendAndExit_Decode${config.suffix}x$iterations',
+        useSendAndExit: true,
+        sample: config.sample,
+        numTasks: iterations,
+      ).report();
       SyncJsonDecodingBenchmark(
-              'IsolateJson.SyncDecode${config.suffix}x$iterations',
-              sample: config.sample,
-              iterations: iterations)
-          .report();
+        'IsolateJson.SyncDecode${config.suffix}x$iterations',
+        sample: config.sample,
+        iterations: iterations,
+      ).report();
     }
   }
 }

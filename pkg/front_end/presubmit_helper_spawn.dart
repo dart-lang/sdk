@@ -88,8 +88,8 @@ Then run that file through your debugger or similar.
               const ["-DfastOnly=true"],
               messages_suite.createContext,
               me: work.repoDir
-                  .resolve("pkg/front_end/test/fasta/messages_suite.dart"),
-              configurationPath: "../../testing.json",
+                  .resolve("pkg/front_end/test/messages_suite.dart"),
+              configurationPath: "../testing.json",
               logger: logger,
             );
             return !logger.gotFailure;

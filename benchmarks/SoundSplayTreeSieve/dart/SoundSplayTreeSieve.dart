@@ -73,14 +73,19 @@ void busyWork() {
   exercise(UnmodifiableListView<int>(L3));
   exercise(L1.asMap().values);
   exercise(L1.toList().asMap().values);
-  final M1 =
-      Map<String, int>.fromIterables(<String>['a', 'b', 'c', 'd', 'e'], L1);
+  final M1 = Map<String, int>.fromIterables(<String>[
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+  ], L1);
   final M2 = const <String, int>{
     'a': 104,
     'b': 101,
     'c': 108,
     'd': 108,
-    'e': 111
+    'e': 111,
   };
   exercise(M1.values);
   exercise(M2.values);

@@ -80,17 +80,17 @@ class WidgetCanUpdateBenchmark extends BenchmarkBase {
 
   // All widgets have different types.
   static List<Widget> _widgets() => [
-        AWidget(),
-        BWidget(),
-        CWidget(),
-        DWidget(),
-        EWidget(),
-        FWidget(),
-        WWidget<AWidget>(),
-        WWidget<BWidget>(ref: const BWidget()),
-        WWidget<CWidget>(ref: CWidget()),
-        const WWidget<DWidget>(ref: DWidget()),
-      ];
+    AWidget(),
+    BWidget(),
+    CWidget(),
+    DWidget(),
+    EWidget(),
+    FWidget(),
+    WWidget<AWidget>(),
+    WWidget<BWidget>(ref: const BWidget()),
+    WWidget<CWidget>(ref: CWidget()),
+    const WWidget<DWidget>(ref: DWidget()),
+  ];
   // Bulk up list to reduce loop overheads.
   final List<Widget> widgets = _widgets() + _widgets() + _widgets();
 
@@ -118,17 +118,17 @@ class ValueKeyEqualBenchmark extends BenchmarkBase {
 
   // All widgets the same class but distinguished on keys.
   static List<Widget> _widgets() => [
-        AWidget(),
-        AWidget(key: ValueKey(1)),
-        AWidget(key: ValueKey(1)),
-        AWidget(key: ValueKey(2)),
-        AWidget(key: ValueKey(2)),
-        AWidget(key: ValueKey(3)),
-        AWidget(key: ValueKey('one')),
-        AWidget(key: ValueKey('two')),
-        AWidget(key: ValueKey('three')),
-        AWidget(key: ValueKey(Duration(seconds: 5))),
-      ];
+    AWidget(),
+    AWidget(key: ValueKey(1)),
+    AWidget(key: ValueKey(1)),
+    AWidget(key: ValueKey(2)),
+    AWidget(key: ValueKey(2)),
+    AWidget(key: ValueKey(3)),
+    AWidget(key: ValueKey('one')),
+    AWidget(key: ValueKey('two')),
+    AWidget(key: ValueKey('three')),
+    AWidget(key: ValueKey(Duration(seconds: 5))),
+  ];
   // Bulk up list to reduce loop overheads.
   final List<Widget> widgets = _widgets() + _widgets() + _widgets();
 
@@ -166,10 +166,7 @@ void pollute() {
 void main() {
   pollute();
 
-  final benchmarks = [
-    WidgetCanUpdateBenchmark(),
-    ValueKeyEqualBenchmark(),
-  ];
+  final benchmarks = [WidgetCanUpdateBenchmark(), ValueKeyEqualBenchmark()];
 
   // Warm up all benchmarks before running any.
   benchmarks.forEach((bm) => bm.run());
