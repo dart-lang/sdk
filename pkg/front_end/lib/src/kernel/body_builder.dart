@@ -7712,6 +7712,8 @@ class BodyBuilder extends StackListenerImpl
             lvalue,
             new VariableGetImpl(variable, forNullGuardedAccess: false),
             isFinal: false);
+      } else if (lvalue is AmbiguousBuilder) {
+        elements.expressionProblem = toValue(lvalue);
       } else {
         Message message = forest.isVariablesDeclaration(lvalue)
             ? fasta.messageForInLoopExactlyOneVariable
