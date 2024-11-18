@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -467,7 +468,13 @@ enum ExtensionResolutionError implements ExtensionResolutionResult {
   ExecutableElement? get getter => null;
 
   @override
+  ExecutableElement2? get getter2 => null;
+
+  @override
   ExecutableElement? get setter => null;
+
+  @override
+  ExecutableElement2? get setter2 => null;
 }
 
 /// The result of attempting to resolve an identifier to elements, where the

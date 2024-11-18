@@ -287,8 +287,8 @@ class PropertyElementResolver with ScopeHelpers {
 
       AssignmentVerifier(errorReporter).verify(
         node: node,
-        requested: writeElementRequested,
-        recovery: writeElementRecovery,
+        requested: writeElementRequested.asElement2,
+        recovery: writeElementRecovery.asElement2,
         receiverType: null,
       );
     }
@@ -528,7 +528,7 @@ class PropertyElementResolver with ScopeHelpers {
         AssignmentVerifier(errorReporter).verify(
           node: propertyName,
           requested: null,
-          recovery: result.getter,
+          recovery: result.getter2,
           receiverType: targetType,
         );
       }
@@ -736,7 +736,7 @@ class PropertyElementResolver with ScopeHelpers {
         AssignmentVerifier(errorReporter).verify(
           node: propertyName,
           requested: null,
-          recovery: writeElementRecovery,
+          recovery: writeElementRecovery.asElement2,
           receiverType: typeReference.thisType,
         );
       }

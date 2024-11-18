@@ -502,7 +502,7 @@ class FieldMember extends VariableMember
   String get displayName => declaration.displayName;
 
   @override
-  Element2? get enclosingElement2 => _element2.enclosingElement2;
+  InstanceElement2 get enclosingElement2 => _element2.enclosingElement2;
 
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;

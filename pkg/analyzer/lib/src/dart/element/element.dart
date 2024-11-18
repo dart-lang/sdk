@@ -4189,7 +4189,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   FieldElement2 get baseElement => this;
 
   @override
-  Element2? get enclosingElement2 =>
+  InstanceElement2 get enclosingElement2 =>
       (firstFragment._enclosingElement3 as InstanceFragment).element;
 
   @override

@@ -173,7 +173,7 @@ class EditableArgumentsHandler
 
   /// Returns the name of an enum constant prefixed with the enum name.
   String? _qualifiedEnumConstant(FieldElement2 enumConstant) {
-    var enumName = enumConstant.enclosingElement2?.name3;
+    var enumName = enumConstant.enclosingElement2.name3;
     var name = enumConstant.name3;
     return enumName != null && name != null ? '$enumName.$name' : null;
   }

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// The result of attempting to resolve an identifier to elements.
 class ResolutionResult extends SimpleResolutionResult {
@@ -57,4 +59,8 @@ class SimpleResolutionResult {
   final ExecutableElement? setter;
 
   const SimpleResolutionResult({this.getter, this.setter});
+
+  ExecutableElement2? get getter2 => getter.asElement2;
+
+  ExecutableElement2? get setter2 => setter.asElement2;
 }

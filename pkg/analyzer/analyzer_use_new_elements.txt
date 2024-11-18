@@ -98,7 +98,6 @@ lib/src/dart/resolver/typed_literal_resolver.dart
 lib/src/dart/resolver/variable_declaration_resolver.dart
 lib/src/dart/resolver/yield_statement_resolver.dart
 lib/src/diagnostic/diagnostic_factory.dart
-lib/src/error/assignment_verifier.dart
 lib/src/error/best_practices_verifier.dart
 lib/src/error/correct_override.dart
 lib/src/error/dead_code_verifier.dart
