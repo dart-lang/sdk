@@ -3921,6 +3921,25 @@ import 'b.dart';
     ]);
   }
 
+  test_parseFileSync_appliesPendingFileChanges() async {
+    var initialContent = 'initial content';
+    var updatedContent = 'updated content';
+    var a = newFile('$testPackageLibPath/a.dart', initialContent);
+
+    // Check initial content.
+    var driver = driverFor(testFile);
+    var parsed = driver.parseFileSync(a.path) as ParsedUnitResult;
+    expect(parsed.content, initialContent);
+
+    // Update the file.
+    newFile(a.path, updatedContent);
+    driver.changeFile(a.path);
+
+    // Expect parseFileSync to return the updated content.
+    parsed = driver.parseFileSync(a.path) as ParsedUnitResult;
+    expect(parsed.content, updatedContent);
+  }
+
   test_parseFileSync_changedFile() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 ''');
@@ -3989,14 +4008,6 @@ class A {}
 
     // Notify the driver that `a` was changed.
     driver.changeFile2(a);
-
-    // Pending changes are no applied yes, so `a` is empty.
-    {
-      var result = driver.parseFileSync2(a) as ParsedUnitResult;
-      assertParsedNodeText(result.unit, r'''
-CompilationUnit
-''');
-    }
 
     // The pending change to `a` declares `A`.
     // So, `b` does not have errors anymore.

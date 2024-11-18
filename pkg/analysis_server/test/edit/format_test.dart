@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'dart:async';
+
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,6 +23,37 @@ class FormatTest extends PubPackageAnalysisServerTest {
   Future<void> setUp() async {
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
+  }
+
+  /// Verify that an overlay change is reflected in a format request that
+  /// is sent immediately without waiting.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/57120
+  Future<void> test_format_immediatelyAfterOverlayChange() async {
+    var initialContentNeedsFormatting = 'void main() {                       }';
+    var updatedContentNeedsNoFormatting =
+        "void main() {\n  print('hello world');\n}\n";
+
+    // Set the initial content to something that will produce format edits.
+    await handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFile.path: AddContentOverlay(initialContentNeedsFormatting),
+      }).toRequest('1', clientUriConverter: server.uriConverter),
+    );
+    // Update the content to something that will not produce edits, but do not
+    // await, because we are testing that the server is consistent even if it
+    // doesn't have time to handle the change.
+    unawaited(
+      handleSuccessfulRequest(
+        AnalysisUpdateContentParams({
+          testFile.path: AddContentOverlay(updatedContentNeedsNoFormatting),
+        }).toRequest('2', clientUriConverter: server.uriConverter),
+      ),
+    );
+    var formatResult = await _formatAt(0, 0);
+
+    // Expect no edits, because the last overlay was already formatted.
+    expect(formatResult.edits, hasLength(0));
   }
 
   Future<void> test_format_longLine_analysisOptions() async {
