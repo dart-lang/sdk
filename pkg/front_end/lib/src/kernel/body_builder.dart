@@ -3291,7 +3291,8 @@ class BodyBuilder extends StackListenerImpl
           // "this.field" parameters according to old semantics. Under the new
           // semantics, such parameters introduces a new parameter with that
           // name that should be resolved here.
-          !_context.isConstructor) {
+          (!_context.isConstructor ||
+              declaration.isExtensionTypeInstanceMember)) {
         if (declaration.isExtensionTypeInstanceMember) {
           return new IncompleteErrorGenerator(
               this, nameToken, fasta.messageNotAConstantExpression);
