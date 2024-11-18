@@ -4979,7 +4979,7 @@ LintCode:
     correctionMessage: "Try using conversion methods from 'dart:js_interop' to convert between Dart types and JS interop types."
     addedIn: "3.5"
     categories: [errorProne, web]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5415,7 +5415,7 @@ LintCode:
     correctionMessage: "Try attaching the annotation to a library directive."
     addedIn: "2.19"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11261,7 +11261,7 @@ LintCode:
     correctionMessage: "Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;`."
     addedIn: "3.5"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11906,7 +11906,7 @@ LintCode:
     correctionMessage: "Remove the library name."
     addedIn: "3.4"
     categories: [brevity, languageFeatureUsage, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14253,7 +14253,7 @@ LintCode:
     correctionMessage: "Try using truncating division, '~/', instead of regular division ('/') followed by 'toInt()'."
     addedIn: "3.6"
     categories: [languageFeatureUsage]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
