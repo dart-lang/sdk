@@ -76,7 +76,7 @@ void main() async {
   var pkgDirectory =
       path.dirname(path.dirname(path.dirname(path.dirname(scriptDirectory))));
   var compilePath = path.canonicalize(
-      path.join(pkgDirectory, "front_end", "tool", "_fasta", "compile.dart"));
+      path.join(pkgDirectory, "front_end", "tool", "compile.dart"));
   var testClassesPath =
       path.canonicalize(path.join(scriptDirectory, "test_classes.dart"));
   var ddcOutlinePath = path.canonicalize(path.join(

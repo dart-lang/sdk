@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import '../../test/utils/io_utils.dart' show computeRepoDirUri;
+import '../test/utils/io_utils.dart' show computeRepoDirUri;
 import 'generate_messages_lib.dart';
 
 void main(List<String> arguments) {

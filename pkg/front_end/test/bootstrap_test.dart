@@ -15,8 +15,8 @@ import 'package:testing/testing.dart' show StdioProcess;
 Future main() async {
   asyncStart();
   Uri sourceCompiler =
-      Uri.base.resolve("pkg/front_end/tool/_fasta/compile.dart");
-  Uri outline = Uri.base.resolve("pkg/front_end/tool/_fasta/outline.dart");
+      Uri.base.resolve("pkg/front_end/tool/compile.dart");
+  Uri outline = Uri.base.resolve("pkg/front_end/tool/outline.dart");
   Directory tmp = await Directory.systemTemp.createTemp("fasta_bootstrap");
   Uri compiledOnceOutput = tmp.uri.resolve("fasta1.dill");
   Uri compiledTwiceOutput = tmp.uri.resolve("fasta2.dill");

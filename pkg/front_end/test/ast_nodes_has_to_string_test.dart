@@ -22,7 +22,7 @@ Future<void> main(List<String> args) async {
   Class primitiveConstantClass;
 
   {
-    Uri input = Platform.script.resolve("../tool/_fasta/compile.dart");
+    Uri input = Platform.script.resolve("../tool/compile.dart");
     CompilerOptions options = helper.getOptions();
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input,

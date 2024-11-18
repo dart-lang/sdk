@@ -6,7 +6,7 @@ import "dart:io";
 
 import "benchmarker.dart" as benchmarker;
 
-const String compileDartRelativePath = "pkg/front_end/tool/_fasta/compile.dart";
+const String compileDartRelativePath = "pkg/front_end/tool/compile.dart";
 
 const int iterations = 3;
 
@@ -94,7 +94,7 @@ void _help() {
   print("");
   print(r"out/ReleaseX64/dart-sdk/bin/dart \");
   print(r"  pkg/front_end/tool/compare_revisions_tool.dart \");
-  print(r"  --target=pkg/front_end/tool/_fasta/compile.dart \");
+  print(r"  --target=pkg/front_end/tool/compile.dart \");
   print(r"  --changingWorkingDir=/tmp/tmp-playing-with-git/sdk/ \");
   print(r"  --sdkPath=67e9580b042/dart-sdk/ \");
   print(r"  --snapshotsPath=67e9580b042 \");

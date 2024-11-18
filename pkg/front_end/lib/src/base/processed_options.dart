@@ -615,13 +615,6 @@ class ProcessedOptions {
 
   Future<TargetLibrariesSpecification> _computeLibrarySpecification() async {
     String name = target.name;
-    // TODO(sigmund): Eek! We should get to the point where there is no
-    // fasta-specific targets and the target names are meaningful.
-    if (name.endsWith('_fasta')) {
-      // Coverage-ignore-block(suite): Not run.
-      name = name.substring(0, name.length - 6);
-    }
-
     if (librariesSpecificationUri == null ||
         !await fileSystem.entityForUri(librariesSpecificationUri!).exists()) {
       if (compileSdk) {

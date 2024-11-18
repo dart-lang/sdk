@@ -14,7 +14,7 @@ import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/src/printer.dart';
 
-import '../tool/_fasta/compile.dart' as compile;
+import '../tool/compile.dart' as compile;
 
 final String usage = '''
 Usage: kernel_binary_bench.dart [--golem|--raw] {--metadata|--onlyCold} <Benchmark> <SourceDill>

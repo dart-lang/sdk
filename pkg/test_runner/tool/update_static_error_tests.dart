@@ -294,7 +294,7 @@ Future<List<StaticError>> runCfe(File file, List<String> options) async {
   // time generating code, which we don't care about. Import it as a library or
   // at least run it in batch mode.
   var result = await Process.run(_dartPath, [
-    "pkg/front_end/tool/_fasta/compile.dart",
+    "pkg/front_end/tool/compile.dart",
     ...options,
     "--verify",
     "-o",

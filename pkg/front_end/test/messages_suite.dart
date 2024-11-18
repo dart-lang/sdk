@@ -34,7 +34,7 @@ import "package:testing/testing.dart"
 import "package:vm/modular/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
-import "../tool/_fasta/entry_points.dart" show BatchCompiler;
+import "../tool/entry_points.dart" show BatchCompiler;
 import 'spell_checking_utils.dart' as spell;
 import 'utils/suite_utils.dart' show internalMain;
 

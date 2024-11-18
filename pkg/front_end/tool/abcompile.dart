@@ -32,7 +32,7 @@ Future<void> main(List<String> args) async {
   Uri bRoot = new Uri.directory(bRootPath!);
 
   // Sanity check
-  String relPath = 'pkg/front_end/tool/_fasta/compile.dart';
+  String relPath = 'pkg/front_end/tool/compile.dart';
   Uri aCompile = aRoot.resolve(relPath);
   if (!new File(aCompile.toFilePath()).existsSync()) {
     print('Failed to find $aCompile');
