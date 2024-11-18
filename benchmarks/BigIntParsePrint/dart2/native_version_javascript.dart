@@ -117,9 +117,11 @@ void _setup() {
   _eval('self.bigint_subtract = function subtract(a, b) { return a - b; }');
   _eval('self.bigint_fromInt = function fromInt(i) { return BigInt(i); }');
 
-  _eval('self.bigint_bitLength = function bitLength(b) {'
-      'return b == 0 ? 0 : (b < 0 ? ~b : b).toString(2).length;'
-      '}');
+  _eval(
+    'self.bigint_bitLength = function bitLength(b) {'
+    'return b == 0 ? 0 : (b < 0 ? ~b : b).toString(2).length;'
+    '}',
+  );
   _eval('self.bigint_isEven = function isEven(b) { return (b & 1n) == 0n; }');
 }
 

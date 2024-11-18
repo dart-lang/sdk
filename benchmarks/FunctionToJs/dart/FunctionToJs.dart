@@ -32,16 +32,17 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 external set cache(JSFunction jsFunction);
 
 extension on JSFunction {
-  external int call(
-      [JSAny? thisArg,
-      int? arg1,
-      int? arg2,
-      int? arg3,
-      int? arg4,
-      int? arg5,
-      int? arg6,
-      int? arg7,
-      int? arg8]);
+  external int call([
+    JSAny? thisArg,
+    int? arg1,
+    int? arg2,
+    int? arg3,
+    int? arg4,
+    int? arg5,
+    int? arg6,
+    int? arg7,
+    int? arg8,
+  ]);
 }
 
 final random = math.Random();
@@ -80,9 +81,16 @@ class ConvertInstanceEightBenchmark extends BenchmarkBase {
   final int randomInt = random.nextInt(10);
 
   @pragma('dart2js:never-inline')
-  int eight(int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-          int arg7, int arg8) =>
-      randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
+  int eight(
+    int arg1,
+    int arg2,
+    int arg3,
+    int arg4,
+    int arg5,
+    int arg6,
+    int arg7,
+    int arg8,
+  ) => randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
 
   @override
   void run() {
@@ -121,9 +129,16 @@ class ConvertStaticEightBenchmark extends BenchmarkBase {
 
   static final int randomInt = random.nextInt(10);
 
-  static int eight(int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-          int arg7, int arg8) =>
-      randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
+  static int eight(
+    int arg1,
+    int arg2,
+    int arg3,
+    int arg4,
+    int arg5,
+    int arg6,
+    int arg7,
+    int arg8,
+  ) => randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
 
   @override
   void run() {
@@ -160,15 +175,33 @@ class ConvertClosureEightBenchmark extends BenchmarkBase {
 
   @override
   void run() {
-    cache = ((int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-            int arg7, int arg8) =>
-        randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8).toJS;
+    cache =
+        ((
+              int arg1,
+              int arg2,
+              int arg3,
+              int arg4,
+              int arg5,
+              int arg6,
+              int arg7,
+              int arg8,
+            ) =>
+                randomInt +
+                arg1 +
+                arg2 +
+                arg3 +
+                arg4 +
+                arg5 +
+                arg6 +
+                arg7 +
+                arg8)
+            .toJS;
   }
 }
 
 class ConvertClosureFieldZeroBenchmark extends BenchmarkBase {
   ConvertClosureFieldZeroBenchmark()
-      : super('FunctionToJs.Convert.ClosureField.0');
+    : super('FunctionToJs.Convert.ClosureField.0');
 
   late int Function() closure;
   final int randomInt = random.nextInt(10);
@@ -186,7 +219,7 @@ class ConvertClosureFieldZeroBenchmark extends BenchmarkBase {
 
 class ConvertClosureFieldTwoBenchmark extends BenchmarkBase {
   ConvertClosureFieldTwoBenchmark()
-      : super('FunctionToJs.Convert.ClosureField.2');
+    : super('FunctionToJs.Convert.ClosureField.2');
 
   late int Function(int, int) closure;
   final int randomInt = random.nextInt(10);
@@ -204,16 +237,24 @@ class ConvertClosureFieldTwoBenchmark extends BenchmarkBase {
 
 class ConvertClosureFieldEightBenchmark extends BenchmarkBase {
   ConvertClosureFieldEightBenchmark()
-      : super('FunctionToJs.Convert.ClosureField.8');
+    : super('FunctionToJs.Convert.ClosureField.8');
 
   late int Function(int, int, int, int, int, int, int, int) closure;
   final int randomInt = random.nextInt(10);
 
   @override
   void setup() {
-    closure = (int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-            int arg7, int arg8) =>
-        randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
+    closure =
+        (
+          int arg1,
+          int arg2,
+          int arg3,
+          int arg4,
+          int arg5,
+          int arg6,
+          int arg7,
+          int arg8,
+        ) => randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
   }
 
   @override
@@ -271,9 +312,16 @@ class CallJSInstanceEightBenchmark extends BenchmarkBase {
   final int randomInt = random.nextInt(10);
 
   @pragma('dart2js:never-inline')
-  int eight(int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-          int arg7, int arg8) =>
-      randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
+  int eight(
+    int arg1,
+    int arg2,
+    int arg3,
+    int arg4,
+    int arg5,
+    int arg6,
+    int arg7,
+    int arg8,
+  ) => randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
 
   @override
   void setup() {
@@ -334,9 +382,16 @@ class CallJSStaticEightBenchmark extends BenchmarkBase {
 
   static final int randomInt = random.nextInt(10);
 
-  static int eight(int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-          int arg7, int arg8) =>
-      randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
+  static int eight(
+    int arg1,
+    int arg2,
+    int arg3,
+    int arg4,
+    int arg5,
+    int arg6,
+    int arg7,
+    int arg8,
+  ) => randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
 
   late JSExportedDartFunction jsFunction;
 
@@ -396,9 +451,27 @@ class CallJSClosureEightBenchmark extends BenchmarkBase {
 
   @override
   void setup() {
-    jsFunction = ((int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-            int arg7, int arg8) =>
-        randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8).toJS;
+    jsFunction =
+        ((
+              int arg1,
+              int arg2,
+              int arg3,
+              int arg4,
+              int arg5,
+              int arg6,
+              int arg7,
+              int arg8,
+            ) =>
+                randomInt +
+                arg1 +
+                arg2 +
+                arg3 +
+                arg4 +
+                arg5 +
+                arg6 +
+                arg7 +
+                arg8)
+            .toJS;
   }
 
   @override
@@ -452,9 +525,17 @@ class CallDartClosureEightBenchmark extends BenchmarkBase {
 
   @override
   void setup() {
-    closure = (int arg1, int arg2, int arg3, int arg4, int arg5, int arg6,
-            int arg7, int arg8) =>
-        randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
+    closure =
+        (
+          int arg1,
+          int arg2,
+          int arg3,
+          int arg4,
+          int arg5,
+          int arg6,
+          int arg7,
+          int arg8,
+        ) => randomInt + arg1 + arg2 + arg3 + arg4 + arg5 + arg6 + arg7 + arg8;
   }
 
   @override

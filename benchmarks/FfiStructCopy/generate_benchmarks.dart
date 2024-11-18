@@ -15,12 +15,7 @@ Future<void> main() async {
   await File.fromUri(uri).writeAsString(contents);
 }
 
-const sizes = [
-  1,
-  32,
-  1024,
-  1024 * 32,
-];
+const sizes = [1, 32, 1024, 1024 * 32];
 
 const header =
     '''// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file

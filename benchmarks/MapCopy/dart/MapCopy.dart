@@ -52,8 +52,10 @@ abstract class Benchmark<K> extends BenchmarkBase {
   final List<Map<Object?, Object>> inputs = [];
 
   Benchmark(this.targetKind, this.methodKind, this.sourceKind, this.length)
-      : super('MapCopy.$targetKind.${_keyKind(K)}.$methodKind.$sourceKind'
-            '.$length');
+    : super(
+        'MapCopy.$targetKind.${_keyKind(K)}.$methodKind.$sourceKind'
+        '.$length',
+      );
 
   static String _keyKind(Type type) {
     if (type == String) return 'String';
@@ -149,7 +151,7 @@ class BaselineBenchmark extends Benchmark<String> {
 
 class MapOfBenchmark<K> extends Benchmark<K> {
   MapOfBenchmark(String sourceKind, int length)
-      : super('Map', 'of', sourceKind, length);
+    : super('Map', 'of', sourceKind, length);
 
   @override
   void copy() {
@@ -159,7 +161,7 @@ class MapOfBenchmark<K> extends Benchmark<K> {
 
 class HashMapOfBenchmark<K> extends Benchmark<K> {
   HashMapOfBenchmark(String sourceKind, int length)
-      : super('HashMap', 'of', sourceKind, length);
+    : super('HashMap', 'of', sourceKind, length);
 
   @override
   void copy() {
@@ -169,7 +171,7 @@ class HashMapOfBenchmark<K> extends Benchmark<K> {
 
 class MapCopyOfBenchmark<K> extends Benchmark<K> {
   MapCopyOfBenchmark(String sourceKind, int length)
-      : super('Map', 'copyOf', sourceKind, length);
+    : super('Map', 'copyOf', sourceKind, length);
 
   @override
   void copy() {
@@ -183,7 +185,7 @@ class MapCopyOfBenchmark<K> extends Benchmark<K> {
 
 class HashMapCopyOfBenchmark<K> extends Benchmark<K> {
   HashMapCopyOfBenchmark(String sourceKind, int length)
-      : super('HashMap', 'copyOf', sourceKind, length);
+    : super('HashMap', 'copyOf', sourceKind, length);
 
   @override
   void copy() {
@@ -197,7 +199,7 @@ class HashMapCopyOfBenchmark<K> extends Benchmark<K> {
 
 class MapFromEntriesBenchmark<K> extends Benchmark<K> {
   MapFromEntriesBenchmark(String sourceKind, int length)
-      : super('Map', 'fromEntries', sourceKind, length);
+    : super('Map', 'fromEntries', sourceKind, length);
 
   @override
   void copy() {
@@ -207,7 +209,7 @@ class MapFromEntriesBenchmark<K> extends Benchmark<K> {
 
 class HashMapFromEntriesBenchmark<K> extends Benchmark<K> {
   HashMapFromEntriesBenchmark(String sourceKind, int length)
-      : super('HashMap', 'fromEntries', sourceKind, length);
+    : super('HashMap', 'fromEntries', sourceKind, length);
 
   @override
   void copy() {
@@ -222,12 +224,14 @@ void pollute() {
   final Map<String, Object> m2 = HashMap.of(m1);
   final Map<int, Object> m3 = Map.of({1: 66});
   final Map<int, Object> m4 = HashMap.of({1: 66});
-  final Map<Object, Object> m5 = Map.identity()
-    ..[Thing()] = 1
-    ..[Thing()] = 2;
-  final Map<Object, Object> m6 = HashMap.identity()
-    ..[Thing()] = 1
-    ..[Thing()] = 2;
+  final Map<Object, Object> m5 =
+      Map.identity()
+        ..[Thing()] = 1
+        ..[Thing()] = 2;
+  final Map<Object, Object> m6 =
+      HashMap.identity()
+        ..[Thing()] = 1
+        ..[Thing()] = 2;
   final Map<Object, Object> m7 = UnmodifiableMapView(m1);
   final Map<Object, Object> m8 = UnmodifiableMapView(m2);
   final Map<Object, Object> m9 = UnmodifiableMapView(m3);

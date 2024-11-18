@@ -19,14 +19,16 @@ part 'benchmark_generated.dart';
 const N = 1000;
 
 // The native library that holds all the native functions being called.
-DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific('native_functions',
-    path: Platform.script.resolve('../native/out/').path);
+DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific(
+  'native_functions',
+  path: Platform.script.resolve('../native/out/').path,
+);
 
 abstract class FfiBenchmarkBase extends BenchmarkBase {
   final bool isLeaf;
 
   FfiBenchmarkBase(String name, {this.isLeaf = false})
-      : super('$name${isLeaf ? 'Leaf' : ''}');
+    : super('$name${isLeaf ? 'Leaf' : ''}');
 
   void expectEquals(actual, expected) {
     if (actual != expected) {
@@ -61,12 +63,19 @@ class Int64Mintx01 extends FfiBenchmarkBase {
   final Function1int f;
 
   Int64Mintx01({isLeaf = false})
-      : f = isLeaf
-            ? ffiTestFunctions.lookupFunction<NativeFunction1Int64,
-                Function1int>('Function1Int64', isLeaf: true)
-            : ffiTestFunctions.lookupFunction<NativeFunction1Int64,
-                Function1int>('Function1Int64', isLeaf: false),
-        super('FfiCall.Int64Mintx01', isLeaf: isLeaf);
+    : f =
+          isLeaf
+              ? ffiTestFunctions
+                  .lookupFunction<NativeFunction1Int64, Function1int>(
+                    'Function1Int64',
+                    isLeaf: true,
+                  )
+              : ffiTestFunctions
+                  .lookupFunction<NativeFunction1Int64, Function1int>(
+                    'Function1Int64',
+                    isLeaf: false,
+                  ),
+      super('FfiCall.Int64Mintx01', isLeaf: isLeaf);
 
   @override
   void run() {
@@ -85,8 +94,10 @@ class Int64Mintx01 extends FfiBenchmarkBase {
 void main(List<String> args) {
   // Force loading the dylib with RLTD_GLOBAL so that the
   // Native benchmarks below can do process lookup.
-  dlopenGlobalPlatformSpecific('native_functions',
-      path: Platform.script.resolve('../native/out/').path);
+  dlopenGlobalPlatformSpecific(
+    'native_functions',
+    path: Platform.script.resolve('../native/out/').path,
+  );
 
   final benchmarks = [
     Uint8x01.new,

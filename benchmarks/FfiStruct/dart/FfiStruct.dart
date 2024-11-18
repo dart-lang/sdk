@@ -69,9 +69,7 @@ class FieldLoadStore extends BenchmarkBase {
 //
 
 void main(List<String> args) {
-  final benchmarks = [
-    FieldLoadStore.new,
-  ];
+  final benchmarks = [FieldLoadStore.new];
 
   final filter = args.firstOrNull;
   for (var constructor in benchmarks) {

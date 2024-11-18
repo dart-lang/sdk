@@ -152,7 +152,7 @@ class NonDynamicClosure extends BenchmarkBase {
 
 class NonDynamicFunctionOptSkipped extends BenchmarkBase {
   const NonDynamicFunctionOptSkipped()
-      : super('Dynamic.NonDynamicFunctionOptSkipped');
+    : super('Dynamic.NonDynamicFunctionOptSkipped');
 
   @override
   void run() {
@@ -164,7 +164,7 @@ class NonDynamicFunctionOptSkipped extends BenchmarkBase {
 
 class NonDynamicFunctionOptProvided extends BenchmarkBase {
   const NonDynamicFunctionOptProvided()
-      : super('Dynamic.NonDynamicFunctionOptProvided');
+    : super('Dynamic.NonDynamicFunctionOptProvided');
 
   @override
   void run() {
@@ -176,7 +176,7 @@ class NonDynamicFunctionOptProvided extends BenchmarkBase {
 
 class NonDynamicFunctionNamedSkipped extends BenchmarkBase {
   const NonDynamicFunctionNamedSkipped()
-      : super('Dynamic.NonDynamicFunctionNamedSkipped');
+    : super('Dynamic.NonDynamicFunctionNamedSkipped');
 
   @override
   void run() {
@@ -188,7 +188,7 @@ class NonDynamicFunctionNamedSkipped extends BenchmarkBase {
 
 class NonDynamicFunctionNamedProvided extends BenchmarkBase {
   const NonDynamicFunctionNamedProvided()
-      : super('Dynamic.NonDynamicFunctionNamedProvided');
+    : super('Dynamic.NonDynamicFunctionNamedProvided');
 
   @override
   void run() {
@@ -200,7 +200,7 @@ class NonDynamicFunctionNamedProvided extends BenchmarkBase {
 
 class NonDynamicClosureOptSkipped extends BenchmarkBase {
   const NonDynamicClosureOptSkipped()
-      : super('Dynamic.NonDynamicClosureOptSkipped');
+    : super('Dynamic.NonDynamicClosureOptSkipped');
 
   @override
   void run() {
@@ -212,7 +212,7 @@ class NonDynamicClosureOptSkipped extends BenchmarkBase {
 
 class NonDynamicClosureOptProvided extends BenchmarkBase {
   const NonDynamicClosureOptProvided()
-      : super('Dynamic.NonDynamicClosureOptProvided');
+    : super('Dynamic.NonDynamicClosureOptProvided');
 
   @override
   void run() {
@@ -224,7 +224,7 @@ class NonDynamicClosureOptProvided extends BenchmarkBase {
 
 class NonDynamicClosureNamedSkipped extends BenchmarkBase {
   const NonDynamicClosureNamedSkipped()
-      : super('Dynamic.NonDynamicClosureNamedSkipped');
+    : super('Dynamic.NonDynamicClosureNamedSkipped');
 
   @override
   void run() {
@@ -236,7 +236,7 @@ class NonDynamicClosureNamedSkipped extends BenchmarkBase {
 
 class NonDynamicClosureNamedProvided extends BenchmarkBase {
   const NonDynamicClosureNamedProvided()
-      : super('Dynamic.NonDynamicClosureNamedProvided');
+    : super('Dynamic.NonDynamicClosureNamedProvided');
 
   @override
   void run() {
@@ -270,7 +270,7 @@ class DynamicCastClosure extends BenchmarkBase {
 
 class DynamicCastFunctionOptSkipped extends BenchmarkBase {
   const DynamicCastFunctionOptSkipped()
-      : super('Dynamic.DynamicCastFunctionOptSkipped');
+    : super('Dynamic.DynamicCastFunctionOptSkipped');
 
   @override
   void run() {
@@ -282,7 +282,7 @@ class DynamicCastFunctionOptSkipped extends BenchmarkBase {
 
 class DynamicCastFunctionOptProvided extends BenchmarkBase {
   const DynamicCastFunctionOptProvided()
-      : super('Dynamic.DynamicCastFunctionOptProvided');
+    : super('Dynamic.DynamicCastFunctionOptProvided');
 
   @override
   void run() {
@@ -294,7 +294,7 @@ class DynamicCastFunctionOptProvided extends BenchmarkBase {
 
 class DynamicCastFunctionNamedSkipped extends BenchmarkBase {
   const DynamicCastFunctionNamedSkipped()
-      : super('Dynamic.DynamicCastFunctionNamedSkipped');
+    : super('Dynamic.DynamicCastFunctionNamedSkipped');
 
   @override
   void run() {
@@ -306,7 +306,7 @@ class DynamicCastFunctionNamedSkipped extends BenchmarkBase {
 
 class DynamicCastFunctionNamedProvided extends BenchmarkBase {
   const DynamicCastFunctionNamedProvided()
-      : super('Dynamic.DynamicCastFunctionNamedProvided');
+    : super('Dynamic.DynamicCastFunctionNamedProvided');
 
   @override
   void run() {
@@ -318,7 +318,7 @@ class DynamicCastFunctionNamedProvided extends BenchmarkBase {
 
 class DynamicCastClosureOptSkipped extends BenchmarkBase {
   const DynamicCastClosureOptSkipped()
-      : super('Dynamic.DynamicCastClosureOptSkipped');
+    : super('Dynamic.DynamicCastClosureOptSkipped');
 
   @override
   void run() {
@@ -330,7 +330,7 @@ class DynamicCastClosureOptSkipped extends BenchmarkBase {
 
 class DynamicCastClosureOptProvided extends BenchmarkBase {
   const DynamicCastClosureOptProvided()
-      : super('Dynamic.DynamicCastClosureOptProvided');
+    : super('Dynamic.DynamicCastClosureOptProvided');
 
   @override
   void run() {
@@ -342,7 +342,7 @@ class DynamicCastClosureOptProvided extends BenchmarkBase {
 
 class DynamicCastClosureNamedSkipped extends BenchmarkBase {
   const DynamicCastClosureNamedSkipped()
-      : super('Dynamic.DynamicCastClosureNamedSkipped');
+    : super('Dynamic.DynamicCastClosureNamedSkipped');
 
   @override
   void run() {
@@ -354,7 +354,7 @@ class DynamicCastClosureNamedSkipped extends BenchmarkBase {
 
 class DynamicCastClosureNamedProvided extends BenchmarkBase {
   const DynamicCastClosureNamedProvided()
-      : super('Dynamic.DynamicCastClosureNamedProvided');
+    : super('Dynamic.DynamicCastClosureNamedProvided');
 
   @override
   void run() {
@@ -388,7 +388,7 @@ class DynamicDefClosure extends BenchmarkBase {
 
 class DynamicDefFunctionOptSkipped extends BenchmarkBase {
   const DynamicDefFunctionOptSkipped()
-      : super('Dynamic.DynamicDefFunctionOptSkipped');
+    : super('Dynamic.DynamicDefFunctionOptSkipped');
 
   @override
   void run() {
@@ -400,7 +400,7 @@ class DynamicDefFunctionOptSkipped extends BenchmarkBase {
 
 class DynamicDefFunctionOptProvided extends BenchmarkBase {
   const DynamicDefFunctionOptProvided()
-      : super('Dynamic.DynamicDefFunctionOptProvided');
+    : super('Dynamic.DynamicDefFunctionOptProvided');
 
   @override
   void run() {
@@ -412,7 +412,7 @@ class DynamicDefFunctionOptProvided extends BenchmarkBase {
 
 class DynamicDefFunctionNamedSkipped extends BenchmarkBase {
   const DynamicDefFunctionNamedSkipped()
-      : super('Dynamic.DynamicDefFunctionNamedSkipped');
+    : super('Dynamic.DynamicDefFunctionNamedSkipped');
 
   @override
   void run() {
@@ -424,7 +424,7 @@ class DynamicDefFunctionNamedSkipped extends BenchmarkBase {
 
 class DynamicDefFunctionNamedProvided extends BenchmarkBase {
   const DynamicDefFunctionNamedProvided()
-      : super('Dynamic.DynamicDefFunctionNamedProvided');
+    : super('Dynamic.DynamicDefFunctionNamedProvided');
 
   @override
   void run() {
@@ -436,7 +436,7 @@ class DynamicDefFunctionNamedProvided extends BenchmarkBase {
 
 class DynamicDefClosureOptSkipped extends BenchmarkBase {
   const DynamicDefClosureOptSkipped()
-      : super('Dynamic.DynamicDefClosureOptSkipped');
+    : super('Dynamic.DynamicDefClosureOptSkipped');
 
   @override
   void run() {
@@ -448,7 +448,7 @@ class DynamicDefClosureOptSkipped extends BenchmarkBase {
 
 class DynamicDefClosureOptProvided extends BenchmarkBase {
   const DynamicDefClosureOptProvided()
-      : super('Dynamic.DynamicDefClosureOptProvided');
+    : super('Dynamic.DynamicDefClosureOptProvided');
 
   @override
   void run() {
@@ -460,7 +460,7 @@ class DynamicDefClosureOptProvided extends BenchmarkBase {
 
 class DynamicDefClosureNamedSkipped extends BenchmarkBase {
   const DynamicDefClosureNamedSkipped()
-      : super('Dynamic.DynamicDefClosureNamedSkipped');
+    : super('Dynamic.DynamicDefClosureNamedSkipped');
 
   @override
   void run() {
@@ -472,7 +472,7 @@ class DynamicDefClosureNamedSkipped extends BenchmarkBase {
 
 class DynamicDefClosureNamedProvided extends BenchmarkBase {
   const DynamicDefClosureNamedProvided()
-      : super('Dynamic.DynamicDefClosureNamedProvided');
+    : super('Dynamic.DynamicDefClosureNamedProvided');
 
   @override
   void run() {
@@ -485,8 +485,8 @@ class DynamicDefClosureNamedProvided extends BenchmarkBase {
 class DynamicClassASingleton extends BenchmarkBase {
   final A a;
   const DynamicClassASingleton()
-      : a = const A(),
-        super('Dynamic.DynamicClassASingleton');
+    : a = const A(),
+      super('Dynamic.DynamicClassASingleton');
 
   @override
   void run() {
@@ -499,8 +499,8 @@ class DynamicClassASingleton extends BenchmarkBase {
 class DynamicClassBSingleton extends BenchmarkBase {
   final B b;
   const DynamicClassBSingleton()
-      : b = const B(),
-        super('Dynamic.DynamicClassBSingleton');
+    : b = const B(),
+      super('Dynamic.DynamicClassBSingleton');
 
   @override
   void run() {

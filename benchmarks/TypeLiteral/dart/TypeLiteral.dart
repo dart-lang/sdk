@@ -53,18 +53,16 @@ void main() {
     }
     return iterations;
   }).report();
-  SyncCallBenchmark('TypeLiteral.GenericFunction.ListOfNullableT.nullableInt',
-      () {
-    for (int i = 0; i < iterations; ++i) {
-      getListOfNullableT<int?>();
-    }
-    return iterations;
-  }).report();
-  final foos = <Foo<Object?>>[
-    Foo<int>(),
-    Foo<int?>(),
-    Foo<dynamic>(),
-  ];
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.ListOfNullableT.nullableInt',
+    () {
+      for (int i = 0; i < iterations; ++i) {
+        getListOfNullableT<int?>();
+      }
+      return iterations;
+    },
+  ).report();
+  final foos = <Foo<Object?>>[Foo<int>(), Foo<int?>(), Foo<dynamic>()];
   final Foo fooInt = foos[int.parse('0')];
   final Foo fooNullableInt = foos[int.parse('1')];
   final Foo fooDynamic = foos[int.parse('2')];

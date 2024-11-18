@@ -13,8 +13,8 @@ class SHA1Bench extends BenchmarkBase {
   List<int> data;
 
   SHA1Bench()
-      : data = List<int>.generate(size, (i) => i % 256, growable: false),
-        super('SHA1');
+    : data = List<int>.generate(size, (i) => i % 256, growable: false),
+      super('SHA1');
 
   @override
   void run() {

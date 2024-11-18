@@ -20,7 +20,7 @@ List<List<String> Function(String)> version1ax1500() {
     _f12,
     _f13,
     _f14,
-    _f15
+    _f15,
   ];
 }
 

@@ -14,7 +14,7 @@ abstract class Uint8ListCopyBenchmark extends BenchmarkBase {
   late Uint8List result;
 
   Uint8ListCopyBenchmark(String method, this.size)
-      : super('TypedDataDuplicate.Uint8List.$size.$method');
+    : super('TypedDataDuplicate.Uint8List.$size.$method');
 
   @override
   void setup() {
@@ -63,7 +63,7 @@ abstract class Float64ListCopyBenchmark extends BenchmarkBase {
   late Float64List result;
 
   Float64ListCopyBenchmark(String method, this.size)
-      : super('TypedDataDuplicate.Float64List.$size.$method');
+    : super('TypedDataDuplicate.Float64List.$size.$method');
 
   @override
   void setup() {
@@ -111,12 +111,12 @@ void main() {
   final benchmarks = [
     for (int size in sizes) ...[
       Uint8ListCopyViaLoopBenchmark(size),
-      Uint8ListCopyViaFromListBenchmark(size)
+      Uint8ListCopyViaFromListBenchmark(size),
     ],
     for (int size in sizes) ...[
       Float64ListCopyViaLoopBenchmark(size),
-      Float64ListCopyViaFromListBenchmark(size)
-    ]
+      Float64ListCopyViaFromListBenchmark(size),
+    ],
   ];
   for (var bench in benchmarks) {
     bench.report();

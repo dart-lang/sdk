@@ -17,7 +17,11 @@ const String compilerIsolateName = 'isolate-compiler';
 
 class Result {
   const Result(
-      this.rssOnStart, this.rssOnEnd, this.heapOnStart, this.heapOnEnd);
+    this.rssOnStart,
+    this.rssOnEnd,
+    this.heapOnStart,
+    this.heapOnEnd,
+  );
 
   final int rssOnStart;
   final int rssOnEnd;
@@ -53,8 +57,11 @@ class SpawnMemory {
     for (int i = 0; i < numberOfBenchmarks; i++) {
       final receivePort = ReceivePort();
       final startMessage = StartMessage(wsUri, receivePort.sendPort);
-      await Isolate.spawn(isolateCompiler, startMessage,
-          debugName: compilerIsolateName);
+      await Isolate.spawn(
+        isolateCompiler,
+        startMessage,
+        debugName: compilerIsolateName,
+      );
       final iterator = StreamIterator(receivePort);
 
       if (!await iterator.moveNext()) throw 'failed';
@@ -117,12 +124,14 @@ Future<void> isolateCompiler(StartMessage startMessage) async {
   await iterator.moveNext();
 
   await runZoned(
-      () => gen_kernel.compile(<String>[
-            'benchmarks/IsolateSpawn/dart/helloworld.dart',
-            'benchmarks/IsolateSpawn/dart/helloworld.dart.dill',
-          ]),
-      zoneSpecification: ZoneSpecification(
-          print: (Zone self, ZoneDelegate parent, Zone zone, String line) {}));
+    () => gen_kernel.compile(<String>[
+      'benchmarks/IsolateSpawn/dart/helloworld.dart',
+      'benchmarks/IsolateSpawn/dart/helloworld.dart.dill',
+    ]),
+    zoneSpecification: ZoneSpecification(
+      print: (Zone self, ZoneDelegate parent, Zone zone, String line) {},
+    ),
+  );
 
   // Let main isolate know we're done.
   startMessage.sendPort.send('done');

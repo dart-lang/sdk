@@ -7,7 +7,8 @@ import 'dart:convert';
 import 'dart:isolate';
 
 // (Same data as used in our other Json* benchmarks)
-final data = '{"summary":{"turnover":0.3736,"correlation2":0.'
+final data =
+    '{"summary":{"turnover":0.3736,"correlation2":0.'
     '7147,"concentration":0.3652,"beta":0.8814,"totalValue":1.3'
     '091078259E8,"correlation":0.7217},"watchlist":[],"shortCash'
     '":-1611000,"holdings":[{"type":"LONG","commission":1040'
@@ -229,11 +230,7 @@ Future<void> main(args) async {
   assert(json500KB.length == 498169);
 
   final String json5MB = json.encode({
-    '1': [
-      json500KBDecoded,
-      json500KBDecoded,
-      json500KBDecoded,
-    ],
+    '1': [json500KBDecoded, json500KBDecoded, json500KBDecoded],
     '2': [json500KBDecoded, json500KBDecoded, json500KBDecoded],
     '3': [json500KBDecoded, json500KBDecoded, json500KBDecoded],
     '4': json500KBDecoded,

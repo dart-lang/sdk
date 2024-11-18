@@ -57,14 +57,53 @@ class Benchmark extends BenchmarkBase {
     check('01010101', true);
     check('10000000', false);
     check('001010101', false);
-    check('11000000' '00000000', false);
-    check('11000000' '10111111', true);
-    check('11000000' '11111111', false);
-    check('11100000' '00000000' '00000000', false);
-    check('11100000' '10000000' '00000000', false);
-    check('11100000' '10111111' '10111111', true);
-    check('11110111' '10111111' '10111111' '01111111', false);
-    check('11110111' '10111111' '10111111' '10111111', true);
+    check(
+      '11000000'
+      '00000000',
+      false,
+    );
+    check(
+      '11000000'
+      '10111111',
+      true,
+    );
+    check(
+      '11000000'
+      '11111111',
+      false,
+    );
+    check(
+      '11100000'
+      '00000000'
+      '00000000',
+      false,
+    );
+    check(
+      '11100000'
+      '10000000'
+      '00000000',
+      false,
+    );
+    check(
+      '11100000'
+      '10111111'
+      '10111111',
+      true,
+    );
+    check(
+      '11110111'
+      '10111111'
+      '10111111'
+      '01111111',
+      false,
+    );
+    check(
+      '11110111'
+      '10111111'
+      '10111111'
+      '10111111',
+      true,
+    );
     Expect.equals(testInputLength, testInput.length);
   }
 
@@ -74,7 +113,8 @@ class Benchmark extends BenchmarkBase {
   static String makeTestInput(int length) {
     // The test input uses most states of the FSM. It is repeated and padded to
     // make the length 1000.
-    final testPattern = ''
+    final testPattern =
+        ''
         '11110111101111111011111110111111'
         '111011111011111110111111'
         '1101111110111111';
