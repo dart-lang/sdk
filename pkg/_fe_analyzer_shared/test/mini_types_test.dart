@@ -1020,4 +1020,102 @@ main() {
       });
     });
   });
+
+  group('gatherUsedIdentifiers:', () {
+    Set<String> queryUsedIdentifiers(Type t) {
+      var identifiers = <String>{};
+      t.gatherUsedIdentifiers(identifiers);
+      return identifiers;
+    }
+
+    test('FunctionType', () {
+      expect(queryUsedIdentifiers(Type('int Function(String, {bool b})')),
+          unorderedEquals({'int', 'String', 'bool', 'b'}));
+    });
+
+    test('PrimaryType', () {
+      expect(queryUsedIdentifiers(Type('Map<String, int>')),
+          unorderedEquals({'Map', 'String', 'int'}));
+      expect(
+          queryUsedIdentifiers(Type('dynamic')), unorderedEquals({'dynamic'}));
+      expect(queryUsedIdentifiers(Type('error')), unorderedEquals({'error'}));
+      expect(queryUsedIdentifiers(Type('Never')), unorderedEquals({'Never'}));
+      expect(queryUsedIdentifiers(Type('Null')), unorderedEquals({'Null'}));
+      expect(queryUsedIdentifiers(Type('void')), unorderedEquals({'void'}));
+      expect(queryUsedIdentifiers(Type('FutureOr<int>')),
+          unorderedEquals({'FutureOr', 'int'}));
+    });
+
+    test('RecordType', () {
+      expect(queryUsedIdentifiers(Type('(int, {String s})')),
+          unorderedEquals({'int', 'String', 's'}));
+    });
+
+    test('TypeParameterType', () {
+      expect(queryUsedIdentifiers(Type('T')), unorderedEquals({'T'}));
+      expect(
+          queryUsedIdentifiers(Type('T&int')), unorderedEquals({'T', 'int'}));
+    });
+
+    test('UnknownType', () {
+      expect(queryUsedIdentifiers(Type('_')), isEmpty);
+    });
+  });
+
+  group('substitute:', () {
+    test('FunctionType', () {
+      expect(Type('int Function(int, {int i})').substitute({t: Type('String')}),
+          isNull);
+      expect(Type('T Function(int, {int i})').substitute({t: Type('String')}),
+          Type('String Function(int, {int i})'));
+      expect(Type('int Function(T, {int i})?').substitute({t: Type('String')}),
+          Type('int Function(String, {int i})?'));
+      expect(Type('int Function(int, {T i})').substitute({t: Type('String')}),
+          Type('int Function(int, {String i})'));
+      expect(Type('int Function(T, T)').substitute({t: Type('String')}),
+          Type('int Function(String, String)'));
+      expect(Type('int Function({T t1, T t2})').substitute({t: Type('String')}),
+          Type('int Function({String t1, String t2})'));
+    });
+
+    test('PrimaryType', () {
+      expect(Type('Map<int, int>').substitute({t: Type('String')}), isNull);
+      expect(Type('Map<T, int>').substitute({t: Type('String')}),
+          Type('Map<String, int>'));
+      expect(Type('Map<int, T>').substitute({t: Type('String')}),
+          Type('Map<int, String>'));
+      expect(Type('Map<T, T>').substitute({t: Type('String')}),
+          Type('Map<String, String>'));
+      expect(Type('dynamic').substitute({t: Type('String')}), isNull);
+      expect(Type('error').substitute({t: Type('String')}), isNull);
+      expect(Type('Never').substitute({t: Type('String')}), isNull);
+      expect(Type('Null').substitute({t: Type('String')}), isNull);
+      expect(Type('void').substitute({t: Type('String')}), isNull);
+      expect(Type('FutureOr<int>').substitute({t: Type('String')}), isNull);
+      expect(Type('FutureOr<T>').substitute({t: Type('String')}),
+          Type('FutureOr<String>'));
+    });
+
+    test('RecordType', () {
+      expect(Type('(int, {int i})').substitute({t: Type('String')}), isNull);
+      expect(Type('(T, {int i})?').substitute({t: Type('String')}),
+          Type('(String, {int i})?'));
+      expect(Type('(int, {T i})').substitute({t: Type('String')}),
+          Type('(int, {String i})'));
+      expect(Type('(T, T)').substitute({t: Type('String')}),
+          Type('(String, String)'));
+      expect(Type('({T t1, T t2})').substitute({t: Type('String')}),
+          Type('({String t1, String t2})'));
+    });
+
+    test('TypeParameterType', () {
+      expect(Type('T').substitute({u: Type('String')}), isNull);
+      expect(Type('T').substitute({t: Type('String')}), Type('String'));
+      expect(Type('T&Object').substitute({t: Type('String')}), Type('String'));
+    });
+
+    test('UnknownType', () {
+      expect(Type('_').substitute({t: Type('String')}), isNull);
+    });
+  });
 }

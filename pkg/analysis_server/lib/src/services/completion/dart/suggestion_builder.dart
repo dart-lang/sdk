@@ -1492,9 +1492,7 @@ class SuggestionBuilder {
     int? requiredParameterCount;
     bool? hasNamedParameters;
     CompletionDefaultArgumentList? defaultArgumentList;
-    if (element is ExecutableElement2 &&
-        element is! GetterElement &&
-        element is! SetterElement) {
+    if (element is ExecutableElement2 && element is! PropertyAccessorElement2) {
       parameterNames =
           element.formalParameters.map((parameter) {
             return parameter.displayName;

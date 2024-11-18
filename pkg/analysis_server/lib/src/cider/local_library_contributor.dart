@@ -167,7 +167,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
           if (element.isGetter) {
             if (variable is FieldElement) {
               builder.suggestField(
-                variable.asElement2 as FieldElement2,
+                variable.asElement2,
                 inheritanceDistance: 0.0,
               );
             }
@@ -281,7 +281,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
               }
             } else {
               builder.suggestStaticField(
-                field.asElement2 as FieldElement2,
+                field.asElement2,
                 prefix: prefix,
               );
             }

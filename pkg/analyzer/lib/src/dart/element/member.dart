@@ -502,7 +502,7 @@ class FieldMember extends VariableMember
   String get displayName => declaration.displayName;
 
   @override
-  Element2? get enclosingElement2 => _element2.enclosingElement2;
+  InstanceElement2 get enclosingElement2 => _element2.enclosingElement2;
 
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
@@ -589,7 +589,7 @@ class FieldMember extends VariableMember
   @override
   Source? get source => _declaration.source;
 
-  FieldElement2 get _element2 => declaration.asElement2 as FieldElement2;
+  FieldElement2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
@@ -1000,7 +1000,7 @@ class MethodMember extends ExecutableMember
   Source get source => _declaration.source!;
 
   @override
-  MethodElement2 get _element2 => declaration.asElement2 as MethodElement2;
+  MethodElement2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
@@ -1240,7 +1240,7 @@ class ParameterMember extends VariableMember
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
 abstract class PropertyAccessorMember extends ExecutableMember
-    implements PropertyAccessorElement {
+    implements PropertyAccessorElement, PropertyAccessorElement2 {
   factory PropertyAccessorMember(
     PropertyAccessorElement declaration,
     MapSubstitution augmentationSubstitution,

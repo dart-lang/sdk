@@ -98,7 +98,6 @@ lib/src/dart/resolver/typed_literal_resolver.dart
 lib/src/dart/resolver/variable_declaration_resolver.dart
 lib/src/dart/resolver/yield_statement_resolver.dart
 lib/src/diagnostic/diagnostic_factory.dart
-lib/src/error/assignment_verifier.dart
 lib/src/error/best_practices_verifier.dart
 lib/src/error/correct_override.dart
 lib/src/error/dead_code_verifier.dart
@@ -112,7 +111,6 @@ lib/src/error/required_parameters_verifier.dart
 lib/src/error/unused_local_elements_verifier.dart
 lib/src/generated/element_resolver.dart
 lib/src/generated/element_walker.dart
-lib/src/generated/error_detection_helpers.dart
 lib/src/generated/error_verifier.dart
 lib/src/generated/exhaustiveness.dart
 lib/src/generated/ffi_verifier.dart

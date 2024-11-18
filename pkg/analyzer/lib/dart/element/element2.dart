@@ -748,6 +748,9 @@ abstract class FieldElement2 implements PropertyInducingElement2 {
   FieldElement2 get baseElement;
 
   @override
+  InstanceElement2 get enclosingElement2;
+
+  @override
   FieldFragment get firstFragment;
 
   /// Whether the field is abstract.
@@ -1068,7 +1071,7 @@ abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
 /// top-level variable or a field. Induced getters are synthetic.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class GetterElement implements ExecutableElement2 {
+abstract class GetterElement implements PropertyAccessorElement2 {
   @override
   GetterElement get baseElement;
 
@@ -1078,18 +1081,12 @@ abstract class GetterElement implements ExecutableElement2 {
 
   @override
   GetterFragment get firstFragment;
-
-  /// The field or top-level variable associated with this getter.
-  ///
-  /// If this getter was explicitly defined (is not synthetic) then the variable
-  /// associated with it will be synthetic.
-  PropertyInducingElement2? get variable3;
 }
 
 /// The portion of a [GetterElement] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class GetterFragment implements ExecutableFragment {
+abstract class GetterFragment implements PropertyAccessorFragment {
   /// The setter that corresponds to (has the same name as) this getter, or
   /// `null` if there is no corresponding setter.
   SetterFragment? get correspondingSetter2;
@@ -1110,12 +1107,6 @@ abstract class GetterFragment implements ExecutableFragment {
   //  but can't because the Impl class supports both getters and setters.
   // @override
   // GetterElement get element;
-
-  /// The field or top-level variable associated with this getter.
-  ///
-  /// If this getter was explicitly defined (is not synthetic) then the variable
-  /// associated with it will be synthetic.
-  PropertyInducingFragment? get variable3;
 }
 
 /// An element whose instance members can refer to `this`.
@@ -2074,6 +2065,47 @@ abstract class PromotableFragment implements VariableFragment {
   PromotableFragment? get previousFragment;
 }
 
+/// A getter or a setter.
+///
+/// Property accessors can either be defined explicitly or they can be induced
+/// by either a top-level variable or a field. Induced property accessors are
+/// synthetic.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PropertyAccessorElement2 implements ExecutableElement2 {
+  @override
+  PropertyAccessorElement2 get baseElement;
+
+  @override
+  PropertyAccessorFragment get firstFragment;
+
+  /// The field or top-level variable associated with this getter.
+  ///
+  /// If this getter was explicitly defined (is not synthetic) then the variable
+  /// associated with it will be synthetic.
+  PropertyInducingElement2? get variable3;
+}
+
+/// The portion of a [GetterElement] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PropertyAccessorFragment implements ExecutableFragment {
+  @override
+  PropertyAccessorElement2 get element;
+
+  @override
+  PropertyAccessorFragment? get nextFragment;
+
+  @override
+  PropertyAccessorFragment? get previousFragment;
+
+  /// The field or top-level variable associated with this property accessors.
+  ///
+  /// If this property accessor was explicitly defined (is not synthetic) then
+  /// the variable associated with it will be synthetic.
+  PropertyInducingFragment? get variable3;
+}
+
 /// A variable that has an associated getter and possibly a setter. Note that
 /// explicitly defined variables implicitly define a synthetic getter and that
 /// non-`final` explicitly defined variables implicitly define a synthetic
@@ -2177,7 +2209,7 @@ abstract class PropertyInducingFragment
 /// top-level variable or a field. Induced setters are synthetic.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class SetterElement implements ExecutableElement2 {
+abstract class SetterElement implements PropertyAccessorElement2 {
   @override
   SetterElement get baseElement;
 
@@ -2187,18 +2219,12 @@ abstract class SetterElement implements ExecutableElement2 {
 
   @override
   SetterFragment get firstFragment;
-
-  /// The field or top-level variable associated with this setter.
-  ///
-  /// If this setter was explicitly defined (is not synthetic) then the variable
-  /// associated with it will be synthetic.
-  PropertyInducingElement2? get variable3;
 }
 
 /// The portion of a [SetterElement] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class SetterFragment implements ExecutableFragment {
+abstract class SetterFragment implements PropertyAccessorFragment {
   /// The getter that corresponds to (has the same name as) this setter, or
   /// `null` if there is no corresponding getter.
   GetterFragment? get correspondingGetter2;
@@ -2219,12 +2245,6 @@ abstract class SetterFragment implements ExecutableFragment {
   //  setters.
   // @override
   // SetterFragment? get previousFragment;
-
-  /// The field or top-level variable associated with this setter.
-  ///
-  /// If this setter was explicitly defined (is not synthetic) then the variable
-  /// associated with it will be synthetic.
-  PropertyInducingFragment? get variable3;
 }
 
 /// A super formal parameter.

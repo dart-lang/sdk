@@ -722,6 +722,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try using conversion methods from 'dart:js_interop' to convert "
         "between Dart types and JS interop types.",
+    hasPublishedDocs: true,
     uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_as_js',
   );
 
@@ -807,6 +808,7 @@ class LinterLintCode extends LintCode {
     LintNames.library_annotations,
     "This annotation should be attached to a library directive.",
     correctionMessage: "Try attaching the annotation to a library directive.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode library_names = LinterLintCode(
@@ -1550,6 +1552,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try using backticks around the content with angle brackets, or try "
         "replacing `<` with `&lt;` and `>` with `&gt;`.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_await_in_return = LinterLintCode(
@@ -1632,6 +1635,7 @@ class LinterLintCode extends LintCode {
     LintNames.unnecessary_library_name,
     "Library names are not necessary.",
     correctionMessage: "Remove the library name.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode unnecessary_new = LinterLintCode(
@@ -1938,6 +1942,7 @@ class LinterLintCode extends LintCode {
     correctionMessage:
         "Try using truncating division, '~/', instead of regular division "
         "('/') followed by 'toInt()'.",
+    hasPublishedDocs: true,
   );
 
   static const LintCode valid_regexps = LinterLintCode(

@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
@@ -190,7 +191,14 @@ class PluginServer {
     required AnalysisContextCollection contextCollection,
   }) async {
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
-      var paths = analysisContext.contextRoot.analyzedFiles().toList();
+      var paths = analysisContext.contextRoot
+          .analyzedFiles()
+          // TODO(srawlins): Enable analysis on other files, even if only
+          // YAML files for analysis options and pubspec analysis and quick
+          // fixes.
+          .where((p) => file_paths.isDart(_resourceProvider.pathContext, p))
+          .toList();
+
       await _analyzeFiles(
         analysisContext: analysisContext,
         paths: paths,

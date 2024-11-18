@@ -1218,13 +1218,13 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case EnumConstantSuggestion():
         if (suggestion.includeEnumName) {
           suggestEnumConstant(
-            suggestion.element.asElement2 as FieldElement2,
+            suggestion.element.asElement2,
             suggestion.completion,
             relevance: relevance,
           );
         } else {
           suggestField(
-            suggestion.element.asElement2 as FieldElement2,
+            suggestion.element.asElement2,
             inheritanceDistance: 0.0,
             relevance: relevance,
           );
@@ -1246,7 +1246,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         var fieldElement = suggestion.element;
         if (fieldElement.isEnumConstant) {
           suggestEnumConstant(
-            fieldElement.asElement2 as FieldElement2,
+            fieldElement.asElement2,
             suggestion.completion,
             relevance: relevance,
           );
@@ -1259,7 +1259,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
                   ? fieldElement.declaration.asElement2
                   : fieldElement.asElement2;
           suggestField(
-            field as FieldElement2,
+            field,
             inheritanceDistance: inheritanceDistance,
             relevance: relevance,
           );
@@ -1320,7 +1320,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           request.featureComputer,
         );
         suggestMethod(
-          suggestion.element.asElement2 as MethodElement2,
+          suggestion.element.asElement2,
           kind: kind,
           inheritanceDistance: inheritanceDistance,
           relevance: relevance,
@@ -1387,7 +1387,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           request.featureComputer,
         );
         suggestSetStateMethod(
-          suggestion.element.asElement2 as MethodElement2,
+          suggestion.element.asElement2,
           kind: suggestion.kind,
           completion: suggestion.completion,
           displayText: suggestion.displayText,
@@ -1397,7 +1397,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         );
       case StaticFieldSuggestion():
         suggestStaticField(
-          suggestion.element.asElement2 as FieldElement2,
+          suggestion.element.asElement2,
           prefix: suggestion.prefix,
           relevance: relevance,
           completion: suggestion.completion,

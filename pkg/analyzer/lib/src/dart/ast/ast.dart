@@ -1829,7 +1829,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => staticElement?.asElement2 as MethodElement2?;
+  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _rightOperand.endToken;
@@ -10137,7 +10137,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => staticElement?.asElement2 as MethodElement2?;
+  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => rightBracket;

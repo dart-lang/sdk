@@ -112,6 +112,25 @@ class FunctionType extends Type
   }
 
   @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    returnType.gatherUsedIdentifiers(identifiers);
+    for (var positionalParameter in positionalParameters) {
+      positionalParameter.gatherUsedIdentifiers(identifiers);
+    }
+    for (var typeFormal in typeFormals) {
+      identifiers.add(typeFormal.name);
+    }
+    for (var namedParameter in namedParameters) {
+      // As explained in the documentation for `Type.gatherUsedIdentifiers`,
+      // to reduce the risk of confusion, this method is generous in which
+      // identifiers it reports. So report `namedParameter.name` even though
+      // it's not strictly necessary.
+      identifiers.add(namedParameter.name);
+      namedParameter.type.gatherUsedIdentifiers(identifiers);
+    }
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) {
     Type? newReturnType = returnType.recursivelyDemote(covariant: covariant);
     List<Type>? newPositionalParameters =
@@ -128,6 +147,24 @@ class FunctionType extends Type
         requiredPositionalParameterCount: requiredPositionalParameterCount,
         namedParameters: newNamedParameters ?? namedParameters,
         nullabilitySuffix: nullabilitySuffix);
+  }
+
+  @override
+  FunctionType? substitute(Map<TypeParameter, Type> substitution) {
+    var newReturnType = returnType.substitute(substitution);
+    var newPositionalParameters = positionalParameters.substitute(substitution);
+    var newNamedParameters = namedParameters.substitute(substitution);
+    if (newReturnType == null &&
+        newPositionalParameters == null &&
+        newNamedParameters == null) {
+      return null;
+    } else {
+      return FunctionType(newReturnType ?? returnType,
+          newPositionalParameters ?? positionalParameters,
+          requiredPositionalParameterCount: requiredPositionalParameterCount,
+          namedParameters: newNamedParameters ?? namedParameters,
+          nullabilitySuffix: nullabilitySuffix);
+    }
   }
 
   @override
@@ -180,6 +217,13 @@ class FutureOrType extends PrimaryType {
   }
 
   @override
+  Type? substitute(Map<TypeParameter, Type> substitution) {
+    var newArg = typeArgument.substitute(substitution);
+    if (newArg == null) return null;
+    return FutureOrType(newArg, nullabilitySuffix: nullabilitySuffix);
+  }
+
+  @override
   Type withNullability(NullabilitySuffix suffix) =>
       FutureOrType(typeArgument, nullabilitySuffix: suffix);
 }
@@ -204,7 +248,9 @@ class InvalidType extends _SpecialSimpleType
 
 /// A named parameter of a function type.
 class NamedFunctionParameter
-    implements SharedNamedFunctionParameterStructure<Type> {
+    implements
+        SharedNamedFunctionParameterStructure<Type>,
+        _Substitutable<NamedFunctionParameter> {
   @override
   final String name;
 
@@ -228,10 +274,19 @@ class NamedFunctionParameter
       isRequired == other.isRequired;
 
   @override
+  NamedFunctionParameter? substitute(Map<TypeParameter, Type> substitution) {
+    var newType = type.substitute(substitution);
+    if (newType == null) return null;
+    return NamedFunctionParameter(
+        isRequired: isRequired, name: name, type: newType);
+  }
+
+  @override
   String toString() => [if (isRequired) 'required', type, name].join(' ');
 }
 
-class NamedType implements SharedNamedTypeStructure<Type> {
+class NamedType
+    implements SharedNamedTypeStructure<Type>, _Substitutable<NamedType> {
   @override
   final String name;
 
@@ -246,6 +301,13 @@ class NamedType implements SharedNamedTypeStructure<Type> {
   @override
   bool operator ==(Object other) =>
       other is NamedType && name == other.name && type == other.type;
+
+  @override
+  NamedType? substitute(Map<TypeParameter, Type> substitution) {
+    var newType = type.substitute(substitution);
+    if (newType == null) return null;
+    return NamedType(name: name, type: newType);
+  }
 }
 
 /// Representation of the type `Never` suitable for unit testing of code in the
@@ -341,8 +403,24 @@ class PrimaryType extends Type {
   }
 
   @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    identifiers.add(name);
+    for (var arg in args) {
+      arg.gatherUsedIdentifiers(identifiers);
+    }
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) {
     List<Type>? newArgs = args.recursivelyDemote(covariant: covariant);
+    if (newArgs == null) return null;
+    return PrimaryType._(nameInfo,
+        args: newArgs, nullabilitySuffix: nullabilitySuffix);
+  }
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) {
+    var newArgs = args.substitute(substitution);
     if (newArgs == null) return null;
     return PrimaryType._(nameInfo,
         args: newArgs, nullabilitySuffix: nullabilitySuffix);
@@ -417,6 +495,21 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
   }
 
   @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    for (var type in positionalTypes) {
+      type.gatherUsedIdentifiers(identifiers);
+    }
+    for (var namedType in namedTypes) {
+      // As explained in the documentation for `Type.gatherUsedIdentifiers`,
+      // to reduce the risk of confusion, this method is generous in which
+      // identifiers it reports. So report `namedType.name` even though it's
+      // not strictly necessary.
+      identifiers.add(namedType.name);
+      namedType.type.gatherUsedIdentifiers(identifiers);
+    }
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) {
     List<Type>? newPositional;
     for (var i = 0; i < positionalTypes.length; i++) {
@@ -437,6 +530,17 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
       namedTypes: newNamed ?? namedTypes,
       nullabilitySuffix: nullabilitySuffix,
     );
+  }
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) {
+    var newPositionalTypes = positionalTypes.substitute(substitution);
+    var newNamedTypes = namedTypes.substitute(substitution);
+    if (newPositionalTypes == null && newNamedTypes == null) return null;
+    return RecordType(
+        positionalTypes: newPositionalTypes ?? positionalTypes,
+        namedTypes: newNamedTypes ?? namedTypes,
+        nullabilitySuffix: nullabilitySuffix);
   }
 
   @override
@@ -502,7 +606,7 @@ class SpecialTypeName extends TypeNameInfo {
 
 /// Representation of a type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-abstract class Type implements SharedTypeStructure<Type> {
+abstract class Type implements SharedTypeStructure<Type>, _Substitutable<Type> {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
@@ -518,6 +622,21 @@ abstract class Type implements SharedTypeStructure<Type> {
   /// `Object?`); otherwise a subtype will be returned (replacing `_` with
   /// `Never`).
   Type? closureWithRespectToUnknown({required bool covariant});
+
+  /// Recursively visits `this`, gathering up all the identifiers that appear in
+  /// it, and adds them to the set [identifiers].
+  ///
+  /// This method is intended to aid in choosing safe names for substitutions.
+  /// For example, it can be used to determine that in a type like
+  /// `T Function<U>(U)`, it's not safe to rename the type variable `U` to `T`,
+  /// since that would conflict with an existing use of `T`.
+  ///
+  /// To lower the risk of confusion, it is generous in which identifiers it
+  /// reports. For example, in the type `void Function<T>({T X})`, it reports
+  /// `X` as a used identifier. This is because even though it would technically
+  /// be safe to rename the type variable `T` to `X`, to do so would be result
+  /// in a confusing type.
+  void gatherUsedIdentifiers(Set<String> identifiers);
 
   @override
   String getDisplayString() => type;
@@ -582,11 +701,11 @@ sealed class TypeNameInfo {
   /// An assertion in the [PrimaryType] constructor verifies this.
   ///
   /// This ensures that the methods [Type.closureWithRespectToUnknown],
-  /// [Type.recursivelyDemote], and [Type.withNullability] (which create new
-  /// instances of [Type] based on old ones) create the appropriate subtype of
-  /// [Type]. It also ensures that when [Type] objects are directly constructed
-  /// (as they are in this file and in `mini_ast.dart`), the appropriate subtype
-  /// of [Type] is used.
+  /// [Type.recursivelyDemote], [Type.substitute], and [Type.withNullability]
+  /// (which create new instances of [Type] based on old ones) create the
+  /// appropriate subtype of [Type]. It also ensures that when [Type] objects
+  /// are directly constructed (as they are in this file and in
+  /// `mini_ast.dart`), the appropriate subtype of [Type] is used.
   final core.Type _expectedRuntimeType;
 
   TypeNameInfo(this.name, {required core.Type expectedRuntimeType})
@@ -663,6 +782,12 @@ class TypeParameterType extends Type {
   }
 
   @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    identifiers.add(typeParameter.name);
+    promotion?.gatherUsedIdentifiers(identifiers);
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) {
     if (!covariant) {
       return NeverType.instance.withNullability(nullabilitySuffix);
@@ -673,6 +798,10 @@ class TypeParameterType extends Type {
           nullabilitySuffix: nullabilitySuffix);
     }
   }
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) =>
+      substitution[typeParameter];
 
   @override
   Type withNullability(NullabilitySuffix suffix) =>
@@ -1409,7 +1538,13 @@ class UnknownType extends Type implements SharedUnknownTypeStructure<Type> {
       covariant ? Type('Object?') : NeverType.instance;
 
   @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {}
+
+  @override
   Type? recursivelyDemote({required bool covariant}) => null;
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) => null;
 
   @override
   Type withNullability(NullabilitySuffix suffix) =>
@@ -1448,6 +1583,22 @@ abstract class _SpecialSimpleType extends PrimaryType {
 
   @override
   Type? recursivelyDemote({required bool covariant}) => null;
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) => null;
+}
+
+/// Interface for [Type] and the data structures that comprise it, allowing
+/// type substitutions to be performed.
+abstract class _Substitutable<T extends _Substitutable<T>> {
+  /// If `this` contains any references to a [TypeParameter] matching one of the
+  /// keys in [substitution], returns a clone of `this` with those references
+  /// replaced by the corresponding value. Otherwise returns `null`.
+  ///
+  /// For example, if `t` is a reference to the [TypeParameter] object
+  /// representing `T`, then `Type('Map<T, U>`).substitute({t: Type('int')})`
+  /// returns a [Type] object representing `Map<int, U>`.
+  T? substitute(Map<TypeParameter, Type> substitution);
 }
 
 class _TypeParser {
@@ -1876,5 +2027,27 @@ extension on List<Type> {
       newList.add(newType ?? type);
     }
     return newList;
+  }
+}
+
+extension<T extends _Substitutable<T>> on List<T> {
+  /// Helper method for performing substitutions on the constituent parts of a
+  /// [Type] that are stored in lists.
+  ///
+  /// Calls [_Substitutable.substitute] on each element of the list; if all
+  /// those calls returned `null` (meaning no substitutions were done), returns
+  /// `null`. Otherwise returns a new [List] in which each element requiring
+  /// substitutions is replaced with the substitution result.
+  List<T>? substitute(Map<TypeParameter, Type> substitution) {
+    List<T>? result;
+    for (int i = 0; i < length; i++) {
+      var oldListElement = this[i];
+      var newType = oldListElement.substitute(substitution);
+      if (newType != null && result == null) {
+        result = sublist(0, i);
+      }
+      result?.add(newType ?? oldListElement);
+    }
+    return result;
   }
 }

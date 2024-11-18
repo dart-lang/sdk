@@ -3524,7 +3524,7 @@ class EnumElementImpl extends InterfaceElementImpl
 
   @override
   List<FieldElement2> get constants2 =>
-      constants.map((e) => e.asElement2 as FieldElement2).toList();
+      constants.map((e) => e.asElement2).toList();
 
   @override
   EnumElementImpl2 get element {
@@ -3583,7 +3583,7 @@ class EnumElementImpl2 extends InterfaceElementImpl2
 
   @override
   List<FieldElement2> get constants2 =>
-      constants.map((e) => e.asElement2 as FieldElement2).toList();
+      constants.map((e) => e.asElement2).toList();
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -4048,8 +4048,7 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
   ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
 
   @override
-  FieldElement2 get representation2 =>
-      representation.asElement2 as FieldElement2;
+  FieldElement2 get representation2 => representation.asElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -4190,7 +4189,7 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
   FieldElement2 get baseElement => this;
 
   @override
-  Element2? get enclosingElement2 =>
+  InstanceElement2 get enclosingElement2 =>
       (firstFragment._enclosingElement3 as InstanceFragment).element;
 
   @override
@@ -5154,7 +5153,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 }
 
-class GetterElementImpl extends ExecutableElementImpl2
+class GetterElementImpl extends PropertyAccessorElementImpl2
     with
         FragmentedExecutableElementMixin<GetterFragment>,
         FragmentedFunctionTypedElementMixin<GetterFragment>,
@@ -5181,16 +5180,7 @@ class GetterElementImpl extends ExecutableElementImpl2
       firstFragment.correspondingSetter2?.element as SetterElement?;
 
   @override
-  Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
-
-  @override
-  bool get isExternal => firstFragment.isExternal;
-
-  @override
   ElementKind get kind => ElementKind.GETTER;
-
-  @override
-  String? get name3 => firstFragment.name2;
 
   @override
   Element2 get nonSynthetic2 {
@@ -5201,9 +5191,6 @@ class GetterElementImpl extends ExecutableElementImpl2
     }
     throw StateError('Synthetic getter has no variable');
   }
-
-  @override
-  PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -9186,7 +9173,11 @@ abstract class PromotableElementImpl2 extends VariableElementImpl2
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     with AugmentableElement<PropertyAccessorElementImpl>
-    implements PropertyAccessorElement, GetterFragment, SetterFragment {
+    implements
+        PropertyAccessorElement,
+        PropertyAccessorFragment,
+        GetterFragment,
+        SetterFragment {
   @override
   String? name2;
 
@@ -9199,7 +9190,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   ///
   /// The element will always be an instance of either `GetterElement` or
   /// `SetterElement`.
-  ExecutableElement2? _element;
+  PropertyAccessorElementImpl2? _element;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -9259,7 +9250,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElement get declaration => this;
 
   @override
-  ExecutableElement2 get element {
+  PropertyAccessorElementImpl2 get element {
     if (_element != null) {
       return _element!;
     }
@@ -9278,7 +9269,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     }
   }
 
-  set element(ExecutableElement2 element) => _element = element;
+  set element(PropertyAccessorElementImpl2 element) => _element = element;
 
   @override
   Fragment? get enclosingFragment {
@@ -9346,10 +9337,10 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ExecutableFragment? get nextFragment => augmentation;
+  PropertyAccessorFragment? get nextFragment => augmentation;
 
   @override
-  ExecutableFragment? get previousFragment => augmentationTarget;
+  PropertyAccessorFragment? get previousFragment => augmentationTarget;
 
   @override
   PropertyInducingElementImpl? get variable2 {
@@ -9375,6 +9366,27 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       (isGetter ? 'get ' : 'set ') + displayName,
     );
   }
+}
+
+abstract class PropertyAccessorElementImpl2 extends ExecutableElementImpl2
+    implements PropertyAccessorElement2 {
+  @override
+  PropertyAccessorElement2 get baseElement => this;
+
+  @override
+  Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
+
+  @override
+  PropertyAccessorElementImpl get firstFragment;
+
+  @override
+  bool get isExternal => firstFragment.isExternal;
+
+  @override
+  String? get name3 => firstFragment.name2;
+
+  @override
+  PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
 }
 
 /// Implicit getter for a [PropertyInducingElementImpl].
@@ -9704,7 +9716,7 @@ abstract class PropertyInducingElementTypeInference {
   DartType perform();
 }
 
-class SetterElementImpl extends ExecutableElementImpl2
+class SetterElementImpl extends PropertyAccessorElementImpl2
     with
         FragmentedExecutableElementMixin<SetterFragment>,
         FragmentedFunctionTypedElementMixin<SetterFragment>,
@@ -9734,13 +9746,7 @@ class SetterElementImpl extends ExecutableElementImpl2
   Element2? get enclosingElement2 => firstFragment.enclosingFragment?.element;
 
   @override
-  bool get isExternal => firstFragment.isExternal;
-
-  @override
   ElementKind get kind => ElementKind.SETTER;
-
-  @override
-  String? get name3 => firstFragment.name2;
 
   @override
   Element2 get nonSynthetic2 {
@@ -9751,9 +9757,6 @@ class SetterElementImpl extends ExecutableElementImpl2
     }
     throw StateError('Synthetic setter has no variable');
   }
-
-  @override
-  PropertyInducingElement2? get variable3 => firstFragment.variable2?.element;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {

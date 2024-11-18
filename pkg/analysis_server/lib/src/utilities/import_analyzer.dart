@@ -121,23 +121,14 @@ class _ElementRecorder {
     int referenceOffset,
     LibraryImport? import,
   ) {
-    switch (referencedElement) {
-      case GetterElement():
-        if (referencedElement.isSynthetic) {
-          var variable = referencedElement.variable3;
-          if (variable == null) {
-            return;
-          }
-          referencedElement = variable;
+    if (referencedElement is PropertyAccessorElement2) {
+      if (referencedElement.isSynthetic) {
+        var variable = referencedElement.variable3;
+        if (variable == null) {
+          return;
         }
-      case SetterElement():
-        if (referencedElement.isSynthetic) {
-          var variable = referencedElement.variable3;
-          if (variable == null) {
-            return;
-          }
-          referencedElement = variable;
-        }
+        referencedElement = variable;
+      }
     }
 
     if (_isBeingMoved(referenceOffset)) {
