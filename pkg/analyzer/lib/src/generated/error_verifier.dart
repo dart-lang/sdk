@@ -313,6 +313,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  InheritanceManager3 get inheritance => _inheritanceManager;
+
+  @override
   bool get strictCasts => options.strictCasts;
 
   /// The language team is thinking about adding abstract fields, or external

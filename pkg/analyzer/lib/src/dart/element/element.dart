@@ -3524,7 +3524,7 @@ class EnumElementImpl extends InterfaceElementImpl
 
   @override
   List<FieldElement2> get constants2 =>
-      constants.map((e) => e.asElement2 as FieldElement2).toList();
+      constants.map((e) => e.asElement2).toList();
 
   @override
   EnumElementImpl2 get element {
@@ -3583,7 +3583,7 @@ class EnumElementImpl2 extends InterfaceElementImpl2
 
   @override
   List<FieldElement2> get constants2 =>
-      constants.map((e) => e.asElement2 as FieldElement2).toList();
+      constants.map((e) => e.asElement2).toList();
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -4048,8 +4048,7 @@ class ExtensionTypeElementImpl2 extends InterfaceElementImpl2
   ConstructorElement2 get primaryConstructor2 => primaryConstructor.element;
 
   @override
-  FieldElement2 get representation2 =>
-      representation.asElement2 as FieldElement2;
+  FieldElement2 get representation2 => representation.asElement2;
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {

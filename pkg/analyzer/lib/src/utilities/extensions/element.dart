@@ -228,6 +228,16 @@ extension ExecutableElementOrNullExtension on ExecutableElement? {
   }
 }
 
+extension FieldElementExtension on FieldElement {
+  FieldElement2 get asElement2 {
+    return switch (this) {
+      FieldFragment(:var element) => element,
+      FieldMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+}
+
 extension FormalParameterExtension on FormalParameterElement {
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
@@ -286,6 +296,22 @@ extension ListOfTypeParameterElementExtension on List<TypeParameterElement> {
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }).toList();
+  }
+}
+
+extension MethodElement2Extension on MethodElement2 {
+  MethodElement get asElement {
+    return baseElement.firstFragment as MethodElement;
+  }
+}
+
+extension MethodElementExtension on MethodElement {
+  MethodElement2 get asElement2 {
+    return switch (this) {
+      MethodFragment(:var element) => element,
+      MethodMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
   }
 }
 

@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -23,6 +24,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class PropertyElementResolver with ScopeHelpers {
   final ResolverVisitor _resolver;
@@ -944,7 +946,15 @@ class PropertyElementResolverResult {
     return readElementRequested ?? readElementRecovery;
   }
 
+  Element2? get readElement2 {
+    return readElement.asElement2;
+  }
+
   Element? get writeElement {
     return writeElementRequested ?? writeElementRecovery;
+  }
+
+  Element2? get writeElement2 {
+    return writeElement.asElement2;
   }
 }

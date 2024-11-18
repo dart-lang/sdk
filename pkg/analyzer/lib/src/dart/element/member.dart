@@ -589,7 +589,7 @@ class FieldMember extends VariableMember
   @override
   Source? get source => _declaration.source;
 
-  FieldElement2 get _element2 => declaration.asElement2 as FieldElement2;
+  FieldElement2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
@@ -1000,7 +1000,7 @@ class MethodMember extends ExecutableMember
   Source get source => _declaration.source!;
 
   @override
-  MethodElement2 get _element2 => declaration.asElement2 as MethodElement2;
+  MethodElement2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
