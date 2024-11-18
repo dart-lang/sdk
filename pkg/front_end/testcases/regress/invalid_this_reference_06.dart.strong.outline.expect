@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_06.dart:6:3: Error: 'Foo' is already declared in this scope.
+//   Foo([foo = foo]) => 42;
+//   ^^^
+// pkg/front_end/testcases/regress/invalid_this_reference_06.dart:5:19: Context: Previous declaration of 'Foo'.
+// extension type Foo(int foo) {
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type Foo(core::int foo) {
+  abstract extension-type-member representation-field get foo() → core::int;
+  constructor • = self::Foo|constructor#;
+  constructor tearoff • = self::Foo|constructor#_#new#tearOff;
+  constructor tester1 = self::Foo|constructor#tester1;
+  constructor tearoff tester1 = self::Foo|constructor#_#tester1#tearOff;
+  constructor tester2 = self::Foo|constructor#tester2;
+  constructor tearoff tester2 = self::Foo|constructor#_#tester2#tearOff;
+}
+static extension-type-member method Foo|constructor#(core::int foo) → self::Foo% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member method Foo|constructor#_#new#tearOff(core::int foo) → self::Foo% /* erasure=core::int, declared=! */
+  return self::Foo|constructor#(foo);
+static extension-type-member method Foo|constructor#tester1(core::String s) → self::Foo% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member method Foo|constructor#_#tester1#tearOff(core::String s) → self::Foo% /* erasure=core::int, declared=! */
+  return self::Foo|constructor#tester1(s);
+static extension-type-member method Foo|constructor#tester2(core::int foo) → self::Foo% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member method Foo|constructor#_#tester2#tearOff(core::int foo) → self::Foo% /* erasure=core::int, declared=! */
+  return self::Foo|constructor#tester2(foo);

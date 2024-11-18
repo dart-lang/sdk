@@ -523,6 +523,85 @@ main() {
     });
   });
 
+  group('hashCode and equality:', () {
+    void checkEqual(Type t1, Type t2) {
+      expect(t1 == t2, isTrue);
+      expect(t1.hashCode == t2.hashCode, isTrue);
+    }
+
+    void checkNotEqual(Type t1, Type t2) {
+      expect(t1 == t2, isFalse);
+      // Note: don't compare `t1.hashCode` to `t2.hashCode` because it's not
+      // guaranteed whether they will be different or not. And besides, it
+      // really only matters for efficiency, and efficiency is not needed for
+      // the "mini_types" representation because it's only used in unit tests.
+    }
+
+    test('FunctionType', () {
+      checkEqual(Type('void Function()'), Type('void Function()'));
+      checkNotEqual(Type('void Function()?'), Type('void Function()'));
+      checkNotEqual(Type('T Function()'), Type('void Function()'));
+      checkNotEqual(Type('void Function(T)'), Type('void Function()'));
+      checkEqual(Type('void Function(T)'), Type('void Function(T)'));
+      checkNotEqual(Type('void Function(T)'), Type('void Function(U)'));
+      checkNotEqual(Type('void Function(T)'), Type('void Function([T])'));
+      checkNotEqual(Type('void Function({T t})'), Type('void Function()'));
+      checkEqual(Type('void Function({T t})'), Type('void Function({T t})'));
+      checkNotEqual(
+          Type('void Function({T t})'), Type('void Function({required T t})'));
+      checkNotEqual(Type('void Function({T t})'), Type('void Function({U t})'));
+      checkNotEqual(Type('void Function({T t})'), Type('void Function({T u})'));
+    });
+
+    test('PrimaryType', () {
+      checkEqual(Type('int'), Type('int'));
+      checkNotEqual(Type('int'), Type('String'));
+      checkNotEqual(Type('int'), Type('int?'));
+      checkEqual(Type('Map<int, String>'), Type('Map<int, String>'));
+      checkNotEqual(Type('Map<int, String>'), Type('Map<int, double>'));
+      checkNotEqual(Type('Map<int, String>'), Type('Map<num, String>'));
+      checkNotEqual(Type('List<int>'), Type('Iterable<int>'));
+      checkEqual(Type('dynamic'), Type('dynamic'));
+      checkEqual(Type('error'), Type('error'));
+      checkEqual(Type('Never'), Type('Never'));
+      checkEqual(Type('Null'), Type('Null'));
+      checkEqual(Type('void'), Type('void'));
+      checkEqual(Type('FutureOr<int>'), Type('FutureOr<int>'));
+      checkNotEqual(Type('dynamic'), Type('error'));
+      checkNotEqual(Type('error'), Type('Never'));
+      checkNotEqual(Type('Never'), Type('Null'));
+      checkNotEqual(Type('Null'), Type('void'));
+      checkNotEqual(Type('void'), Type('dynamic'));
+      checkNotEqual(Type('FutureOr<int>'), Type('FutureOr<String>'));
+      checkNotEqual(Type('FutureOr<int>'), Type('dynamic'));
+    });
+
+    test('RecordType', () {
+      checkEqual(Type('(int,)'), Type('(int,)'));
+      checkNotEqual(Type('(int,)?'), Type('(int,)'));
+      checkNotEqual(Type('(int, T)'), Type('(int,)'));
+      checkNotEqual(Type('(T,)'), Type('(U,)'));
+      checkNotEqual(Type('(int, {T t})'), Type('(int,)'));
+      checkEqual(Type('({T t})'), Type('({T t})'));
+      checkNotEqual(Type('({T t})'), Type('({U t})'));
+      checkNotEqual(Type('({T t})'), Type('({T u})'));
+    });
+
+    test('TypeParameterType', () {
+      checkEqual(Type('T'), Type('T'));
+      checkNotEqual(Type('T?'), Type('T'));
+      checkNotEqual(Type('T'), Type('U'));
+      checkNotEqual(Type('T&int'), Type('T'));
+      checkEqual(Type('T&int'), Type('T&int'));
+      checkNotEqual(Type('T&int'), Type('T&String'));
+    });
+
+    test('UnknownType', () {
+      checkEqual(Type('_'), Type('_'));
+      checkNotEqual(Type('_?'), Type('_'));
+    });
+  });
+
   group('recursivelyDemote:', () {
     group('FunctionType:', () {
       group('return type:', () {

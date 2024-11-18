@@ -11,6 +11,7 @@ import 'dart:core' hide Type;
 
 import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:collection/collection.dart';
 
 /// Surrounds [s] with parentheses if [condition] is `true`, otherwise returns
 /// [s] unchanged.
@@ -63,6 +64,14 @@ class FunctionType extends Type
   }
 
   @override
+  int get hashCode => Object.hash(
+      returnType,
+      const ListEquality().hash(positionalParameters),
+      requiredPositionalParameterCount,
+      const ListEquality().hash(namedParameters),
+      nullabilitySuffix);
+
+  @override
   List<Type> get positionalParameterTypes => positionalParameters;
 
   @override
@@ -70,6 +79,17 @@ class FunctionType extends Type
 
   @override
   List<Never> get typeFormals => const [];
+
+  @override
+  bool operator ==(Object other) =>
+      other is FunctionType &&
+      returnType == other.returnType &&
+      const ListEquality()
+          .equals(positionalParameters, other.positionalParameters) &&
+      requiredPositionalParameterCount ==
+          other.requiredPositionalParameterCount &&
+      const ListEquality().equals(namedParameters, other.namedParameters) &&
+      nullabilitySuffix == other.nullabilitySuffix;
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
@@ -198,6 +218,16 @@ class NamedFunctionParameter
       {required this.isRequired, required this.name, required this.type});
 
   @override
+  int get hashCode => Object.hash(name, type, isRequired);
+
+  @override
+  bool operator ==(Object other) =>
+      other is NamedFunctionParameter &&
+      name == other.name &&
+      type == other.type &&
+      isRequired == other.isRequired;
+
+  @override
   String toString() => [if (isRequired) 'required', type, name].join(' ');
 }
 
@@ -209,6 +239,13 @@ class NamedType implements SharedNamedTypeStructure<Type> {
   final Type type;
 
   NamedType({required this.name, required this.type});
+
+  @override
+  int get hashCode => Object.hash(name, type);
+
+  @override
+  bool operator ==(Object other) =>
+      other is NamedType && name == other.name && type == other.type;
 }
 
 /// Representation of the type `Never` suitable for unit testing of code in the
@@ -276,12 +313,23 @@ class PrimaryType extends Type {
       NullabilitySuffix nullabilitySuffix = NullabilitySuffix.none})
       : this._(nameInfo, args: args, nullabilitySuffix: nullabilitySuffix);
 
+  @override
+  int get hashCode => Object.hash(runtimeType, nameInfo,
+      const ListEquality().hash(args), nullabilitySuffix);
+
   bool get isInterfaceType {
     return nameInfo is InterfaceTypeName;
   }
 
   /// The name of the type.
   String get name => nameInfo.name;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PrimaryType &&
+      nameInfo == other.nameInfo &&
+      const ListEquality().equals(args, other.args) &&
+      nullabilitySuffix == other.nullabilitySuffix;
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
@@ -315,9 +363,6 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
 
   final List<NamedType> namedTypes;
 
-  @override
-  List<NamedType> get sortedNamedTypes => namedTypes;
-
   RecordType({
     required this.positionalTypes,
     required this.namedTypes,
@@ -328,6 +373,23 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
           'namedTypes not properly sorted');
     }
   }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      const ListEquality().hash(positionalTypes),
+      const ListEquality().hash(namedTypes),
+      nullabilitySuffix);
+
+  @override
+  List<NamedType> get sortedNamedTypes => namedTypes;
+
+  @override
+  bool operator ==(Object other) =>
+      other is RecordType &&
+      const ListEquality().equals(positionalTypes, other.positionalTypes) &&
+      const ListEquality().equals(namedTypes, other.namedTypes) &&
+      nullabilitySuffix == other.nullabilitySuffix;
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
@@ -448,13 +510,7 @@ abstract class Type implements SharedTypeStructure<Type> {
 
   const Type._({this.nullabilitySuffix = NullabilitySuffix.none});
 
-  @override
-  int get hashCode => type.hashCode;
-
   String get type => toString();
-
-  @override
-  bool operator ==(Object other) => other is Type && this.type == other.type;
 
   /// Finds the nearest type that doesn't involve the unknown type (`_`).
   ///
@@ -552,6 +608,17 @@ class TypeParameter extends TypeNameInfo
   String get displayName => name;
 
   @override
+  int get hashCode {
+    // To ensure that generic function types with different type formal names
+    // have the same hash code, [FunctionType.hashCode] substitutes in a
+    // consistently-named set of synthetic type formals in place of the type
+    // formals. Since a fresh set of synthetic type formals will be created each
+    // time [FunctionType.hashCode] is called, it's important that two type
+    // formals with the same name (and bound) have the same hash code.
+    return Object.hash(name, bound);
+  }
+
+  @override
   String toString() => name;
 }
 
@@ -574,6 +641,17 @@ class TypeParameterType extends Type {
 
   /// The type parameter's bound.
   Type get bound => typeParameter.bound;
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, typeParameter, promotion, nullabilitySuffix);
+
+  @override
+  bool operator ==(Object other) =>
+      other is TypeParameterType &&
+      typeParameter == other.typeParameter &&
+      promotion == other.promotion &&
+      nullabilitySuffix == other.nullabilitySuffix;
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
@@ -1317,6 +1395,14 @@ class TypeSystem {
 class UnknownType extends Type implements SharedUnknownTypeStructure<Type> {
   const UnknownType({super.nullabilitySuffix = NullabilitySuffix.none})
       : super._();
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, nullabilitySuffix, nullabilitySuffix);
+
+  @override
+  bool operator ==(Object other) =>
+      other is UnknownType && nullabilitySuffix == other.nullabilitySuffix;
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) =>
