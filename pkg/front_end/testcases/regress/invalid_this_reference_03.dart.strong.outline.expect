@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension /* unnamed */ _extension#0 on core::int {
+  method bar = self::_extension#0|bar;
+  method tearoff bar = self::_extension#0|get#bar;
+}
+static extension-member method _extension#0|bar(lowered final core::int #this, {has-declared-initializer core::int baz}) → core::int
+  ;
+static extension-member method _extension#0|get#bar(lowered final core::int #this) → ({baz: core::int}) → core::int
+  return ({core::int baz}) → core::int => self::_extension#0|bar(#this, baz: baz);

@@ -348,6 +348,7 @@ foos
 forbidden
 forces
 foreground
+forgot
 forrest
 forth
 forty
@@ -577,6 +578,7 @@ oo
 oobar
 oocf
 ooo
+oops
 oovf
 opacity
 operate

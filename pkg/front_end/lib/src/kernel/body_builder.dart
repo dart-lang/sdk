@@ -3292,6 +3292,10 @@ class BodyBuilder extends StackListenerImpl
           // semantics, such parameters introduces a new parameter with that
           // name that should be resolved here.
           !_context.isConstructor) {
+        if (declaration.isExtensionTypeInstanceMember) {
+          return new IncompleteErrorGenerator(
+              this, nameToken, fasta.messageNotAConstantExpression);
+        }
         addProblem(
             fasta.messageNotAConstantExpression, nameOffset, nameToken.length);
       }
@@ -7178,8 +7182,13 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("ThisExpression");
     if (context.isScopeReference && isDeclarationInstanceContext) {
       if (thisVariable != null && !inConstructorInitializer) {
-        push(_createReadOnlyVariableAccess(thisVariable!, token,
-            offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
+        if (constantContext != ConstantContext.none) {
+          push(new IncompleteErrorGenerator(
+              this, token, fasta.messageThisAsIdentifier));
+        } else {
+          push(_createReadOnlyVariableAccess(thisVariable!, token,
+              offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
+        }
       } else {
         push(new ThisAccessGenerator(this, token, inInitializerLeftHandSide,
             inFieldInitializer, inLateFieldInitializer));
