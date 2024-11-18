@@ -40,10 +40,10 @@ abstract class EnqueuerListener {
   /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerUsedElement(MemberEntity member);
 
-  /// Called to register that [use] is a pending condition.
-  /// [ConditionalUse.originalConditions] must only contain members that are not known
-  /// to be live yet.
-  void registerPendingConditionalUse(ConditionalUse use);
+  /// Called to register a new conditional impact, [use]. If the conditional
+  /// impact's condition is satisfied, the returned [WorldImpact] will contain
+  /// the implied impact.
+  WorldImpact registerConditionalUse(ConditionalUse use);
 
   /// Called to register that [value] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
