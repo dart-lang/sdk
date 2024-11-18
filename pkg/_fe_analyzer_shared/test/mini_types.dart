@@ -1567,6 +1567,181 @@ class VoidType extends _SpecialSimpleType
   Type withNullability(NullabilitySuffix suffix) => this;
 }
 
+/// Representation of a [FunctionType] that has been parsed but hasn't had
+/// meaning assigned to its identifiers yet.
+class _PreFunctionType extends _PreType {
+  final _PreType returnType;
+  final List<_PreType> positionalParameterTypes;
+  final int requiredPositionalParameterCount;
+  final List<_PreNamedFunctionParameter> namedParameters;
+
+  _PreFunctionType(
+      {required this.returnType,
+      required this.positionalParameterTypes,
+      required this.requiredPositionalParameterCount,
+      required this.namedParameters});
+
+  @override
+  Type materialize() => FunctionType(
+      returnType.materialize(),
+      [
+        for (var positionalParameterType in positionalParameterTypes)
+          positionalParameterType.materialize()
+      ],
+      requiredPositionalParameterCount: requiredPositionalParameterCount,
+      namedParameters: [
+        for (var namedParameter in namedParameters)
+          NamedFunctionParameter(
+              isRequired: namedParameter.isRequired,
+              name: namedParameter.name,
+              type: namedParameter.type.materialize())
+      ]);
+}
+
+/// Representation of a named function parameter in a [_PreFunctionType].
+class _PreNamedFunctionParameter {
+  final String name;
+  final _PreType type;
+  final bool isRequired;
+
+  _PreNamedFunctionParameter(
+      {required this.name, required this.type, required this.isRequired});
+}
+
+/// Representation of a named component of a [_PreRecordType].
+class _PreNamedType {
+  final String name;
+  final _PreType type;
+
+  _PreNamedType({required this.name, required this.type});
+}
+
+/// Representation of a [PrimaryType] or [TypeParameterType] that has been
+/// parsed but hasn't had meaning assigned to its identifiers yet.
+class _PrePrimaryType extends _PreType {
+  final String typeName;
+  final List<_PreType> typeArgs;
+
+  _PrePrimaryType({required this.typeName, required this.typeArgs});
+
+  @override
+  Type materialize() {
+    var nameInfo = TypeRegistry.lookup(typeName);
+    switch (nameInfo) {
+      case TypeParameter():
+        if (typeArgs.isNotEmpty) {
+          throw ParseError('Type parameter types do not accept type arguments');
+        }
+        return TypeParameterType(nameInfo);
+      case InterfaceTypeName():
+        return PrimaryType(nameInfo,
+            args: [for (var typeArg in typeArgs) typeArg.materialize()]);
+      case SpecialTypeName():
+        if (typeName == 'dynamic') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`dynamic` does not accept type arguments');
+          }
+          return DynamicType.instance;
+        } else if (typeName == 'error') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`error` does not accept type arguments');
+          }
+          return InvalidType.instance;
+        } else if (typeName == 'FutureOr') {
+          if (typeArgs.length != 1) {
+            throw ParseError('`FutureOr` requires exactly one type argument');
+          }
+          return FutureOrType(typeArgs.single.materialize());
+        } else if (typeName == 'Never') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`Never` does not accept type arguments');
+          }
+          return NeverType.instance;
+        } else if (typeName == 'Null') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`Null` does not accept type arguments');
+          }
+          return NullType.instance;
+        } else if (typeName == 'void') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`void` does not accept type arguments');
+          }
+          return VoidType.instance;
+        } else {
+          throw UnimplementedError('Unknown special type name: $typeName');
+        }
+    }
+  }
+}
+
+/// Representation of a promoted [TypeParameterType] that has been parsed but
+/// hasn't had meaning assigned to its identifiers yet.
+class _PrePromotedType extends _PreType {
+  final _PreType inner;
+  final _PreType promotion;
+
+  _PrePromotedType({required this.inner, required this.promotion});
+
+  @override
+  Type materialize() {
+    var type = inner.materialize();
+    if (type case TypeParameterType(promotion: null)) {
+      return TypeParameterType(type.typeParameter,
+          promotion: promotion.materialize());
+    } else {
+      throw ParseError(
+          'The type to the left of & must be an unpromoted type parameter');
+    }
+  }
+}
+
+/// Representation of a [RecordType] that has been parsed but hasn't had
+/// meaning assigned to its identifiers yet.
+class _PreRecordType extends _PreType {
+  final List<_PreType> positionalTypes;
+  final List<_PreNamedType> namedTypes;
+
+  _PreRecordType({required this.positionalTypes, required this.namedTypes});
+
+  @override
+  Type materialize() => RecordType(positionalTypes: [
+        for (var positionalType in positionalTypes) positionalType.materialize()
+      ], namedTypes: [
+        for (var namedType in namedTypes)
+          NamedType(name: namedType.name, type: namedType.type.materialize())
+      ]);
+}
+
+/// Representation of a [Type] that has been parsed but hasn't had meaning
+/// assigned to its identifiers yet.
+sealed class _PreType {
+  /// Translates `this` into a [Type].
+  ///
+  /// The meaning of identifiers in `this` is determined by looking them up in
+  /// the [TypeRegistry].
+  Type materialize();
+}
+
+/// Representation of a [Type] with a nullability suffix that has been parsed
+/// but hasn't had meaning assigned to its identifiers yet.
+class _PreTypeWithNullability extends _PreType {
+  final _PreType inner;
+  final NullabilitySuffix nullabilitySuffix;
+
+  _PreTypeWithNullability(
+      {required this.inner, required this.nullabilitySuffix});
+
+  @override
+  Type materialize() => inner.materialize().withNullability(nullabilitySuffix);
+}
+
+/// Representation of an [UnknownType] that has been parsed but hasn't had
+/// meaning assigned to its identifiers yet.
+class _PreUnknownType extends _PreType {
+  @override
+  Type materialize() => const UnknownType();
+}
+
 /// Shared implementation of the types `void`, `dynamic`, `null`, `Never`, and
 /// the invalid type.
 ///
@@ -1628,10 +1803,10 @@ class _TypeParser {
         'Error parsing type `$_typeStr` at token $_currentToken: $message');
   }
 
-  List<NamedFunctionParameter> _parseNamedFunctionParameters() {
+  List<_PreNamedFunctionParameter> _parseNamedFunctionParameters() {
     assert(_currentToken == '{');
     _next();
-    var namedParameters = <NamedFunctionParameter>[];
+    var namedParameters = <_PreNamedFunctionParameter>[];
     while (true) {
       var isRequired = _currentToken == 'required';
       if (isRequired) {
@@ -1642,7 +1817,7 @@ class _TypeParser {
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      namedParameters.add(NamedFunctionParameter(
+      namedParameters.add(_PreNamedFunctionParameter(
           name: name, type: type, isRequired: isRequired));
       _next();
       if (_currentToken == ',') {
@@ -1659,7 +1834,8 @@ class _TypeParser {
     return namedParameters;
   }
 
-  void _parseOptionalFunctionParameters(List<Type> positionalParameterTypes) {
+  void _parseOptionalFunctionParameters(
+      List<_PreType> positionalParameterTypes) {
     assert(_currentToken == '[');
     _next();
     while (true) {
@@ -1677,17 +1853,17 @@ class _TypeParser {
     _next();
   }
 
-  List<NamedType> _parseRecordTypeNamedFields() {
+  List<_PreNamedType> _parseRecordTypeNamedFields() {
     assert(_currentToken == '{');
     _next();
-    var namedTypes = <NamedType>[];
+    var namedTypes = <_PreNamedType>[];
     while (_currentToken != '}') {
       var type = _parseType();
       var name = _currentToken;
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      namedTypes.add(NamedType(name: name, type: type));
+      namedTypes.add(_PreNamedType(name: name, type: type));
       _next();
       if (_currentToken == ',') {
         _next();
@@ -1706,8 +1882,8 @@ class _TypeParser {
     return namedTypes;
   }
 
-  Type _parseRecordTypeRest(List<Type> positionalTypes) {
-    List<NamedType>? namedTypes;
+  _PreRecordType _parseRecordTypeRest(List<_PreType> positionalTypes) {
+    List<_PreNamedType>? namedTypes;
     while (_currentToken != ')') {
       if (_currentToken == '{') {
         namedTypes = _parseRecordTypeNamedFields();
@@ -1727,34 +1903,31 @@ class _TypeParser {
       _parseFailure('Expected `)` or `,`');
     }
     _next();
-    return RecordType(
+    return _PreRecordType(
         positionalTypes: positionalTypes, namedTypes: namedTypes ?? const []);
   }
 
-  Type? _parseSuffix(Type type) {
+  _PreType? _parseSuffix(_PreType type) {
     if (_currentToken == '?') {
       _next();
-      return type.withNullability(NullabilitySuffix.question);
+      return _PreTypeWithNullability(
+          inner: type, nullabilitySuffix: NullabilitySuffix.question);
     } else if (_currentToken == '*') {
       _next();
-      return type.withNullability(NullabilitySuffix.star);
+      return _PreTypeWithNullability(
+          inner: type, nullabilitySuffix: NullabilitySuffix.star);
     } else if (_currentToken == '&') {
-      if (type case TypeParameterType(promotion: null)) {
-        _next();
-        var promotion = _parseUnsuffixedType();
-        return TypeParameterType(type.typeParameter, promotion: promotion);
-      } else {
-        _parseFailure(
-            'The type to the left of & must be an unpromoted type parameter');
-      }
+      _next();
+      var promotion = _parseUnsuffixedType();
+      return _PrePromotedType(inner: type, promotion: promotion);
     } else if (_currentToken == 'Function') {
       _next();
       if (_currentToken != '(') {
         _parseFailure('Expected `(`');
       }
       _next();
-      var positionalParameterTypes = <Type>[];
-      List<NamedFunctionParameter>? namedFunctionParameters;
+      var positionalParameterTypes = <_PreType>[];
+      List<_PreNamedFunctionParameter>? namedFunctionParameters;
       int? requiredPositionalParameterCount;
       if (_currentToken != ')') {
         while (true) {
@@ -1781,7 +1954,9 @@ class _TypeParser {
         }
       }
       _next();
-      return FunctionType(type, positionalParameterTypes,
+      return _PreFunctionType(
+          returnType: type,
+          positionalParameterTypes: positionalParameterTypes,
           requiredPositionalParameterCount: requiredPositionalParameterCount ??
               positionalParameterTypes.length,
           namedParameters: namedFunctionParameters ?? const []);
@@ -1790,7 +1965,7 @@ class _TypeParser {
     }
   }
 
-  Type _parseType() {
+  _PreType _parseType() {
     // We currently accept the following grammar for types:
     //   type := unsuffixedType nullability suffix*
     //   unsuffixedType := identifier typeArgs?
@@ -1825,10 +2000,10 @@ class _TypeParser {
     return result;
   }
 
-  Type _parseUnsuffixedType() {
+  _PreType _parseUnsuffixedType() {
     if (_currentToken == '_') {
       _next();
-      return const UnknownType();
+      return _PreUnknownType();
     }
     if (_currentToken == '(') {
       _next();
@@ -1851,7 +2026,7 @@ class _TypeParser {
       _parseFailure('Expected an identifier, `_`, or `(`');
     }
     _next();
-    List<Type> typeArgs;
+    List<_PreType> typeArgs;
     if (_currentToken == '<') {
       _next();
       typeArgs = [];
@@ -1867,50 +2042,7 @@ class _TypeParser {
     } else {
       typeArgs = const [];
     }
-    var nameInfo = TypeRegistry.lookup(typeName);
-    switch (nameInfo) {
-      case TypeParameter():
-        if (typeArgs.isNotEmpty) {
-          throw ParseError('Type parameter types do not accept type arguments');
-        }
-        return TypeParameterType(nameInfo);
-      case InterfaceTypeName():
-        return PrimaryType(nameInfo, args: typeArgs);
-      case SpecialTypeName():
-        if (typeName == 'dynamic') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`dynamic` does not accept type arguments');
-          }
-          return DynamicType.instance;
-        } else if (typeName == 'error') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`error` does not accept type arguments');
-          }
-          return InvalidType.instance;
-        } else if (typeName == 'FutureOr') {
-          if (typeArgs.length != 1) {
-            throw ParseError('`FutureOr` requires exactly one type argument');
-          }
-          return FutureOrType(typeArgs.single);
-        } else if (typeName == 'Never') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`Never` does not accept type arguments');
-          }
-          return NeverType.instance;
-        } else if (typeName == 'Null') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`Null` does not accept type arguments');
-          }
-          return NullType.instance;
-        } else if (typeName == 'void') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`void` does not accept type arguments');
-          }
-          return VoidType.instance;
-        } else {
-          throw UnimplementedError('Unknown special type name: $typeName');
-        }
-    }
+    return _PrePrimaryType(typeName: typeName, typeArgs: typeArgs);
   }
 
   static Type parse(String typeStr) {
@@ -1920,7 +2052,7 @@ class _TypeParser {
       throw ParseError('Extra tokens after parsing type `$typeStr`: '
           '${parser._tokens.sublist(parser._i, parser._tokens.length - 1)}');
     }
-    return result;
+    return result.materialize();
   }
 
   static List<String> _tokenizeTypeStr(String typeStr) {
