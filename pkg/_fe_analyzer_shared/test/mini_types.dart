@@ -112,6 +112,25 @@ class FunctionType extends Type
   }
 
   @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    returnType.gatherUsedIdentifiers(identifiers);
+    for (var positionalParameter in positionalParameters) {
+      positionalParameter.gatherUsedIdentifiers(identifiers);
+    }
+    for (var typeFormal in typeFormals) {
+      identifiers.add(typeFormal.name);
+    }
+    for (var namedParameter in namedParameters) {
+      // As explained in the documentation for `Type.gatherUsedIdentifiers`,
+      // to reduce the risk of confusion, this method is generous in which
+      // identifiers it reports. So report `namedParameter.name` even though
+      // it's not strictly necessary.
+      identifiers.add(namedParameter.name);
+      namedParameter.type.gatherUsedIdentifiers(identifiers);
+    }
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) {
     Type? newReturnType = returnType.recursivelyDemote(covariant: covariant);
     List<Type>? newPositionalParameters =
@@ -384,6 +403,14 @@ class PrimaryType extends Type {
   }
 
   @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    identifiers.add(name);
+    for (var arg in args) {
+      arg.gatherUsedIdentifiers(identifiers);
+    }
+  }
+
+  @override
   Type? recursivelyDemote({required bool covariant}) {
     List<Type>? newArgs = args.recursivelyDemote(covariant: covariant);
     if (newArgs == null) return null;
@@ -465,6 +492,21 @@ class RecordType extends Type implements SharedRecordTypeStructure<Type> {
       namedTypes: newNamed ?? namedTypes,
       nullabilitySuffix: nullabilitySuffix,
     );
+  }
+
+  @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    for (var type in positionalTypes) {
+      type.gatherUsedIdentifiers(identifiers);
+    }
+    for (var namedType in namedTypes) {
+      // As explained in the documentation for `Type.gatherUsedIdentifiers`,
+      // to reduce the risk of confusion, this method is generous in which
+      // identifiers it reports. So report `namedType.name` even though it's
+      // not strictly necessary.
+      identifiers.add(namedType.name);
+      namedType.type.gatherUsedIdentifiers(identifiers);
+    }
   }
 
   @override
@@ -580,6 +622,21 @@ abstract class Type implements SharedTypeStructure<Type>, _Substitutable<Type> {
   /// `Object?`); otherwise a subtype will be returned (replacing `_` with
   /// `Never`).
   Type? closureWithRespectToUnknown({required bool covariant});
+
+  /// Recursively visits `this`, gathering up all the identifiers that appear in
+  /// it, and adds them to the set [identifiers].
+  ///
+  /// This method is intended to aid in choosing safe names for substitutions.
+  /// For example, it can be used to determine that in a type like
+  /// `T Function<U>(U)`, it's not safe to rename the type variable `U` to `T`,
+  /// since that would conflict with an existing use of `T`.
+  ///
+  /// To lower the risk of confusion, it is generous in which identifiers it
+  /// reports. For example, in the type `void Function<T>({T X})`, it reports
+  /// `X` as a used identifier. This is because even though it would technically
+  /// be safe to rename the type variable `T` to `X`, to do so would be result
+  /// in a confusing type.
+  void gatherUsedIdentifiers(Set<String> identifiers);
 
   @override
   String getDisplayString() => type;
@@ -722,6 +779,12 @@ class TypeParameterType extends Type {
     if (newPromotion == null) return null;
     return TypeParameterType(typeParameter,
         promotion: newPromotion, nullabilitySuffix: nullabilitySuffix);
+  }
+
+  @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    identifiers.add(typeParameter.name);
+    promotion?.gatherUsedIdentifiers(identifiers);
   }
 
   @override
@@ -1473,6 +1536,9 @@ class UnknownType extends Type implements SharedUnknownTypeStructure<Type> {
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) =>
       covariant ? Type('Object?') : NeverType.instance;
+
+  @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {}
 
   @override
   Type? recursivelyDemote({required bool covariant}) => null;

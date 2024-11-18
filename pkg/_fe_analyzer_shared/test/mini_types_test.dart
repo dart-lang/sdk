@@ -1021,6 +1021,47 @@ main() {
     });
   });
 
+  group('gatherUsedIdentifiers:', () {
+    Set<String> queryUsedIdentifiers(Type t) {
+      var identifiers = <String>{};
+      t.gatherUsedIdentifiers(identifiers);
+      return identifiers;
+    }
+
+    test('FunctionType', () {
+      expect(queryUsedIdentifiers(Type('int Function(String, {bool b})')),
+          unorderedEquals({'int', 'String', 'bool', 'b'}));
+    });
+
+    test('PrimaryType', () {
+      expect(queryUsedIdentifiers(Type('Map<String, int>')),
+          unorderedEquals({'Map', 'String', 'int'}));
+      expect(
+          queryUsedIdentifiers(Type('dynamic')), unorderedEquals({'dynamic'}));
+      expect(queryUsedIdentifiers(Type('error')), unorderedEquals({'error'}));
+      expect(queryUsedIdentifiers(Type('Never')), unorderedEquals({'Never'}));
+      expect(queryUsedIdentifiers(Type('Null')), unorderedEquals({'Null'}));
+      expect(queryUsedIdentifiers(Type('void')), unorderedEquals({'void'}));
+      expect(queryUsedIdentifiers(Type('FutureOr<int>')),
+          unorderedEquals({'FutureOr', 'int'}));
+    });
+
+    test('RecordType', () {
+      expect(queryUsedIdentifiers(Type('(int, {String s})')),
+          unorderedEquals({'int', 'String', 's'}));
+    });
+
+    test('TypeParameterType', () {
+      expect(queryUsedIdentifiers(Type('T')), unorderedEquals({'T'}));
+      expect(
+          queryUsedIdentifiers(Type('T&int')), unorderedEquals({'T', 'int'}));
+    });
+
+    test('UnknownType', () {
+      expect(queryUsedIdentifiers(Type('_')), isEmpty);
+    });
+  });
+
   group('substitute:', () {
     test('FunctionType', () {
       expect(Type('int Function(int, {int i})').substitute({t: Type('String')}),
