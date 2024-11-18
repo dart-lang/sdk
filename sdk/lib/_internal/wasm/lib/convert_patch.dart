@@ -1980,13 +1980,6 @@ class _Utf8Decoder {
     82, 82, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98,
   ]);
 
-  /// Max chunk to scan at a time.
-  ///
-  /// Avoids staying away from safepoints too long.
-  /// The Utf8ScanInstr relies on this being small enough to ensure the
-  /// decoded length stays within Smi range.
-  static const int scanChunkSize = 65536;
-
   /// Reset the decoder to a state where it is ready to decode a new string but
   /// will not skip a leading BOM. Used by the fused UTF-8 / JSON decoder.
   void reset() {
@@ -1995,20 +1988,6 @@ class _Utf8Decoder {
   }
 
   int scan(Uint8List bytes, int start, int end) {
-    // Assumes 0 <= start <= end <= bytes.length
-    int size = 0;
-    _scanFlags = 0;
-    int localStart = start;
-    while (end - localStart > scanChunkSize) {
-      int localEnd = localStart + scanChunkSize;
-      size += _scan(bytes, localStart, localEnd);
-      localStart = localEnd;
-    }
-    size += _scan(bytes, localStart, end);
-    return size;
-  }
-
-  int _scan(Uint8List bytes, int start, int end) {
     int size = 0;
     int flags = 0;
     for (int i = start; i < end; i++) {
