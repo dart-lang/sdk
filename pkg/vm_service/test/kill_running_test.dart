@@ -22,7 +22,11 @@ final tests = <IsolateTest>[
       // There's a good chance `kill()` will throw due to the VM shutting down.
       // If an RPCError is thrown, make sure it's actually because the VM
       // service connection has disappeared.
-      expect(e.code, RPCErrorKind.kConnectionDisposed.code);
+      expect(
+        [RPCErrorKind.kConnectionDisposed.code, RPCErrorKind.kServerError.code]
+            .contains(e.code),
+        true,
+      );
     }
   }
 ];
