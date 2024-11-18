@@ -41,7 +41,7 @@ Future<void> main(List<String> args) async {
 
   {
     // Weak suite with fuzzing.
-    Uri weakSuite = Platform.script.resolve("fasta/weak_suite.dart");
+    Uri weakSuite = Platform.script.resolve("weak_suite.dart");
     if (!new File.fromUri(weakSuite).existsSync()) {
       exitCode = 1;
       print("Couldn't find $weakSuite");
@@ -58,7 +58,7 @@ Future<void> main(List<String> args) async {
 
   {
     // Strong suite with fuzzing.
-    Uri strongSuite = Platform.script.resolve("fasta/strong_suite.dart");
+    Uri strongSuite = Platform.script.resolve("strong_suite.dart");
     if (!new File.fromUri(strongSuite).existsSync()) {
       exitCode = 1;
       print("Couldn't find $strongSuite");
@@ -91,7 +91,7 @@ Future<void> main(List<String> args) async {
   {
     // Expression suite with fuzzing.
     Uri expressionSuite =
-        Platform.script.resolve("fasta/expression_suite.dart");
+        Platform.script.resolve("expression_suite.dart");
     if (!new File.fromUri(expressionSuite).existsSync()) {
       exitCode = 1;
       print("Couldn't find $expressionSuite");
