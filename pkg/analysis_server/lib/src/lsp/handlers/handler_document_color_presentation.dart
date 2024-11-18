@@ -253,8 +253,7 @@ class DocumentColorPresentationHandler
           parent is PrefixedIdentifier ? parent.element : node.element;
 
       return switch (element) {
-        GetterElement(:var variable3) || SetterElement(:var variable3) =>
-          variable3?.isConst ?? false,
+        PropertyAccessorElement2(:var variable3) => variable3?.isConst ?? false,
         VariableElement2() => element.isConst,
         _ => false,
       };

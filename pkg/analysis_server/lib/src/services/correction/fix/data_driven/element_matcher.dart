@@ -7,13 +7,12 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element2.dart'
     show
+        ExtensionElement2,
+        InterfaceElement2,
         LibraryElement2,
         LibraryFragment,
-        ExtensionElement2,
-        GetterElement,
-        InterfaceElement2,
         PrefixElement2,
-        SetterElement;
+        PropertyAccessorElement2;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -546,8 +545,8 @@ class _MatcherBuilder {
         var element = node.element;
         // Add enclosing element to the matcher for non top level property
         // accessors when possible.
-        if (element is GetterElement || element is SetterElement) {
-          var enclosingElement = element?.enclosingElement2;
+        if (element is PropertyAccessorElement2) {
+          var enclosingElement = element.enclosingElement2;
           if (enclosingElement is! LibraryElement2) {
             _addMatcher(
               components: [node.name, (enclosingElement?.displayName)!],

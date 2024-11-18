@@ -372,8 +372,7 @@ extension ElementExtension on Element {
 
 extension ElementExtension2 on Element2? {
   Element2? get canonicalElement2 => switch (this) {
-        GetterElement(:var variable3) => variable3,
-        SetterElement(:var variable3) => variable3,
+        PropertyAccessorElement2(:var variable3) => variable3,
         _ => this,
       };
 
@@ -549,11 +548,9 @@ extension InhertanceManager3Extension on InheritanceManager3 {
     switch (member) {
       case FieldElement2():
         executable = member.getter2;
-      case GetterElement():
-        executable = member;
       case MethodElement2():
         executable = member;
-      case SetterElement():
+      case PropertyAccessorElement2():
         executable = member;
     }
 

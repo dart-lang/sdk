@@ -291,8 +291,7 @@ enum _VariableType {
 
 extension on Element2? {
   bool matches(VariableElement2? variable) => switch (this) {
-        GetterElement(:var variable3) => variable3 == variable,
-        SetterElement(:var variable3) => variable3 == variable,
+        PropertyAccessorElement2(:var variable3) => variable3 == variable,
         _ => false,
       };
 }

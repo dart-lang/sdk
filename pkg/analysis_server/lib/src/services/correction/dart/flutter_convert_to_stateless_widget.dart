@@ -303,8 +303,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
     if (node.inSetterContext()) {
       var element = node.writeOrReadElement2;
       var field = switch (element) {
-        GetterElement(:var variable3) => variable3,
-        SetterElement(:var variable3) => variable3,
+        PropertyAccessorElement2(:var variable3) => variable3,
         _ => null,
       };
       if (field is FieldElement2) {

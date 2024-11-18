@@ -1240,7 +1240,7 @@ class ParameterMember extends VariableMember
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
 abstract class PropertyAccessorMember extends ExecutableMember
-    implements PropertyAccessorElement {
+    implements PropertyAccessorElement, PropertyAccessorElement2 {
   factory PropertyAccessorMember(
     PropertyAccessorElement declaration,
     MapSubstitution augmentationSubstitution,

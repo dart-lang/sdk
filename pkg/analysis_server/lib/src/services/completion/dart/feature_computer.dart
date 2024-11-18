@@ -257,13 +257,7 @@ class FeatureComputer {
       return protocol.ElementKind.CLASS;
     } else if (element is FieldElement2 && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
-    } else if (element is GetterElement) {
-      var variable = element.variable3;
-      if (variable == null) {
-        return protocol.ElementKind.UNKNOWN;
-      }
-      element = variable;
-    } else if (element is SetterElement) {
+    } else if (element is PropertyAccessorElement2) {
       var variable = element.variable3;
       if (variable == null) {
         return protocol.ElementKind.UNKNOWN;
@@ -467,12 +461,7 @@ class FeatureComputer {
       return 1.0;
     } else if (element is TopLevelVariableElement2 && element.isConst) {
       return 1.0;
-    } else if (element is GetterElement && element.isSynthetic) {
-      var variable = element.variable3;
-      if (variable != null && variable.isStatic && variable.isConst) {
-        return 1.0;
-      }
-    } else if (element is SetterElement && element.isSynthetic) {
+    } else if (element is PropertyAccessorElement2 && element.isSynthetic) {
       var variable = element.variable3;
       if (variable != null && variable.isStatic && variable.isConst) {
         return 1.0;

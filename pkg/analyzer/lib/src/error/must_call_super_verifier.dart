@@ -123,10 +123,8 @@ class MustCallSuperVerifier {
       if (member is MethodElement2 && member.metadata2.hasMustCallSuper) {
         return member;
       }
-      if (member is GetterElement && member.metadata2.hasMustCallSuper) {
-        return member;
-      }
-      if (member is SetterElement && member.metadata2.hasMustCallSuper) {
+      if (member is PropertyAccessorElement2 &&
+          member.metadata2.hasMustCallSuper) {
         return member;
       }
       // TODO(srawlins): What about a field annotated with `@mustCallSuper`?
