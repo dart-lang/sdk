@@ -17,6 +17,8 @@ import '../../Iterators/dart/Iterators.dart' deferred as lib_Iterators;
 import '../../ListCopy/dart/ListCopy.dart' deferred as lib_ListCopy;
 import '../../MD5/dart/md5.dart' deferred as lib_MD5;
 import '../../MapCopy/dart/MapCopy.dart' deferred as lib_MapCopy;
+import '../../MultipleReturns/dart/MultipleReturns.dart'
+    deferred as lib_MultipleReturns;
 import '../../RecordCollections/dart/RecordCollections.dart'
     deferred as lib_RecordCollections;
 import '../../RuntimeType/dart/RuntimeType.dart' deferred as lib_RuntimeType;
@@ -48,6 +50,8 @@ final Map<String, Lib> benchmarks = {
   'ListCopy': Lib(lib_ListCopy.loadLibrary, () => lib_ListCopy.main()),
   'MapCopy': Lib(lib_MapCopy.loadLibrary, () => lib_MapCopy.main([])),
   'MD5': Lib(lib_MD5.loadLibrary, () => lib_MD5.main()),
+  'MultipleReturns':
+      Lib(lib_MultipleReturns.loadLibrary, () => lib_MultipleReturns.main()),
   'RecordCollections': Lib(
     lib_RecordCollections.loadLibrary,
     () => lib_RecordCollections.main(),
