@@ -74,6 +74,12 @@ main() {
             'T Function(U, {V y})');
       });
 
+      test('type formals', () {
+        expect(
+            FunctionType(VoidType.instance, [], typeFormals: [t, u]).toString(),
+            'void Function<T, U>()');
+      });
+
       test('needs parentheses', () {
         expect(
             TypeParameterType(t, promotion: FunctionType(VoidType.instance, []))
@@ -219,7 +225,7 @@ main() {
     });
   });
 
-  group('parse', () {
+  group('parse:', () {
     var throwsParseError = throwsA(TypeMatcher<ParseError>());
 
     group('primary type:', () {
@@ -409,6 +415,43 @@ main() {
         expect(type.namedParameters[1].name, 'y');
       });
 
+      group('type formals:', () {
+        test('single', () {
+          var type = Type('int Function<T>()') as FunctionType;
+          expect(type.typeFormals, hasLength(1));
+          expect(type.typeFormals[0].name, 'T');
+        });
+
+        test('multiple', () {
+          var type = Type('int Function<T, U>()') as FunctionType;
+          expect(type.typeFormals, hasLength(2));
+          expect(type.typeFormals[0].name, 'T');
+          expect(type.typeFormals[1].name, 'U');
+        });
+
+        test('return type and parameters can refer to type formal', () {
+          var type = Type('T Function<T>(T, {T t})') as FunctionType;
+          var t = type.typeFormals.single;
+          expect((type.returnType as TypeParameterType).typeParameter, same(t));
+          expect(
+              (type.positionalParameters.single as TypeParameterType)
+                  .typeParameter,
+              same(t));
+          expect(
+              (type.namedParameters.single.type as TypeParameterType)
+                  .typeParameter,
+              same(t));
+        });
+
+        test('invalid token in type formals', () {
+          expect(() => Type('int Function<{>()'), throwsParseError);
+        });
+
+        test('invalid token at end of type formals', () {
+          expect(() => Type('int Function<T}()'), throwsParseError);
+        });
+      });
+
       test('invalid parameter separator', () {
         expect(() => Type('int Function(String Function()< double)'),
             throwsParseError);
@@ -551,6 +594,25 @@ main() {
           Type('void Function({T t})'), Type('void Function({required T t})'));
       checkNotEqual(Type('void Function({T t})'), Type('void Function({U t})'));
       checkNotEqual(Type('void Function({T t})'), Type('void Function({T u})'));
+      checkNotEqual(Type('void Function()'), Type('void Function<T>()'));
+      checkNotEqual(Type('void Function<T, U>(T, U)?'),
+          Type('void Function<U, T>(U, T)'));
+      checkEqual(
+          Type('void Function<T, U>(T, U)'), Type('void Function<U, T>(U, T)'));
+      checkNotEqual(
+          Type('void Function<T, U>(T, U)'), Type('void Function<T, U>(U, T)'));
+      checkEqual(Type('void Function<T, U>({T p1, U p2})'),
+          Type('void Function<U, T>({U p1, T p2})'));
+      checkNotEqual(Type('void Function<T, U>({T p1, U p2})'),
+          Type('void Function<T, U>({U p1, T p2})'));
+
+      // For these final test cases, we give one of the type parameters a name
+      // that would be chosen by `FreshTypeParameterGenerator`, to verify that
+      // the logic for avoiding name collisions does the right thing.
+      var t = FreshTypeParameterGenerator().generate().name;
+      checkEqual(Type('$t Function<$t>()'), Type('U Function<U>()'));
+      checkNotEqual(Type('void Function<$t>(X Function<X>($t))'),
+          Type('void Function<$t>($t Function<X>($t))'));
     });
 
     test('PrimaryType', () {
@@ -594,11 +656,44 @@ main() {
       checkNotEqual(Type('T&int'), Type('T'));
       checkEqual(Type('T&int'), Type('T&int'));
       checkNotEqual(Type('T&int'), Type('T&String'));
+      // Type formals from different function types are not equal
+      checkNotEqual(
+          TypeParameterType(
+              (Type('void Function<T>()') as FunctionType).typeFormals.single),
+          TypeParameterType(
+              (Type('void Function<T>()') as FunctionType).typeFormals.single));
     });
 
     test('UnknownType', () {
       checkEqual(Type('_'), Type('_'));
       checkNotEqual(Type('_?'), Type('_'));
+    });
+  });
+
+  group('FreshTypeParameterGenerator:', () {
+    test('generates type parameters with a bound of Object?', () {
+      var ftpg = FreshTypeParameterGenerator();
+      expect(ftpg.generate().bound.toString(), 'Object?');
+      expect(ftpg.generate().bound.toString(), 'Object?');
+      expect(ftpg.generate().bound.toString(), 'Object?');
+    });
+
+    test('generates a fresh name each time generate is called', () {
+      var ftpg = FreshTypeParameterGenerator();
+      expect(ftpg.generate().name, 'T0');
+      expect(ftpg.generate().name, 'T1');
+      expect(ftpg.generate().name, 'T2');
+    });
+
+    test('skips names appearing in types passed to excludeNamesUsedIn', () {
+      var ftpg = FreshTypeParameterGenerator();
+      TypeRegistry.addInterfaceTypeName('T0');
+      TypeRegistry.addInterfaceTypeName('T2');
+      TypeRegistry.addInterfaceTypeName('T3');
+      ftpg.excludeNamesUsedIn(Type('T0<T2, T3>'));
+      expect(ftpg.generate().name, 'T1');
+      expect(ftpg.generate().name, 'T4');
+      expect(ftpg.generate().name, 'T5');
     });
   });
 
@@ -624,6 +719,14 @@ main() {
                   .recursivelyDemote(covariant: false)!
                   .type,
               'Never Function()');
+        });
+
+        test('generic', () {
+          expect(
+              Type('T&int Function<U>()')
+                  .recursivelyDemote(covariant: true)!
+                  .type,
+              'T Function<U>()');
         });
       });
 
@@ -841,6 +944,14 @@ main() {
                   .type,
               'Never Function()');
         });
+
+        test('generic', () {
+          expect(
+              Type('_ Function<T>()')
+                  .closureWithRespectToUnknown(covariant: true)!
+                  .type,
+              'Object? Function<T>()');
+        });
       });
 
       group('positional parameters:', () {
@@ -1029,8 +1140,8 @@ main() {
     }
 
     test('FunctionType', () {
-      expect(queryUsedIdentifiers(Type('int Function(String, {bool b})')),
-          unorderedEquals({'int', 'String', 'bool', 'b'}));
+      expect(queryUsedIdentifiers(Type('int Function<X>(String, {bool b})')),
+          unorderedEquals({'int', 'X', 'String', 'bool', 'b'}));
     });
 
     test('PrimaryType', () {
@@ -1064,14 +1175,26 @@ main() {
 
   group('substitute:', () {
     test('FunctionType', () {
-      expect(Type('int Function(int, {int i})').substitute({t: Type('String')}),
+      expect(
+          Type('int Function<U>(int, {int i})').substitute({t: Type('String')}),
           isNull);
-      expect(Type('T Function(int, {int i})').substitute({t: Type('String')}),
-          Type('String Function(int, {int i})'));
-      expect(Type('int Function(T, {int i})?').substitute({t: Type('String')}),
-          Type('int Function(String, {int i})?'));
-      expect(Type('int Function(int, {T i})').substitute({t: Type('String')}),
-          Type('int Function(int, {String i})'));
+      expect(
+          Type('T Function<U>(int, {int i})').substitute({t: Type('String')}),
+          Type('String Function<U>(int, {int i})'));
+      expect(
+          Type('int Function<U>(T, {int i})?').substitute({t: Type('String')}),
+          Type('int Function<U>(String, {int i})?'));
+      expect(
+          Type('int Function<U>(int, {T i})').substitute({t: Type('String')}),
+          Type('int Function<U>(int, {String i})'));
+      expect(
+          (Type('int Function<U>(int, {int i})') as FunctionType)
+              .substitute({t: Type('String')}, dropTypeFormals: true),
+          Type('int Function(int, {int i})'));
+      expect(
+          (Type('int Function<U>(int, {int i})?') as FunctionType)
+              .substitute({t: Type('String')}, dropTypeFormals: true),
+          Type('int Function(int, {int i})?'));
       expect(Type('int Function(T, T)').substitute({t: Type('String')}),
           Type('int Function(String, String)'));
       expect(Type('int Function({T t1, T t2})').substitute({t: Type('String')}),
