@@ -701,11 +701,12 @@ f(String s) {
   E(s).foo();
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 69, 1),
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 71,
+          1),
     ]);
     var override = findNode.extensionOverride('E(s)');
-    assertElementTypes(override.typeArgumentTypes, ['String']);
-    assertType(override.extendedType, 'String');
+    assertElementTypes(override.typeArgumentTypes, ['num']);
+    assertType(override.extendedType, 'num');
   }
 
   test_override_inferTypeArguments_getter() async {

@@ -1983,19 +1983,19 @@ library
         static c @78
           reference: <testLibraryFragment>::@topLevelVariable::c
           enclosingElement3: <testLibraryFragment>
-          type: C<dynamic>
+          type: C<num>
           shouldUseTypeForInitializerInference: false
       accessors
         synthetic static get c @-1
           reference: <testLibraryFragment>::@getter::c
           enclosingElement3: <testLibraryFragment>
-          returnType: C<dynamic>
+          returnType: C<num>
         synthetic static set c= @-1
           reference: <testLibraryFragment>::@setter::c
           enclosingElement3: <testLibraryFragment>
           parameters
             requiredPositional _c @-1
-              type: C<dynamic>
+              type: C<num>
           returnType: void
 ----------------------------------------
 library
@@ -2061,7 +2061,7 @@ library
     hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: <testLibraryFragment>::@topLevelVariable::c
-      type: C<dynamic>
+      type: C<num>
       getter: <testLibraryFragment>::@getter::c#element
       setter: <testLibraryFragment>::@setter::c#element
   getters
@@ -2072,7 +2072,7 @@ library
       firstFragment: <testLibraryFragment>::@setter::c
       formalParameters
         requiredPositional _c
-          type: C<dynamic>
+          type: C<num>
 ''');
   }
 

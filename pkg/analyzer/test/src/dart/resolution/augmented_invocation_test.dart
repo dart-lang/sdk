@@ -282,15 +282,13 @@ part 'test.dart';
 T foo<T extends num>(T a) => throw 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 part of 'a.dart';
 
 augment void foo<T2 extends num>(T2 a) {
   augmented('');
 }
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 62, 9),
-    ]);
+''');
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -304,7 +302,7 @@ AugmentedInvocation
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
   element2: package:test/a.dart::@function::foo
-  staticType: String
+  staticType: num
 ''');
   }
 

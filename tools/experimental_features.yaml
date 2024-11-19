@@ -142,9 +142,6 @@ features:
     experimentalReleaseVersion: '3.6.0'
     help: "Augmentations - enhancing declarations from outside"
 
-  inference-using-bounds:
-    help: "Use type parameter bounds more extensively in type inference."
-
   inference-update-4:
     help: "A bundle of updates to type inference."
 
@@ -163,6 +160,17 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  inference-using-bounds:
+    enabledIn: '3.7.0'
+    validation: |
+      import 'dart:async';
+      foo<T extends Object>(T? t) => throw 42;
+      bar(FutureOr<Object?> x) => foo(x);
+      main() {
+        print('feature enabled');
+      }
+    help: "Use type parameter bounds more extensively in type inference."
 
   wildcard-variables:
     enabledIn: '3.7.0'

@@ -348,7 +348,7 @@ class ExperimentalFeatures {
     documentation:
         'Use type parameter bounds more extensively in type inference.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.7.0'),
   );
 
   static final inline_class = ExperimentalFeature(
@@ -606,7 +606,7 @@ class IsEnabledByDefault {
   static const bool inference_update_4 = false;
 
   /// Default state of the experiment "inference-using-bounds"
-  static const bool inference_using_bounds = false;
+  static const bool inference_using_bounds = true;
 
   /// Default state of the experiment "inline-class"
   static const bool inline_class = true;

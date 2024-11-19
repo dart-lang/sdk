@@ -207,11 +207,11 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag inferenceUsingBounds = const ExperimentalFlag(
     name: 'inference-using-bounds',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    enabledVersion: const Version(3, 7),
+    experimentEnabledVersion: const Version(3, 7),
+    experimentReleasedVersion: const Version(3, 7),
   );
 
   static const ExperimentalFlag inlineClass = const ExperimentalFlag(

@@ -4798,16 +4798,16 @@ IncorrectTypeArgumentInferred:
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
-    void foo<T extends num>(T t) {}
-    main() { foo("bar"); }
+    foo<T extends List<S>, S extends num>(T t) {}
+    main() { foo(<String>[""]); }
 
 IncorrectTypeArgumentQualifiedInferred:
   problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: >
-    class C<T> { foo<U extends num>(U u) {} }
-    main() { new C<String>().foo(""); }
+    class A { foo<T extends List<S>, S extends num>(T t) {} }
+    main() { new A().foo(<String>[""]); }
 
 IncorrectTypeArgumentInstantiation:
   problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
@@ -4824,9 +4824,9 @@ IncorrectTypeArgumentInstantiationInferred:
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
   script: |
-    X bounded<X extends num>(X x) => x;
+    X bounded<X extends List<Y>, Y extends num>(X x) => x;
     main() {
-      String Function(String) c = bounded;
+      List<String> Function(List<String>) c = bounded;
     }
 
 IncorrectTypeArgumentVariable:

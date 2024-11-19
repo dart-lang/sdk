@@ -35,9 +35,9 @@ void main() {
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 // [cfe] The getter 'e1' isn't defined for the class 'String'.
   E1(s).e1;
-//^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1|get#e1'.
+//   ^
+// [analyzer] COMPILE_TIME_ERROR.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE
+// [cfe] The argument type 'String' can't be assigned to the parameter type 'num'.
   E1<String>(s).e1;
 //^
 // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1|get#e1'.
@@ -78,17 +78,17 @@ void main() {
   // Inferred type int for method type parameter doesn't match the inferred
   // bound of String
   s.f3(3);
-//  ^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
+//     ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'String'.
   E3(s).f3(3);
-//      ^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'String'.
   E3<String>(s).f3(3);
-//              ^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
+//                 ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'String'.
 
   // Inferred type int for method type parameter is ok
   i.f3(3);
@@ -98,17 +98,17 @@ void main() {
   // Inferred type int for method type parameter doesn't match the inferred
   // bound of double
   d.f3(3);
-//  ^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
+//     ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'double'.
   E3(d).f3(3);
-//      ^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
+//         ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'double'.
   E3<double>(d).f3(3);
-//              ^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
+//                 ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'double'.
 
   RecSolution recs = RecSolution();
   Rec<dynamic> superRec = RecSolution(); // Super-bounded type.
