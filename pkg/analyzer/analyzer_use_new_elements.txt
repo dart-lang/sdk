@@ -162,7 +162,6 @@ lib/src/task/strong_mode.dart
 lib/src/test_utilities/find_element.dart
 lib/src/test_utilities/find_node.dart
 lib/src/test_utilities/mock_sdk_elements.dart
-lib/src/util/ast_data_extractor.dart
 lib/src/utilities/extensions/analysis_session.dart
 lib/src/utilities/extensions/ast.dart
 lib/src/utilities/extensions/element.dart
@@ -192,7 +191,6 @@ test/id_tests/definite_unassignment_test.dart
 test/id_tests/exhaustiveness_test.dart
 test/id_tests/inferred_type_arguments_test.dart
 test/id_tests/inferred_variable_types_test.dart
-test/id_tests/inheritance_test.dart
 test/id_tests/metadata_evaluate_test.dart
 test/id_tests/metadata_test.dart
 test/id_tests/nullability_test.dart

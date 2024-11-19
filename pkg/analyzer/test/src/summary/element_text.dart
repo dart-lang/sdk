@@ -449,6 +449,23 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeElementName(Element2 e) {
     var name = e.name3 ?? '<null-name>';
     _sink.write(name);
+
+    switch (e) {
+      case MethodElement2():
+        if (e.name3 == '-' && e.formalParameters.isEmpty) {
+          expect(e.lookupName, 'unary-');
+        } else {
+          expect(e.lookupName, e.name3);
+        }
+      case SetterElement():
+        if (e.name3 case var name?) {
+          expect(e.lookupName, '$name=');
+        } else {
+          expect(e.lookupName, isNull);
+        }
+      default:
+        expect(e.lookupName, e.name3);
+    }
   }
 
   void _writeElementReference(String name, Element2? e) {

@@ -718,9 +718,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           if (flowAnalysis.dataForTesting != null) {
             var nonPromotionReasonText = entry.value.shortName;
             var args = <String>[];
-            if (whyNotPromotedVisitor.propertyReference != null) {
-              var id =
-                  computeMemberId(whyNotPromotedVisitor.propertyReference!);
+            var propertyReference = whyNotPromotedVisitor.propertyReference;
+            if (propertyReference != null) {
+              var id = computeMemberId(propertyReference.asElement2);
               args.add('target: $id');
             }
             var propertyType = whyNotPromotedVisitor.propertyType;

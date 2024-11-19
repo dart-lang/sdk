@@ -69,6 +69,9 @@ class ConstructorMember extends ExecutableMember
   bool get isFactory => declaration.isFactory;
 
   @override
+  String? get lookupName => _element2.lookupName;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -558,6 +561,9 @@ class FieldMember extends VariableMember
   LibraryElement2? get library2 => _element2.library2;
 
   @override
+  String? get lookupName => _element2.lookupName;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -693,6 +699,9 @@ class GetterMember extends PropertyAccessorMember implements GetterElement {
 
   @override
   GetterFragment get firstFragment => _element2.firstFragment;
+
+  @override
+  String? get lookupName => _element2.lookupName;
 
   @override
   PropertyInducingElement2? get variable3 =>
@@ -991,6 +1000,9 @@ class MethodMember extends ExecutableMember
   MethodFragment get firstFragment => _element2.firstFragment;
 
   @override
+  String? get lookupName => name3;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -1129,6 +1141,9 @@ class ParameterMember extends VariableMember
 
   @override
   LibraryElement2? get library2 => _element2.library2;
+
+  @override
+  String? get lookupName => _element2.lookupName;
 
   @override
   String get name => declaration.name;
@@ -1396,6 +1411,9 @@ class SetterMember extends PropertyAccessorMember implements SetterElement {
 
   @override
   SetterFragment get firstFragment => _element2.firstFragment;
+
+  @override
+  String? get lookupName => _element2.lookupName;
 
   @override
   PropertyInducingElement2? get variable3 =>

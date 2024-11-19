@@ -2925,6 +2925,11 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
+  String? get lookupName {
+    return name3;
+  }
+
+  @override
   List<ElementAnnotationImpl> get metadata {
     return _metadata;
   }
@@ -3277,6 +3282,11 @@ abstract class ElementImpl2 implements Element2 {
   @override
   ElementLocation? get location {
     return _cachedLocation ??= ElementLocationImpl.fromElement(this);
+  }
+
+  @override
+  String? get lookupName {
+    return name3;
   }
 
   @override
@@ -7783,6 +7793,14 @@ class MethodElementImpl2 extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.METHOD;
 
   @override
+  String? get lookupName {
+    if (name3 == '-' && formalParameters.isEmpty) {
+      return 'unary-';
+    }
+    return name3;
+  }
+
+  @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
     return visitor.visitMethodElement(this);
   }
@@ -9755,6 +9773,14 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
 
   @override
   ElementKind get kind => ElementKind.SETTER;
+
+  @override
+  String? get lookupName {
+    if (name3 case var name?) {
+      return '$name=';
+    }
+    return null;
+  }
 
   @override
   Element2 get nonSynthetic2 {
