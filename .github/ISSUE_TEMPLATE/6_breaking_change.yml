@@ -1,10 +1,12 @@
-name: Propose a breaking change.
-description: Initiate a breaking change process (for contributors use only!).
+name: Propose a breaking change (used by contributors).
+description: Initiate a breaking change process (for contributors use only).
 title: '[breaking change] <title>'
 labels: ['breaking-change-request']
+
 assignees:
   - itsjustkevin
   - kevmoo
+
 body:
   - type: textarea
     id: change_intent
