@@ -3,7 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal"
-    show IterableElementError, ClassID, TypeTest, unsafeCast;
+    show
+        EfficientLengthIterable,
+        HideEfficientLengthIterable,
+        IterableElementError,
+        ClassID,
+        TypeTest,
+        unsafeCast;
 import "dart:_list" show GrowableList;
 import "dart:_wasm";
 
@@ -670,8 +676,9 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  Iterable<K> get keys => _CompactIterable<K>(this, -2, 2);
-  Iterable<V> get values => _CompactIterable<V>(this, -1, 2);
+  Iterable<K> get keys => _CompactKeysIterable<K>(this);
+  Iterable<V> get values => _CompactValuesIterable<V>(this);
+  Iterable<MapEntry<K, V>> get entries => _CompactEntriesIterable<K, V>(this);
 }
 
 base class CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
@@ -713,28 +720,38 @@ base class CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   ) : _validKey = validKey ?? TypeTest<K>().test;
 }
 
-// Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
-// and checks for concurrent modification.
-class _CompactIterable<E> extends Iterable<E> {
+class _CompactKeysIterable<E> extends Iterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
+  final _LinkedHashMapMixin _table;
+
+  _CompactKeysIterable(this._table);
+
+  Iterator<E> get iterator =>
+      _CompactIterator<E>(_table, _table._data, _table._usedData, -2, 2);
+
+  int get length => _table.length;
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => !isEmpty;
+
+  bool contains(Object? element) => _table.containsKey(element);
+}
+
+class _CompactValuesIterable<E> extends Iterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
   final _HashBase _table;
-  final int _offset;
-  final int _step;
 
-  _CompactIterable(this._table, this._offset, this._step);
+  _CompactValuesIterable(this._table);
 
-  Iterator<E> get iterator => _CompactIterator<E>(
-    _table,
-    _table._data,
-    _table._usedData,
-    _offset,
-    _step,
-  );
+  Iterator<E> get iterator =>
+      _CompactIterator<E>(_table, _table._data, _table._usedData, -1, 2);
 
   int get length => _table.length;
   bool get isEmpty => length == 0;
   bool get isNotEmpty => !isEmpty;
 }
 
+// Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
+// and checks for concurrent modification.
 class _CompactIterator<E> implements Iterator<E> {
   final _HashBase _table;
 
@@ -746,11 +763,11 @@ class _CompactIterator<E> implements Iterator<E> {
   E? _current;
 
   _CompactIterator(this._table, this._data, this._len, this._offset, this._step)
-    : _checkSum = _table._checkSum;
+      : _checkSum = _table._checkSum;
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
-      throw new ConcurrentModificationError(_table);
+      throw ConcurrentModificationError(_table);
     }
     do {
       _offset += _step;
@@ -765,6 +782,57 @@ class _CompactIterator<E> implements Iterator<E> {
   }
 
   E get current => _current as E;
+}
+
+// Iterates through map creating a MapEntry for each key-value pair, and checks
+// for concurrent modification.
+class _CompactEntriesIterable<K, V> extends Iterable<MapEntry<K, V>>
+    implements
+        EfficientLengthIterable<MapEntry<K, V>>,
+        HideEfficientLengthIterable<MapEntry<K, V>> {
+  final _HashBase _table;
+
+  _CompactEntriesIterable(this._table);
+
+  Iterator<MapEntry<K, V>> get iterator =>
+      _CompactEntriesIterator<K, V>(_table, _table._data, _table._usedData);
+
+  int get length => _table.length;
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => !isEmpty;
+}
+
+class _CompactEntriesIterator<K, V> implements Iterator<MapEntry<K, V>> {
+  final _HashBase _table;
+
+  final WasmArray<Object?> _data;
+  final int _len;
+  int _offset = -2;
+  final int _checkSum;
+  MapEntry<K, V>? _current;
+
+  _CompactEntriesIterator(this._table, this._data, this._len)
+      : _checkSum = _table._checkSum;
+
+  bool moveNext() {
+    if (_table._isModifiedSince(_data, _checkSum)) {
+      throw ConcurrentModificationError(_table);
+    }
+    do {
+      _offset += 2;
+    } while (_offset < _len && _HashBase._isDeleted(_data[_offset]));
+    if (_offset < _len) {
+      final key = unsafeCast<K>(_data[_offset]);
+      final value = unsafeCast<V>(_data[_offset + 1]);
+      _current = MapEntry<K, V>(key, value);
+      return true;
+    } else {
+      _current = null;
+      return false;
+    }
+  }
+
+  MapEntry<K, V> get current => _current!;
 }
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
@@ -1180,13 +1248,13 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
   ) : _validKey = validKey ?? TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
-  Set<E> toSet() =>
-      CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
-        ..addAll(this);
+  Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
+    ..addAll(this);
 }
 
 @pragma('wasm:prefer-inline')
 Map<K, V> createMapFromKeyValueListUnsafe<K, V>(
   WasmArray<Object?> keyValuePairData,
   int usedData,
-) => DefaultMap<K, V>().._populateUnsafe(keyValuePairData, usedData);
+) =>
+    DefaultMap<K, V>().._populateUnsafe(keyValuePairData, usedData);
