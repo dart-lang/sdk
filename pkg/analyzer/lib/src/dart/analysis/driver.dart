@@ -1161,6 +1161,8 @@ class AnalysisDriver {
       return InvalidPathResult();
     }
 
+    _applyPendingFileChanges();
+
     var file = _fsState.getFileForPath(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(

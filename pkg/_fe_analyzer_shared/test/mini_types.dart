@@ -31,15 +31,42 @@ class DynamicType extends _SpecialSimpleType
   Type withNullability(NullabilitySuffix suffix) => this;
 }
 
+/// Factory for creating fresh type parameters.
+///
+/// Generated type parameters will have names of the form `Tn`, where `n` is a
+/// small non-negative integer.
+class FreshTypeParameterGenerator {
+  final _namesToExclude = <String>{};
+  int _counter = 0;
+
+  /// Ensures that when [generate] is called, the type parameter it returns will
+  /// have a name that's distinct from all identifiers in [type].
+  void excludeNamesUsedIn(Type type) {
+    type.gatherUsedIdentifiers(_namesToExclude);
+  }
+
+  /// Generates a fresh type parameter.
+  TypeParameter generate() {
+    while (true) {
+      var name = 'T${_counter++}';
+      if (_namesToExclude.add(name)) {
+        return TypeParameter._(name);
+      }
+    }
+  }
+}
+
 /// Representation of a function type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-///
-/// Type parameters are not (yet) supported.
 class FunctionType extends Type
     implements
-        SharedFunctionTypeStructure<Type, Never, NamedFunctionParameter> {
+        SharedFunctionTypeStructure<Type, TypeParameter,
+            NamedFunctionParameter> {
   @override
   final Type returnType;
+
+  @override
+  List<TypeParameter> typeFormals;
 
   /// A list of the types of positional parameters.
   final List<Type> positionalParameters;
@@ -51,7 +78,8 @@ class FunctionType extends Type
   final List<NamedFunctionParameter> namedParameters;
 
   FunctionType(this.returnType, this.positionalParameters,
-      {int? requiredPositionalParameterCount,
+      {this.typeFormals = const [],
+      int? requiredPositionalParameterCount,
       this.namedParameters = const [],
       super.nullabilitySuffix = NullabilitySuffix.none})
       : requiredPositionalParameterCount =
@@ -64,12 +92,60 @@ class FunctionType extends Type
   }
 
   @override
-  int get hashCode => Object.hash(
-      returnType,
-      const ListEquality().hash(positionalParameters),
-      requiredPositionalParameterCount,
-      const ListEquality().hash(namedParameters),
-      nullabilitySuffix);
+  int get hashCode {
+    if (typeFormals.isNotEmpty) {
+      // Generic function types need to have the same hash if they are the same
+      // after renaming of type formals. To ensure this, we rename the type
+      // formals to a consistent sent of names and then hash the result.
+      //
+      // Note that it's essential *not* to call
+      // `FreshTypeParameterGenerator.excludeNamesUsedIn` here, to ensure that
+      // a consistent set of type parameter names is generated regardless of the
+      // the names used in the function type. To see why, consider the types
+      // `U Function<U>()` and `T0 Function<T0>()` (which are equivalent and
+      // therefore should have the same `hashCode`).
+      //
+      // If `FreshTypeParameterGenerator.excludeNamesUsedIn` were used here,
+      // then the substitution generated for `U Function<U>()` would be
+      // `U -> T0`, so its hashCode would be based on hashing the type
+      // `T0 Function()`, whereas the substitution generated for
+      // `T0 Function<T0>()` would be `T0 -> T1`, so its hashCode would be based
+      // on hashing the type `T1 Function()` (and therefore it would likely be
+      // different).
+      //
+      // A consequence of not calling
+      // `FreshTypeParameterGenerator.excludeNamesUsedIn` here is that the
+      // result of the substitution might appear to conflate two type parameters
+      // that ought to be distinguished. For example, if `this` is
+      // `X Function<X>(T0)` (where `T0` is a type parameter defined somewhere
+      // else), then the substitution `X -> T0` will be generated, so the result
+      // of the substitution will be `T0 Function(T0)`, which appears to
+      // conflate the two `T0`s. But this is not a problem for two reasons:
+      //
+      // - In point of fact, the two `T0`s are still distinguishable; the one
+      //   appearing in the substituted type's return type points to the type
+      //   parameter that was freshly generated, whereas the one appearing in
+      //   the substituted type's parameter list points to the same type
+      //   parameter as the `T0` appearing in the parameter list of `this`.
+      //
+      // - It doesn't actually matter, because the purpose of this method is to
+      //   compute a hash code, and it's ok in rare circumstances for hash codes
+      //   to be equal even if the underlying objects are not equal.
+      var freshTypeParameterGenerator = FreshTypeParameterGenerator();
+      var substitution = {
+        for (var typeFormal in typeFormals)
+          typeFormal: TypeParameterType(freshTypeParameterGenerator.generate())
+      };
+      return substitute(substitution, dropTypeFormals: true).hashCode;
+    } else {
+      return Object.hash(
+          returnType,
+          const ListEquality().hash(positionalParameters),
+          requiredPositionalParameterCount,
+          const ListEquality().hash(namedParameters),
+          nullabilitySuffix);
+    }
+  }
 
   @override
   List<Type> get positionalParameterTypes => positionalParameters;
@@ -78,18 +154,34 @@ class FunctionType extends Type
   List<NamedFunctionParameter> get sortedNamedParameters => namedParameters;
 
   @override
-  List<Never> get typeFormals => const [];
-
-  @override
-  bool operator ==(Object other) =>
-      other is FunctionType &&
-      returnType == other.returnType &&
-      const ListEquality()
-          .equals(positionalParameters, other.positionalParameters) &&
-      requiredPositionalParameterCount ==
-          other.requiredPositionalParameterCount &&
-      const ListEquality().equals(namedParameters, other.namedParameters) &&
-      nullabilitySuffix == other.nullabilitySuffix;
+  bool operator ==(Object other) {
+    if (other is! FunctionType) return false;
+    if (typeFormals.length != other.typeFormals.length) return false;
+    if (typeFormals.isNotEmpty) {
+      // Check if types are equal under a consistent renaming of type formals
+      var freshTypeParameterGenerator = FreshTypeParameterGenerator()
+        ..excludeNamesUsedIn(this)
+        ..excludeNamesUsedIn(other);
+      var thisSubstitution = <TypeParameter, Type>{};
+      var otherSubstitution = <TypeParameter, Type>{};
+      for (var i = 0; i < typeFormals.length; i++) {
+        var freshTypeParameterType =
+            TypeParameterType(freshTypeParameterGenerator.generate());
+        thisSubstitution[typeFormals[i]] = freshTypeParameterType;
+        otherSubstitution[other.typeFormals[i]] = freshTypeParameterType;
+      }
+      return substitute(thisSubstitution, dropTypeFormals: true) ==
+          other.substitute(otherSubstitution, dropTypeFormals: true);
+    } else {
+      return returnType == other.returnType &&
+          const ListEquality()
+              .equals(positionalParameters, other.positionalParameters) &&
+          requiredPositionalParameterCount ==
+              other.requiredPositionalParameterCount &&
+          const ListEquality().equals(namedParameters, other.namedParameters) &&
+          nullabilitySuffix == other.nullabilitySuffix;
+    }
+  }
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) {
@@ -106,6 +198,7 @@ class FunctionType extends Type
     }
     return FunctionType(newReturnType ?? returnType,
         newPositionalParameters ?? positionalParameters,
+        typeFormals: typeFormals,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
         namedParameters: newNamedParameters ?? namedParameters,
         nullabilitySuffix: nullabilitySuffix);
@@ -144,23 +237,30 @@ class FunctionType extends Type
     }
     return FunctionType(newReturnType ?? returnType,
         newPositionalParameters ?? positionalParameters,
+        typeFormals: typeFormals,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
         namedParameters: newNamedParameters ?? namedParameters,
         nullabilitySuffix: nullabilitySuffix);
   }
 
   @override
-  FunctionType? substitute(Map<TypeParameter, Type> substitution) {
+  FunctionType? substitute(Map<TypeParameter, Type> substitution,
+      {bool dropTypeFormals = false}) {
     var newReturnType = returnType.substitute(substitution);
     var newPositionalParameters = positionalParameters.substitute(substitution);
+    var newTypeFormals = dropTypeFormals && !typeFormals.isEmpty
+        ? const <TypeParameter>[]
+        : null;
     var newNamedParameters = namedParameters.substitute(substitution);
     if (newReturnType == null &&
         newPositionalParameters == null &&
+        newTypeFormals == null &&
         newNamedParameters == null) {
       return null;
     } else {
       return FunctionType(newReturnType ?? returnType,
           newPositionalParameters ?? positionalParameters,
+          typeFormals: newTypeFormals ?? typeFormals,
           requiredPositionalParameterCount: requiredPositionalParameterCount,
           namedParameters: newNamedParameters ?? namedParameters,
           nullabilitySuffix: nullabilitySuffix);
@@ -170,12 +270,14 @@ class FunctionType extends Type
   @override
   Type withNullability(NullabilitySuffix suffix) =>
       FunctionType(returnType, positionalParameters,
+          typeFormals: typeFormals,
           requiredPositionalParameterCount: requiredPositionalParameterCount,
           namedParameters: namedParameters,
           nullabilitySuffix: suffix);
 
   @override
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) {
+    var formals = typeFormals.isEmpty ? '' : '<${typeFormals.join(', ')}>';
     var parameters = <Object>[
       ...positionalParameters.sublist(0, requiredPositionalParameterCount)
     ];
@@ -188,7 +290,7 @@ class FunctionType extends Type
       parameters.add('{${namedParameters.join(', ')}}');
     }
     return _parenthesizeIf(parenthesizeIfComplex,
-        '$returnType Function(${parameters.join(', ')})');
+        '$returnType Function$formals(${parameters.join(', ')})');
   }
 }
 
@@ -1567,6 +1669,207 @@ class VoidType extends _SpecialSimpleType
   Type withNullability(NullabilitySuffix suffix) => this;
 }
 
+/// Representation of a [FunctionType] that has been parsed but hasn't had
+/// meaning assigned to its identifiers yet.
+class _PreFunctionType extends _PreType {
+  final _PreType returnType;
+  final List<TypeParameter> typeFormals;
+  final List<_PreType> positionalParameterTypes;
+  final int requiredPositionalParameterCount;
+  final List<_PreNamedFunctionParameter> namedParameters;
+
+  _PreFunctionType(
+      {required this.returnType,
+      required this.typeFormals,
+      required this.positionalParameterTypes,
+      required this.requiredPositionalParameterCount,
+      required this.namedParameters});
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
+    if (typeFormals.isNotEmpty) {
+      typeFormalScope = Map.of(typeFormalScope);
+      for (var typeFormal in typeFormals) {
+        typeFormalScope[typeFormal.name] = typeFormal;
+      }
+    }
+    return FunctionType(
+        returnType.materialize(typeFormalScope: typeFormalScope),
+        [
+          for (var positionalParameterType in positionalParameterTypes)
+            positionalParameterType.materialize(
+                typeFormalScope: typeFormalScope)
+        ],
+        typeFormals: typeFormals,
+        requiredPositionalParameterCount: requiredPositionalParameterCount,
+        namedParameters: [
+          for (var namedParameter in namedParameters)
+            NamedFunctionParameter(
+                isRequired: namedParameter.isRequired,
+                name: namedParameter.name,
+                type: namedParameter.type
+                    .materialize(typeFormalScope: typeFormalScope))
+        ]);
+  }
+}
+
+/// Representation of a named function parameter in a [_PreFunctionType].
+class _PreNamedFunctionParameter {
+  final String name;
+  final _PreType type;
+  final bool isRequired;
+
+  _PreNamedFunctionParameter(
+      {required this.name, required this.type, required this.isRequired});
+}
+
+/// Representation of a named component of a [_PreRecordType].
+class _PreNamedType {
+  final String name;
+  final _PreType type;
+
+  _PreNamedType({required this.name, required this.type});
+}
+
+/// Representation of a [PrimaryType] or [TypeParameterType] that has been
+/// parsed but hasn't had meaning assigned to its identifiers yet.
+class _PrePrimaryType extends _PreType {
+  final String typeName;
+  final List<_PreType> typeArgs;
+
+  _PrePrimaryType({required this.typeName, required this.typeArgs});
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
+    var nameInfo = typeFormalScope[typeName] ?? TypeRegistry.lookup(typeName);
+    switch (nameInfo) {
+      case TypeParameter():
+        if (typeArgs.isNotEmpty) {
+          throw ParseError('Type parameter types do not accept type arguments');
+        }
+        return TypeParameterType(nameInfo);
+      case InterfaceTypeName():
+        return PrimaryType(nameInfo, args: [
+          for (var typeArg in typeArgs)
+            typeArg.materialize(typeFormalScope: typeFormalScope)
+        ]);
+      case SpecialTypeName():
+        if (typeName == 'dynamic') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`dynamic` does not accept type arguments');
+          }
+          return DynamicType.instance;
+        } else if (typeName == 'error') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`error` does not accept type arguments');
+          }
+          return InvalidType.instance;
+        } else if (typeName == 'FutureOr') {
+          if (typeArgs.length != 1) {
+            throw ParseError('`FutureOr` requires exactly one type argument');
+          }
+          return FutureOrType(
+              typeArgs.single.materialize(typeFormalScope: typeFormalScope));
+        } else if (typeName == 'Never') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`Never` does not accept type arguments');
+          }
+          return NeverType.instance;
+        } else if (typeName == 'Null') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`Null` does not accept type arguments');
+          }
+          return NullType.instance;
+        } else if (typeName == 'void') {
+          if (typeArgs.isNotEmpty) {
+            throw ParseError('`void` does not accept type arguments');
+          }
+          return VoidType.instance;
+        } else {
+          throw UnimplementedError('Unknown special type name: $typeName');
+        }
+    }
+  }
+}
+
+/// Representation of a promoted [TypeParameterType] that has been parsed but
+/// hasn't had meaning assigned to its identifiers yet.
+class _PrePromotedType extends _PreType {
+  final _PreType inner;
+  final _PreType promotion;
+
+  _PrePromotedType({required this.inner, required this.promotion});
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
+    var type = inner.materialize(typeFormalScope: typeFormalScope);
+    if (type case TypeParameterType(promotion: null)) {
+      return TypeParameterType(type.typeParameter,
+          promotion: promotion.materialize(typeFormalScope: typeFormalScope));
+    } else {
+      throw ParseError(
+          'The type to the left of & must be an unpromoted type parameter');
+    }
+  }
+}
+
+/// Representation of a [RecordType] that has been parsed but hasn't had
+/// meaning assigned to its identifiers yet.
+class _PreRecordType extends _PreType {
+  final List<_PreType> positionalTypes;
+  final List<_PreNamedType> namedTypes;
+
+  _PreRecordType({required this.positionalTypes, required this.namedTypes});
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) =>
+      RecordType(positionalTypes: [
+        for (var positionalType in positionalTypes)
+          positionalType.materialize(typeFormalScope: typeFormalScope)
+      ], namedTypes: [
+        for (var namedType in namedTypes)
+          NamedType(
+              name: namedType.name,
+              type:
+                  namedType.type.materialize(typeFormalScope: typeFormalScope))
+      ]);
+}
+
+/// Representation of a [Type] that has been parsed but hasn't had meaning
+/// assigned to its identifiers yet.
+sealed class _PreType {
+  /// Translates `this` into a [Type].
+  ///
+  /// The meaning of identifiers in `this` is determined by looking them up
+  /// first in [typeFormalScope], and then, if they are not found, in the
+  /// [TypeRegistry].
+  Type materialize({required Map<String, TypeParameter> typeFormalScope});
+}
+
+/// Representation of a [Type] with a nullability suffix that has been parsed
+/// but hasn't had meaning assigned to its identifiers yet.
+class _PreTypeWithNullability extends _PreType {
+  final _PreType inner;
+  final NullabilitySuffix nullabilitySuffix;
+
+  _PreTypeWithNullability(
+      {required this.inner, required this.nullabilitySuffix});
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) =>
+      inner
+          .materialize(typeFormalScope: typeFormalScope)
+          .withNullability(nullabilitySuffix);
+}
+
+/// Representation of an [UnknownType] that has been parsed but hasn't had
+/// meaning assigned to its identifiers yet.
+class _PreUnknownType extends _PreType {
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) =>
+      const UnknownType();
+}
+
 /// Shared implementation of the types `void`, `dynamic`, `null`, `Never`, and
 /// the invalid type.
 ///
@@ -1628,10 +1931,10 @@ class _TypeParser {
         'Error parsing type `$_typeStr` at token $_currentToken: $message');
   }
 
-  List<NamedFunctionParameter> _parseNamedFunctionParameters() {
+  List<_PreNamedFunctionParameter> _parseNamedFunctionParameters() {
     assert(_currentToken == '{');
     _next();
-    var namedParameters = <NamedFunctionParameter>[];
+    var namedParameters = <_PreNamedFunctionParameter>[];
     while (true) {
       var isRequired = _currentToken == 'required';
       if (isRequired) {
@@ -1642,7 +1945,7 @@ class _TypeParser {
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      namedParameters.add(NamedFunctionParameter(
+      namedParameters.add(_PreNamedFunctionParameter(
           name: name, type: type, isRequired: isRequired));
       _next();
       if (_currentToken == ',') {
@@ -1659,7 +1962,8 @@ class _TypeParser {
     return namedParameters;
   }
 
-  void _parseOptionalFunctionParameters(List<Type> positionalParameterTypes) {
+  void _parseOptionalFunctionParameters(
+      List<_PreType> positionalParameterTypes) {
     assert(_currentToken == '[');
     _next();
     while (true) {
@@ -1677,17 +1981,17 @@ class _TypeParser {
     _next();
   }
 
-  List<NamedType> _parseRecordTypeNamedFields() {
+  List<_PreNamedType> _parseRecordTypeNamedFields() {
     assert(_currentToken == '{');
     _next();
-    var namedTypes = <NamedType>[];
+    var namedTypes = <_PreNamedType>[];
     while (_currentToken != '}') {
       var type = _parseType();
       var name = _currentToken;
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      namedTypes.add(NamedType(name: name, type: type));
+      namedTypes.add(_PreNamedType(name: name, type: type));
       _next();
       if (_currentToken == ',') {
         _next();
@@ -1706,8 +2010,8 @@ class _TypeParser {
     return namedTypes;
   }
 
-  Type _parseRecordTypeRest(List<Type> positionalTypes) {
-    List<NamedType>? namedTypes;
+  _PreRecordType _parseRecordTypeRest(List<_PreType> positionalTypes) {
+    List<_PreNamedType>? namedTypes;
     while (_currentToken != ')') {
       if (_currentToken == '{') {
         namedTypes = _parseRecordTypeNamedFields();
@@ -1727,34 +2031,37 @@ class _TypeParser {
       _parseFailure('Expected `)` or `,`');
     }
     _next();
-    return RecordType(
+    return _PreRecordType(
         positionalTypes: positionalTypes, namedTypes: namedTypes ?? const []);
   }
 
-  Type? _parseSuffix(Type type) {
+  _PreType? _parseSuffix(_PreType type) {
     if (_currentToken == '?') {
       _next();
-      return type.withNullability(NullabilitySuffix.question);
+      return _PreTypeWithNullability(
+          inner: type, nullabilitySuffix: NullabilitySuffix.question);
     } else if (_currentToken == '*') {
       _next();
-      return type.withNullability(NullabilitySuffix.star);
+      return _PreTypeWithNullability(
+          inner: type, nullabilitySuffix: NullabilitySuffix.star);
     } else if (_currentToken == '&') {
-      if (type case TypeParameterType(promotion: null)) {
-        _next();
-        var promotion = _parseUnsuffixedType();
-        return TypeParameterType(type.typeParameter, promotion: promotion);
-      } else {
-        _parseFailure(
-            'The type to the left of & must be an unpromoted type parameter');
-      }
+      _next();
+      var promotion = _parseUnsuffixedType();
+      return _PrePromotedType(inner: type, promotion: promotion);
     } else if (_currentToken == 'Function') {
       _next();
+      List<TypeParameter>? typeFormals;
+      if (_currentToken == '<') {
+        typeFormals = _parseTypeFormals();
+      } else {
+        typeFormals = const [];
+      }
       if (_currentToken != '(') {
         _parseFailure('Expected `(`');
       }
       _next();
-      var positionalParameterTypes = <Type>[];
-      List<NamedFunctionParameter>? namedFunctionParameters;
+      var positionalParameterTypes = <_PreType>[];
+      List<_PreNamedFunctionParameter>? namedFunctionParameters;
       int? requiredPositionalParameterCount;
       if (_currentToken != ')') {
         while (true) {
@@ -1781,16 +2088,19 @@ class _TypeParser {
         }
       }
       _next();
-      return FunctionType(type, positionalParameterTypes,
+      return _PreFunctionType(
+          returnType: type,
+          positionalParameterTypes: positionalParameterTypes,
           requiredPositionalParameterCount: requiredPositionalParameterCount ??
               positionalParameterTypes.length,
-          namedParameters: namedFunctionParameters ?? const []);
+          namedParameters: namedFunctionParameters ?? const [],
+          typeFormals: typeFormals ?? const []);
     } else {
       return null;
     }
   }
 
-  Type _parseType() {
+  _PreType _parseType() {
     // We currently accept the following grammar for types:
     //   type := unsuffixedType nullability suffix*
     //   unsuffixedType := identifier typeArgs?
@@ -1805,9 +2115,11 @@ class _TypeParser {
     //   recordTypeNamedField := type identifier
     //   typeArgs := `<` type (`,` type)* `>`
     //   nullability := (`?` | `*`)?
-    //   suffix := `Function` `(` type (`,` type)* `)`
-    //           | `Function` `(` (type `,`)* namedFunctionParameters `)`
-    //           | `Function` `(` (type `,`)* optionalFunctionParameters `)`
+    //   suffix := `Function` typeParameters? `(` type (`,` type)* `)`
+    //           | `Function` typeParameters? `(` (type `,`)*
+    //             namedFunctionParameters `)`
+    //           | `Function` typeParameters? `(` (type `,`)*
+    //             optionalFunctionParameters `)`
     //           | `?`
     //           | `*`
     //           | `&` unsuffixedType
@@ -1815,6 +2127,8 @@ class _TypeParser {
     //                              (`,` namedFunctionParameter)* `}`
     //   namedFunctionParameter := `required`? type identifier
     //   optionalFunctionParameters := `[` type (`,` type)* `]`
+    //   typeParameters := `<` typeParameter (`,` typeParameter)* `>`
+    //   typeParameter := identifier
     // TODO(paulberry): support more syntax if needed
     var result = _parseUnsuffixedType();
     while (true) {
@@ -1825,10 +2139,34 @@ class _TypeParser {
     return result;
   }
 
-  Type _parseUnsuffixedType() {
+  List<TypeParameter>? _parseTypeFormals() {
+    assert(_currentToken == '<');
+    _next();
+    var typeFormals = <TypeParameter>[];
+    while (true) {
+      var name = _currentToken;
+      if (_identifierRegexp.matchAsPrefix(name) == null) {
+        _parseFailure('Expected an identifier');
+      }
+      typeFormals.add(TypeParameter._(name));
+      _next();
+      if (_currentToken == ',') {
+        _next();
+        continue;
+      }
+      if (_currentToken == '>') {
+        break;
+      }
+      _parseFailure('Expected `>` or `,`');
+    }
+    _next();
+    return typeFormals;
+  }
+
+  _PreType _parseUnsuffixedType() {
     if (_currentToken == '_') {
       _next();
-      return const UnknownType();
+      return _PreUnknownType();
     }
     if (_currentToken == '(') {
       _next();
@@ -1851,7 +2189,7 @@ class _TypeParser {
       _parseFailure('Expected an identifier, `_`, or `(`');
     }
     _next();
-    List<Type> typeArgs;
+    List<_PreType> typeArgs;
     if (_currentToken == '<') {
       _next();
       typeArgs = [];
@@ -1867,50 +2205,7 @@ class _TypeParser {
     } else {
       typeArgs = const [];
     }
-    var nameInfo = TypeRegistry.lookup(typeName);
-    switch (nameInfo) {
-      case TypeParameter():
-        if (typeArgs.isNotEmpty) {
-          throw ParseError('Type parameter types do not accept type arguments');
-        }
-        return TypeParameterType(nameInfo);
-      case InterfaceTypeName():
-        return PrimaryType(nameInfo, args: typeArgs);
-      case SpecialTypeName():
-        if (typeName == 'dynamic') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`dynamic` does not accept type arguments');
-          }
-          return DynamicType.instance;
-        } else if (typeName == 'error') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`error` does not accept type arguments');
-          }
-          return InvalidType.instance;
-        } else if (typeName == 'FutureOr') {
-          if (typeArgs.length != 1) {
-            throw ParseError('`FutureOr` requires exactly one type argument');
-          }
-          return FutureOrType(typeArgs.single);
-        } else if (typeName == 'Never') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`Never` does not accept type arguments');
-          }
-          return NeverType.instance;
-        } else if (typeName == 'Null') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`Null` does not accept type arguments');
-          }
-          return NullType.instance;
-        } else if (typeName == 'void') {
-          if (typeArgs.isNotEmpty) {
-            throw ParseError('`void` does not accept type arguments');
-          }
-          return VoidType.instance;
-        } else {
-          throw UnimplementedError('Unknown special type name: $typeName');
-        }
-    }
+    return _PrePrimaryType(typeName: typeName, typeArgs: typeArgs);
   }
 
   static Type parse(String typeStr) {
@@ -1920,7 +2215,7 @@ class _TypeParser {
       throw ParseError('Extra tokens after parsing type `$typeStr`: '
           '${parser._tokens.sublist(parser._i, parser._tokens.length - 1)}');
     }
-    return result;
+    return result.materialize(typeFormalScope: const {});
   }
 
   static List<String> _tokenizeTypeStr(String typeStr) {

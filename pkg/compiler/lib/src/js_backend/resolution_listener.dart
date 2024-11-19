@@ -18,11 +18,11 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show ConditionalUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
-import 'field_analysis.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
+import 'field_analysis.dart';
 import 'interceptor_data.dart';
 import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
@@ -258,10 +258,13 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     return impactBuilder;
   }
 
+  final Set<MemberEntity> _usedMembers = {};
+
   @override
   WorldImpact registerUsedElement(MemberEntity member) {
     WorldImpactBuilderImpl worldImpact = WorldImpactBuilderImpl();
     _customElementsAnalysis.registerStaticUse(member);
+    _usedMembers.add(member);
     final conditionalUses = _pendingConditionalUses.remove(member);
     if (conditionalUses != null) {
       // Apply any newly satisfied conditional impacts and remove the condition
@@ -501,9 +504,16 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void registerPendingConditionalUse(ConditionalUse use) {
-    for (final condition in use.originalConditions) {
-      (_pendingConditionalUses[condition] ??= {}).add(use);
+  WorldImpact registerConditionalUse(ConditionalUse use) {
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
+    if (use.originalConditions.any(_usedMembers.contains)) {
+      // If any condition is already satisfied, apply the impact immediately.
+      impactBuilder.addImpact(use.impact);
+    } else {
+      for (final condition in use.originalConditions) {
+        (_pendingConditionalUses[condition] ??= {}).add(use);
+      }
     }
+    return impactBuilder;
   }
 }

@@ -357,7 +357,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void registerPendingConditionalUse(ConditionalUse use) {
+  WorldImpact registerConditionalUse(ConditionalUse use) {
     throw UnsupportedError(
         'Codegen enqueuer does not support conditional impacts.');
   }
