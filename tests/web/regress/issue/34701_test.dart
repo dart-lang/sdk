@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // dart2jsOptions=--omit-implicit-checks
 
 /// Regression test for issue 34701.

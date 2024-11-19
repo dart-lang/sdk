@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // A break label must be declared where it's used.
 undeclaredBreakLabel1() {
   foo: { break bar; break foo; } // //# 01: compile-time error
