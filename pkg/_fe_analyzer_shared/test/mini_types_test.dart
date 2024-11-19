@@ -74,10 +74,17 @@ main() {
             'T Function(U, {V y})');
       });
 
-      test('type formals', () {
+      test('type formals, unbounded', () {
         expect(
             FunctionType(VoidType.instance, [], typeFormals: [t, u]).toString(),
             'void Function<T, U>()');
+      });
+
+      test('type formals, bounded', () {
+        t.explicitBound = TypeParameterType(u);
+        expect(
+            FunctionType(VoidType.instance, [], typeFormals: [t, u]).toString(),
+            'void Function<T extends U, U>()');
       });
 
       test('needs parentheses', () {
@@ -443,6 +450,25 @@ main() {
               same(t));
         });
 
+        test('unbounded', () {
+          var type = Type('void Function<T>()') as FunctionType;
+          var t = type.typeFormals.single;
+          expect(t.explicitBound, isNull);
+        });
+
+        test('bounded', () {
+          var type = Type('void Function<T extends Object>()') as FunctionType;
+          var t = type.typeFormals.single;
+          expect(t.explicitBound!.type, 'Object');
+        });
+
+        test('F-bounded', () {
+          var type = Type('void Function<T extends U, U>()') as FunctionType;
+          var t = type.typeFormals[0];
+          var u = type.typeFormals[1];
+          expect((t.explicitBound as TypeParameterType).typeParameter, same(u));
+        });
+
         test('invalid token in type formals', () {
           expect(() => Type('int Function<{>()'), throwsParseError);
         });
@@ -605,6 +631,16 @@ main() {
           Type('void Function<U, T>({U p1, T p2})'));
       checkNotEqual(Type('void Function<T, U>({T p1, U p2})'),
           Type('void Function<T, U>({U p1, T p2})'));
+      checkEqual(Type('void Function<T extends Object>()'),
+          Type('void Function<U extends Object>()'));
+      checkEqual(Type('void Function<T extends Object?>()'),
+          Type('void Function<U>()'));
+      checkNotEqual(Type('void Function<T extends Object>()'),
+          Type('void Function<U extends int>()'));
+      checkEqual(Type('void Function<T extends U, U>()'),
+          Type('void Function<V extends W, W>()'));
+      checkEqual(Type('void Function<T>(void Function<U extends T>(T, U))'),
+          Type('void Function<V>(void Function<W extends V>(V, W))'));
 
       // For these final test cases, we give one of the type parameters a name
       // that would be chosen by `FreshTypeParameterGenerator`, to verify that
@@ -1142,6 +1178,8 @@ main() {
     test('FunctionType', () {
       expect(queryUsedIdentifiers(Type('int Function<X>(String, {bool b})')),
           unorderedEquals({'int', 'X', 'String', 'bool', 'b'}));
+      expect(queryUsedIdentifiers(Type('void Function<X extends int>()')),
+          unorderedEquals({'void', 'X', 'int'}));
     });
 
     test('PrimaryType', () {
@@ -1199,6 +1237,55 @@ main() {
           Type('int Function(String, String)'));
       expect(Type('int Function({T t1, T t2})').substitute({t: Type('String')}),
           Type('int Function({String t1, String t2})'));
+
+      // Verify that bounds of type parameters are substituted
+      var origType = Type(
+          'Map<U, V> Function<U extends T, V extends U>(U, V, {U u, V v})');
+      var substitutedType =
+          origType.substitute({t: Type('String')}) as FunctionType;
+      expect(
+          substitutedType,
+          Type('Map<U, V> Function<U extends String, V extends U>(U, V, {U u, '
+              'V v})'));
+      // And verify that references to the type parameters now point to the
+      // new, updated type parameters.
+      expect(
+          ((substitutedType.returnType as PrimaryType).args[0]
+                  as TypeParameterType)
+              .typeParameter,
+          same(substitutedType.typeFormals[0]));
+      expect(
+          ((substitutedType.returnType as PrimaryType).args[1]
+                  as TypeParameterType)
+              .typeParameter,
+          same(substitutedType.typeFormals[1]));
+      expect(
+          (substitutedType.typeFormals[1].explicitBound as TypeParameterType)
+              .typeParameter,
+          same(substitutedType.typeFormals[0]));
+      expect(
+          (substitutedType.positionalParameters[0] as TypeParameterType)
+              .typeParameter,
+          same(substitutedType.typeFormals[0]));
+      expect(
+          (substitutedType.positionalParameters[1] as TypeParameterType)
+              .typeParameter,
+          same(substitutedType.typeFormals[1]));
+      expect(
+          (substitutedType.namedParameters[0].type as TypeParameterType)
+              .typeParameter,
+          same(substitutedType.typeFormals[0]));
+      expect(
+          (substitutedType.namedParameters[1].type as TypeParameterType)
+              .typeParameter,
+          same(substitutedType.typeFormals[1]));
+      // Finally, verify that the original type didn't change (this is important
+      // because `TypeParameter.explicitBound` is non-final in order to allow
+      // for the creation of F-bounded types).
+      expect(
+          origType,
+          Type('Map<U, V> Function<U extends T, V extends U>(U, V, {U u, '
+              'V v})'));
     });
 
     test('PrimaryType', () {
