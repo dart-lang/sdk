@@ -552,9 +552,7 @@ class OperationsCfe
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool isExtensionType(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() is ExtensionType;
-  }
+  bool isExtensionTypeInternal(DartType type) => type is ExtensionType;
 
   @override
   bool isFinal(VariableDeclaration variable) {
@@ -563,8 +561,8 @@ class OperationsCfe
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool isInterfaceType(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() is InterfaceType;
+  bool isInterfaceTypeInternal(DartType type) {
+    return type is InterfaceType;
   }
 
   @override
@@ -573,9 +571,7 @@ class OperationsCfe
   }
 
   @override
-  bool isNull(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() is NullType;
-  }
+  bool isNullInternal(DartType type) => type is NullType;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -892,21 +888,17 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView<DartType> withNullabilitySuffix(
-      SharedTypeView<DartType> type, NullabilitySuffix modifier) {
+  DartType withNullabilitySuffixInternal(
+      DartType type, NullabilitySuffix modifier) {
     switch (modifier) {
       case NullabilitySuffix.none:
-        return new SharedTypeView(
-            computeTypeWithoutNullabilityMarker(type.unwrapTypeView()));
+        return computeTypeWithoutNullabilityMarker(type);
       // Coverage-ignore(suite): Not run.
       case NullabilitySuffix.question:
-        return new SharedTypeView(type
-            .unwrapTypeView()
-            .withDeclaredNullability(Nullability.nullable));
+        return type.withDeclaredNullability(Nullability.nullable);
       // Coverage-ignore(suite): Not run.
       case NullabilitySuffix.star:
-        return new SharedTypeView(
-            type.unwrapTypeView().withDeclaredNullability(Nullability.legacy));
+        return type.withDeclaredNullability(Nullability.legacy);
     }
   }
 
@@ -926,10 +918,9 @@ class OperationsCfe
   }
 
   @override
-  StructuralParameter? matchInferableParameter(SharedTypeView<DartType> type) {
-    DartType unwrappedType = type.unwrapTypeView();
-    if (unwrappedType is StructuralParameterType) {
-      return unwrappedType.parameter;
+  StructuralParameter? matchInferableParameterInternal(DartType type) {
+    if (type is StructuralParameterType) {
+      return type.parameter;
     } else {
       return null;
     }
@@ -943,15 +934,14 @@ class OperationsCfe
 
   @override
   TypeDeclarationMatchResult<TypeDeclarationType, TypeDeclaration, DartType>?
-      matchTypeDeclarationType(SharedTypeView<DartType> type) {
-    DartType unwrappedType = type.unwrapTypeView();
-    if (unwrappedType is TypeDeclarationType) {
-      switch (unwrappedType) {
+      matchTypeDeclarationTypeInternal(DartType type) {
+    if (type is TypeDeclarationType) {
+      switch (type) {
         case InterfaceType(:List<DartType> typeArguments, :Class classNode):
           return new TypeDeclarationMatchResult(
               typeDeclarationKind: TypeDeclarationKind.interfaceDeclaration,
               typeDeclaration: classNode,
-              typeDeclarationType: unwrappedType,
+              typeDeclarationType: type,
               typeArguments: typeArguments);
         case ExtensionType(
             :List<DartType> typeArguments,
@@ -960,7 +950,7 @@ class OperationsCfe
           return new TypeDeclarationMatchResult(
               typeDeclarationKind: TypeDeclarationKind.extensionTypeDeclaration,
               typeDeclaration: extensionTypeDeclaration,
-              typeDeclarationType: unwrappedType,
+              typeDeclarationType: type,
               typeArguments: typeArguments);
       }
     } else {
@@ -975,15 +965,13 @@ class OperationsCfe
   }
 
   @override
-  bool isDartCoreFunction(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() ==
-        typeEnvironment.coreTypes.functionNonNullableRawType;
+  bool isDartCoreFunctionInternal(DartType type) {
+    return type == typeEnvironment.coreTypes.functionNonNullableRawType;
   }
 
   @override
-  bool isDartCoreRecord(SharedTypeView<DartType> type) {
-    return type.unwrapTypeView() ==
-        typeEnvironment.coreTypes.recordNonNullableRawType;
+  bool isDartCoreRecordInternal(DartType type) {
+    return type == typeEnvironment.coreTypes.recordNonNullableRawType;
   }
 
   @override
