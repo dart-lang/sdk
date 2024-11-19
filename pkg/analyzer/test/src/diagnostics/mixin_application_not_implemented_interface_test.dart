@@ -133,8 +133,8 @@ mixin DirectoryAddOnsMixin implements Directory {}
 ''', [
       error(WarningCode.UNUSED_ELEMENT, 96, 15),
     ]);
-    var mixins =
-        result.unit.declaredElement!.getClass('_LocalDirectory')!.mixins;
+
+    var mixins = findElement2.class_('_LocalDirectory').mixins;
     assertType(mixins[0], 'ForwardingDirectory<_LocalDirectory>');
   }
 

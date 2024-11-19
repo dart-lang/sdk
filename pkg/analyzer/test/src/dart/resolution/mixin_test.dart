@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -62,69 +61,15 @@ const a = 0;
 mixin M {}
 ''');
 
-    var aRef = findNode.commentReference('a]').expression;
-    assertElement(aRef, findElement.topGet('a'));
-    assertTypeNull(aRef);
-  }
-
-  test_element() async {
-    await assertNoErrorsInCode(r'''
-mixin M {}
+    var node = findNode.commentReference('a]');
+    assertResolvedNodeText(node, r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: a
+    staticElement: <testLibraryFragment>::@getter::a
+    element: <testLibraryFragment>::@getter::a#element
+    staticType: null
 ''');
-
-    var mixin = findNode.mixin('mixin M');
-    var element = findElement.mixin('M');
-    assertElement(mixin, element);
-
-    expect(element.typeParameters, isEmpty);
-
-    expect(element.supertype, isNull);
-    expect(element.thisType.isDartCoreObject, isFalse);
-
-    assertElementTypes(
-      element.superclassConstraints,
-      ['Object'],
-    );
-    assertElementTypes(element.interfaces, []);
-  }
-
-  test_element_allSupertypes() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B {}
-class C {}
-
-mixin M1 on A, B {}
-mixin M2 on A implements B, C {}
-''');
-
-    assertElementTypes(
-      findElement.mixin('M1').allSupertypes,
-      ['Object', 'A', 'B'],
-    );
-    assertElementTypes(
-      findElement.mixin('M2').allSupertypes,
-      ['Object', 'A', 'B', 'C'],
-    );
-  }
-
-  test_element_allSupertypes_generic() async {
-    await assertNoErrorsInCode(r'''
-class A<T, U> {}
-class B<T> extends A<int, T> {}
-
-mixin M1 on A<int, double> {}
-mixin M2 on B<String> {}
-''');
-
-    assertElementTypes(
-      findElement.mixin('M1').allSupertypes,
-      ['Object', 'A<int, double>'],
-    );
-    assertElementTypes(
-      findElement.mixin('M2').allSupertypes,
-      ['Object', 'A<int, String>', 'B<String>'],
-    );
   }
 
   test_field() async {
@@ -249,16 +194,18 @@ const a = 0;
 mixin M {}
 ''');
 
-    var a = findElement.topGet('a');
-    var element = findElement.mixin('M');
-
-    var metadata = element.metadata;
-    expect(metadata, hasLength(1));
-    expect(metadata[0].element, same(a));
-
-    var annotation = findNode.annotation('@a');
-    assertElement(annotation, a);
-    expect(annotation.elementAnnotation, same(metadata[0]));
+    var node = findNode.annotation('@a');
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: a
+    staticElement: <testLibraryFragment>::@getter::a
+    element: <testLibraryFragment>::@getter::a#element
+    staticType: null
+  element: <testLibraryFragment>::@getter::a
+  element2: <testLibraryFragment>::@getter::a#element
+''');
   }
 
   test_method() async {
@@ -401,9 +348,20 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var access = findNode.propertyAccess('super.foo;');
-    assertElement(access, findElement.getter('foo'));
-    assertType(access, 'int');
+    var node = findNode.propertyAccess('super.foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <testLibraryFragment>::@class::A::@getter::foo
+    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    staticType: int
+  staticType: int
+''');
   }
 
   test_superInvocation_method() async {

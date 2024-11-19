@@ -939,7 +939,8 @@ int test<T extends int Function(int)>(T Function() createT) {
   }
 
   void _assertReturnType(String search, String expected) {
-    var element = findNode.functionExpression(search).declaredElement!;
+    var node = findNode.functionExpression(search);
+    var element = node.declaredFragment!.element;
     assertType(element.returnType, expected);
   }
 }

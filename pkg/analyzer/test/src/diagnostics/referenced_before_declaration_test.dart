@@ -133,7 +133,14 @@ void f(int a) {
           contextMessages: [message(testFile, 75, 1)]),
     ]);
 
-    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@75
+  element: v@75
+  staticType: void Function()
+''');
   }
 
   test_hideInSwitchCase_function_language219() async {
@@ -153,7 +160,14 @@ void f(int a) {
           contextMessages: [message(testFile, 91, 1)]),
     ]);
 
-    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@91
+  element: v@91
+  staticType: void Function()
+''');
   }
 
   test_hideInSwitchCase_local() async {
@@ -172,7 +186,14 @@ void f(int a) {
           contextMessages: [message(testFile, 74, 1)]),
     ]);
 
-    assertElement(findNode.simple('v;'), findElement.localVar('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@74
+  element: v@74
+  staticType: dynamic
+''');
   }
 
   test_hideInSwitchCase_local_language219() async {
@@ -192,7 +213,14 @@ void f(int a) {
           contextMessages: [message(testFile, 90, 1)]),
     ]);
 
-    assertElement(findNode.simple('v;'), findElement.localVar('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@90
+  element: v@90
+  staticType: dynamic
+''');
   }
 
   test_hideInSwitchDefault_function() async {
@@ -211,7 +239,14 @@ void f(int a) {
           contextMessages: [message(testFile, 76, 1)]),
     ]);
 
-    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@76
+  element: v@76
+  staticType: void Function()
+''');
   }
 
   test_hideInSwitchDefault_function_language219() async {
@@ -231,7 +266,14 @@ void f(int a) {
           contextMessages: [message(testFile, 92, 1)]),
     ]);
 
-    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@92
+  element: v@92
+  staticType: void Function()
+''');
   }
 
   test_hideInSwitchDefault_local() async {
@@ -250,7 +292,14 @@ void f(int a) {
           contextMessages: [message(testFile, 75, 1)]),
     ]);
 
-    assertElement(findNode.simple('v;'), findElement.localVar('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@75
+  element: v@75
+  staticType: dynamic
+''');
   }
 
   test_hideInSwitchDefault_local_language219() async {
@@ -270,7 +319,14 @@ void f(int a) {
           contextMessages: [message(testFile, 91, 1)]),
     ]);
 
-    assertElement(findNode.simple('v;'), findElement.localVar('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@91
+  element: v@91
+  staticType: dynamic
+''');
   }
 
   test_inInitializer_closure() async {
@@ -304,7 +360,14 @@ void f() {
 }
 ''');
 
-    assertElement(findNode.simple('v;'), findElement.localFunction('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@50
+  element: v@50
+  staticType: void Function()
+''');
   }
 
   test_labeledStatement_local() async {
@@ -316,7 +379,14 @@ void f() {
 }
 ''');
 
-    assertElement(findNode.simple('v;'), findElement.localVar('v'));
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@49
+  element: v@49
+  staticType: int
+''');
   }
 
   test_type_localFunction() async {

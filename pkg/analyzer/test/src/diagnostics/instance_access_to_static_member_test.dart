@@ -28,10 +28,27 @@ f(C c) {
       error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 47, 1,
           correctionContains: "class 'C'"),
     ]);
-    assertElement(
-      findNode.methodInvocation('a();'),
-      findElement.method('a'),
-    );
+
+    var node = findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    staticElement: <testLibraryFragment>::@function::f::@parameter::c
+    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    staticElement: <testLibraryFragment>::@class::C::@method::a
+    element: <testLibraryFragment>::@class::C::@method::a#element
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_extension_referring_to_class_member() async {
@@ -135,10 +152,27 @@ f(A a) {
       error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 47, 1,
           correctionContains: "mixin 'A'"),
     ]);
-    assertElement(
-      findNode.methodInvocation('a();'),
-      findElement.method('a'),
-    );
+
+    var node = findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: <testLibraryFragment>::@function::f::@parameter::a
+    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    staticElement: <testLibraryFragment>::@mixin::A::@method::a
+    element: <testLibraryFragment>::@mixin::A::@method::a#element
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_propertyAccess_field() async {

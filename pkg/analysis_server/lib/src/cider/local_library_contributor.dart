@@ -8,17 +8,16 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 /// A visitor for building suggestions based upon the elements defined by
 /// a source file contained in the same library but not the same as
 /// the source in which the completions are being requested.
-class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
+class LibraryElementSuggestionBuilder
+    extends GeneralizingElementVisitor2<void> {
   final DartCompletionRequest request;
 
   final SuggestionBuilder builder;
@@ -30,7 +29,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   final String? prefix;
 
   /// The set of libraries that have been, or are currently being, visited.
-  final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
+  final Set<LibraryElement2> visitedLibraries = <LibraryElement2>{};
 
   factory LibraryElementSuggestionBuilder(
     DartCompletionRequest request,
@@ -60,164 +59,126 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   );
 
   @override
-  void visitClassElement(ClassElement element) {
+  void visitClassElement(ClassElement2 element) {
     AstNode node = request.target.containingNode;
-    if (node is ExtendsClause &&
-        !element.isExtendableIn(request.libraryElement)) {
+    var libraryElement = request.libraryElement2;
+    if (node is ExtendsClause && !element.isExtendableIn2(libraryElement)) {
       return;
     } else if (node is ImplementsClause &&
-        !element.isImplementableIn(request.libraryElement)) {
+        !element.isImplementableIn2(libraryElement)) {
       return;
-    } else if (node is WithClause &&
-        !element.isMixableIn(request.libraryElement)) {
+    } else if (node is WithClause && !element.isMixableIn2(libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);
   }
 
   @override
-  void visitCompilationUnitElement(CompilationUnitElement element) {
-    element.visitChildren(this);
-  }
-
-  @override
-  void visitElement(Element element) {
+  void visitElement(Element2 element) {
     // ignored
   }
 
   @override
-  visitEnumElement(EnumElement element) {
+  visitEnumElement(EnumElement2 element) {
     _visitInterfaceElement(element);
   }
 
   @override
-  void visitExtensionElement(ExtensionElement element) {
+  void visitExtensionElement(ExtensionElement2 element) {
     if (opType.includeReturnValueSuggestions) {
-      if (element.name != null) {
-        builder.suggestExtension(
-          element.asElement2 as ExtensionElement2,
-          kind: kind,
-          prefix: prefix,
-        );
+      if (element.name3 != null) {
+        builder.suggestExtension(element, kind: kind, prefix: prefix);
       }
     }
   }
 
   @override
-  void visitExtensionTypeElement(ExtensionTypeElement element) {
+  void visitExtensionTypeElement(ExtensionTypeElement2 element) {
     _visitInterfaceElement(element);
   }
 
   @override
-  void visitFunctionElement(FunctionElement element) {
-    // Do not suggest operators or local functions
-    if (element.isOperator) {
-      return;
-    }
-    if (element.enclosingElement3 is! CompilationUnitElement) {
-      return;
-    }
-    var returnType = element.returnType;
-    if (returnType is VoidType) {
-      if (opType.includeVoidReturnSuggestions) {
-        builder.suggestTopLevelFunction(
-          element.asElement2 as TopLevelFunctionElement,
-          kind: kind,
-          prefix: prefix,
-        );
-      }
-    } else {
-      if (opType.includeReturnValueSuggestions) {
-        builder.suggestTopLevelFunction(
-          element.asElement2 as TopLevelFunctionElement,
-          kind: kind,
-          prefix: prefix,
-        );
-      }
-    }
-  }
-
-  @override
-  void visitLibraryElement(LibraryElement element) {
-    if (visitedLibraries.add(element)) {
-      element.visitChildren(this);
-    }
-  }
-
-  @override
-  visitMixinElement(MixinElement element) {
-    AstNode node = request.target.containingNode;
-    if (node is ImplementsClause &&
-        !element.isImplementableIn(request.libraryElement)) {
-      return;
-    }
-    _visitInterfaceElement(element);
-  }
-
-  @override
-  void visitPropertyAccessorElement(PropertyAccessorElement element) {
-    var variable = element.variable2;
+  void visitGetterElement(GetterElement element) {
+    var variable = element.variable3;
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions &&
             variable != null &&
             variable.isConst)) {
-      var parent = element.enclosingElement3;
-      if (parent is InterfaceElement || parent is ExtensionElement) {
+      var parent = element.enclosingElement2;
+      if (parent is InterfaceElement2 || parent is ExtensionElement2) {
         if (element.isSynthetic) {
-          if (element.isGetter) {
-            if (variable is FieldElement) {
-              builder.suggestField(
-                variable.asElement2,
-                inheritanceDistance: 0.0,
-              );
-            }
+          if (variable is FieldElement2) {
+            builder.suggestField(variable, inheritanceDistance: 0.0);
           }
         } else {
-          if (element.isGetter) {
-            builder.suggestGetter(
-              element.asElement2 as GetterElement,
-              inheritanceDistance: 0.0,
-            );
-          } else {
-            builder.suggestSetter(
-              element.asElement2 as SetterElement,
-              inheritanceDistance: 0.0,
-            );
-          }
+          builder.suggestGetter(element, inheritanceDistance: 0.0);
         }
       } else {
-        if (element.isGetter) {
-          builder.suggestTopLevelGetter(
-            element.asElement2 as GetterElement,
-            prefix: prefix,
-          );
-        } else {
-          builder.suggestTopLevelSetter(
-            element.asElement2 as SetterElement,
-            prefix: prefix,
-          );
-        }
+        builder.suggestTopLevelGetter(element, prefix: prefix);
       }
     }
   }
 
   @override
-  void visitTopLevelVariableElement(TopLevelVariableElement element) {
-    if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
-      builder.suggestTopLevelVariable(
-        element.asElement2 as TopLevelVariableElement2,
-        prefix: prefix,
-      );
+  void visitLibraryElement(LibraryElement2 element) {
+    if (visitedLibraries.add(element)) {
+      element.visitChildren2(this);
     }
   }
 
   @override
-  void visitTypeAliasElement(TypeAliasElement element) {
+  visitMixinElement(MixinElement2 element) {
+    AstNode node = request.target.containingNode;
+    if (node is ImplementsClause &&
+        !element.isImplementableIn2(request.libraryElement2)) {
+      return;
+    }
+    _visitInterfaceElement(element);
+  }
+
+  @override
+  void visitSetterElement(SetterElement element) {
+    var variable = element.variable3;
+    if (opType.includeReturnValueSuggestions ||
+        (opType.includeAnnotationSuggestions &&
+            variable != null &&
+            variable.isConst)) {
+      var parent = element.enclosingElement2;
+      if (parent is InterfaceElement2 || parent is ExtensionElement2) {
+        if (!element.isSynthetic) {
+          builder.suggestSetter(element, inheritanceDistance: 0.0);
+        }
+      } else {
+        builder.suggestTopLevelSetter(element, prefix: prefix);
+      }
+    }
+  }
+
+  @override
+  void visitTopLevelFunctionElement(TopLevelFunctionElement element) {
+    var returnType = element.returnType;
+    if (returnType is VoidType) {
+      if (opType.includeVoidReturnSuggestions) {
+        builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
+      }
+    } else {
+      if (opType.includeReturnValueSuggestions) {
+        builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
+      }
+    }
+  }
+
+  @override
+  void visitTopLevelVariableElement(TopLevelVariableElement2 element) {
+    if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
+      builder.suggestTopLevelVariable(element, prefix: prefix);
+    }
+  }
+
+  @override
+  void visitTypeAliasElement(TypeAliasElement2 element) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(
-        element.asElement2 as TypeAliasElement2,
-        prefix: prefix,
-      );
+      builder.suggestTypeAlias(element, prefix: prefix);
     }
   }
 
@@ -225,14 +186,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   ///
   /// If [onlyConst] is `true`, only `const` constructors will be suggested.
   void _addConstructorSuggestions(
-    ClassElement element, {
+    ClassElement2 element, {
     bool onlyConst = false,
   }) {
-    if (element is EnumElement) {
+    if (element is EnumElement2) {
       return;
     }
 
-    for (var constructor in element.constructors) {
+    for (var constructor in element.constructors2) {
       if (constructor.isPrivate) {
         continue;
       }
@@ -242,19 +203,15 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
       if (onlyConst && !constructor.isConst) {
         continue;
       }
-      builder.suggestConstructor(
-        constructor.asElement2 as ConstructorElement2,
-        kind: kind,
-        prefix: prefix,
-      );
+      builder.suggestConstructor(constructor, kind: kind, prefix: prefix);
     }
   }
 
-  void _visitInterfaceElement(InterfaceElement element) {
+  void _visitInterfaceElement(InterfaceElement2 element) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestInterface(element.asElement2, prefix: prefix);
+      builder.suggestInterface(element, prefix: prefix);
     }
-    if (element is ClassElement) {
+    if (element is ClassElement2) {
       if (opType.includeConstructorSuggestions) {
         _addConstructorSuggestions(element);
       } else if (opType.includeAnnotationSuggestions) {
@@ -266,24 +223,21 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
       var contextType = request.contextType;
       if (contextType is InterfaceType) {
         // TODO(scheglov): This looks not ideal - we should suggest getters.
-        for (var field in element.fields) {
+        for (var field in element.fields2) {
           if (field.isStatic &&
-              field.isAccessibleIn(request.libraryElement) &&
+              field.isAccessibleIn2(request.libraryElement2) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
             if (field.isSynthetic) {
-              var getter = field.getter;
+              var getter = field.getter2;
               if (getter != null) {
                 builder.suggestGetter(
-                  getter.asElement2 as GetterElement,
+                  getter,
                   inheritanceDistance: 0.0,
                   withEnclosingName: true,
                 );
               }
             } else {
-              builder.suggestStaticField(
-                field.asElement2,
-                prefix: prefix,
-              );
+              builder.suggestStaticField(field, prefix: prefix);
             }
           }
         }

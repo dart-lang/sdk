@@ -4,6 +4,9 @@
 //
 // Process test program to test process communication.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 library PlatformExecutableTest;
 
 import "dart:io";

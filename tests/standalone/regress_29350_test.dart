@@ -4,6 +4,9 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // 'covariant' when used incorrectly should report an error and not crash
 // the VM.
 

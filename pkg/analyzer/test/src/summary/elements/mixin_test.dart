@@ -2619,6 +2619,233 @@ library
 ''');
   }
 
+  test_allSupertypes_generic() async {
+    var library = await buildLibrary(r'''
+class A<T, U> {}
+class B<T> extends A<int, T> {}
+
+mixin M1 on A<int, double> {}
+mixin M2 on B<String> {}
+''');
+
+    configuration
+      ..withAllSupertypes = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          typeParameters
+            covariant T @8
+              defaultType: dynamic
+            covariant U @11
+              defaultType: dynamic
+          allSupertypes
+            Object
+        class B @23
+          reference: <testLibraryFragment>::@class::B
+          enclosingElement3: <testLibraryFragment>
+          typeParameters
+            covariant T @25
+              defaultType: dynamic
+          supertype: A<int, T>
+          allSupertypes
+            A<int, T>
+            Object
+      mixins
+        mixin M1 @56
+          reference: <testLibraryFragment>::@mixin::M1
+          enclosingElement3: <testLibraryFragment>
+          superclassConstraints
+            A<int, double>
+          allSupertypes
+            A<int, double>
+            Object
+        mixin M2 @86
+          reference: <testLibraryFragment>::@mixin::M2
+          enclosingElement3: <testLibraryFragment>
+          superclassConstraints
+            B<String>
+          allSupertypes
+            A<int, String>
+            B<String>
+            Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibrary>::@class::A
+          typeParameters
+            T @8
+              element: <not-implemented>
+            U @11
+              element: <not-implemented>
+        class B @23
+          reference: <testLibraryFragment>::@class::B
+          element: <testLibrary>::@class::B
+          typeParameters
+            T @25
+              element: <not-implemented>
+      mixins
+        mixin M1 @56
+          reference: <testLibraryFragment>::@mixin::M1
+          element: <testLibrary>::@mixin::M1
+        mixin M2 @86
+          reference: <testLibraryFragment>::@mixin::M2
+          element: <testLibrary>::@mixin::M2
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
+      typeParameters
+        T
+        U
+      allSupertypes
+        Object
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
+      typeParameters
+        T
+      supertype: A<int, T>
+      allSupertypes
+        A<int, T>
+        Object
+  mixins
+    mixin M1
+      reference: <testLibrary>::@mixin::M1
+      firstFragment: <testLibraryFragment>::@mixin::M1
+      superclassConstraints
+        A<int, double>
+      allSupertypes
+        A<int, double>
+        Object
+    mixin M2
+      reference: <testLibrary>::@mixin::M2
+      firstFragment: <testLibraryFragment>::@mixin::M2
+      superclassConstraints
+        B<String>
+      allSupertypes
+        A<int, String>
+        B<String>
+        Object
+''');
+  }
+
+  test_allSupertypes_hasInterfaces() async {
+    var library = await buildLibrary(r'''
+class A {}
+class B {}
+class C {}
+
+mixin M on A implements B, C {}
+''');
+
+    configuration
+      ..withAllSupertypes = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          allSupertypes
+            Object
+        class B @17
+          reference: <testLibraryFragment>::@class::B
+          enclosingElement3: <testLibraryFragment>
+          allSupertypes
+            Object
+        class C @28
+          reference: <testLibraryFragment>::@class::C
+          enclosingElement3: <testLibraryFragment>
+          allSupertypes
+            Object
+      mixins
+        mixin M @40
+          reference: <testLibraryFragment>::@mixin::M
+          enclosingElement3: <testLibraryFragment>
+          superclassConstraints
+            A
+          interfaces
+            B
+            C
+          allSupertypes
+            A
+            B
+            C
+            Object
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibrary>::@class::A
+        class B @17
+          reference: <testLibraryFragment>::@class::B
+          element: <testLibrary>::@class::B
+        class C @28
+          reference: <testLibraryFragment>::@class::C
+          element: <testLibrary>::@class::C
+      mixins
+        mixin M @40
+          reference: <testLibraryFragment>::@mixin::M
+          element: <testLibrary>::@mixin::M
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
+      allSupertypes
+        Object
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: <testLibraryFragment>::@class::B
+      allSupertypes
+        Object
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: <testLibraryFragment>::@class::C
+      allSupertypes
+        Object
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: <testLibraryFragment>::@mixin::M
+      superclassConstraints
+        A
+      interfaces
+        B
+        C
+      allSupertypes
+        A
+        B
+        C
+        Object
+''');
+  }
+
   test_allSupertypes_hasSuperclassConstraints() async {
     var library = await buildLibrary(r'''
 class A {}

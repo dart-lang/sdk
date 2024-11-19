@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test checking that static/instance field shadowing do not conflict.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Test that certain interfaces/classes are denylisted from being
 // implemented or extended (VM corelib only).
 

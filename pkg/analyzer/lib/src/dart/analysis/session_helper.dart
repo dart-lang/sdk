@@ -81,6 +81,20 @@ class AnalysisSessionHelper {
     return null;
   }
 
+  /// Return the [EnumElement] with the given [className] that is exported
+  /// from the library with the given [libraryUri], or `null` if the library
+  /// does not export a class with such name.
+  Future<EnumElement2?> getEnum2(String libraryUri, String className) async {
+    var libraryResult = await session.getLibraryByUri(libraryUri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element.exportNamespace.get2(className);
+      if (element is EnumElement2) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   /// Returns the [ClassElement] with the given [className] that is exported
   /// from the Flutter widgets library, or `null` if the library does not export
   /// a class with such name.

@@ -20,6 +20,134 @@ main() {
 }
 
 mixin ExtensionTypeElementMixin on ElementsBaseTest {
+  test_allSupertypes() async {
+    var library = await buildLibrary(r'''
+extension type A(int? it) {}
+extension type B(int it) implements A, num {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withAllSupertypes = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      extensionTypes
+        A @15
+          reference: <testLibraryFragment>::@extensionType::A
+          enclosingElement3: <testLibraryFragment>
+          representation: <testLibraryFragment>::@extensionType::A::@field::it
+          primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new
+          typeErasure: int?
+          fields
+            final it @22
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              enclosingElement3: <testLibraryFragment>::@extensionType::A
+              type: int?
+          accessors
+            synthetic get it @-1
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              enclosingElement3: <testLibraryFragment>::@extensionType::A
+              returnType: int?
+        B @44
+          reference: <testLibraryFragment>::@extensionType::B
+          enclosingElement3: <testLibraryFragment>
+          representation: <testLibraryFragment>::@extensionType::B::@field::it
+          primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new
+          typeErasure: int
+          interfaces
+            A
+            num
+          allSupertypes
+            A
+            Comparable<num>
+            Object
+            num
+          fields
+            final it @50
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              enclosingElement3: <testLibraryFragment>::@extensionType::B
+              type: int
+          accessors
+            synthetic get it @-1
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              enclosingElement3: <testLibraryFragment>::@extensionType::B
+              returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        extension type A @15
+          reference: <testLibraryFragment>::@extensionType::A
+          element: <testLibrary>::@extensionType::A
+          fields
+            it @22
+              reference: <testLibraryFragment>::@extensionType::A::@field::it
+              element: <testLibraryFragment>::@extensionType::A::@field::it#element
+              getter2: <testLibraryFragment>::@extensionType::A::@getter::it
+          getters
+            synthetic get it
+              reference: <testLibraryFragment>::@extensionType::A::@getter::it
+              element: <testLibraryFragment>::@extensionType::A::@getter::it#element
+        extension type B @44
+          reference: <testLibraryFragment>::@extensionType::B
+          element: <testLibrary>::@extensionType::B
+          fields
+            it @50
+              reference: <testLibraryFragment>::@extensionType::B::@field::it
+              element: <testLibraryFragment>::@extensionType::B::@field::it#element
+              getter2: <testLibraryFragment>::@extensionType::B::@getter::it
+          getters
+            synthetic get it
+              reference: <testLibraryFragment>::@extensionType::B::@getter::it
+              element: <testLibraryFragment>::@extensionType::B::@getter::it#element
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: <testLibraryFragment>::@extensionType::A
+      representation: <testLibraryFragment>::@extensionType::A::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::A::@constructor::new#element
+      typeErasure: int?
+      fields
+        final it
+          firstFragment: <testLibraryFragment>::@extensionType::A::@field::it
+          type: int?
+          getter: <testLibraryFragment>::@extensionType::A::@getter::it#element
+      getters
+        synthetic get it
+          firstFragment: <testLibraryFragment>::@extensionType::A::@getter::it
+    extension type B
+      reference: <testLibrary>::@extensionType::B
+      firstFragment: <testLibraryFragment>::@extensionType::B
+      representation: <testLibraryFragment>::@extensionType::B::@field::it#element
+      primaryConstructor: <testLibraryFragment>::@extensionType::B::@constructor::new#element
+      typeErasure: int
+      interfaces
+        A
+        num
+      allSupertypes
+        A
+        Comparable<num>
+        Object
+        num
+      fields
+        final it
+          firstFragment: <testLibraryFragment>::@extensionType::B::@field::it
+          type: int
+          getter: <testLibraryFragment>::@extensionType::B::@getter::it#element
+      getters
+        synthetic get it
+          firstFragment: <testLibraryFragment>::@extensionType::B::@getter::it
+''');
+  }
+
   test_constructor_const() async {
     var library = await buildLibrary(r'''
 extension type const A(int it) {}

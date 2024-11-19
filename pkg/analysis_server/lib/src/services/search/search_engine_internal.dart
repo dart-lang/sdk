@@ -171,6 +171,19 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
+  Future<List<SearchMatch>> searchSubtypes2(
+    InterfaceElement2 type,
+    SearchEngineCache searchEngineCache, {
+    OperationPerformanceImpl? performance,
+  }) async {
+    return await searchSubtypes(
+      type.asElement,
+      searchEngineCache,
+      performance: performance,
+    );
+  }
+
+  @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
     var allElements = <Element>{};
     var regExp = RegExp(pattern);

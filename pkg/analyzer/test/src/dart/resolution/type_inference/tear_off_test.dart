@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -28,11 +26,16 @@ void test() {
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 7),
     ]);
-    _assertTearOff(
-      'f; // 1',
-      findElement.topFunction('f'),
-      'T Function<T>(T)',
-    );
+
+    var node = findNode.simple('f; // 1');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: f
+  parameter: <null>
+  staticElement: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
+  staticType: T Function<T>(T)
+''');
   }
 
   test_empty_notGeneric() async {
@@ -46,11 +49,16 @@ void test() {
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 7),
     ]);
-    _assertTearOff(
-      'f; // 1',
-      findElement.topFunction('f'),
-      'int Function(int)',
-    );
+
+    var node = findNode.simple('f; // 1');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: f
+  parameter: <null>
+  staticElement: <testLibraryFragment>::@function::f
+  element: <testLibrary>::@function::f
+  staticType: int Function(int)
+''');
   }
 
   test_notEmpty_instanceMethod() async {
@@ -63,12 +71,36 @@ int Function(int) test() {
   return new C().f;
 }
 ''');
-    _assertGenericFunctionInstantiation(
-      'f;',
-      findElement.method('f', of: 'C'),
-      'int Function(int)',
-      ['int'],
-    );
+
+    var node = findNode.functionReference('f;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: PropertyAccess
+    target: InstanceCreationExpression
+      keyword: new
+      constructorName: ConstructorName
+        type: NamedType
+          name: C
+          element: <testLibraryFragment>::@class::C
+          element2: <testLibrary>::@class::C
+          type: C
+        staticElement: <testLibraryFragment>::@class::C::@constructor::new
+        element: <testLibraryFragment>::@class::C::@constructor::new#element
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f
+      staticElement: <testLibraryFragment>::@class::C::@method::f
+      element: <testLibraryFragment>::@class::C::@method::f#element
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_notEmpty_localFunction() async {
@@ -78,12 +110,19 @@ int Function(int) test() {
   return f;
 }
 ''');
-    _assertGenericFunctionInstantiation(
-      'f;',
-      findElement.localFunction('f'),
-      'int Function(int)',
-      ['int'],
-    );
+
+    var node = findNode.functionReference('f;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+    staticElement: f@31
+    element: f@31
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_notEmpty_staticMethod() async {
@@ -96,12 +135,29 @@ int Function(int) test() {
   return C.f;
 }
 ''');
-    _assertGenericFunctionInstantiation(
-      'f;',
-      findElement.method('f', of: 'C'),
-      'int Function(int)',
-      ['int'],
-    );
+
+    var node = findNode.functionReference('f;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: C
+      staticElement: <testLibraryFragment>::@class::C
+      element: <testLibrary>::@class::C
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: f
+      staticElement: <testLibraryFragment>::@class::C::@method::f
+      element: <testLibraryFragment>::@class::C::@method::f#element
+      staticType: T Function<T>(T)
+    staticElement: <testLibraryFragment>::@class::C::@method::f
+    element: <testLibraryFragment>::@class::C::@method::f#element
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_notEmpty_superMethod() async {
@@ -116,12 +172,25 @@ class D extends C {
   }
 }
 ''');
-    _assertGenericFunctionInstantiation(
-      'f;',
-      findElement.method('f', of: 'C'),
-      'int Function(int)',
-      ['int'],
-    );
+
+    var node = findNode.functionReference('f;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: D
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f
+      staticElement: <testLibraryFragment>::@class::C::@method::f
+      element: <testLibraryFragment>::@class::C::@method::f#element
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_notEmpty_topLevelFunction() async {
@@ -132,12 +201,19 @@ int Function(int) test() {
   return f;
 }
 ''');
-    _assertGenericFunctionInstantiation(
-      'f;',
-      findElement.topFunction('f'),
-      'int Function(int)',
-      ['int'],
-    );
+
+    var node = findNode.functionReference('f;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: f
+    staticElement: <testLibraryFragment>::@function::f
+    element: <testLibrary>::@function::f
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_null_notTearOff() async {
@@ -172,32 +248,5 @@ MethodInvocation
   typeArgumentTypes
     int
 ''');
-  }
-
-  void _assertGenericFunctionInstantiation(
-    String search,
-    ExecutableElement element,
-    String type,
-    List<String>? typeArguments,
-  ) {
-    var id = findNode.functionReference(search);
-    assertElement(id, element);
-    assertType(id, type);
-    if (typeArguments != null) {
-      assertElementTypes(id.typeArgumentTypes, typeArguments);
-    } else {
-      expect(id.typeArgumentTypes, isNull);
-    }
-  }
-
-  void _assertTearOff(
-    String search,
-    ExecutableElement element,
-    String type,
-  ) {
-    var id = findNode.simple(search);
-    assertElement(id, element);
-    assertType(id, type);
-    expect(id.tearOffTypeArgumentTypes, isNull);
   }
 }

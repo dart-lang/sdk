@@ -163,10 +163,10 @@ VariableDeclaration
     await resolveTestCode('''
 var v = 0;
 ''');
-    var getter = findElement.topGet('v');
+    var getter = findElement2.topGet('v');
     expect(getter.session, result.session);
 
-    var setter = findElement.topSet('v');
+    var setter = findElement2.topSet('v');
     expect(setter.session, result.session);
   }
 
@@ -174,27 +174,27 @@ var v = 0;
     await resolveTestCode('''
 var v = 0;
 ''');
-    assertType(findElement.topVar('v').type, 'int');
+    assertType(findElement2.topVar('v').type, 'int');
   }
 
   test_type_inferred_Never() async {
     await resolveTestCode('''
 var v = throw 42;
 ''');
-    assertType(findElement.topVar('v').type, 'Never');
+    assertType(findElement2.topVar('v').type, 'Never');
   }
 
   test_type_inferred_noInitializer() async {
     await resolveTestCode('''
 var v;
 ''');
-    assertType(findElement.topVar('v').type, 'dynamic');
+    assertType(findElement2.topVar('v').type, 'dynamic');
   }
 
   test_type_inferred_null() async {
     await resolveTestCode('''
 var v = null;
 ''');
-    assertType(findElement.topVar('v').type, 'dynamic');
+    assertType(findElement2.topVar('v').type, 'dynamic');
   }
 }

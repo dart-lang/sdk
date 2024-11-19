@@ -377,7 +377,7 @@ void f() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      ImportedElements(fooPath, 'prefix', ['foo=']),
+      ImportedElements(fooPath, 'prefix', ['foo']),
     ]);
   }
 

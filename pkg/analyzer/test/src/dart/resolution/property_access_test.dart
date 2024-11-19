@@ -221,8 +221,13 @@ int Function() foo() {
     ]);
 
     var identifier = findNode.simple('a; // ref');
-    assertElement(identifier, findElement.getter('a'));
-    assertType(identifier, 'A?');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: a
+  staticElement: <testLibraryFragment>::@class::B::@getter::a
+  element: <testLibraryFragment>::@class::B::@getter::a#element
+  staticType: A?
+''');
   }
 
   test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
@@ -2688,8 +2693,13 @@ bar() {
 ''');
 
     var identifier = findNode.simple('foo;');
-    assertElement(identifier, findElement.method('foo'));
-    assertType(identifier, 'void Function(int)');
+    assertResolvedNodeText(identifier, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <testLibraryFragment>::@class::A::@method::foo
+  element: <testLibraryFragment>::@class::A::@method::foo#element
+  staticType: void Function(int)
+''');
   }
 
   test_unresolved_identifier() async {

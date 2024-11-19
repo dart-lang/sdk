@@ -6,11 +6,7 @@ lib/src/cider/local_library_contributor.dart
 lib/src/cider/rename.dart
 lib/src/computer/computer_call_hierarchy.dart
 lib/src/computer/computer_documentation.dart
-lib/src/computer/computer_hover.dart
-lib/src/computer/computer_inlay_hint.dart
-lib/src/computer/computer_lazy_type_hierarchy.dart
 lib/src/computer/import_elements_computer.dart
-lib/src/computer/imported_elements_computer.dart
 lib/src/domains/analysis/implemented_dart.dart
 lib/src/domains/analysis/occurrences_dart.dart
 lib/src/handler/legacy/completion_get_suggestions2.dart

@@ -444,12 +444,14 @@ int Function() foo() {
 }
 ''');
 
-    var identifier = findNode.simple('a;');
-    assertElement(
-      identifier,
-      findElement.importFind('package:test/a.dart').topGet('a'),
-    );
-    assertType(identifier, 'A');
+    var node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: package:test/a.dart::<fragment>::@getter::a
+  element: package:test/a.dart::<fragment>::@getter::a#element
+  staticType: A
+''');
   }
 
   test_implicitCall_tearOff_nullable() async {
@@ -470,12 +472,14 @@ int Function() foo() {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 50, 1),
     ]);
 
-    var identifier = findNode.simple('a;');
-    assertElement(
-      identifier,
-      findElement.importFind('package:test/a.dart').topGet('a'),
-    );
-    assertType(identifier, 'A?');
+    var node = findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  staticElement: package:test/a.dart::<fragment>::@getter::a
+  element: package:test/a.dart::<fragment>::@getter::a#element
+  staticType: A?
+''');
   }
 
   test_importPrefix_class() async {

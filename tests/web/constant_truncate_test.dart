@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 const a0 = 0 ~/ 0; //# a0: compile-time error
 const a1 = 0.0 ~/ 0; //# a1: compile-time error
 const a2 = -0.0 ~/ 0; //# a2: compile-time error

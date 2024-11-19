@@ -22,7 +22,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_field() async {
@@ -32,7 +32,7 @@ class A {
 }
 var b = new A().g;
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_field_call() async {
@@ -43,7 +43,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_field_imported() async {
@@ -56,7 +56,7 @@ class A {
 import 'a.dart';
 var b = new A().f;
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_field_prefixedIdentifier() async {
@@ -67,7 +67,7 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_getter() async {
@@ -77,7 +77,7 @@ class A {
 }
 var b = new A().g;
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped() async {
@@ -87,7 +87,7 @@ class A {
 }
 var b = new A().g;
 ''');
-    assertTypeDynamic(findElement.topVar('b').type);
+    assertTypeDynamic(findElement2.topVar('b').type);
   }
 
   test_implicitlyTyped_call() async {
@@ -98,7 +98,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''');
-    assertTypeDynamic(findElement.topVar('b').type);
+    assertTypeDynamic(findElement2.topVar('b').type);
   }
 
   test_implicitlyTyped_field() async {
@@ -108,7 +108,7 @@ class A {
 }
 var b = new A().g;
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_field_call() async {
@@ -119,7 +119,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_field_prefixedIdentifier() async {
@@ -130,7 +130,7 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_fn() async {
@@ -142,7 +142,7 @@ int f<T>(x) => 0;
 var a = new A();
 var b = f(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_fn_explicit_type_params() async {
@@ -154,7 +154,7 @@ int f<T>(x) => 0;
 var a = new A();
 var b = f<int>(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_fn_not_generic() async {
@@ -166,7 +166,7 @@ int f(x) => 0;
 var a = new A();
 var b = f(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_indexExpression() async {
@@ -178,7 +178,7 @@ class A {
 var a = new A();
 var b = a[a.x];
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_invoke() async {
@@ -189,7 +189,7 @@ class A {
 var a = new A();
 var b = (<T>(y) => 0)(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_invoke_explicit_type_params() async {
@@ -200,7 +200,7 @@ class A {
 var a = new A();
 var b = (<T>(y) => 0)<int>(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_invoke_not_generic() async {
@@ -211,7 +211,7 @@ class A {
 var a = new A();
 var b = ((y) => 0)(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_method() async {
@@ -223,7 +223,7 @@ class A {
 var a = new A();
 var b = a.f(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_method_explicit_type_params() async {
@@ -235,7 +235,7 @@ class A {
 var a = new A();
 var b = a.f<int>(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_method_not_generic() async {
@@ -247,7 +247,7 @@ class A {
 var a = new A();
 var b = a.f(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped_new() async {
@@ -261,7 +261,7 @@ class B<T> {
 var a = new A();
 var b = new B(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B<int>');
+    assertType(findElement2.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_explicit_type_params() async {
@@ -275,7 +275,7 @@ class B<T> {
 var a = new A();
 var b = new B<int>(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B<int>');
+    assertType(findElement2.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_explicit_type_params_named() async {
@@ -289,7 +289,7 @@ class B<T> {
 var a = new A();
 var b = new B<int>.named(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B<int>');
+    assertType(findElement2.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_explicit_type_params_prefixed() async {
@@ -306,7 +306,7 @@ class A {
 var a = new A();
 var b = new foo.B<int>(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B<int>');
+    assertType(findElement2.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_named() async {
@@ -320,7 +320,7 @@ class B<T> {
 var a = new A();
 var b = new B.named(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B<int>');
+    assertType(findElement2.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_new_not_generic() async {
@@ -334,7 +334,7 @@ class B {
 var a = new A();
 var b = new B(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B');
+    assertType(findElement2.topVar('b').type, 'B');
   }
 
   test_implicitlyTyped_new_not_generic_named() async {
@@ -348,7 +348,7 @@ class B {
 var a = new A();
 var b = new B.named(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B');
+    assertType(findElement2.topVar('b').type, 'B');
   }
 
   test_implicitlyTyped_new_not_generic_prefixed() async {
@@ -365,7 +365,7 @@ class A {
 var a = new A();
 var b = new foo.B(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B');
+    assertType(findElement2.topVar('b').type, 'B');
   }
 
   test_implicitlyTyped_new_prefixed() async {
@@ -382,7 +382,7 @@ class A {
 var a = new A();
 var b = new foo.B(a.x);
 ''');
-    assertType(findElement.topVar('b').type, 'B<int>');
+    assertType(findElement2.topVar('b').type, 'B<int>');
   }
 
   test_implicitlyTyped_prefixedIdentifier() async {
@@ -393,7 +393,7 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
-    assertType(findElement.topVar('b').type, 'dynamic');
+    assertType(findElement2.topVar('b').type, 'dynamic');
   }
 
   test_implicitlyTyped_propertyAccessLhs() async {
@@ -408,7 +408,7 @@ class B {
 var a = new A();
 var b = (a.x).y;
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_prefixedIdentifier() async {
@@ -419,6 +419,6 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 }

@@ -154,7 +154,7 @@ class DartUnitHoverComputer {
 
     var definingSource = library.firstFragment.source;
     var uri = definingSource.uri;
-    var analysisSession = _unit.declaredElement?.session;
+    var analysisSession = _unit.declaredFragment?.element.session;
 
     String? libraryName, libraryPath;
     if (uri.isScheme('file') && analysisSession != null) {

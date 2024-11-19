@@ -128,6 +128,17 @@ abstract class SearchEngine {
     OperationPerformanceImpl? performance,
   });
 
+  /// Returns direct subtypes of the given [type].
+  ///
+  /// [type] - the [ClassElement] being subtyped by the found matches.
+  /// [cache] - the [SearchEngineCache] used to speeding up the computation. If
+  ///    empty it will be filled out and can be used on any subsequent query.
+  Future<List<SearchMatch>> searchSubtypes2(
+    InterfaceElement2 type,
+    SearchEngineCache cache, {
+    OperationPerformanceImpl? performance,
+  });
+
   /// Returns all the top-level declarations matching the given pattern.
   ///
   /// [pattern] the regular expression used to match the names of the
