@@ -499,6 +499,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.nullabilitySuffix,
     super.alias,
   }) {
+    if (element.name == 'Null' && element.library.isDartCore) {
+      throw ArgumentError('NullTypeImpl should be used for `Null`');
+    }
     if (element.augmentationTarget != null) {
       throw ArgumentError(
         'InterfaceType(s) can only be created for declarations',
@@ -514,6 +517,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         '[typeArguments: $typeArguments]',
       );
     }
+  }
+
+  InterfaceTypeImpl._null({required this.element, super.alias})
+      : typeArguments = const [],
+        nullabilitySuffix = NullabilitySuffix.none {
+    assert(element.name == 'Null' && element.library.isDartCore);
+    assert(this is NullTypeImpl);
   }
 
   @override
@@ -635,11 +645,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   bool get isDartCoreMap {
     return element.name == "Map" && element.library.isDartCore;
-  }
-
-  @override
-  bool get isDartCoreNull {
-    return element.name == "Null" && element.library.isDartCore;
   }
 
   @override
@@ -1133,6 +1138,18 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
         return instance;
     }
   }
+}
+
+/// A concrete implementation of [DartType] representing the type `Null`, with
+/// no type parameters and no nullability suffix.
+class NullTypeImpl extends InterfaceTypeImpl {
+  NullTypeImpl({required super.element, super.alias}) : super._null();
+
+  @override
+  bool get isDartCoreNull => true;
+
+  @override
+  NullTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 }
 
 abstract class RecordTypeFieldImpl implements RecordTypeField {

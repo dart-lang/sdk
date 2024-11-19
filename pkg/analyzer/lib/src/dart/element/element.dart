@@ -5900,11 +5900,16 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       }
     }
 
-    var result = InterfaceTypeImpl(
-      element: this,
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
+    InterfaceTypeImpl result;
+    if (name == 'Null' && library.isDartCore) {
+      result = NullTypeImpl(element: this);
+    } else {
+      result = InterfaceTypeImpl(
+        element: this,
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    }
 
     if (typeArguments.isEmpty) {
       switch (nullabilitySuffix) {
@@ -10240,6 +10245,11 @@ class TypeAliasElementImpl extends _ExistingElementImpl
           typeArguments: typeArguments,
         ),
       );
+    } else if (type is NullTypeImpl) {
+      return NullTypeImpl(
+          element: type.element,
+          alias: InstantiatedTypeAliasElementImpl(
+              element: this, typeArguments: typeArguments));
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
         element: type.element,
