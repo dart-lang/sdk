@@ -1067,26 +1067,6 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
-static Condition TokenKindToDoubleCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ:
-      return EQ;
-    case Token::kNE:
-      return NE;
-    case Token::kLT:
-      return LT;
-    case Token::kGT:
-      return GT;
-    case Token::kLTE:
-      return LE;
-    case Token::kGTE:
-      return GE;
-    default:
-      UNREACHABLE();
-      return VS;
-  }
-}
-
 static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                         const LocationSummary& locs,
                                         Token::Kind kind,
@@ -4335,26 +4315,24 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  if (result_cid() == kDoubleCid) {
+  if (representation() == kUnboxedDouble) {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 0;
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
-    // Reuse the left register so that code can be made shorter.
-    summary->set_out(0, Location::SameAsFirstInput());
+    summary->set_out(0, Location::RequiresFpuRegister());
     return summary;
   }
-  ASSERT(result_cid() == kSmiCid);
+  ASSERT(representation() == kUnboxedInt64);
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
-  // Reuse the left register so that code can be made shorter.
-  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -4362,54 +4340,23 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
   const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
-  if (result_cid() == kDoubleCid) {
-    compiler::Label done, returns_nan, are_equal;
+  if (representation() == kUnboxedDouble) {
     const VRegister left = locs()->in(0).fpu_reg();
     const VRegister right = locs()->in(1).fpu_reg();
     const VRegister result = locs()->out(0).fpu_reg();
-    __ fcmpd(left, right);
-    __ b(&returns_nan, VS);
-    __ b(&are_equal, EQ);
-    const Condition double_condition =
-        is_min ? TokenKindToDoubleCondition(Token::kLTE)
-               : TokenKindToDoubleCondition(Token::kGTE);
-    ASSERT(left == result);
-    __ b(&done, double_condition);
-    __ fmovdd(result, right);
-    __ b(&done);
-
-    __ Bind(&returns_nan);
-    __ LoadDImmediate(result, NAN);
-    __ b(&done);
-
-    __ Bind(&are_equal);
-    // Check for negative zero: -0.0 is equal 0.0 but min or max must return
-    // -0.0 or 0.0 respectively.
-    // Check for negative left value (get the sign bit):
-    // - min -> left is negative ? left : right.
-    // - max -> left is negative ? right : left
-    // Check the sign bit.
-    __ fmovrd(TMP, left);  // Sign bit is in bit 63 of TMP.
-    __ CompareImmediate(TMP, 0);
     if (is_min) {
-      ASSERT(left == result);
-      __ b(&done, LT);
-      __ fmovdd(result, right);
+      __ vmind(result, left, right);
     } else {
-      __ b(&done, GE);
-      __ fmovdd(result, right);
-      ASSERT(left == result);
+      __ vmaxd(result, left, right);
     }
-    __ Bind(&done);
     return;
   }
 
-  ASSERT(result_cid() == kSmiCid);
+  ASSERT(representation() == kUnboxedInt64);
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
   const Register result = locs()->out(0).reg();
-  __ CompareObjectRegisters(left, right);
-  ASSERT(result == left);
+  __ CompareRegisters(left, right);
   if (is_min) {
     __ csel(result, right, left, GT);
   } else {

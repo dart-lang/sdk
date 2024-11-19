@@ -3067,6 +3067,9 @@ void Simulator::DecodeSIMDCopy(Instr* instr) {
 }
 
 static float vminf(float f1, float f2) {
+  if (isnan(f1) || isnan(f2)) {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
   if (f1 == f2) {
     // take care of (-0.0) < 0.0, (they are equal according to minss)
     return signbit(f1) ? f1 : f2;
@@ -3075,6 +3078,9 @@ static float vminf(float f1, float f2) {
 }
 
 static float vmaxf(float f1, float f2) {
+  if (isnan(f1) || isnan(f2)) {
+    return std::numeric_limits<float>::quiet_NaN();
+  }
   if (f1 == f2) {
     // take care of (-0.0) < 0.0, (they are equal according to minss)
     return signbit(f1) ? f2 : f1;
@@ -3083,6 +3089,9 @@ static float vmaxf(float f1, float f2) {
 }
 
 static double vmind(double f1, double f2) {
+  if (isnan(f1) || isnan(f2)) {
+    return std::numeric_limits<double>::quiet_NaN();
+  }
   if (f1 == f2) {
     // take care of (-0.0) < 0.0, (they are equal according to minss)
     return signbit(f1) ? f1 : f2;
@@ -3091,6 +3100,9 @@ static double vmind(double f1, double f2) {
 }
 
 static double vmaxd(double f1, double f2) {
+  if (isnan(f1) || isnan(f2)) {
+    return std::numeric_limits<double>::quiet_NaN();
+  }
   if (f1 == f2) {
     // take care of (-0.0) < 0.0, (they are equal according to minss)
     return signbit(f1) ? f2 : f1;

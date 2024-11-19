@@ -1103,7 +1103,16 @@ bool MathMinMaxInstr::AttributesEqual(const Instruction& other) const {
   auto const other_op = other.AsMathMinMax();
   ASSERT(other_op != nullptr);
   return (op_kind() == other_op->op_kind()) &&
-         (result_cid() == other_op->result_cid());
+         (representation() == other_op->representation());
+}
+
+Definition* MathMinMaxInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return nullptr;
+  if (left()->definition()->OriginalDefinition() ==
+      right()->definition()->OriginalDefinition()) {
+    return left()->definition();
+  }
+  return this;
 }
 
 bool BinaryIntegerOpInstr::AttributesEqual(const Instruction& other) const {

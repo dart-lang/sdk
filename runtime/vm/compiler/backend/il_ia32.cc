@@ -4354,7 +4354,7 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  if (result_cid() == kDoubleCid) {
+  if (representation() == kUnboxedDouble) {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 1;
     LocationSummary* summary = new (zone)
@@ -4367,23 +4367,15 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
     return summary;
   }
 
-  ASSERT(result_cid() == kSmiCid);
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-  // Reuse the left register so that code can be made shorter.
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
+  UNREACHABLE();
+  return nullptr;
 }
 
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
   const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
-  if (result_cid() == kDoubleCid) {
+  if (representation() == kUnboxedDouble) {
     compiler::Label done, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();
     XmmRegister right = locs()->in(1).fpu_reg();
@@ -4429,17 +4421,7 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  ASSERT(result_cid() == kSmiCid);
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  Register result = locs()->out(0).reg();
-  __ cmpl(left, right);
-  ASSERT(result == left);
-  if (is_min) {
-    __ cmovgel(result, right);
-  } else {
-    __ cmovlessl(result, right);
-  }
+  UNREACHABLE();
 }
 
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Zone* zone,
