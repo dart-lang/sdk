@@ -1914,6 +1914,9 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
   });
 
   @override
+  LibraryFragment get libraryFragment => unit;
+
+  @override
   Source get source => unit.source;
 }
 

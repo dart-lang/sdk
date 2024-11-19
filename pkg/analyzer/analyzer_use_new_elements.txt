@@ -160,7 +160,6 @@ lib/src/summary2/types_builder.dart
 lib/src/summary2/variance_builder.dart
 lib/src/task/strong_mode.dart
 lib/src/test_utilities/find_element.dart
-lib/src/test_utilities/find_element2.dart
 lib/src/test_utilities/find_node.dart
 lib/src/test_utilities/mock_sdk_elements.dart
 lib/src/util/ast_data_extractor.dart

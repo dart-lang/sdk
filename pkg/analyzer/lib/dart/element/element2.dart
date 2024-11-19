@@ -52,7 +52,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
         DirectiveUri,
-        DirectiveUriWithUnit,
         ElementAnnotation,
         ElementKind,
         ElementLocation,
@@ -2581,9 +2580,4 @@ abstract class VariableFragment implements Fragment {
 
   @override
   VariableFragment? get previousFragment;
-}
-
-extension DirectiveUriWithUnitExtension on DirectiveUriWithUnit {
-  /// The library fragment associated with this directive.
-  LibraryFragment get libraryFragment => unit as LibraryFragment;
 }
