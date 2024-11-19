@@ -4,6 +4,9 @@
 //
 // Tests a compile time error that should not crash the analyzer or CFE.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "dart:ffi";
 
 final class C extends Struct {

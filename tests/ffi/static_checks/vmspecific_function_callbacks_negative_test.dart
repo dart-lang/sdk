@@ -4,6 +4,9 @@
 //
 // Dart test program for testing dart:ffi function pointers with callbacks.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import 'dart:ffi';
 
 final testLibrary = DynamicLibrary.process();

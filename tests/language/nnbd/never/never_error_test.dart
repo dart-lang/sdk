@@ -55,9 +55,10 @@ void neverHasAllMembers(Never x) {
     staticErrorIfNotNever(x == x);
     staticErrorIfNotNever(x == 3);
     staticErrorIfNotNever(3 == x);
-//  ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'bool' doesn't conform to the bound 'Never' of the type variable 'T' on 'staticErrorIfNotNever'.
+//                        ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+//                          ^
+// [cfe] The argument type 'bool' can't be assigned to the parameter type 'Never'.
   }
 }
 
@@ -81,16 +82,16 @@ void extensionsDontApply(Never x) {
   {
     var t = NeverExt(x).neverMethod();
     staticErrorIfNotNever(t);
-//  ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'int' doesn't conform to the bound 'Never' of the type variable 'T' on 'staticErrorIfNotNever'.
+//                        ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'Never'.
   }
   {
     var t = ObjectExt(x).objectMethod();
     staticErrorIfNotNever(t);
-//  ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Inferred type argument 'int' doesn't conform to the bound 'Never' of the type variable 'T' on 'staticErrorIfNotNever'.
+//                        ^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [cfe] The argument type 'int' can't be assigned to the parameter type 'Never'.
   }
 }
 

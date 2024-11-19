@@ -52,12 +52,12 @@ staticInvocations() {
   ExtendsNum<num> extendsNumReturn3 = ExtendsNum<int>();
   ExtendsNum extendsNumReturn4 = ExtendsNum/*<num>*/();
 
-  ExtendsNumArg/*<Null>*/(null);
+  ExtendsNumArg/*<num>*/(null);
   ExtendsNumArg/*<int>*/(0);
-  ExtendsNumArg/*<String>*/("");
+  ExtendsNumArg/*<num>*/("");
   ExtendsNumArg<num>(0);
   var extendsNumReturnArg1 = ExtendsNumArg/*<int>*/(0);
-  var extendsNumReturnArg2 = ExtendsNumArg/*<String>*/("");
+  var extendsNumReturnArg2 = ExtendsNumArg/*<num>*/("");
   ExtendsNumArg<num> extendsNumReturnArg3 = ExtendsNumArg/*<num>*/(0);
   ExtendsNumArg<int> extendsNumReturnArg4 = ExtendsNumArg/*<int>*/(0);
   ExtendsNumArg<int> extendsNumReturnArg5 = ExtendsNumArg/*<int>*/(0.5);

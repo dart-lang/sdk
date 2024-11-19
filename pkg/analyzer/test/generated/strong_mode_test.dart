@@ -1091,11 +1091,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // Test that upwards inference fails when the solution doesn't
     // match the bound.
     MethodInvocation invoke = await _testFutureOr(r'''
-    Future<T> mk<T extends Future<Object>>(FutureOr<T> x) => null;
+    T mk<T extends Future<Object>>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
     ''', expectedErrors: [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 83, 4),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 111, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 75, 4),
     ]);
     _isFutureOfInt(invoke.staticType as InterfaceType);
   }
@@ -1324,21 +1323,8 @@ test() {
  ''';
     await assertErrorsInCode(code, [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 5),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 102, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 102, 3),
     ]);
-
-    _expectInferenceError(r'''
-Couldn't infer type parameter 'T'.
-
-Tried to infer 'String' for 'T' which doesn't work:
-  Type parameter 'T' is declared to extend 'num' producing 'num'.
-The type 'String' was inferred from:
-  Return type declared as 'T Function(T)'
-              used where  'String Function(String)' is required.
-
-Consider passing explicit type argument(s) to the generic.
-
-''');
   }
 
   test_inference_error_genericFunction() async {
@@ -1355,18 +1341,7 @@ test(Iterable values) {
     await assertErrorsInCode(code, [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 158, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 195, 3),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 195, 3),
     ]);
-    _expectInferenceError(r'''
-Couldn't infer type parameter 'T'.
-
-Tried to infer 'dynamic' for 'T' which doesn't work:
-  Function type declared as 'T Function<T extends num>(T, T)'
-                used where  'num Function(num, dynamic)' is required.
-
-Consider passing explicit type argument(s) to the generic.
-
-''');
   }
 
   test_inference_error_returnContext() async {
@@ -2021,7 +1996,6 @@ abstract class Iterable<T> {
 num test(Iterable values) => values.fold(values.first as num, max);
     ''';
     await assertErrorsInCode(code, [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 190, 3),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 190, 3),
     ]);
 
@@ -2083,9 +2057,9 @@ MethodInvocation
         parameter: ParameterMember
           base: root::@parameter::f
           substitution: {S: num}
-        staticType: dynamic Function(dynamic, dynamic)
+        staticType: num Function(num, num)
         typeArgumentTypes
-          dynamic
+          num
     rightParenthesis: )
   staticInvokeType: num Function(num, num Function(num, dynamic))
   staticType: num
@@ -4832,8 +4806,8 @@ class C<T> {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 95, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 97, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 4),
     ]);
 
     var node = findNode.singleMethodInvocation;
@@ -4851,20 +4825,20 @@ MethodInvocation
         literal: null
         parameter: ParameterMember
           base: <testLibraryFragment>::@class::C::@method::m::@parameter::p0
-          substitution: {S0: Null, S1: Null}
+          substitution: {S0: T, S1: List<T>}
         staticType: Null
       NullLiteral
         literal: null
         parameter: ParameterMember
           base: <testLibraryFragment>::@class::C::@method::m::@parameter::p1
-          substitution: {S0: Null, S1: Null}
+          substitution: {S0: T, S1: List<T>}
         staticType: Null
     rightParenthesis: )
-  staticInvokeType: void Function(Null, Null)
+  staticInvokeType: void Function(T, List<T>)
   staticType: void
   typeArgumentTypes
-    Null
-    Null
+    T
+    List<T>
 ''');
   }
 
@@ -4910,7 +4884,7 @@ class C<T> {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 65, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 67, 4),
     ]);
 
     var node = findNode.singleMethodInvocation;
@@ -4928,13 +4902,13 @@ MethodInvocation
         literal: null
         parameter: ParameterMember
           base: <testLibraryFragment>::@class::C::@method::m::@parameter::p0
-          substitution: {S: Null}
+          substitution: {S: T}
         staticType: Null
     rightParenthesis: )
-  staticInvokeType: void Function(Null)
+  staticInvokeType: void Function(T)
   staticType: void
   typeArgumentTypes
-    Null
+    T
 ''');
   }
 

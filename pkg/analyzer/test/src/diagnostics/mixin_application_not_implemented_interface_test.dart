@@ -131,11 +131,12 @@ abstract class Directory implements FileSystemEntity, ioDirectory {}
 
 mixin DirectoryAddOnsMixin implements Directory {}
 ''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 96, 15),
       error(WarningCode.UNUSED_ELEMENT, 96, 15),
     ]);
 
     var mixins = findElement2.class_('_LocalDirectory').mixins;
-    assertType(mixins[0], 'ForwardingDirectory<_LocalDirectory>');
+    assertType(mixins[0], 'ForwardingDirectory<Directory>');
   }
 
   test_classTypeAlias_generic() async {

@@ -51,9 +51,9 @@ class Class {
     extendsNumUnused/*<num>*/();
     extendsNumUnused<int>();
 
-    extendsNumArg/*<Null>*/(null);
+    extendsNumArg/*<num>*/(null);
     extendsNumArg/*<int>*/(0);
-    extendsNumArg/*<String>*/("");
+    extendsNumArg/*<num>*/("");
     extendsNumArg<num>(0);
 
     extendsNumReturn/*<num>*/();
@@ -62,12 +62,12 @@ class Class {
     int extendsNumReturn2 = extendsNumReturn/*<int>*/();
     num extendsNumReturn3 = extendsNumReturn<int>();
 
-    extendsNumReturnArg/*<Null>*/(null);
+    extendsNumReturnArg/*<num>*/(null);
     extendsNumReturnArg/*<int>*/(0);
-    extendsNumReturnArg/*<String>*/("");
+    extendsNumReturnArg/*<num>*/("");
     extendsNumReturnArg<num>(0);
     var extendsNumReturnArg1 = extendsNumReturnArg/*<int>*/(0);
-    var extendsNumReturnArg2 = extendsNumReturnArg/*<String>*/("");
+    var extendsNumReturnArg2 = extendsNumReturnArg/*<num>*/("");
     num extendsNumReturnArg3 = extendsNumReturnArg/*<num>*/(0);
     int extendsNumReturnArg4 = extendsNumReturnArg/*<int>*/(0);
     int extendsNumReturnArg5 = extendsNumReturnArg/*<int>*/(0.5);

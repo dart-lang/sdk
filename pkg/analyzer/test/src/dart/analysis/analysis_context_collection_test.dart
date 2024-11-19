@@ -413,6 +413,7 @@ analysisOptions
       inference-update-1
       inference-update-2
       inference-update-3
+      inference-using-bounds
       inline-class
       named-arguments-anywhere
       non-nullable
@@ -489,6 +490,7 @@ analysisOptions
       inference-update-1
       inference-update-2
       inference-update-3
+      inference-using-bounds
       inline-class
       named-arguments-anywhere
       non-nullable

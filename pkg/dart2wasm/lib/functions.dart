@@ -173,12 +173,17 @@ class FunctionCollector {
     if (memberName.endsWith('.')) {
       memberName = memberName.substring(0, memberName.length - 1);
     }
+
     if (target.isTypeCheckerReference) {
       if (member is Field || (member is Procedure && member.isSetter)) {
         return '$memberName setter type checker';
       } else {
         return '$memberName invocation type checker';
       }
+    }
+
+    if (member is Field) {
+      return '$memberName initializer';
     }
 
     if (target.isInitializerReference) {
