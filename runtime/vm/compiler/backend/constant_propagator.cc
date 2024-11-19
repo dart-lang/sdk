@@ -1193,14 +1193,6 @@ void ConstantPropagator::VisitBinaryInt64Op(BinaryInt64OpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
 
-void ConstantPropagator::VisitShiftInt64Op(ShiftInt64OpInstr* instr) {
-  VisitBinaryIntegerOp(instr);
-}
-
-void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
-  VisitBinaryIntegerOp(instr);
-}
-
 void ConstantPropagator::VisitBoxInt64(BoxInt64Instr* instr) {
   VisitBox(instr);
 }

@@ -655,15 +655,8 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         UnboxInstr::Create(kUnboxedInt64, new (Z) Value(right),
                            call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
     InsertBefore(call, right, call->env(), FlowGraph::kValue);
-    BinaryIntegerOpInstr* bin_op = nullptr;
-    if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
-        (op_kind == Token::kUSHR)) {
-      bin_op = new (Z) ShiftInt64OpInstr(
-          op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
-    } else {
-      bin_op = new (Z) BinaryInt64OpInstr(
-          op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
-    }
+    BinaryIntegerOpInstr* bin_op = new (Z) BinaryInt64OpInstr(
+        op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
     ReplaceCall(call, bin_op);
   } else if ((operands_type == kFloat32x4Cid) ||
              (operands_type == kInt32x4Cid) ||

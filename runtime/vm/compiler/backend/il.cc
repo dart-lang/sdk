@@ -2078,10 +2078,6 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
   }
 }
 
-bool ShiftIntegerOpInstr::IsShiftCountInRange(int64_t max) const {
-  return RangeUtils::IsWithin(shift_range(), 0, max);
-}
-
 bool BinaryIntegerOpInstr::RightIsNonZero() const {
   if (right()->BindsToConstant()) {
     const auto& constant = right()->BoundConstant();
@@ -2091,6 +2087,15 @@ bool BinaryIntegerOpInstr::RightIsNonZero() const {
   return !RangeUtils::CanBeZero(right()->definition()->range());
 }
 
+bool BinaryIntegerOpInstr::RightIsPositive() const {
+  if (right()->BindsToConstant()) {
+    const auto& constant = right()->BoundConstant();
+    if (!constant.IsInteger()) return false;
+    return Integer::Cast(constant).Value() > 0;
+  }
+  return RangeUtils::IsPositive(right()->definition()->range());
+}
+
 bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
   if (!right()->BindsToConstant()) return false;
   const Object& constant = right()->BoundConstant();
@@ -2098,6 +2103,16 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
   const intptr_t int_value = Smi::Cast(constant).Value();
   ASSERT(int_value != kIntptrMin);
   return Utils::IsPowerOfTwo(Utils::Abs(int_value));
+}
+
+bool BinaryIntegerOpInstr::IsShiftCountInRange(int64_t max) const {
+  if (right()->BindsToConstant()) {
+    const auto& constant = right()->BoundConstant();
+    if (!constant.IsInteger()) return false;
+    const int64_t value = Integer::Cast(constant).Value();
+    return (0 <= value) && (value <= max);
+  }
+  return RangeUtils::IsWithin(right()->definition()->range(), 0, max);
 }
 
 static intptr_t RepresentationBits(Representation r) {
@@ -2283,21 +2298,10 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
       op = new BinaryInt32OpInstr(op_kind, left, right, deopt_id);
       break;
     case kUnboxedUint32:
-      if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
-          (op_kind == Token::kUSHR)) {
-        op =
-            new ShiftUint32OpInstr(op_kind, left, right, deopt_id, right_range);
-      } else {
-        op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
-      }
+      op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
       break;
     case kUnboxedInt64:
-      if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
-          (op_kind == Token::kUSHR)) {
-        op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id, right_range);
-      } else {
-        op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
-      }
+      op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
       break;
     default:
       UNREACHABLE();
@@ -2420,19 +2424,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if ((rhs > 0) && Utils::IsPowerOfTwo(rhs)) {
         const int64_t shift_amount = Utils::ShiftForPowerOfTwo(rhs);
         ConstantInstr* constant_shift_amount = flow_graph->GetConstant(
-            Smi::Handle(Smi::New(shift_amount)), kUnboxedInt64);
+            Smi::Handle(Smi::New(shift_amount)), representation());
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
             new Value(constant_shift_amount), GetDeoptId(), can_overflow(),
             is_truncating(), range());
         if (shift != nullptr) {
-          // Assign a range to the shift factor, just in case range
-          // analysis no longer runs after this rewriting.
-          if (auto shift_with_range = shift->AsShiftIntegerOp()) {
-            shift_with_range->set_shift_range(
-                new Range(RangeBoundary::FromConstant(shift_amount),
-                          RangeBoundary::FromConstant(shift_amount)));
-          }
           if (!MayThrow()) {
             ASSERT(!shift->MayThrow());
           }

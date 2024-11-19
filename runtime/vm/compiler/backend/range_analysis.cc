@@ -148,10 +148,8 @@ void RangeAnalysis::CollectValues() {
       if (defn != nullptr) {
         if (defn->HasSSATemp() && IsIntegerDefinition(defn)) {
           values_.Add(defn);
-          if (defn->IsBinaryInt64Op()) {
-            binary_int64_ops_.Add(defn->AsBinaryInt64Op());
-          } else if (defn->IsShiftInt64Op()) {
-            shift_int64_ops_.Add(defn->AsShiftIntegerOp());
+          if (auto bin_op = defn->AsBinaryInt64Op()) {
+            binary_int64_ops_.Add(bin_op);
           }
         }
       }
@@ -1469,23 +1467,6 @@ static void NarrowBinaryInt64Op(BinaryInt64OpInstr* int64_op) {
   }
 }
 
-static void NarrowShiftInt64Op(ShiftIntegerOpInstr* int64_op) {
-  if (RangeUtils::Fits(int64_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
-      RangeUtils::Fits(int64_op->left()->definition()->range(),
-                       RangeBoundary::kRangeBoundaryInt32) &&
-      RangeUtils::Fits(int64_op->right()->definition()->range(),
-                       RangeBoundary::kRangeBoundaryInt32) &&
-      BinaryInt32OpInstr::IsSupported(int64_op->op_kind(), int64_op->left(),
-                                      int64_op->right())) {
-    BinaryInt32OpInstr* int32_op = new BinaryInt32OpInstr(
-        int64_op->op_kind(), int64_op->left()->CopyWithType(),
-        int64_op->right()->CopyWithType(), int64_op->DeoptimizationTarget());
-    int32_op->set_range(*int64_op->range());
-    int32_op->set_can_overflow(false);
-    int64_op->ReplaceWith(int32_op, nullptr);
-  }
-}
-
 #if defined(TARGET_ARCH_IS_32_BIT)
 static void NarrowInt64ComparisonInstr(ComparisonInstr* int64_op) {
   if (RangeUtils::Fits(int64_op->left()->definition()->range(),
@@ -1500,9 +1481,6 @@ static void NarrowInt64ComparisonInstr(ComparisonInstr* int64_op) {
 void RangeAnalysis::NarrowInt64OperationsToInt32() {
   for (intptr_t i = 0; i < binary_int64_ops_.length(); i++) {
     NarrowBinaryInt64Op(binary_int64_ops_[i]);
-  }
-  for (intptr_t i = 0; i < shift_int64_ops_.length(); i++) {
-    NarrowShiftInt64Op(shift_int64_ops_[i]);
   }
 #if defined(TARGET_ARCH_IS_32_BIT)
   for (intptr_t i = 0; i < int64_comparisons_.length(); i++) {
@@ -1539,7 +1517,7 @@ bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
   // TODO(johnmccutchan): Consider Smi operations, to avoid unnecessary tagging
   // & untagged of intermediate results.
   // TODO(johnmccutchan): Consider phis.
-  return def->IsBoxInt64() || def->IsUnboxInt64() || def->IsShiftInt64Op() ||
+  return def->IsBoxInt64() || def->IsUnboxInt64() ||
          (def->IsBinaryInt64Op() && BinaryUint32OpInstr::IsSupported(
                                         def->AsBinaryInt64Op()->op_kind())) ||
          (def->IsUnaryInt64Op() &&
@@ -1580,12 +1558,7 @@ bool IntegerInstructionSelector::IsUint32NarrowingDefinition(Definition* def) {
     if (op->op_kind() != Token::kBIT_AND) {
       return false;
     }
-    Range* range = op->range();
-    if ((range == nullptr) ||
-        !range->IsWithin(0, static_cast<int64_t>(kMaxUint32))) {
-      return false;
-    }
-    return true;
+    return Range::Fits(op->range(), kUnboxedUint32);
   }
   // TODO(johnmccutchan): Add typed array stores.
   return false;
@@ -1616,11 +1589,14 @@ bool IntegerInstructionSelector::AllUsesAreUint32Narrowing(Value* list_head) {
         !selected_uint32_defs_->Contains(defn->ssa_temp_index())) {
       return false;
     }
-    // Right-hand side operand of ShiftInt64Op is not narrowing (all its bits
-    // should be taken into account).
-    if (ShiftIntegerOpInstr* shift = defn->AsShiftIntegerOp()) {
-      if (use == shift->right()) {
-        return false;
+    // Right-hand side operand of shift BinaryInt64Op is not narrowing
+    // (all its bits should be taken into account).
+    if (auto op = defn->AsBinaryIntegerOp()) {
+      if ((op->op_kind() == Token::kSHL) || (op->op_kind() == Token::kSHR) ||
+          (op->op_kind() == Token::kUSHR)) {
+        if (use == op->right()) {
+          return false;
+        }
       }
     }
   }
@@ -1634,16 +1610,18 @@ bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
     Definition* box_input = def->AsBoxInt64()->value()->definition();
     return selected_uint32_defs_->Contains(box_input->ssa_temp_index());
   }
-  // A right shift with an input outside of Uint32 range cannot be converted
-  // because we need the high bits.
-  if (def->IsShiftInt64Op()) {
-    ShiftIntegerOpInstr* op = def->AsShiftIntegerOp();
+  if (auto op = def->AsBinaryInt64Op()) {
+    // A shift with an rhs outside of Uint32 range cannot be converted.
+    if ((op->op_kind() == Token::kSHL) || (op->op_kind() == Token::kSHR) ||
+        (op->op_kind() == Token::kUSHR)) {
+      if (!Range::Fits(op->right()->definition()->range(), kUnboxedUint32)) {
+        return false;
+      }
+    }
+    // A right shift with an lhs outside of Uint32 range cannot be converted
+    // because we need the high bits.
     if ((op->op_kind() == Token::kSHR) || (op->op_kind() == Token::kUSHR)) {
-      Definition* shift_input = op->left()->definition();
-      ASSERT(shift_input != nullptr);
-      Range* range = shift_input->range();
-      if ((range == nullptr) ||
-          !range->IsWithin(0, static_cast<int64_t>(kMaxUint32))) {
+      if (!Range::Fits(op->left()->definition()->range(), kUnboxedUint32)) {
         return false;
       }
     }
@@ -3124,15 +3102,6 @@ void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                RangeBoundary::kRangeBoundarySmi);
   }
   InferRangeHelper(analysis->GetSmiRange(left()), right_smi_range, range);
-}
-
-void ShiftIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* right_range = RequiredInputRepresentation(1) == kTagged
-                                 ? analysis->GetSmiRange(right())
-                                 : right()->definition()->range();
-  CacheRange(&shift_range_, right()->definition()->range(),
-             RangeBoundary::kRangeBoundaryInt64);
-  InferRangeHelper(left()->definition()->range(), right_range, range);
 }
 
 void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
