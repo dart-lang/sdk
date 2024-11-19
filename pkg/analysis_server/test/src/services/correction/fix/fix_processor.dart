@@ -258,10 +258,15 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
+    var libraryResult = testLibraryResult;
+    if (libraryResult == null) {
+      return const [];
+    }
     var context = DartFixContext(
       instrumentationService: TestInstrumentationService(),
       workspace: await workspace,
-      resolvedResult: testAnalysisResult,
+      libraryResult: libraryResult,
+      unitResult: testAnalysisResult,
       error: error,
     );
 
@@ -584,10 +589,15 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
+    var libraryResult = testLibraryResult;
+    if (libraryResult == null) {
+      return const [];
+    }
     var context = DartFixContext(
       instrumentationService: TestInstrumentationService(),
       workspace: await workspace,
-      resolvedResult: testAnalysisResult,
+      libraryResult: libraryResult,
+      unitResult: testAnalysisResult,
       error: error,
     );
     return await computeFixes(context);

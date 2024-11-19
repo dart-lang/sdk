@@ -4252,18 +4252,17 @@ void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  if (result_cid() == kDoubleCid) {
+  if (representation() == kUnboxedDouble) {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 0;
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresFpuRegister());
     summary->set_in(1, Location::RequiresFpuRegister());
-    // Reuse the left register so that code can be made shorter.
-    summary->set_out(0, Location::SameAsFirstInput());
+    summary->set_out(0, Location::RequiresFpuRegister());
     return summary;
   }
-  ASSERT(result_cid() == kSmiCid);
+  ASSERT(representation() == kTagged || representation() == kUnboxedInt64);
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
@@ -4279,34 +4278,59 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
   const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
-  if (result_cid() == kDoubleCid) {
-    compiler::Label done, returns_nan, are_equal;
+  if (representation() == kUnboxedDouble) {
     const FRegister left = locs()->in(0).fpu_reg();
     const FRegister right = locs()->in(1).fpu_reg();
     const FRegister result = locs()->out(0).fpu_reg();
+
+    if (__ Supports(RV_Zfa)) {
+      if (is_min) {
+        __ fminmd(result, left, right);
+      } else {
+        __ fmaxmd(result, left, right);
+      }
+      return;
+    }
+
+    compiler::Label done;
+    __ feqd(TMP, left, left);
+    __ fmvd(result, left);
+    ASSERT(result != left);
+    __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+    __ feqd(TMP, right, right);
+    __ fmvd(result, right);
+    ASSERT(result != right);
+    __ beqz(TMP, &done, compiler::Assembler::kNearJump);
     if (is_min) {
       __ fmind(result, left, right);
     } else {
       __ fmaxd(result, left, right);
     }
+    __ Bind(&done);
     return;
   }
 
-  ASSERT(result_cid() == kSmiCid);
+  ASSERT(representation() == kUnboxedInt64);
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
   const Register result = locs()->out(0).reg();
-  compiler::Label choose_right, done;
-  if (is_min) {
-    __ bgt(left, right, &choose_right, compiler::Assembler::kNearJump);
+  if (__ Supports(RV_Zbb)) {
+    if (is_min) {
+      __ min(result, left, right);
+    } else {
+      __ max(result, left, right);
+    }
   } else {
-    __ blt(left, right, &choose_right, compiler::Assembler::kNearJump);
+    compiler::Label done;
+    ASSERT(result == left);
+    if (is_min) {
+      __ blt(left, right, &done, compiler::Assembler::kNearJump);
+    } else {
+      __ bgt(left, right, &done, compiler::Assembler::kNearJump);
+    }
+    __ mv(result, right);
+    __ Bind(&done);
   }
-  __ mv(result, left);
-  __ j(&done, compiler::Assembler::kNearJump);
-  __ Bind(&choose_right);
-  __ mv(result, right);
-  __ Bind(&done);
 }
 
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Zone* zone,

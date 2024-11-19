@@ -84,6 +84,23 @@ void f() {
     _expectSdkCoreType(result, 'String');
   }
 
+  Future<void> test_getter_synthetic() async {
+    var code = TestCode.parse('''
+class A {
+  String aaa = '';
+}
+
+void f() {
+  final a = A();
+  print(a.[!a^aa!]);
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
   Future<void> test_intLiteral() async {
     var code = TestCode.parse('''
 const a = [!12^3!];

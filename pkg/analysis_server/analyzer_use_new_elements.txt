@@ -24,7 +24,6 @@ lib/src/lsp/handlers/handler_document_color_presentation.dart
 lib/src/lsp/handlers/handler_implementation.dart
 lib/src/lsp/handlers/handler_references.dart
 lib/src/lsp/handlers/handler_rename.dart
-lib/src/lsp/handlers/handler_type_definition.dart
 lib/src/operation/operation_analysis.dart
 lib/src/protocol_server.dart
 lib/src/search/element_references.dart

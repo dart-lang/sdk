@@ -71,21 +71,21 @@ abstract interface class SharedNamedTypeStructure<
 abstract interface class SharedRecordTypeStructure<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
     implements SharedTypeStructure<TypeStructure> {
+  List<TypeStructure> get positionalTypes;
+
   /// All the named fields, sorted by name.
   List<SharedNamedTypeStructure<TypeStructure>> get sortedNamedTypes;
-
-  List<TypeStructure> get positionalTypes;
 }
 
 /// Common interface for data structures used by the implementations to
 /// represent a generic type parameter.
 abstract interface class SharedTypeParameterStructure<
     TypeStructure extends SharedTypeStructure<TypeStructure>> {
-  /// The name of the type parameter, for display to the user.
-  String get displayName;
-
   /// The bound of the type parameter.
   TypeStructure? get bound;
+
+  /// The name of the type parameter, for display to the user.
+  String get displayName;
 }
 
 /// Common interface for data structures used by the implementations to

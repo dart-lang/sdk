@@ -608,10 +608,14 @@ class TypeProviderImpl extends TypeProviderBase {
       }).toList(growable: false);
     }
 
-    return InterfaceTypeImpl(
-      element: element,
-      typeArguments: typeArguments,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    if (element.name == 'Null' && element.library.isDartCore) {
+      return NullTypeImpl(element: element);
+    } else {
+      return InterfaceTypeImpl(
+        element: element,
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
   }
 }

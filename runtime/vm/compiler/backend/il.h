@@ -8805,11 +8805,12 @@ class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
                   Value* left_value,
                   Value* right_value,
                   intptr_t deopt_id,
-                  intptr_t result_cid)
+                  Representation representation)
       : TemplateDefinition(deopt_id),
         op_kind_(op_kind),
-        result_cid_(result_cid) {
-    ASSERT((result_cid == kSmiCid) || (result_cid == kDoubleCid));
+        representation_(representation) {
+    ASSERT((representation == kUnboxedInt64) ||
+           (representation == kUnboxedDouble));
     SetInputAt(0, left_value);
     SetInputAt(1, right_value);
   }
@@ -8819,24 +8820,11 @@ class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
-  intptr_t result_cid() const { return result_cid_; }
-
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual Representation representation() const {
-    if (result_cid() == kSmiCid) {
-      return kTagged;
-    }
-    ASSERT(result_cid() == kDoubleCid);
-    return kUnboxedDouble;
-  }
-
+  virtual Representation representation() const { return representation_; }
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    if (result_cid() == kSmiCid) {
-      return kTagged;
-    }
-    ASSERT(result_cid() == kDoubleCid);
-    return kUnboxedDouble;
+    return representation_;
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -8848,10 +8836,11 @@ class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DECLARE_INSTRUCTION(MathMinMax)
   virtual CompileType ComputeType() const;
   virtual bool AttributesEqual(const Instruction& other) const;
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
 #define FIELD_LIST(F)                                                          \
   F(const MethodRecognizer::Kind, op_kind_)                                    \
-  F(const intptr_t, result_cid_)
+  F(const Representation, representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MathMinMaxInstr,
                                           TemplateDefinition,

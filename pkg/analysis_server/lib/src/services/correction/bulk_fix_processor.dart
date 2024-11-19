@@ -230,15 +230,15 @@ class BulkFixProcessor {
     if (file_paths.isDart(pathContext, path) &&
         !file_paths.isGenerated(path) &&
         !file_paths.isMacroGenerated(path)) {
-      var library = await performance.runAsync(
+      var libraryResult = await performance.runAsync(
         'getResolvedLibrary',
         (_) => context.currentSession.getResolvedContainingLibrary(path),
       );
-      var unit = library?.unitWithPath(path);
-      if (!isCancelled && library != null && unit != null) {
+      var unitResult = libraryResult?.unitWithPath(path);
+      if (!isCancelled && libraryResult != null && unitResult != null) {
         await _fixErrorsInLibraryUnit(
-          unit,
-          library,
+          libraryResult,
+          unitResult,
           autoTriggered: autoTriggered,
         );
       }
@@ -266,16 +266,16 @@ class BulkFixProcessor {
           continue;
         }
 
-        var result = context.currentSession.getParsedLibrary(path);
+        var parsedLibrary = context.currentSession.getParsedLibrary(path);
 
         if (isCancelled) {
           break;
         }
-        if (result is ParsedLibraryResult) {
+        if (parsedLibrary is ParsedLibraryResult) {
           var errorListener = RecordingErrorListener();
           var unitContexts = <LintRuleUnitContext>[];
 
-          for (var parsedUnit in result.units) {
+          for (var parsedUnit in parsedLibrary.units) {
             var errorReporter = ErrorReporter(
               errorListener,
               StringSource(parsedUnit.content, null),
@@ -293,7 +293,7 @@ class BulkFixProcessor {
             _computeParsedResultLint(unitContext, unitContexts);
           }
           await _fixErrorsInParsedLibrary(
-            result,
+            parsedLibrary,
             errorListener.errors,
             stopAfterFirst: false,
           );
@@ -424,13 +424,13 @@ class BulkFixProcessor {
         );
 
         // Get the list of imports used in the files.
-        var result = context.currentSession.getParsedLibrary(path);
-        if (result is! ParsedLibraryResult) {
+        var libraryResult = context.currentSession.getParsedLibrary(path);
+        if (libraryResult is! ParsedLibraryResult) {
           return (edits: fixes, details: details);
         }
 
-        for (var unit in result.units) {
-          var directives = unit.unit.directives;
+        for (var unitResult in libraryResult.units) {
+          var directives = unitResult.unit.directives;
           for (var directive in directives) {
             var uri =
                 (directive is ImportDirective) ? directive.uri.stringValue : '';
@@ -519,21 +519,25 @@ class BulkFixProcessor {
           continue;
         }
 
-        var library = await context.currentSession.getResolvedLibrary(path);
+        var resolvedLibrary = await context.currentSession.getResolvedLibrary(
+          path,
+        );
 
         if (isCancelled) {
           break;
         }
-        if (library is NotLibraryButPartResult) {
-          var unit = await context.currentSession.getResolvedUnit(path);
-          if (unit is ResolvedUnitResult) {
-            library = await context.currentSession.getResolvedLibraryByElement2(
-              unit.libraryElement2,
-            );
+        if (resolvedLibrary is NotLibraryButPartResult) {
+          var resolvedUnit = await context.currentSession.getResolvedUnit(path);
+          if (resolvedUnit is ResolvedUnitResult) {
+            resolvedLibrary = await context.currentSession
+                .getResolvedLibraryByElement2(resolvedUnit.libraryElement2);
           }
         }
-        if (library is ResolvedLibraryResult) {
-          await _fixErrorsInLibrary(library, stopAfterFirst: stopAfterFirst);
+        if (resolvedLibrary is ResolvedLibraryResult) {
+          await _fixErrorsInLibrary(
+            resolvedLibrary,
+            stopAfterFirst: stopAfterFirst,
+          );
           if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
             break;
           }
@@ -585,16 +589,16 @@ class BulkFixProcessor {
   }
 
   /// Uses the change [builder] to create fixes for the diagnostics in the
-  /// library associated with the analysis [result].
+  /// library associated with the analysis [libraryResult].
   Future<void> _fixErrorsInLibrary(
-    ResolvedLibraryResult result, {
+    ResolvedLibraryResult libraryResult, {
     bool stopAfterFirst = false,
     bool autoTriggered = false,
   }) async {
-    for (var unitResult in result.units) {
+    for (var unitResult in libraryResult.units) {
       await _fixErrorsInLibraryUnit(
+        libraryResult,
         unitResult,
-        result,
         stopAfterFirst: stopAfterFirst,
         autoTriggered: autoTriggered,
       );
@@ -602,21 +606,22 @@ class BulkFixProcessor {
   }
 
   /// Uses the change [builder] to create fixes for the diagnostics in
-  /// [unit].
+  /// [unitResult].
   Future<void> _fixErrorsInLibraryUnit(
-    ResolvedUnitResult unit,
-    ResolvedLibraryResult library, {
+    ResolvedLibraryResult libraryResult,
+    ResolvedUnitResult unitResult, {
     bool stopAfterFirst = false,
     bool autoTriggered = false,
   }) async {
-    var analysisOptions = unit.session.analysisContext
-        .getAnalysisOptionsForFile(unit.file);
+    var analysisOptions = unitResult.session.analysisContext
+        .getAnalysisOptionsForFile(unitResult.file);
 
     DartFixContext fixContext(AnalysisError diagnostic) {
       return DartFixContext(
         instrumentationService: _instrumentationService,
         workspace: _workspace,
-        resolvedResult: unit,
+        libraryResult: libraryResult,
+        unitResult: unitResult,
         error: diagnostic,
         autoTriggered: autoTriggered,
       );
@@ -624,10 +629,11 @@ class BulkFixProcessor {
 
     CorrectionProducerContext correctionContext(AnalysisError diagnostic) {
       return CorrectionProducerContext.createResolved(
+        libraryResult: libraryResult,
+        unitResult: unitResult,
         applyingBulkFixes: true,
         dartFixContext: fixContext(diagnostic),
         diagnostic: diagnostic,
-        resolvedResult: unit,
         selectionOffset: diagnostic.offset,
         selectionLength: diagnostic.length,
       );
@@ -636,9 +642,9 @@ class BulkFixProcessor {
     //
     // Attempt to apply the fixes that aren't related to directives.
     //
-    for (var error in _filterErrors(analysisOptions, unit.errors)) {
+    for (var error in _filterErrors(analysisOptions, unitResult.errors)) {
       var context = fixContext(error);
-      await _fixSingleError(context, unit, error);
+      await _fixSingleError(context, libraryResult, unitResult, error);
       if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
         return;
       }
@@ -646,15 +652,15 @@ class BulkFixProcessor {
 
     // Only if this unit is the defining unit, we don't have other fixes and
     // we were not auto-triggered should be continue with fixes for directives.
-    if (unit != library.units.first ||
+    if (unitResult != libraryResult.units.first ||
         autoTriggered ||
-        builder.hasEditsFor(unit.path)) {
+        builder.hasEditsFor(unitResult.path)) {
       return;
     }
 
     AnalysisError? directivesOrderingError;
     var unusedImportErrors = <AnalysisError>[];
-    for (var error in _filterErrors(analysisOptions, unit.errors)) {
+    for (var error in _filterErrors(analysisOptions, unitResult.errors)) {
       var errorCode = error.errorCode;
       if (errorCode is LintCode) {
         if (DirectivesOrdering.allCodes.contains(errorCode)) {
@@ -695,15 +701,15 @@ class BulkFixProcessor {
   }
 
   Future<void> _fixErrorsInParsedLibrary(
-    ParsedLibraryResult result,
+    ParsedLibraryResult parsedLibrary,
     List<AnalysisError> errors, {
     required bool stopAfterFirst,
   }) async {
-    for (var unitResult in result.units) {
-      var analysisOptions = result.session.analysisContext
+    for (var unitResult in parsedLibrary.units) {
+      var analysisOptions = parsedLibrary.session.analysisContext
           .getAnalysisOptionsForFile(unitResult.file);
       for (var error in _filterErrors(analysisOptions, errors)) {
-        await _fixSingleParseError(unitResult, error);
+        await _fixSingleParseError(parsedLibrary, unitResult, error);
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
         }
@@ -713,17 +719,19 @@ class BulkFixProcessor {
 
   /// Uses the change [builder] and the [fixContext] to create a fix for the
   /// given [diagnostic] in the compilation unit associated with the analysis
-  /// [result].
+  /// [unitResult].
   Future<void> _fixSingleError(
     DartFixContext fixContext,
-    ResolvedUnitResult result,
+    ResolvedLibraryResult libraryResult,
+    ResolvedUnitResult unitResult,
     AnalysisError diagnostic,
   ) async {
     var context = CorrectionProducerContext.createResolved(
+      libraryResult: libraryResult,
+      unitResult: unitResult,
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
-      resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
     );
@@ -769,7 +777,7 @@ class BulkFixProcessor {
       }
     } catch (e, s) {
       throw CaughtException.withMessage(
-        'Exception generating fix for $codeName in ${result.path}',
+        'Exception generating fix for $codeName in ${unitResult.path}',
         e,
         s,
       );
@@ -777,15 +785,17 @@ class BulkFixProcessor {
   }
 
   /// Uses the change [builder] to create a fix for the given [diagnostic] in
-  /// the compilation unit associated with the analysis [result].
+  /// the compilation unit associated with the analysis [unitResult].
   Future<void> _fixSingleParseError(
-    ParsedUnitResult result,
+    ParsedLibraryResult libraryResult,
+    ParsedUnitResult unitResult,
     AnalysisError diagnostic,
   ) async {
     var context = CorrectionProducerContext.createParsed(
+      libraryResult: libraryResult,
+      unitResult: unitResult,
       applyingBulkFixes: true,
       diagnostic: diagnostic,
-      resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
     );
@@ -803,7 +813,7 @@ class BulkFixProcessor {
       }
     } catch (e, s) {
       throw CaughtException.withMessage(
-        'Exception generating fix for $codeName in ${result.path}',
+        'Exception generating fix for $codeName in ${unitResult.path}',
         e,
         s,
       );
@@ -821,19 +831,19 @@ class BulkFixProcessor {
             file_paths.isMacroGenerated(path)) {
           continue;
         }
-        var result =
+        var unitResult =
             context.currentSession.getParsedUnit(path) as ParsedUnitResult;
-        if (result.errors.isNotEmpty) {
+        if (unitResult.errors.isNotEmpty) {
           continue;
         }
 
-        var formatResult = generateEditsForFormatting(result);
+        var formatResult = generateEditsForFormatting(unitResult);
         await formatResult.mapResult((formatResult) async {
           var edits = formatResult ?? [];
           if (edits.isNotEmpty) {
             await builder.addDartFileEdit(path, (builder) {
               for (var edit in edits) {
-                var lineInfo = result.lineInfo;
+                var lineInfo = unitResult.lineInfo;
                 var startOffset =
                     lineInfo.getOffsetOfLine(edit.range.start.line) +
                     edit.range.start.character;
@@ -895,10 +905,10 @@ class BulkFixProcessor {
             file_paths.isMacroGenerated(path)) {
           continue;
         }
-        var result =
+        var unitResult =
             context.currentSession.getParsedUnit(path) as ParsedUnitResult;
-        var code = result.content;
-        var errors = result.errors;
+        var code = unitResult.content;
+        var errors = unitResult.errors;
         // Check if there are scan/parse errors in the file.
         var hasParseErrors = errors.any(
           (error) =>
@@ -909,7 +919,7 @@ class BulkFixProcessor {
           // Cannot process files with parse errors.
           continue;
         }
-        var sorter = ImportOrganizer(code, result.unit, errors);
+        var sorter = ImportOrganizer(code, unitResult.unit, errors);
         var edits = sorter.organize();
         await builder.addDartFileEdit(path, (builder) {
           for (var edit in edits) {

@@ -13,9 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:linter/src/lint_names.dart';
 
 class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
-  final CorrectionProducerContext _context;
-
-  ConvertRelatedToCascade({required super.context}) : _context = context;
+  ConvertRelatedToCascade({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -34,13 +32,13 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
     var block = node.parent;
     if (block is! Block) return;
 
-    var errors = _context.dartFixContext?.resolvedResult.errors
+    var errors = unitResult.errors
         .where((error) => error.errorCode.name == LintNames.cascade_invocations)
         .whereNot(
           (error) => error.offset == node.offset && error.length == node.length,
         );
 
-    if (errors == null || errors.isEmpty) return;
+    if (errors.isEmpty) return;
 
     var previous = _getPrevious(block, node);
     var next = _getNext(block, node);

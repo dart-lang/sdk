@@ -833,7 +833,7 @@ main() {
       var tcg = _TypeConstraintGatherer({'T'});
       check(tcg.performSubtypeConstraintGenerationInternal(
               TypeParameterType(TypeRegistry.addTypeParameter('X')
-                ..bound = Type('Future<String>')),
+                ..explicitBound = Type('Future<String>')),
               Type('Future<T>'),
               leftSchema: false,
               astNodeForTesting: Node.placeholder()))
@@ -845,7 +845,8 @@ main() {
       var tcg = _TypeConstraintGatherer({'T'});
       check(tcg.performSubtypeConstraintGenerationInternal(
               TypeParameterType(
-                  TypeRegistry.addTypeParameter('X')..bound = Type('Object'),
+                  TypeRegistry.addTypeParameter('X')
+                    ..explicitBound = Type('Object'),
                   promotion: Type('Future<num>')),
               Type('Future<T>'),
               leftSchema: false,

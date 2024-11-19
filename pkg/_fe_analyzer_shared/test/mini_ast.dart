@@ -2897,9 +2897,9 @@ class MiniAstOperations
 
   @override
   TypeDeclarationKind? getTypeDeclarationKindInternal(Type type) {
-    if (isInterfaceType(SharedTypeView(type))) {
+    if (isInterfaceTypeInternal(type)) {
       return TypeDeclarationKind.interfaceDeclaration;
-    } else if (isExtensionType(SharedTypeView(type))) {
+    } else if (isExtensionTypeInternal(type)) {
       return TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
@@ -2951,25 +2951,23 @@ class MiniAstOperations
   }
 
   @override
-  bool isDartCoreFunction(SharedTypeView<Type> type) {
-    Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
-        unwrappedType.name == 'Function' &&
-        unwrappedType.args.isEmpty;
+  bool isDartCoreFunctionInternal(Type type) {
+    return type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Function' &&
+        type.args.isEmpty;
   }
 
   @override
-  bool isDartCoreRecord(SharedTypeView<Type> type) {
-    Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
-        unwrappedType.name == 'Record' &&
-        unwrappedType.args.isEmpty;
+  bool isDartCoreRecordInternal(Type type) {
+    return type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Record' &&
+        type.args.isEmpty;
   }
 
   @override
-  bool isExtensionType(SharedTypeView<Type> type) {
+  bool isExtensionTypeInternal(Type type) {
     // TODO(cstefantsova): Add the support for extension types in the mini ast
     // testing framework.
     return false;
@@ -2981,9 +2979,8 @@ class MiniAstOperations
   }
 
   @override
-  bool isInterfaceType(SharedTypeView<Type> type) {
-    Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is PrimaryType && unwrappedType.isInterfaceType;
+  bool isInterfaceTypeInternal(Type type) {
+    return type is PrimaryType && type.isInterfaceType;
   }
 
   @override
@@ -2994,9 +2991,7 @@ class MiniAstOperations
   }
 
   @override
-  bool isNull(SharedTypeView<Type> type) {
-    return type.unwrapTypeView() is NullType;
-  }
+  bool isNullInternal(Type type) => type is NullType;
 
   @override
   bool isObject(SharedTypeView<Type> type) {
@@ -3100,8 +3095,8 @@ class MiniAstOperations
   }
 
   @override
-  TypeParameter? matchInferableParameter(SharedTypeView<Type> type) {
-    if (type.unwrapTypeView()
+  TypeParameter? matchInferableParameterInternal(Type type) {
+    if (type
         case TypeParameterType(
           :var typeParameter,
           nullabilitySuffix: NullabilitySuffix.none
@@ -3166,23 +3161,22 @@ class MiniAstOperations
   }
 
   @override
-  TypeDeclarationMatchResult<Type, String, Type>? matchTypeDeclarationType(
-      SharedTypeView<Type> type) {
-    Type unwrappedType = type.unwrapTypeView();
-    if (unwrappedType is! PrimaryType) return null;
+  TypeDeclarationMatchResult<Type, String, Type>?
+      matchTypeDeclarationTypeInternal(Type type) {
+    if (type is! PrimaryType) return null;
     TypeDeclarationKind typeDeclarationKind;
-    if (unwrappedType.isInterfaceType) {
+    if (type.isInterfaceType) {
       typeDeclarationKind = TypeDeclarationKind.interfaceDeclaration;
-    } else if (isExtensionType(type)) {
+    } else if (isExtensionTypeInternal(type)) {
       typeDeclarationKind = TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
     }
     return new TypeDeclarationMatchResult(
         typeDeclarationKind: typeDeclarationKind,
-        typeDeclaration: unwrappedType.name,
-        typeDeclarationType: unwrappedType,
-        typeArguments: unwrappedType.args);
+        typeDeclaration: type.name,
+        typeDeclarationType: type,
+        typeArguments: type.args);
   }
 
   @override
@@ -3253,9 +3247,8 @@ class MiniAstOperations
       property.whyNotPromotable;
 
   @override
-  SharedTypeView<Type> withNullabilitySuffix(
-      SharedTypeView<Type> type, NullabilitySuffix modifier) {
-    return SharedTypeView(type.unwrapTypeView().withNullability(modifier));
+  Type withNullabilitySuffixInternal(Type type, NullabilitySuffix modifier) {
+    return type.withNullability(modifier);
   }
 
   @override

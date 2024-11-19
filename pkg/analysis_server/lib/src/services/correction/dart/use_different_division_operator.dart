@@ -63,10 +63,11 @@ enum _DivisionOperator { division, effectiveIntegerDivision }
 class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
   @override
   final FixKind fixKind;
-  final CorrectionProducerContext _context;
 
-  _UseDifferentDivisionOperator({required super.context, required this.fixKind})
-    : _context = context;
+  _UseDifferentDivisionOperator({
+    required super.context,
+    required this.fixKind,
+  });
 
   @override
   CorrectionApplicability get applicability =>
@@ -102,23 +103,17 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
     }
     // All extensions available in the current scope for the left operand that
     // define the other division operator.
-    var name = Name(
-      _context.dartFixContext!.resolvedResult.libraryElement.source.uri,
-      otherOperator.lexeme,
-    );
+    var name = Name(unitResult.libraryElement.source.uri, otherOperator.lexeme);
     var hasNoExtensionWithOtherDivisionOperator =
-        await _context.dartFixContext!
-            .librariesWithExtensions(otherOperator.lexeme)
-            .where((library) {
-              return library.exportedExtensions
-                  .havingMemberWithBaseName(name)
-                  .applicableTo(
-                    targetLibrary: libraryElement,
-                    targetType: leftType!,
-                  )
-                  .isNotEmpty;
-            })
-            .isEmpty;
+        await librariesWithExtensions(otherOperator.lexeme).where((library) {
+          return library.exportedExtensions
+              .havingMemberWithBaseName(name)
+              .applicableTo(
+                targetLibrary: libraryElement,
+                targetType: leftType!,
+              )
+              .isNotEmpty;
+        }).isEmpty;
     if (hasNoExtensionWithOtherDivisionOperator && operators.isEmpty) {
       return;
     }

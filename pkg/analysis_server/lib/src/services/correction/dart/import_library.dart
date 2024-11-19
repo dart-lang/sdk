@@ -375,7 +375,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     }
 
     var name = Name(
-      dartFixContext.resolvedResult.libraryElement.source.uri,
+      dartFixContext.unitResult.libraryElement.source.uri,
       memberName,
     );
     var producers = <ResolvedCorrectionProducer>[];

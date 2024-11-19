@@ -4834,6 +4834,9 @@ abstract final class DeclaredIdentifier implements Declaration {
   @experimental
   LocalVariableElement2? get declaredElement2;
 
+  @override
+  LocalVariableFragment? get declaredFragment;
+
   /// Whether this variable was declared with the 'const' modifier.
   bool get isConst;
 
@@ -4868,9 +4871,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   @override
   LocalVariableElementImpl? declaredElement;
 
-  @override
-  LocalVariableElementImpl? declaredFragment;
-
   /// Initializes a newly created formal parameter.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -4894,6 +4894,9 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   LocalVariableElement2? get declaredElement2 {
     return declaredElement.asElement2 as LocalVariableElementImpl2?;
   }
+
+  @override
+  LocalVariableFragment? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => name;

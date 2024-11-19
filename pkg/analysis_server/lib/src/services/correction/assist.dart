@@ -19,7 +19,10 @@ class DartAssistContextImpl implements DartAssistContext {
   final ChangeWorkspace workspace;
 
   @override
-  final ResolvedUnitResult resolveResult;
+  final ResolvedLibraryResult libraryResult;
+
+  @override
+  final ResolvedUnitResult unitResult;
 
   @override
   final Map<ProducerGenerator, Set<LintCode>> producerGeneratorsForLintRules;
@@ -33,7 +36,8 @@ class DartAssistContextImpl implements DartAssistContext {
   DartAssistContextImpl(
     this.instrumentationService,
     this.workspace,
-    this.resolveResult,
+    this.libraryResult,
+    this.unitResult,
     this.producerGeneratorsForLintRules,
     this.selectionOffset,
     this.selectionLength,

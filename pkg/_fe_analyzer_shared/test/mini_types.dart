@@ -164,14 +164,23 @@ class FunctionType extends Type
         ..excludeNamesUsedIn(other);
       var thisSubstitution = <TypeParameter, Type>{};
       var otherSubstitution = <TypeParameter, Type>{};
+      var thisTypeFormalBounds = <Type>[];
+      var otherTypeFormalBounds = <Type>[];
       for (var i = 0; i < typeFormals.length; i++) {
         var freshTypeParameterType =
             TypeParameterType(freshTypeParameterGenerator.generate());
         thisSubstitution[typeFormals[i]] = freshTypeParameterType;
         otherSubstitution[other.typeFormals[i]] = freshTypeParameterType;
+        thisTypeFormalBounds.add(typeFormals[i].bound);
+        otherTypeFormalBounds.add(other.typeFormals[i].bound);
       }
-      return substitute(thisSubstitution, dropTypeFormals: true) ==
-          other.substitute(otherSubstitution, dropTypeFormals: true);
+      return const ListEquality().equals(
+              thisTypeFormalBounds.substitute(thisSubstitution) ??
+                  thisTypeFormalBounds,
+              otherTypeFormalBounds.substitute(otherSubstitution) ??
+                  otherTypeFormalBounds) &&
+          substitute(thisSubstitution, dropTypeFormals: true) ==
+              other.substitute(otherSubstitution, dropTypeFormals: true);
     } else {
       return returnType == other.returnType &&
           const ListEquality()
@@ -212,6 +221,7 @@ class FunctionType extends Type
     }
     for (var typeFormal in typeFormals) {
       identifiers.add(typeFormal.name);
+      typeFormal.explicitBound?.gatherUsedIdentifiers(identifiers);
     }
     for (var namedParameter in namedParameters) {
       // As explained in the documentation for `Type.gatherUsedIdentifiers`,
@@ -246,11 +256,43 @@ class FunctionType extends Type
   @override
   FunctionType? substitute(Map<TypeParameter, Type> substitution,
       {bool dropTypeFormals = false}) {
+    List<TypeParameter>? newTypeFormals;
+    if (typeFormals.isNotEmpty) {
+      if (dropTypeFormals) {
+        newTypeFormals = const <TypeParameter>[];
+      } else {
+        // Check if any of the type formal bounds will be changed by the
+        // substitution.
+        if (typeFormals.any((typeFormal) =>
+            typeFormal.explicitBound?.substitute(substitution) != null)) {
+          // Yes, at least one of the type formal bounds will be changed by the
+          // substitution. So that type formal will have to be replaced by a
+          // fresh one. Since type formal bounds can refer to other type
+          // formals, other type formals might need to be replaced by fresh ones
+          // too. To make things easier, go ahead and replace all the type
+          // formals. Also, extend the substitution so that any references to
+          // old type formals will be replaced by references to the new type
+          // formals.
+          substitution = {...substitution};
+          newTypeFormals = [];
+          for (var typeFormal in typeFormals) {
+            var newTypeFormal = TypeParameter._(typeFormal.name);
+            newTypeFormals.add(newTypeFormal);
+            substitution[typeFormal] = TypeParameterType(newTypeFormal);
+          }
+          // Now that the substitution has been created, fix up all the bounds.
+          for (var i = 0; i < typeFormals.length; i++) {
+            if (typeFormals[i].explicitBound case var bound?) {
+              newTypeFormals[i].explicitBound =
+                  bound.substitute(substitution) ?? bound;
+            }
+          }
+        }
+      }
+    }
+
     var newReturnType = returnType.substitute(substitution);
     var newPositionalParameters = positionalParameters.substitute(substitution);
-    var newTypeFormals = dropTypeFormals && !typeFormals.isEmpty
-        ? const <TypeParameter>[]
-        : null;
     var newNamedParameters = namedParameters.substitute(substitution);
     if (newReturnType == null &&
         newPositionalParameters == null &&
@@ -277,7 +319,18 @@ class FunctionType extends Type
 
   @override
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) {
-    var formals = typeFormals.isEmpty ? '' : '<${typeFormals.join(', ')}>';
+    var formals = '';
+    if (typeFormals.isNotEmpty) {
+      var formalStrings = <String>[];
+      for (var typeFormal in typeFormals) {
+        if (typeFormal.explicitBound case var bound?) {
+          formalStrings.add('${typeFormal.name} extends $bound');
+        } else {
+          formalStrings.add(typeFormal.name);
+        }
+      }
+      formals = '<${formalStrings.join(', ')}>';
+    }
     var parameters = <Object>[
       ...positionalParameters.sublist(0, requiredPositionalParameterCount)
     ];
@@ -817,13 +870,17 @@ sealed class TypeNameInfo {
 /// A type name that represents a type variable.
 class TypeParameter extends TypeNameInfo
     implements SharedTypeParameterStructure<Type> {
-  /// The type variable's bound. Defaults to `Object?`.
-  @override
-  Type bound;
+  /// The type variable's bound. If `null`, the bound is `Object?`.
+  ///
+  /// This is non-final because it needs to be possible to set it after
+  /// construction, in order to create "F-bounded" type parameters (type
+  /// parameters whose bound refers to the type parameter itself).
+  Type? explicitBound;
 
-  TypeParameter._(super.name)
-      : bound = Type('Object?'),
-        super(expectedRuntimeType: TypeParameterType);
+  TypeParameter._(super.name) : super(expectedRuntimeType: TypeParameterType);
+
+  @override
+  Type get bound => explicitBound ?? Type('Object?');
 
   @override
   String get displayName => name;
@@ -1673,7 +1730,7 @@ class VoidType extends _SpecialSimpleType
 /// meaning assigned to its identifiers yet.
 class _PreFunctionType extends _PreType {
   final _PreType returnType;
-  final List<TypeParameter> typeFormals;
+  final List<_PreTypeFormal> typeFormals;
   final List<_PreType> positionalParameterTypes;
   final int requiredPositionalParameterCount;
   final List<_PreNamedFunctionParameter> namedParameters;
@@ -1687,11 +1744,23 @@ class _PreFunctionType extends _PreType {
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
+    List<TypeParameter> materializedTypeFormals;
     if (typeFormals.isNotEmpty) {
+      materializedTypeFormals = <TypeParameter>[];
       typeFormalScope = Map.of(typeFormalScope);
       for (var typeFormal in typeFormals) {
-        typeFormalScope[typeFormal.name] = typeFormal;
+        var materializedTypeFormal = TypeParameter._(typeFormal.name);
+        materializedTypeFormals.add(materializedTypeFormal);
+        typeFormalScope[typeFormal.name] = materializedTypeFormal;
       }
+      for (var i = 0; i < typeFormals.length; i++) {
+        if (typeFormals[i].bound case var bound?) {
+          materializedTypeFormals[i].explicitBound =
+              bound.materialize(typeFormalScope: typeFormalScope);
+        }
+      }
+    } else {
+      materializedTypeFormals = const [];
     }
     return FunctionType(
         returnType.materialize(typeFormalScope: typeFormalScope),
@@ -1700,7 +1769,7 @@ class _PreFunctionType extends _PreType {
             positionalParameterType.materialize(
                 typeFormalScope: typeFormalScope)
         ],
-        typeFormals: typeFormals,
+        typeFormals: materializedTypeFormals,
         requiredPositionalParameterCount: requiredPositionalParameterCount,
         namedParameters: [
           for (var namedParameter in namedParameters)
@@ -1844,6 +1913,15 @@ sealed class _PreType {
   /// first in [typeFormalScope], and then, if they are not found, in the
   /// [TypeRegistry].
   Type materialize({required Map<String, TypeParameter> typeFormalScope});
+}
+
+/// Representation of a formal parameter of a function type that has been parsed
+/// but hasn't had meaning assigned to its identifiers yet.
+class _PreTypeFormal {
+  final String name;
+  final _PreType? bound;
+
+  _PreTypeFormal({required this.name, required this.bound});
 }
 
 /// Representation of a [Type] with a nullability suffix that has been parsed
@@ -2050,7 +2128,7 @@ class _TypeParser {
       return _PrePromotedType(inner: type, promotion: promotion);
     } else if (_currentToken == 'Function') {
       _next();
-      List<TypeParameter>? typeFormals;
+      List<_PreTypeFormal> typeFormals;
       if (_currentToken == '<') {
         typeFormals = _parseTypeFormals();
       } else {
@@ -2094,7 +2172,7 @@ class _TypeParser {
           requiredPositionalParameterCount: requiredPositionalParameterCount ??
               positionalParameterTypes.length,
           namedParameters: namedFunctionParameters ?? const [],
-          typeFormals: typeFormals ?? const []);
+          typeFormals: typeFormals);
     } else {
       return null;
     }
@@ -2139,17 +2217,22 @@ class _TypeParser {
     return result;
   }
 
-  List<TypeParameter>? _parseTypeFormals() {
+  List<_PreTypeFormal> _parseTypeFormals() {
     assert(_currentToken == '<');
     _next();
-    var typeFormals = <TypeParameter>[];
+    var typeFormals = <_PreTypeFormal>[];
     while (true) {
       var name = _currentToken;
       if (_identifierRegexp.matchAsPrefix(name) == null) {
         _parseFailure('Expected an identifier');
       }
-      typeFormals.add(TypeParameter._(name));
       _next();
+      _PreType? bound;
+      if (_currentToken == 'extends') {
+        _next();
+        bound = _parseType();
+      }
+      typeFormals.add(_PreTypeFormal(name: name, bound: bound));
       if (_currentToken == ',') {
         _next();
         continue;
