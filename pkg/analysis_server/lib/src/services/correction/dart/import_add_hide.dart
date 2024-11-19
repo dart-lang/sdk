@@ -4,10 +4,12 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/results.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
@@ -38,56 +40,91 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       return const [];
     }
 
-    var uris = <String>{};
-    var importDirectives = <ImportDirective>{};
-    for (var conflictingElement in conflictingElements) {
-      var library = conflictingElement.enclosingElement2?.library2;
-      if (library == null) {
-        continue;
-      }
-
-      // Find all ImportDirective that import this library in this unit
-      // and have the same prefix.
-      for (var directive in unit.directives
-          .whereType<ImportDirective>()
-          .whereNot(importDirectives.contains)) {
-        var imported = directive.libraryImport?.importedLibrary2;
-        if (imported == null) {
-          continue;
-        }
-        // If the prefix is different, then this directive is not relevant.
-        if (directive.prefix?.name != prefix) {
-          continue;
-        }
-
-        // If this library is imported directly or if the directive exports the
-        // library for this element.
-        if (imported == library ||
-            imported.exportedLibraries2.contains(library)) {
-          var uri = directive.uri.stringValue;
-          if (uri != null) {
-            uris.add(uri);
-            importDirectives.add(directive);
-          }
-        }
-      }
-    }
-
-    if (uris.isEmpty) {
-      return const [];
-    }
+    var (uris, importDirectives) = _getImportDirectives(
+      libraryResult,
+      unitResult,
+      conflictingElements,
+      prefix,
+    );
 
     var producers = <ResolvedCorrectionProducer>{};
     for (var uri in uris) {
-      var directives = importDirectives
-          .where((directive) => directive.uri.stringValue != uri)
-          .toSet();
-      producers.addAll([
-        _ImportAddHide(name, uri, prefix, directives, context: context),
-        _ImportRemoveShow(name, uri, prefix, directives, context: context)
-      ]);
+      for (var MapEntry(:key, :value) in importDirectives.entries) {
+        value = value
+            .whereNot((directive) => directive.uri.stringValue == uri)
+            .toSet();
+        var thisContext = CorrectionProducerContext.createResolved(
+          libraryResult: libraryResult,
+          unitResult: key,
+          applyingBulkFixes: applyingBulkFixes,
+          dartFixContext: context.dartFixContext,
+          diagnostic: diagnostic,
+          selectionLength: selectionLength,
+          selectionOffset: selectionOffset,
+        );
+        producers.addAll([
+          _ImportAddHide(name, uri, prefix, value, context: thisContext),
+          _ImportRemoveShow(name, uri, prefix, value, context: thisContext)
+        ]);
+      }
     }
     return producers.toList();
+  }
+
+  /// Returns [ImportDirective]s that import the given [conflictingElements]
+  /// into [unitResult].
+  (Set<String>, Map<ResolvedUnitResult, Set<ImportDirective>>)
+      _getImportDirectives(
+    ResolvedLibraryResult libraryResult,
+    ResolvedUnitResult? unitResult,
+    List<Element2> conflictingElements,
+    String? prefix,
+  ) {
+    var uris = <String>{};
+    var importDirectives = <ResolvedUnitResult, Set<ImportDirective>>{};
+    // Search in each unit up the chain for related imports.
+    while (unitResult is ResolvedUnitResult) {
+      for (var conflictingElement in conflictingElements) {
+        var library = conflictingElement.enclosingElement2?.library2;
+        if (library == null) {
+          continue;
+        }
+
+        // Find all ImportDirective that import this library in this unit
+        // and have the same prefix.
+        for (var directive in unitResult.unit.directives
+            .whereType<ImportDirective>()
+            .whereNot(importDirectives.containsValue)) {
+          var imported = directive.libraryImport?.importedLibrary2;
+          if (imported == null) {
+            continue;
+          }
+          // If the prefix is different, then this directive is not relevant.
+          if (directive.prefix?.name != prefix) {
+            continue;
+          }
+
+          // If this library is imported directly or if the directive exports the
+          // library for this element.
+          if (imported == library ||
+              imported.exportedLibraries2.contains(library)) {
+            var uri = directive.uri.stringValue;
+            if (uri != null) {
+              uris.add(uri);
+              if (importDirectives[unitResult] == null) {
+                importDirectives[unitResult] = {directive};
+              } else {
+                importDirectives[unitResult]?.add(directive);
+              }
+            }
+          }
+        }
+      }
+      // We continue up the chain.
+      unitResult = libraryResult.parentUnitOf(unitResult);
+    }
+
+    return (uris, importDirectives);
   }
 }
 

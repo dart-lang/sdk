@@ -263,6 +263,53 @@ void f(N? n) {
 ''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart'");
   }
 
+  Future<void> test_double_part() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class N {}''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+class N {}''');
+    newFile('$testPackageLibPath/imports.dart', '''
+import 'lib1.dart';
+import 'lib2.dart';
+
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'imports.dart';
+
+void f(N? n) {
+  print(n);
+}
+''');
+    await assertHasFixesWithoutApplying(
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Hide others to use 'N' from 'lib1.dart'",
+        "Hide others to use 'N' from 'lib2.dart'",
+      ],
+    );
+    await assertHasFix(
+      '''
+import 'lib1.dart' hide N;
+import 'lib2.dart';
+
+part 'test.dart';
+''',
+      target: '$testPackageLibPath/imports.dart',
+      matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
+    );
+    await assertHasFix(
+      '''
+import 'lib1.dart';
+import 'lib2.dart' hide N;
+
+part 'test.dart';
+''',
+      target: '$testPackageLibPath/imports.dart',
+      matchFixMessage: "Hide others to use 'N' from 'lib1.dart'",
+    );
+  }
+
   Future<void> test_double_variable() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 var foo = 0;''');
