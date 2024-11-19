@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/library_element.dart';
 
 extension AnalysisSessionExtension on AnalysisSession {
@@ -40,5 +42,17 @@ extension AnalysisSessionExtension on AnalysisSession {
     return result is LibraryElementResult
         ? result.element.locateElement(location)
         : null;
+  }
+
+  /// Returns the element represented by the [location].
+  ///
+  /// Local elements such as variables inside functions can't be found using
+  /// this method.
+  ///
+  /// Returns `null` if the element cannot be found.
+  Future<Element2?> locateElement2(ElementLocation location) async {
+    var result = await locateElement(location);
+    if (result == null) return null;
+    return result.asElement2;
   }
 }
