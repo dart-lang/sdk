@@ -40,6 +40,8 @@ extension Element2OrNullExtension on Element2? {
         return self.declaration as Element;
       case FieldElementImpl2():
         return self.firstFragment as Element;
+      case FieldMember():
+        return self.declaration as Element;
       case FormalParameterElementImpl():
         return self.firstFragment as Element;
       case GetterElementImpl():

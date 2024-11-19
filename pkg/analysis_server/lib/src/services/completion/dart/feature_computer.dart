@@ -434,6 +434,17 @@ class FeatureComputer {
     return distanceToPercent(distance);
   }
 
+  /// Return the value of the _inheritance distance_ feature for a member
+  /// defined in the [superclass] that is being accessed through an expression
+  /// whose static type is the [subclass].
+  double inheritanceDistanceFeature2(
+    InterfaceElement2 subclass,
+    InterfaceElement2 superclass,
+  ) {
+    var distance = _inheritanceDistance(subclass, superclass, {});
+    return distanceToPercent(distance);
+  }
+
   /// Return the value of the _is constant_ feature for the given [element].
   double isConstantFeature(Element element) {
     if (element is ConstructorElement && element.isConst) {

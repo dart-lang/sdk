@@ -2,7 +2,6 @@ lib/plugin/protocol/protocol_dart.dart
 lib/src/analysis_server.dart
 lib/src/cider/completion.dart
 lib/src/cider/fixes.dart
-lib/src/cider/local_library_contributor.dart
 lib/src/cider/rename.dart
 lib/src/computer/computer_call_hierarchy.dart
 lib/src/computer/computer_documentation.dart
@@ -28,7 +27,6 @@ lib/src/operation/operation_analysis.dart
 lib/src/protocol_server.dart
 lib/src/search/element_references.dart
 lib/src/search/type_hierarchy.dart
-lib/src/services/completion/dart/candidate_suggestion.dart
 lib/src/services/completion/dart/completion_manager.dart
 lib/src/services/completion/dart/completion_state.dart
 lib/src/services/completion/dart/declaration_helper.dart
@@ -37,7 +35,6 @@ lib/src/services/completion/dart/identifier_helper.dart
 lib/src/services/completion/dart/in_scope_completion_pass.dart
 lib/src/services/completion/dart/not_imported_completion_pass.dart
 lib/src/services/completion/dart/relevance_computer.dart
-lib/src/services/completion/dart/suggestion_builder.dart
 lib/src/services/completion/dart/utilities.dart
 lib/src/services/completion/dart/visibility_tracker.dart
 lib/src/services/completion/postfix/postfix_completion.dart
