@@ -890,7 +890,12 @@ class HotReloadSuiteRunner {
       _print('Emitted logs to ${testResultsUri.toFilePath()} '
           'and ${testLogsUri.toFilePath()}.');
     }
-
+    if (testOutcomes.isEmpty) {
+      print('No tests ran: no sub-directories in ${allTestsUri.toFilePath()} '
+          'match the provided filter:\n'
+          '${options.testNameFilter}');
+      exit(0);
+    }
     // Report failed tests.
     var failedTests =
         testOutcomes.where((outcome) => !outcome.matchedExpectations);
