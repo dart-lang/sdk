@@ -2,8 +2,7 @@
 name: Report an issue with Dart’s static analysis.
 about: >-
   Create a bug or file a feature request related to Dart's static analysis
-  (including the command line analyzer, analysis in IDEs, the analysis server,
-  and the linter).
+  (including the command line analyzer, the analysis server, and the linter).
 labels: area-analyzer
 ---
 

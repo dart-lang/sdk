@@ -1,5 +1,5 @@
-name: Propose a breaking change (used by contributors).
-description: Initiate a breaking change process (for contributors use only).
+name: Propose a breaking change (for contributor use only).
+description: Initiate a breaking change process.
 title: '[breaking change] <title>'
 labels: ['breaking-change-request']
 

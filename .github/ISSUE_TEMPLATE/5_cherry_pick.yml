@@ -1,5 +1,5 @@
-name: Request a cherry-pick (used by contributors).
-description: Request a patch to be cherry-picked into a release (for contributors use only).
+name: Request a cherry-pick (for contributor use only).
+description: Request a patch to be cherry-picked into a release.
 title: '[CP] <title>'
 labels: ['cherry-pick-review']
 
