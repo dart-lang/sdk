@@ -616,13 +616,13 @@ ISOLATE_UNIT_TEST_CASE(RangeAnalysis_ShiftUint32Op) {
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,
                    ParallelMovesHandling::kSkip);
 
-  ShiftUint32OpInstr* shift = nullptr;
+  BinaryUint32OpInstr* shift = nullptr;
 
   RELEASE_ASSERT(cursor.TryMatch({
       kMoveGlob,
       kMatchAndMoveBinaryUint32Op,
       kMoveGlob,
-      {kMatchAndMoveShiftUint32Op, &shift},
+      {kMatchAndMoveBinaryUint32Op, &shift},
       kMoveGlob,
       kMatchAndMoveBinaryUint32Op,
       kMoveGlob,
@@ -631,9 +631,10 @@ ISOLATE_UNIT_TEST_CASE(RangeAnalysis_ShiftUint32Op) {
       kMatchDartReturn,
   }));
 
-  EXPECT(shift->shift_range() != nullptr);
-  EXPECT(shift->shift_range()->min().ConstantValue() == 10);
-  EXPECT(shift->shift_range()->max().ConstantValue() == 10);
+  EXPECT(shift->op_kind() == Token::kSHL);
+  EXPECT(shift->right()->BindsToConstant());
+  EXPECT(shift->right()->BoundConstant().IsInteger());
+  EXPECT(Integer::Cast(shift->right()->BoundConstant()).Value() == 10);
 }
 
 #endif  // defined(DART_PRECOMPILER) && defined(TARGET_ARCH_IS_64_BIT)

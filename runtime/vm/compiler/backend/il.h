@@ -502,7 +502,6 @@ struct InstrAttrs {
   M(UnboxInt64, kNoGC)                                                         \
   M(CaseInsensitiveCompare, kNoGC)                                             \
   M(BinaryInt64Op, kNoGC)                                                      \
-  M(ShiftInt64Op, kNoGC)                                                       \
   M(UnaryInt64Op, kNoGC)                                                       \
   M(CheckArrayBound, kNoGC)                                                    \
   M(GenericCheckBound, kNoGC)                                                  \
@@ -527,7 +526,6 @@ struct InstrAttrs {
   M(UnboxLane, kNoGC)                                                          \
   M(BoxLanes, _)                                                               \
   M(BinaryUint32Op, kNoGC)                                                     \
-  M(ShiftUint32Op, kNoGC)                                                      \
   M(UnaryUint32Op, kNoGC)                                                      \
   M(BoxUint32, _)                                                              \
   M(UnboxUint32, kNoGC)                                                        \
@@ -564,7 +562,6 @@ struct InstrAttrs {
   M(Condition, _)                                                              \
   M(InstanceCallBase, _)                                                       \
   M(ReturnBase, _)                                                             \
-  M(ShiftIntegerOp, _)                                                         \
   M(UnaryIntegerOp, _)                                                         \
   M(UnboxInteger, _)
 
@@ -8737,7 +8734,7 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
 
 bool Definition::IsInt64Definition() {
   return (Type()->ToCid() == kMintCid) || IsBinaryInt64Op() ||
-         IsUnaryInt64Op() || IsShiftInt64Op() || IsBoxInt64() || IsUnboxInt64();
+         IsUnaryInt64Op() || IsBoxInt64() || IsUnboxInt64();
 }
 
 // Calls into the runtime and performs a case-insensitive comparison of the
@@ -9234,6 +9231,9 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   // that does not include the possibility of being zero.
   bool RightIsNonZero() const;
 
+  // Returns true if rhs operand is positive.
+  bool RightIsPositive() const;
+
   // Returns true if right is a non-zero Smi constant which absolute value is
   // a power of two.
   bool RightIsPowerOfTwoConstant() const;
@@ -9266,6 +9266,12 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   void InferRangeHelper(const Range* left_range,
                         const Range* right_range,
                         Range* range);
+
+  static constexpr intptr_t kShiftCountLimit = 63;
+
+  // Returns true if the shift amount (right operand) is guaranteed to be in
+  // [0..max] range.
+  bool IsShiftCountInRange(int64_t max = kShiftCountLimit) const;
 
  private:
   Definition* CreateConstantResult(FlowGraph* graph, const Integer& result);
@@ -9388,6 +9394,9 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
       case Token::kBIT_AND:
       case Token::kBIT_OR:
       case Token::kBIT_XOR:
+      case Token::kSHL:
+      case Token::kSHR:
+      case Token::kUSHR:
         return true;
       default:
         return false;
@@ -9399,6 +9408,10 @@ class BinaryUint32OpInstr : public BinaryIntegerOpInstr {
   DECLARE_EMPTY_SERIALIZATION(BinaryUint32OpInstr, BinaryIntegerOpInstr)
 
  private:
+  static constexpr intptr_t kUint32ShiftCountLimit = 31;
+
+  void EmitShiftUint32(FlowGraphCompiler* compiler);
+
   DISALLOW_COPY_AND_ASSIGN(BinaryUint32OpInstr);
 };
 
@@ -9417,9 +9430,24 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
     return false;
   }
 
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return ((op_kind() == Token::kSHL) || (op_kind() == Token::kSHR) ||
+            (op_kind() == Token::kUSHR)) &&
+           !CompilerState::Current().is_aot();
+  }
+
   virtual bool MayThrow() const {
-    return (op_kind() == Token::kMOD || op_kind() == Token::kTRUNCDIV) &&
-           !RightIsNonZero();
+    switch (op_kind()) {
+      case Token::kSHL:
+      case Token::kSHR:
+      case Token::kUSHR:
+        return !IsShiftCountInRange();
+      case Token::kMOD:
+      case Token::kTRUNCDIV:
+        return !RightIsNonZero();
+      default:
+        return false;
+    }
   }
 
   virtual Representation representation() const { return kUnboxedInt64; }
@@ -9434,118 +9462,9 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
   DECLARE_EMPTY_SERIALIZATION(BinaryInt64OpInstr, BinaryIntegerOpInstr)
 
  private:
+  void EmitShiftInt64(FlowGraphCompiler* compiler);
+
   DISALLOW_COPY_AND_ASSIGN(BinaryInt64OpInstr);
-};
-
-// Base class for integer shift operations.
-class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
- public:
-  ShiftIntegerOpInstr(Token::Kind op_kind,
-                      Value* left,
-                      Value* right,
-                      intptr_t deopt_id,
-                      // Provided by BinaryIntegerOpInstr::Make for constant RHS
-                      Range* right_range = nullptr)
-      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
-        shift_range_(right_range) {
-    ASSERT((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
-           (op_kind == Token::kUSHR));
-    mark_truncating();
-  }
-
-  Range* shift_range() const { return shift_range_; }
-
-  // Set the range directly (takes ownership).
-  void set_shift_range(Range* shift_range) { shift_range_ = shift_range; }
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  DECLARE_ABSTRACT_INSTRUCTION(ShiftIntegerOp)
-
-#define FIELD_LIST(F) F(Range*, shift_range_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ShiftIntegerOpInstr,
-                                          BinaryIntegerOpInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
- protected:
-  static constexpr intptr_t kShiftCountLimit = 63;
-
-  // Returns true if the shift amount is guaranteed to be in
-  // [0..max] range.
-  bool IsShiftCountInRange(int64_t max = kShiftCountLimit) const;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ShiftIntegerOpInstr);
-};
-
-// Non-speculative int64 shift. Takes 2 unboxed int64.
-// Throws if right operand is negative.
-class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
- public:
-  ShiftInt64OpInstr(Token::Kind op_kind,
-                    Value* left,
-                    Value* right,
-                    intptr_t deopt_id,
-                    Range* right_range = nullptr)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool ComputeCanDeoptimizeAfterCall() const {
-    return !CompilerState::Current().is_aot();
-  }
-  virtual bool MayThrow() const { return !IsShiftCountInRange(); }
-
-  virtual Representation representation() const { return kUnboxedInt64; }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return kUnboxedInt64;
-  }
-
-  DECLARE_INSTRUCTION(ShiftInt64Op)
-
-  DECLARE_EMPTY_SERIALIZATION(ShiftInt64OpInstr, ShiftIntegerOpInstr)
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ShiftInt64OpInstr);
-};
-
-// Non-speculative uint32 shift. Takes unboxed uint32 and unboxed int64.
-// Throws if right operand is negative.
-class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
- public:
-  ShiftUint32OpInstr(Token::Kind op_kind,
-                     Value* left,
-                     Value* right,
-                     intptr_t deopt_id,
-                     Range* right_range = nullptr)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool ComputeCanDeoptimizeAfterCall() const {
-    return !CompilerState::Current().is_aot();
-  }
-  virtual bool MayThrow() const {
-    return !IsShiftCountInRange(kUint32ShiftCountLimit);
-  }
-
-  virtual Representation representation() const { return kUnboxedUint32; }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((idx == 0) || (idx == 1));
-    return (idx == 0) ? kUnboxedUint32 : kUnboxedInt64;
-  }
-
-  DECLARE_INSTRUCTION(ShiftUint32Op)
-
-  DECLARE_EMPTY_SERIALIZATION(ShiftUint32OpInstr, ShiftIntegerOpInstr)
-
- private:
-  static constexpr intptr_t kUint32ShiftCountLimit = 31;
-
-  DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
 };
 
 class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {

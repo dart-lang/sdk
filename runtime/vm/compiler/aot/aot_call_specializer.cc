@@ -475,8 +475,8 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
       InsertBefore(instr, sign_bit_position, /*env=*/nullptr,
                    FlowGraph::kValue);
       auto* const sign_bit_extended = new (Z)
-          ShiftInt64OpInstr(Token::kSHR, left_value,
-                            new (Z) Value(sign_bit_position), DeoptId::kNone);
+          BinaryInt64OpInstr(Token::kSHR, left_value,
+                             new (Z) Value(sign_bit_position), DeoptId::kNone);
       InsertBefore(instr, sign_bit_extended, /*env=*/nullptr,
                    FlowGraph::kValue);
       auto* rounding_adjustment = unboxed_constant(magnitude - 1);
@@ -496,8 +496,8 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
           unboxed_constant(Utils::ShiftForPowerOfTwo(magnitude));
       InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
       right_value = new (Z) Value(right_definition);
-      result = new (Z) ShiftInt64OpInstr(Token::kSHR, left_value, right_value,
-                                         DeoptId::kNone);
+      result = new (Z) BinaryInt64OpInstr(Token::kSHR, left_value, right_value,
+                                          DeoptId::kNone);
     } else {
       ASSERT_EQUAL(magnitude, 1);
       // No division needed, just redefine the value.
@@ -593,18 +593,10 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       case Token::kSUB:
         FALL_THROUGH;
       case Token::kMUL: {
-        if (op_kind == Token::kSHL || op_kind == Token::kSHR ||
-            op_kind == Token::kUSHR) {
-          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-          replacement = new (Z) ShiftInt64OpInstr(op_kind, left_value,
-                                                  right_value, DeoptId::kNone);
-        } else {
-          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-          replacement = new (Z) BinaryInt64OpInstr(op_kind, left_value,
-                                                   right_value, DeoptId::kNone);
-        }
+        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+        right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+        replacement = new (Z) BinaryInt64OpInstr(op_kind, left_value,
+                                                 right_value, DeoptId::kNone);
         break;
       }
 
