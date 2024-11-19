@@ -34,7 +34,7 @@ mixin M on A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'num');
   }
 
@@ -50,7 +50,7 @@ mixin M on A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
@@ -66,7 +66,7 @@ mixin M on A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'int');
   }
 
@@ -82,7 +82,7 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
@@ -98,7 +98,7 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'num');
   }
 
@@ -116,7 +116,7 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'Object?');
   }
 
@@ -132,7 +132,7 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
@@ -148,7 +148,7 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'int');
   }
 
@@ -161,7 +161,7 @@ mixin M<T> on A<T> {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'T');
   }
 
@@ -177,7 +177,7 @@ mixin M on A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
+    var p = findElement2.method('foo', of: 'M').formalParameters[0];
     assertType(p.type, 'int');
   }
 
@@ -193,7 +193,7 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertType(foo.returnType, 'int');
   }
 
@@ -209,7 +209,7 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertType(foo.returnType, 'int');
   }
 
@@ -225,7 +225,7 @@ mixin M on A<int>, B<double> {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertTypeDynamic(foo.returnType);
   }
 
@@ -241,7 +241,7 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertTypeDynamic(foo.returnType);
   }
 
@@ -259,7 +259,7 @@ mixin M on A, B {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertType(foo.returnType, 'Object?');
   }
 
@@ -275,7 +275,7 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertType(foo.returnType, 'int');
   }
 
@@ -291,7 +291,7 @@ mixin M<T> on A<T>, B<T> {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertType(foo.returnType, 'T');
   }
 
@@ -307,7 +307,7 @@ mixin M on A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertType(foo.returnType, 'int');
   }
 
@@ -323,7 +323,7 @@ mixin M on A, B {
   foo() {};
 }
 ''');
-    var foo = findElement.method('foo', of: 'M');
+    var foo = findElement2.method('foo', of: 'M');
     assertType(foo.returnType, 'void');
   }
 
@@ -336,7 +336,7 @@ class B extends A {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'B');
+    var foo = findElement2.method('foo', of: 'B');
     assertType(foo.returnType, 'int');
   }
 
@@ -349,7 +349,7 @@ class B<T> extends A<T> {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'B');
+    var foo = findElement2.method('foo', of: 'B');
     assertType(foo.returnType, 'T');
   }
 }
