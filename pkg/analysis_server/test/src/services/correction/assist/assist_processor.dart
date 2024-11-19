@@ -211,9 +211,14 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<List<Assist>> _computeAssists() async {
+    var libraryResult = testLibraryResult;
+    if (libraryResult == null) {
+      return const [];
+    }
     var context = DartAssistContextImpl(
       TestInstrumentationService(),
       await workspace,
+      libraryResult,
       testAnalysisResult,
       _producerGeneratorsForLintRules,
       _offset,

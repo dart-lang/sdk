@@ -66,8 +66,10 @@ class LintFixTester {
     var analysisContext = collection.contextFor(path);
     var analysisSession = analysisContext.currentSession;
 
-    var unitResult = await analysisSession.getResolvedUnit(path);
-    unitResult as ResolvedUnitResult;
+    var resolvedLibrary = await analysisSession.getResolvedLibrary(path);
+    resolvedLibrary as ResolvedLibraryResult;
+
+    var unitResult = resolvedLibrary.unitWithPath(path)!;
 
     AnalysisError error;
     var errors = unitResult.errors;
@@ -95,7 +97,8 @@ class LintFixTester {
     var context = DartFixContext(
       instrumentationService: InstrumentationService.NULL_SERVICE,
       workspace: workspace,
-      resolvedResult: unitResult,
+      libraryResult: resolvedLibrary,
+      unitResult: unitResult,
       error: error,
     );
 

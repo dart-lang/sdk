@@ -178,7 +178,7 @@ class AssistProcessor {
   AssistProcessor(this._assistContext);
 
   Future<List<Assist>> compute() async {
-    if (isMacroGenerated(_assistContext.resolveResult.file.path)) {
+    if (isMacroGenerated(_assistContext.unitResult.file.path)) {
       return _assists;
     }
     await _addFromProducers();
@@ -201,9 +201,10 @@ class AssistProcessor {
 
   Future<void> _addFromProducers() async {
     var context = CorrectionProducerContext.createResolved(
+      libraryResult: _assistContext.libraryResult,
+      unitResult: _assistContext.unitResult,
       selectionOffset: _assistContext.selectionOffset,
       selectionLength: _assistContext.selectionLength,
-      resolvedResult: _assistContext.resolveResult,
     );
 
     Future<void> compute(CorrectionProducer producer) async {
@@ -258,15 +259,15 @@ class AssistProcessor {
     var selectionEnd =
         _assistContext.selectionOffset + _assistContext.selectionLength;
     var locator = NodeLocator(_assistContext.selectionOffset, selectionEnd);
-    var node = locator.searchWithin(_assistContext.resolveResult.unit);
+    var node = locator.searchWithin(_assistContext.unitResult.unit);
     if (node == null) {
       return false;
     }
 
     var fileOffset = node.offset;
-    for (var error in _assistContext.resolveResult.errors) {
+    for (var error in _assistContext.unitResult.errors) {
       var errorSource = error.source;
-      if (_assistContext.resolveResult.path == errorSource.fullName) {
+      if (_assistContext.unitResult.path == errorSource.fullName) {
         if (fileOffset >= error.offset &&
             fileOffset <= error.offset + error.length) {
           if (errorCodes.contains(error.errorCode)) {

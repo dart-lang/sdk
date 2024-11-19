@@ -100,14 +100,16 @@ class EditGetAssistsHandler extends LegacyHandler
   ) async {
     var changes = <SourceChange>[];
 
-    var result = await server.getResolvedUnit(file);
+    var libraryResult = await server.getResolvedLibrary(file);
     server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
 
-    if (result != null) {
+    if (libraryResult != null) {
+      var unitResult = libraryResult.unitWithPath(file)!;
       var context = DartAssistContextImpl(
         server.instrumentationService,
         DartChangeWorkspace(await server.currentSessions),
-        result,
+        libraryResult,
+        unitResult,
         server.producerGeneratorsForLintRules,
         offset,
         length,
@@ -128,7 +130,7 @@ offset: $offset
 length: $length
       ''';
         throw CaughtExceptionWithFiles(exception, stackTrace, {
-          file: result.content,
+          file: unitResult.content,
           'parameters': parametersFile,
         });
       }

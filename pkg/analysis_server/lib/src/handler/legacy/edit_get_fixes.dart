@@ -187,19 +187,21 @@ class EditGetFixesHandler extends LegacyHandler
     int offset,
   ) async {
     var errorFixesList = <AnalysisErrorFixes>[];
-    var result = await server.getResolvedUnit(file);
+    var libraryResult = await server.getResolvedLibrary(file);
     server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-    if (result != null) {
-      var lineInfo = result.lineInfo;
+    if (libraryResult != null) {
+      var unitResult = libraryResult.unitWithPath(file)!;
+      var lineInfo = unitResult.lineInfo;
       var requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (var error in result.errors) {
+      for (var error in unitResult.errors) {
         var errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(await server.currentSessions);
           var context = DartFixContext(
             instrumentationService: server.instrumentationService,
             workspace: workspace,
-            resolvedResult: result,
+            libraryResult: libraryResult,
+            unitResult: unitResult,
             error: error,
           );
 
@@ -215,14 +217,14 @@ error: $error
 error.errorCode: ${error.errorCode}
 ''';
             throw CaughtExceptionWithFiles(exception, stackTrace, {
-              file: result.content,
+              file: unitResult.content,
               'parameters': parametersFile,
             });
           }
 
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.compareFixes);
-            var serverError = newAnalysisError_fromEngine(result, error);
+            var serverError = newAnalysisError_fromEngine(unitResult, error);
             var errorFixes = AnalysisErrorFixes(serverError);
             errorFixesList.add(errorFixes);
             for (var fix in fixes) {

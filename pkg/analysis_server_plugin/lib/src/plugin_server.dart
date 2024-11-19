@@ -116,8 +116,8 @@ class PluginServer {
     if (libraryResult is! ResolvedLibraryResult) {
       return protocol.EditGetFixesResult(const []);
     }
-    var result = await analysisContext.currentSession.getResolvedUnit(path);
-    if (result is! ResolvedUnitResult) {
+    var unitResult = libraryResult.unitWithPath(path);
+    if (unitResult is! ResolvedUnitResult) {
       return protocol.EditGetFixesResult(const []);
     }
 
@@ -133,7 +133,8 @@ class PluginServer {
         // implementations get InstrumentationService from AnalysisServer.
         instrumentationService: InstrumentationService.NULL_SERVICE,
         workspace: workspace,
-        resolvedResult: result,
+        libraryResult: libraryResult,
+        unitResult: unitResult,
         error: error,
       );
 
@@ -256,27 +257,27 @@ class PluginServer {
     if (libraryResult is! ResolvedLibraryResult) {
       return [];
     }
-    var result = await analysisContext.currentSession.getResolvedUnit(path);
-    if (result is! ResolvedUnitResult) {
+    var unitResult = await analysisContext.currentSession.getResolvedUnit(path);
+    if (unitResult is! ResolvedUnitResult) {
       return [];
     }
     var listener = RecordingErrorListener();
-    var errorReporter =
-        ErrorReporter(listener, result.libraryElement2.firstFragment.source);
+    var errorReporter = ErrorReporter(
+        listener, unitResult.libraryElement2.firstFragment.source);
 
     var currentUnit = LintRuleUnitContext(
-      file: result.file,
-      content: result.content,
+      file: unitResult.file,
+      content: unitResult.content,
       errorReporter: errorReporter,
-      unit: result.unit,
+      unit: unitResult.unit,
     );
     var allUnits = [
-      for (var unit in libraryResult.units)
+      for (var unitResult in libraryResult.units)
         LintRuleUnitContext(
-          file: unit.file,
-          content: unit.content,
+          file: unitResult.file,
+          content: unitResult.content,
           errorReporter: errorReporter,
-          unit: unit.unit,
+          unit: unitResult.unit,
         ),
     ];
 

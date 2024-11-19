@@ -29,7 +29,7 @@ class FixProcessor {
   FixProcessor(this._fixContext);
 
   Future<List<Fix>> compute() async {
-    if (isMacroGenerated(_fixContext.resolvedResult.file.path)) {
+    if (isMacroGenerated(_fixContext.unitResult.file.path)) {
       return _fixes;
     }
     await _addFromProducers();
@@ -55,9 +55,10 @@ class FixProcessor {
   Future<void> _addFromProducers() async {
     var error = _fixContext.error;
     var context = CorrectionProducerContext.createResolved(
+      libraryResult: _fixContext.libraryResult,
+      unitResult: _fixContext.unitResult,
       dartFixContext: _fixContext,
       diagnostic: error,
-      resolvedResult: _fixContext.resolvedResult,
       selectionOffset: _fixContext.error.offset,
       selectionLength: _fixContext.error.length,
     );
