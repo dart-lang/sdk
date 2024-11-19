@@ -2747,6 +2747,130 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// sentinel value if [field] is final to detect multiple initializations.
   js_ast.Fun _emitLazyInitializingFunction(js_ast.Expression valueCache,
       js_ast.Expression initializer, Field field) {
+    // We avoid emitting casts for top level fields in the legacy SDK since
+    // some are used for legacy type checks and must be initialized to avoid
+    // infinite loops.
+    var initialFieldValueExpression =
+        !_options.soundNullSafety && _isSdkInternalRuntime(_currentLibrary!)
+            ? valueCache
+            : _emitCast(valueCache, field.type);
+
+    // Lazy static fields require an additional type check around their value
+    // cache if their type is updated after hot reload. To avoid a type check
+    // on every access, the generated getter overrides itself with a direct
+    // access on its underlying value cache on first access.
+    // TODO(markzipan): The performance ramifications of a lookup vs
+    // self-rewriting "smart" getter are unknown. We should revisit this if
+    // property accesses become a bottleneck.
+    if (field.isStatic) {
+      var getterName = memberNames[field]!;
+      // Final fields are generated with additional logic to detect
+      // initialization cycles via a special sentinel.
+      if (field.isFinal) {
+        var finalLateInitDetectorSentinel = _getSymbol(
+            _emitPrivateNameSymbol(field.enclosingLibrary, '_#initializing'));
+        // Emits code like:
+        //
+        // if ([valueCache] === _#initializing)
+        //   dart.throwLateInitializationError(field);
+        // if ([valueCache] === void 0) {
+        //   [valueCache] = _#initializing;
+        //   try {
+        //     [valueCache] = initializer;
+        //   } catch (e) {
+        //     // Reset the sentinel on error so it can be reinitialized.
+        //     if ([valueCache] === _#initializing) {
+        //       [valueCache] = void 0;
+        //     }
+        //     throw e;
+        //   }
+        // }
+        // _typeCheck([valueCache]);
+        // Object.defineProperty(this, field, {
+        //   get() {
+        //     return [valueCache];
+        //   }
+        // });
+        // return this.field;
+        return js.fun(r'''
+        function() {
+          if (# === #) #;
+          if (# === void 0) {
+            # = #;
+            try {
+              # = #;
+            } catch (e) {
+              if (# === #) {
+                # = void 0;
+              }
+              throw e;
+            }
+          }
+          #;
+          Object.defineProperty(this, #, {
+            get() {
+              return #;
+            }
+          });
+          return this.#;
+        }
+      ''', [
+          valueCache,
+          finalLateInitDetectorSentinel,
+          _runtimeCall(
+            'throwLateInitializationError(#)',
+            [js.string(field.name.text)],
+          ),
+          valueCache,
+          valueCache,
+          finalLateInitDetectorSentinel,
+          valueCache,
+          initializer,
+          valueCache,
+          finalLateInitDetectorSentinel,
+          valueCache,
+          initialFieldValueExpression,
+          js.string(getterName),
+          valueCache,
+          getterName,
+        ]);
+      } else {
+        // Emits code like:
+        //
+        // if ([valueCache] === void 0) {
+        //   [valueCache] = initializer;
+        // }
+        // _typeCheck([valueCache]);
+        // Object.defineProperty(this, field, {
+        //   get() {
+        //     return [valueCache];
+        //   }
+        // });
+        // return this.field;
+        return js.fun(r'''
+        function() {
+          if (# === void 0) {
+            # = #;
+          }
+          #;
+          Object.defineProperty(this, #, {
+            get() {
+              return #;
+            }
+          });
+          return this.#;
+          }
+      ''', [
+          valueCache,
+          valueCache,
+          initializer,
+          initialFieldValueExpression,
+          js.string(getterName),
+          valueCache,
+          getterName,
+        ]);
+      }
+    }
     // Final fields are generated with additional logic to detect
     // initialization cycles via a special sentinel.
     if (field.isFinal) {
@@ -2800,7 +2924,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         valueCache,
         finalLateInitDetectorSentinel,
         valueCache,
-        valueCache,
+        initialFieldValueExpression,
       ]);
     } else {
       return js.fun(r'''
@@ -2814,7 +2938,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         valueCache,
         valueCache,
         initializer,
-        valueCache,
+        initialFieldValueExpression,
       ]);
     }
   }
