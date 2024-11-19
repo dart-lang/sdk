@@ -25,10 +25,14 @@ class A {
 }
 ''');
 
-    assertElement(
-      findNode.simple('foo + 1'),
-      findElement.getter('foo', of: 'A'),
-    );
+    var node = findNode.simple('foo + 1');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <testLibraryFragment>::@class::A::@getter::foo
+  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  staticType: int
+''');
   }
 
   test_formalParameterScope_type() async {
@@ -42,15 +46,23 @@ class B {
 }
 ''');
 
-    assertElement(
-      findNode.namedType('a a'),
-      findElement.class_('a'),
-    );
+    var node1 = findNode.namedType('a a');
+    assertResolvedNodeText(node1, r'''
+NamedType
+  name: a
+  element: <testLibraryFragment>::@class::a
+  element2: <testLibrary>::@class::a
+  type: a
+''');
 
-    assertElement(
-      findNode.simple('a;'),
-      findElement.parameter('a'),
-    );
+    var node2 = findNode.simple('a;');
+    assertResolvedNodeText(node2, r'''
+SimpleIdentifier
+  token: a
+  staticElement: <testLibraryFragment>::@class::B::@method::bar::@parameter::a
+  element: <testLibraryFragment>::@class::B::@method::bar::@parameter::a#element
+  staticType: a
+''');
   }
 
   test_formalParameterScope_wildcardVariable() async {

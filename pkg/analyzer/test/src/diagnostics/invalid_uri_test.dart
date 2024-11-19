@@ -23,6 +23,14 @@ class C {
   int get y => top.x; // ref
 }
 ''');
-    assertElement(findNode.simple('x; // ref'), findElement.topGet('x'));
+
+    var node = findNode.simple('x; // ref');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: x
+  staticElement: <testLibraryFragment>::@getter::x
+  element: <testLibraryFragment>::@getter::x#element
+  staticType: int
+''');
   }
 }

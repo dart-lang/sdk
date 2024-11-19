@@ -7724,10 +7724,11 @@ void f() {
 }
 ''');
 
-    var element = findNode.simple('a:').staticElement!;
     // See https://github.com/dart-lang/sdk/issues/54669 for why we check for
     // isNotNull despite #50660 suggesting the source would be null.
-    expect(element.source, isNotNull);
+    var element = findNode.simple('a:').element!;
+    var libraryFragment2 = element.firstFragment.libraryFragment!;
+    expect(libraryFragment2.source, isNotNull);
   }
 
   test_remainder_int_context_cascaded() async {
