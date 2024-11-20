@@ -2397,6 +2397,20 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     SetInputAt(1, l);
   }
 
+  if (left()->definition() == right()->definition()) {
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+        return left()->definition();
+      case Token::kBIT_XOR:
+      case Token::kSUB:
+        return flow_graph->TryCreateConstantReplacementFor(this,
+                                                           Object::smi_zero());
+      default:
+        break;
+    }
+  }
+
   int64_t rhs;
   if (!Evaluator::ToIntegerConstant(right(), &rhs)) {
     return this;
