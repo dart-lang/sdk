@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -58,8 +58,8 @@ class ConstantsDataComputer extends DataComputer<String> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
-    ConstantsDataExtractor(unit.declaredElement!.source.uri, actualMap)
-        .run(unit);
+    var unitUri = unit.declaredFragment!.source.uri;
+    ConstantsDataExtractor(unitUri, actualMap).run(unit);
   }
 }
 
@@ -69,9 +69,9 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, AstNode node) {
     if (node is Identifier) {
-      var element = node.staticElement;
-      if (element is PropertyAccessorElement && element.isSynthetic) {
-        var variable = element.variable2!;
+      var element = node.element;
+      if (element is PropertyAccessorElement2 && element.isSynthetic) {
+        var variable = element.variable3!;
         if (!variable.isSynthetic && variable.isConst) {
           var value = variable.computeConstantValue();
           if (value != null) return _stringify(value);
@@ -116,8 +116,8 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
       }
       // TODO(paulberry): Support object constants.
     } else if (type is FunctionType) {
-      var element = value.toFunctionValue()!;
-      return 'Function(${element.name},type=${_stringifyType(value.type!)})';
+      var element = value.toFunctionValue2()!;
+      return 'Function(${element.name3},type=${_stringifyType(value.type!)})';
     }
     throw UnimplementedError('_stringify for type $type');
   }

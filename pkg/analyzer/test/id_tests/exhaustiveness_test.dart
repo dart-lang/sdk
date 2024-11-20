@@ -49,11 +49,9 @@ class _ExhaustivenessDataComputer extends DataComputer<Features> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<Features>> actualMap) {
-    var unitElement = unit.declaredElement!;
-    var exhaustivenessData =
-        testingData.uriToExhaustivenessData[unitElement.source.uri]!;
-    _ExhaustivenessDataExtractor(
-            unitElement.source.uri, actualMap, exhaustivenessData)
+    var unitUri = unit.declaredFragment!.source.uri;
+    var exhaustivenessData = testingData.uriToExhaustivenessData[unitUri]!;
+    _ExhaustivenessDataExtractor(unitUri, actualMap, exhaustivenessData)
         .run(unit);
   }
 }

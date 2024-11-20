@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -23,6 +24,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 /// The state of an object representing a boolean value.
@@ -895,6 +897,11 @@ class DartObjectImpl implements DartObject, Constant {
   ExecutableElement? toFunctionValue() {
     var state = this.state;
     return state is FunctionState ? state.element : null;
+  }
+
+  @override
+  ExecutableElement2? toFunctionValue2() {
+    return toFunctionValue().asElement2;
   }
 
   @override
