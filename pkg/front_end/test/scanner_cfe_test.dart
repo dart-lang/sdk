@@ -5,14 +5,13 @@
 import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/scanner/error_token.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     as usedForFuzzTesting;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:front_end/src/codes/cfe_codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,11 +20,11 @@ import 'scanner_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ScannerTest_Fasta);
-    defineReflectiveTests(ScannerTest_Fasta_FuzzTestAPI);
-    defineReflectiveTests(ScannerTest_Fasta_UTF8);
-    defineReflectiveTests(ScannerTest_Fasta_Direct);
-    defineReflectiveTests(ScannerTest_Fasta_Direct_UTF8);
+    defineReflectiveTests(ScannerTest_Cfe);
+    defineReflectiveTests(ScannerTest_Cfe_FuzzTestAPI);
+    defineReflectiveTests(ScannerTest_Cfe_UTF8);
+    defineReflectiveTests(ScannerTest_Cfe_Direct);
+    defineReflectiveTests(ScannerTest_Cfe_Direct_UTF8);
   });
 }
 
@@ -34,7 +33,7 @@ Uint8List encodeAsUtf8(String source) {
 }
 
 @reflectiveTest
-class ScannerTest_Fasta_FuzzTestAPI {
+class ScannerTest_Cfe_FuzzTestAPI {
   void test_API() {
     // These two API are used when fuzz testing the scanner.
     String source = 'class A { }';
@@ -53,7 +52,7 @@ class ScannerTest_Fasta_FuzzTestAPI {
 }
 
 @reflectiveTest
-class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
+class ScannerTest_Cfe_UTF8 extends ScannerTest_Cfe {
   @override
   Token scanWithListener(String source, ErrorListener listener,
       {ScannerConfiguration? configuration}) {
@@ -113,7 +112,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
 }
 
 @reflectiveTest
-class ScannerTest_Fasta extends ScannerTestBase {
+class ScannerTest_Cfe extends ScannerTestBase {
   @override
   Token scanWithListener(String source, ErrorListener listener,
       {ScannerConfiguration? configuration}) {
@@ -164,7 +163,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
       ++tokenCount;
       // Assert no comments
       expect(token.precedingComments, isNull);
-      expect(token.type.kind, isNot(fasta.COMMENT_TOKEN));
+      expect(token.type.kind, isNot(COMMENT_TOKEN));
       token = token.next!;
     }
     expect(token.precedingComments, isNull);
@@ -178,15 +177,15 @@ class ScannerTest_Fasta extends ScannerTestBase {
     while (!token.isEof) {
       ++tokenCount;
       // Assert valid comments
-      fasta.CommentToken? comment = token.precedingComments;
+      CommentToken? comment = token.precedingComments;
       while (comment != null) {
         ++commentTokenCount;
-        expect(comment.type.kind, fasta.COMMENT_TOKEN);
+        expect(comment.type.kind, COMMENT_TOKEN);
         expect(comment.charOffset, greaterThanOrEqualTo(previousEnd));
         previousEnd = comment.charOffset + comment.charCount;
-        comment = comment.next as fasta.CommentToken?;
+        comment = comment.next as CommentToken?;
       }
-      expect(token.type.kind, isNot(fasta.COMMENT_TOKEN));
+      expect(token.type.kind, isNot(COMMENT_TOKEN));
       expect(token.charOffset, greaterThanOrEqualTo(previousEnd));
       previousEnd = token.charOffset + token.charCount;
 
@@ -240,7 +239,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
   @override
   void test_mismatched_opener_in_interpolation() {
     // When openers and closers are mismatched,
-    // fasta favors considering the opener to be mismatched
+    // the scanner favors considering the opener to be mismatched
     // and inserts synthetic closers as needed.
     // r'"${({(}}"' is parsed as r'"${({()})}"'
     // where both ')' are synthetic
@@ -271,12 +270,12 @@ class ScannerTest_Fasta extends ScannerTestBase {
     Token token = scanString(source, includeComments: true).tokens;
     while (!token.isEof) {
       expect(token.next!.previous, token);
-      fasta.CommentToken? commentToken = token.precedingComments;
+      CommentToken? commentToken = token.precedingComments;
       while (commentToken != null) {
         if (commentToken.next != null) {
           expect(commentToken.next!.previous, commentToken);
         }
-        commentToken = commentToken.next as fasta.CommentToken?;
+        commentToken = commentToken.next as CommentToken?;
       }
       token = token.next!;
     }
@@ -330,7 +329,7 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_interpolation_missingIdentifier() {
     Token token = scan("'\$x\$'");
-    expect((token as fasta.ErrorToken).errorCode,
+    expect((token as ErrorToken).errorCode,
         same(codeUnexpectedDollarInString));
 
     token = token.next!;
@@ -358,12 +357,12 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_unterminated_interpolation_block() {
     Token token = scan(r'"foo ${bar');
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
-    var interpolationStartErrorToken = token as fasta.UnmatchedToken;
+    expect((token as ErrorToken).errorCode, same(codeUnmatchedToken));
+    var interpolationStartErrorToken = token as UnmatchedToken;
 
     token = token.next!;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, '"');
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
@@ -388,20 +387,20 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_unterminated_interpolation_block2() {
     Token token = scan(r'"foo ${bar(baz[');
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
-    var openSquareBracketErrorToken = token as fasta.UnmatchedToken;
+    expect((token as ErrorToken).errorCode, same(codeUnmatchedToken));
+    var openSquareBracketErrorToken = token as UnmatchedToken;
 
     token = token.next!;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
-    var openParenErrorToken = token as fasta.UnmatchedToken;
+    expect((token as ErrorToken).errorCode, same(codeUnmatchedToken));
+    var openParenErrorToken = token as UnmatchedToken;
 
     token = token.next!;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnmatchedToken));
-    var interpolationStartErrorToken = token as fasta.UnmatchedToken;
+    expect((token as ErrorToken).errorCode, same(codeUnmatchedToken));
+    var interpolationStartErrorToken = token as UnmatchedToken;
 
     token = token.next!;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, '"');
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
@@ -448,12 +447,12 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_missing_interpolation_identifier() {
     Token token = scan(r'"foo $');
-    expect((token as fasta.ErrorToken).errorCode,
+    expect((token as ErrorToken).errorCode,
         same(codeUnexpectedDollarInString));
 
     token = token.next!;
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, '"');
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, '"');
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
@@ -471,8 +470,8 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_multi_unterminated() {
     Token token = scan("'''string");
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "'''");
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, "'''");
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 9,
@@ -481,8 +480,8 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_raw_multi_unterminated() {
     Token token = scan("r'''string");
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "r'''");
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, "r'''");
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 10,
@@ -491,8 +490,8 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_raw_simple_unterminated_eof() {
     Token token = scan("r'string");
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "r'");
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, "r'");
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 8,
@@ -501,8 +500,8 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_raw_simple_unterminated_eol() {
     Token token = scan("r'string\n");
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "r'");
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, "r'");
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 8,
@@ -511,8 +510,8 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_unterminated_eof() {
     Token token = scan("'string");
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "'");
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, "'");
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 7,
@@ -521,8 +520,8 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_unterminated_eol() {
     Token token = scan("'string\n");
-    expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
-    expect((token as fasta.UnterminatedString).start, "'");
+    expect((token as ErrorToken).errorCode, same(codeUnterminatedString));
+    expect((token as UnterminatedString).start, "'");
 
     token = token.next!;
     expectToken(token, TokenType.STRING, 0, 7,
@@ -701,7 +700,7 @@ abstract class ScannerTest_Fasta_Base {
 
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
-class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
+class ScannerTest_Cfe_Direct_UTF8 extends ScannerTest_Cfe_Direct {
   @override
   ScannerResult scanSource(source,
       {bool includeComments = true, bool? enableTripleShift}) {
@@ -720,11 +719,11 @@ class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
 
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
-class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
-  fasta.LanguageVersionToken? languageVersion;
+class ScannerTest_Cfe_Direct extends ScannerTest_Fasta_Base {
+  LanguageVersionToken? languageVersion;
 
   void languageVersionChanged(
-      Scanner scanner, fasta.LanguageVersionToken languageVersion) {
+      Scanner scanner, LanguageVersionToken languageVersion) {
     this.languageVersion = languageVersion;
   }
 
@@ -946,11 +945,11 @@ main() {}
     token = token!.precedingComments;
     while (token != null) {
       if (index == versionIndex) {
-        if (token is! fasta.LanguageVersionToken) {
+        if (token is! LanguageVersionToken) {
           fail('Expected version comment at index $index');
         }
       } else {
-        if (token is fasta.LanguageVersionToken) {
+        if (token is LanguageVersionToken) {
           fail('Did not expect version comment at index $index');
         }
       }

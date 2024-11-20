@@ -71,7 +71,7 @@ String generateFeAnalyzerSharedFile(Uri repoDir) {
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
 ''');
 
   int currentVersionMajor;
@@ -207,7 +207,7 @@ String generateKernelFile(Uri repoDir) {
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
 
 import "ast.dart";
 
@@ -233,7 +233,7 @@ String generateCfeFile(Uri repoDir) {
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
 
 part of 'experimental_flags.dart';
 ''');

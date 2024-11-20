@@ -23,7 +23,7 @@
 # e.g. if adding a new flag that doesn't happen to be lexicographically last.
 #
 # kernel:
-#   dart pkg/front_end/tool/fasta.dart generate-experimental-flags
+#   dart pkg/front_end/tool/cfe.dart generate-experimental-flags
 #
 # vm:
 #   dart tools/generate_experimental_flags.dart

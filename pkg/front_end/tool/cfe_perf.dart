@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// An entrypoint used to run portions of fasta and measure its performance.
-library front_end.tool.fasta_perf;
+/// An entrypoint used to run portions of the cfe and measure its performance.
+library;
 
 import 'dart:io';
 import 'dart:typed_data';
@@ -36,7 +36,7 @@ Future<void> main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
   var options = argParser.parse(args);
   if (options.rest.length != 2) {
-    print('usage: fasta_perf.dart [options] <bench-id> <entry.dart>');
+    print('usage: cfe_perf.dart [options] <bench-id> <entry.dart>');
     print(argParser.usage);
     exit(1);
   }
@@ -225,7 +225,7 @@ class _PartialAstBuilder extends AstBuilder {
             uri);
 }
 
-// Invoke the fasta kernel generator for the program starting in [entryUri]
+// Invoke the kernel generator for the program starting in [entryUri]
 Future<CompilerResult> generateKernel(Uri entryUri,
     {bool compileSdk = true}) async {
   // TODO(sigmund): this is here only to compute the input size,

@@ -41,7 +41,7 @@
 # and should be allowed to change the kind of diagnostic without affecting the
 # message. For example, an error might be turned into a warning by the tool.
 #
-# See the file [lib/src/fasta/diagnostics.md] for more details on how to write
+# See the file [lib/src/base/diagnostics.md] for more details on how to write
 # good diagnostic messages.
 #
 # A message used for internal errors should have key that starts with
@@ -61,7 +61,7 @@
 # name of the corresponding public Analyzer error const
 # (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
 # which will be used when generating code in Analyzer for translating
-# fasta error codes to Analyzer error codes.
+# cfe error codes to Analyzer error codes.
 # If `sharedName` is defined, the generated analyzer code will use this as the
 # user-facing analyzer code instead of `analyzerCode`. Multiple messages can share
 # the `sharedName`.
@@ -100,7 +100,7 @@
 # `#string`, `#string2`, `#string3`: strings (that aren't names).
 #    Note: as a rule of thumb, avoid using the `#string` keys. In particular,
 #    do not use them for composing error messages, see [diagnostics.md](
-#    lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
+#    lib/src/base/diagnostics.md#avoid-composing-messages-programmatically).
 #    Note that asserts check if these are empty. If they can be empty use an
 #    available `OKEmpty` version (or add the missing needed one(s)) to avoid
 #    triggering an assert.
@@ -1922,7 +1922,7 @@ UnterminatedToken:
 
 # Note: avoid using this template, it should only be used for debugging and
 # prototyping, see [diagnostics.md](
-# lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
+# lib/src/base/diagnostics.md#avoid-composing-messages-programmatically).
 Unspecified:
   problemMessage: "#string"
 

@@ -570,9 +570,6 @@ class OperationsCfe
   }
 
   @override
-  bool isNullInternal(DartType type) => type is NullType;
-
-  @override
   // Coverage-ignore(suite): Not run.
   bool isObject(SharedTypeView<DartType> type) {
     DartType unwrappedType = type.unwrapTypeView();

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Shared code used by fasta_perf and incremental_perf.
+/// Shared code used by cfe_perf and incremental_perf.
 library front_end.tool.perf_common;
 
 import 'dart:io' show exitCode, stderr;
@@ -12,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:front_end/src/api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-import 'package:front_end/src/codes/cfe_codes.dart' as fastaCodes;
+import 'package:front_end/src/codes/cfe_codes.dart' as cfeCodes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 import 'package:vm/modular/target/flutter.dart' show FlutterTarget;
 import 'package:vm/modular/target/vm.dart' show VmTarget;
@@ -27,19 +27,19 @@ import 'package:vm/modular/target/vm.dart' show VmTarget;
 /// Note: the performance bots compile both dart2js and the flutter-gallery app
 /// as benchmarks, so they both need to be checked before we remove a message
 /// from this set.
-final allowlistMessageCode = new Set<fastaCodes.Code>.from(<fastaCodes.Code>[
+final allowlistMessageCode = new Set<cfeCodes.Code>.from(<cfeCodes.Code>[
   // Code names in this list should match the key used in messages.yaml
-  fastaCodes.codeInvalidAssignmentError,
-  fastaCodes.codeOverrideTypeMismatchParameter,
-  fastaCodes.codeOverriddenMethodCause,
+  cfeCodes.codeInvalidAssignmentError,
+  cfeCodes.codeOverrideTypeMismatchParameter,
+  cfeCodes.codeOverriddenMethodCause,
 
   // The following errors are not covered by unit tests in the SDK repo because
   // they are only seen today in the flutter-gallery benchmark (external to
   // this repo).
-  fastaCodes.codeInvalidCastFunctionExpr,
-  fastaCodes.codeInvalidCastTopLevelFunction,
-  fastaCodes.codeUndefinedGetter,
-  fastaCodes.codeUndefinedMethod,
+  cfeCodes.codeInvalidCastFunctionExpr,
+  cfeCodes.codeInvalidCastTopLevelFunction,
+  cfeCodes.codeUndefinedGetter,
+  cfeCodes.codeUndefinedMethod,
 ]);
 
 DiagnosticMessageHandler onDiagnosticMessageHandler() {

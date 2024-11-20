@@ -5,7 +5,7 @@
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'pkg/front_end/messages.yaml' and run
-// 'pkg/front_end/tool/fasta generate-messages' to update.
+// 'pkg/front_end/tool/cfe generate-messages' to update.
 
 // ignore_for_file: lines_longer_than_80_chars
 

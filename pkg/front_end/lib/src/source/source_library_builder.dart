@@ -59,7 +59,7 @@ import '../kernel/utils.dart'
         compareProcedures,
         exportDynamicSentinel,
         exportNeverSentinel,
-        toKernelCombinators,
+        toCombinators,
         unserializableExportName;
 import 'builder_factory.dart';
 import 'class_declaration.dart';

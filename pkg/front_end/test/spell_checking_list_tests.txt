@@ -324,6 +324,7 @@ fac
 failsafe
 faking
 falling
+fasta
 faults
 favors
 fb

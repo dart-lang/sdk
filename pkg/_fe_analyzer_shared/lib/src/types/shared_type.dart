@@ -66,6 +66,12 @@ abstract interface class SharedNamedTypeStructure<
   TypeStructure get type;
 }
 
+/// Common interface for data structures used by implementations to represent
+/// the type `Null`.
+abstract interface class SharedNullTypeStructure<
+        TypeStructure extends SharedTypeStructure<TypeStructure>>
+    implements SharedTypeStructure<TypeStructure> {}
+
 /// Common interface for data structures used by the implementations to
 /// represent a record type.
 abstract interface class SharedRecordTypeStructure<

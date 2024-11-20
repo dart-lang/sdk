@@ -32,7 +32,7 @@ void printTokens(Token token) {
   }
 }
 
-/// Verify that the fasta scanner recovery has moved all of the ErrorTokens
+/// Verify that the scanner recovery has moved all of the ErrorTokens
 /// to the beginning of the stream. If an out-of-order ErrorToken is
 /// found, then print some diagnostic information and throw an exception.
 void verifyErrorTokens(Token firstToken, Uri uri) {

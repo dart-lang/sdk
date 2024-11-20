@@ -586,9 +586,6 @@ class TypeSystemOperations
   }
 
   @override
-  bool isNullInternal(DartType type) => type.isDartCoreNull;
-
-  @override
   bool isObject(SharedTypeView<DartType> type) {
     return type.unwrapTypeView().isDartCoreObject &&
         type.nullabilitySuffix == NullabilitySuffix.none;

@@ -208,9 +208,6 @@ abstract interface class TypeAnalyzerOperations<
   /// a subtype query, but the implementations can do that more efficiently.
   bool isNonNullableInternal(TypeStructure type);
 
-  /// Returns `true` if [type] is `Null`.
-  bool isNullInternal(TypeStructure type);
-
   /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
   /// `false` for `Object?` and `Object*`.
   bool isObject(SharedTypeView<TypeStructure> type);
@@ -1665,8 +1662,7 @@ abstract class TypeConstraintGenerator<
 
     // If `P` is `Null`, then the match holds under no constraints:
     //  Only if `Q` is nullable.
-    if (pNullability == NullabilitySuffix.none &&
-        typeAnalyzerOperations.isNullInternal(p)) {
+    if (p is SharedNullTypeStructure) {
       return typeAnalyzerOperations.isNullableInternal(q);
     }
 

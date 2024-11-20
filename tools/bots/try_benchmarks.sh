@@ -170,8 +170,8 @@ EOF
     out/ReleaseIA32/dart --profile-period=10000 hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart scan hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
+    out/ReleaseIA32/dart pkg/front_end/tool/cfe_perf.dart kernel_gen_e2e hello.dart
+    out/ReleaseIA32/dart pkg/front_end/tool/cfe_perf.dart scan hello.dart
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot InitialRSS
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot KernelServiceCompileAll
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot UseDartApi
