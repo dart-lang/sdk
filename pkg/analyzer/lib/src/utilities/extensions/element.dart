@@ -68,8 +68,6 @@ extension Element2OrNullExtension on Element2? {
         return element2.asElement;
       case NeverElementImpl2():
         return NeverElementImpl.instance;
-      case PrefixElementImpl():
-        return self;
       case SetterElementImpl():
         return self.firstFragment as Element;
       case TopLevelFunctionElementImpl():
@@ -330,6 +328,18 @@ extension MethodElementExtension on MethodElement {
 extension ParameterElementExtension on ParameterElement {
   ParameterElementImpl get declarationImpl {
     return declaration as ParameterElementImpl;
+  }
+}
+
+extension PrefixElement2Extension on PrefixElement2 {
+  PrefixElement get asElement {
+    return (this as PrefixElementImpl2).asElement;
+  }
+}
+
+extension PrefixElementExtension on PrefixElement {
+  PrefixElement2 get asElement2 {
+    return (this as PrefixElementImpl).element2;
   }
 }
 

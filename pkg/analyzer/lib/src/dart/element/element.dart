@@ -9097,6 +9097,10 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
     reference.element2 = this;
   }
 
+  PrefixElementImpl get asElement {
+    return imports.first.prefix!.element;
+  }
+
   @override
   Null get enclosingElement2 => null;
 

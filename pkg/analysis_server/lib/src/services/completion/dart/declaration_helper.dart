@@ -340,7 +340,7 @@ class DeclarationHelper {
         collector.addSuggestion(
           ImportPrefixSuggestion(
             libraryElement: importedLibrary.asElement2 as LibraryElement2,
-            prefixElement: prefixElement.asElement2 as PrefixElement2,
+            prefixElement: prefixElement.asElement2,
             matcherScore: matcherScore,
           ),
         );
