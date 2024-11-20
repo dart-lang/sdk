@@ -6836,6 +6836,16 @@ class LibraryElementImpl extends ElementImpl
     return null;
   }
 
+  @override
+  ClassElement2? getClass2(String name) {
+    for (var class_ in classes) {
+      if (class_.name3 == name) {
+        return class_;
+      }
+    }
+    return null;
+  }
+
   EnumElement? getEnum(String name) {
     for (var unitElement in units) {
       var element = unitElement.getEnum(name);
