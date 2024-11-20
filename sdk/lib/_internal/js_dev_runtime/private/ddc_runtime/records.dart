@@ -10,7 +10,11 @@ final class Shape {
   final int positionals;
 
   /// The names of the named elements in the record in alphabetical order.
-  final List<String>? named;
+  ///
+  /// This is a JS Array of JS String literals. We avoid typing this explicitly
+  /// so it can remain unboxed, as it's only used for our internal
+  /// representation.
+  final List<dynamic /* String */ >? named;
 
   Shape(this.positionals, this.named);
 
@@ -149,7 +153,7 @@ final _records = JS('!', 'new Map()');
 Shape registerShape(
   @notNull String shapeKey,
   @notNull int positionals,
-  List<String>? named,
+  List<dynamic /* String */ >? named,
 ) {
   var cached = JS<Shape?>('', '#.get(#)', shapes, shapeKey);
   if (cached != null) {
@@ -169,7 +173,7 @@ Shape registerShape(
 Object registerRecord(
   @notNull String shapeKey,
   @notNull int positionals,
-  List<String>? named,
+  List<dynamic /* String */ >? named,
 ) {
   var cached = JS('', '#.get(#)', _records, shapeKey);
   if (cached != null) {
@@ -245,7 +249,7 @@ Object registerRecord(
 Object recordLiteral(
   @notNull String shapeKey,
   @notNull int positionals,
-  List<String>? named,
+  List<dynamic /* String */ >? named,
   @notNull List values,
 ) {
   var shape = registerShape(shapeKey, positionals, named);

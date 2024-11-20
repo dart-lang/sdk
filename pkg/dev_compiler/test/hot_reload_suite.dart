@@ -20,15 +20,30 @@ import 'package:reload_test/frontend_server_controller.dart';
 import 'package:reload_test/hot_reload_memory_filesystem.dart';
 import 'package:reload_test/test_helpers.dart';
 
-// Set an arbitrary cap on generations.
-final globalMaxGenerations = 100;
+final buildRootUri = fe.computePlatformBinariesLocation(forceBuildDir: true);
+final sdkRoot = Platform.script.resolve('../../../');
 
-final testTimeoutSeconds = 10;
+/// SDK test directory containing hot reload tests.
+final allTestsUri = sdkRoot.resolve('tests/hot_reload/');
 
-// The separator between a test file and its inlined diff.
-//
-// All contents after this separator are considered are diff comments.
+/// The separator between a test file and its inlined diff.
+///
+/// All contents after this separator are considered are diff comments.
 final testDiffSeparator = '/** DIFF **/';
+
+Future<void> main(List<String> args) async {
+  final options = Options.parse(args);
+  if (options.help) {
+    print(options.usage);
+    return;
+  }
+  final runner = switch (options.runtime) {
+    RuntimePlatforms.chrome => ChromeSuiteRunner(options),
+    RuntimePlatforms.d8 => D8SuiteRunner(options),
+    RuntimePlatforms.vm => VMSuiteRunner(options),
+  };
+  await runner.runSuite(options);
+}
 
 /// Command line options for the hot reload test suite.
 class Options {
@@ -129,7 +144,7 @@ enum DiffMode { check, write, ignore }
 /// Tests in this suite also define a config.json file with further information
 /// describing how the test runs.
 class HotReloadTest {
-  /// Root [Directory] containing the files for this test.
+  /// Root [Directory] containing the source files for this test.
   final Directory directory;
 
   /// Test name used in results.
@@ -207,98 +222,157 @@ class TestFileEdit {
   TestFileEdit(this.generation, this.fileUri);
 }
 
-late final bool verbose;
-late final bool debug;
+// TODO(nshahan): Make this abstract again when there are subclasses for all
+// runtimes.
+class HotReloadSuiteRunner {
+  Options options;
 
-Future<void> main(List<String> args) async {
-  final options = Options.parse(args);
-  if (options.help) {
-    print(options.usage);
-    return;
-  }
-  verbose = options.verbose;
-  debug = options.debug;
+  /// The root directory containing generated code for all tests.
+  late final Directory generatedCodeDir = Directory.systemTemp.createTempSync();
 
-  // Used to communicate individual test failures to our test bots.
-  final emitTestResultsJson = options.testResultsOutputDir != null;
-  final buildRootUri = fe.computePlatformBinariesLocation(forceBuildDir: true);
-  // We can use the outline instead of the full SDK dill here.
-  final ddcPlatformDillUri = buildRootUri.resolve('ddc_outline.dill');
-  final vmPlatformDillUri = buildRootUri.resolve('vm_platform_strong.dill');
+  /// The directory containing files emitted from Frontend Server compiles and
+  /// recompiles.
+  late final Directory frontendServerEmittedFilesDir =
+      Directory.fromUri(generatedCodeDir.uri.resolve('.fes/'))..createSync();
 
-  final sdkRoot = Platform.script.resolve('../../../');
-  final packageConfigUri = sdkRoot.resolve('.dart_tool/package_config.json');
-  final allTestsUri = sdkRoot.resolve('tests/hot_reload/');
-  final soundStableDartSdkJsUri =
-      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
-  final ddcModuleLoaderJsUri =
-      sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
+  /// The output location for .dill file created by the front end server.
+  late final Uri outputDillUri =
+      frontendServerEmittedFilesDir.uri.resolve('output.dill');
 
-  // Contains generated code for all tests.
-  final generatedCodeDir = Directory.systemTemp.createTempSync();
-  final generatedCodeUri = generatedCodeDir.uri;
-  _debugPrint('See generated hot reload framework code in $generatedCodeUri');
+  /// The output location for the incremental .dill file created by the front
+  /// end server.
+  late final Uri outputIncrementalDillUri =
+      frontendServerEmittedFilesDir.uri.resolve('output_incremental.dill');
 
-  // The snapshot directory is a staging area the test framework uses to
-  // construct a compile-able test app across reload/restart generations.
-  final snapshotDir = Directory.fromUri(generatedCodeUri.resolve('.snapshot/'));
-  snapshotDir.createSync();
-  final snapshotUri = snapshotDir.uri;
+  /// All test results that are reported after running the entire test suite.
+  final List<TestResultOutcome> testOutcomes = [];
 
-  // Contains files emitted from Frontend Server compiles and recompiles.
-  final frontendServerEmittedFilesDirUri = generatedCodeUri.resolve('.fes/');
-  Directory.fromUri(frontendServerEmittedFilesDirUri).createSync();
-  final outputDillUri = frontendServerEmittedFilesDirUri.resolve('output.dill');
-  final outputIncrementalDillUri =
-      frontendServerEmittedFilesDirUri.resolve('output_incremental.dill');
+  /// The directory used as a temporary staging area to construct a compile-able
+  /// test app across reload/restart generations.
+  late final Directory snapshotDir =
+      Directory.fromUri(generatedCodeDir.uri.resolve('.snapshot/'))
+        ..createSync();
 
   // TODO(markzipan): Support custom entrypoints.
-  final snapshotEntrypointUri = snapshotUri.resolve('main.dart');
-  final filesystemRootUri = snapshotUri;
+  late final Uri snapshotEntrypointUri = snapshotDir.uri.resolve('main.dart');
+  late final String snapshotEntrypointWithScheme = () {
+    final snapshotEntrypointLibraryName = fe_shared.relativizeUri(
+        snapshotDir.uri, snapshotEntrypointUri, fe_shared.isWindows);
+    return '$filesystemScheme:///$snapshotEntrypointLibraryName';
+  }();
+
+  HotReloadMemoryFilesystem? filesystem;
+  final stopwatch = Stopwatch();
+
   final filesystemScheme = 'hot-reload-test';
-  final snapshotEntrypointLibraryName = fe_shared.relativizeUri(
-      filesystemRootUri, snapshotEntrypointUri, fe_shared.isWindows);
-  final snapshotEntrypointWithScheme =
-      '$filesystemScheme:///$snapshotEntrypointLibraryName';
 
-  _print('Initializing the Frontend Server.');
-  HotReloadFrontendServerController controller;
-  final commonArgs = [
-    '--incremental',
-    '--filesystem-root=${snapshotUri.toFilePath()}',
-    '--filesystem-scheme=$filesystemScheme',
-    '--output-dill=${outputDillUri.toFilePath()}',
-    '--output-incremental-dill=${outputIncrementalDillUri.toFilePath()}',
-    '--packages=${packageConfigUri.toFilePath()}',
-    '--sdk-root=${sdkRoot.toFilePath()}',
-    '--verbosity=${options.verbose ? 'all' : 'info'}',
-  ];
-  switch (options.runtime) {
-    case RuntimePlatforms.d8:
-    case RuntimePlatforms.chrome:
-      final ddcPlatformDillFromSdkRoot = fe_shared.relativizeUri(
-          sdkRoot, ddcPlatformDillUri, fe_shared.isWindows);
-      final fesArgs = [
-        ...commonArgs,
-        '--dartdevc-module-format=ddc',
-        '--dartdevc-canary',
-        '--platform=$ddcPlatformDillFromSdkRoot',
-        '--target=dartdevc',
-      ];
-      controller = HotReloadFrontendServerController(fesArgs);
-    case RuntimePlatforms.vm:
-      final vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(
-          sdkRoot, vmPlatformDillUri, fe_shared.isWindows);
-      final fesArgs = [
-        ...commonArgs,
-        '--platform=$vmPlatformDillFromSdkRoot',
-        '--target=vm',
-      ];
-      controller = HotReloadFrontendServerController(fesArgs);
+  HotReloadSuiteRunner(this.options);
+
+  Future<void> runSuite(Options options) async {
+    // TODO(nshahan): report time for collecting and validating test sources.
+    final testSuite = collectTestSources(options);
+    _debugPrint(
+        'See generated hot reload framework code in ${generatedCodeDir.uri}');
+    final controller = createFrontEndServer();
+    for (final test in testSuite) {
+      stopwatch
+        ..start()
+        ..reset();
+      diffCheck(test);
+      final tempDirectory =
+          Directory.fromUri(generatedCodeDir.uri.resolve('${test.name}/'))
+            ..createSync();
+      if (options.runtime == RuntimePlatforms.d8 ||
+          options.runtime == RuntimePlatforms.chrome) {
+        filesystem = HotReloadMemoryFilesystem(tempDirectory.uri);
+      }
+      var compileSuccess = false;
+      _print('Generating test assets.', label: test.name);
+      // TODO(markzipan): replace this with a test-configurable main entrypoint.
+      final mainDartFilePath =
+          test.directory.uri.resolve('main.dart').toFilePath();
+      _debugPrint('Test entrypoint: $mainDartFilePath', label: test.name);
+      _print('Generating code over ${test.generationCount} generations.',
+          label: test.name);
+      stopwatch
+        ..start()
+        ..reset();
+      for (var generation = 0;
+          generation < test.generationCount;
+          generation++) {
+        final updatedFiles = copyGenerationSources(test, generation);
+        compileSuccess = await compileGeneration(
+            test, generation, tempDirectory, updatedFiles, controller);
+        if (!compileSuccess) break;
+      }
+      if (!compileSuccess) {
+        _print('Did not emit all assets due to compilation error.',
+            label: test.name);
+        // Skip to the next test and avoid execution if there is an unexpected
+        // compilation error.
+        continue;
+      }
+      _print('Finished emitting assets.', label: test.name);
+      final testOutputStreamController = StreamController<List<int>>();
+      final testOutputBuffer = StringBuffer();
+      testOutputStreamController.stream
+          .transform(utf8.decoder)
+          .listen(testOutputBuffer.write);
+      final testPassed = await runTest(
+          test, tempDirectory, IOSink(testOutputStreamController.sink));
+      await reportTestOutcome(
+          test.name, testOutputBuffer.toString(), testPassed);
+    }
+    await shutdown(controller);
+    await reportAllResults();
   }
-  controller.start();
 
-  Future<void> shutdown() async {
+  /// Returns a controller for a freshly started front end server instance to
+  /// handle compile and recompile requests for a hot reload test.
+  // TODO(nshahan): Breakout into specialized versions for each suite runner.
+  HotReloadFrontendServerController createFrontEndServer() {
+    _print('Initializing the Frontend Server.');
+    HotReloadFrontendServerController controller;
+    final packageConfigUri = sdkRoot.resolve('.dart_tool/package_config.json');
+    final commonArgs = [
+      '--incremental',
+      '--filesystem-root=${snapshotDir.uri.toFilePath()}',
+      '--filesystem-scheme=$filesystemScheme',
+      '--output-dill=${outputDillUri.toFilePath()}',
+      '--output-incremental-dill=${outputIncrementalDillUri.toFilePath()}',
+      '--packages=${packageConfigUri.toFilePath()}',
+      '--sdk-root=${sdkRoot.toFilePath()}',
+      '--verbosity=${options.verbose ? 'all' : 'info'}',
+    ];
+    switch (options.runtime) {
+      case RuntimePlatforms.d8:
+      case RuntimePlatforms.chrome:
+        final ddcPlatformDillFromSdkRoot = fe_shared.relativizeUri(sdkRoot,
+            buildRootUri.resolve('ddc_outline.dill'), fe_shared.isWindows);
+        final fesArgs = [
+          ...commonArgs,
+          '--dartdevc-module-format=ddc',
+          '--dartdevc-canary',
+          '--platform=$ddcPlatformDillFromSdkRoot',
+          '--target=dartdevc',
+        ];
+        controller = HotReloadFrontendServerController(fesArgs);
+      case RuntimePlatforms.vm:
+        final vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(
+            sdkRoot,
+            buildRootUri.resolve('vm_platform_strong.dill'),
+            fe_shared.isWindows);
+        final fesArgs = [
+          ...commonArgs,
+          '--platform=$vmPlatformDillFromSdkRoot',
+          '--target=vm',
+        ];
+        controller = HotReloadFrontendServerController(fesArgs);
+    }
+    return controller..start();
+  }
+
+  Future<void> shutdown(HotReloadFrontendServerController controller) async {
     // Persist the temp directory for debugging.
     await controller.stop();
     _print('Frontend Server has shut down.');
@@ -306,25 +380,6 @@ Future<void> main(List<String> args) async {
       generatedCodeDir.deleteSync(recursive: true);
     }
   }
-
-  // Only allow Chrome when debugging a single test.
-  // TODO(markzipan): Add support for full Chrome testing.
-  if (options.runtime == RuntimePlatforms.chrome) {
-    var matchingTests =
-        Directory.fromUri(allTestsUri).listSync().where((testDir) {
-      if (testDir is! Directory) return false;
-      final testDirParts = testDir.uri.pathSegments;
-      final testName = testDirParts[testDirParts.length - 2];
-      return options.testNameFilter.hasMatch(testName);
-    });
-
-    if (matchingTests.length > 1) {
-      throw Exception('Chrome is only supported when debugging a single test.'
-          "Please filter on a single test with '-f'.");
-    }
-  }
-
-  final testOutcomes = <TestResultOutcome>[];
 
   /// Returns a suite of hot reload tests discovered in the directory
   /// [allTestsUri].
@@ -387,6 +442,12 @@ Future<void> main(List<String> args) async {
           }
         }
       }
+      if (testConfig.excludedPlatforms.contains(options.runtime)) {
+        // Skip this test directory if this platform is excluded.
+        _print('Skipping test on platform: ${options.runtime.text}',
+            label: testName);
+        continue;
+      }
       if (maxGenerations > globalMaxGenerations) {
         throw Exception('Too many generations specified in test '
             '(requested: $maxGenerations, max: $globalMaxGenerations).');
@@ -405,67 +466,59 @@ Future<void> main(List<String> args) async {
     return testSuite;
   }
 
-  for (final test in collectTestSources(options)) {
-    final testName = test.name;
-    var outcome = TestResultOutcome(
+  /// Report results for this test's execution.
+  Future<void> reportTestOutcome(
+      String testName, String testOutput, bool testPassed) async {
+    stopwatch.stop();
+    final outcome = TestResultOutcome(
       configuration: options.namedConfiguration,
       testName: testName,
+      testOutput: testOutput,
     );
-    var stopwatch = Stopwatch()..start();
-
-    // Report results for this test's execution.
-    Future<void> reportTestOutcome(String testOutput, bool testPassed) async {
-      stopwatch.stop();
-      outcome.elapsedTime = stopwatch.elapsed;
-      outcome.testOutput = testOutput;
-      outcome.matchedExpectations = testPassed;
-      testOutcomes.add(outcome);
-      if (testPassed) {
-        _print('PASSED with:\n  $testOutput', label: testName);
-      } else {
-        _print('FAILED with:\n  $testOutput', label: testName);
-      }
+    outcome.elapsedTime = stopwatch.elapsed;
+    outcome.matchedExpectations = testPassed;
+    testOutcomes.add(outcome);
+    if (testPassed) {
+      _print('PASSED with:\n  $testOutput', label: testName);
+    } else {
+      _print('FAILED with:\n  $testOutput', label: testName);
     }
+  }
 
-    // Report results for this test's sources' diff validations.
-    void reportDiffOutcome(Uri fileUri, String testOutput, bool testPassed) {
-      final filePath = fileUri.path;
-      final relativeFilePath = p.relative(filePath, from: allTestsUri.path);
-      var outcome = TestResultOutcome(
-        configuration: options.namedConfiguration,
-        testName: '$relativeFilePath-diff',
-        testOutput: testOutput,
-      );
-      outcome.elapsedTime = stopwatch.elapsed;
-      outcome.matchedExpectations = testPassed;
-      testOutcomes.add(outcome);
-      if (testPassed) {
-        _debugPrint('PASSED (diff on $filePath) with:\n  $testOutput',
-            label: testName);
-      } else {
-        _debugPrint('FAILED (diff on $filePath) with:\n  $testOutput',
-            label: testName);
-      }
+  /// Report results for this test's sources' diff validations.
+  void reportDiffOutcome(
+      String testName, Uri fileUri, String testOutput, bool testPassed) {
+    stopwatch.stop();
+    final filePath = fileUri.path;
+    final relativeFilePath = p.relative(filePath, from: allTestsUri.path);
+    final outcome = TestResultOutcome(
+      configuration: options.namedConfiguration,
+      testName: '$relativeFilePath-diff',
+      testOutput: testOutput,
+    );
+    outcome.elapsedTime = stopwatch.elapsed;
+    outcome.matchedExpectations = testPassed;
+    testOutcomes.add(outcome);
+    if (testPassed) {
+      _debugPrint('PASSED (diff on $filePath) with:\n  $testOutput',
+          label: testName);
+    } else {
+      _debugPrint('FAILED (diff on $filePath) with:\n  $testOutput',
+          label: testName);
     }
+  }
 
-    final tempUri = generatedCodeUri.resolve('$testName/');
-    Directory.fromUri(tempUri).createSync();
-
-    _print('Generating test assets.', label: testName);
-    _debugPrint('Emitting JS code to ${tempUri.toFilePath()}.',
-        label: testName);
-
-    var filesystem = HotReloadMemoryFilesystem(tempUri);
-
+  /// Performs the desired diff checks for [test] and reports the results.
+  void diffCheck(HotReloadTest test) {
     var diffMode = options.diffMode;
     if (fe_shared.isWindows && diffMode != DiffMode.ignore) {
       _print("Diffing isn't supported on Windows. Defaulting to 'ignore'.",
-          label: testName);
+          label: test.name);
       diffMode = DiffMode.ignore;
     }
     switch (diffMode) {
       case DiffMode.check:
-        _print('Checking source file diffs.', label: testName);
+        _print('Checking source file diffs.', label: test.name);
         for (final file in test.files) {
           _debugPrint('Checking source file diffs for $file.',
               label: test.name);
@@ -479,10 +532,10 @@ Future<void> main(List<String> args) async {
               _splitTestByDiff(currentEdit.fileUri);
           var diffCount = testDiffSeparator.allMatches(currentDiff).length;
           if (diffCount == 0) {
-            reportDiffOutcome(currentEdit.fileUri,
+            reportDiffOutcome(test.name, currentEdit.fileUri,
                 'First generation does not have a diff', true);
           } else {
-            reportDiffOutcome(currentEdit.fileUri,
+            reportDiffOutcome(test.name, currentEdit.fileUri,
                 'First generation should not have any diffs', false);
           }
           while (edits.moveNext()) {
@@ -493,11 +546,12 @@ Future<void> main(List<String> args) async {
             // Check that exactly one diff exists.
             diffCount = testDiffSeparator.allMatches(currentDiff).length;
             if (diffCount == 0) {
-              reportDiffOutcome(currentEdit.fileUri,
+              reportDiffOutcome(test.name, currentEdit.fileUri,
                   'No diff found for ${currentEdit.fileUri}', false);
               continue;
             } else if (diffCount > 1) {
               reportDiffOutcome(
+                  test.name,
                   currentEdit.fileUri,
                   'Too many diffs found for ${currentEdit.fileUri} '
                   '(expected 1)',
@@ -527,13 +581,14 @@ Future<void> main(List<String> args) async {
                 _filterLineDeltas(diffOutput, currentDiff);
             if (filteredDiffOutput != filteredCurrentDiff) {
               reportDiffOutcome(
+                  test.name,
                   currentEdit.fileUri,
                   'Unexpected diff found for ${currentEdit.fileUri}:\n'
                   '-- Expected --\n$diffOutput\n'
                   '-- Actual --\n$currentDiff',
                   false);
             } else {
-              reportDiffOutcome(currentEdit.fileUri,
+              reportDiffOutcome(test.name, currentEdit.fileUri,
                   'Correct diff found for ${currentEdit.fileUri}', true);
             }
           }
@@ -577,7 +632,7 @@ Future<void> main(List<String> args) async {
             _print('Writing updated diff to $currentEdit.fileUri',
                 label: test.name);
             _debugPrint('Updated diff:\n$diffOutput', label: test.name);
-            reportDiffOutcome(currentEdit.fileUri,
+            reportDiffOutcome(test.name, currentEdit.fileUri,
                 'diff updated for $currentEdit.fileUri', true);
           }
         }
@@ -588,462 +643,342 @@ Future<void> main(List<String> args) async {
             var uri = edit.fileUri;
             _debugPrint('Ignoring source file diffs for $uri.',
                 label: test.name);
-            reportDiffOutcome(uri, 'Ignoring diff for $uri', true);
+            reportDiffOutcome(test.name, uri, 'Ignoring diff for $uri', true);
           }
         }
     }
+  }
 
-    // Skip this test directory if this platform is excluded.
-    if (test.excludedPlatforms.contains(options.runtime)) {
-      _print('Skipping test on platform: ${options.runtime.text}',
-          label: testName);
-      continue;
+  /// Copy all files in [test] for the given [generation] into the snapshot
+  /// directory and returns uris of all the files copied.
+  ///
+  /// The uris describe the copy destination in the form of the hot reload file
+  /// system scheme.
+  List<String> copyGenerationSources(HotReloadTest test, int generation) {
+    _debugPrint('Entering generation $generation', label: test.name);
+    final updatedFilesInCurrentGeneration = <String>[];
+    // Copy all files in this generation to the snapshot directory with their
+    // names restored (e.g., path/to/main' from 'path/to/main.0.dart).
+    // TODO(markzipan): support subdirectories.
+    _debugPrint(
+        'Copying Dart files to snapshot directory: '
+        '${snapshotDir.uri.toFilePath()}',
+        label: test.name);
+    for (final file in test.filesEditedInGeneration(generation)) {
+      final fileSnapshotUri = snapshotDir.uri.resolve(file.baseName);
+      final editUri = file.editForGeneration(generation).fileUri;
+      File.fromUri(editUri).copySync(fileSnapshotUri.toFilePath());
+      final relativeSnapshotPath = fe_shared.relativizeUri(
+          snapshotDir.uri, fileSnapshotUri, fe_shared.isWindows);
+      final snapshotPathWithScheme =
+          '$filesystemScheme:///$relativeSnapshotPath';
+      updatedFilesInCurrentGeneration.add(snapshotPathWithScheme);
     }
+    _print(
+        'Updated files in generation $generation: '
+        '$updatedFilesInCurrentGeneration',
+        label: test.name);
+    return updatedFilesInCurrentGeneration;
+  }
 
-    // TODO(markzipan): replace this with a test-configurable main entrypoint.
-    final mainDartFilePath =
-        test.directory.uri.resolve('main.dart').toFilePath();
-    _debugPrint('Test entrypoint: $mainDartFilePath', label: testName);
-    _print('Generating code over ${test.generationCount} generations.',
-        label: testName);
-
+  /// Compile all [updatedFiles] in [test] for the given [generation] with the
+  /// front end server [controller] and copy outputs to [outputDirectory].
+  ///
+  /// Reports test failures on compile time errors.
+  // TODO(nshahan): Move to a DDC specific suite runner.
+  Future<bool> compileGeneration(
+      HotReloadTest test,
+      int generation,
+      Directory outputDirectory,
+      List<String> updatedFiles,
+      HotReloadFrontendServerController controller) async {
     var hasCompileError = false;
-    // Generate hot reload/restart generations as subdirectories in a loop.
-    var currentGeneration = 0;
-    while (currentGeneration < test.generationCount) {
-      _debugPrint('Entering generation $currentGeneration', label: testName);
-      var updatedFilesInCurrentGeneration = <String>[];
-
-      // Copy all files in this generation to the snapshot directory with their
-      // names restored (e.g., path/to/main' from 'path/to/main.0.dart).
-      // TODO(markzipan): support subdirectories.
+    // The first generation calls `compile`, but subsequent ones call
+    // `recompile`.
+    // Likewise, use the incremental output directory for `recompile` calls.
+    String outputDillPath;
+    _print('Compiling generation $generation with the Frontend Server.',
+        label: test.name);
+    CompilerOutput compilerOutput;
+    if (generation == 0) {
       _debugPrint(
-          'Copying Dart files to snapshot directory: '
-          '${snapshotUri.toFilePath()}',
-          label: testName);
-      for (final file in test.filesEditedInGeneration(currentGeneration)) {
-        final fileSnapshotUri = snapshotDir.uri.resolve(file.baseName);
-        final editUri = file.editForGeneration(currentGeneration).fileUri;
-        File.fromUri(editUri).copySync(fileSnapshotUri.toFilePath());
-        final relativeSnapshotPath = fe_shared.relativizeUri(
-            snapshotDir.uri, fileSnapshotUri, fe_shared.isWindows);
-        final snapshotPathWithScheme =
-            '$filesystemScheme:///$relativeSnapshotPath';
-        updatedFilesInCurrentGeneration.add(snapshotPathWithScheme);
-      }
-      _print(
-          'Updated files in generation $currentGeneration: '
-          '$updatedFilesInCurrentGeneration',
+          'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
           label: test.name);
-
-      // The first generation calls `compile`, but subsequent ones call
-      // `recompile`.
-      // Likewise, use the incremental output directory for `recompile` calls.
-      String outputDirectoryPath;
-      _print(
-          'Compiling generation $currentGeneration with the Frontend Server.',
-          label: testName);
-      CompilerOutput compilerOutput;
-      if (currentGeneration == 0) {
-        _debugPrint(
-            'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
-            label: testName);
-        outputDirectoryPath = outputDillUri.toFilePath();
-        compilerOutput =
-            await controller.sendCompile(snapshotEntrypointWithScheme);
-      } else {
-        _debugPrint(
-            'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
-            label: testName);
-        outputDirectoryPath = outputIncrementalDillUri.toFilePath();
-        // TODO(markzipan): Add logic to reject bad compiles.
-        compilerOutput = await controller.sendRecompile(
-            snapshotEntrypointWithScheme,
-            invalidatedFiles: updatedFilesInCurrentGeneration);
-      }
-      // Frontend Server reported compile errors. Fail if they weren't
-      // expected, and do not run tests.
-      if (compilerOutput.errorCount > 0) {
-        hasCompileError = true;
-        await controller.sendReject();
-        // TODO(markzipan): Determine if 'contains' is good enough to determine
-        // compilation error correctness.
-        if (test.expectedError != null &&
-            compilerOutput.outputText.contains(test.expectedError!)) {
-          await reportTestOutcome(
-              'Expected error found during compilation: '
-              '${test.expectedError}',
-              true);
-        } else {
-          await reportTestOutcome(
-              'Test failed with compile error: ${compilerOutput.outputText}',
-              false);
-        }
-      } else {
-        controller.sendAccept();
-      }
-
-      // Stop processing further generations if compilation failed.
-      if (hasCompileError) break;
-
+      outputDillPath = outputDillUri.toFilePath();
+      compilerOutput =
+          await controller.sendCompile(snapshotEntrypointWithScheme);
+    } else {
       _debugPrint(
-          'Frontend Server successfully compiled outputs to: '
-          '$outputDirectoryPath',
-          label: testName);
-
-      if (options.runtime.emitsJS) {
-        // Update the memory filesystem with the newly-created JS files
-        _print(
-            'Loading generation $currentGeneration files '
-            'into the memory filesystem.',
-            label: testName);
-        final codeFile = File('$outputDirectoryPath.sources');
-        final manifestFile = File('$outputDirectoryPath.json');
-        final sourcemapFile = File('$outputDirectoryPath.map');
-        filesystem.update(
-          codeFile,
-          manifestFile,
-          sourcemapFile,
-          generation: '$currentGeneration',
-        );
-
-        // Write JS files and sourcemaps to their respective generation.
-        _print('Writing generation $currentGeneration assets.',
-            label: testName);
-        _debugPrint('Writing JS assets to ${tempUri.toFilePath()}',
-            label: testName);
-        filesystem.writeToDisk(tempUri, generation: '$currentGeneration');
+          'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+          label: test.name);
+      outputDillPath = outputIncrementalDillUri.toFilePath();
+      // TODO(markzipan): Add logic to reject bad compiles.
+      compilerOutput = await controller.sendRecompile(
+          snapshotEntrypointWithScheme,
+          invalidatedFiles: updatedFiles);
+    }
+    // Frontend Server reported compile errors. Fail if they weren't
+    // expected, and do not run tests.
+    if (compilerOutput.errorCount > 0) {
+      hasCompileError = true;
+      await controller.sendReject();
+      // TODO(markzipan): Determine if 'contains' is good enough to determine
+      // compilation error correctness.
+      if (test.expectedError != null &&
+          compilerOutput.outputText.contains(test.expectedError!)) {
+        await reportTestOutcome(
+            test.name,
+            'Expected error found during compilation: '
+            '${test.expectedError}',
+            true);
       } else {
-        final dillOutputDir =
-            Directory.fromUri(tempUri.resolve('generation$currentGeneration'));
-        dillOutputDir.createSync();
-        final dillOutputUri = dillOutputDir.uri.resolve('$testName.dill');
-        File(outputDirectoryPath).copySync(dillOutputUri.toFilePath());
-        // Write dills their respective generation.
-        _print('Writing generation $currentGeneration assets.',
-            label: testName);
-        _debugPrint('Writing dill to ${dillOutputUri.toFilePath()}',
-            label: testName);
+        await reportTestOutcome(
+            test.name,
+            'Test failed with compile error: ${compilerOutput.outputText}',
+            false);
       }
-      currentGeneration++;
+    } else {
+      controller.sendAccept();
     }
 
-    // Skip to the next test and avoid execution if we encountered a
-    // compilation error.
-    if (hasCompileError) {
-      _print('Did not emit all assets due to compilation error.',
-          label: testName);
-      continue;
-    }
+    // Stop processing further generations if compilation failed.
+    if (hasCompileError) return false;
 
-    _print('Finished emitting assets.', label: testName);
+    _debugPrint(
+        'Frontend Server successfully compiled outputs to: '
+        '$outputDillPath',
+        label: test.name);
+    _debugPrint('Emitting JS code to ${outputDirectory.path}.',
+        label: test.name);
+    // Update the memory filesystem with the newly-created JS files.
+    _print('Loading generation $generation files into the memory filesystem.',
+        label: test.name);
+    final codeFile = File('$outputDillPath.sources');
+    final manifestFile = File('$outputDillPath.json');
+    final sourcemapFile = File('$outputDillPath.map');
+    filesystem!.update(codeFile, manifestFile, sourcemapFile,
+        generation: '$generation');
 
-    final testOutputStreamController = StreamController<List<int>>();
-    final testOutputBuffer = StringBuffer();
-    testOutputStreamController.stream
-        .transform(utf8.decoder)
-        .listen(testOutputBuffer.write);
+    // Write JS files and sourcemaps to their respective generation.
+    _print('Writing generation $generation assets.', label: test.name);
+    _debugPrint('Writing JS assets to ${outputDirectory.path}',
+        label: test.name);
+    filesystem!.writeToDisk(outputDirectory.uri, generation: '$generation');
+    return true;
+  }
+
+  // TODO(nshahan): Refactor into runtime specific implementations.
+  Future<bool> runTest(
+      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
     var testPassed = false;
     switch (options.runtime) {
       case RuntimePlatforms.d8:
         // Run the compiled JS generations with D8.
-        _print('Creating D8 hot reload test suite.', label: testName);
-        final d8Config = ddc_helpers.D8Configuration(sdkRoot);
-        final d8Suite = D8SuiteRunner(
-          config: d8Config,
-          bootstrapJsUri: tempUri.resolve('generation0/bootstrap.js'),
-          entrypointLibraryExportName:
-              ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri),
-          dartSdkJsUri: soundStableDartSdkJsUri,
-          ddcModuleLoaderJsUri: ddcModuleLoaderJsUri,
-          outputSink: IOSink(testOutputStreamController.sink),
-        );
+        _print('Creating D8 hot reload test suite.', label: test.name);
+        // TODO(nshahan): Clean this up! The cast here just serves as a way to
+        // allow for smaller refactor changes.
+        final d8Suite = (this as D8SuiteRunner)
+          ..bootstrapJsUri =
+              tempDirectory.uri.resolve('generation0/bootstrap.js')
+          ..outputSink = outputSink;
         await d8Suite.setupTest(
-          testName: testName,
-          scriptDescriptors: filesystem.scriptDescriptorForBootstrap,
-          generationToModifiedFiles: filesystem.generationsToModifiedFilePaths,
+          testName: test.name,
+          scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
+          generationToModifiedFiles: filesystem!.generationsToModifiedFilePaths,
         );
-        final d8ExitCode = await d8Suite.runTest(testName: testName);
+        final d8ExitCode = await d8Suite.runTestOld(testName: test.name);
         testPassed = d8ExitCode == 0;
-        await d8Suite.teardownTest(testName: testName);
       case RuntimePlatforms.chrome:
         // Run the compiled JS generations with Chrome.
-        _print('Creating Chrome hot reload test suite.', label: testName);
-        final chromeConfig = ddc_helpers.ChromeConfiguration(sdkRoot);
-        final suite = ChromeSuiteRunner(
-          config: chromeConfig,
-          mainEntrypointJsUri:
-              tempUri.resolve('generation0/main_module.bootstrap.js'),
-          bootstrapJsUri: tempUri.resolve('generation0/bootstrap.js'),
-          bootstrapHtmlUri: tempUri.resolve('generation0/index.html'),
-          entrypointLibraryExportName:
-              ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri),
-          dartSdkJsUri: soundStableDartSdkJsUri,
-          ddcModuleLoaderJsUri: ddcModuleLoaderJsUri,
-          outputSink: IOSink(testOutputStreamController.sink),
-        );
+        _print('Creating Chrome hot reload test suite.', label: test.name);
+        // TODO(nshahan): Clean this up! The cast here just serves as a way to
+        // allow for smaller refactor changes.
+        final suite = (this as ChromeSuiteRunner)
+          ..mainEntrypointJsUri =
+              tempDirectory.uri.resolve('generation0/main_module.bootstrap.js')
+          ..bootstrapJsUri =
+              tempDirectory.uri.resolve('generation0/bootstrap.js')
+          ..bootstrapHtmlUri =
+              tempDirectory.uri.resolve('generation0/index.html')
+          ..outputSink = outputSink;
         await suite.setupTest(
-          testName: testName,
-          scriptDescriptors: filesystem.scriptDescriptorForBootstrap,
-          generationToModifiedFiles: filesystem.generationsToModifiedFilePaths,
+          testName: test.name,
+          scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
+          generationToModifiedFiles: filesystem!.generationsToModifiedFilePaths,
         );
-        final exitCode = await suite.runTest(testName: testName);
+        final exitCode = await suite.runTestOld(testName: test.name);
         testPassed = exitCode == 0;
-        await suite.teardownTest(testName: testName);
       case RuntimePlatforms.vm:
-        final firstGenerationDillUri =
-            tempUri.resolve('generation0/$testName.dill');
-        // Start the VM at generation 0.
-        final vmArgs = [
-          '--enable-vm-service=0', // 0 avoids port collisions.
-          '--disable-service-auth-codes',
-          '--disable-dart-dev',
-          firstGenerationDillUri.toFilePath(),
-        ];
-        final vm = await Process.start(Platform.executable, vmArgs);
-        _debugPrint(
-            'Starting VM with command: '
-            '${Platform.executable} ${vmArgs.join(" ")}',
-            label: testName);
-        vm.stdout
-            .transform(utf8.decoder)
-            .transform(LineSplitter())
-            .listen((String line) {
-          _debugPrint('VM stdout: $line', label: testName);
-          testOutputBuffer.writeln(line);
-        });
-        vm.stderr
-            .transform(utf8.decoder)
-            .transform(LineSplitter())
-            .listen((String err) {
-          _debugPrint('VM stderr: $err', label: testName);
-          testOutputBuffer.writeln(err);
-        });
-        _print('Executing VM test.', label: testName);
-        final vmExitCode = await vm.exitCode
-            .timeout(Duration(seconds: testTimeoutSeconds), onTimeout: () {
-          final timeoutText =
-              'Test timed out after $testTimeoutSeconds seconds.';
-          _print(timeoutText, label: testName);
-          testOutputBuffer.writeln(timeoutText);
-          vm.kill();
-          return 1;
-        });
-        testPassed = vmExitCode == 0;
+        throw UnsupportedError('Now implemented in VMSuiteRunner.');
     }
-    await reportTestOutcome(testOutputBuffer.toString(), testPassed);
+    return testPassed;
   }
 
-  await shutdown();
-  _print('Testing complete.');
+  /// Reports test results to standard out as well as the output .json file if
+  /// requested.
+  Future<void> reportAllResults() async {
+    if (options.testResultsOutputDir != null) {
+      // Used to communicate individual test failures to our test bots.
+      final testOutcomeResults = testOutcomes.map((o) => o.toRecordJson());
+      final testOutcomeLogs = testOutcomes.map((o) => o.toLogJson());
+      final testResultsOutputDir = options.testResultsOutputDir!;
+      _print('Saving test results to ${testResultsOutputDir.toFilePath()}.');
 
-  if (emitTestResultsJson) {
-    final testOutcomeResults = testOutcomes.map((o) => o.toRecordJson());
-    final testOutcomeLogs = testOutcomes.map((o) => o.toLogJson());
-    final testResultsOutputDir = options.testResultsOutputDir!;
-    _print('Saving test results to ${testResultsOutputDir.toFilePath()}.');
+      // Test outputs must have one JSON blob per line and be
+      // newline-terminated.
+      final testResultsUri = testResultsOutputDir.resolve('results.json');
+      final testResultsSink = File.fromUri(testResultsUri).openWrite();
+      testOutcomeResults.forEach(testResultsSink.writeln);
+      await testResultsSink.flush();
+      await testResultsSink.close();
 
-    // Test outputs must have one JSON blob per line and be newline-terminated.
-    final testResultsUri = testResultsOutputDir.resolve('results.json');
-    final testResultsSink = File.fromUri(testResultsUri).openWrite();
-    testOutcomeResults.forEach(testResultsSink.writeln);
-    await testResultsSink.flush();
-    await testResultsSink.close();
-
-    final testLogsUri = testResultsOutputDir.resolve('logs.json');
-    if (Platform.isWindows) {
-      // TODO(55297): Logs are disabled on windows until this but is fixed.
-      _print('Logs are not written on Windows. '
-          'See: https://github.com/dart-lang/sdk/issues/55297');
-    } else {
-      final testLogsSink = File.fromUri(testLogsUri).openWrite();
-      testOutcomeLogs.forEach(testLogsSink.writeln);
-      await testLogsSink.flush();
-      await testLogsSink.close();
+      final testLogsUri = testResultsOutputDir.resolve('logs.json');
+      if (Platform.isWindows) {
+        // TODO(55297): Logs are disabled on windows until this but is fixed.
+        _print('Logs are not written on Windows. '
+            'See: https://github.com/dart-lang/sdk/issues/55297');
+      } else {
+        final testLogsSink = File.fromUri(testLogsUri).openWrite();
+        testOutcomeLogs.forEach(testLogsSink.writeln);
+        await testLogsSink.flush();
+        await testLogsSink.close();
+      }
+      _print('Emitted logs to ${testResultsUri.toFilePath()} '
+          'and ${testLogsUri.toFilePath()}.');
     }
-    _print('Emitted logs to ${testResultsUri.toFilePath()} '
-        'and ${testLogsUri.toFilePath()}.');
-  }
-
-  // Report failed tests.
-  var failedTests =
-      testOutcomes.where((outcome) => !outcome.matchedExpectations);
-  if (failedTests.isNotEmpty) {
-    print('Some tests failed:');
-    failedTests.forEach((outcome) {
-      print('${outcome.testName} failed with:\n  ${outcome.testOutput}');
-    });
-    // Exit cleanly after writing test results.
-    exit(0);
-  }
-}
-
-/// Runs the [command] with [args] in [environment].
-///
-/// Will echo the commands to the console before running them when running in
-/// `verbose` mode.
-Future<Process> startProcess(String name, String command, List<String> args,
-    {Map<String, String> environment = const {},
-    ProcessStartMode mode = ProcessStartMode.normal}) {
-  if (verbose) {
-    print('Running $name:\n$command ${args.join(' ')}\n');
-    if (environment.isNotEmpty) {
-      var environmentVariables =
-          environment.entries.map((e) => '${e.key}: ${e.value}').join('\n');
-      print('With environment:\n$environmentVariables\n');
+    if (testOutcomes.isEmpty) {
+      print('No tests ran: no sub-directories in ${allTestsUri.toFilePath()} '
+          'match the provided filter:\n'
+          '${options.testNameFilter}');
+      exit(0);
+    }
+    // Report failed tests.
+    var failedTests =
+        testOutcomes.where((outcome) => !outcome.matchedExpectations);
+    if (failedTests.isNotEmpty) {
+      print('Some tests failed:');
+      failedTests.forEach((outcome) {
+        print('${outcome.testName} failed with:\n  ${outcome.testOutput}');
+      });
+      // Exit cleanly after writing test results.
+      exit(0);
     }
   }
-  return Process.start(command, args, mode: mode, environment: environment);
-}
 
-/// Prints messages if 'verbose' mode is enabled.
-void _print(String message, {String? label}) {
-  if (verbose) {
-    final labelText = label == null ? '' : '($label)';
-    print('hot_reload_test$labelText: $message');
-  }
-}
-
-/// Prints messages if 'debug' mode is enabled.
-void _debugPrint(String message, {String? label}) {
-  if (debug) {
-    final labelText = label == null ? '' : '($label)';
-    print('DEBUG$labelText: $message');
-  }
-}
-
-/// Returns the diff'd output between two files.
-///
-/// These diffs are appended at the end of updated file generations for better
-/// test readability.
-///
-/// If [commented] is set, the output will be wrapped in multiline comments
-/// and the diff separator.
-///
-/// If [trimHeaders] is set, the leading '+++' and '---' file headers will be
-/// removed.
-String _diffWithFileUris(Uri file1, Uri file2,
-    {String label = '', bool commented = true, bool trimHeaders = true}) {
-  final file1Path = file1.toFilePath();
-  final file2Path = file2.toFilePath();
-  final diffArgs = ['-u', '--width=120', '--expand-tabs', file1Path, file2Path];
-  _debugPrint("Running diff with 'diff ${diffArgs.join(' ')}'.", label: label);
-  final diffProcess = Process.runSync('diff', diffArgs);
-  final errOutput = diffProcess.stderr as String;
-  if (errOutput.isNotEmpty) {
-    throw Exception('diff failed with:\n$errOutput');
-  }
-  var output = diffProcess.stdout as String;
-  if (trimHeaders) {
-    // Skip the first two lines.
-    // TODO(markzipan): Add support for Windows-style line endings.
-    output = output.split('\n').skip(2).join('\n');
-  }
-  return commented ? '$testDiffSeparator\n/*\n$output*/' : output;
-}
-
-/// Removes diff lines that show added or removed newlines.
-///
-/// 'diff' can be unstable across platforms around newline offsets.
-(String, String) _filterLineDeltas(String diff1, String diff2) {
-  bool isBlankLineOrDelta(String s) {
-    return s.trim().isEmpty ||
-        (s.startsWith('+') || s.startsWith('-')) && s.trim().length == 1;
-  }
-
-  var diff1Lines = LineSplitter().convert(diff1)
-    ..removeWhere(isBlankLineOrDelta);
-  var diff2Lines = LineSplitter().convert(diff2)
-    ..removeWhere(isBlankLineOrDelta);
-  return (diff1Lines.join('\n'), diff2Lines.join('\n'));
-}
-
-/// Returns the code and diff portions of [file].
-(String, String) _splitTestByDiff(Uri file) {
-  final text = File.fromUri(file).readAsStringSync();
-  final diffIndex = text.indexOf(testDiffSeparator);
-  final diffSplitIndex = diffIndex == -1 ? text.length - 1 : diffIndex;
-  final codeText = text.substring(0, diffSplitIndex);
-  final diffText = text.substring(diffSplitIndex, text.length - 1);
-  // Avoid 'No newline at end of file' messages in the output by appending a
-  // newline if one is not already trailing.
-  return ('$codeText${codeText.endsWith('\n') ? '' : '\n'}', diffText);
-}
-
-abstract class HotReloadSuiteRunner {
-  final String entrypointModuleName;
-  final String entrypointLibraryExportName;
-  final Uri dartSdkJsUri;
-  final Uri ddcModuleLoaderJsUri;
-  final StreamSink<List<int>> outputSink;
-
-  HotReloadSuiteRunner({
-    required this.entrypointModuleName,
-    required this.entrypointLibraryExportName,
-    required this.dartSdkJsUri,
-    required this.ddcModuleLoaderJsUri,
-    required this.outputSink,
-  });
-
-  /// Logic that needs to be run before every test begins.
+  /// Runs the [command] with [args] in [environment].
   ///
-  /// [scriptDescriptors] and [generationToModifiedFiles] are only used for
-  /// DDC-based execution environments.
-  Future<void> setupTest(
-      {String? testName,
-      List<Map<String, String?>>? scriptDescriptors,
-      ddc_helpers.FileDataPerGeneration? generationToModifiedFiles});
+  /// Will echo the commands to the console before running them when running in
+  /// `verbose` mode.
+  Future<Process> startProcess(String name, String command, List<String> args,
+      {Map<String, String> environment = const {},
+      ProcessStartMode mode = ProcessStartMode.normal}) {
+    if (options.verbose) {
+      print('Running $name:\n$command ${args.join(' ')}\n');
+      if (environment.isNotEmpty) {
+        var environmentVariables =
+            environment.entries.map((e) => '${e.key}: ${e.value}').join('\n');
+        print('With environment:\n$environmentVariables\n');
+      }
+    }
+    return Process.start(command, args, mode: mode, environment: environment);
+  }
 
-  /// Executes a test.
-  Future<int> runTest({String? testName});
+  /// Prints messages if 'verbose' mode is enabled.
+  void _print(String message, {String? label}) {
+    if (options.verbose) {
+      final labelText = label == null ? '' : '($label)';
+      print('hot_reload_test$labelText: $message');
+    }
+  }
 
-  /// Logic that needs to be run after every test completes.
-  Future<void> teardownTest({String? testName});
+  /// Prints messages if 'debug' mode is enabled.
+  void _debugPrint(String message, {String? label}) {
+    if (options.debug) {
+      final labelText = label == null ? '' : '($label)';
+      print('DEBUG$labelText: $message');
+    }
+  }
+
+  /// Returns the diff'd output between two files.
+  ///
+  /// These diffs are appended at the end of updated file generations for better
+  /// test readability.
+  ///
+  /// If [commented] is set, the output will be wrapped in multiline comments
+  /// and the diff separator.
+  ///
+  /// If [trimHeaders] is set, the leading '+++' and '---' file headers will be
+  /// removed.
+  String _diffWithFileUris(Uri file1, Uri file2,
+      {String label = '', bool commented = true, bool trimHeaders = true}) {
+    final file1Path = file1.toFilePath();
+    final file2Path = file2.toFilePath();
+    final diffArgs = [
+      '-u',
+      '--width=120',
+      '--expand-tabs',
+      file1Path,
+      file2Path
+    ];
+    _debugPrint("Running diff with 'diff ${diffArgs.join(' ')}'.",
+        label: label);
+    final diffProcess = Process.runSync('diff', diffArgs);
+    final errOutput = diffProcess.stderr as String;
+    if (errOutput.isNotEmpty) {
+      throw Exception('diff failed with:\n$errOutput');
+    }
+    var output = diffProcess.stdout as String;
+    if (trimHeaders) {
+      // Skip the first two lines.
+      // TODO(markzipan): Add support for Windows-style line endings.
+      output = output.split('\n').skip(2).join('\n');
+    }
+    return commented ? '$testDiffSeparator\n/*\n$output*/' : output;
+  }
+
+  /// Removes diff lines that show added or removed newlines.
+  ///
+  /// 'diff' can be unstable across platforms around newline offsets.
+  (String, String) _filterLineDeltas(String diff1, String diff2) {
+    bool isBlankLineOrDelta(String s) {
+      return s.trim().isEmpty ||
+          (s.startsWith('+') || s.startsWith('-')) && s.trim().length == 1;
+    }
+
+    var diff1Lines = LineSplitter().convert(diff1)
+      ..removeWhere(isBlankLineOrDelta);
+    var diff2Lines = LineSplitter().convert(diff2)
+      ..removeWhere(isBlankLineOrDelta);
+    return (diff1Lines.join('\n'), diff2Lines.join('\n'));
+  }
+
+  /// Returns the code and diff portions of [file].
+  (String, String) _splitTestByDiff(Uri file) {
+    final text = File.fromUri(file).readAsStringSync();
+    final diffIndex = text.indexOf(testDiffSeparator);
+    final diffSplitIndex = diffIndex == -1 ? text.length - 1 : diffIndex;
+    final codeText = text.substring(0, diffSplitIndex);
+    final diffText = text.substring(diffSplitIndex, text.length - 1);
+    // Avoid 'No newline at end of file' messages in the output by appending a
+    // newline if one is not already trailing.
+    return ('$codeText${codeText.endsWith('\n') ? '' : '\n'}', diffText);
+  }
 }
 
-class D8SuiteRunner implements HotReloadSuiteRunner {
-  final ddc_helpers.D8Configuration config;
-  final Uri bootstrapJsUri;
-  @override
-  final String entrypointModuleName;
-  @override
-  final String entrypointLibraryExportName;
-  @override
-  final Uri dartSdkJsUri;
-  @override
-  final Uri ddcModuleLoaderJsUri;
-  @override
-  final StreamSink<List<int>> outputSink;
+class D8SuiteRunner extends HotReloadSuiteRunner {
+  final ddc_helpers.D8Configuration config =
+      ddc_helpers.D8Configuration(sdkRoot);
+  late Uri bootstrapJsUri;
+  final String entrypointModuleName = 'hot-reload-test:///main.dart';
+  late final String entrypointLibraryExportName =
+      ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
+  final Uri dartSdkJsUri =
+      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
+  final Uri ddcModuleLoaderJsUri =
+      sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
+  late StreamSink<List<int>> outputSink;
 
-  D8SuiteRunner._({
-    required this.config,
-    required this.bootstrapJsUri,
-    required this.entrypointModuleName,
-    required this.entrypointLibraryExportName,
-    required this.dartSdkJsUri,
-    required this.ddcModuleLoaderJsUri,
-    required this.outputSink,
-  });
-
-  factory D8SuiteRunner({
-    required ddc_helpers.D8Configuration config,
-    required Uri bootstrapJsUri,
-    String entrypointModuleName = 'hot-reload-test:///main.dart',
-    String entrypointLibraryExportName = 'main',
-    required Uri dartSdkJsUri,
-    required Uri ddcModuleLoaderJsUri,
-    StreamSink<List<int>>? outputSink,
-  }) {
-    return D8SuiteRunner._(
-      config: config,
-      entrypointModuleName: entrypointModuleName,
-      entrypointLibraryExportName: entrypointLibraryExportName,
-      bootstrapJsUri: bootstrapJsUri,
-      dartSdkJsUri: dartSdkJsUri,
-      ddcModuleLoaderJsUri: ddcModuleLoaderJsUri,
-      outputSink: outputSink ?? stdout,
-    );
-  }
+  D8SuiteRunner(super.options);
 
   String _generateBootstrapper({
     required List<Map<String, String?>> scriptDescriptors,
@@ -1059,7 +994,6 @@ class D8SuiteRunner implements HotReloadSuiteRunner {
     );
   }
 
-  @override
   Future<void> setupTest({
     String? testName,
     List<Map<String, String?>>? scriptDescriptors,
@@ -1077,8 +1011,7 @@ class D8SuiteRunner implements HotReloadSuiteRunner {
     _debugPrint('Writing D8 bootstrapper: $bootstrapJsUri', label: testName);
   }
 
-  @override
-  Future<int> runTest({String? testName}) async {
+  Future<int> runTestOld({String? testName}) async {
     final process = await startProcess('D8', config.binary.toFilePath(), [
       config.sealNativeObjectScript.toFilePath(),
       config.preamblesScript.toFilePath(),
@@ -1087,62 +1020,24 @@ class D8SuiteRunner implements HotReloadSuiteRunner {
     unawaited(process.stdout.pipe(outputSink));
     return process.exitCode;
   }
-
-  @override
-  Future<void> teardownTest({String? testName}) async {}
 }
 
-class ChromeSuiteRunner implements HotReloadSuiteRunner {
-  final ddc_helpers.ChromeConfiguration config;
-  final Uri bootstrapJsUri;
-  final Uri mainEntrypointJsUri;
-  final Uri bootstrapHtmlUri;
-  @override
-  final String entrypointModuleName;
-  @override
-  final String entrypointLibraryExportName;
-  @override
-  final Uri dartSdkJsUri;
-  @override
-  final Uri ddcModuleLoaderJsUri;
-  @override
-  final StreamSink<List<int>> outputSink;
+class ChromeSuiteRunner extends HotReloadSuiteRunner {
+  final ddc_helpers.ChromeConfiguration config =
+      ddc_helpers.ChromeConfiguration(sdkRoot);
+  late Uri bootstrapJsUri;
+  late Uri mainEntrypointJsUri;
+  late Uri bootstrapHtmlUri;
+  final String entrypointModuleName = 'hot-reload-test:///main.dart';
+  late final String entrypointLibraryExportName =
+      ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
+  final Uri dartSdkJsUri =
+      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
+  final Uri ddcModuleLoaderJsUri =
+      sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
+  late StreamSink<List<int>> outputSink;
 
-  ChromeSuiteRunner._({
-    required this.config,
-    required this.mainEntrypointJsUri,
-    required this.bootstrapJsUri,
-    required this.bootstrapHtmlUri,
-    required this.entrypointModuleName,
-    required this.entrypointLibraryExportName,
-    required this.dartSdkJsUri,
-    required this.ddcModuleLoaderJsUri,
-    required this.outputSink,
-  });
-
-  factory ChromeSuiteRunner({
-    required ddc_helpers.ChromeConfiguration config,
-    required Uri mainEntrypointJsUri,
-    required Uri bootstrapJsUri,
-    required Uri bootstrapHtmlUri,
-    String entrypointModuleName = 'hot-reload-test:///main.dart',
-    String entrypointLibraryExportName = 'main',
-    required Uri dartSdkJsUri,
-    required Uri ddcModuleLoaderJsUri,
-    StreamSink<List<int>>? outputSink,
-  }) {
-    return ChromeSuiteRunner._(
-      config: config,
-      entrypointModuleName: entrypointModuleName,
-      entrypointLibraryExportName: entrypointLibraryExportName,
-      mainEntrypointJsUri: mainEntrypointJsUri,
-      bootstrapJsUri: bootstrapJsUri,
-      bootstrapHtmlUri: bootstrapHtmlUri,
-      dartSdkJsUri: dartSdkJsUri,
-      ddcModuleLoaderJsUri: ddcModuleLoaderJsUri,
-      outputSink: outputSink ?? stdout,
-    );
-  }
+  ChromeSuiteRunner(super.options);
 
   /// Generates all files required for bootstrapping a DDC project in Chrome.
   void _generateBootstrapper({
@@ -1168,8 +1063,8 @@ class ChromeSuiteRunner implements HotReloadSuiteRunner {
       mainModuleEntrypointJsPath:
           escapedString(mainEntrypointJsUri.toFilePath()),
       entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
-      scriptDescriptors: scriptDescriptors,
-      modifiedFilesPerGeneration: generationToModifiedFiles,
+      scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
+      modifiedFilesPerGeneration: filesystem!.generationsToModifiedFilePaths,
     );
 
     File.fromUri(mainEntrypointJsUri).writeAsStringSync(chromeMainEntrypointJS);
@@ -1177,7 +1072,6 @@ class ChromeSuiteRunner implements HotReloadSuiteRunner {
     File.fromUri(bootstrapHtmlUri).writeAsStringSync(bootstrapHtml);
   }
 
-  @override
   Future<void> setupTest({
     String? testName,
     List<Map<String, String?>>? scriptDescriptors,
@@ -1195,8 +1089,7 @@ class ChromeSuiteRunner implements HotReloadSuiteRunner {
         label: testName);
   }
 
-  @override
-  Future<int> runTest({String? testName}) async {
+  Future<int> runTestOld({String? testName}) async {
     // TODO(markzipan): Chrome tests are currently only configured for
     // debugging a single test instance. This is due to:
     // 1) Our tests not capturing test success/failure signals. These must be
@@ -1254,5 +1147,147 @@ class ChromeSuiteRunner implements HotReloadSuiteRunner {
   }
 
   @override
-  Future<void> teardownTest({String? testName}) async {}
+  Future<void> runSuite(Options options) async {
+    // Only allow Chrome when debugging a single test.
+    // TODO(markzipan): Add support for full Chrome testing.
+    if (options.runtime == RuntimePlatforms.chrome) {
+      var matchingTests =
+          Directory.fromUri(allTestsUri).listSync().where((testDir) {
+        if (testDir is! Directory) return false;
+        final testDirParts = testDir.uri.pathSegments;
+        final testName = testDirParts[testDirParts.length - 2];
+        return options.testNameFilter.hasMatch(testName);
+      });
+
+      if (matchingTests.length > 1) {
+        throw Exception('Chrome is only supported when debugging a single test.'
+            "Please filter on a single test with '-f'.");
+      }
+    }
+    await super.runSuite(options);
+  }
+}
+
+/// Hot reload test suite runner for behavior specific to the VM.
+class VMSuiteRunner extends HotReloadSuiteRunner {
+  VMSuiteRunner(super.options);
+
+  @override
+  Future<bool> compileGeneration(
+      HotReloadTest test,
+      int generation,
+      Directory outputDirectory,
+      List<String> updatedFiles,
+      HotReloadFrontendServerController controller) async {
+    // The first generation calls `compile`, but subsequent ones call
+    // `recompile`.
+    // Likewise, use the incremental output directory for `recompile` calls.
+    // TODO(nshahan): Sending compile/recompile instructions is likely
+    // the same across backends and should be shared code.
+    String outputDillPath;
+    _print('Compiling generation $generation with the Frontend Server.',
+        label: test.name);
+    CompilerOutput compilerOutput;
+    if (generation == 0) {
+      _debugPrint(
+          'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+          label: test.name);
+      outputDillPath = outputDillUri.toFilePath();
+      compilerOutput =
+          await controller.sendCompile(snapshotEntrypointWithScheme);
+    } else {
+      _debugPrint(
+          'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+          label: test.name);
+      outputDillPath = outputIncrementalDillUri.toFilePath();
+      // TODO(markzipan): Add logic to reject bad compiles.
+      compilerOutput = await controller.sendRecompile(
+          snapshotEntrypointWithScheme,
+          invalidatedFiles: updatedFiles);
+    }
+    var hasCompileError = false;
+    // Frontend Server reported compile errors. Fail if they weren't
+    // expected, and do not run tests.
+    if (compilerOutput.errorCount > 0) {
+      hasCompileError = true;
+      await controller.sendReject();
+      // TODO(markzipan): Determine if 'contains' is good enough to determine
+      // compilation error correctness.
+      if (test.expectedError != null &&
+          compilerOutput.outputText.contains(test.expectedError!)) {
+        await reportTestOutcome(
+            test.name,
+            'Expected error found during compilation: '
+            '${test.expectedError}',
+            true);
+      } else {
+        await reportTestOutcome(
+            test.name,
+            'Test failed with compile error: ${compilerOutput.outputText}',
+            false);
+      }
+    } else {
+      controller.sendAccept();
+    }
+    // Stop processing further generations if compilation failed.
+    if (hasCompileError) return false;
+    _debugPrint(
+        'Frontend Server successfully compiled outputs to: '
+        '$outputDillPath',
+        label: test.name);
+    final dillOutputDir =
+        Directory.fromUri(outputDirectory.uri.resolve('generation$generation'));
+    dillOutputDir.createSync();
+    final dillOutputUri = dillOutputDir.uri.resolve('${test.name}.dill');
+    // Write dills their respective generation.
+    _print('Writing generation $generation assets.', label: test.name);
+    _debugPrint('Writing dill to ${dillOutputUri.toFilePath()}',
+        label: test.name);
+    File(outputDillPath).copySync(dillOutputUri.toFilePath());
+    return true;
+  }
+
+  @override
+  Future<bool> runTest(
+      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
+    final firstGenerationDillUri =
+        tempDirectory.uri.resolve('generation0/${test.name}.dill');
+    // Start the VM at generation 0.
+    final vmArgs = [
+      '--enable-vm-service=0', // 0 avoids port collisions.
+      '--disable-service-auth-codes',
+      '--disable-dart-dev',
+      firstGenerationDillUri.toFilePath(),
+    ];
+    _debugPrint(
+        'Starting VM with command: '
+        '${Platform.executable} ${vmArgs.join(" ")}',
+        label: test.name);
+    final vm = await Process.start(Platform.executable, vmArgs);
+    vm.stdout
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen((String line) {
+      _debugPrint('VM stdout: $line', label: test.name);
+      outputSink.writeln(line);
+    });
+    vm.stderr
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen((String err) {
+      _debugPrint('VM stderr: $err', label: test.name);
+      outputSink.writeln(err);
+    });
+    _print('Executing VM test.', label: test.name);
+    final testTimeoutSeconds = 10;
+    final vmExitCode = await vm.exitCode
+        .timeout(Duration(seconds: testTimeoutSeconds), onTimeout: () {
+      final timeoutText = 'Test timed out after $testTimeoutSeconds seconds.';
+      _print(timeoutText, label: test.name);
+      outputSink.writeln(timeoutText);
+      vm.kill();
+      return 1;
+    });
+    return vmExitCode == 0;
+  }
 }
