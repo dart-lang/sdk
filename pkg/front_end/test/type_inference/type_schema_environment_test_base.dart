@@ -67,11 +67,8 @@ abstract class TypeSchemaEnvironmentTestBase {
   void checkConstraintSolving(String constraint, String expected,
       {required bool grounded}) {
     expect(
-        typeSchemaEnvironment.solveTypeConstraint(
-            parseConstraint(constraint),
-            coreTypes.objectNullableRawType,
-            new NeverType.internal(Nullability.nonNullable),
-            grounded: grounded),
+        typeSchemaEnvironment.solveTypeConstraint(parseConstraint(constraint),
+            topType: coreTypes.objectNullableRawType, grounded: grounded),
         parseType(expected));
   }
 
