@@ -540,8 +540,7 @@ class OperationsCfe
       SharedTypeSchemaView<DartType> schema) {
     return new SharedTypeView(type_schema_elimination.greatestClosure(
         schema.unwrapTypeSchemaView(),
-        const DynamicType(),
-        const NeverType.nonNullable()));
+        topType: const DynamicType()));
   }
 
   @override

@@ -24,13 +24,13 @@ class TypeSchemaEliminationTest {
   };
 
   DartType greatestClosure(DartType schema) {
-    return typeSchemaElimination.greatestClosure(
-        schema, const DynamicType(), const NeverType.nonNullable());
+    return typeSchemaElimination.greatestClosure(schema,
+        topType: env.coreTypes.objectNullableRawType);
   }
 
   DartType leastClosure(DartType schema) {
-    return typeSchemaElimination.leastClosure(
-        schema, const DynamicType(), const NeverType.nonNullable());
+    return typeSchemaElimination.leastClosure(schema,
+        topType: env.coreTypes.objectNullableRawType);
   }
 
   void testGreatest(String type, String expectedClosure) {
@@ -45,47 +45,47 @@ class TypeSchemaEliminationTest {
   }
 
   void test_greatestClosure_contravariant() {
-    testGreatest("(UNKNOWN) ->* dynamic", "(Never) ->* dynamic");
-    testGreatest("({UNKNOWN foo}) ->* dynamic", "({Never foo}) ->* dynamic");
+    testGreatest("(UNKNOWN) -> dynamic", "(Never) -> dynamic");
+    testGreatest("({UNKNOWN foo}) -> dynamic", "({Never foo}) -> dynamic");
   }
 
   void test_greatestClosure_contravariant_contravariant() {
-    testGreatest("((UNKNOWN) ->* dynamic) ->* dynamic",
-        "((dynamic) ->* dynamic) ->* dynamic");
+    testGreatest("((UNKNOWN) -> dynamic) -> dynamic",
+        "((Object?) -> dynamic) -> dynamic");
   }
 
   void test_greatestClosure_covariant() {
-    testGreatest("() ->* UNKNOWN", "() ->* dynamic");
-    testGreatest("List<UNKNOWN>*", "List<dynamic>*");
+    testGreatest("() -> UNKNOWN", "() -> Object?");
+    testGreatest("List<UNKNOWN>", "List<Object?>");
   }
 
   void test_greatestClosure_function_multipleUnknown() {
-    testGreatest("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
-        "(Never, Never, {Never a, Never b}) ->* dynamic");
+    testGreatest("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) -> UNKNOWN",
+        "(Never, Never, {Never a, Never b}) -> Object?");
   }
 
   void test_greatestClosure_simple() {
-    testGreatest("UNKNOWN", "dynamic");
+    testGreatest("UNKNOWN", "Object?");
   }
 
   void test_leastClosure_contravariant() {
-    testLeast("(UNKNOWN) ->* dynamic", "(dynamic) ->* dynamic");
-    testLeast("({UNKNOWN foo}) ->* dynamic", "({dynamic foo}) ->* dynamic");
+    testLeast("(UNKNOWN) -> dynamic", "(Object?) -> dynamic");
+    testLeast("({UNKNOWN foo}) -> dynamic", "({Object? foo}) -> dynamic");
   }
 
   void test_leastClosure_contravariant_contravariant() {
-    testLeast("((UNKNOWN) ->* dynamic) ->* dynamic",
-        "((Never) ->* dynamic) ->* dynamic");
+    testLeast(
+        "((UNKNOWN) -> dynamic) -> dynamic", "((Never) -> dynamic) -> dynamic");
   }
 
   void test_leastClosure_covariant() {
-    testLeast("() ->* UNKNOWN", "() ->* Never");
-    testLeast("List<UNKNOWN>*", "List<Never>*");
+    testLeast("() -> UNKNOWN", "() -> Never");
+    testLeast("List<UNKNOWN>", "List<Never>");
   }
 
   void test_leastClosure_function_multipleUnknown() {
-    testLeast("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
-        "(dynamic, dynamic, {dynamic a, dynamic b}) ->* Never");
+    testLeast("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) -> UNKNOWN",
+        "(Object?, Object?, {Object? a, Object? b}) -> Never");
   }
 
   void test_leastClosure_simple() {

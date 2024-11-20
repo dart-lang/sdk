@@ -24,13 +24,13 @@ class TypeSchemaEliminationTest {
   };
 
   DartType greatestClosure(DartType schema) {
-    return typeSchemaElimination.greatestClosure(
-        schema, new DynamicType(), new NullType());
+    return typeSchemaElimination.greatestClosure(schema,
+        topType: new DynamicType());
   }
 
   DartType leastClosure(DartType schema) {
-    return typeSchemaElimination.leastClosure(
-        schema, new DynamicType(), new NullType());
+    return typeSchemaElimination.leastClosure(schema,
+        topType: new DynamicType());
   }
 
   void testGreatest(String type, String expectedClosure) {
@@ -45,8 +45,8 @@ class TypeSchemaEliminationTest {
   }
 
   void test_greatestClosure_contravariant() {
-    testGreatest("(UNKNOWN) ->* dynamic", "(Null) ->* dynamic");
-    testGreatest("({UNKNOWN foo}) ->* dynamic", "({Null foo}) ->* dynamic");
+    testGreatest("(UNKNOWN) ->* dynamic", "(Never) ->* dynamic");
+    testGreatest("({UNKNOWN foo}) ->* dynamic", "({Never foo}) ->* dynamic");
   }
 
   void test_greatestClosure_contravariant_contravariant() {
@@ -61,7 +61,7 @@ class TypeSchemaEliminationTest {
 
   void test_greatestClosure_function_multipleUnknown() {
     testGreatest("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
-        "(Null, Null, {Null a, Null b}) ->* dynamic");
+        "(Never, Never, {Never a, Never b}) ->* dynamic");
   }
 
   void test_greatestClosure_simple() {
@@ -75,20 +75,20 @@ class TypeSchemaEliminationTest {
 
   void test_leastClosure_contravariant_contravariant() {
     testLeast("((UNKNOWN) ->* UNKNOWN) ->* dynamic",
-        "((Null) ->* dynamic) ->* dynamic");
+        "((Never) ->* dynamic) ->* dynamic");
   }
 
   void test_leastClosure_covariant() {
-    testLeast("() ->* UNKNOWN", "() ->* Null");
-    testLeast("List<UNKNOWN>*", "List<Null>*");
+    testLeast("() ->* UNKNOWN", "() ->* Never");
+    testLeast("List<UNKNOWN>*", "List<Never>*");
   }
 
   void test_leastClosure_function_multipleUnknown() {
     testLeast("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
-        "(dynamic, dynamic, {dynamic a, dynamic b}) ->* Null");
+        "(dynamic, dynamic, {dynamic a, dynamic b}) ->* Never");
   }
 
   void test_leastClosure_simple() {
-    testLeast("UNKNOWN", "Null");
+    testLeast("UNKNOWN", "Never");
   }
 }

@@ -119,7 +119,7 @@ Successfully completely this project will likely involve:
 
   * Determining exactly what APIs should be make available in Dart.
   * Creating a JNI bindings for those APIs using [`package:jnigen`](https://pub.dev/packages/jnigen).
-  * Creating a higher-level interface over the JNI bindings e.g. so the Dart developer can work with [Dart URIs](https://api.dart.dev/stable/dart-core/Uri-class.html) rather than [java.net.URI](https://developer.android.com/reference/java/net/URI).
+  * Creating a higher-level interface over the JNI bindings e.g. so the Dart developer can work with [Dart URIs](https://api.dart.dev/dart-core/Uri-class.html) rather than [java.net.URI](https://developer.android.com/reference/java/net/URI).
   * Creating a [`package:http` `Client`](https://pub.dev/documentation/http/latest/http/Client-class.html) implementation using the interface above.
   * Verifying that the `Client` implementation passes the [conformance tests](https://github.com/dart-lang/http/tree/main/pkgs/http_client_conformance_tests).
 
@@ -135,19 +135,19 @@ A good project proposal will describe what Java APIs are necessary to implement 
 
 
 
-## **Idea:** Refactor Plus packages to utilize new Dart 3 language features 
+## **Idea:** Refactor Plus packages to utilize new Dart 3 language features
 
  - **Possible Mentor(s)**: Majid Hajian <mhadaily@gmail.com>
  - **Difficulty**: Hard
  - **Project size**: / Medium (175 hours)
  - **Skills**: Dart
 
-**Description**: Dart 3 introduces a few new language features. There are several features such as Records, pattern matching and new direct platform library interop which potentially helps to improve code readability and better API design for packages. 
+**Description**: Dart 3 introduces a few new language features. There are several features such as Records, pattern matching and new direct platform library interop which potentially helps to improve code readability and better API design for packages.
 
 We would like to explore the possibilities of the new language features that could help to improve packages and create a new API (potentially) or refactor internal coding that make the package to take full advantage of Dart 3. We would like to also prepare a guideline after this refactoring for other maintainers to figure out what could be improved or changed.
 
 We are using [Federated plugins](https://flutter.dev/to/federated-plugins), therefore this is likely to involve:
- 
+
 * refactoring `platform_interface` class for each package,
 * refactoring app-facing and platform-specific-implementation packages,
 * potentially removing native code and replacing it with direct dart API calls,

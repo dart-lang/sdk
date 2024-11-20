@@ -2465,7 +2465,7 @@ This is a patch release that:
   spawned via `Isolate.spawnUri`. See [`SendPort.send`] documentation for
   the full list of restrictions.
 
-[`SendPort.send`]: https://api.dart.dev/stable/dart-isolate/SendPort/send.html
+[`SendPort.send`]: https://api.dart.dev/dart-isolate/SendPort/send.html
 
 #### `dart:mirrors`
 
@@ -2474,8 +2474,8 @@ This is a patch release that:
   previously used internally in dart2js. Both are no longer functional.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
-[`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
-[`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
+[`MirrorsUsed`]: https://api.dart.dev/dart-mirrors/MirrorsUsed-class.html
+[`Comment`]: https://api.dart.dev/dart-mirrors/Comment-class.html
 
 ### Other libraries
 
@@ -5564,7 +5564,7 @@ Thanks to **Vincenzo di Cicco** for finding and reporting this issue.
 This release also improves compatibility with ARMv8 processors (issue [40001][])
 and dart:io stability (issue [40589][]).
 
-[nodevalidator]: https://api.dart.dev/stable/dart-html/NodeValidator-class.html
+[nodevalidator]: https://api.dart.dev/dart-html/NodeValidator-class.html
 [cve-2020-8923]:
   https://github.com/dart-lang/sdk/security/advisories/GHSA-hfq3-v9pv-p627
 [40001]: https://github.com/dart-lang/sdk/issues/40001
