@@ -47,7 +47,7 @@ export 'snapshot_graph.dart' show HeapSnapshotClass,
 
   /// Invoke a specific service protocol extension method.
   ///
-  /// See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
+  /// See https://api.dart.dev/dart-developer/dart-developer-library.html.
   Future<Response> callServiceExtension(String method, {
     String? isolateId,
     Map<String, dynamic>? args

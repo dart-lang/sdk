@@ -68,7 +68,7 @@ However the main difference between these lies in when and how VM converts Dart 
 
 Any Dart code within the VM is running within some _isolate_, which can be best described as an isolated Dart universe with its own global state and _usually_ with its own thread of control (*mutator thread*). Isolates are grouped together into _isolate groups_. Isolate within the group share the same garbage collector managed *heap*, used as a storage for objects allocated by an isolate. Heap sharing between isolates in the same group is an implementation detail which is not observable from the Dart code. Even isolates within the same group can not share any mutable state directly and can only communicate by message passing through *ports* (not to be confused with network ports!).
 
-Isolates within a group share the same Dart program. [`Isolate.spawn`](https://api.dart.dev/stable/dart-isolate/Isolate/spawn.html) spawns an isolate within the same group, while [`Isolate.spawnUri`](https://api.dart.dev/stable/dart-isolate/Isolate/spawnUri.html) starts a new group.
+Isolates within a group share the same Dart program. [`Isolate.spawn`](https://api.dart.dev/dart-isolate/Isolate/spawn.html) spawns an isolate within the same group, while [`Isolate.spawnUri`](https://api.dart.dev/dart-isolate/Isolate/spawnUri.html) starts a new group.
 
 The relationship between OS threads and isolates is a bit blurry and highly dependent on how VM is embedded into an application. Only the following is guaranteed:
 

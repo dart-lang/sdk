@@ -30133,7 +30133,7 @@ class StaticRange extends JavaScriptObject {
  *     window.localStorage['key3'] = 'val3';
  *     assert(window.localStorage['key3'] == 'val3');
  *
- * You can use [Map](https://api.dart.dev/stable/dart-core/Map-class.html) APIs
+ * You can use [Map](https://api.dart.dev/dart-core/Map-class.html) APIs
  * such as containsValue(), clear(), and length:
  *
  *     assert(window.localStorage.containsValue('does not exist') == false);
