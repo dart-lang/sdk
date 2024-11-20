@@ -1,0 +1,17 @@
+class Baz {
+  int get foo => 42;
+  set foo({final newFoo}) {}
+  void bar() {}
+}
+
+extension Foo on int {
+  int get foo => 42;
+  set foo({final newFoo}) {}
+  void bar() {}
+}
+
+extension type Bar(int i) {
+  int get foo => 42;
+  set foo({final newFoo}) {}
+  void bar() {}
+}

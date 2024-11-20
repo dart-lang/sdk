@@ -1305,7 +1305,14 @@ class BodyBuilder extends StackListenerImpl
           // Illegal parameters were removed by the function builder.
           // Add them as local variable to put them in scope of the body.
           List<Statement> statements = <Statement>[];
-          for (FormalParameterBuilder parameter in _context.formals!) {
+          List<FormalParameterBuilder> formals = _context.formals!;
+          for (int i = 0; i < formals.length; i++) {
+            FormalParameterBuilder parameter = formals[i];
+            VariableDeclaration variable = parameter.variable!;
+            // #this should not be redeclared.
+            if (i == 0 && identical(variable, thisVariable)) {
+              continue;
+            }
             statements.add(parameter.variable!);
           }
           statements.add(body);

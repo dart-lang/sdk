@@ -384,6 +384,20 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       parameter.parent = function;
       function.namedParameters.clear();
       function.requiredParameterCount = 1;
+    } else if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
+        isSetter &&
+        (formals?.length != 2 || formals![1].isOptionalPositional)) {
+      // Replace illegal parameters by single dummy parameter (after #this).
+      // Do this after building the parameters, since the diet listener
+      // assumes that parameters are built, even if illegal in number.
+      VariableDeclaration thisParameter = function.positionalParameters[0];
+      VariableDeclaration parameter = new VariableDeclarationImpl("#synthetic");
+      function.positionalParameters.clear();
+      function.positionalParameters.add(thisParameter);
+      function.positionalParameters.add(parameter);
+      parameter.parent = function;
+      function.namedParameters.clear();
+      function.requiredParameterCount = 2;
     }
     if (returnType is! InferableTypeBuilder) {
       function.returnType =
