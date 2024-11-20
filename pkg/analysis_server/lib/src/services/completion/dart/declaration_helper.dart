@@ -339,7 +339,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         collector.addSuggestion(
           ImportPrefixSuggestion(
-            libraryElement: importedLibrary.asElement2 as LibraryElement2,
+            libraryElement: importedLibrary.asElement2,
             prefixElement: prefixElement.asElement2,
             matcherScore: matcherScore,
           ),
@@ -902,17 +902,17 @@ class DeclarationHelper {
       var suggestion = switch (element) {
         ClassElement() => ClassSuggestion(
           importData: null,
-          element: element.asElement2 as ClassElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         ),
         EnumElement() => EnumSuggestion(
           importData: null,
-          element: element.asElement2 as EnumElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         ),
         ExtensionElement() => ExtensionSuggestion(
           importData: null,
-          element: element.asElement2 as ExtensionElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         ),
         ExtensionTypeElement() => ExtensionTypeSuggestion(
@@ -928,7 +928,7 @@ class DeclarationHelper {
         ),
         MixinElement() => MixinSuggestion(
           importData: null,
-          element: element.asElement2 as MixinElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         ),
         PropertyAccessorElement() => _createSuggestionFromTopLevelProperty(
@@ -937,7 +937,7 @@ class DeclarationHelper {
         ),
         TopLevelVariableElement() => TopLevelVariableSuggestion(
           importData: null,
-          element: element.asElement2 as TopLevelVariableElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         ),
         TypeAliasElement() => TypeAliasSuggestion(
@@ -1498,7 +1498,7 @@ class DeclarationHelper {
         if (variable is TopLevelVariableElement) {
           return TopLevelVariableSuggestion(
             importData: importData,
-            element: variable.asElement2 as TopLevelVariableElement2,
+            element: variable.asElement2,
             matcherScore: matcherScore,
           );
         }
@@ -1559,7 +1559,7 @@ class DeclarationHelper {
         if (matcherScore != -1) {
           var suggestion = ClassSuggestion(
             importData: importData,
-            element: element.asElement2 as ClassElement2,
+            element: element.asElement2,
             matcherScore: matcherScore,
           );
           collector.addSuggestion(suggestion);
@@ -1667,7 +1667,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = EnumSuggestion(
           importData: importData,
-          element: element.asElement2 as EnumElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -1696,7 +1696,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = ExtensionSuggestion(
           importData: importData,
-          element: element.asElement2 as ExtensionElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -1857,7 +1857,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = MixinSuggestion(
           importData: importData,
-          element: element.asElement2 as MixinElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -1878,7 +1878,7 @@ class DeclarationHelper {
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = FormalParameterSuggestion(
-          element: element.asElement2 as FormalParameterElement,
+          element: element.asElement2,
           distance: _variableDistance++,
           matcherScore: matcherScore,
         );
@@ -2054,7 +2054,7 @@ class DeclarationHelper {
     if (matcherScore != -1) {
       collector.addSuggestion(
         SuperParameterSuggestion(
-          element: element.asElement2 as FormalParameterElement,
+          element: element.asElement2,
           matcherScore: matcherScore,
         ),
       );
@@ -2132,7 +2132,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = TopLevelVariableSuggestion(
           importData: importData,
-          element: element.asElement2 as TopLevelVariableElement2,
+          element: element.asElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);

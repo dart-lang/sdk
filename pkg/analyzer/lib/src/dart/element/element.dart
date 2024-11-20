@@ -6232,7 +6232,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   ConstructorElement2? get unnamedConstructor2 =>
-      unnamedConstructor.asElement2 as ConstructorElement2;
+      unnamedConstructor?.asElement2;
 
   @override
   ConstructorElement? getNamedConstructor(String name) {
@@ -9903,20 +9903,12 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
   SuperFormalParameterElementImpl2(super.firstFragment);
 
   @override
-  SuperFormalParameterFragment get firstFragment =>
-      super.firstFragment as SuperFormalParameterFragment;
+  SuperFormalParameterElementImpl get firstFragment =>
+      super.firstFragment as SuperFormalParameterElementImpl;
 
   @override
   FormalParameterElement? get superConstructorParameter2 {
-    var superConstructorParameter =
-        (firstFragment as SuperFormalParameterElementImpl)
-            .superConstructorParameter;
-    return switch (superConstructorParameter) {
-      ParameterMember() =>
-        superConstructorParameter.asElement2 as FormalParameterElement?,
-      FormalParameterFragment()? => superConstructorParameter.element,
-      _ => null,
-    };
+    return firstFragment.superConstructorParameter?.asElement2;
   }
 }
 

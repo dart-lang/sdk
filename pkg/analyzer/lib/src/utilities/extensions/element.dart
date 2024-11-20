@@ -11,6 +11,12 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:meta/meta.dart';
 
+extension ClassElementExtension on ClassElement {
+  ClassElement2 get asElement2 {
+    return (this as ClassElementImpl).element;
+  }
+}
+
 extension CompilationUnitElementExtension on CompilationUnitElement {
   /// Returns this library fragment, and all its enclosing fragments.
   List<CompilationUnitElement> get withEnclosing {
@@ -210,6 +216,12 @@ extension ElementOrNullExtension on Element? {
   }
 }
 
+extension EnumElementExtension on EnumElement {
+  EnumElement2 get asElement2 {
+    return (this as EnumElementImpl).element;
+  }
+}
+
 extension ExecutableElement2Extension on ExecutableElement2 {
   ExecutableElement get asElement {
     return firstFragment as ExecutableElement;
@@ -235,6 +247,12 @@ extension ExecutableElementExtension on ExecutableElement {
 extension ExecutableElementOrNullExtension on ExecutableElement? {
   ExecutableElement2? get asElement2 {
     return this?.asElement2;
+  }
+}
+
+extension ExtensionElementExtension on ExtensionElement {
+  ExtensionElement2 get asElement2 {
+    return (this as ExtensionElementImpl).element;
   }
 }
 
@@ -278,6 +296,12 @@ extension InterfaceElement2Extension on InterfaceElement2 {
 extension InterfaceElementExtension on InterfaceElement {
   InterfaceElement2 get asElement2 {
     return (this as InterfaceElementImpl).element;
+  }
+}
+
+extension LibraryElementExtension on LibraryElement {
+  LibraryElement2 get asElement2 {
+    return this as LibraryElementImpl;
   }
 }
 
@@ -325,7 +349,21 @@ extension MethodElementExtension on MethodElement {
   }
 }
 
+extension MixinElementExtension on MixinElement {
+  MixinElement2 get asElement2 {
+    return (this as MixinElementImpl).element;
+  }
+}
+
 extension ParameterElementExtension on ParameterElement {
+  FormalParameterElement get asElement2 {
+    return switch (this) {
+      FormalParameterFragment(:var element) => element,
+      ParameterMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+
   ParameterElementImpl get declarationImpl {
     return declaration as ParameterElementImpl;
   }
@@ -340,6 +378,22 @@ extension PrefixElement2Extension on PrefixElement2 {
 extension PrefixElementExtension on PrefixElement {
   PrefixElement2 get asElement2 {
     return (this as PrefixElementImpl).element2;
+  }
+}
+
+extension PropertyAccessorElementExtension on PropertyAccessorElement {
+  PropertyAccessorElement2 get asElement2 {
+    return switch (this) {
+      PropertyAccessorFragment(:var element) => element,
+      PropertyAccessorMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+}
+
+extension TopLevelVariableElementExtension on TopLevelVariableElement {
+  TopLevelVariableElement2 get asElement2 {
+    return (this as TopLevelVariableElementImpl).element;
   }
 }
 

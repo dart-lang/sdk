@@ -23,7 +23,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -380,7 +379,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             var isWidget = isFlutterWidgetParameter(parameter);
             collector.addSuggestion(
               NamedArgumentSuggestion(
-                parameter: parameter.asElement2 as FormalParameterElement,
+                parameter: parameter.asElement2,
                 appendColon: true,
                 appendComma: appendComma,
                 replacementLength: replacementLength,
@@ -2022,7 +2021,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                     collector.addSuggestion(
                       NamedArgumentSuggestion(
                         parameter:
-                            parameter.asElement2 as FormalParameterElement,
+                            parameter.asElement2,
                         matcherScore: matcherScore,
                         appendColon: appendColon,
                         appendComma: false,

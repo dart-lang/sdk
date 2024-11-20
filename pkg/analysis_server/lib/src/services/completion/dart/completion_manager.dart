@@ -403,9 +403,8 @@ class DartCompletionRequest {
     return analysisSession.inheritanceManager;
   }
 
-  /// Getter for the [Element2] repersentation of [libraryElement].
-  LibraryElement2 get libraryElement2 =>
-      libraryElement.asElement2 as LibraryElement2;
+  /// Getter for the [Element2] representation of [libraryElement].
+  LibraryElement2 get libraryElement2 => libraryElement.asElement2;
 
   /// Answer the [DartType] for Object in dart:core
   InterfaceType get objectType => libraryElement.typeProvider.objectType;
