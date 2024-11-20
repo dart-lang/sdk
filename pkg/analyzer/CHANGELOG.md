@@ -1,4 +1,4 @@
-## 7.0.0 (Not yet released - breaking changes)
+## 7.0.0
 * Remove deprecated `DartType.element2`.
 * Remove deprecated `DartType.isDynamic`.
 * Remove deprecated `DartType.isVoid`.
