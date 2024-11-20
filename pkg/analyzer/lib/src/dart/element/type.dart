@@ -534,6 +534,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
               : InvalidTypeImpl.instance,
           nullabilitySuffix: nullabilitySuffix,
           alias: alias);
+    } else if (element.name == 'Null' && element.library.isDartCore) {
+      return NullTypeImpl(element: element, alias: alias);
     } else {
       return InterfaceTypeImpl._(
           element: element,
@@ -549,9 +551,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.nullabilitySuffix,
     required super.alias,
   }) {
-    if (element.name == 'Null' && element.library.isDartCore) {
-      throw ArgumentError('NullTypeImpl should be used for `Null`');
-    }
     if (element.augmentationTarget != null) {
       throw ArgumentError(
         'InterfaceType(s) can only be created for declarations',
