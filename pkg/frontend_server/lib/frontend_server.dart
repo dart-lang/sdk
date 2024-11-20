@@ -18,7 +18,12 @@ import 'dart:typed_data' show BytesBuilder;
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart'
-    show Compiler, DevCompilerTarget, ExpressionCompiler, parseModuleFormat;
+    show
+        Compiler,
+        DevCompilerTarget,
+        ExpressionCompiler,
+        ModuleFormat,
+        parseModuleFormat;
 import 'package:front_end/src/api_prototype/macros.dart' as macros
     show isMacroLibraryUri;
 import 'package:front_end/src/api_unstable/ddc.dart' as ddc
@@ -1139,9 +1144,16 @@ class FrontendCompiler implements CompilerInterface {
 
     _processedOptions.ticker.logMs('Computed component');
 
+    ModuleFormat moduleFormat =
+        parseModuleFormat(_options['dartdevc-module-format'] as String);
+    final bool canaryFeatures = _options['dartdevc-canary'] as bool;
+    if (moduleFormat == ModuleFormat.ddc && canaryFeatures) {
+      moduleFormat = ModuleFormat.ddcLibraryBundle;
+    }
+
     final ExpressionCompiler expressionCompiler = new ExpressionCompiler(
       _compilerOptions,
-      parseModuleFormat(_options['dartdevc-module-format'] as String),
+      moduleFormat,
       errors,
       _generator.generator as ddc.IncrementalCompiler,
       kernel2jsCompiler,
