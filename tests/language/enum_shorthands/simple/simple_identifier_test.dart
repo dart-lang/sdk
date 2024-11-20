@@ -29,6 +29,13 @@ class IntegerExtContext {
   IntegerExtContext.optional([this.integer]);
 }
 
+class IntegerMixinContext {
+  final IntegerMixin? integer;
+  IntegerMixinContext(this.integer);
+  IntegerMixinContext.named({this.integer});
+  IntegerMixinContext.optional([this.integer]);
+}
+
 void main() {
   // Enum
   Color color = .blue;
@@ -58,4 +65,11 @@ void main() {
   var integerExtContextPositional = IntegerExtContext(.one);
   var integerExtContextNamed = IntegerExtContext.named(integer: .one);
   var integerExtContextOptional = IntegerExtContext.optional(.one);
+
+  // Mixin
+  IntegerMixin integerMixin = .mixinOne;
+  const IntegerMixin constIntegerMixin = .mixinConstOne;
+  var integerMixinContextPositional = IntegerMixinContext(.mixinOne);
+  var integerMixinContextNamed = IntegerMixinContext.named(integer: .mixinOne);
+  var integerMixinContextOptional = IntegerMixinContext.optional(.mixinOne);
 }

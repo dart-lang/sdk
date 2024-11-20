@@ -13,19 +13,25 @@ class ConstConstructorAssert {
       : assert(color == .blue);
 
   const ConstConstructorAssert.notBlue(Color color)
-      : assert(color == .blue);
+      : assert(color != .blue);
 
   const ConstConstructorAssert.one(Integer integer)
       : assert(integer == .constOne);
 
   const ConstConstructorAssert.notOne(Integer integer)
-      : assert(integer == .constOne);
+      : assert(integer != .constOne);
 
   const ConstConstructorAssert.oneExt(IntegerExt integer)
       : assert(integer == .constOne);
 
   const ConstConstructorAssert.notOneExt(IntegerExt integer)
-      : assert(integer == .constOne);
+      : assert(integer != .constOne);
+
+  const ConstConstructorAssert.oneMixin(IntegerMixin integer)
+      : assert(integer == .mixinConstOne);
+
+  const ConstConstructorAssert.notOneMixin(IntegerExt integer)
+      : assert(integer != .mixinConstOne);
 }
 
 void main() {
@@ -68,6 +74,19 @@ void main() {
   if (integerExt != .one) print('ok');
   if (integerExt case != .constOne) print('ok');
 
+  // Mixin
+  IntegerMixin integerMixin = .mixinOne;
+  const IntegerMixin constIntegerMixin = .mixinConstOne;
+
+  const bool constIntegerMixinEq = constIntegerMixin == .mixinConstOne;
+  const bool constIntegerMixinNeq = constIntegerMixin != .mixinConstOne;
+
+  if (integerMixin == .mixinOne) print('ok');
+  if (integerMixin case == .mixinConstOne) print('ok');
+
+  if (integerMixin != .mixinOne) print('ok');
+  if (integerMixin case != .mixinConstOne) print('ok');
+
   // Test the constant evaluation for enum shorthands in const constructor
   // asserts.
   const ConstConstructorAssert.blue(Color.blue);
@@ -76,4 +95,6 @@ void main() {
   const ConstConstructorAssert.notOne(Integer.constTwo);
   const ConstConstructorAssert.oneExt(IntegerExt.constOne);
   const ConstConstructorAssert.notOneExt(IntegerExt.constTwo);
+  const ConstConstructorAssert.oneMixin(IntegerMixin.constOne);
+  const ConstConstructorAssert.notOneMixin(IntegerMixin.constTwo);
 }

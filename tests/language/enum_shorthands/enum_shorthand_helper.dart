@@ -23,3 +23,14 @@ extension type IntegerExt(int integer) {
   static const IntegerExt constTwo = const IntegerExt._(2);
   const IntegerExt._(this.integer);
 }
+
+mixin IntegerMixin on Integer {
+  static IntegerMixin get mixinOne => IntegerWithMixin(1);
+  static const IntegerMixin mixinConstOne = const IntegerWithMixin._(1);
+  static const IntegerMixin mixinConstTwo = const IntegerWithMixin._(2);
+}
+
+class IntegerWithMixin extends Integer with IntegerMixin {
+  const IntegerWithMixin(int integer) : this._(integer);
+  const IntegerWithMixin._(super.integer) : super._();
+}

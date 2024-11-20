@@ -44,9 +44,22 @@ class ConstConstructorAssert {
         //     ^
         // [analyzer] unspecified
         // [cfe] unspecified
+
+  const ConstConstructorAssert.oneMixin(IntegerMixin integer)
+      : assert(.mixinConstOne == integer);
+        //     ^
+        // [analyzer] unspecified
+        // [cfe] unspecified
+
+  const ConstConstructorAssert.notOneMixin(IntegerMixin integer)
+      : assert(.mixinConstOne != integer);
+        //     ^
+        // [analyzer] unspecified
+        // [cfe] unspecified
 }
 
-void notSymmetrical(Color color, Integer integer, IntegerExt integerExt) {
+void notSymmetrical(Color color, Integer integer, IntegerExt integerExt,
+    IntegerMixin integerMixin) {
   const bool symBlueEq = .blue == color;
   // ^
   // [analyzer] unspecified
@@ -106,9 +119,20 @@ void notSymmetrical(Color color, Integer integer, IntegerExt integerExt) {
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
+
+  if (.mixinOne == integerMixin) print('not ok');
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  if (.mixinOne != integerMixin) print('not ok');
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 }
 
-void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt, bool condition) {
+void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt,
+    IntegerMixin integerMixin, bool condition) {
   const Color constColor = Color.red;
   const Object obj = true;
   const bool constCondition = obj as bool;
@@ -224,9 +248,49 @@ void rhsNeedsToBeShorthand(Color color, Integer integer, IntegerExt integerExt, 
     // [cfe] unspecified
     print('not ok');
   }
+
+  const IntegerMixin constIntegerMixin = IntegerMixin.mixinConstOne;
+  const bool rhsIntegerMixinEq = constIntegerMixin == (constCondition ? .mixinConstOne : .mixinConstTwo);
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  const bool rhsIntegerMixinNeq = constIntegerMixin != (constCondition ? .mixinConstOne : .mixinConstTwo);
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  if (integerMixin == (condition ? .mixinConstOne : .mixinConstTwo)) {
+    // ^
+    // [analyzer] unspecified
+    // [cfe] unspecified
+    print('not ok');
+  }
+
+  if (integerMixin != (condition ? .mixinConstOne : .mixinConstTwo)) {
+    // ^
+    // [analyzer] unspecified
+    // [cfe] unspecified
+    print('not ok');
+  }
+
+  if (integerMixin case == (constCondition ? .mixinConstOne : .mixinConstTwo)) {
+    // ^
+    // [analyzer] unspecified
+    // [cfe] unspecified
+    print('not ok');
+  }
+
+  if (integerMixin case != (constCondition ? .mixinConstOne : .mixinConstTwo)) {
+    // ^
+    // [analyzer] unspecified
+    // [cfe] unspecified
+    print('not ok');
+  }
 }
 
-void objectContextType(Color color, Integer integer, IntegerExt integerExt) {
+void objectContextType(Color color, Integer integer, IntegerExt integerExt,
+    IntegerMixin integerMixin) {
   const Color constColor = Color.red;
   const bool contextTypeColorEq = (constColor as Object) == .blue;
   // ^
@@ -319,6 +383,37 @@ void objectContextType(Color color, Integer integer, IntegerExt integerExt) {
   // ^
   // [analyzer] unspecified
   // [cfe] unspecified
+
+  const IntegerMixin constIntegerMixin = IntegerMixin.mixinConstOne;
+  const bool contextTypeIntegerMixinEq = (constIntegerMixin as Object) == .mixinConstTwo;
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  const bool contextTypeIntegerMixinNeq = (constIntegerMixin as Object) != .mixinConstTwo;
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  if ((integerMixin as Object) == .mixinOne) print('not ok');
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  if ((integerMixin as Object) case == .mixinConstOne) print('not ok');
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  if ((integerMixin as Object) != .mixinOne) print('not ok');
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  if ((integerMixin as Object) case != .mixinConstOne) print('not ok');
+  // ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 }
 
 void typeParameterContext<C extends Color, T extends Object>(C color, T value) {
@@ -338,11 +433,12 @@ void main() {
   Color color = .blue;
   Integer integer = .one;
   IntegerExt integerExt = .one;
+  IntegerMixin integerMixin = .mixinOne;
 
-  notSymmetrical(color, integer, integerExt);
-  rhsNeedsToBeShorthand(color, integer, integerExt, true);
-  rhsNeedsToBeShorthand(color, integer, integerExt, false);
-  objectContextType(color, integer, integerExt);
+  notSymmetrical(color, integer, integerExt, integerMixin);
+  rhsNeedsToBeShorthand(color, integer, integerExt, integerMixin, true);
+  rhsNeedsToBeShorthand(color, integer, integerExt, integerMixin, false);
+  objectContextType(color, integer, integerExt, integerMixin);
 
   typeParameterContext(color, integer);
   typeParameterContext(color, Color.red);
@@ -355,4 +451,6 @@ void main() {
   const ConstConstructorAssert.notOne(Integer.constTwo);
   const ConstConstructorAssert.oneExt(IntegerExt.constOne);
   const ConstConstructorAssert.notOneExt(IntegerExt.constTwo);
+  const ConstConstructorAssert.oneMixin(IntegerMixin.mixinConstOne);
+  const ConstConstructorAssert.notOneMixin(IntegerMixin.mixinConstTwo);
 }
