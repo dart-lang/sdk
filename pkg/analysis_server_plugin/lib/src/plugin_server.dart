@@ -181,8 +181,6 @@ class PluginServer {
     _channel = channel;
     _channel.listen(_handleRequestZoned,
         // TODO(srawlins): Implement.
-        onError: (_) {},
-        // TODO(srawlins): Implement.
         onDone: () {});
   }
 
