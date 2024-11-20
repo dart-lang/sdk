@@ -22266,6 +22266,133 @@ library
 ''');
   }
 
+  test_class_operator_minus() async {
+    var library = await buildLibrary('''
+class A {
+  int operator -(int other) => 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::A
+          methods
+            - @25
+              reference: <testLibraryFragment>::@class::A::@method::-
+              enclosingElement3: <testLibraryFragment>::@class::A
+              parameters
+                requiredPositional other @31
+                  type: int
+              returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibrary>::@class::A
+          constructors
+            synthetic new
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+          methods
+            - @25
+              reference: <testLibraryFragment>::@class::A::@method::-
+              element: <testLibraryFragment>::@class::A::@method::-#element
+              formalParameters
+                other @31
+                  element: <testLibraryFragment>::@class::A::@method::-::@parameter::other#element
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        -
+          reference: <testLibrary>::@class::A::@method::-
+          firstFragment: <testLibraryFragment>::@class::A::@method::-
+          formalParameters
+            requiredPositional other
+              type: int
+''');
+  }
+
+  test_class_operator_minus_unary() async {
+    var library = await buildLibrary('''
+class A {
+  int operator -() => 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  definingUnit: <testLibraryFragment>
+  units
+    <testLibraryFragment>
+      enclosingElement3: <null>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          enclosingElement3: <testLibraryFragment>
+          constructors
+            synthetic @-1
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              enclosingElement3: <testLibraryFragment>::@class::A
+          methods
+            unary- @25
+              reference: <testLibraryFragment>::@class::A::@method::unary-
+              enclosingElement3: <testLibraryFragment>::@class::A
+              returnType: int
+----------------------------------------
+library
+  reference: <testLibrary>
+  fragments
+    <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        class A @6
+          reference: <testLibraryFragment>::@class::A
+          element: <testLibrary>::@class::A
+          constructors
+            synthetic new
+              reference: <testLibraryFragment>::@class::A::@constructor::new
+              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+          methods
+            - @25
+              reference: <testLibraryFragment>::@class::A::@method::unary-
+              element: <testLibraryFragment>::@class::A::@method::unary-#element
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: <testLibraryFragment>::@class::A
+      constructors
+        synthetic new
+          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+      methods
+        -
+          reference: <testLibrary>::@class::A::@method::unary-
+          firstFragment: <testLibraryFragment>::@class::A::@method::unary-
+''');
+  }
+
   test_class_ref_nullability_none() async {
     var library = await buildLibrary('''
 class C {}

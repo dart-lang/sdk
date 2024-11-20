@@ -35,6 +35,7 @@ bool _isOldModelElement(Element2? element) {
         'DirectiveUriWithRelativeUri',
         'DirectiveUriWithRelativeUriString',
         'DirectiveUriWithSource',
+        'DirectiveUriWithUnit',
         'ElementAnnotation',
         'ElementKind',
         'ElementLocation',

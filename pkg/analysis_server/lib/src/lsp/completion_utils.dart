@@ -9,8 +9,6 @@ import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart'
-    show getReturnTypeString;
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -19,8 +17,10 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:analyzer_plugin/src/utilities/documentation.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -40,7 +40,7 @@ Future<OverrideData?> createOverrideSuggestionData(
     builder,
   ) {
     builder.addReplacement(suggestion.replacementRange, (builder) {
-      builder.writeOverride(
+      builder.writeOverride2(
         suggestion.element,
         displayTextBuffer: displayTextBuffer,
         invokeSuper: suggestion.shouldInvokeSuper,
@@ -127,7 +127,7 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   // functions but they should not be included in the completions.
   var element =
       suggestion is ElementBasedSuggestion
-          ? (suggestion as ElementBasedSuggestion).element
+          ? (suggestion as ElementBasedSuggestion).element.asElement
           : null;
   var isCallable =
       element != null &&
@@ -226,21 +226,21 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   if (suggestion is ElementBasedSuggestion) {
     var element = (suggestion as ElementBasedSuggestion).element;
 
-    if (element is ExecutableElement && element is! PropertyAccessorElement) {
+    if (element is ExecutableElement2 && element is! PropertyAccessorElement2) {
       parameterNames =
-          element.parameters.map((parameter) {
-            return parameter.name;
+          element.formalParameters.map((parameter) {
+            return parameter.displayName;
           }).toList();
 
-      var requiredParameters = element.parameters.where(
-        (ParameterElement param) => param.isRequiredPositional,
+      var requiredParameters = element.formalParameters.where(
+        (FormalParameterElement param) => param.isRequiredPositional,
       );
 
-      var namedParameters = element.parameters.where(
-        (ParameterElement param) => param.isNamed,
+      var namedParameters = element.formalParameters.where(
+        (FormalParameterElement param) => param.isNamed,
       );
 
-      defaultArgumentList = computeCompletionDefaultArgumentList(
+      defaultArgumentList = computeCompletionDefaultArgumentList2(
         element,
         requiredParameters,
         namedParameters,
@@ -382,7 +382,7 @@ lsp.CompletionItemKind? _candidateToCompletionItemKind(
 
   if (suggestion is ElementBasedSuggestion) {
     return _elementToCompletionItemKind(
-      (suggestion as ElementBasedSuggestion).element,
+      (suggestion as ElementBasedSuggestion).element.asElement!,
       supportedCompletionKinds,
     ).firstWhereOrNull(isSupported);
   }
@@ -533,15 +533,15 @@ CompletionDetail _getCompletionDetail(
   }
   String? parameters;
   if (element != null) {
-    parameters = getParametersString(element);
+    parameters = getParametersString2(element);
     // Prefer the element return type (because it may be more specific
     // for overrides) and fall back to the parameter type or return type from the
     // suggestion (handles records).
     String? parameterType;
-    if (element is ParameterElement) {
+    if (element is FormalParameterElement) {
       parameterType = element.type.getDisplayString();
     }
-    returnType = getReturnTypeString(element) ?? parameterType;
+    returnType = server.getReturnTypeString2(element) ?? parameterType;
 
     // Extract the type from setters to be shown in the place a return type
     // would usually be shown.
@@ -575,7 +575,10 @@ CompletionDetail _getCompletionDetail(
 
   // Use the full signature in the details popup.
   var detail = fullSignature;
-  if (element != null && element.hasDeprecated && !supportsDeprecated) {
+  if (element != null &&
+      (element is Annotatable &&
+          (element as Annotatable).metadata2.hasDeprecated) &&
+      !supportsDeprecated) {
     // If the item is deprecated and we don't support the native deprecated flag
     // then include it in the details.
     detail = '$detail\n\n(Deprecated)'.trim();
@@ -638,11 +641,11 @@ _ElementDocumentation? _getDocsFromComputer(
 
 /// If the [element] has a documentation comment, return it.
 String? _getDocumentation(
-  Element element,
+  Element2 element,
   DartCompletionRequest request,
   DocumentationPreference includeDocumentation,
 ) {
-  var docs = _getDocsFromComputer(element, request);
+  var docs = _getDocsFromComputer(element.asElement!, request);
 
   var doc = removeDartDocDelimiters(docs?.full);
   var rawDoc =

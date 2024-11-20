@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,7 +26,7 @@ class B implements A {
   int foo = 0;
 }
 ''');
-    var foo = findElement.field('foo', of: 'B');
+    var foo = findElement2.field('foo', of: 'B');
     _assertFieldType(foo, 'int', isCovariant: true);
   }
 
@@ -40,7 +40,7 @@ class B implements A {
   int foo = 0;
 }
 ''');
-    var foo = findElement.field('foo', of: 'B');
+    var foo = findElement2.field('foo', of: 'B');
     _assertFieldType(foo, 'int', isCovariant: true);
   }
 
@@ -54,7 +54,7 @@ class B implements A {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'B');
+    var foo = findElement2.field('foo', of: 'B');
     _assertFieldType(foo, 'int');
   }
 
@@ -68,7 +68,7 @@ class B implements A {
   var foo = 0;
 }
 ''');
-    var foo = findElement.field('foo', of: 'B');
+    var foo = findElement2.field('foo', of: 'B');
     _assertFieldType(foo, 'num');
   }
 
@@ -84,7 +84,7 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'C');
+    var foo = findElement2.field('foo', of: 'C');
     _assertFieldTypeDynamic(foo);
   }
 
@@ -100,7 +100,7 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'C');
+    var foo = findElement2.field('foo', of: 'C');
     _assertFieldType(foo, 'int');
   }
 
@@ -116,7 +116,7 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'C');
+    var foo = findElement2.field('foo', of: 'C');
     _assertFieldTypeDynamic(foo);
   }
 
@@ -135,7 +135,7 @@ class X implements A, B, C {
   final foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'X');
+    var foo = findElement2.field('foo', of: 'X');
     _assertFieldType(foo, 'int');
   }
 
@@ -154,7 +154,7 @@ class X implements A, B, C {
   final foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'X');
+    var foo = findElement2.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
   }
 
@@ -173,7 +173,7 @@ class X implements A, B, C {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'X');
+    var foo = findElement2.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
     // TODO(scheglov): error?
   }
@@ -193,7 +193,7 @@ class X implements A, B, C {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'X');
+    var foo = findElement2.field('foo', of: 'X');
     _assertFieldType(foo, 'int');
   }
 
@@ -212,7 +212,7 @@ class X implements A, B, C {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'X');
+    var foo = findElement2.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
   }
 
@@ -231,7 +231,7 @@ class X implements A, B, C {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'X');
+    var foo = findElement2.field('foo', of: 'X');
     _assertFieldTypeDynamic(foo);
   }
 
@@ -247,7 +247,7 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'C');
+    var foo = findElement2.field('foo', of: 'C');
     _assertFieldType(foo, 'num');
   }
 
@@ -263,7 +263,7 @@ class C implements A, B {
   var foo;
 }
 ''');
-    var foo = findElement.field('foo', of: 'C');
+    var foo = findElement2.field('foo', of: 'C');
     _assertFieldTypeDynamic(foo);
   }
 
@@ -279,7 +279,7 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement.getter('foo', of: 'C');
+    var foo = findElement2.getter('foo', of: 'C');
     _assertGetterType(foo, 'int');
   }
 
@@ -295,7 +295,7 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement.getter('foo', of: 'C');
+    var foo = findElement2.getter('foo', of: 'C');
     _assertGetterTypeDynamic(foo);
   }
 
@@ -311,7 +311,7 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement.getter('foo', of: 'C');
+    var foo = findElement2.getter('foo', of: 'C');
     _assertGetterType(foo, 'int');
   }
 
@@ -330,7 +330,7 @@ class X implements A, B, C {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement.getter('foo', of: 'X');
+    var foo = findElement2.getter('foo', of: 'X');
     _assertGetterType(foo, 'int');
   }
 
@@ -349,7 +349,7 @@ class X implements A, B, C {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement.getter('foo', of: 'X');
+    var foo = findElement2.getter('foo', of: 'X');
     _assertGetterTypeDynamic(foo);
   }
 
@@ -365,7 +365,7 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement.getter('foo', of: 'C');
+    var foo = findElement2.getter('foo', of: 'C');
     _assertGetterType(foo, 'num');
   }
 
@@ -381,7 +381,7 @@ class C implements A, B {
   get foo => throw 0;
 }
 ''');
-    var foo = findElement.getter('foo', of: 'C');
+    var foo = findElement2.getter('foo', of: 'C');
     _assertGetterTypeDynamic(foo);
   }
 
@@ -395,7 +395,7 @@ class B implements A {
   var foo = <String, int>{};
 }
 ''');
-    var foo = findElement.field('foo', of: 'B');
+    var foo = findElement2.field('foo', of: 'B');
     _assertFieldType(foo, 'Map<String, int>');
   }
 
@@ -419,8 +419,8 @@ class C implements A, B {
   void foo({int p}) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
-    _assertParameter(p, type: 'int', isCovariant: true);
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    _assertFormalParameter(p, type: 'int', isCovariant: true);
   }
 
   test_method_parameter_covariant_positional() async {
@@ -435,8 +435,8 @@ class C implements A, B {
   void foo([int p]) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
-    _assertParameter(p, type: 'int', isCovariant: true);
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    _assertFormalParameter(p, type: 'int', isCovariant: true);
   }
 
   test_method_parameter_covariant_required() async {
@@ -451,8 +451,8 @@ class C implements A, B {
   void foo(int p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
-    _assertParameter(p, type: 'int', isCovariant: true);
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
+    _assertFormalParameter(p, type: 'int', isCovariant: true);
   }
 
   test_method_parameter_named_multiple_combined() async {
@@ -467,7 +467,7 @@ class C implements A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'num');
   }
 
@@ -483,7 +483,7 @@ class C implements A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
@@ -499,7 +499,7 @@ class C implements A, B {
   void foo({p}) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'int');
   }
 
@@ -515,7 +515,7 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
@@ -531,7 +531,7 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'num');
   }
 
@@ -549,7 +549,7 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'Object?');
   }
 
@@ -565,7 +565,7 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertTypeDynamic(p.type);
   }
 
@@ -581,7 +581,7 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'int');
   }
 
@@ -594,7 +594,7 @@ class C<T> implements A<T> {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'T');
   }
 
@@ -610,7 +610,7 @@ class C implements A, B {
   void foo(p) {}
 }
 ''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
+    var p = findElement2.method('foo', of: 'C').formalParameters[0];
     assertType(p.type, 'int');
   }
 
@@ -626,7 +626,7 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertType(foo.returnType, 'int');
   }
 
@@ -642,7 +642,7 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertType(foo.returnType, 'int');
   }
 
@@ -658,7 +658,7 @@ class C implements A<int>, B<double> {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertTypeDynamic(foo.returnType);
   }
 
@@ -674,7 +674,7 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertTypeDynamic(foo.returnType);
   }
 
@@ -692,7 +692,7 @@ class C implements A, B {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertType(foo.returnType, 'Object?');
   }
 
@@ -708,7 +708,7 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertType(foo.returnType, 'int');
   }
 
@@ -724,7 +724,7 @@ class C<T> implements A<T>, B<T> {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertType(foo.returnType, 'T');
   }
 
@@ -740,7 +740,7 @@ class C implements A, B {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertType(foo.returnType, 'int');
   }
 
@@ -756,7 +756,7 @@ class C implements A, B {
   foo() {};
 }
 ''');
-    var foo = findElement.method('foo', of: 'C');
+    var foo = findElement2.method('foo', of: 'C');
     assertType(foo.returnType, 'void');
   }
 
@@ -769,7 +769,7 @@ class B extends A {
   foo() => 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'B');
+    var foo = findElement2.method('foo', of: 'B');
     assertType(foo.returnType, 'int');
   }
 
@@ -782,7 +782,7 @@ class B<T> extends A<T> {
   foo() => throw 0;
 }
 ''');
-    var foo = findElement.method('foo', of: 'B');
+    var foo = findElement2.method('foo', of: 'B');
     assertType(foo.returnType, 'T');
   }
 
@@ -798,7 +798,7 @@ class C implements A, B {
   set foo(int x) {}
 }
 ''');
-    var foo = findElement.setter('foo', of: 'C');
+    var foo = findElement2.setter('foo', of: 'C');
     _assertSetterType(foo, 'int', isCovariant: true);
   }
 
@@ -814,7 +814,7 @@ class C implements A, B {
   set foo(x) {}
 }
 ''');
-    var foo = findElement.setter('foo', of: 'C');
+    var foo = findElement2.setter('foo', of: 'C');
     _assertSetterType(foo, 'int');
   }
 
@@ -830,7 +830,7 @@ class C implements A, B {
   set foo(x) {}
 }
 ''');
-    var foo = findElement.setter('foo', of: 'C');
+    var foo = findElement2.setter('foo', of: 'C');
     _assertSetterTypeDynamic(foo);
   }
 
@@ -849,7 +849,7 @@ class X implements A, B, C {
   set foo(x) {}
 }
 ''');
-    var foo = findElement.setter('foo', of: 'X');
+    var foo = findElement2.setter('foo', of: 'X');
     _assertSetterType(foo, 'num');
   }
 
@@ -868,7 +868,7 @@ class X implements A, B, C {
   set foo(x) {}
 }
 ''');
-    var foo = findElement.setter('foo', of: 'X');
+    var foo = findElement2.setter('foo', of: 'X');
     _assertSetterTypeDynamic(foo);
   }
 
@@ -884,7 +884,7 @@ class C implements A, B {
   set foo(x) {}
 }
 ''');
-    var foo = findElement.setter('foo', of: 'C');
+    var foo = findElement2.setter('foo', of: 'C');
     _assertSetterType(foo, 'num');
   }
 
@@ -900,7 +900,7 @@ class C implements A, B {
   set foo(x) {}
 }
 ''');
-    var foo = findElement.setter('foo', of: 'C');
+    var foo = findElement2.setter('foo', of: 'C');
     _assertSetterTypeDynamic(foo);
   }
 
@@ -913,47 +913,37 @@ class B implements A {
   set foo(x) {}
 }
 ''');
-    var foo = findElement.setter('foo', of: 'B');
+    var foo = findElement2.setter('foo', of: 'B');
     _assertSetterType(foo, 'dynamic');
   }
 
   void _assertFieldType(
-    FieldElement field,
+    FieldElement2 field,
     String type, {
     bool isCovariant = false,
   }) {
     expect(field.isSynthetic, isFalse);
 
-    _assertGetterType(field.getter, type);
+    _assertGetterType(field.getter2, type);
 
-    var setter = field.setter;
+    var setter = field.setter2;
     if (setter != null) {
       _assertSetterType(setter, type, isCovariant: isCovariant);
     }
   }
 
-  void _assertFieldTypeDynamic(FieldElement field) {
+  void _assertFieldTypeDynamic(FieldElement2 field) {
     expect(field.isSynthetic, isFalse);
 
-    _assertGetterTypeDynamic(field.getter);
+    _assertGetterTypeDynamic(field.getter2);
 
     if (!field.isFinal) {
-      _assertSetterTypeDynamic(field.setter);
+      _assertSetterTypeDynamic(field.setter2);
     }
   }
 
-  void _assertGetterType(PropertyAccessorElement? accessor, String expected) {
-    accessor!;
-    assertType(accessor.returnType, expected);
-  }
-
-  void _assertGetterTypeDynamic(PropertyAccessorElement? accessor) {
-    accessor!;
-    assertTypeDynamic(accessor.returnType);
-  }
-
-  void _assertParameter(
-    ParameterElement element, {
+  void _assertFormalParameter(
+    FormalParameterElement element, {
     String? type,
     bool isCovariant = false,
   }) {
@@ -961,18 +951,28 @@ class B implements A {
     expect(element.isCovariant, isCovariant);
   }
 
+  void _assertGetterType(GetterElement? accessor, String expected) {
+    accessor!;
+    assertType(accessor.returnType, expected);
+  }
+
+  void _assertGetterTypeDynamic(GetterElement? accessor) {
+    accessor!;
+    assertTypeDynamic(accessor.returnType);
+  }
+
   void _assertSetterType(
-    PropertyAccessorElement accessor,
+    SetterElement accessor,
     String expected, {
     bool isCovariant = false,
   }) {
-    var parameter = accessor.parameters.single;
+    var parameter = accessor.formalParameters.single;
     assertType(parameter.type, expected);
     expect(parameter.isCovariant, isCovariant);
   }
 
-  void _assertSetterTypeDynamic(PropertyAccessorElement? accessor) {
+  void _assertSetterTypeDynamic(SetterElement? accessor) {
     accessor!;
-    assertTypeDynamic(accessor.parameters.single.type);
+    assertTypeDynamic(accessor.formalParameters.single.type);
   }
 }

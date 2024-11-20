@@ -11,6 +11,8 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 import 'feature_computer.dart';
@@ -105,10 +107,10 @@ class RelevanceComputer {
     var neverType = request.libraryElement.typeProvider.neverType;
     switch (suggestion) {
       case ClassSuggestion():
-        return computeTopLevelRelevance(
+        return computeTopLevelRelevance2(
           suggestion.element,
           elementType: instantiateInstanceElement(
-            suggestion.element,
+            suggestion.element.asElement,
             neverType,
           ),
           isNotImportedLibrary: suggestion.isNotImported,
@@ -117,7 +119,7 @@ class RelevanceComputer {
         return Relevance.closure;
       case ConstructorSuggestion():
         return _computeConstructorRelevance(
-          suggestion.element,
+          suggestion.element.asElement as ConstructorElement,
           neverType,
           suggestion.isNotImported,
         );
@@ -129,24 +131,24 @@ class RelevanceComputer {
         );
       case EnumSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element,
+          suggestion.element.asElement,
           elementType: instantiateInstanceElement(
-            suggestion.element,
+            suggestion.element.asElement,
             neverType,
           ),
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case ExtensionSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element,
+          suggestion.element.asElement!,
           elementType: suggestion.element.extendedType,
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case ExtensionTypeSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element,
+          suggestion.element.asElement,
           elementType: instantiateInstanceElement(
-            suggestion.element,
+            suggestion.element.asElement,
             neverType,
           ),
           isNotImportedLibrary: suggestion.isNotImported,
@@ -159,13 +161,17 @@ class RelevanceComputer {
           //  `FieldSuggestion` on an enum constant except when adding members
           //  of the enclosing declaration. We should enforce this assumption.
           return computeTopLevelRelevance(
-            fieldElement,
+            fieldElement.asElement!,
             elementType: fieldElement.type,
             isNotImportedLibrary: false,
           );
         } else {
+          var field =
+              fieldElement is FieldMember
+                  ? fieldElement
+                  : fieldElement.asElement as FieldElement;
           return computeFieldElementRelevance(
-            fieldElement,
+            field,
             suggestion.inheritanceDistance(featureComputer),
           );
         }
@@ -177,7 +183,9 @@ class RelevanceComputer {
         return 500;
       case ImportPrefixSuggestion():
         return computeScore(
-          elementKind: _computeElementKind(suggestion.libraryElement),
+          elementKind: _computeElementKind(
+            suggestion.libraryElement.asElement!,
+          ),
         );
       case KeywordSuggestion():
         return _computeKeywordRelevance(suggestion);
@@ -187,7 +195,7 @@ class RelevanceComputer {
         return Relevance.loadLibrary;
       case LocalFunctionSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element,
+          suggestion.element.asElement,
           elementType: suggestion.element.returnType,
           isNotImportedLibrary: suggestion.isNotImported,
         );
@@ -195,22 +203,22 @@ class RelevanceComputer {
         return _computeLocalVariableRelevance(suggestion);
       case MethodSuggestion():
         return _computeMethodRelevance(
-          suggestion.element,
+          suggestion.element.asElement,
           suggestion.inheritanceDistance(featureComputer),
           suggestion.isNotImported,
         );
       case MixinSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element,
+          suggestion.element.asElement,
           elementType: instantiateInstanceElement(
-            suggestion.element,
+            suggestion.element.asElement,
             neverType,
           ),
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case NamedArgumentSuggestion():
         var parameter = suggestion.parameter;
-        if (parameter.isRequiredNamed || parameter.hasRequired) {
+        if (parameter.isRequiredNamed || parameter.metadata2.hasRequired) {
           return Relevance.requiredNamedArgument;
         } else {
           return Relevance.namedArgument;
@@ -219,9 +227,15 @@ class RelevanceComputer {
         return 500;
       case OverrideSuggestion():
         return Relevance.override;
-      case PropertyAccessSuggestion():
+      case GetterSuggestion():
         return _computePropertyAccessorRelevance(
-          suggestion.element,
+          suggestion.element.asElement as PropertyAccessorElement,
+          suggestion.inheritanceDistance(featureComputer),
+          suggestion.isNotImported,
+        );
+      case SetterSuggestion():
+        return _computePropertyAccessorRelevance(
+          suggestion.element.asElement as PropertyAccessorElement,
           suggestion.inheritanceDistance(featureComputer),
           suggestion.isNotImported,
         );
@@ -235,13 +249,13 @@ class RelevanceComputer {
         return Relevance.requiredNamedArgument;
       case SetStateMethodSuggestion():
         return _computeMethodRelevance(
-          suggestion.element,
+          suggestion.element.asElement,
           suggestion.inheritanceDistance(featureComputer),
           suggestion.isNotImported,
         );
       case StaticFieldSuggestion():
         return _computeStaticFieldRelevance(
-          suggestion.element,
+          suggestion.element.asElement as FieldElement,
           0.0,
           suggestion.isNotImported,
         );
@@ -250,31 +264,36 @@ class RelevanceComputer {
       case TopLevelFunctionSuggestion():
         var function = suggestion.element;
         return computeTopLevelRelevance(
-          function,
+          function.asElement,
           elementType: function.returnType,
           isNotImportedLibrary: suggestion.isNotImported,
         );
-      case TopLevelPropertyAccessSuggestion():
+      case TopLevelGetterSuggestion():
         return _computeTopLevelPropertyAccessorRelevance(
-          suggestion.element,
+          suggestion.element.asElement as PropertyAccessorElement,
+          suggestion.isNotImported,
+        );
+      case TopLevelSetterSuggestion():
+        return _computeTopLevelPropertyAccessorRelevance(
+          suggestion.element.asElement as PropertyAccessorElement,
           suggestion.isNotImported,
         );
       case TopLevelVariableSuggestion():
         var variable = suggestion.element;
         return computeTopLevelRelevance(
-          variable,
+          variable.asElement!,
           elementType: variable.type,
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case TypeAliasSuggestion():
-        var typeAlias = suggestion.element;
+        var typeAlias = suggestion.element.asElement as TypeAliasElement;
         return computeTopLevelRelevance(
           typeAlias,
           elementType: _instantiateTypeAlias(typeAlias),
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case TypeParameterSuggestion():
-        return _computeTypeParameterRelevance(suggestion.element);
+        return _computeTypeParameterRelevance(suggestion.element.asElement);
       case UriSuggestion():
         return suggestion.uriStr == 'dart:core'
             ? Relevance.importDartCore
@@ -475,7 +494,7 @@ class RelevanceComputer {
     bool isNotImportedLibrary,
     double inheritanceDistance,
   ) {
-    var element = suggestion.element;
+    var element = suggestion.element.asElement as FieldElement;
     if (suggestion.includeEnumName) {
       return computeTopLevelRelevance(
         element,
@@ -489,7 +508,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for [FormalParameterSuggestion].
   int _computeFormalParameterRelevance(FormalParameterSuggestion suggestion) {
-    var element = suggestion.element;
+    var element = suggestion.element.asElement as ParameterElement;
     var variableType = element.type;
     var contextType = request.featureComputer.contextTypeFeature(
       request.contextType,
@@ -531,7 +550,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for [LocalVariableSuggestion].
   int _computeLocalVariableRelevance(LocalVariableSuggestion suggestion) {
-    var element = suggestion.element;
+    var element = suggestion.element.asElement as LocalVariableElement;
     var variableType = element.type;
     var contextType = request.featureComputer.contextTypeFeature(
       request.contextType,

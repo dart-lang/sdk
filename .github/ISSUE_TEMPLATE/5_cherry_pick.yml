@@ -1,12 +1,14 @@
-name: Request a cherry-pick.
-description: Request a patch to be cherry-picked into a release (for contributors use only).
+name: Request a cherry-pick (for contributor use only).
+description: Request a patch to be cherry-picked into a release.
 title: '[CP] <title>'
 labels: ['cherry-pick-review']
+
 assignees:
   - mit-mit
   - athomas
   - vsmenon
   - itsjustkevin
+
 body:
   - type: textarea
     id: commit_hash

@@ -398,7 +398,7 @@ enum E2 {a, b}
 var v = [E1.a, E2.b];
 ''');
 
-    var v = findElement.topVar('v');
+    var v = findElement2.topVar('v');
     assertType(v.type, 'List<Enum>');
   }
 
@@ -430,10 +430,10 @@ enum E {
 }
 ''');
 
-    expect(findElement.field('a').isEnumConstant, isTrue);
-    expect(findElement.field('b').isEnumConstant, isTrue);
+    expect(findElement2.field('a').isEnumConstant, isTrue);
+    expect(findElement2.field('b').isEnumConstant, isTrue);
 
-    expect(findElement.field('values').isEnumConstant, isFalse);
+    expect(findElement2.field('values').isEnumConstant, isFalse);
   }
 
   test_method() async {

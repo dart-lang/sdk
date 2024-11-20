@@ -52,7 +52,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
         DirectiveUri,
-        DirectiveUriWithUnit,
         ElementAnnotation,
         ElementKind,
         ElementLocation,
@@ -442,9 +441,24 @@ abstract class Element2 {
   /// The object can be used to locate this element at a later time.
   ElementLocation? get location;
 
+  /// The name to use for lookup in maps.
+  ///
+  /// It is usually the same as [name3], with a few special cases.
+  ///
+  /// Just like [name3], it can be `null` if the element does not have
+  /// a name, for example an unnamed extension, or because of parser recovery.
+  ///
+  /// For a [SetterElement] the result has `=` at the end.
+  ///
+  /// For an unary operator `-` the result is `unary-`.
+  /// For a binary operator `-` the result is just `-`.
+  String? get lookupName;
+
   /// The name of this element.
   ///
   /// Returns `null` if this element doesn't have a name.
+  ///
+  /// See [Fragment.name2] for details.
   String? get name3;
 
   /// The non-synthetic element that caused this element to be created.
@@ -979,6 +993,8 @@ abstract class Fragment {
   /// for such synthetic fragments.
   ///
   /// For a [SetterFragment] this is the identifier, without `=` at the end.
+  ///
+  /// For both unary and binary `-` operator this is `-`.
   String? get name2;
 
   /// The offset of the [name2] of this element.
@@ -2581,9 +2597,4 @@ abstract class VariableFragment implements Fragment {
 
   @override
   VariableFragment? get previousFragment;
-}
-
-extension DirectiveUriWithUnitExtension on DirectiveUriWithUnit {
-  /// The library fragment associated with this directive.
-  LibraryFragment get libraryFragment => unit as LibraryFragment;
 }

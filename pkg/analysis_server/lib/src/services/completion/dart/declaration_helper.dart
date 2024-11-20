@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_collecto
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -216,7 +217,9 @@ class DeclarationHelper {
             collector.addSuggestion(
               LoadLibraryFunctionSuggestion(
                 kind: CompletionSuggestionKind.INVOCATION,
-                element: importedLibrary.loadLibraryFunction,
+                element:
+                    importedLibrary.loadLibraryFunction.asElement2
+                        as TopLevelFunctionElement,
                 matcherScore: matcherScore,
               ),
             );
@@ -336,8 +339,8 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         collector.addSuggestion(
           ImportPrefixSuggestion(
-            libraryElement: importedLibrary,
-            prefixElement: prefixElement,
+            libraryElement: importedLibrary.asElement2 as LibraryElement2,
+            prefixElement: prefixElement.asElement2 as PrefixElement2,
             matcherScore: matcherScore,
           ),
         );
@@ -899,33 +902,33 @@ class DeclarationHelper {
       var suggestion = switch (element) {
         ClassElement() => ClassSuggestion(
           importData: null,
-          element: element,
+          element: element.asElement2 as ClassElement2,
           matcherScore: matcherScore,
         ),
         EnumElement() => EnumSuggestion(
           importData: null,
-          element: element,
+          element: element.asElement2 as EnumElement2,
           matcherScore: matcherScore,
         ),
         ExtensionElement() => ExtensionSuggestion(
           importData: null,
-          element: element,
+          element: element.asElement2 as ExtensionElement2,
           matcherScore: matcherScore,
         ),
         ExtensionTypeElement() => ExtensionTypeSuggestion(
           importData: null,
-          element: element,
+          element: element.asElement2 as ExtensionTypeElement2,
           matcherScore: matcherScore,
         ),
         FunctionElement() => TopLevelFunctionSuggestion(
           importData: null,
-          element: element,
+          element: element.asElement2 as TopLevelFunctionElement,
           kind: _executableSuggestionKind,
           matcherScore: matcherScore,
         ),
         MixinElement() => MixinSuggestion(
           importData: null,
-          element: element,
+          element: element.asElement2 as MixinElement2,
           matcherScore: matcherScore,
         ),
         PropertyAccessorElement() => _createSuggestionFromTopLevelProperty(
@@ -934,12 +937,12 @@ class DeclarationHelper {
         ),
         TopLevelVariableElement() => TopLevelVariableSuggestion(
           importData: null,
-          element: element,
+          element: element.asElement2 as TopLevelVariableElement2,
           matcherScore: matcherScore,
         ),
         TypeAliasElement() => TypeAliasSuggestion(
           importData: null,
-          element: element,
+          element: element.asElement2 as TypeAliasElement2,
           matcherScore: matcherScore,
         ),
         _ => null,
@@ -1345,7 +1348,7 @@ class DeclarationHelper {
           if (matcherScore != -1) {
             var suggestion = EnumConstantSuggestion(
               importData: null,
-              element: field,
+              element: field.asElement2,
               includeEnumName: false,
               matcherScore: matcherScore,
             );
@@ -1495,17 +1498,25 @@ class DeclarationHelper {
         if (variable is TopLevelVariableElement) {
           return TopLevelVariableSuggestion(
             importData: importData,
-            element: variable,
+            element: variable.asElement2 as TopLevelVariableElement2,
             matcherScore: matcherScore,
           );
         }
       }
     } else {
-      return TopLevelPropertyAccessSuggestion(
-        importData: importData,
-        element: element,
-        matcherScore: matcherScore,
-      );
+      if (element.isGetter) {
+        return TopLevelGetterSuggestion(
+          importData: importData,
+          element: element.asElement2 as GetterElement,
+          matcherScore: matcherScore,
+        );
+      } else {
+        return TopLevelSetterSuggestion(
+          importData: importData,
+          element: element.asElement2 as SetterElement,
+          matcherScore: matcherScore,
+        );
+      }
     }
     return null;
   }
@@ -1548,7 +1559,7 @@ class DeclarationHelper {
         if (matcherScore != -1) {
           var suggestion = ClassSuggestion(
             importData: importData,
-            element: element,
+            element: element.asElement2 as ClassElement2,
             matcherScore: matcherScore,
           );
           collector.addSuggestion(suggestion);
@@ -1612,7 +1623,7 @@ class DeclarationHelper {
 
       var suggestion = ConstructorSuggestion(
         importData: importData,
-        element: element,
+        element: element.asElement2 as ConstructorElement2,
         hasClassName: hasClassName,
         isTearOff: isTearOff,
         isRedirect: isConstructorRedirect,
@@ -1656,7 +1667,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = EnumSuggestion(
           importData: importData,
-          element: element,
+          element: element.asElement2 as EnumElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -1685,7 +1696,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = ExtensionSuggestion(
           importData: importData,
-          element: element,
+          element: element.asElement2 as ExtensionElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -1711,7 +1722,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = ExtensionTypeSuggestion(
           importData: importData,
-          element: element,
+          element: element.asElement2 as ExtensionTypeElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -1742,9 +1753,9 @@ class DeclarationHelper {
       var matcherScore = state.matcher.score(field.displayName);
       if (matcherScore != -1) {
         var suggestion = FieldSuggestion(
-          element: field,
+          element: field.asElement2,
           matcherScore: matcherScore,
-          referencingInterface: referencingInterface,
+          referencingInterface: referencingInterface?.asElement2,
         );
         collector.addSuggestion(suggestion);
       }
@@ -1774,7 +1785,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = LocalFunctionSuggestion(
           kind: _executableSuggestionKind,
-          element: element,
+          element: element.asElement2 as LocalFunctionElement,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -1812,9 +1823,9 @@ class DeclarationHelper {
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
           var suggestion = SetStateMethodSuggestion(
-            element: method,
+            element: method.asElement2,
             importData: importData,
-            referencingInterface: referencingInterface,
+            referencingInterface: referencingInterface?.asElement2,
             matcherScore: matcherScore,
             indent: state.indent,
           );
@@ -1823,10 +1834,10 @@ class DeclarationHelper {
         }
         var suggestion = MethodSuggestion(
           kind: _executableSuggestionKind,
-          element: method,
+          element: method.asElement2,
           importData: importData,
           matcherScore: matcherScore,
-          referencingInterface: referencingInterface,
+          referencingInterface: referencingInterface?.asElement2,
         );
         collector.addSuggestion(suggestion);
       }
@@ -1846,7 +1857,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = MixinSuggestion(
           importData: importData,
-          element: element,
+          element: element.asElement2 as MixinElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -1867,7 +1878,7 @@ class DeclarationHelper {
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = FormalParameterSuggestion(
-          element: element,
+          element: element.asElement2 as FormalParameterElement,
           distance: _variableDistance++,
           matcherScore: matcherScore,
         );
@@ -1914,21 +1925,31 @@ class DeclarationHelper {
             var variable = accessor.variable2;
             if (variable is FieldElement) {
               var suggestion = FieldSuggestion(
-                element: variable,
+                element: variable.asElement2,
                 matcherScore: matcherScore,
-                referencingInterface: referencingInterface,
+                referencingInterface: referencingInterface?.asElement2,
               );
               collector.addSuggestion(suggestion);
             }
           }
         } else {
-          var suggestion = PropertyAccessSuggestion(
-            element: accessor,
-            importData: importData,
-            matcherScore: matcherScore,
-            referencingInterface: referencingInterface,
-          );
-          collector.addSuggestion(suggestion);
+          if (accessor.isGetter) {
+            var suggestion = GetterSuggestion(
+              element: accessor.asElement2 as GetterElement,
+              importData: importData,
+              matcherScore: matcherScore,
+              referencingInterface: referencingInterface?.asElement2,
+            );
+            collector.addSuggestion(suggestion);
+          } else {
+            var suggestion = SetterSuggestion(
+              element: accessor.asElement2 as SetterElement,
+              importData: importData,
+              matcherScore: matcherScore,
+              referencingInterface: referencingInterface?.asElement2,
+            );
+            collector.addSuggestion(suggestion);
+          }
         }
       }
     }
@@ -1973,7 +1994,7 @@ class DeclarationHelper {
         if (matcherScore != -1) {
           var suggestion = EnumConstantSuggestion(
             importData: importData,
-            element: element,
+            element: element.asElement2,
             matcherScore: matcherScore,
           );
           collector.addSuggestion(suggestion);
@@ -1988,15 +2009,15 @@ class DeclarationHelper {
                 var variable = getter.variable2;
                 if (variable is FieldElement) {
                   var suggestion = FieldSuggestion(
-                    element: variable,
+                    element: variable.asElement2,
                     matcherScore: matcherScore,
                     referencingInterface: null,
                   );
                   collector.addSuggestion(suggestion);
                 }
               } else {
-                var suggestion = PropertyAccessSuggestion(
-                  element: getter,
+                var suggestion = GetterSuggestion(
+                  element: getter.asElement2 as GetterElement,
                   importData: importData,
                   referencingInterface: null,
                   matcherScore: matcherScore,
@@ -2008,7 +2029,7 @@ class DeclarationHelper {
           } else {
             var suggestion = StaticFieldSuggestion(
               importData: importData,
-              element: element,
+              element: element.asElement2,
               matcherScore: matcherScore,
             );
             collector.addSuggestion(suggestion);
@@ -2032,7 +2053,10 @@ class DeclarationHelper {
     var matcherScore = state.matcher.score(element.displayName);
     if (matcherScore != -1) {
       collector.addSuggestion(
-        SuperParameterSuggestion(element: element, matcherScore: matcherScore),
+        SuperParameterSuggestion(
+          element: element.asElement2 as FormalParameterElement,
+          matcherScore: matcherScore,
+        ),
       );
     }
   }
@@ -2054,7 +2078,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = TopLevelFunctionSuggestion(
           importData: importData,
-          element: element,
+          element: element.asElement2 as TopLevelFunctionElement,
           matcherScore: matcherScore,
           kind: _executableSuggestionKind,
         );
@@ -2108,7 +2132,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = TopLevelVariableSuggestion(
           importData: importData,
-          element: element,
+          element: element.asElement2 as TopLevelVariableElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -2124,7 +2148,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = TypeAliasSuggestion(
           importData: importData,
-          element: element,
+          element: element.asElement2 as TypeAliasElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -2141,7 +2165,7 @@ class DeclarationHelper {
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = TypeParameterSuggestion(
-          element: element,
+          element: element.asElement2 as TypeParameterElement2,
           matcherScore: matcherScore,
         );
         collector.addSuggestion(suggestion);
@@ -2168,7 +2192,7 @@ class DeclarationHelper {
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = LocalVariableSuggestion(
-          element: element,
+          element: element.asElement2 as LocalVariableElement2,
           distance: _variableDistance++,
           matcherScore: matcherScore,
         );
