@@ -697,21 +697,7 @@ abstract class HotReloadSuiteRunner {
     var testPassed = false;
     switch (options.runtime) {
       case RuntimePlatforms.d8:
-        // Run the compiled JS generations with D8.
-        _print('Creating D8 hot reload test suite.', label: test.name);
-        // TODO(nshahan): Clean this up! The cast here just serves as a way to
-        // allow for smaller refactor changes.
-        final d8Suite = (this as D8SuiteRunner)
-          ..bootstrapJsUri =
-              tempDirectory.uri.resolve('generation0/bootstrap.js')
-          ..outputSink = outputSink;
-        await d8Suite.setupTest(
-          testName: test.name,
-          scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
-          generationToModifiedFiles: filesystem!.generationsToModifiedFilePaths,
-        );
-        final d8ExitCode = await d8Suite.runTestOld(testName: test.name);
-        testPassed = d8ExitCode == 0;
+        throw UnsupportedError('Now implemented in D8SuiteRunner.');
       case RuntimePlatforms.chrome:
         // Run the compiled JS generations with Chrome.
         _print('Creating Chrome hot reload test suite.', label: test.name);
@@ -989,49 +975,35 @@ class D8SuiteRunner extends DdcSuiteRunner {
       buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
   final Uri ddcModuleLoaderJsUri =
       sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
-  late StreamSink<List<int>> outputSink;
 
   D8SuiteRunner(super.options);
 
-  String _generateBootstrapper({
-    required List<Map<String, String?>> scriptDescriptors,
-    required ddc_helpers.FileDataPerGeneration generationToModifiedFiles,
-  }) {
-    return ddc_helpers.generateD8Bootstrapper(
+  @override
+  Future<bool> runTest(
+      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
+    // Run the compiled JS generations with D8.
+    _print('Creating D8 hot reload test suite.', label: test.name);
+    bootstrapJsUri = tempDirectory.uri.resolve('generation0/bootstrap.js');
+    _print('Preparing to run D8 test.', label: test.name);
+    final d8BootstrapJS = ddc_helpers.generateD8Bootstrapper(
       ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJsUri.toFilePath()),
       dartSdkJsPath: escapedString(dartSdkJsUri.toFilePath()),
       entrypointModuleName: escapedString(entrypointModuleName),
       entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
-      scriptDescriptors: scriptDescriptors,
-      modifiedFilesPerGeneration: generationToModifiedFiles,
+      scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
+      modifiedFilesPerGeneration: filesystem!.generationsToModifiedFilePaths,
     );
-  }
-
-  Future<void> setupTest({
-    String? testName,
-    List<Map<String, String?>>? scriptDescriptors,
-    ddc_helpers.FileDataPerGeneration? generationToModifiedFiles,
-  }) async {
-    _print('Preparing to run D8 test.', label: testName);
-    if (scriptDescriptors == null || generationToModifiedFiles == null) {
-      throw ArgumentError('D8SuiteRunner requires that "scriptDescriptors" '
-          'and "generationToModifiedFiles" be provided during setup.');
-    }
-    final d8BootstrapJS = _generateBootstrapper(
-        scriptDescriptors: scriptDescriptors,
-        generationToModifiedFiles: generationToModifiedFiles);
-    File.fromUri(bootstrapJsUri).writeAsStringSync(d8BootstrapJS);
-    _debugPrint('Writing D8 bootstrapper: $bootstrapJsUri', label: testName);
-  }
-
-  Future<int> runTestOld({String? testName}) async {
+    _debugPrint('Writing D8 bootstrapper: $bootstrapJsUri', label: test.name);
+    final bootstrapJSFile = File.fromUri(bootstrapJsUri)
+      ..writeAsStringSync(d8BootstrapJS);
+    _debugPrint('Running test in D8.', label: test.name);
     final process = await startProcess('D8', config.binary.toFilePath(), [
       config.sealNativeObjectScript.toFilePath(),
       config.preamblesScript.toFilePath(),
-      bootstrapJsUri.toFilePath()
+      bootstrapJSFile.path
     ]);
     unawaited(process.stdout.pipe(outputSink));
-    return process.exitCode;
+    return await process.exitCode == 0;
   }
 }
 
