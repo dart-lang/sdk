@@ -1299,7 +1299,7 @@ class TokenType {
       isOperator: true,
       isBinaryOperator: true);
 
-  // This is not yet part of the language and not supported by fasta
+  // This is not yet part of the language and not supported by the scanner.
   static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType(
       /* index = */ 14,
       '&&=',
@@ -1336,7 +1336,7 @@ class TokenType {
       /* index = */ 21, '||', 'BAR_BAR', LOGICAL_OR_PRECEDENCE, BAR_BAR_TOKEN,
       isOperator: true, isBinaryOperator: true);
 
-  // This is not yet part of the language and not supported by fasta
+  // This is not yet part of the language and not supported by the scanner.
   static const TokenType BAR_BAR_EQ = const TokenType(/* index = */ 22, '||=',
       'BAR_BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_BAR_EQ_TOKEN,
       binaryOperatorOfCompoundAssignment: TokenType.BAR_BAR, isOperator: true);
@@ -1686,11 +1686,11 @@ class TokenType {
     //TokenType.IS,
     //TokenType.AS,
 
-    // These are not yet part of the language and not supported by fasta
+    // These are not yet part of the language and not supported by the scanner:
     //TokenType.AMPERSAND_AMPERSAND_EQ,
     //TokenType.BAR_BAR_EQ,
 
-    // Supported by fasta but not part of the language
+    // Supported by the scanner but not part of the language
     //TokenType.BANG_EQ_EQ,
     //TokenType.EQ_EQ_EQ,
 

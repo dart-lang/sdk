@@ -226,16 +226,16 @@ int compareProcedures(Procedure a, Procedure b) {
   return a.fileOffset.compareTo(b.fileOffset);
 }
 
-List<Combinator>? toKernelCombinators(
-    List<CombinatorBuilder>? fastaCombinators) {
-  if (fastaCombinators == null) {
+List<Combinator>? toCombinators(
+    List<CombinatorBuilder>? combinatorBuilders) {
+  if (combinatorBuilders == null) {
     // Note: it's safe to return null here as Kernel's LibraryDependency will
     // convert null to an empty list.
     return null;
   }
 
-  return new List<Combinator>.generate(fastaCombinators.length, (int i) {
-    CombinatorBuilder combinator = fastaCombinators[i];
+  return new List<Combinator>.generate(combinatorBuilders.length, (int i) {
+    CombinatorBuilder combinator = combinatorBuilders[i];
     List<String> nameList = combinator.names.toList();
     return combinator.isShow
         ? new Combinator.show(nameList)

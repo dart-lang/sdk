@@ -8,8 +8,8 @@
 /// perf bots.
 ///
 /// This file was started to measure the implementation of the front-end when it
-/// was based on the analyzer codebase.  Now that we are using fasta as the
-/// implementation (which is measured in fasta_perf.dart), we still want to
+/// was based on the analyzer codebase.  Now that we are using cfe as the
+/// implementation (which is measured in cfe_perf.dart), we still want to
 /// measure the analyzer to ensure that there are no regressions when replacing
 /// features (e.g. there is no regression from replacing summaries with kernel
 /// outlines).

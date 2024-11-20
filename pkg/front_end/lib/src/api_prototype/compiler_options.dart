@@ -216,7 +216,7 @@ class CompilerOptions {
   /// Whether to show file offsets when [debugDump] is `true`.
   bool debugDumpShowOffsets = false;
 
-  /// Whether to omit the platform when serializing the result from a `fasta
+  /// Whether to omit the platform when serializing the result from a `cfe
   /// compile` run.
   bool omitPlatform = false;
 

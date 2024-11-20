@@ -4,7 +4,7 @@
 
 /// Listener used in combination with `TopLevelParser` to extract the URIs of
 /// import, part, and export directives.
-library front_end.src.fasta.source.directive_listener;
+library;
 
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart';

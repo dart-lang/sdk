@@ -112,7 +112,7 @@ class MessageTestSuite extends ChainContext {
   }
 
   MessageTestSuite(this.fastOnly, this.interactive)
-      : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
+      : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-cfe:///")),
         compiler = new BatchCompiler(null);
 
   @override

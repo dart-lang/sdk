@@ -80,7 +80,8 @@ SubtypesBenchmark parseBenchMark(String source) {
   return new SubtypesBenchmark(library, subtypeChecks);
 }
 
-void performChecks(List<SubtypeCheck> checks, TypeEnvironment environment) {
+void performKernelChecks(
+    List<SubtypeCheck> checks, TypeEnvironment environment) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
     bool isSubtype = environment.isSubtypeOf(
@@ -91,7 +92,7 @@ void performChecks(List<SubtypeCheck> checks, TypeEnvironment environment) {
   }
 }
 
-void performFastaChecks(
+void performBuilderChecks(
     List<SubtypeCheck> checks, ClassHierarchyBuilder hierarchy) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
@@ -107,7 +108,7 @@ Future<void> run(Uri benchmarkInput, String name) async {
   const int runs = 50;
   final Ticker ticker = new Ticker(isVerbose: false);
   Stopwatch kernelWatch = new Stopwatch();
-  Stopwatch fastaWatch = new Stopwatch();
+  Stopwatch builderWatch = new Stopwatch();
   List<int>? bytes = await new File.fromUri(benchmarkInput).readAsBytes();
   if (bytes.length > 3) {
     if (bytes[0] == 0x1f && bytes[1] == 0x8b && bytes[2] == 0x08) {
@@ -142,18 +143,18 @@ Future<void> run(Uri benchmarkInput, String name) async {
 
     for (int i = 0; i < runs; i++) {
       kernelWatch.start();
-      performChecks(bench.checks, environment);
+      performKernelChecks(bench.checks, environment);
       kernelWatch.stop();
 
-      fastaWatch.start();
-      performFastaChecks(bench.checks, hierarchy);
-      fastaWatch.stop();
+      builderWatch.start();
+      performBuilderChecks(bench.checks, hierarchy);
+      builderWatch.stop();
 
       if (i == 0) {
         print("SubtypeKernel${name}First(RuntimeRaw): "
             "${kernelWatch.elapsedMilliseconds} ms");
         print("SubtypeFasta${name}First(RuntimeRaw): "
-            "${fastaWatch.elapsedMilliseconds} ms");
+            "${builderWatch.elapsedMilliseconds} ms");
       }
     }
   });
@@ -161,7 +162,7 @@ Future<void> run(Uri benchmarkInput, String name) async {
   print("SubtypeKernel${name}Avg${runs}(RuntimeRaw): "
       "${kernelWatch.elapsedMilliseconds / runs} ms");
   print("SubtypeFasta${name}Avg${runs}(RuntimeRaw): "
-      "${fastaWatch.elapsedMilliseconds / runs} ms");
+      "${builderWatch.elapsedMilliseconds / runs} ms");
 }
 
 void main() => run(Uri.base.resolve("type_checks.json"), "***");

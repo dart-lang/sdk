@@ -16,7 +16,7 @@ import 'package:front_end/src/base/command_line_reporting.dart'
 import 'package:front_end/src/builder/declaration_builders.dart'
     show TypeDeclarationBuilder;
 import 'package:front_end/src/builder/type_builder.dart' show TypeBuilder;
-import 'package:front_end/src/codes/cfe_codes.dart' as fasta
+import 'package:front_end/src/codes/cfe_codes.dart' as cfe
     show templateUnspecified;
 import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/kernel/constness.dart' show Constness;
@@ -270,7 +270,7 @@ mixin BodyBuilderTestMixin on BodyBuilder {
     }
     if (doReport) {
       addProblem(
-          fasta.templateUnspecified.withArguments("Should use new or const"),
+          cfe.templateUnspecified.withArguments("Should use new or const"),
           nameToken.charOffset,
           nameToken.length);
     }
