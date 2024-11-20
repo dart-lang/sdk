@@ -231,7 +231,7 @@ class IncrementalJavaScriptBundler {
       final Program jsModule = compiler.emitModule(summaryComponent);
 
       // Save program compiler to reuse for expression evaluation.
-      kernel2JsCompilers[moduleName] = compiler;
+      kernel2JsCompilers[library.importUri.toString()] = compiler;
 
       String? sourceMapBase;
       if (moduleUri.isScheme('package')) {
