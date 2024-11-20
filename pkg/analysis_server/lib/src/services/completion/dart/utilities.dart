@@ -298,6 +298,22 @@ InterfaceType instantiateInstanceElement(
   );
 }
 
+/// Instantiates the given [InterfaceElement]
+InterfaceType instantiateInstanceElement2(
+  InterfaceElement2 element,
+  NeverType neverType,
+) {
+  var typeParameters = element.typeParameters2;
+  var typeArguments = const <DartType>[];
+  if (typeParameters.isNotEmpty) {
+    typeArguments = List.filled(typeParameters.length, neverType);
+  }
+  return element.instantiate(
+    typeArguments: typeArguments,
+    nullabilitySuffix: NullabilitySuffix.none,
+  );
+}
+
 /// Returns true if the [parameter] is part of a constructor for a Flutter
 /// [Widget].
 bool isFlutterWidgetParameter(ParameterElement parameter) {
