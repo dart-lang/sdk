@@ -414,6 +414,41 @@ linter:
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
+  test_plugins_each_invalid_mapKey() {
+    validate('''
+plugins:
+  one:
+    ppath: foo/bar
+''', []);
+  }
+
+  test_plugins_each_valid_mapKey() {
+    validate('''
+plugins:
+  one:
+    path: foo/bar
+''', []);
+  }
+
+  test_plugins_each_valid_scalar() {
+    validate('''
+plugins:
+  one: ^1.2.3
+''', []);
+  }
+
+  test_plugins_invalid_scalar() {
+    validate('''
+plugins: 7
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
+  test_plugins_valid_empty() {
+    validate('''
+plugins:
+''', []);
+  }
+
   List<AnalysisError> validate(String source, List<ErrorCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     var errors = validator.validate(options);

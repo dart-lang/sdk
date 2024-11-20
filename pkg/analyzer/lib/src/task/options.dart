@@ -384,9 +384,7 @@ class OptionsFileValidator {
             sdkVersionConstraint: sdkVersionConstraint,
             sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
           ),
-          _PluginsTopLevelOptionsValidator(),
-          // TODO(srawlins): validate everything inside the top-level 'plugins'
-          // section.
+          _PluginsOptionsValidator(),
         ];
 
   List<AnalysisError> validate(YamlMap options) {
@@ -989,10 +987,66 @@ class _OptionalChecksValueValidator extends OptionsValidator {
   }
 }
 
-/// Validates `plugins` top-level options.
-class _PluginsTopLevelOptionsValidator extends _TopLevelOptionValidator {
-  _PluginsTopLevelOptionsValidator()
-      : super(AnalysisOptionsFile.plugins, AnalysisOptionsFile._pluginsOptions);
+/// Validates options for each `plugins` map value.
+class _PluginsOptionsValidator extends OptionsValidator {
+  final _ErrorBuilder _builder =
+      _ErrorBuilder(AnalysisOptionsFile._pluginsOptions);
+
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var plugins = options.valueAt(AnalysisOptionsFile.plugins);
+    switch (plugins) {
+      case YamlMap():
+        plugins.nodes.forEach((pluginName, pluginValue) {
+          if (pluginName is! String) {
+            return;
+          }
+          switch (pluginValue) {
+            case YamlScalar(value: String()):
+              // Valid enough. We could validate that it is a legal VersionConstraint
+              // from the pub_semver package.
+              break;
+            case YamlMap():
+              _validatePluginMap(reporter, pluginName, pluginValue);
+            default:
+              reporter.atSourceSpan(
+                plugins.span,
+                AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+                arguments: ['${AnalysisOptionsFile.plugins}/$pluginName'],
+              );
+          }
+        });
+      case YamlList():
+        reporter.atSourceSpan(
+          plugins.span,
+          AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+          arguments: [AnalysisOptionsFile.plugins],
+        );
+      case YamlScalar(:var value):
+        if (value != null) {
+          reporter.atSourceSpan(
+            plugins.span,
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            arguments: [AnalysisOptionsFile.plugins],
+          );
+        }
+    }
+  }
+
+  void _validatePluginMap(
+      ErrorReporter reporter, String pluginName, YamlMap pluginValue) {
+    pluginValue.nodes.forEach((pluginMapKeyNode, pluginMapValueNode) {
+      if (pluginMapKeyNode case YamlScalar(value: String pluginMapKey)) {
+        if (!AnalysisOptionsFile._pluginsOptions.contains(pluginMapKey)) {
+          _builder.reportError(reporter,
+              '${AnalysisOptionsFile.plugins}/$pluginName', pluginMapKeyNode);
+        }
+      }
+      // TODO(srawlins): Validate 'path' is a YamlScalar.
+      // TODO(srawlins): Validate 'git' value is a YamlScalar. Change when
+      // supporting refs.
+    });
+  }
 }
 
 /// Validates `analyzer` strong-mode value configuration options.
