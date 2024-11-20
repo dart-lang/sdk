@@ -3182,7 +3182,8 @@ Definition* UnboxLaneInstr::Canonicalize(FlowGraph* flow_graph) {
 
 bool BoxIntegerInstr::ValueFitsSmi() const {
   Range* range = value()->definition()->range();
-  return RangeUtils::Fits(range, RangeBoundary::kRangeBoundarySmi);
+  return RangeUtils::IsWithin(range, compiler::target::kSmiMin,
+                              compiler::target::kSmiMax);
 }
 
 Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
