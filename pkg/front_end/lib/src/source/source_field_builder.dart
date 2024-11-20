@@ -2138,7 +2138,6 @@ class RepresentationFieldEncoding implements FieldEncoding {
       const <ClassMember>[];
 
   @override
-  // Coverage-ignore(suite): Not run.
   void buildImplicitDefaultValue() {
     // Not needed.
   }

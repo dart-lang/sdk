@@ -1,0 +1,31 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:11:3: Error: 'foo' is already declared in this scope.
+//   foo([int bar = foo.baz]) {
+//   ^^^
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:10:19: Context: Previous declaration of 'foo'.
+// extension type foo(dynamic whatnot) {
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension /* unnamed */ _extension#0 on dynamic {
+  method foo = self::_extension#0|foo;
+  method tearoff foo = self::_extension#0|get#foo;
+}
+extension type foo(dynamic whatnot) {
+  abstract extension-type-member representation-field get whatnot() → dynamic;
+  constructor • = self::foo|constructor#;
+  constructor tearoff • = self::foo|constructor#_#new#tearOff;
+}
+static extension-member method _extension#0|foo(lowered final dynamic #this, [has-declared-initializer core::int bar]) → dynamic
+  ;
+static extension-member method _extension#0|get#foo(lowered final dynamic #this) → ([core::int]) → dynamic
+  return ([core::int bar]) → dynamic => self::_extension#0|foo(#this, bar);
+static extension-type-member method foo|constructor#(dynamic whatnot) → self::foo% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member method foo|constructor#_#new#tearOff(dynamic whatnot) → self::foo% /* erasure=dynamic, declared=! */
+  return self::foo|constructor#(whatnot);
