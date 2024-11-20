@@ -40,8 +40,7 @@ Future<void> main(List<String> args) async {
   final runner = switch (options.runtime) {
     RuntimePlatforms.chrome => ChromeSuiteRunner(options),
     RuntimePlatforms.d8 => D8SuiteRunner(options),
-    // TODO(nshahan): Create a suite runner specific to the VM.
-    RuntimePlatforms.vm => HotReloadSuiteRunner(options),
+    RuntimePlatforms.vm => VMSuiteRunner(options),
   };
   await runner.runSuite(options);
 }
@@ -229,11 +228,11 @@ class HotReloadSuiteRunner {
   Options options;
 
   /// The root directory containing generated code for all tests.
-  late final generatedCodeDir = Directory.systemTemp.createTempSync();
+  late final Directory generatedCodeDir = Directory.systemTemp.createTempSync();
 
   /// The directory containing files emitted from Frontend Server compiles and
   /// recompiles.
-  late final frontendServerEmittedFilesDir =
+  late final Directory frontendServerEmittedFilesDir =
       Directory.fromUri(generatedCodeDir.uri.resolve('.fes/'))..createSync();
 
   /// The output location for .dill file created by the front end server.
@@ -246,16 +245,21 @@ class HotReloadSuiteRunner {
       frontendServerEmittedFilesDir.uri.resolve('output_incremental.dill');
 
   /// All test results that are reported after running the entire test suite.
-  final testOutcomes = <TestResultOutcome>[];
+  final List<TestResultOutcome> testOutcomes = [];
 
   /// The directory used as a temporary staging area to construct a compile-able
   /// test app across reload/restart generations.
-  late final snapshotDir =
+  late final Directory snapshotDir =
       Directory.fromUri(generatedCodeDir.uri.resolve('.snapshot/'))
         ..createSync();
 
   // TODO(markzipan): Support custom entrypoints.
   late final Uri snapshotEntrypointUri = snapshotDir.uri.resolve('main.dart');
+  late final String snapshotEntrypointWithScheme = () {
+    final snapshotEntrypointLibraryName = fe_shared.relativizeUri(
+        snapshotDir.uri, snapshotEntrypointUri, fe_shared.isWindows);
+    return '$filesystemScheme:///$snapshotEntrypointLibraryName';
+  }();
 
   HotReloadMemoryFilesystem? filesystem;
   final stopwatch = Stopwatch();
@@ -309,7 +313,15 @@ class HotReloadSuiteRunner {
         continue;
       }
       _print('Finished emitting assets.', label: test.name);
-      await runTest(test, tempDirectory);
+      final testOutputStreamController = StreamController<List<int>>();
+      final testOutputBuffer = StringBuffer();
+      testOutputStreamController.stream
+          .transform(utf8.decoder)
+          .listen(testOutputBuffer.write);
+      final testPassed = await runTest(
+          test, tempDirectory, IOSink(testOutputStreamController.sink));
+      await reportTestOutcome(
+          test.name, testOutputBuffer.toString(), testPassed);
     }
     await shutdown(controller);
     await reportAllResults();
@@ -638,7 +650,10 @@ class HotReloadSuiteRunner {
   }
 
   /// Copy all files in [test] for the given [generation] into the snapshot
-  /// directory.
+  /// directory and returns uris of all the files copied.
+  ///
+  /// The uris describe the copy destination in the form of the hot reload file
+  /// system scheme.
   List<String> copyGenerationSources(HotReloadTest test, int generation) {
     _debugPrint('Entering generation $generation', label: test.name);
     final updatedFilesInCurrentGeneration = <String>[];
@@ -670,6 +685,7 @@ class HotReloadSuiteRunner {
   /// front end server [controller] and copy outputs to [outputDirectory].
   ///
   /// Reports test failures on compile time errors.
+  // TODO(nshahan): Move to a DDC specific suite runner.
   Future<bool> compileGeneration(
       HotReloadTest test,
       int generation,
@@ -677,11 +693,6 @@ class HotReloadSuiteRunner {
       List<String> updatedFiles,
       HotReloadFrontendServerController controller) async {
     var hasCompileError = false;
-    final filesystemScheme = 'hot-reload-test';
-    final snapshotEntrypointLibraryName = fe_shared.relativizeUri(
-        snapshotDir.uri, snapshotEntrypointUri, fe_shared.isWindows);
-    final snapshotEntrypointWithScheme =
-        '$filesystemScheme:///$snapshotEntrypointLibraryName';
     // The first generation calls `compile`, but subsequent ones call
     // `recompile`.
     // Likewise, use the incremental output directory for `recompile` calls.
@@ -737,44 +748,28 @@ class HotReloadSuiteRunner {
         'Frontend Server successfully compiled outputs to: '
         '$outputDillPath',
         label: test.name);
-    if (options.runtime.emitsJS) {
-      _debugPrint('Emitting JS code to ${outputDirectory.path}.',
-          label: test.name);
-      // Update the memory filesystem with the newly-created JS files.
-      _print('Loading generation $generation files into the memory filesystem.',
-          label: test.name);
-      final codeFile = File('$outputDillPath.sources');
-      final manifestFile = File('$outputDillPath.json');
-      final sourcemapFile = File('$outputDillPath.map');
-      filesystem!.update(codeFile, manifestFile, sourcemapFile,
-          generation: '$generation');
+    _debugPrint('Emitting JS code to ${outputDirectory.path}.',
+        label: test.name);
+    // Update the memory filesystem with the newly-created JS files.
+    _print('Loading generation $generation files into the memory filesystem.',
+        label: test.name);
+    final codeFile = File('$outputDillPath.sources');
+    final manifestFile = File('$outputDillPath.json');
+    final sourcemapFile = File('$outputDillPath.map');
+    filesystem!.update(codeFile, manifestFile, sourcemapFile,
+        generation: '$generation');
 
-      // Write JS files and sourcemaps to their respective generation.
-      _print('Writing generation $generation assets.', label: test.name);
-      _debugPrint('Writing JS assets to ${outputDirectory.path}',
-          label: test.name);
-      filesystem!.writeToDisk(outputDirectory.uri, generation: '$generation');
-    } else {
-      final dillOutputDir = Directory.fromUri(
-          outputDirectory.uri.resolve('generation$generation'));
-      dillOutputDir.createSync();
-      final dillOutputUri = dillOutputDir.uri.resolve('${test.name}.dill');
-      File(outputDillPath).copySync(dillOutputUri.toFilePath());
-      // Write dills their respective generation.
-      _print('Writing generation $generation assets.', label: test.name);
-      _debugPrint('Writing dill to ${dillOutputUri.toFilePath()}',
-          label: test.name);
-    }
+    // Write JS files and sourcemaps to their respective generation.
+    _print('Writing generation $generation assets.', label: test.name);
+    _debugPrint('Writing JS assets to ${outputDirectory.path}',
+        label: test.name);
+    filesystem!.writeToDisk(outputDirectory.uri, generation: '$generation');
     return true;
   }
 
   // TODO(nshahan): Refactor into runtime specific implementations.
-  Future<void> runTest(HotReloadTest test, Directory tempDirectory) async {
-    final testOutputStreamController = StreamController<List<int>>();
-    final testOutputBuffer = StringBuffer();
-    testOutputStreamController.stream
-        .transform(utf8.decoder)
-        .listen(testOutputBuffer.write);
+  Future<bool> runTest(
+      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
     var testPassed = false;
     switch (options.runtime) {
       case RuntimePlatforms.d8:
@@ -785,7 +780,7 @@ class HotReloadSuiteRunner {
         final d8Suite = (this as D8SuiteRunner)
           ..bootstrapJsUri =
               tempDirectory.uri.resolve('generation0/bootstrap.js')
-          ..outputSink = IOSink(testOutputStreamController.sink);
+          ..outputSink = outputSink;
         await d8Suite.setupTest(
           testName: test.name,
           scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
@@ -805,7 +800,7 @@ class HotReloadSuiteRunner {
               tempDirectory.uri.resolve('generation0/bootstrap.js')
           ..bootstrapHtmlUri =
               tempDirectory.uri.resolve('generation0/index.html')
-          ..outputSink = IOSink(testOutputStreamController.sink);
+          ..outputSink = outputSink;
         await suite.setupTest(
           testName: test.name,
           scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
@@ -814,48 +809,9 @@ class HotReloadSuiteRunner {
         final exitCode = await suite.runTestOld(testName: test.name);
         testPassed = exitCode == 0;
       case RuntimePlatforms.vm:
-        final firstGenerationDillUri =
-            tempDirectory.uri.resolve('generation0/${test.name}.dill');
-        // Start the VM at generation 0.
-        final vmArgs = [
-          '--enable-vm-service=0', // 0 avoids port collisions.
-          '--disable-service-auth-codes',
-          '--disable-dart-dev',
-          firstGenerationDillUri.toFilePath(),
-        ];
-        final vm = await Process.start(Platform.executable, vmArgs);
-        _debugPrint(
-            'Starting VM with command: '
-            '${Platform.executable} ${vmArgs.join(" ")}',
-            label: test.name);
-        vm.stdout
-            .transform(utf8.decoder)
-            .transform(LineSplitter())
-            .listen((String line) {
-          _debugPrint('VM stdout: $line', label: test.name);
-          testOutputBuffer.writeln(line);
-        });
-        vm.stderr
-            .transform(utf8.decoder)
-            .transform(LineSplitter())
-            .listen((String err) {
-          _debugPrint('VM stderr: $err', label: test.name);
-          testOutputBuffer.writeln(err);
-        });
-        _print('Executing VM test.', label: test.name);
-        final testTimeoutSeconds = 10;
-        final vmExitCode = await vm.exitCode
-            .timeout(Duration(seconds: testTimeoutSeconds), onTimeout: () {
-          final timeoutText =
-              'Test timed out after $testTimeoutSeconds seconds.';
-          _print(timeoutText, label: test.name);
-          testOutputBuffer.writeln(timeoutText);
-          vm.kill();
-          return 1;
-        });
-        testPassed = vmExitCode == 0;
+        throw UnsupportedError('Now implemented in VMSuiteRunner.');
     }
-    await reportTestOutcome(test.name, testOutputBuffer.toString(), testPassed);
+    return testPassed;
   }
 
   /// Reports test results to standard out as well as the output .json file if
@@ -1209,5 +1165,129 @@ class ChromeSuiteRunner extends HotReloadSuiteRunner {
       }
     }
     await super.runSuite(options);
+  }
+}
+
+/// Hot reload test suite runner for behavior specific to the VM.
+class VMSuiteRunner extends HotReloadSuiteRunner {
+  VMSuiteRunner(super.options);
+
+  @override
+  Future<bool> compileGeneration(
+      HotReloadTest test,
+      int generation,
+      Directory outputDirectory,
+      List<String> updatedFiles,
+      HotReloadFrontendServerController controller) async {
+    // The first generation calls `compile`, but subsequent ones call
+    // `recompile`.
+    // Likewise, use the incremental output directory for `recompile` calls.
+    // TODO(nshahan): Sending compile/recompile instructions is likely
+    // the same across backends and should be shared code.
+    String outputDillPath;
+    _print('Compiling generation $generation with the Frontend Server.',
+        label: test.name);
+    CompilerOutput compilerOutput;
+    if (generation == 0) {
+      _debugPrint(
+          'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+          label: test.name);
+      outputDillPath = outputDillUri.toFilePath();
+      compilerOutput =
+          await controller.sendCompile(snapshotEntrypointWithScheme);
+    } else {
+      _debugPrint(
+          'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+          label: test.name);
+      outputDillPath = outputIncrementalDillUri.toFilePath();
+      // TODO(markzipan): Add logic to reject bad compiles.
+      compilerOutput = await controller.sendRecompile(
+          snapshotEntrypointWithScheme,
+          invalidatedFiles: updatedFiles);
+    }
+    var hasCompileError = false;
+    // Frontend Server reported compile errors. Fail if they weren't
+    // expected, and do not run tests.
+    if (compilerOutput.errorCount > 0) {
+      hasCompileError = true;
+      await controller.sendReject();
+      // TODO(markzipan): Determine if 'contains' is good enough to determine
+      // compilation error correctness.
+      if (test.expectedError != null &&
+          compilerOutput.outputText.contains(test.expectedError!)) {
+        await reportTestOutcome(
+            test.name,
+            'Expected error found during compilation: '
+            '${test.expectedError}',
+            true);
+      } else {
+        await reportTestOutcome(
+            test.name,
+            'Test failed with compile error: ${compilerOutput.outputText}',
+            false);
+      }
+    } else {
+      controller.sendAccept();
+    }
+    // Stop processing further generations if compilation failed.
+    if (hasCompileError) return false;
+    _debugPrint(
+        'Frontend Server successfully compiled outputs to: '
+        '$outputDillPath',
+        label: test.name);
+    final dillOutputDir =
+        Directory.fromUri(outputDirectory.uri.resolve('generation$generation'));
+    dillOutputDir.createSync();
+    final dillOutputUri = dillOutputDir.uri.resolve('${test.name}.dill');
+    // Write dills their respective generation.
+    _print('Writing generation $generation assets.', label: test.name);
+    _debugPrint('Writing dill to ${dillOutputUri.toFilePath()}',
+        label: test.name);
+    File(outputDillPath).copySync(dillOutputUri.toFilePath());
+    return true;
+  }
+
+  @override
+  Future<bool> runTest(
+      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
+    final firstGenerationDillUri =
+        tempDirectory.uri.resolve('generation0/${test.name}.dill');
+    // Start the VM at generation 0.
+    final vmArgs = [
+      '--enable-vm-service=0', // 0 avoids port collisions.
+      '--disable-service-auth-codes',
+      '--disable-dart-dev',
+      firstGenerationDillUri.toFilePath(),
+    ];
+    _debugPrint(
+        'Starting VM with command: '
+        '${Platform.executable} ${vmArgs.join(" ")}',
+        label: test.name);
+    final vm = await Process.start(Platform.executable, vmArgs);
+    vm.stdout
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen((String line) {
+      _debugPrint('VM stdout: $line', label: test.name);
+      outputSink.writeln(line);
+    });
+    vm.stderr
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen((String err) {
+      _debugPrint('VM stderr: $err', label: test.name);
+      outputSink.writeln(err);
+    });
+    _print('Executing VM test.', label: test.name);
+    final testTimeoutSeconds = 10;
+    final vmExitCode = await vm.exitCode
+        .timeout(Duration(seconds: testTimeoutSeconds), onTimeout: () {
+      final timeoutText = 'Test timed out after $testTimeoutSeconds seconds.';
+      _print(timeoutText, label: test.name);
+      outputSink.writeln(timeoutText);
+      vm.kill();
+      return 1;
+    });
+    return vmExitCode == 0;
   }
 }
