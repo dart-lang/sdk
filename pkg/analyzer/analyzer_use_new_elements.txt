@@ -24,7 +24,6 @@ lib/src/dart/ast/extensions.dart
 lib/src/dart/ast/utilities.dart
 lib/src/dart/constant/constant_verifier.dart
 lib/src/dart/constant/evaluation.dart
-lib/src/dart/constant/from_environment_evaluator.dart
 lib/src/dart/constant/potentially_constant.dart
 lib/src/dart/constant/utilities.dart
 lib/src/dart/constant/value.dart
@@ -167,10 +166,6 @@ lib/src/utilities/extensions/ast.dart
 lib/src/utilities/extensions/element.dart
 lib/src/utilities/extensions/flutter.dart
 lib/src/utilities/extensions/library_element.dart
-lib/src/wolf/ir/ast_to_ir.dart
-lib/src/wolf/ir/call_descriptor.dart
-lib/src/wolf/ir/coded_ir.dart
-test/dart/analysis/from_environment_evaluator_test.dart
 test/dart/sdk/build_sdk_summary_test.dart
 test/error/error_reporter_test.dart
 test/generated/element_resolver_test.dart
@@ -178,11 +173,9 @@ test/generated/elements_types_mixin.dart
 test/generated/invalid_code_test.dart
 test/generated/issues_test.dart
 test/generated/non_error_resolver_test.dart
-test/generated/resolver_test.dart
 test/generated/resolver_test_case.dart
 test/generated/simple_resolver_test.dart
 test/generated/static_type_analyzer_test.dart
-test/generated/strong_mode_test.dart
 test/generated/type_system_test.dart
 test/id_tests/assigned_variables_test.dart
 test/id_tests/constant_test.dart
@@ -273,4 +266,3 @@ test/src/wolf/ir/ast_to_ir_test.dart
 test/util/element_printer.dart
 test/util/element_type_matchers.dart
 test/util/id_testing_helper.dart
-test/utils.dart

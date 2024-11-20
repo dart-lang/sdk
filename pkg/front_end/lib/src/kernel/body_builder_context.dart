@@ -115,6 +115,13 @@ abstract class BodyBuilderContext {
   /// Returns `true` if the enclosing class in an augmenting class.
   bool get isAugmentationClass => _declarationContext.isAugmentationClass;
 
+  /// Returns `true` if the enclosing entity is an extension type.
+  bool get isExtensionTypeDeclaration =>
+      _declarationContext.isExtensionTypeDeclaration;
+
+  /// Returns `true` if the enclosing entity is an extension.
+  bool get isExtensionDeclaration => _declarationContext.isExtensionDeclaration;
+
   /// Looks up the static member by the given [name] in the origin of the
   /// enclosing declaration.
   Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
@@ -409,6 +416,11 @@ abstract class BodyBuilderDeclarationContext {
 
   bool get isAugmentationClass => false;
 
+  bool get isExtensionTypeDeclaration => false;
+
+  // Coverage-ignore(suite): Not run.
+  bool get isExtensionDeclaration => false;
+
   Builder? lookupStaticOriginMember(String name, int fileOffset, Uri fileUri) {
     throw new UnsupportedError('${runtimeType}.lookupStaticOriginMember');
   }
@@ -449,6 +461,9 @@ mixin _DeclarationBodyBuilderDeclarationContextMixin
 
   @override
   InterfaceType? get thisType => _declarationBuilder.thisType;
+
+  @override
+  bool get isExtensionDeclaration => _declarationBuilder.isExtension;
 }
 
 class _SourceClassBodyBuilderDeclarationContext
@@ -606,6 +621,9 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
   String get className {
     return _sourceExtensionTypeDeclarationBuilder.fullNameForErrors;
   }
+
+  @override
+  bool get isExtensionTypeDeclaration => true;
 }
 
 class _DeclarationBodyBuilderDeclarationContext

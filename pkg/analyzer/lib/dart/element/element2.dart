@@ -1270,6 +1270,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// constructor will be returned.
   ConstructorElement2? get unnamedConstructor2;
 
+  /// Returns the constructor from [constructors2] that has the given [name].
+  ConstructorElement2? getNamedConstructor2(String name);
+
   /// Create the [InterfaceType] for this element with the given
   /// [typeArguments] and [nullabilitySuffix].
   InterfaceType instantiate({

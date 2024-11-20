@@ -6,13 +6,10 @@ import 'package:analysis_server/src/services/completion/dart/candidate_suggestio
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 import 'feature_computer.dart';
@@ -70,7 +67,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for [FieldElement] suggestion.
   int computeFieldElementRelevance(
-    FieldElement element,
+    FieldElement2 element,
     double inheritanceDistance,
   ) {
     var contextType = featureComputer.contextTypeFeature(
@@ -81,15 +78,15 @@ class RelevanceComputer {
       element,
       distance: inheritanceDistance,
     );
-    var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature2(element);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
     var startsWithDollar = featureComputer.startsWithDollarFeature(
-      element.name,
+      element.displayName,
     );
     var superMatches = featureComputer.superMatchesFeature(
       _containingMemberName,
-      element.name,
+      element.displayName,
     );
     return computeScore(
       contextType: contextType,
@@ -104,13 +101,13 @@ class RelevanceComputer {
 
   /// Compute the relevance for the given [CandidateSuggestion].
   int computeRelevance(CandidateSuggestion suggestion) {
-    var neverType = request.libraryElement.typeProvider.neverType;
+    var neverType = request.libraryElement2.typeProvider.neverType;
     switch (suggestion) {
       case ClassSuggestion():
         return computeTopLevelRelevance2(
           suggestion.element,
-          elementType: instantiateInstanceElement(
-            suggestion.element.asElement,
+          elementType: instantiateInstanceElement2(
+            suggestion.element,
             neverType,
           ),
           isNotImportedLibrary: suggestion.isNotImported,
@@ -119,7 +116,7 @@ class RelevanceComputer {
         return Relevance.closure;
       case ConstructorSuggestion():
         return _computeConstructorRelevance(
-          suggestion.element.asElement as ConstructorElement,
+          suggestion.element,
           neverType,
           suggestion.isNotImported,
         );
@@ -131,24 +128,24 @@ class RelevanceComputer {
         );
       case EnumSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element.asElement,
-          elementType: instantiateInstanceElement(
-            suggestion.element.asElement,
+          suggestion.element,
+          elementType: instantiateInstanceElement2(
+            suggestion.element,
             neverType,
           ),
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case ExtensionSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element.asElement!,
+          suggestion.element,
           elementType: suggestion.element.extendedType,
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case ExtensionTypeSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element.asElement,
-          elementType: instantiateInstanceElement(
-            suggestion.element.asElement,
+          suggestion.element,
+          elementType: instantiateInstanceElement2(
+            suggestion.element,
             neverType,
           ),
           isNotImportedLibrary: suggestion.isNotImported,
@@ -161,17 +158,13 @@ class RelevanceComputer {
           //  `FieldSuggestion` on an enum constant except when adding members
           //  of the enclosing declaration. We should enforce this assumption.
           return computeTopLevelRelevance(
-            fieldElement.asElement!,
+            fieldElement,
             elementType: fieldElement.type,
             isNotImportedLibrary: false,
           );
         } else {
-          var field =
-              fieldElement is FieldMember
-                  ? fieldElement
-                  : fieldElement.asElement as FieldElement;
           return computeFieldElementRelevance(
-            field,
+            fieldElement,
             suggestion.inheritanceDistance(featureComputer),
           );
         }
@@ -183,9 +176,7 @@ class RelevanceComputer {
         return 500;
       case ImportPrefixSuggestion():
         return computeScore(
-          elementKind: _computeElementKind(
-            suggestion.libraryElement.asElement!,
-          ),
+          elementKind: _computeElementKind(suggestion.libraryElement),
         );
       case KeywordSuggestion():
         return _computeKeywordRelevance(suggestion);
@@ -195,7 +186,7 @@ class RelevanceComputer {
         return Relevance.loadLibrary;
       case LocalFunctionSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element.asElement,
+          suggestion.element,
           elementType: suggestion.element.returnType,
           isNotImportedLibrary: suggestion.isNotImported,
         );
@@ -203,15 +194,15 @@ class RelevanceComputer {
         return _computeLocalVariableRelevance(suggestion);
       case MethodSuggestion():
         return _computeMethodRelevance(
-          suggestion.element.asElement,
+          suggestion.element,
           suggestion.inheritanceDistance(featureComputer),
           suggestion.isNotImported,
         );
       case MixinSuggestion():
         return computeTopLevelRelevance(
-          suggestion.element.asElement,
-          elementType: instantiateInstanceElement(
-            suggestion.element.asElement,
+          suggestion.element,
+          elementType: instantiateInstanceElement2(
+            suggestion.element,
             neverType,
           ),
           isNotImportedLibrary: suggestion.isNotImported,
@@ -229,13 +220,13 @@ class RelevanceComputer {
         return Relevance.override;
       case GetterSuggestion():
         return _computePropertyAccessorRelevance(
-          suggestion.element.asElement as PropertyAccessorElement,
+          suggestion.element,
           suggestion.inheritanceDistance(featureComputer),
           suggestion.isNotImported,
         );
       case SetterSuggestion():
         return _computePropertyAccessorRelevance(
-          suggestion.element.asElement as PropertyAccessorElement,
+          suggestion.element,
           suggestion.inheritanceDistance(featureComputer),
           suggestion.isNotImported,
         );
@@ -249,13 +240,13 @@ class RelevanceComputer {
         return Relevance.requiredNamedArgument;
       case SetStateMethodSuggestion():
         return _computeMethodRelevance(
-          suggestion.element.asElement,
+          suggestion.element,
           suggestion.inheritanceDistance(featureComputer),
           suggestion.isNotImported,
         );
       case StaticFieldSuggestion():
         return _computeStaticFieldRelevance(
-          suggestion.element.asElement as FieldElement,
+          suggestion.element,
           0.0,
           suggestion.isNotImported,
         );
@@ -264,36 +255,36 @@ class RelevanceComputer {
       case TopLevelFunctionSuggestion():
         var function = suggestion.element;
         return computeTopLevelRelevance(
-          function.asElement,
+          function,
           elementType: function.returnType,
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case TopLevelGetterSuggestion():
         return _computeTopLevelPropertyAccessorRelevance(
-          suggestion.element.asElement as PropertyAccessorElement,
+          suggestion.element,
           suggestion.isNotImported,
         );
       case TopLevelSetterSuggestion():
         return _computeTopLevelPropertyAccessorRelevance(
-          suggestion.element.asElement as PropertyAccessorElement,
+          suggestion.element,
           suggestion.isNotImported,
         );
       case TopLevelVariableSuggestion():
         var variable = suggestion.element;
         return computeTopLevelRelevance(
-          variable.asElement!,
+          variable,
           elementType: variable.type,
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case TypeAliasSuggestion():
-        var typeAlias = suggestion.element.asElement as TypeAliasElement;
+        var typeAlias = suggestion.element;
         return computeTopLevelRelevance(
           typeAlias,
           elementType: _instantiateTypeAlias(typeAlias),
           isNotImportedLibrary: suggestion.isNotImported,
         );
       case TypeParameterSuggestion():
-        return _computeTypeParameterRelevance(suggestion.element.asElement);
+        return _computeTypeParameterRelevance(suggestion.element);
       case UriSuggestion():
         return suggestion.uriStr == 'dart:core'
             ? Relevance.importDartCore
@@ -349,7 +340,7 @@ class RelevanceComputer {
 
   /// Return the relevance score for a top-level [element].
   int computeTopLevelRelevance(
-    Element element, {
+    Element2 element, {
     required DartType elementType,
     required bool isNotImportedLibrary,
   }) {
@@ -362,9 +353,9 @@ class RelevanceComputer {
       elementType,
     );
     var elementKind = _computeElementKind(element);
-    var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature2(element);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -404,7 +395,7 @@ class RelevanceComputer {
   /// Compute the relevance for an [accessor].
   int _computeAccessorRelevance(
     DartType? type,
-    Element accessor,
+    Element2 accessor,
     bool isNotImportedLibrary, {
     double startsWithDollar = 0.0,
     double superMatches = 0.0,
@@ -415,9 +406,9 @@ class RelevanceComputer {
       type,
     );
     var elementKind = _computeElementKind(accessor, distance: distance);
-    var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature2(accessor);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature(accessor) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature2(accessor) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -431,12 +422,12 @@ class RelevanceComputer {
 
   /// Compute the relevance for [ConstructorElement].
   int _computeConstructorRelevance(
-    ConstructorElement element,
+    ConstructorElement2 element,
     NeverType neverType,
     bool isNotImportedLibrary,
   ) {
-    var enclosingClass = element.enclosingElement3.augmented.firstFragment;
-    var returnType = instantiateInstanceElement(enclosingClass, neverType);
+    var enclosingClass = element.enclosingElement2;
+    var returnType = instantiateInstanceElement2(enclosingClass, neverType);
     return computeTopLevelRelevance(
       element,
       elementType: returnType,
@@ -446,9 +437,9 @@ class RelevanceComputer {
 
   /// Compute the value of the _element kind_ feature for the given [element] in
   /// the completion context.
-  double _computeElementKind(Element element, {double? distance}) {
+  double _computeElementKind(Element2 element, {double? distance}) {
     var location = completionLocation;
-    var elementKind = featureComputer.elementKindFeature(
+    var elementKind = featureComputer.elementKindFeature2(
       element,
       location,
       distance: distance,
@@ -494,7 +485,7 @@ class RelevanceComputer {
     bool isNotImportedLibrary,
     double inheritanceDistance,
   ) {
-    var element = suggestion.element.asElement as FieldElement;
+    var element = suggestion.element;
     if (suggestion.includeEnumName) {
       return computeTopLevelRelevance(
         element,
@@ -508,7 +499,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for [FormalParameterSuggestion].
   int _computeFormalParameterRelevance(FormalParameterSuggestion suggestion) {
-    var element = suggestion.element.asElement as ParameterElement;
+    var element = suggestion.element;
     var variableType = element.type;
     var contextType = request.featureComputer.contextTypeFeature(
       request.contextType,
@@ -519,7 +510,7 @@ class RelevanceComputer {
     );
     var elementKind = _computeElementKind(element);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -550,7 +541,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for [LocalVariableSuggestion].
   int _computeLocalVariableRelevance(LocalVariableSuggestion suggestion) {
-    var element = suggestion.element.asElement as LocalVariableElement;
+    var element = suggestion.element;
     var variableType = element.type;
     var contextType = request.featureComputer.contextTypeFeature(
       request.contextType,
@@ -564,7 +555,7 @@ class RelevanceComputer {
       distance: localVariableDistance,
     );
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -575,7 +566,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for [MethodElement].
   int _computeMethodRelevance(
-    MethodElement method,
+    MethodElement2 method,
     double inheritanceDistance,
     bool isNotImportedLibrary,
   ) {
@@ -587,17 +578,19 @@ class RelevanceComputer {
       method,
       distance: inheritanceDistance,
     );
-    var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature2(method);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature(method) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature2(method) : 0.0;
     var isNoSuchMethod = featureComputer.isNoSuchMethodFeature(
       _containingMemberName,
-      method.name,
+      method.displayName,
     );
-    var startsWithDollar = featureComputer.startsWithDollarFeature(method.name);
+    var startsWithDollar = featureComputer.startsWithDollarFeature(
+      method.displayName,
+    );
     var superMatches = featureComputer.superMatchesFeature(
       _containingMemberName,
-      method.name,
+      method.displayName,
     );
     return computeScore(
       contextType: contextType,
@@ -614,14 +607,14 @@ class RelevanceComputer {
 
   /// Compute the relevance for [PropertyAccessorElement].
   int _computePropertyAccessorRelevance(
-    PropertyAccessorElement accessor,
+    PropertyAccessorElement2 accessor,
     double inheritanceDistance,
     bool isNotImportedLibrary,
   ) {
     if (accessor.isSynthetic) {
-      if (accessor.isGetter) {
-        var variable = accessor.variable2;
-        if (variable is FieldElement) {
+      if (accessor is GetterElement) {
+        var variable = accessor.variable3;
+        if (variable is FieldElement2) {
           return computeFieldElementRelevance(variable, inheritanceDistance);
         }
       }
@@ -629,10 +622,10 @@ class RelevanceComputer {
       var type = _getPropertyAccessorType(accessor);
       var superMatches = featureComputer.superMatchesFeature(
         _containingMemberName,
-        accessor.name,
+        accessor.displayName,
       );
       var startsWithDollar = featureComputer.startsWithDollarFeature(
-        accessor.name,
+        accessor.displayName,
       );
       return _computeAccessorRelevance(
         type,
@@ -648,15 +641,15 @@ class RelevanceComputer {
 
   /// Compute the relevance for a static [FieldElement].
   int _computeStaticFieldRelevance(
-    FieldElement element,
+    FieldElement2 element,
     double inheritanceDistance,
     bool isNotImportedLibrary,
   ) {
     if (element.isSynthetic) {
-      var getter = element.getter;
+      var getter = element.getter2;
       if (getter != null) {
-        var variable = getter.variable2;
-        if (variable is FieldElement) {
+        var variable = getter.variable3;
+        if (variable is FieldElement2) {
           return computeFieldElementRelevance(variable, inheritanceDistance);
         }
       }
@@ -672,26 +665,24 @@ class RelevanceComputer {
 
   /// Compute the relevance for top level [PropertyAccessorElement].
   int _computeTopLevelPropertyAccessorRelevance(
-    PropertyAccessorElement accessor,
+    PropertyAccessorElement2 accessor,
     bool isNotImportedLibrary,
   ) {
     if (accessor.isSynthetic) {
-      if (accessor.isGetter) {
-        if (accessor.isGetter) {
-          var variable = accessor.variable2;
-          if (variable is TopLevelVariableElement) {
-            return computeTopLevelRelevance(
-              variable,
-              elementType: variable.type,
-              isNotImportedLibrary: isNotImportedLibrary,
-            );
-          }
+      if (accessor is GetterElement) {
+        var variable = accessor.variable3;
+        if (variable is TopLevelVariableElement2) {
+          return computeTopLevelRelevance(
+            variable,
+            elementType: variable.type,
+            isNotImportedLibrary: isNotImportedLibrary,
+          );
         }
       }
     } else {
       var type = _getPropertyAccessorType(accessor);
       var startsWithDollar = featureComputer.startsWithDollarFeature(
-        accessor.name,
+        accessor.displayName,
       );
       return _computeAccessorRelevance(
         type,
@@ -703,21 +694,21 @@ class RelevanceComputer {
     return 0;
   }
 
-  /// Compute the relevance for [TypeParameterElement].
-  int _computeTypeParameterRelevance(TypeParameterElement parameter) {
+  /// Compute the relevance for [TypeParameterElement2].
+  int _computeTypeParameterRelevance(TypeParameterElement2 parameter) {
     var elementKind = _computeElementKind(parameter);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature(parameter) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature2(parameter) : 0.0;
     return computeScore(elementKind: elementKind, isConstant: isConstant);
   }
 
   /// Return the type associated with the [accessor], maybe `null` if an
   /// invalid setter with no parameters at all.
-  DartType? _getPropertyAccessorType(PropertyAccessorElement accessor) {
-    if (accessor.isGetter) {
+  DartType? _getPropertyAccessorType(PropertyAccessorElement2 accessor) {
+    if (accessor is GetterElement) {
       return accessor.returnType;
     } else {
-      var parameters = accessor.parameters;
+      var parameters = accessor.formalParameters;
       if (parameters.isEmpty) {
         return null;
       } else {
@@ -727,11 +718,11 @@ class RelevanceComputer {
   }
 
   /// Return the [DartType] for an instantiated [TypeAlias].
-  DartType _instantiateTypeAlias(TypeAliasElement element) {
-    var typeParameters = element.typeParameters;
+  DartType _instantiateTypeAlias(TypeAliasElement2 element) {
+    var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement.typeProvider.neverType;
+      var neverType = request.libraryElement2.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(

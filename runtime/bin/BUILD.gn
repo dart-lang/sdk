@@ -215,7 +215,6 @@ template("build_gen_snapshot") {
     defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
 
     sources = [
-      "address_sanitizer.cc",
       "builtin.cc",
       "builtin.h",
       "error_exit.cc",

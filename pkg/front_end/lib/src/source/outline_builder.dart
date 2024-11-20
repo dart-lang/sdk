@@ -3479,7 +3479,6 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     if (inConstructorName) {
-      // Coverage-ignore-block(suite): Not run.
       addProblem(messageConstructorWithTypeParameters,
           offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
       inConstructorName = false;

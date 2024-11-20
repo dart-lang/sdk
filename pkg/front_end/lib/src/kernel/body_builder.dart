@@ -1305,7 +1305,14 @@ class BodyBuilder extends StackListenerImpl
           // Illegal parameters were removed by the function builder.
           // Add them as local variable to put them in scope of the body.
           List<Statement> statements = <Statement>[];
-          for (FormalParameterBuilder parameter in _context.formals!) {
+          List<FormalParameterBuilder> formals = _context.formals!;
+          for (int i = 0; i < formals.length; i++) {
+            FormalParameterBuilder parameter = formals[i];
+            VariableDeclaration variable = parameter.variable!;
+            // #this should not be redeclared.
+            if (i == 0 && identical(variable, thisVariable)) {
+              continue;
+            }
             statements.add(parameter.variable!);
           }
           statements.add(body);
@@ -3198,7 +3205,10 @@ class BodyBuilder extends StackListenerImpl
     }
     if (declaration != null &&
         declaration.isDeclarationInstanceMember &&
-        (inFieldInitializer && !inLateFieldInitializer) &&
+        (inFieldInitializer &&
+            (!inLateFieldInitializer ||
+                _context.isExtensionDeclaration ||
+                _context.isExtensionTypeDeclaration)) &&
         !inInitializerLeftHandSide) {
       // We cannot access a class instance member in an initializer of a
       // field.
@@ -3210,6 +3220,8 @@ class BodyBuilder extends StackListenerImpl
       //       int bar;
       //     }
       //
+      // We can if it's late, but not if we're in an extension (type), even if
+      // it's late.
       return new IncompleteErrorGenerator(this, nameToken,
           cfe.templateThisAccessInFieldInitializer.withArguments(name));
     }
@@ -3232,6 +3244,11 @@ class BodyBuilder extends StackListenerImpl
           // implicit access on the 'this' parameter.
           return PropertyAccessGenerator.make(this, nameToken,
               createVariableGet(thisVariable!, nameOffset), n, false);
+        } else if (_context.isExtensionDeclaration ||
+            _context.isExtensionTypeDeclaration) {
+          // In an extension (type) without a this variable.
+          return new UnresolvedNameGenerator(this, nameToken, n,
+              unresolvedReadKind: UnresolvedKind.Unknown);
         } else {
           // This is an implicit access on 'this'.
           return new ThisPropertyAccessGenerator(this, nameToken, n,
@@ -3305,7 +3322,14 @@ class BodyBuilder extends StackListenerImpl
           thisVariable: inConstructorInitializer ? null : thisVariable);
     } else if (declaration.isExtensionInstanceMember) {
       // TODO(johnniwinther): Better check for constantContext like below/above?
+      // Possibly if the is a non-none constant context it's just a no without
+      // additional checks?
       if (constantContext != ConstantContext.none && thisVariable == null) {
+        return new IncompleteErrorGenerator(
+            this, nameToken, cfe.messageNotAConstantExpression);
+      } else if (constantContext != ConstantContext.none &&
+          !inInitializerLeftHandSide &&
+          !_context.isConstructor) {
         return new IncompleteErrorGenerator(
             this, nameToken, cfe.messageNotAConstantExpression);
       }
@@ -7190,6 +7214,12 @@ class BodyBuilder extends StackListenerImpl
           push(_createReadOnlyVariableAccess(thisVariable!, token,
               offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
         }
+      } else if ((!inConstructorInitializer || !inInitializerLeftHandSide) &&
+          (_context.isExtensionDeclaration ||
+              _context.isExtensionTypeDeclaration)) {
+        // In an extension (type) where we don't (here) have a "this" variable.
+        push(new IncompleteErrorGenerator(
+            this, token, cfe.messageThisAsIdentifier));
       } else {
         push(new ThisAccessGenerator(this, token, inInitializerLeftHandSide,
             inFieldInitializer, inLateFieldInitializer));

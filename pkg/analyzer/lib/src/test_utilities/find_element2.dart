@@ -144,7 +144,7 @@ class FindElement2 extends _FindElementBase {
         updateResult(node.declaredElement2!);
       },
       variableDeclaration: (node) {
-        updateResult(node.declaredElement2!);
+        updateResult(node.declaredFragment!.element);
       },
     ));
 

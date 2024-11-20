@@ -5,10 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
 import 'package:analyzer/src/wolf/ir/ir.dart';
@@ -22,15 +23,20 @@ import 'package:analyzer/src/wolf/ir/ir.dart';
 /// (if provided). This should provide enough information to allow the caller to
 /// map individual instructions to the AST nodes that spawned them.
 CodedIRContainer astToIR(
-    ExecutableElement executableElement, FunctionBody functionBody,
-    {required TypeProvider typeProvider,
-    required TypeSystem typeSystem,
-    AstToIREventListener? eventListener}) {
+  ExecutableElement2 executableElement,
+  FunctionBody functionBody, {
+  required TypeProvider typeProvider,
+  required TypeSystem typeSystem,
+  required InheritanceManager3 inheritanceManager,
+  AstToIREventListener? eventListener,
+}) {
   eventListener ??= AstToIREventListener();
   var visitor = _AstToIRVisitor(
-      typeSystem: typeSystem,
-      typeProvider: typeProvider,
-      eventListener: eventListener);
+    typeSystem: typeSystem,
+    typeProvider: typeProvider,
+    inheritanceManager: inheritanceManager,
+    eventListener: eventListener,
+  );
   eventListener._visitor = visitor;
   visitor.visitFunctionBody(executableElement, functionBody,
       isInstanceMember: !executableElement.isStatic);
@@ -68,9 +74,10 @@ base class AstToIREventListener {
 ///
 /// The remaining visit methods simply return `null`.
 class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
-  final TypeSystem typeSystem;
   final TypeProvider typeProvider;
-  final LibraryElement coreLibrary;
+  final TypeSystem typeSystem;
+  final InheritanceManager3 inheritanceManager;
+  final LibraryElement2 coreLibrary;
   final AstToIREventListener eventListener;
 
   /// For each enclosing flow control construct that may be the target of a
@@ -94,18 +101,19 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   final functionNestingStack = <int>[];
 
   final ir = CodedIRWriter();
-  final Map<VariableElement, int> locals = {};
+  final Map<VariableElement2, int> locals = {};
   late final oneArgument = ir.encodeArgumentNames([null]);
   late final twoArguments = ir.encodeArgumentNames([null, null]);
   late final null_ = ir.encodeLiteral(null);
   late final one = ir.encodeLiteral(1);
   late final stackIndices101 = ir.encodeStackIndices(const [1, 0, 1]);
 
-  _AstToIRVisitor(
-      {required this.typeSystem,
-      required this.typeProvider,
-      required this.eventListener})
-      : coreLibrary = typeProvider.objectElement.library;
+  _AstToIRVisitor({
+    required this.typeProvider,
+    required this.typeSystem,
+    required this.inheritanceManager,
+    required this.eventListener,
+  }) : coreLibrary = typeProvider.objectElement2.library2;
 
   /// If [node] is used as the target of a [CompoundAssignmentExpression],
   /// returns the [CompoundAssignmentExpression].
@@ -164,7 +172,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     return result;
   }
 
-  void instanceCall(MethodElement? staticElement, String name,
+  void instanceCall(MethodElement2? staticElement, String name,
       List<DartType> typeArguments, ArgumentNamesRef argumentNames) {
     if (staticElement == null) throw UnimplementedError('TODO(paulberry)');
     ir.call(
@@ -173,7 +181,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         argumentNames);
   }
 
-  void instanceGet(PropertyAccessorElement? staticElement, String name) {
+  void instanceGet(PropertyAccessorElement2? staticElement, String name) {
     if (staticElement == null) {
       throw UnimplementedError('TODO(paulberry): dynamic instance get');
     }
@@ -181,7 +189,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         oneArgument);
   }
 
-  void instanceSet(PropertyAccessorElement? staticElement, String name) {
+  void instanceSet(PropertyAccessorElement2? staticElement, String name) {
     if (staticElement == null) {
       throw UnimplementedError('TODO(paulberry): dynamic instance set');
     }
@@ -189,11 +197,13 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         twoArguments);
   }
 
-  MethodElement lookupToString(DartType? type) {
+  MethodElement2 lookupToString(DartType? type) {
     var class_ =
-        type is InterfaceType ? type.element : typeProvider.objectElement;
-    return class_.augmented
-        .lookUpMethod(name: 'toString', library: coreLibrary)!;
+        type is InterfaceType ? type.element3 : typeProvider.objectElement2;
+    return inheritanceManager.getMember4(
+      class_,
+      Name.forLibrary(coreLibrary, 'toString'),
+    ) as MethodElement2;
   }
 
   /// Performs a null check that is part of a null shorting expression.
@@ -307,7 +317,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         // Stack: lValue oldValue rhs
         var lexeme = node.operator.lexeme;
         assert(lexeme.endsWith('='));
-        instanceCall(node.staticElement, lexeme.substring(0, lexeme.length - 1),
+        instanceCall(node.element, lexeme.substring(0, lexeme.length - 1),
             const [], twoArguments);
         // Stack: lValue newValue
         eventListener.onEnterNode(node.leftHandSide);
@@ -425,7 +435,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         // Stack: lhs
         dispatchNode(node.rightOperand);
         // Stack: lhs rhs
-        instanceCall(node.staticElement, tokenType.lexeme, [], twoArguments);
+        instanceCall(node.element, tokenType.lexeme, [], twoArguments);
       // Stack: result
       default:
         throw UnimplementedError('TODO(paulberry): $node');
@@ -590,13 +600,13 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     }
   }
 
-  void visitFunctionBody(ExecutableElement element, FunctionBody body,
+  void visitFunctionBody(ExecutableElement2 element, FunctionBody body,
       {required bool isInstanceMember}) {
     int count = 0;
     if (isInstanceMember) {
       count++;
     }
-    for (var element in element.parameters) {
+    for (var element in element.formalParameters) {
       assert(!locals.containsKey(element));
       var localIndex = ir.localVariableCount + count;
       locals[element] = localIndex;
@@ -704,9 +714,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     var previousNestingLevel = ir.nestingLevel;
     var argumentNames = <String?>[];
     var target = node.target;
-    var methodElement = node.methodName.staticElement;
+    var methodElement = node.methodName.element;
     switch (methodElement) {
-      case FunctionElement(enclosingElement3: CompilationUnitElement()):
+      case TopLevelFunctionElement():
         assert(!node.isNullAware);
         _handleInvocationArgs(
             argumentList: node.argumentList,
@@ -714,8 +724,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
             isNullAware: false,
             previousNestingLevel: previousNestingLevel);
         // Stack: arguments
-        if (methodElement.library.isDartCore &&
-            methodElement.name == 'identical') {
+        if (methodElement.library2!.isDartCore &&
+            methodElement.name3 == 'identical') {
           ir.identical();
         } else {
           ir.call(
@@ -724,7 +734,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
               ir.encodeArgumentNames(argumentNames));
         }
       // Stack: result
-      case MethodElement(isStatic: false):
+      case MethodElement2(isStatic: false):
         if (target == null) {
           assert(!node.isNullAware);
           this_();
@@ -743,7 +753,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         instanceCall(methodElement, node.methodName.name,
             node.typeArgumentTypes!, ir.encodeArgumentNames(argumentNames));
       // Stack: BLOCK(1)? result
-      case MethodElement(isStatic: true):
+      case MethodElement2(isStatic: true):
         assert(!node.isNullAware);
         _handleInvocationArgs(
             argumentList: node.argumentList,
@@ -788,8 +798,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         eventListener.onExitNode();
         ir.literal(one);
         // Stack: oldValue lValue oldValue 1
-        instanceCall(
-            node.staticElement, node.operator.lexeme[0], [], twoArguments);
+        instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
         // Stack: oldValue lValue newValue
         lValueTemplates.write(this);
         // Stack: oldValue newValue
@@ -803,10 +812,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   @override
   _LValueTemplates? visitPrefixedIdentifier(PrefixedIdentifier node) {
     var prefix = node.prefix;
-    var prefixElement = prefix.staticElement;
+    var prefixElement = prefix.element;
     switch (prefixElement) {
-      case ParameterElement():
-      case LocalVariableElement():
+      case FormalParameterElement():
+      case LocalVariableElement2():
         dispatchNode(prefix);
         // Stack: prefix
         return _PropertyAccessTemplates(node.identifier);
@@ -832,8 +841,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         // Stack: lValue oldValue
         ir.literal(one);
         // Stack: lValue oldValue 1
-        instanceCall(
-            node.staticElement, node.operator.lexeme[0], [], twoArguments);
+        instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
         // Stack: lValue newValue
         eventListener.onEnterNode(node.operand);
         lValueTemplates.write(this);
@@ -872,17 +880,17 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   @override
   _LValueTemplates visitSimpleIdentifier(SimpleIdentifier node) {
-    var staticElement = node.staticElement;
+    var staticElement = node.element;
     if (staticElement == null) {
       if (assignmentTargeting(node) case var assignment?) {
-        staticElement = assignment.readElement ?? assignment.writeElement;
+        staticElement = assignment.readElement2 ?? assignment.writeElement2;
       }
     }
     switch (staticElement) {
-      case ParameterElement():
-      case LocalVariableElement():
+      case FormalParameterElement():
+      case LocalVariableElement2():
         return _LocalTemplates(locals[staticElement]!);
-      case PropertyAccessorElement(isStatic: false):
+      case PropertyAccessorElement2(isStatic: false):
         this_();
         // Stack: this
         return _PropertyAccessTemplates(node);
@@ -914,8 +922,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   @override
   Null visitVariableDeclarationList(VariableDeclarationList variables) {
-    for (var VariableDeclaration(:initializer, :declaredElement!)
-        in variables.variables) {
+    for (var variable in variables.variables) {
+      var initializer = variable.initializer;
+      var declaredElement = variable.declaredFragment!.element;
       assert(!locals.containsKey(declaredElement));
       var localIndex = ir.localVariableCount;
       locals[declaredElement] = localIndex;
@@ -1104,9 +1113,9 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   void read(_AstToIRVisitor visitor) {
     // Stack: target
     visitor.instanceGet(
-        (property.staticElement ??
-                visitor.assignmentTargeting(property)?.readElement)
-            as PropertyAccessorElement?,
+        (property.element ??
+                visitor.assignmentTargeting(property)?.readElement2)
+            as PropertyAccessorElement2?,
         property.name);
     // Stack: value
   }
@@ -1144,8 +1153,8 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     visitor.ir.shuffle(2, visitor.stackIndices101);
     // Stack: value target value
     visitor.instanceSet(
-        visitor.assignmentTargeting(property)!.writeElement
-            as PropertyAccessorElement?,
+        visitor.assignmentTargeting(property)!.writeElement2
+            as PropertyAccessorElement2?,
         property.name);
     // Stack: value returnValue
     visitor.ir.drop();
