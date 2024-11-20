@@ -1142,7 +1142,8 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 
 /// A concrete implementation of [DartType] representing the type `Null`, with
 /// no type parameters and no nullability suffix.
-class NullTypeImpl extends InterfaceTypeImpl {
+class NullTypeImpl extends InterfaceTypeImpl
+    implements SharedNullTypeStructure<DartType> {
   NullTypeImpl({required super.element, super.alias}) : super._null();
 
   @override

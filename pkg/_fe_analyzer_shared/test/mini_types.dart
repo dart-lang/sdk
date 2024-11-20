@@ -480,7 +480,8 @@ class NeverType extends _SpecialSimpleType {
 
 /// Representation of the type `Null` suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
-class NullType extends _SpecialSimpleType {
+class NullType extends _SpecialSimpleType
+    implements SharedNullTypeStructure<Type> {
   static final instance = NullType._();
 
   NullType._()

@@ -774,7 +774,7 @@ class NeverType extends DartType {
   }
 }
 
-class NullType extends DartType {
+class NullType extends DartType implements SharedNullTypeStructure<DartType> {
   @override
   final int hashCode = 415324;
 

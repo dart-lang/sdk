@@ -2991,9 +2991,6 @@ class MiniAstOperations
   }
 
   @override
-  bool isNullInternal(Type type) => type is NullType;
-
-  @override
   bool isObject(SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
     return unwrappedType is PrimaryType &&
