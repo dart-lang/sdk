@@ -166,9 +166,6 @@ lib/src/utilities/extensions/ast.dart
 lib/src/utilities/extensions/element.dart
 lib/src/utilities/extensions/flutter.dart
 lib/src/utilities/extensions/library_element.dart
-lib/src/wolf/ir/ast_to_ir.dart
-lib/src/wolf/ir/call_descriptor.dart
-lib/src/wolf/ir/coded_ir.dart
 test/dart/sdk/build_sdk_summary_test.dart
 test/error/error_reporter_test.dart
 test/generated/element_resolver_test.dart
