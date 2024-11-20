@@ -35,6 +35,7 @@ dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-g
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/spawn_uri_aot_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
+dart/timeline_recorder_file_test: Pass, Slow
 
 [ $arch == ia32 ]
 dart/cachable_idempotent_test: Skip # CachableIdempotent calls are not supported in ia32 because it has no object pool.
