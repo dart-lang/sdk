@@ -1487,6 +1487,16 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     locs->set_out(0, Location::SameAsFirstInput());
   }
 
+  if (locs->out(0).IsUnallocated() &&
+      (locs->out(0).policy() == Location::kMayBeSameAsFirstInput)) {
+    auto input_defn = current->InputAt(0)->definition();
+    if (IsDeadAfterCurrentInstruction(block, current, input_defn)) {
+      locs->set_out(0, Location::SameAsFirstInput());
+    } else {
+      locs->set_out(0, Location::RequiresRegister());
+    }
+  }
+
   const bool output_same_as_first_input =
       locs->out(0).IsUnallocated() &&
       (locs->out(0).policy() == Location::kSameAsFirstInput);
