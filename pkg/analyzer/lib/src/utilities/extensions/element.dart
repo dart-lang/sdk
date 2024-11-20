@@ -28,6 +28,16 @@ extension CompilationUnitElementExtension on CompilationUnitElement {
   }
 }
 
+extension ConstructorElementExtension on ConstructorElement {
+  ConstructorElement2 get asElement2 {
+    return switch (this) {
+      ConstructorFragment(:var element) => element,
+      ConstructorMember member => member,
+      _ => throw UnsupportedError('Unsupported type: $runtimeType'),
+    };
+  }
+}
+
 extension Element2OrNullExtension on Element2? {
   Element? get asElement {
     var self = this;

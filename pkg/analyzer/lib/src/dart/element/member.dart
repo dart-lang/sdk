@@ -115,8 +115,7 @@ class ConstructorMember extends ExecutableMember
       superConstructor.asElement2 as ConstructorElement2;
 
   @override
-  ConstructorElement2 get _element2 =>
-      declaration.asElement2 as ConstructorElement2;
+  ConstructorElement2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>

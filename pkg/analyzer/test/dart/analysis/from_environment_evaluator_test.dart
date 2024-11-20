@@ -217,7 +217,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getBool2(
       name,
       namedValues,
-      typeProvider.boolElement.getNamedConstructor('fromEnvironment')!,
+      typeProvider.boolElement2.getNamedConstructor2('fromEnvironment')!,
     );
   }
 
@@ -229,7 +229,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getInt2(
       name,
       namedValues,
-      typeProvider.intElement.getNamedConstructor('fromEnvironment')!,
+      typeProvider.intElement2.getNamedConstructor2('fromEnvironment')!,
     );
   }
 
@@ -241,7 +241,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getString2(
       name,
       namedValues,
-      typeProvider.stringElement.getNamedConstructor('fromEnvironment')!,
+      typeProvider.stringElement2.getNamedConstructor2('fromEnvironment')!,
     );
   }
 

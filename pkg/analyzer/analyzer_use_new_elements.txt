@@ -24,7 +24,6 @@ lib/src/dart/ast/extensions.dart
 lib/src/dart/ast/utilities.dart
 lib/src/dart/constant/constant_verifier.dart
 lib/src/dart/constant/evaluation.dart
-lib/src/dart/constant/from_environment_evaluator.dart
 lib/src/dart/constant/potentially_constant.dart
 lib/src/dart/constant/utilities.dart
 lib/src/dart/constant/value.dart
@@ -170,7 +169,6 @@ lib/src/utilities/extensions/library_element.dart
 lib/src/wolf/ir/ast_to_ir.dart
 lib/src/wolf/ir/call_descriptor.dart
 lib/src/wolf/ir/coded_ir.dart
-test/dart/analysis/from_environment_evaluator_test.dart
 test/dart/sdk/build_sdk_summary_test.dart
 test/error/error_reporter_test.dart
 test/generated/element_resolver_test.dart

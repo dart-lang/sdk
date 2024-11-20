@@ -6246,6 +6246,11 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }
 
   @override
+  ConstructorElement2? getNamedConstructor2(String name) {
+    return constructors2.firstWhereOrNull((e) => e.name3 == name);
+  }
+
+  @override
   InterfaceType instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,

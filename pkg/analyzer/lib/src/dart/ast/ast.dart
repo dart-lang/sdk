@@ -4459,8 +4459,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @experimental
   @override
-  ConstructorElement2? get element =>
-      staticElement?.asElement2 as ConstructorElement2?;
+  ConstructorElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken {
@@ -5621,7 +5620,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @experimental
   @override
   ConstructorElement2? get constructorElement2 =>
-      constructorElement?.asElement2 as ConstructorElement2?;
+      constructorElement?.asElement2;
 
   @experimental
   @override
@@ -15077,8 +15076,7 @@ final class RedirectingConstructorInvocationImpl
 
   @experimental
   @override
-  ConstructorElement2? get element =>
-      staticElement?.asElement2 as ConstructorElement2?;
+  ConstructorElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -16629,8 +16627,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @experimental
   @override
-  ConstructorElement2? get element =>
-      staticElement?.asElement2 as ConstructorElement2?;
+  ConstructorElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _argumentList.endToken;

@@ -1623,7 +1623,7 @@ class DeclarationHelper {
 
       var suggestion = ConstructorSuggestion(
         importData: importData,
-        element: element.asElement2 as ConstructorElement2,
+        element: element.asElement2,
         hasClassName: hasClassName,
         isTearOff: isTearOff,
         isRedirect: isConstructorRedirect,

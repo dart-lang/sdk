@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class MockSdkElements {
   final LibraryElementImpl coreLibrary;
@@ -992,6 +993,7 @@ class _MockSdkElementsBuilder {
     List<ParameterElement> parameters = const [],
   }) {
     var element = ConstructorElementImpl(name, 0);
+    element.name2 = name.ifNotEmptyOrElse('new');
     element.isFactory = isFactory;
     element.isConst = isConst;
     element.parameters = parameters;
