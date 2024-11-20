@@ -6418,8 +6418,7 @@ class LabelElementImpl2 extends ElementImpl2
   LabelElement2 get baseElement => this;
 
   @override
-  ExecutableElement2? get enclosingElement2 =>
-      super.enclosingElement2 as ExecutableElement2?;
+  ExecutableElement2? get enclosingElement2 => null;
 
   @override
   LabelFragment get firstFragment => _wrappedElement;
