@@ -5,12 +5,12 @@
 import '../../common/testing.dart' as helper;
 import 'package:expect/expect.dart';
 
-import 'shared/shared.dart' show topLevel;
+import 'shared/shared.dart' show M;
 
-/// A top-level setter can be invoked from a dynamic module.
+/// A dynamic module can apply an exposed mixin.
 main() async {
-  Expect.equals('original', topLevel);
-  await helper.load('entry1.dart');
-  Expect.equals('updated', topLevel);
+  final o = (await helper.load('entry1.dart')) as M;
+  Expect.equals(3, o.method1());
+  Expect.equals('*3 2', o.method2());
   helper.done();
 }
