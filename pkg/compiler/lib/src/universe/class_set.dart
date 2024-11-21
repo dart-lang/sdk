@@ -145,16 +145,16 @@ class ClassHierarchyNode {
       {required bool add}) {
     ClassHierarchyNode? parent = parentNode;
     if (add) {
-      _mask -= Instantiation.UNINSTANTIATED;
-      _mask += instantiation;
+      _mask = _mask.remove(Instantiation.UNINSTANTIATED);
+      _mask = _mask.add(instantiation);
       while (parent != null) {
         parent._updateInstantiatedSubclassCount(1);
         parent = parent.parentNode;
       }
     } else {
-      _mask -= instantiation;
+      _mask = _mask.remove(instantiation);
       if (_mask.isEmpty) {
-        _mask += Instantiation.UNINSTANTIATED;
+        _mask = _mask.add(Instantiation.UNINSTANTIATED);
       }
       while (parent != null) {
         parent._updateInstantiatedSubclassCount(-1);
@@ -183,12 +183,12 @@ class ClassHierarchyNode {
     bool after = isIndirectlyInstantiated;
     if (before != after) {
       if (after) {
-        _mask -= Instantiation.UNINSTANTIATED;
-        _mask += Instantiation.INDIRECTLY_INSTANTIATED;
+        _mask = _mask.remove(Instantiation.UNINSTANTIATED);
+        _mask = _mask.add(Instantiation.INDIRECTLY_INSTANTIATED);
       } else {
-        _mask -= Instantiation.INDIRECTLY_INSTANTIATED;
+        _mask = _mask.remove(Instantiation.INDIRECTLY_INSTANTIATED);
         if (_mask.isEmpty) {
-          _mask += Instantiation.UNINSTANTIATED;
+          _mask = _mask.add(Instantiation.UNINSTANTIATED);
         }
       }
     }

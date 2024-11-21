@@ -47,36 +47,36 @@ void testAddRemoveContains() {
 
   check(0, []);
 
-  enumSet += Enum.B;
+  enumSet = enumSet.add(Enum.B);
   check(2, [Enum.B]);
 
-  enumSet += Enum.F;
+  enumSet = enumSet.add(Enum.F);
   check(34, [Enum.F, Enum.B]);
 
-  enumSet += Enum.A;
+  enumSet = enumSet.add(Enum.A);
   check(35, [Enum.F, Enum.B, Enum.A]);
 
-  enumSet += Enum.A;
+  enumSet = enumSet.add(Enum.A);
   check(35, [Enum.F, Enum.B, Enum.A]);
 
-  enumSet -= Enum.C;
+  enumSet = enumSet.remove(Enum.C);
   check(35, [Enum.F, Enum.B, Enum.A]);
 
-  enumSet -= Enum.B;
+  enumSet = enumSet.remove(Enum.B);
   check(33, [Enum.F, Enum.A]);
 
-  enumSet -= Enum.A;
+  enumSet = enumSet.remove(Enum.A);
   check(32, [Enum.F]);
 
   enumSet = EnumSet.empty();
   check(0, []);
 
-  enumSet += Enum.A;
-  enumSet += Enum.B;
-  enumSet += Enum.C;
-  enumSet += Enum.D;
-  enumSet += Enum.E;
-  enumSet += Enum.F;
+  enumSet = enumSet.add(Enum.A);
+  enumSet = enumSet.add(Enum.B);
+  enumSet = enumSet.add(Enum.C);
+  enumSet = enumSet.add(Enum.D);
+  enumSet = enumSet.add(Enum.E);
+  enumSet = enumSet.add(Enum.F);
   check(63, [Enum.F, Enum.E, Enum.D, Enum.C, Enum.B, Enum.A]);
 }
 
@@ -107,8 +107,8 @@ void testConstructorsIntersects() {
   check(emptyA, emptyD);
   check(emptyA, emptyE);
 
-  EnumSet<Enum> singleA = const EnumSet<Enum>.empty() + Enum.C;
-  EnumSet<Enum> singleB = EnumSet<Enum>.empty() + Enum.C;
+  EnumSet<Enum> singleA = const EnumSet<Enum>.empty().add(Enum.C);
+  EnumSet<Enum> singleB = EnumSet<Enum>.empty().add(Enum.C);
   EnumSet<Enum> singleC = const EnumSet<Enum>.fromRawBits(4);
   EnumSet<Enum> singleD = EnumSet<Enum>.fromRawBits(4);
   EnumSet<Enum> singleE = EnumSet<Enum>.fromValues([Enum.C]);
@@ -121,8 +121,10 @@ void testConstructorsIntersects() {
   check(singleA, singleE);
   check(singleA, singleF);
 
-  EnumSet<Enum> multiA = const EnumSet<Enum>.empty() + Enum.A + Enum.D + Enum.F;
-  EnumSet<Enum> multiB = EnumSet<Enum>.empty() + Enum.A + Enum.D + Enum.F;
+  EnumSet<Enum> multiA =
+      const EnumSet<Enum>.empty().add(Enum.A).add(Enum.D).add(Enum.F);
+  EnumSet<Enum> multiB =
+      EnumSet<Enum>.empty().add(Enum.A).add(Enum.D).add(Enum.F);
   EnumSet<Enum> multiC = const EnumSet<Enum>.fromRawBits(41);
   EnumSet<Enum> multiD = EnumSet<Enum>.fromRawBits(41);
   EnumSet<Enum> multiE = EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.D]);

@@ -153,7 +153,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     String suffix = data.suffix;
     final annotation = PragmaAnnotation.lookupMap[suffix];
     if (annotation != null) {
-      annotations += annotation;
+      annotations = annotations.add(annotation);
 
       if (data.options != null && !annotation.hasOption) {
         reporter.reportErrorMessage(
@@ -210,7 +210,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
                 "with @pragma('dart2js:${other.name}')."
           });
           reportedExclusions.update(
-              annotation, (exclusions) => exclusions + other,
+              annotation, (exclusions) => exclusions.add(other),
               ifAbsent: () => EnumSet.fromValue(other));
         }
       }

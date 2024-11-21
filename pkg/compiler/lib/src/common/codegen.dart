@@ -218,7 +218,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    _asyncMarkers += asyncMarker;
+    _asyncMarkers = _asyncMarkers.add(asyncMarker);
   }
 
   @override

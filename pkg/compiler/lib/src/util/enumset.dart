@@ -39,17 +39,16 @@ extension type const EnumSet<E extends Enum>(Bitset mask) {
 
   /// Returns a set containing all enum values in [this] as well as [enumValue].
   @useResult
-  EnumSet<E> operator +(E enumValue) => EnumSet(mask.union(enumValue.mask(0)));
+  EnumSet<E> add(E enumValue) => EnumSet(mask.union(enumValue.mask(0)));
 
   /// Returns a set containing all enum values in [this] except for [enumValue].
   @useResult
-  EnumSet<E> operator -(E enumValue) =>
-      EnumSet(mask.setMinus(enumValue.mask(0)));
+  EnumSet<E> remove(E enumValue) => EnumSet(mask.setMinus(enumValue.mask(0)));
 
   /// Returns a set with the bit for [value] enabled or disabled depending on
   /// [state].
   @useResult
-  EnumSet<E> update(E value, bool state) => state ? this + value : this - value;
+  EnumSet<E> update(E value, bool state) => state ? add(value) : remove(value);
 
   /// Returns a new set containing all values in both this and the [other] set.
   @useResult
