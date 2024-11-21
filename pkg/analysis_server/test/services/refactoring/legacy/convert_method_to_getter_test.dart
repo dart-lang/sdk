@@ -156,7 +156,7 @@ void f() {
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-      'Only class methods or top-level functions can be converted to getters.',
+      'Only methods or top-level functions can be converted to getters.',
     );
   }
 
@@ -186,7 +186,7 @@ void f() {
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-      'Only top-level functions can be converted to getters.',
+      'Only methods or top-level functions can be converted to getters.',
     );
   }
 
@@ -200,7 +200,7 @@ class A {
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
-      'Only class methods or top-level functions can be converted to getters.',
+      'Only methods or top-level functions can be converted to getters.',
     );
   }
 

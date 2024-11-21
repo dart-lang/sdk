@@ -49,8 +49,6 @@ lib/src/services/flutter/widget_descriptions.dart
 lib/src/services/kythe/kythe_visitors.dart
 lib/src/services/refactoring/agnostic/change_method_signature.dart
 lib/src/services/refactoring/framework/formal_parameter.dart
-lib/src/services/refactoring/legacy/convert_getter_to_method.dart
-lib/src/services/refactoring/legacy/convert_method_to_getter.dart
 lib/src/services/refactoring/legacy/extract_local.dart
 lib/src/services/refactoring/legacy/extract_method.dart
 lib/src/services/refactoring/legacy/extract_widget.dart
