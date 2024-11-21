@@ -5,6 +5,7 @@
 library kernel.type_algebra;
 
 import 'ast.dart';
+import 'core_types.dart';
 import 'src/find_type_visitor.dart';
 import 'src/replacement_visitor.dart';
 
@@ -1933,15 +1934,10 @@ class _NullabilityConstructorUnwrapper implements DartTypeVisitor<DartType> {
 
 abstract class NullabilityAwareTypeVariableEliminatorBase
     extends ReplacementVisitor {
-  final DartType bottomType;
-  final DartType topType;
-  final DartType topFunctionType;
+  final CoreTypes coreTypes;
   late bool _isLeastClosure;
 
-  NullabilityAwareTypeVariableEliminatorBase(
-      {required this.bottomType,
-      required this.topType,
-      required this.topFunctionType});
+  NullabilityAwareTypeVariableEliminatorBase({required this.coreTypes});
 
   bool containsTypeVariablesToEliminate(DartType type);
 
@@ -1964,15 +1960,15 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
   DartType getTypeParameterReplacement(Variance variance) {
     bool isCovariant = variance == Variance.covariant;
     return _isLeastClosure && isCovariant || (!_isLeastClosure && !isCovariant)
-        ? bottomType
-        : topType;
+        ? const NeverType.nonNullable()
+        : coreTypes.objectNullableRawType;
   }
 
   DartType getFunctionReplacement(Variance variance) {
     bool isCovariant = variance == Variance.covariant;
     return _isLeastClosure && isCovariant || (!_isLeastClosure && !isCovariant)
-        ? bottomType
-        : topFunctionType;
+        ? const NeverType.nonNullable()
+        : coreTypes.functionNonNullableRawType;
   }
 
   @override
@@ -2038,14 +2034,9 @@ class NullabilityAwareTypeParameterEliminator
   NullabilityAwareTypeParameterEliminator(
       {required this.structuralEliminationTargets,
       required this.nominalEliminationTargets,
-      required DartType bottomType,
-      required DartType topType,
-      required DartType topFunctionType,
+      required CoreTypes coreTypes,
       this.unhandledTypeHandler})
-      : super(
-            bottomType: bottomType,
-            topType: topType,
-            topFunctionType: topFunctionType);
+      : super(coreTypes: coreTypes);
 
   @override
   bool containsTypeVariablesToEliminate(DartType type) {
@@ -2080,14 +2071,8 @@ class NullabilityAwareFreeTypeParameterEliminator
     extends NullabilityAwareTypeVariableEliminatorBase {
   Set<StructuralParameter> _boundVariables = <StructuralParameter>{};
 
-  NullabilityAwareFreeTypeParameterEliminator(
-      {required DartType bottomType,
-      required DartType topType,
-      required DartType topFunctionType})
-      : super(
-            bottomType: bottomType,
-            topType: topType,
-            topFunctionType: topFunctionType);
+  NullabilityAwareFreeTypeParameterEliminator({required CoreTypes coreTypes})
+      : super(coreTypes: coreTypes);
 
   @override
   DartType? visitFunctionType(FunctionType node, Variance variance) {

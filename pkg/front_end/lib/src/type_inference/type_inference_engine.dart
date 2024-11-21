@@ -974,10 +974,7 @@ class OperationsCfe
   DartType greatestClosureOfTypeInternal(DartType type,
       List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
     return new NullabilityAwareFreeTypeParameterEliminator(
-            bottomType: const NeverType.nonNullable(),
-            topType: typeEnvironment.coreTypes.objectNullableRawType,
-            topFunctionType: typeEnvironment.coreTypes
-                .functionRawType(Nullability.nonNullable))
+            coreTypes: typeEnvironment.coreTypes)
         .eliminateToGreatest(type);
   }
 
@@ -985,10 +982,7 @@ class OperationsCfe
   DartType leastClosureOfTypeInternal(DartType type,
       List<SharedTypeParameterStructure<DartType>> typeParametersToEliminate) {
     return new NullabilityAwareFreeTypeParameterEliminator(
-            bottomType: const NeverType.nonNullable(),
-            topType: typeEnvironment.coreTypes.objectNullableRawType,
-            topFunctionType: typeEnvironment.coreTypes
-                .functionRawType(Nullability.nonNullable))
+            coreTypes: typeEnvironment.coreTypes)
         .eliminateToLeast(type);
   }
 

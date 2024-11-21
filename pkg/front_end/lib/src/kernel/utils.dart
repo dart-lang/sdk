@@ -226,8 +226,7 @@ int compareProcedures(Procedure a, Procedure b) {
   return a.fileOffset.compareTo(b.fileOffset);
 }
 
-List<Combinator>? toCombinators(
-    List<CombinatorBuilder>? combinatorBuilders) {
+List<Combinator>? toCombinators(List<CombinatorBuilder>? combinatorBuilders) {
   if (combinatorBuilders == null) {
     // Note: it's safe to return null here as Kernel's LibraryDependency will
     // convert null to an empty list.
