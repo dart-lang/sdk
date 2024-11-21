@@ -652,12 +652,14 @@ enum MemberUse {
 
 /// Common [EnumSet]s used for [MemberUse].
 class MemberUses {
-  static const EnumSet<MemberUse> NONE = EnumSet(0);
-  static const EnumSet<MemberUse> NORMAL_ONLY = EnumSet(1);
-  static const EnumSet<MemberUse> CLOSURIZE_INSTANCE_ONLY = EnumSet(2);
-  static const EnumSet<MemberUse> CLOSURIZE_STATIC_ONLY = EnumSet(4);
-  static const EnumSet<MemberUse> ALL_INSTANCE = EnumSet(3);
-  static const EnumSet<MemberUse> ALL_STATIC = EnumSet(5);
+  static const EnumSet<MemberUse> NONE = EnumSet.fromRawBits(0);
+  static const EnumSet<MemberUse> NORMAL_ONLY = EnumSet.fromRawBits(1);
+  static const EnumSet<MemberUse> CLOSURIZE_INSTANCE_ONLY =
+      EnumSet.fromRawBits(2);
+  static const EnumSet<MemberUse> CLOSURIZE_STATIC_ONLY =
+      EnumSet.fromRawBits(4);
+  static const EnumSet<MemberUse> ALL_INSTANCE = EnumSet.fromRawBits(3);
+  static const EnumSet<MemberUse> ALL_STATIC = EnumSet.fromRawBits(5);
 }
 
 typedef MemberUsedCallback = void Function(
@@ -705,10 +707,10 @@ enum ClassUse { INSTANTIATED, IMPLEMENTED }
 
 /// Common [EnumSet]s used for [ClassUse].
 class ClassUses {
-  static const EnumSet<ClassUse> NONE = EnumSet(0);
-  static const EnumSet<ClassUse> INSTANTIATED_ONLY = EnumSet(1);
-  static const EnumSet<ClassUse> IMPLEMENTED_ONLY = EnumSet(2);
-  static const EnumSet<ClassUse> ALL = EnumSet(3);
+  static const EnumSet<ClassUse> NONE = EnumSet.fromRawBits(0);
+  static const EnumSet<ClassUse> INSTANTIATED_ONLY = EnumSet.fromRawBits(1);
+  static const EnumSet<ClassUse> IMPLEMENTED_ONLY = EnumSet.fromRawBits(2);
+  static const EnumSet<ClassUse> ALL = EnumSet.fromRawBits(3);
 }
 
 typedef ClassUsedCallback = void Function(
@@ -859,15 +861,15 @@ enum Access {
 /// Access sets used for registration of member usage.
 class Accesses {
   /// Statically bound access of a member.
-  static const EnumSet<Access> staticAccess = EnumSet(1);
+  static const EnumSet<Access> staticAccess = EnumSet.fromRawBits(1);
 
   /// Dynamically bound access of a member. This implies the statically bound
   /// access of the member.
-  static const EnumSet<Access> dynamicAccess = EnumSet(3);
+  static const EnumSet<Access> dynamicAccess = EnumSet.fromRawBits(3);
 
   /// Direct access of a super class member. This implies the statically bound
   /// access of the member.
-  static const EnumSet<Access> superAccess = EnumSet(5);
+  static const EnumSet<Access> superAccess = EnumSet.fromRawBits(5);
 }
 
 /// The accesses of a member collected during closed world computation.
@@ -882,18 +884,18 @@ class MemberAccess {
 
   factory MemberAccess.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    EnumSet<Access> reads = EnumSet(source.readInt());
-    EnumSet<Access> writes = EnumSet(source.readInt());
-    EnumSet<Access> invokes = EnumSet(source.readInt());
+    EnumSet<Access> reads = EnumSet.fromRawBits(source.readInt());
+    EnumSet<Access> writes = EnumSet.fromRawBits(source.readInt());
+    EnumSet<Access> invokes = EnumSet.fromRawBits(source.readInt());
     source.end(tag);
     return MemberAccess(reads, writes, invokes);
   }
 
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeInt(reads.mask);
-    sink.writeInt(writes.mask);
-    sink.writeInt(invokes.mask);
+    sink.writeInt(reads.mask.bits);
+    sink.writeInt(writes.mask.bits);
+    sink.writeInt(invokes.mask.bits);
     sink.end(tag);
   }
 }

@@ -219,7 +219,7 @@ class ClassHierarchyNode {
     source.end(tag);
     return ClassHierarchyNode(parentNode, cls, hierarchyDepth)
       .._instantiatedSubclassCount = instantiatedSubclassCount
-      .._mask = EnumSet(maskValue);
+      .._mask = EnumSet.fromRawBits(maskValue);
   }
 
   /// Serializes this [ClassHierarchyNode] to [sink].
@@ -227,7 +227,7 @@ class ClassHierarchyNode {
     sink.begin(tag);
     sink.writeClass(cls);
     sink.writeClassOrNull(parentNode?.cls);
-    sink.writeInt(_mask.mask);
+    sink.writeInt(_mask.mask.bits);
     sink.writeInt(hierarchyDepth);
     sink.writeInt(_instantiatedSubclassCount);
     sink.end(tag);

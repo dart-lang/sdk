@@ -160,13 +160,13 @@ abstract class TypeInformation {
   EnumSet<_Flag> _flags = EnumSet.empty();
 
   /// Number of times this [TypeInformation] has changed type.
-  int get refineCount => _flags.mask >> NUM_TYPE_INFO_FLAGS;
+  int get refineCount => _flags.mask.bits >> NUM_TYPE_INFO_FLAGS;
 
-  void incrementRefineCount() =>
-      _flags = EnumSet(_flags.mask + (1 << NUM_TYPE_INFO_FLAGS));
+  void incrementRefineCount() => _flags =
+      EnumSet.fromRawBits(_flags.mask.bits + (1 << NUM_TYPE_INFO_FLAGS));
 
-  void clearRefineCount() =>
-      _flags = EnumSet(_flags.mask & ((1 << NUM_TYPE_INFO_FLAGS) - 1));
+  void clearRefineCount() => _flags =
+      EnumSet.fromRawBits(_flags.mask.bits & ((1 << NUM_TYPE_INFO_FLAGS) - 1));
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);

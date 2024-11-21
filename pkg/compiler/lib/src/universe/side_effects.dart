@@ -34,9 +34,9 @@ class SideEffects {
   EnumSet<SideEffectsFlag> _flags = EnumSet.empty();
 
   static final EnumSet<SideEffectsFlag> allChanges =
-      EnumSet((1 << SideEffectsFlag._changesCount) - 1);
+      EnumSet.fromRawBits((1 << SideEffectsFlag._changesCount) - 1);
 
-  static final EnumSet<SideEffectsFlag> allDepends = EnumSet(
+  static final EnumSet<SideEffectsFlag> allDepends = EnumSet.fromRawBits(
       ((1 << SideEffectsFlag._dependsCount) - 1) <<
           SideEffectsFlag._changesCount);
 
@@ -57,13 +57,13 @@ class SideEffects {
     source.begin(tag);
     int flags = source.readInt();
     source.end(tag);
-    return SideEffects.fromFlags(EnumSet(flags));
+    return SideEffects.fromFlags(EnumSet.fromRawBits(flags));
   }
 
   /// Serializes this [SideEffects] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeInt(_flags.mask);
+    sink.writeInt(_flags.mask.bits);
     sink.end(tag);
   }
 
@@ -172,7 +172,7 @@ class SideEffects {
 
   static EnumSet<SideEffectsFlag> computeDependsOnFlags(
           EnumSet<SideEffectsFlag> flags) =>
-      EnumSet(flags.mask << SideEffectsFlag._changesCount);
+      EnumSet.fromRawBits(flags.mask.bits << SideEffectsFlag._changesCount);
 
   bool dependsOn(EnumSet<SideEffectsFlag> dependsFlags) =>
       _flags.intersects(dependsFlags);

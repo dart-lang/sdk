@@ -372,8 +372,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   factory AnnotationsDataImpl.readFromDataSource(CompilerOptions options,
       DiagnosticReporter reporter, DataSourceReader source) {
     source.begin(tag);
-    Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations = source
-        .readMemberMap((MemberEntity member) => EnumSet(source.readInt()));
+    Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations =
+        source.readMemberMap(
+            (MemberEntity member) => EnumSet.fromRawBits(source.readInt()));
     source.end(tag);
     return AnnotationsDataImpl(options, reporter, pragmaAnnotations);
   }
@@ -383,7 +384,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     sink.begin(tag);
     sink.writeMemberMap(pragmaAnnotations,
         (MemberEntity member, EnumSet<PragmaAnnotation> set) {
-      sink.writeInt(set.mask);
+      sink.writeInt(set.mask.bits);
     });
     sink.end(tag);
   }

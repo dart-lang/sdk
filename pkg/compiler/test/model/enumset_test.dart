@@ -82,9 +82,9 @@ void testAddRemoveContains() {
 
 void testConstructorsIntersects() {
   EnumSet<Enum> emptyA = EnumSet<Enum>.empty();
-  EnumSet<Enum> emptyB = EnumSet<Enum>(0);
+  EnumSet<Enum> emptyB = EnumSet<Enum>.fromRawBits(0);
   EnumSet<Enum> emptyC = const EnumSet<Enum>.empty();
-  EnumSet<Enum> emptyD = const EnumSet<Enum>(0);
+  EnumSet<Enum> emptyD = const EnumSet<Enum>.fromRawBits(0);
   EnumSet<Enum> emptyE = EnumSet<Enum>.fromValues(const []);
 
   void checkIntersects(EnumSet<Enum> a, EnumSet<Enum> b, bool expectedValue) {
@@ -109,8 +109,8 @@ void testConstructorsIntersects() {
 
   EnumSet<Enum> singleA = const EnumSet<Enum>.empty() + Enum.C;
   EnumSet<Enum> singleB = EnumSet<Enum>.empty() + Enum.C;
-  EnumSet<Enum> singleC = const EnumSet<Enum>(4);
-  EnumSet<Enum> singleD = EnumSet<Enum>(4);
+  EnumSet<Enum> singleC = const EnumSet<Enum>.fromRawBits(4);
+  EnumSet<Enum> singleD = EnumSet<Enum>.fromRawBits(4);
   EnumSet<Enum> singleE = EnumSet<Enum>.fromValues([Enum.C]);
   EnumSet<Enum> singleF = EnumSet<Enum>.fromValue(Enum.C);
 
@@ -123,8 +123,8 @@ void testConstructorsIntersects() {
 
   EnumSet<Enum> multiA = const EnumSet<Enum>.empty() + Enum.A + Enum.D + Enum.F;
   EnumSet<Enum> multiB = EnumSet<Enum>.empty() + Enum.A + Enum.D + Enum.F;
-  EnumSet<Enum> multiC = const EnumSet<Enum>(41);
-  EnumSet<Enum> multiD = EnumSet<Enum>(41);
+  EnumSet<Enum> multiC = const EnumSet<Enum>.fromRawBits(41);
+  EnumSet<Enum> multiD = EnumSet<Enum>.fromRawBits(41);
   EnumSet<Enum> multiE = EnumSet<Enum>.fromValues([Enum.F, Enum.A, Enum.D]);
 
   check(multiA, multiA);
