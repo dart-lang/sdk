@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'util/path_utils.dart';
@@ -27,6 +29,14 @@ const _categoryNames = {
 };
 
 const String _messagesFileName = 'pkg/linter/messages.yaml';
+
+const _stateNames = {
+  'experimental',
+  'stable',
+  'internal',
+  'deprecated',
+  'removed',
+};
 
 final Map<String, RuleInfo> messagesRuleInfo = () {
   var messagesYaml = loadYamlNode(readFile(_messagesYamlPath));
@@ -80,22 +90,23 @@ class CodeInfo {
 class RuleInfo {
   final String name;
   final List<CodeInfo> codes;
-  final String addedIn;
-  final String? removedIn;
+  final List<State> states;
   final Set<String> categories;
   final bool hasPublishedDocs;
   final String? documentation;
   final String deprecatedDetails;
+  final bool removed;
 
-  RuleInfo(
-      {required this.name,
-      required this.codes,
-      required this.addedIn,
-      required this.removedIn,
-      required this.categories,
-      required this.hasPublishedDocs,
-      required this.documentation,
-      required this.deprecatedDetails});
+  RuleInfo({
+    required this.name,
+    required this.codes,
+    required this.categories,
+    required this.hasPublishedDocs,
+    required this.documentation,
+    required this.deprecatedDetails,
+    required this.states,
+    required this.removed,
+  });
 }
 
 // TODO(parlough): Clean up and simplify this validation
@@ -108,8 +119,11 @@ class _RuleBuilder {
         String? problemMessage,
         String? correctionMessage
       })> _codes = [];
-  String? _addedIn;
-  String? _removedIn;
+  List<
+      ({
+        String name,
+        Version version,
+      })>? _stateEntries;
   Set<String>? _categories;
   bool? _hasPublishedDocs;
   String? _documentation;
@@ -117,30 +131,30 @@ class _RuleBuilder {
 
   _RuleBuilder(this.sharedName);
 
-  bool get _wasRemoved => _removedIn != null;
+  bool get _wasRemoved =>
+      _stateEntries?.any((state) => state.name == 'removed') ?? false;
 
   void addEntry(String uniqueName, YamlMap data) {
     _addCode(uniqueName, data);
 
-    _setAddedIn(data);
+    _setStates(data);
     _setCategories(data);
     _setDeprecatedDetails(data);
     _setDocumentation(data);
     _setHasPublishedDocs(data);
-    _setRemovedIn(data);
   }
 
   RuleInfo build() => RuleInfo(
         name: sharedName,
         codes: _validateCodes(),
-        addedIn: _requireSpecified('addedIn', _addedIn),
-        removedIn: _removedIn,
+        states: _validateStates(),
         categories: _requireSpecified('categories', _categories,
             ifNotRemovedFallback: const {}),
         hasPublishedDocs: _hasPublishedDocs ?? false,
         documentation: _documentation,
         deprecatedDetails:
             _requireSpecified('deprecatedDetails', _deprecatedDetails),
+        removed: _wasRemoved,
       );
 
   void _addCode(String name, Map<Object?, Object?> data) {
@@ -210,22 +224,6 @@ class _RuleBuilder {
     return items.cast<T>();
   }
 
-  void _setAddedIn(Map<Object?, Object?> data) {
-    const propertyName = 'addedIn';
-    if (!data.containsKey(propertyName)) return;
-
-    var value = data[propertyName];
-    if (_addedIn != null) _alreadySpecified(propertyName);
-
-    var addedInValue = _requireType<String>(propertyName, value);
-    if (addedInValue.split('.').length != 2) {
-      _throwLintError("The '$propertyName' property must be in "
-          "'major.minor' format, but found '$addedInValue'.");
-    }
-
-    _addedIn = addedInValue;
-  }
-
   void _setCategories(Map<Object?, Object?> data) {
     const propertyName = 'categories';
     if (!data.containsKey(propertyName)) return;
@@ -285,19 +283,34 @@ class _RuleBuilder {
     _hasPublishedDocs = hasPublishedValue || (_hasPublishedDocs ?? false);
   }
 
-  void _setRemovedIn(Map<Object?, Object?> data) {
-    const propertyName = 'removedIn';
+  void _setStates(Map<Object?, Object?> data) {
+    const propertyName = 'state';
     if (!data.containsKey(propertyName)) return;
 
     var value = data[propertyName];
+    if (_stateEntries != null) _alreadySpecified(propertyName);
 
-    var removedInValue = _requireType<String>(propertyName, value);
-    if (removedInValue.split('.').length != 2) {
-      _throwLintError(
-          "The '$propertyName' property must be in 'major.minor' format.");
-    }
+    var stateValue = _requireType<Map<Object?, Object?>>(propertyName, value);
 
-    _removedIn = removedInValue;
+    _stateEntries = stateValue.entries.map((state) {
+      var stateName = state.key;
+      var version = state.value;
+      if (stateName is! String || version is! String) {
+        _throwLintError('Each state key and value must be a string.');
+      }
+
+      if (!_stateNames.contains(stateName)) {
+        _throwLintError('$stateName is not a valid state name.');
+      }
+
+      try {
+        var parsedVersion = Version.parse('$version.0');
+        return (name: stateName, version: parsedVersion);
+      } on Exception {
+        _throwLintError('The state versions must be in '
+            "'major.minor' format, but found '$version'.");
+      }
+    }).toList();
   }
 
   Never _throwLintError(String message) {
@@ -331,5 +344,25 @@ class _RuleBuilder {
     }
 
     return codeInfos;
+  }
+
+  List<State> _validateStates() {
+    var states = _stateEntries;
+    if (states == null || states.isEmpty) {
+      throw StateError('Tried to build a RuleInfo without a state added!');
+    }
+
+    var sortedStates = states
+        .map((state) => switch (state.name) {
+              'experimental' => State.experimental(since: state.version),
+              'stable' => State.stable(since: state.version),
+              'internal' => State.internal(since: state.version),
+              'deprecated' => State.deprecated(since: state.version),
+              'removed' => State.removed(since: state.version),
+              _ => _throwLintError('Unexpected state name: ${state.name}.'),
+            })
+        .sortedBy<VersionRange>((state) => state.since ?? Version.none);
+
+    return sortedStates;
   }
 }
