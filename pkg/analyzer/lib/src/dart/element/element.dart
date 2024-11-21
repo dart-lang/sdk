@@ -6495,10 +6495,10 @@ class LibraryElementImpl extends ElementImpl
   List<ExtensionTypeElementImpl2> extensionTypes = [];
 
   @override
-  List<TopLevelFunctionElementImpl> functions = [];
+  List<MixinElementImpl2> mixins = [];
 
   @override
-  List<MixinElementImpl2> mixins = [];
+  List<TopLevelFunctionElementImpl> topLevelFunctions = [];
 
   @override
   List<TopLevelVariableElementImpl2> topLevelVariables = [];
@@ -6545,7 +6545,7 @@ class LibraryElementImpl extends ElementImpl
       ...classes,
       ...extensions,
       ...extensionTypes,
-      ...functions,
+      ...topLevelFunctions,
       ...mixins,
       ...typeAliases,
       ...getters,
@@ -6893,7 +6893,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   TopLevelFunctionElement? getTopLevelFunction(String name) {
-    return _getElementByName(functions, name);
+    return _getElementByName(topLevelFunctions, name);
   }
 
   @override

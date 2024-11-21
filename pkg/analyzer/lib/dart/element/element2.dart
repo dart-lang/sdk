@@ -1445,12 +1445,6 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   /// `part` directive.
   List<LibraryFragment> get fragments;
 
-  /// The functions defined in this library.
-  ///
-  /// There is no guarantee of the order in which the functions will be
-  /// returned. In particular, they are not guaranteed to be in lexical order.
-  List<TopLevelFunctionElement> get functions;
-
   /// The getters defined in this library.
   ///
   /// There is no guarantee of the order in which the getters will be returned.
@@ -1501,6 +1495,12 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   /// There is no guarantee of the order in which the setters will be returned.
   /// In particular, they are not guaranteed to be in lexical order.
   List<SetterElement> get setters;
+
+  /// The functions defined in this library.
+  ///
+  /// There is no guarantee of the order in which the functions will be
+  /// returned. In particular, they are not guaranteed to be in lexical order.
+  List<TopLevelFunctionElement> get topLevelFunctions;
 
   /// The top level variables defined in this library.
   ///
