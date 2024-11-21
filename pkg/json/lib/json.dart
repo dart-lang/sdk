@@ -521,7 +521,9 @@ mixin _ToJson on _Shared {
               if (doNullCheck) '!',
             ]),
             builder,
-            introspectionData),
+            introspectionData,
+            // We already are doing the null check.
+            omitNullCheck: true),
         ';\n    ',
       ]);
       if (doNullCheck) {
@@ -580,12 +582,16 @@ mixin _ToJson on _Shared {
   }
 
   /// Returns a [Code] object which is an expression that converts an instance
-  /// of type [type] (referenced by [valueReference]) into a JSON map.
+  /// of type [rawType] (referenced by [valueReference]) into a JSON map.
+  ///
+  /// Null checks will be inserted if [rawType] is  nullable, unless
+  /// [omitNullCheck] is `true`.
   Future<Code> _convertTypeToJson(
       TypeAnnotation rawType,
       Code valueReference,
       DefinitionBuilder builder,
-      _SharedIntrospectionData introspectionData) async {
+      _SharedIntrospectionData introspectionData,
+      {bool omitNullCheck = false}) async {
     final type = _checkNamedType(rawType, builder);
     if (type == null) {
       return RawCode.fromString(
@@ -599,7 +605,7 @@ mixin _ToJson on _Shared {
           "throw 'Unable to serialize type ${type.code.debugString}'");
     }
 
-    var nullCheck = type.isNullable
+    var nullCheck = type.isNullable && !omitNullCheck
         ? RawCode.fromParts([
             valueReference,
             // `null` is a reserved word, we can just use it.
@@ -635,7 +641,7 @@ mixin _ToJson on _Shared {
         case 'int' || 'double' || 'num' || 'String' || 'bool':
           return valueReference;
         case 'DateTime':
-          return RawCode.fromParts([valueReference, '.toIso8601String()']);
+          return RawCode.fromParts([if (nullCheck != null) nullCheck, valueReference, '.toIso8601String()']);
       }
     }
 

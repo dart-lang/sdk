@@ -130,6 +130,7 @@ void main() {
 
     test('collections of nullable objects', () {
       var json = {
+        'listOfNullableDates': [null, '2024-11-11T03:42:29.108308'],
         'listOfNullableInts': [null, 1],
         'listOfNullableSerializables': [
           {'x': 1},
@@ -138,6 +139,10 @@ void main() {
         'listOfNullableMapsOfNullableInts': [
           null,
           {'a': 1, 'b': null},
+        ],
+        'setOfNullableDates': [
+          null,
+          '2024-11-12T03:42:29.108308',
         ],
         'setOfNullableInts': [
           null,
@@ -154,6 +159,10 @@ void main() {
             'b': null,
           },
         ],
+        'mapOfNullableDates': {
+          'a': '2024-11-13T03:42:29.108308',
+          'b': null,
+        },
         'mapOfNullableInts': {
           'a': 3,
           'b': null,
@@ -169,6 +178,8 @@ void main() {
       };
 
       var e = E.fromJson(json);
+      expect(e.listOfNullableDates,
+          equals([null, DateTime.parse('2024-11-11T03:42:29.108308')]));
       expect(e.listOfNullableInts, equals([null, 1]));
       expect(e.listOfNullableSerializables.first!.x, 1);
       expect(e.listOfNullableSerializables[1], null);
@@ -178,6 +189,8 @@ void main() {
             null,
             {'a': 1, 'b': null},
           ]));
+      expect(e.setOfNullableDates,
+          equals([null, DateTime.parse('2024-11-12T03:42:29.108308')]));
       expect(e.setOfNullableInts, equals({null, 2}));
       expect(e.setOfNullableSerializables.first!.x, 2);
       expect(e.setOfNullableSerializables.elementAt(1), null);
@@ -189,6 +202,12 @@ void main() {
               'a': 2,
               'b': null,
             },
+          }));
+      expect(
+          e.mapOfNullableDates,
+          equals({
+            'a': DateTime.parse('2024-11-13T03:42:29.108308'),
+            'b': null,
           }));
       expect(
           e.mapOfNullableInts,
@@ -273,17 +292,23 @@ class D extends C {
 
 @JsonCodable()
 class E {
+  final List<DateTime?> listOfNullableDates;
+
   final List<int?> listOfNullableInts;
 
   final List<C?> listOfNullableSerializables;
 
   final List<Map<String, int?>?> listOfNullableMapsOfNullableInts;
 
+  final Set<DateTime?> setOfNullableDates;
+
   final Set<int?> setOfNullableInts;
 
   final Set<C?> setOfNullableSerializables;
 
   final Set<Map<String, int?>?> setOfNullableMapsOfNullableInts;
+
+  final Map<String, DateTime?> mapOfNullableDates;
 
   final Map<String, int?> mapOfNullableInts;
 
