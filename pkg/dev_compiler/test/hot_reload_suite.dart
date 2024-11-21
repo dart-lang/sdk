@@ -222,9 +222,7 @@ class TestFileEdit {
   TestFileEdit(this.generation, this.fileUri);
 }
 
-// TODO(nshahan): Make this abstract again when there are subclasses for all
-// runtimes.
-class HotReloadSuiteRunner {
+abstract class HotReloadSuiteRunner {
   Options options;
 
   /// The root directory containing generated code for all tests.
@@ -681,91 +679,17 @@ class HotReloadSuiteRunner {
     return updatedFilesInCurrentGeneration;
   }
 
-  /// Compile all [updatedFiles] in [test] for the given [generation] with the
-  /// front end server [controller] and copy outputs to [outputDirectory].
+  /// Compiles all [updatedFiles] in [test] for the given [generation] with the
+  /// front end server [controller], copies all outputs to [outputDirectory],
+  /// and returns whether the compilation was successful.
   ///
   /// Reports test failures on compile time errors.
-  // TODO(nshahan): Move to a DDC specific suite runner.
   Future<bool> compileGeneration(
       HotReloadTest test,
       int generation,
       Directory outputDirectory,
       List<String> updatedFiles,
-      HotReloadFrontendServerController controller) async {
-    var hasCompileError = false;
-    // The first generation calls `compile`, but subsequent ones call
-    // `recompile`.
-    // Likewise, use the incremental output directory for `recompile` calls.
-    String outputDillPath;
-    _print('Compiling generation $generation with the Frontend Server.',
-        label: test.name);
-    CompilerOutput compilerOutput;
-    if (generation == 0) {
-      _debugPrint(
-          'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
-          label: test.name);
-      outputDillPath = outputDillUri.toFilePath();
-      compilerOutput =
-          await controller.sendCompile(snapshotEntrypointWithScheme);
-    } else {
-      _debugPrint(
-          'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
-          label: test.name);
-      outputDillPath = outputIncrementalDillUri.toFilePath();
-      // TODO(markzipan): Add logic to reject bad compiles.
-      compilerOutput = await controller.sendRecompile(
-          snapshotEntrypointWithScheme,
-          invalidatedFiles: updatedFiles);
-    }
-    // Frontend Server reported compile errors. Fail if they weren't
-    // expected, and do not run tests.
-    if (compilerOutput.errorCount > 0) {
-      hasCompileError = true;
-      await controller.sendReject();
-      // TODO(markzipan): Determine if 'contains' is good enough to determine
-      // compilation error correctness.
-      if (test.expectedError != null &&
-          compilerOutput.outputText.contains(test.expectedError!)) {
-        await reportTestOutcome(
-            test.name,
-            'Expected error found during compilation: '
-            '${test.expectedError}',
-            true);
-      } else {
-        await reportTestOutcome(
-            test.name,
-            'Test failed with compile error: ${compilerOutput.outputText}',
-            false);
-      }
-    } else {
-      controller.sendAccept();
-    }
-
-    // Stop processing further generations if compilation failed.
-    if (hasCompileError) return false;
-
-    _debugPrint(
-        'Frontend Server successfully compiled outputs to: '
-        '$outputDillPath',
-        label: test.name);
-    _debugPrint('Emitting JS code to ${outputDirectory.path}.',
-        label: test.name);
-    // Update the memory filesystem with the newly-created JS files.
-    _print('Loading generation $generation files into the memory filesystem.',
-        label: test.name);
-    final codeFile = File('$outputDillPath.sources');
-    final manifestFile = File('$outputDillPath.json');
-    final sourcemapFile = File('$outputDillPath.map');
-    filesystem!.update(codeFile, manifestFile, sourcemapFile,
-        generation: '$generation');
-
-    // Write JS files and sourcemaps to their respective generation.
-    _print('Writing generation $generation assets.', label: test.name);
-    _debugPrint('Writing JS assets to ${outputDirectory.path}',
-        label: test.name);
-    filesystem!.writeToDisk(outputDirectory.uri, generation: '$generation');
-    return true;
-  }
+      HotReloadFrontendServerController controller);
 
   // TODO(nshahan): Refactor into runtime specific implementations.
   Future<bool> runTest(
@@ -965,7 +889,96 @@ class HotReloadSuiteRunner {
   }
 }
 
-class D8SuiteRunner extends HotReloadSuiteRunner {
+/// Hot reload test suite runner for DDC specific behavior that is agnostic to
+/// the environment where the compiled code is eventually run.
+abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
+  DdcSuiteRunner(super.options);
+
+  @override
+  Future<bool> compileGeneration(
+      HotReloadTest test,
+      int generation,
+      Directory outputDirectory,
+      List<String> updatedFiles,
+      HotReloadFrontendServerController controller) async {
+    var hasCompileError = false;
+    // The first generation calls `compile`, but subsequent ones call
+    // `recompile`.
+    // Likewise, use the incremental output file for `recompile` calls.
+    // TODO(nshahan): Sending compile/recompile instructions is likely
+    // the same across backends and should be shared code.
+    String outputDillPath;
+    _print('Compiling generation $generation with the Frontend Server.',
+        label: test.name);
+    CompilerOutput compilerOutput;
+    if (generation == 0) {
+      _debugPrint(
+          'Compiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+          label: test.name);
+      outputDillPath = outputDillUri.toFilePath();
+      compilerOutput =
+          await controller.sendCompile(snapshotEntrypointWithScheme);
+    } else {
+      _debugPrint(
+          'Recompiling snapshot entrypoint: $snapshotEntrypointWithScheme',
+          label: test.name);
+      outputDillPath = outputIncrementalDillUri.toFilePath();
+      // TODO(markzipan): Add logic to reject bad compiles.
+      compilerOutput = await controller.sendRecompile(
+          snapshotEntrypointWithScheme,
+          invalidatedFiles: updatedFiles);
+    }
+    // Frontend Server reported compile errors. Fail if they weren't
+    // expected, and do not run tests.
+    if (compilerOutput.errorCount > 0) {
+      hasCompileError = true;
+      await controller.sendReject();
+      // TODO(markzipan): Determine if 'contains' is good enough to determine
+      // compilation error correctness.
+      if (test.expectedError != null &&
+          compilerOutput.outputText.contains(test.expectedError!)) {
+        await reportTestOutcome(
+            test.name,
+            'Expected error found during compilation: '
+            '${test.expectedError}',
+            true);
+      } else {
+        await reportTestOutcome(
+            test.name,
+            'Test failed with compile error: ${compilerOutput.outputText}',
+            false);
+      }
+    } else {
+      controller.sendAccept();
+    }
+    // Stop processing further generations if compilation failed.
+    if (hasCompileError) return false;
+    _debugPrint(
+        'Frontend Server successfully compiled outputs to: '
+        '$outputDillPath',
+        label: test.name);
+    _debugPrint('Emitting JS code to ${outputDirectory.path}.',
+        label: test.name);
+    // Update the memory filesystem with the newly-created JS files.
+    _print('Loading generation $generation files into the memory filesystem.',
+        label: test.name);
+    final codeFile = File('$outputDillPath.sources');
+    final manifestFile = File('$outputDillPath.json');
+    final sourcemapFile = File('$outputDillPath.map');
+    filesystem!.update(codeFile, manifestFile, sourcemapFile,
+        generation: '$generation');
+    // Write JS files and sourcemaps to their respective generation.
+    _print('Writing generation $generation assets.', label: test.name);
+    _debugPrint('Writing JS assets to ${outputDirectory.path}',
+        label: test.name);
+    filesystem!.writeToDisk(outputDirectory.uri, generation: '$generation');
+    return true;
+  }
+}
+
+/// Hot reload test suite runner for behavior specific to DDC compiled code
+/// running in D8.
+class D8SuiteRunner extends DdcSuiteRunner {
   final ddc_helpers.D8Configuration config =
       ddc_helpers.D8Configuration(sdkRoot);
   late Uri bootstrapJsUri;
@@ -1022,7 +1035,9 @@ class D8SuiteRunner extends HotReloadSuiteRunner {
   }
 }
 
-class ChromeSuiteRunner extends HotReloadSuiteRunner {
+/// Hot reload test suite runner for behavior specific to DDC compiled code
+/// running in Chrome.
+class ChromeSuiteRunner extends DdcSuiteRunner {
   final ddc_helpers.ChromeConfiguration config =
       ddc_helpers.ChromeConfiguration(sdkRoot);
   late Uri bootstrapJsUri;

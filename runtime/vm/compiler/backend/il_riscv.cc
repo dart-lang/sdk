@@ -3233,9 +3233,8 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   if (kNumTemps == 1) {
     summary->set_temp(0, Location::RequiresRegister());
   }
-  // We make use of 3-operand instructions by not requiring result register
-  // to be identical to first input register as on Intel.
-  summary->set_out(0, Location::RequiresRegister());
+  summary->set_out(0, CanDeoptimize() ? Location::RequiresRegister()
+                                      : Location::MayBeSameAsFirstInput());
   return summary;
 }
 
@@ -4340,9 +4339,8 @@ LocationSummary* UnarySmiOpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  // We make use of 3-operand instructions by not requiring result register
-  // to be identical to first input register as on Intel.
-  summary->set_out(0, Location::RequiresRegister());
+  summary->set_out(0, CanDeoptimize() ? Location::RequiresRegister()
+                                      : Location::MayBeSameAsFirstInput());
   return summary;
 }
 
@@ -5556,7 +5554,7 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
           zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
       summary->set_in(0, Location::RequiresRegister());
       summary->set_in(1, LocationRegisterOrConstant(right()));
-      summary->set_out(0, Location::RequiresRegister());
+      summary->set_out(0, Location::MayBeSameAsFirstInput());
       return summary;
     }
   }
@@ -6171,7 +6169,7 @@ LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
+  summary->set_out(0, Location::MayBeSameAsFirstInput());
   return summary;
 #endif
 }
@@ -6900,8 +6898,7 @@ void ConditionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             << kBoolValueBitPosition) == kTrueOffsetFromNull);
     __ SetIf(InvertCondition(true_condition), result);
     __ addi(result, result, kTrueOffsetFromNull >> kBoolValueBitPosition);
-    __ slli(result, result, kBoolValueBitPosition);
-    __ add(result, result, NULL_REG);
+    __ AddShifted(result, NULL_REG, result, kBoolValueBitPosition);
   }
 }
 
