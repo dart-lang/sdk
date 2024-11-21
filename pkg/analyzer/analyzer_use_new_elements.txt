@@ -166,7 +166,6 @@ lib/src/utilities/extensions/ast.dart
 lib/src/utilities/extensions/element.dart
 lib/src/utilities/extensions/flutter.dart
 lib/src/utilities/extensions/library_element.dart
-test/dart/sdk/build_sdk_summary_test.dart
 test/error/error_reporter_test.dart
 test/generated/element_resolver_test.dart
 test/generated/elements_types_mixin.dart

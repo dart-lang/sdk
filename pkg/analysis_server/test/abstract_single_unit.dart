@@ -32,8 +32,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late FindElement findElement;
   late FindElement2 findElement2;
 
-  LibraryElement2 get testLibraryElement2 =>
-      testLibraryElement.asElement2 as LibraryElement2;
+  LibraryElement2 get testLibraryElement2 => testLibraryElement.asElement2;
 
   void addTestSource(String code) {
     testCode = code;

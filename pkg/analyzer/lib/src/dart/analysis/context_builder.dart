@@ -202,7 +202,10 @@ class ContextBuilderImpl {
     for (var entry in optionsMappings) {
       var file = entry.value;
       var options = AnalysisOptionsImpl.fromYaml(
-          file: file, optionsMap: provider.getOptionsFromFile(file));
+        optionsMap: provider.getOptionsFromFile(file),
+        file: file,
+        resourceProvider: resourceProvider,
+      );
 
       _optionsMap.add(entry.key, options);
     }
@@ -291,6 +294,7 @@ class ContextBuilderImpl {
         options = AnalysisOptionsImpl.fromYaml(
           optionsMap: provider.getOptionsFromFile(optionsFile),
           file: optionsFile,
+          resourceProvider: resourceProvider,
         );
       } catch (e) {
         // Ignore exception.

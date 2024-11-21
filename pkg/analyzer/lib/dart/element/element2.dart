@@ -1525,6 +1525,9 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   ///
   /// This is the same URI as `firstFragment.source.uri` returns.
   Uri get uri;
+
+  /// Returns the class defined in this library that has the given [name].
+  ClassElement2? getClass2(String name);
 }
 
 /// An `export` directive within a library fragment.

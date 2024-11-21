@@ -28,7 +28,6 @@ lib/src/protocol_server.dart
 lib/src/search/element_references.dart
 lib/src/search/type_hierarchy.dart
 lib/src/services/completion/dart/completion_manager.dart
-lib/src/services/completion/dart/completion_state.dart
 lib/src/services/completion/dart/declaration_helper.dart
 lib/src/services/completion/dart/feature_computer.dart
 lib/src/services/completion/dart/identifier_helper.dart

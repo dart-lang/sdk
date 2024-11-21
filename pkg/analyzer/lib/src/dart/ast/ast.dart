@@ -454,7 +454,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   List<FormalParameterElement?>? get correspondingStaticParameters2 =>
       _correspondingStaticParameters
-          ?.map((parameter) => parameter.asElement2 as FormalParameterElement)
+          ?.map((parameter) => parameter?.asElement2)
           .toList();
 
   @override

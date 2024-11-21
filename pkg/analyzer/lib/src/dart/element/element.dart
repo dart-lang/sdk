@@ -5913,16 +5913,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       }
     }
 
-    InterfaceTypeImpl result;
-    if (name == 'Null' && library.isDartCore) {
-      result = NullTypeImpl(element: this);
-    } else {
-      result = InterfaceTypeImpl(
-        element: this,
-        typeArguments: typeArguments,
-        nullabilitySuffix: nullabilitySuffix,
-      );
-    }
+    var result = InterfaceTypeImpl(
+      element: this,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
 
     if (typeArguments.isEmpty) {
       switch (nullabilitySuffix) {
@@ -6237,7 +6232,7 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   ConstructorElement2? get unnamedConstructor2 =>
-      unnamedConstructor.asElement2 as ConstructorElement2;
+      unnamedConstructor?.asElement2;
 
   @override
   ConstructorElement? getNamedConstructor(String name) {
@@ -6423,8 +6418,7 @@ class LabelElementImpl2 extends ElementImpl2
   LabelElement2 get baseElement => this;
 
   @override
-  ExecutableElement2? get enclosingElement2 =>
-      super.enclosingElement2 as ExecutableElement2?;
+  ExecutableElement2? get enclosingElement2 => null;
 
   @override
   LabelFragment get firstFragment => _wrappedElement;
@@ -6837,6 +6831,16 @@ class LibraryElementImpl extends ElementImpl
       var element = unitElement.getClass(name);
       if (element != null) {
         return element;
+      }
+    }
+    return null;
+  }
+
+  @override
+  ClassElement2? getClass2(String name) {
+    for (var class_ in classes) {
+      if (class_.name3 == name) {
+        return class_;
       }
     }
     return null;
@@ -9097,6 +9101,10 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
     reference.element2 = this;
   }
 
+  PrefixElementImpl get asElement {
+    return imports.first.prefix!.element;
+  }
+
   @override
   Null get enclosingElement2 => null;
 
@@ -9905,20 +9913,12 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
   SuperFormalParameterElementImpl2(super.firstFragment);
 
   @override
-  SuperFormalParameterFragment get firstFragment =>
-      super.firstFragment as SuperFormalParameterFragment;
+  SuperFormalParameterElementImpl get firstFragment =>
+      super.firstFragment as SuperFormalParameterElementImpl;
 
   @override
   FormalParameterElement? get superConstructorParameter2 {
-    var superConstructorParameter =
-        (firstFragment as SuperFormalParameterElementImpl)
-            .superConstructorParameter;
-    return switch (superConstructorParameter) {
-      ParameterMember() =>
-        superConstructorParameter.asElement2 as FormalParameterElement?,
-      FormalParameterFragment()? => superConstructorParameter.element,
-      _ => null,
-    };
+    return firstFragment.superConstructorParameter?.asElement2;
   }
 }
 
@@ -10279,11 +10279,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
           typeArguments: typeArguments,
         ),
       );
-    } else if (type is NullTypeImpl) {
-      return NullTypeImpl(
-          element: type.element,
-          alias: InstantiatedTypeAliasElementImpl(
-              element: this, typeArguments: typeArguments));
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
         element: type.element,

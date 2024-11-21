@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -21,11 +24,16 @@ main() {
 class AnalysisOptionsTest {
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
+  final ResourceProvider resourceProvider = MemoryResourceProvider();
+
   // TODO(srawlins): Add tests that exercise
   // `optionsProvider.getOptionsFromString` throwing an exception.
   AnalysisOptionsImpl parseOptions(String content) =>
       AnalysisOptionsImpl.fromYaml(
-          optionsMap: optionsProvider.getOptionsFromString(content));
+        optionsMap: optionsProvider.getOptionsFromString(content),
+        file: resourceProvider.getFile('/project/analysis_options.yaml'),
+        resourceProvider: resourceProvider,
+      );
 
   test_analyzer_cannotIgnore() {
     var analysisOptions = parseOptions('''
@@ -281,6 +289,114 @@ analyzer:
     propagate-linter-exceptions: true
 ''');
     expect(analysisOptions.propagateLinterExceptions, true);
+  }
+
+  test_analyzer_plugins_pathConstraint() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    path: /foo/bar
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    path: /foo/bar
+''',
+      ),
+    );
+  }
+
+  test_analyzer_plugins_pathConstraint_relative() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    path: foo/bar
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    path: /project/foo/bar
+''',
+      ),
+    );
+  }
+
+  test_analyzer_plugins_pathConstraint_relativeNonNormal() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    path: .././foo/bar/../baz
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    path: /foo/baz
+''',
+      ),
+    );
+  }
+
+  test_analyzer_plugins_scalarConstraint() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one: ^1.2.3
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<VersionedPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '  plugin_one: ^1.2.3\n',
+      ),
+    );
+  }
+
+  test_analyzer_plugins_versionConstraint() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    version: ^1.2.3
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<VersionedPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '  plugin_one: ^1.2.3\n',
+      ),
+    );
   }
 
   test_codeStyle_format_false() {
