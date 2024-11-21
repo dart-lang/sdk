@@ -280,8 +280,7 @@ abstract class HotReloadSuiteRunner {
       final tempDirectory =
           Directory.fromUri(generatedCodeDir.uri.resolve('${test.name}/'))
             ..createSync();
-      if (options.runtime == RuntimePlatforms.d8 ||
-          options.runtime == RuntimePlatforms.chrome) {
+      if (options.runtime.emitsJS) {
         filesystem = HotReloadMemoryFilesystem(tempDirectory.uri);
       }
       var compileSuccess = false;
@@ -325,14 +324,15 @@ abstract class HotReloadSuiteRunner {
     await reportAllResults();
   }
 
+  /// Custom command line arguments passed to the Front End Server on startup.
+  List<String> get platformFrontEndServerArgs;
+
   /// Returns a controller for a freshly started front end server instance to
   /// handle compile and recompile requests for a hot reload test.
-  // TODO(nshahan): Breakout into specialized versions for each suite runner.
   HotReloadFrontendServerController createFrontEndServer() {
     _print('Initializing the Frontend Server.');
-    HotReloadFrontendServerController controller;
     final packageConfigUri = sdkRoot.resolve('.dart_tool/package_config.json');
-    final commonArgs = [
+    final fesArgs = [
       '--incremental',
       '--filesystem-root=${snapshotDir.uri.toFilePath()}',
       '--filesystem-scheme=$filesystemScheme',
@@ -341,40 +341,17 @@ abstract class HotReloadSuiteRunner {
       '--packages=${packageConfigUri.toFilePath()}',
       '--sdk-root=${sdkRoot.toFilePath()}',
       '--verbosity=${options.verbose ? 'all' : 'info'}',
+      ...platformFrontEndServerArgs,
     ];
-    switch (options.runtime) {
-      case RuntimePlatforms.d8:
-      case RuntimePlatforms.chrome:
-        final ddcPlatformDillFromSdkRoot = fe_shared.relativizeUri(sdkRoot,
-            buildRootUri.resolve('ddc_outline.dill'), fe_shared.isWindows);
-        final fesArgs = [
-          ...commonArgs,
-          '--dartdevc-module-format=ddc',
-          '--dartdevc-canary',
-          '--platform=$ddcPlatformDillFromSdkRoot',
-          '--target=dartdevc',
-        ];
-        controller = HotReloadFrontendServerController(fesArgs);
-      case RuntimePlatforms.vm:
-        final vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(
-            sdkRoot,
-            buildRootUri.resolve('vm_platform_strong.dill'),
-            fe_shared.isWindows);
-        final fesArgs = [
-          ...commonArgs,
-          '--platform=$vmPlatformDillFromSdkRoot',
-          '--target=vm',
-        ];
-        controller = HotReloadFrontendServerController(fesArgs);
-    }
-    return controller..start();
+    return HotReloadFrontendServerController(fesArgs)..start();
   }
 
   Future<void> shutdown(HotReloadFrontendServerController controller) async {
     // Persist the temp directory for debugging.
     await controller.stop();
     _print('Frontend Server has shut down.');
-    if (!debug) {
+    if (!options.debug) {
+      _print('Deleting temporary directory: ${generatedCodeDir.path}.');
       generatedCodeDir.deleteSync(recursive: true);
     }
   }
@@ -691,38 +668,13 @@ abstract class HotReloadSuiteRunner {
       List<String> updatedFiles,
       HotReloadFrontendServerController controller);
 
-  // TODO(nshahan): Refactor into runtime specific implementations.
+  /// Runs [test] from compiled and generated assets in [tempDirectory] and
+  /// returns `true` if it passes.
+  ///
+  /// All output (standard and errors) from running the test is written to
+  /// [outputSink].
   Future<bool> runTest(
-      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
-    var testPassed = false;
-    switch (options.runtime) {
-      case RuntimePlatforms.d8:
-        throw UnsupportedError('Now implemented in D8SuiteRunner.');
-      case RuntimePlatforms.chrome:
-        // Run the compiled JS generations with Chrome.
-        _print('Creating Chrome hot reload test suite.', label: test.name);
-        // TODO(nshahan): Clean this up! The cast here just serves as a way to
-        // allow for smaller refactor changes.
-        final suite = (this as ChromeSuiteRunner)
-          ..mainEntrypointJsUri =
-              tempDirectory.uri.resolve('generation0/main_module.bootstrap.js')
-          ..bootstrapJsUri =
-              tempDirectory.uri.resolve('generation0/bootstrap.js')
-          ..bootstrapHtmlUri =
-              tempDirectory.uri.resolve('generation0/index.html')
-          ..outputSink = outputSink;
-        await suite.setupTest(
-          testName: test.name,
-          scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
-          generationToModifiedFiles: filesystem!.generationsToModifiedFilePaths,
-        );
-        final exitCode = await suite.runTestOld(testName: test.name);
-        testPassed = exitCode == 0;
-      case RuntimePlatforms.vm:
-        throw UnsupportedError('Now implemented in VMSuiteRunner.');
-    }
-    return testPassed;
-  }
+      HotReloadTest test, Directory tempDirectory, IOSink outputSink);
 
   /// Reports test results to standard out as well as the output .json file if
   /// requested.
@@ -878,7 +830,25 @@ abstract class HotReloadSuiteRunner {
 /// Hot reload test suite runner for DDC specific behavior that is agnostic to
 /// the environment where the compiled code is eventually run.
 abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
+  late final String entrypointLibraryExportName =
+      ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
+  final Uri dartSdkJSUri =
+      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
+  final Uri ddcModuleLoaderJSUri =
+      sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
+  final String ddcPlatformDillFromSdkRoot = fe_shared.relativizeUri(
+      sdkRoot, buildRootUri.resolve('ddc_outline.dill'), fe_shared.isWindows);
+  final String entrypointModuleName = 'hot-reload-test:///main.dart';
+
   DdcSuiteRunner(super.options);
+
+  @override
+  List<String> get platformFrontEndServerArgs => [
+        '--dartdevc-module-format=ddc',
+        '--dartdevc-canary',
+        '--platform=$ddcPlatformDillFromSdkRoot',
+        '--target=dartdevc',
+      ];
 
   @override
   Future<bool> compileGeneration(
@@ -965,38 +935,28 @@ abstract class DdcSuiteRunner extends HotReloadSuiteRunner {
 /// Hot reload test suite runner for behavior specific to DDC compiled code
 /// running in D8.
 class D8SuiteRunner extends DdcSuiteRunner {
-  final ddc_helpers.D8Configuration config =
-      ddc_helpers.D8Configuration(sdkRoot);
-  late Uri bootstrapJsUri;
-  final String entrypointModuleName = 'hot-reload-test:///main.dart';
-  late final String entrypointLibraryExportName =
-      ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
-  final Uri dartSdkJsUri =
-      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
-  final Uri ddcModuleLoaderJsUri =
-      sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
-
   D8SuiteRunner(super.options);
 
   @override
   Future<bool> runTest(
       HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
-    // Run the compiled JS generations with D8.
     _print('Creating D8 hot reload test suite.', label: test.name);
-    bootstrapJsUri = tempDirectory.uri.resolve('generation0/bootstrap.js');
+    final bootstrapJSUri =
+        tempDirectory.uri.resolve('generation0/bootstrap.js');
     _print('Preparing to run D8 test.', label: test.name);
     final d8BootstrapJS = ddc_helpers.generateD8Bootstrapper(
-      ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJsUri.toFilePath()),
-      dartSdkJsPath: escapedString(dartSdkJsUri.toFilePath()),
+      ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJSUri.toFilePath()),
+      dartSdkJsPath: escapedString(dartSdkJSUri.toFilePath()),
       entrypointModuleName: escapedString(entrypointModuleName),
       entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
       scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
       modifiedFilesPerGeneration: filesystem!.generationsToModifiedFilePaths,
     );
-    _debugPrint('Writing D8 bootstrapper: $bootstrapJsUri', label: test.name);
-    final bootstrapJSFile = File.fromUri(bootstrapJsUri)
+    _debugPrint('Writing D8 bootstrapper: $bootstrapJSUri', label: test.name);
+    final bootstrapJSFile = File.fromUri(bootstrapJSUri)
       ..writeAsStringSync(d8BootstrapJS);
     _debugPrint('Running test in D8.', label: test.name);
+    final config = ddc_helpers.D8Configuration(sdkRoot);
     final process = await startProcess('D8', config.binary.toFilePath(), [
       config.sealNativeObjectScript.toFilePath(),
       config.preamblesScript.toFilePath(),
@@ -1010,73 +970,11 @@ class D8SuiteRunner extends DdcSuiteRunner {
 /// Hot reload test suite runner for behavior specific to DDC compiled code
 /// running in Chrome.
 class ChromeSuiteRunner extends DdcSuiteRunner {
-  final ddc_helpers.ChromeConfiguration config =
-      ddc_helpers.ChromeConfiguration(sdkRoot);
-  late Uri bootstrapJsUri;
-  late Uri mainEntrypointJsUri;
-  late Uri bootstrapHtmlUri;
-  final String entrypointModuleName = 'hot-reload-test:///main.dart';
-  late final String entrypointLibraryExportName =
-      ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
-  final Uri dartSdkJsUri =
-      buildRootUri.resolve('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js');
-  final Uri ddcModuleLoaderJsUri =
-      sdkRoot.resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js');
-  late StreamSink<List<int>> outputSink;
-
   ChromeSuiteRunner(super.options);
 
-  /// Generates all files required for bootstrapping a DDC project in Chrome.
-  void _generateBootstrapper({
-    required List<Map<String, String?>> scriptDescriptors,
-    required ddc_helpers.FileDataPerGeneration generationToModifiedFiles,
-  }) {
-    var bootstrapHtml = '''
-      <html>
-          <head>
-              <base href="/">
-          </head>
-          <body>
-              <script src="$bootstrapJsUri"></script>
-          </body>
-      </html>
-    ''';
-
-    final (chromeMainEntrypointJS, chromeBootstrapJS) =
-        ddc_helpers.generateChromeBootstrapperFiles(
-      ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJsUri.toFilePath()),
-      dartSdkJsPath: escapedString(dartSdkJsUri.toFilePath()),
-      entrypointModuleName: escapedString(entrypointModuleName),
-      mainModuleEntrypointJsPath:
-          escapedString(mainEntrypointJsUri.toFilePath()),
-      entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
-      scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
-      modifiedFilesPerGeneration: filesystem!.generationsToModifiedFilePaths,
-    );
-
-    File.fromUri(mainEntrypointJsUri).writeAsStringSync(chromeMainEntrypointJS);
-    File.fromUri(bootstrapJsUri).writeAsStringSync(chromeBootstrapJS);
-    File.fromUri(bootstrapHtmlUri).writeAsStringSync(bootstrapHtml);
-  }
-
-  Future<void> setupTest({
-    String? testName,
-    List<Map<String, String?>>? scriptDescriptors,
-    ddc_helpers.FileDataPerGeneration? generationToModifiedFiles,
-  }) async {
-    _print('Preparing to run Chrome test.', label: testName);
-    if (scriptDescriptors == null || generationToModifiedFiles == null) {
-      throw ArgumentError('ChromeSuiteRunner requires that "scriptDescriptors" '
-          'and "generationToModifiedFiles" be provided during setup.');
-    }
-    _generateBootstrapper(
-        scriptDescriptors: scriptDescriptors,
-        generationToModifiedFiles: generationToModifiedFiles);
-    _debugPrint('Writing Chrome bootstrapper: $bootstrapJsUri',
-        label: testName);
-  }
-
-  Future<int> runTestOld({String? testName}) async {
+  @override
+  Future<bool> runTest(
+      HotReloadTest test, Directory tempDirectory, IOSink outputSink) async {
     // TODO(markzipan): Chrome tests are currently only configured for
     // debugging a single test instance. This is due to:
     // 1) Our tests not capturing test success/failure signals. These must be
@@ -1084,7 +982,47 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
     //    to the Chrome process's stderr.
     // 2) Chrome not closing after a test. We need to add logic to detect when
     //    to either shut down Chrome or load the next test (reusing instances).
-
+    _print('Creating Chrome hot reload test suite.', label: test.name);
+    final mainEntrypointJSUri =
+        tempDirectory.uri.resolve('generation0/main_module.bootstrap.js');
+    final bootstrapJSUri =
+        tempDirectory.uri.resolve('generation0/bootstrap.js');
+    final bootstrapHtmlUri =
+        tempDirectory.uri.resolve('generation0/index.html');
+    _print('Preparing to run Chrome test.', label: test.name);
+    var bootstrapHtml = '''
+      <html>
+          <head>
+              <base href="/">
+          </head>
+          <body>
+              <script src="$bootstrapJSUri"></script>
+          </body>
+      </html>
+    ''';
+    final entrypointLibraryExportName =
+        ddc_names.libraryUriToJsIdentifier(snapshotEntrypointUri);
+    final (chromeMainEntrypointJS, chromeBootstrapJS) =
+        ddc_helpers.generateChromeBootstrapperFiles(
+      ddcModuleLoaderJsPath: escapedString(ddcModuleLoaderJSUri.toFilePath()),
+      dartSdkJsPath: escapedString(dartSdkJSUri.toFilePath()),
+      entrypointModuleName: escapedString(entrypointModuleName),
+      mainModuleEntrypointJsPath:
+          escapedString(mainEntrypointJSUri.toFilePath()),
+      entrypointLibraryExportName: escapedString(entrypointLibraryExportName),
+      scriptDescriptors: filesystem!.scriptDescriptorForBootstrap,
+      modifiedFilesPerGeneration: filesystem!.generationsToModifiedFilePaths,
+    );
+    _debugPrint(
+        'Writing Chrome bootstrap files: '
+        '$mainEntrypointJSUri, $bootstrapJSUri, $bootstrapHtmlUri',
+        label: test.name);
+    File.fromUri(mainEntrypointJSUri).writeAsStringSync(chromeMainEntrypointJS);
+    File.fromUri(bootstrapJSUri).writeAsStringSync(chromeBootstrapJS);
+    final bootstrapHtmlFile = File.fromUri(bootstrapHtmlUri)
+      ..writeAsStringSync(bootstrapHtml);
+    _debugPrint('Running test in Chrome.', label: test.name);
+    final config = ddc_helpers.ChromeConfiguration(sdkRoot);
     // Specifying '--user-data-dir' forces Chrome to not reuse an instance.
     final chromeDataDir = Directory.systemTemp.createTempSync();
     final process = await startProcess('Chrome', config.binary.toFilePath(), [
@@ -1094,7 +1032,7 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
       '--user-data-dir=${chromeDataDir.path}',
       '--disable-default-apps',
       '--disable-translate',
-      bootstrapHtmlUri.toFilePath(),
+      bootstrapHtmlFile.path,
     ]).then((process) {
       StreamSubscription stdoutSubscription;
       StreamSubscription stderrSubscription;
@@ -1124,13 +1062,13 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
       });
 
       Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
-        _debugPrint('Chrome process successfully shut down.', label: testName);
+        _debugPrint('Chrome process successfully shut down.', label: test.name);
       });
 
       return process;
     });
 
-    return process.exitCode;
+    return await process.exitCode == 0;
   }
 
   @override
@@ -1157,7 +1095,16 @@ class ChromeSuiteRunner extends DdcSuiteRunner {
 
 /// Hot reload test suite runner for behavior specific to the VM.
 class VMSuiteRunner extends HotReloadSuiteRunner {
+  final String vmPlatformDillFromSdkRoot = fe_shared.relativizeUri(sdkRoot,
+      buildRootUri.resolve('vm_platform_strong.dill'), fe_shared.isWindows);
+
   VMSuiteRunner(super.options);
+
+  @override
+  List<String> get platformFrontEndServerArgs => [
+        '--platform=$vmPlatformDillFromSdkRoot',
+        '--target=vm',
+      ];
 
   @override
   Future<bool> compileGeneration(
