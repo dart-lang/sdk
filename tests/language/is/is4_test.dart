@@ -5,6 +5,9 @@
 // Regression test for issue 5216.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 class Foo<T> {
