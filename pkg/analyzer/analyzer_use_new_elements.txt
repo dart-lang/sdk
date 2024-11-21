@@ -225,7 +225,6 @@ test/src/dart/resolution/resolution.dart
 test/src/dart/resolution/scope_test.dart
 test/src/dart/resolution/super_formal_parameter_test.dart
 test/src/lint/lint_rule_test.dart
-test/src/lint/linter/linter_context_impl_test.dart
 test/src/services/top_level_declarations_test.dart
 test/src/summary/element_text.dart
 test/src/summary/elements/class_test.dart
