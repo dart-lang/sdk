@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An indication of the current state of analysis.
@@ -53,8 +52,7 @@ public class AnalysisStatus {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof AnalysisStatus) {
-      AnalysisStatus other = (AnalysisStatus) obj;
+    if (obj instanceof AnalysisStatus other) {
       return
         other.isAnalyzing == isAnalyzing &&
         Objects.equals(other.analysisTarget, analysisTarget);
@@ -115,7 +113,8 @@ public class AnalysisStatus {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("isAnalyzing=");
-    builder.append(isAnalyzing + ", ");
+    builder.append(isAnalyzing);
+    builder.append(", ");
     builder.append("analysisTarget=");
     builder.append(analysisTarget);
     builder.append("]");

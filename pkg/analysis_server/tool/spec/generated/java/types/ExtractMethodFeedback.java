@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -92,8 +91,7 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ExtractMethodFeedback) {
-      ExtractMethodFeedback other = (ExtractMethodFeedback) obj;
+    if (obj instanceof ExtractMethodFeedback other) {
       return
         other.offset == offset &&
         other.length == length &&
@@ -200,11 +198,12 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
       names,
       canCreateGetter,
       parameters,
-      offsets,
-      lengths
+      Arrays.hashCode(offsets),
+      Arrays.hashCode(lengths)
     );
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("offset", offset);
@@ -239,21 +238,28 @@ public class ExtractMethodFeedback extends RefactoringFeedback {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("returnType=");
-    builder.append(returnType + ", ");
+    builder.append(returnType);
+    builder.append(", ");
     builder.append("names=");
-    builder.append(StringUtils.join(names, ", ") + ", ");
+    builder.append(names.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("canCreateGetter=");
-    builder.append(canCreateGetter + ", ");
+    builder.append(canCreateGetter);
+    builder.append(", ");
     builder.append("parameters=");
-    builder.append(StringUtils.join(parameters, ", ") + ", ");
+    builder.append(parameters.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("offsets=");
-    builder.append(StringUtils.join(offsets, ", ") + ", ");
+    builder.append(Arrays.stream(offsets).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("lengths=");
-    builder.append(StringUtils.join(lengths, ", "));
+    builder.append(Arrays.stream(lengths).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

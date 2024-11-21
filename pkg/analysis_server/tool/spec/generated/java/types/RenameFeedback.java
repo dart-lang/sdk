@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -65,8 +64,7 @@ public class RenameFeedback extends RefactoringFeedback {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof RenameFeedback) {
-      RenameFeedback other = (RenameFeedback) obj;
+    if (obj instanceof RenameFeedback other) {
       return
         other.offset == offset &&
         other.length == length &&
@@ -135,6 +133,7 @@ public class RenameFeedback extends RefactoringFeedback {
     );
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("offset", offset);
@@ -149,11 +148,14 @@ public class RenameFeedback extends RefactoringFeedback {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("elementKindName=");
-    builder.append(elementKindName + ", ");
+    builder.append(elementKindName);
+    builder.append(", ");
     builder.append("oldName=");
     builder.append(oldName);
     builder.append("]");

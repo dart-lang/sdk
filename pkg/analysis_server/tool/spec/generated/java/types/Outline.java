@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An node in the outline structure of a file.
@@ -83,8 +82,7 @@ public class Outline {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Outline) {
-      Outline other = (Outline) obj;
+    if (obj instanceof Outline other) {
       return
         Objects.equals(other.element, element) &&
         other.offset == offset &&
@@ -110,8 +108,8 @@ public class Outline {
     // compute children recursively
     List<Outline> childrenList = new ArrayList<>();
     JsonElement childrenJsonArray = outlineObject.get("children");
-    if (childrenJsonArray instanceof JsonArray) {
-      for (JsonElement jsonElement : (JsonArray) childrenJsonArray) {
+    if (childrenJsonArray instanceof JsonArray jsonChildren) {
+      for (JsonElement jsonElement : jsonChildren) {
         JsonObject childObject = jsonElement.getAsJsonObject();
         childrenList.add(fromJson(outline, childObject));
       }
@@ -233,17 +231,22 @@ public class Outline {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("element=");
-    builder.append(element + ", ");
+    builder.append(element);
+    builder.append(", ");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("codeOffset=");
-    builder.append(codeOffset + ", ");
+    builder.append(codeOffset);
+    builder.append(", ");
     builder.append("codeLength=");
-    builder.append(codeLength + ", ");
+    builder.append(codeLength);
+    builder.append(", ");
     builder.append("children=");
-    builder.append(StringUtils.join(children, ", "));
+    builder.append(children == null ? "null" : children.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

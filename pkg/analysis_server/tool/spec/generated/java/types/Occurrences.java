@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of the references to a single element within a single file.
@@ -68,8 +67,7 @@ public class Occurrences {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Occurrences) {
-      Occurrences other = (Occurrences) obj;
+    if (obj instanceof Occurrences other) {
       return
         Objects.equals(other.element, element) &&
         Arrays.equals(other.offsets, offsets) &&
@@ -121,7 +119,7 @@ public class Occurrences {
   public int hashCode() {
     return Objects.hash(
       element,
-      offsets,
+      Arrays.hashCode(offsets),
       length
     );
   }
@@ -143,9 +141,11 @@ public class Occurrences {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("element=");
-    builder.append(element + ", ");
+    builder.append(element);
+    builder.append(", ");
     builder.append("offsets=");
-    builder.append(StringUtils.join(offsets, ", ") + ", ");
+    builder.append(Arrays.stream(offsets).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("length=");
     builder.append(length);
     builder.append("]");

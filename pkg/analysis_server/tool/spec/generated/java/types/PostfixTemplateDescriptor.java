@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * The description of a postfix completion template.
@@ -59,8 +58,7 @@ public class PostfixTemplateDescriptor {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof PostfixTemplateDescriptor) {
-      PostfixTemplateDescriptor other = (PostfixTemplateDescriptor) obj;
+    if (obj instanceof PostfixTemplateDescriptor other) {
       return
         Objects.equals(other.name, name) &&
         Objects.equals(other.key, key) &&
@@ -130,9 +128,11 @@ public class PostfixTemplateDescriptor {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("key=");
-    builder.append(key + ", ");
+    builder.append(key);
+    builder.append(", ");
     builder.append("example=");
     builder.append(example);
     builder.append("]");

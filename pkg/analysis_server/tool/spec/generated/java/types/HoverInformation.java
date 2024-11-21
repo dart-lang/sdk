@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * The hover information associated with a specific location.
@@ -128,8 +127,7 @@ public class HoverInformation {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof HoverInformation) {
-      HoverInformation other = (HoverInformation) obj;
+    if (obj instanceof HoverInformation other) {
       return
         other.offset == offset &&
         other.length == length &&
@@ -333,27 +331,38 @@ public class HoverInformation {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("containingLibraryPath=");
-    builder.append(containingLibraryPath + ", ");
+    builder.append(containingLibraryPath);
+    builder.append(", ");
     builder.append("containingLibraryName=");
-    builder.append(containingLibraryName + ", ");
+    builder.append(containingLibraryName);
+    builder.append(", ");
     builder.append("containingClassDescription=");
-    builder.append(containingClassDescription + ", ");
+    builder.append(containingClassDescription);
+    builder.append(", ");
     builder.append("dartdoc=");
-    builder.append(dartdoc + ", ");
+    builder.append(dartdoc);
+    builder.append(", ");
     builder.append("elementDescription=");
-    builder.append(elementDescription + ", ");
+    builder.append(elementDescription);
+    builder.append(", ");
     builder.append("elementKind=");
-    builder.append(elementKind + ", ");
+    builder.append(elementKind);
+    builder.append(", ");
     builder.append("isDeprecated=");
-    builder.append(isDeprecated + ", ");
+    builder.append(isDeprecated);
+    builder.append(", ");
     builder.append("parameter=");
-    builder.append(parameter + ", ");
+    builder.append(parameter);
+    builder.append(", ");
     builder.append("propagatedType=");
-    builder.append(propagatedType + ", ");
+    builder.append(propagatedType);
+    builder.append(", ");
     builder.append("staticType=");
     builder.append(staticType);
     builder.append("]");

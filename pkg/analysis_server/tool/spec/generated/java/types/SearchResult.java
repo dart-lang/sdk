@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A single result from a search request.
@@ -68,8 +67,7 @@ public class SearchResult {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof SearchResult) {
-      SearchResult other = (SearchResult) obj;
+    if (obj instanceof SearchResult other) {
       return
         Objects.equals(other.location, location) &&
         Objects.equals(other.kind, kind) &&
@@ -157,13 +155,16 @@ public class SearchResult {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("location=");
-    builder.append(location + ", ");
+    builder.append(location);
+    builder.append(", ");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("isPotential=");
-    builder.append(isPotential + ", ");
+    builder.append(isPotential);
+    builder.append(", ");
     builder.append("path=");
-    builder.append(StringUtils.join(path, ", "));
+    builder.append(path.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A declaration - top-level (class, field, etc) or a class member (method, field, etc).
@@ -113,8 +112,7 @@ public class ElementDeclaration {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ElementDeclaration) {
-      ElementDeclaration other = (ElementDeclaration) obj;
+    if (obj instanceof ElementDeclaration other) {
       return
         Objects.equals(other.name, name) &&
         Objects.equals(other.kind, kind) &&
@@ -284,25 +282,35 @@ public class ElementDeclaration {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("fileIndex=");
-    builder.append(fileIndex + ", ");
+    builder.append(fileIndex);
+    builder.append(", ");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("line=");
-    builder.append(line + ", ");
+    builder.append(line);
+    builder.append(", ");
     builder.append("column=");
-    builder.append(column + ", ");
+    builder.append(column);
+    builder.append(", ");
     builder.append("codeOffset=");
-    builder.append(codeOffset + ", ");
+    builder.append(codeOffset);
+    builder.append(", ");
     builder.append("codeLength=");
-    builder.append(codeLength + ", ");
+    builder.append(codeLength);
+    builder.append(", ");
     builder.append("className=");
-    builder.append(className + ", ");
+    builder.append(className);
+    builder.append(", ");
     builder.append("mixinName=");
-    builder.append(mixinName + ", ");
+    builder.append(mixinName);
+    builder.append(", ");
     builder.append("parameters=");
     builder.append(parameters);
     builder.append("]");

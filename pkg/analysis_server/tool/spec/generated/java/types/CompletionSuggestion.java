@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A suggestion for how to complete partially entered text. Many of the fields are optional,
@@ -228,8 +227,7 @@ public class CompletionSuggestion {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof CompletionSuggestion) {
-      CompletionSuggestion other = (CompletionSuggestion) obj;
+    if (obj instanceof CompletionSuggestion other) {
       return
         Objects.equals(other.kind, kind) &&
         other.relevance == relevance &&
@@ -528,7 +526,7 @@ public class CompletionSuggestion {
       docComplete,
       declaringType,
       defaultArgumentListString,
-      defaultArgumentListTextRanges,
+      Arrays.hashCode(defaultArgumentListTextRanges),
       element,
       returnType,
       parameterNames,
@@ -625,53 +623,77 @@ public class CompletionSuggestion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("relevance=");
-    builder.append(relevance + ", ");
+    builder.append(relevance);
+    builder.append(", ");
     builder.append("completion=");
-    builder.append(completion + ", ");
+    builder.append(completion);
+    builder.append(", ");
     builder.append("displayText=");
-    builder.append(displayText + ", ");
+    builder.append(displayText);
+    builder.append(", ");
     builder.append("replacementOffset=");
-    builder.append(replacementOffset + ", ");
+    builder.append(replacementOffset);
+    builder.append(", ");
     builder.append("replacementLength=");
-    builder.append(replacementLength + ", ");
+    builder.append(replacementLength);
+    builder.append(", ");
     builder.append("selectionOffset=");
-    builder.append(selectionOffset + ", ");
+    builder.append(selectionOffset);
+    builder.append(", ");
     builder.append("selectionLength=");
-    builder.append(selectionLength + ", ");
+    builder.append(selectionLength);
+    builder.append(", ");
     builder.append("isDeprecated=");
-    builder.append(isDeprecated + ", ");
+    builder.append(isDeprecated);
+    builder.append(", ");
     builder.append("isPotential=");
-    builder.append(isPotential + ", ");
+    builder.append(isPotential);
+    builder.append(", ");
     builder.append("docSummary=");
-    builder.append(docSummary + ", ");
+    builder.append(docSummary);
+    builder.append(", ");
     builder.append("docComplete=");
-    builder.append(docComplete + ", ");
+    builder.append(docComplete);
+    builder.append(", ");
     builder.append("declaringType=");
-    builder.append(declaringType + ", ");
+    builder.append(declaringType);
+    builder.append(", ");
     builder.append("defaultArgumentListString=");
-    builder.append(defaultArgumentListString + ", ");
+    builder.append(defaultArgumentListString);
+    builder.append(", ");
     builder.append("defaultArgumentListTextRanges=");
-    builder.append(StringUtils.join(defaultArgumentListTextRanges, ", ") + ", ");
+    builder.append(defaultArgumentListTextRanges == null ? "null" : Arrays.stream(defaultArgumentListTextRanges).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("element=");
-    builder.append(element + ", ");
+    builder.append(element);
+    builder.append(", ");
     builder.append("returnType=");
-    builder.append(returnType + ", ");
+    builder.append(returnType);
+    builder.append(", ");
     builder.append("parameterNames=");
-    builder.append(StringUtils.join(parameterNames, ", ") + ", ");
+    builder.append(parameterNames == null ? "null" : parameterNames.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("parameterTypes=");
-    builder.append(StringUtils.join(parameterTypes, ", ") + ", ");
+    builder.append(parameterTypes == null ? "null" : parameterTypes.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("requiredParameterCount=");
-    builder.append(requiredParameterCount + ", ");
+    builder.append(requiredParameterCount);
+    builder.append(", ");
     builder.append("hasNamedParameters=");
-    builder.append(hasNamedParameters + ", ");
+    builder.append(hasNamedParameters);
+    builder.append(", ");
     builder.append("parameterName=");
-    builder.append(parameterName + ", ");
+    builder.append(parameterName);
+    builder.append(", ");
     builder.append("parameterType=");
-    builder.append(parameterType + ", ");
+    builder.append(parameterType);
+    builder.append(", ");
     builder.append("libraryUri=");
-    builder.append(libraryUri + ", ");
+    builder.append(libraryUri);
+    builder.append(", ");
     builder.append("isNotImported=");
     builder.append(isNotImported);
     builder.append("]");

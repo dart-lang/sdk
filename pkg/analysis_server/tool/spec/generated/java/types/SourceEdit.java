@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a single change to a single file.
@@ -84,8 +83,7 @@ public class SourceEdit {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof SourceEdit) {
-      SourceEdit other = (SourceEdit) obj;
+    if (obj instanceof SourceEdit other) {
       return
         other.offset == offset &&
         other.length == length &&
@@ -194,13 +192,17 @@ public class SourceEdit {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("replacement=");
-    builder.append(replacement + ", ");
+    builder.append(replacement);
+    builder.append(", ");
     builder.append("id=");
-    builder.append(id + ", ");
+    builder.append(id);
+    builder.append(", ");
     builder.append("description=");
     builder.append(description);
     builder.append("]");

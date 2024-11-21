@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a region from which the user can navigate to the declaration of an element.
@@ -67,8 +66,7 @@ public class NavigationRegion {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NavigationRegion) {
-      NavigationRegion other = (NavigationRegion) obj;
+    if (obj instanceof NavigationRegion other) {
       return
         other.offset == offset &&
         other.length == length &&
@@ -127,7 +125,7 @@ public class NavigationRegion {
     return Objects.hash(
       offset,
       length,
-      targets
+      Arrays.hashCode(targets)
     );
   }
 
@@ -155,11 +153,13 @@ public class NavigationRegion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("targets=");
-    builder.append(StringUtils.join(targets, ", "));
+    builder.append(Arrays.stream(targets).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }
