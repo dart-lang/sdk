@@ -239,7 +239,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList('getters', e, e.getters, _writeGetterElement);
       _writeElementList('setters', e, e.setters, _writeSetterElement);
       _writeElementList(
-          'functions', e, e.functions, _writeTopLevelFunctionElement);
+          'functions', e, e.topLevelFunctions, _writeTopLevelFunctionElement);
 
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');

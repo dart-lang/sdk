@@ -1,5 +1,9 @@
-# 0.20.3
+# 0.20.4
+
 - Allow custom `fromJson` to have an arbitrary parameter type.
+
+# 0.20.3
+- Add support for DateTime, serializing it to an ISO-8601 String.
 
 # 0.20.2
 

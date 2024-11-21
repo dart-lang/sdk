@@ -4,6 +4,9 @@
 // Dart test for testing bitwise operations.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 void main() {

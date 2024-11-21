@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A location (character range) within a file.
@@ -83,8 +82,7 @@ public class Location {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Location) {
-      Location other = (Location) obj;
+    if (obj instanceof Location other) {
       return
         Objects.equals(other.file, file) &&
         other.offset == offset &&
@@ -202,17 +200,23 @@ public class Location {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("file=");
-    builder.append(file + ", ");
+    builder.append(file);
+    builder.append(", ");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("startLine=");
-    builder.append(startLine + ", ");
+    builder.append(startLine);
+    builder.append(", ");
     builder.append("startColumn=");
-    builder.append(startColumn + ", ");
+    builder.append(startColumn);
+    builder.append(", ");
     builder.append("endLine=");
-    builder.append(endLine + ", ");
+    builder.append(endLine);
+    builder.append(", ");
     builder.append("endColumn=");
     builder.append(endColumn);
     builder.append("]");

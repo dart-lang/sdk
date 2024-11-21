@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -45,8 +44,7 @@ public class RenameOptions extends RefactoringOptions {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof RenameOptions) {
-      RenameOptions other = (RenameOptions) obj;
+    if (obj instanceof RenameOptions other) {
       return
         Objects.equals(other.newName, newName);
     }
@@ -90,6 +88,7 @@ public class RenameOptions extends RefactoringOptions {
     this.newName = newName;
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("newName", newName);

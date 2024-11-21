@@ -145,16 +145,16 @@ class ClassHierarchyNode {
       {required bool add}) {
     ClassHierarchyNode? parent = parentNode;
     if (add) {
-      _mask -= Instantiation.UNINSTANTIATED;
-      _mask += instantiation;
+      _mask = _mask.remove(Instantiation.UNINSTANTIATED);
+      _mask = _mask.add(instantiation);
       while (parent != null) {
         parent._updateInstantiatedSubclassCount(1);
         parent = parent.parentNode;
       }
     } else {
-      _mask -= instantiation;
+      _mask = _mask.remove(instantiation);
       if (_mask.isEmpty) {
-        _mask += Instantiation.UNINSTANTIATED;
+        _mask = _mask.add(Instantiation.UNINSTANTIATED);
       }
       while (parent != null) {
         parent._updateInstantiatedSubclassCount(-1);
@@ -183,12 +183,12 @@ class ClassHierarchyNode {
     bool after = isIndirectlyInstantiated;
     if (before != after) {
       if (after) {
-        _mask -= Instantiation.UNINSTANTIATED;
-        _mask += Instantiation.INDIRECTLY_INSTANTIATED;
+        _mask = _mask.remove(Instantiation.UNINSTANTIATED);
+        _mask = _mask.add(Instantiation.INDIRECTLY_INSTANTIATED);
       } else {
-        _mask -= Instantiation.INDIRECTLY_INSTANTIATED;
+        _mask = _mask.remove(Instantiation.INDIRECTLY_INSTANTIATED);
         if (_mask.isEmpty) {
-          _mask += Instantiation.UNINSTANTIATED;
+          _mask = _mask.add(Instantiation.UNINSTANTIATED);
         }
       }
     }
@@ -219,7 +219,7 @@ class ClassHierarchyNode {
     source.end(tag);
     return ClassHierarchyNode(parentNode, cls, hierarchyDepth)
       .._instantiatedSubclassCount = instantiatedSubclassCount
-      .._mask = EnumSet(maskValue);
+      .._mask = EnumSet.fromRawBits(maskValue);
   }
 
   /// Serializes this [ClassHierarchyNode] to [sink].
@@ -227,7 +227,7 @@ class ClassHierarchyNode {
     sink.begin(tag);
     sink.writeClass(cls);
     sink.writeClassOrNull(parentNode?.cls);
-    sink.writeInt(_mask.mask);
+    sink.writeInt(_mask.mask.bits);
     sink.writeInt(hierarchyDepth);
     sink.writeInt(_instantiatedSubclassCount);
     sink.end(tag);

@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a parameter in a method refactoring.
@@ -75,8 +74,7 @@ public class RefactoringMethodParameter {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof RefactoringMethodParameter) {
-      RefactoringMethodParameter other = (RefactoringMethodParameter) obj;
+    if (obj instanceof RefactoringMethodParameter other) {
       return
         Objects.equals(other.id, id) &&
         Objects.equals(other.kind, kind) &&
@@ -215,13 +213,17 @@ public class RefactoringMethodParameter {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("id=");
-    builder.append(id + ", ");
+    builder.append(id);
+    builder.append(", ");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("type=");
-    builder.append(type + ", ");
+    builder.append(type);
+    builder.append(", ");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("parameters=");
     builder.append(parameters);
     builder.append("]");

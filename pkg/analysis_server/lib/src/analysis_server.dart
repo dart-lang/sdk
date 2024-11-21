@@ -763,7 +763,7 @@ abstract class AnalysisServer {
       return null;
     }
     try {
-      return driver.currentSession.getResolvedContainingLibrary(path);
+      return await driver.currentSession.getResolvedContainingLibrary(path);
     } on InconsistentAnalysisException {
       return null;
     } catch (exception, stackTrace) {

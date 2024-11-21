@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Tests that in some positions only constant types are allowed, so not
 // type parameters. But in other positions potentially constant types are
 // allowed, including type parameters.

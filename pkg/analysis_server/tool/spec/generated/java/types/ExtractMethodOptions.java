@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -80,8 +79,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ExtractMethodOptions) {
-      ExtractMethodOptions other = (ExtractMethodOptions) obj;
+    if (obj instanceof ExtractMethodOptions other) {
       return
         Objects.equals(other.returnType, returnType) &&
         other.createGetter == createGetter &&
@@ -215,6 +213,7 @@ public class ExtractMethodOptions extends RefactoringOptions {
     this.returnType = returnType;
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("returnType", returnType);
@@ -234,13 +233,17 @@ public class ExtractMethodOptions extends RefactoringOptions {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("returnType=");
-    builder.append(returnType + ", ");
+    builder.append(returnType);
+    builder.append(", ");
     builder.append("createGetter=");
-    builder.append(createGetter + ", ");
+    builder.append(createGetter);
+    builder.append(", ");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("parameters=");
-    builder.append(StringUtils.join(parameters, ", ") + ", ");
+    builder.append(parameters.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("extractAll=");
     builder.append(extractAll);
     builder.append("]");

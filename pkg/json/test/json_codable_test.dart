@@ -16,6 +16,7 @@ void main() {
         'intField': 10,
         'doubleField': 12.5,
         'numField': 11,
+        'dateTimeField': '2024-11-11T03:42:29.108308',
         'listOfSerializableField': [
           {'x': 1},
         ],
@@ -37,6 +38,7 @@ void main() {
       expect(a.intField, 10);
       expect(a.doubleField, 12.5);
       expect(a.numField, 11);
+      expect(a.dateTimeField, DateTime.parse('2024-11-11T03:42:29.108308'));
       expect(a.listOfSerializableField.single.x, 1);
       expect(a.setOfSerializableField.single.x, 2);
       expect(a.mapOfSerializableField['c']!.x, 3);
@@ -54,6 +56,7 @@ void main() {
         'nullableIntField': 9,
         'nullableDoubleField': 11.5,
         'nullableNumField': 11.1,
+        'nullableDateTimeField': '2024-11-11T03:42:29.108308',
         'nullableListOfSerializableField': [
           {'x': 1},
         ],
@@ -73,6 +76,8 @@ void main() {
       expect(b.nullableIntField, 9);
       expect(b.nullableDoubleField, 11.5);
       expect(b.nullableNumField, 11.1);
+      expect(b.nullableDateTimeField,
+          DateTime.parse('2024-11-11T03:42:29.108308'));
       expect(b.nullableListOfSerializableField!.single.x, 1);
       expect(b.nullableSetOfSerializableField!.single.x, 2);
       expect(b.nullableMapOfSerializableField!['d']!.x, 3);
@@ -91,6 +96,7 @@ void main() {
         'nullableIntField': null,
         'nullableDoubleField': null,
         'nullableNumField': null,
+        'nullableDateTimeField': null,
         'nullableListOfSerializableField': null,
         'nullableSetOfSerializableField': null,
         'nullableMapOfSerializableField': null,
@@ -102,6 +108,7 @@ void main() {
       expect(b.nullableIntField, null);
       expect(b.nullableDoubleField, null);
       expect(b.nullableNumField, null);
+      expect(b.nullableDateTimeField, null);
       expect(b.nullableListOfSerializableField, null);
       expect(b.nullableMapOfSerializableField, null);
       expect(b.nullableSetOfSerializableField, null);
@@ -118,6 +125,7 @@ void main() {
       expect(b.nullableIntField, null);
       expect(b.nullableDoubleField, null);
       expect(b.nullableNumField, null);
+      expect(b.nullableDateTimeField, null);
       expect(b.nullableListOfSerializableField, null);
       expect(b.nullableMapOfSerializableField, null);
       expect(b.nullableSetOfSerializableField, null);
@@ -141,6 +149,7 @@ void main() {
 
     test('collections of nullable objects', () {
       var json = {
+        'listOfNullableDates': [null, '2024-11-11T03:42:29.108308'],
         'listOfNullableInts': [null, 1],
         'listOfNullableSerializables': [
           {'x': 1},
@@ -153,7 +162,11 @@ void main() {
         'listOfCustomStringSerializables': [null, 'hi'],
         'listOfCustomMapSerializables': [
           null,
-          {'z': 'zzz'}
+          {'z': 'zzz'},
+        ],
+        'setOfNullableDates': [
+          null,
+          '2024-11-12T03:42:29.108308',
         ],
         'setOfNullableInts': [
           null,
@@ -175,6 +188,10 @@ void main() {
           null,
           {'z': 'zzz'}
         ],
+        'mapOfNullableDates': {
+          'a': '2024-11-13T03:42:29.108308',
+          'b': null,
+        },
         'mapOfNullableInts': {
           'a': 3,
           'b': null,
@@ -198,6 +215,8 @@ void main() {
       };
 
       var e = E.fromJson(json);
+      expect(e.listOfNullableDates,
+          equals([null, DateTime.parse('2024-11-11T03:42:29.108308')]));
       expect(e.listOfNullableInts, equals([null, 1]));
       expect(e.listOfNullableSerializables.first!.x, 1);
       expect(e.listOfNullableSerializables[1], null);
@@ -214,6 +233,8 @@ void main() {
       expect(e.listOfCustomMapSerializables[1],
           CustomMapSerialization({'z': 'zzz'}));
 
+      expect(e.setOfNullableDates,
+          equals([null, DateTime.parse('2024-11-12T03:42:29.108308')]));
       expect(e.setOfNullableInts, equals({null, 2}));
       expect(e.setOfNullableSerializables.first!.x, 2);
       expect(e.setOfNullableSerializables.elementAt(1), null);
@@ -234,6 +255,12 @@ void main() {
           CustomMapSerialization({'z': 'zzz'}));
 
       expect(
+          e.mapOfNullableDates,
+          equals({
+            'a': DateTime.parse('2024-11-13T03:42:29.108308'),
+            'b': null,
+          }));
+      expect(
           e.mapOfNullableInts,
           equals({
             'a': 3,
@@ -246,11 +273,11 @@ void main() {
         'a': {null, 3},
         'b': null,
       });
-      expect(e.mapOfCustomStringSerializables?['a'], null);
-      expect(e.mapOfCustomStringSerializables?['b'],
+      expect(e.mapOfCustomStringSerializables['a'], null);
+      expect(e.mapOfCustomStringSerializables['b'],
           CustomStringSerialization('hi'));
-      expect(e.mapOfCustomMapSerializables?['a'], null);
-      expect(e.mapOfCustomMapSerializables?['b'],
+      expect(e.mapOfCustomMapSerializables['a'], null);
+      expect(e.mapOfCustomMapSerializables['b'],
           CustomMapSerialization({'z': 'zzz'}));
 
       expect(e.toJson(), equals(json));
@@ -280,6 +307,8 @@ class A {
 
   final num numField;
 
+  final DateTime dateTimeField;
+
   final List<C> listOfSerializableField;
 
   final Set<C> setOfSerializableField;
@@ -302,6 +331,8 @@ class B {
   final double? nullableDoubleField;
 
   final num? nullableNumField;
+
+  final DateTime? nullableDateTimeField;
 
   final List<C>? nullableListOfSerializableField;
 
@@ -326,6 +357,8 @@ class D extends C {
 
 @JsonCodable()
 class E {
+  final List<DateTime?> listOfNullableDates;
+
   final List<int?> listOfNullableInts;
 
   final List<C?> listOfNullableSerializables;
@@ -336,6 +369,8 @@ class E {
 
   final List<CustomMapSerialization?> listOfCustomMapSerializables;
 
+  final Set<DateTime?> setOfNullableDates;
+
   final Set<int?> setOfNullableInts;
 
   final Set<C?> setOfNullableSerializables;
@@ -345,6 +380,8 @@ class E {
   final Set<CustomStringSerialization?> setOfCustomStringSerializables;
 
   final Set<CustomMapSerialization?> setOfCustomMapSerializables;
+
+  final Map<String, DateTime?> mapOfNullableDates;
 
   final Map<String, int?> mapOfNullableInts;
 

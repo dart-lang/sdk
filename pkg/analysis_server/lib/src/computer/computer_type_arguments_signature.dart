@@ -97,24 +97,23 @@ class DartTypeArgumentsSignatureComputer {
             )
             .toList();
 
-    var signatures = [
-      lsp.SignatureInformation(
-        label: label,
-        documentation:
-            documentation != null
-                ? asMarkupContentOrString(preferredFormats, documentation)
-                : null,
-        parameters: parameters,
-      ),
-    ];
+    var signature = lsp.SignatureInformation(
+      label: label,
+      documentation:
+          documentation != null
+              ? asMarkupContentOrString(preferredFormats, documentation)
+              : null,
+      parameters: parameters,
+    );
 
     return lsp.SignatureHelp(
-      signatures: signatures,
+      signatures: [signature],
       activeSignature: 0,
-      // As with [toSignatureHelp], we don't currently use this, but need to set
-      // it to something that doesn't match a parameter to avoid one being
-      // selected.
-      activeParameter: -1,
+      // This must be a unsigned integer but can be out of range. Since we don't
+      // currently support this, just provide the first out-of-bounds value and
+      // allow the client to decide what to do (the LSP spec says it can be
+      // treated as 0, but VS Code will not highlight any, which is preferred).
+      activeParameter: signature.parameters?.length ?? 0,
     );
   }
 }

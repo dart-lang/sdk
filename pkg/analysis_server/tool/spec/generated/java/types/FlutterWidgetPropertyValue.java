@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A value of a property of a Flutter widget.
@@ -62,8 +61,7 @@ public class FlutterWidgetPropertyValue {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FlutterWidgetPropertyValue) {
-      FlutterWidgetPropertyValue other = (FlutterWidgetPropertyValue) obj;
+    if (obj instanceof FlutterWidgetPropertyValue other) {
       return
         Objects.equals(other.boolValue, boolValue) &&
         Objects.equals(other.doubleValue, doubleValue) &&
@@ -163,15 +161,20 @@ public class FlutterWidgetPropertyValue {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("boolValue=");
-    builder.append(boolValue + ", ");
+    builder.append(boolValue);
+    builder.append(", ");
     builder.append("doubleValue=");
-    builder.append(doubleValue + ", ");
+    builder.append(doubleValue);
+    builder.append(", ");
     builder.append("intValue=");
-    builder.append(intValue + ", ");
+    builder.append(intValue);
+    builder.append(", ");
     builder.append("stringValue=");
-    builder.append(stringValue + ", ");
+    builder.append(stringValue);
+    builder.append(", ");
     builder.append("enumValue=");
-    builder.append(enumValue + ", ");
+    builder.append(enumValue);
+    builder.append(", ");
     builder.append("expression=");
     builder.append(expression);
     builder.append("]");

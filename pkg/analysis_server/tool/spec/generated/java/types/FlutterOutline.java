@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An node in the Flutter specific outline structure of a file.
@@ -121,8 +120,7 @@ public class FlutterOutline {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FlutterOutline) {
-      FlutterOutline other = (FlutterOutline) obj;
+    if (obj instanceof FlutterOutline other) {
       return
         Objects.equals(other.kind, kind) &&
         other.offset == offset &&
@@ -321,29 +319,40 @@ public class FlutterOutline {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("codeOffset=");
-    builder.append(codeOffset + ", ");
+    builder.append(codeOffset);
+    builder.append(", ");
     builder.append("codeLength=");
-    builder.append(codeLength + ", ");
+    builder.append(codeLength);
+    builder.append(", ");
     builder.append("label=");
-    builder.append(label + ", ");
+    builder.append(label);
+    builder.append(", ");
     builder.append("dartElement=");
-    builder.append(dartElement + ", ");
+    builder.append(dartElement);
+    builder.append(", ");
     builder.append("attributes=");
-    builder.append(StringUtils.join(attributes, ", ") + ", ");
+    builder.append(attributes == null ? "null" : attributes.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("className=");
-    builder.append(className + ", ");
+    builder.append(className);
+    builder.append(", ");
     builder.append("parentAssociationLabel=");
-    builder.append(parentAssociationLabel + ", ");
+    builder.append(parentAssociationLabel);
+    builder.append(", ");
     builder.append("variableName=");
-    builder.append(variableName + ", ");
+    builder.append(variableName);
+    builder.append(", ");
     builder.append("children=");
-    builder.append(StringUtils.join(children, ", "));
+    builder.append(children == null ? "null" : children.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

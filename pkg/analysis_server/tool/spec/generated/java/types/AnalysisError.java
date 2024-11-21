@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An indication of an error, warning, or hint that was produced by the analysis.
@@ -105,8 +104,7 @@ public class AnalysisError {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof AnalysisError) {
-      AnalysisError other = (AnalysisError) obj;
+    if (obj instanceof AnalysisError other) {
       return
         Objects.equals(other.severity, severity) &&
         Objects.equals(other.type, type) &&
@@ -264,21 +262,29 @@ public class AnalysisError {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("severity=");
-    builder.append(severity + ", ");
+    builder.append(severity);
+    builder.append(", ");
     builder.append("type=");
-    builder.append(type + ", ");
+    builder.append(type);
+    builder.append(", ");
     builder.append("location=");
-    builder.append(location + ", ");
+    builder.append(location);
+    builder.append(", ");
     builder.append("message=");
-    builder.append(message + ", ");
+    builder.append(message);
+    builder.append(", ");
     builder.append("correction=");
-    builder.append(correction + ", ");
+    builder.append(correction);
+    builder.append(", ");
     builder.append("code=");
-    builder.append(code + ", ");
+    builder.append(code);
+    builder.append(", ");
     builder.append("url=");
-    builder.append(url + ", ");
+    builder.append(url);
+    builder.append(", ");
     builder.append("contextMessages=");
-    builder.append(StringUtils.join(contextMessages, ", ") + ", ");
+    builder.append(contextMessages == null ? "null" : contextMessages.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("hasFix=");
     builder.append(hasFix);
     builder.append("]");

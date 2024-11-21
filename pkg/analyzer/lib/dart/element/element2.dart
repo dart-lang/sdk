@@ -1445,12 +1445,6 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   /// `part` directive.
   List<LibraryFragment> get fragments;
 
-  /// The functions defined in this library.
-  ///
-  /// There is no guarantee of the order in which the functions will be
-  /// returned. In particular, they are not guaranteed to be in lexical order.
-  List<TopLevelFunctionElement> get functions;
-
   /// The getters defined in this library.
   ///
   /// There is no guarantee of the order in which the getters will be returned.
@@ -1502,6 +1496,12 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   /// In particular, they are not guaranteed to be in lexical order.
   List<SetterElement> get setters;
 
+  /// The functions defined in this library.
+  ///
+  /// There is no guarantee of the order in which the functions will be
+  /// returned. In particular, they are not guaranteed to be in lexical order.
+  List<TopLevelFunctionElement> get topLevelFunctions;
+
   /// The top level variables defined in this library.
   ///
   /// There is no guarantee of the order in which the top level variables will
@@ -1528,6 +1528,35 @@ abstract class LibraryElement2 implements Element2, Annotatable {
 
   /// Returns the class defined in this library that has the given [name].
   ClassElement2? getClass2(String name);
+
+  /// Returns the enum defined in this library that has the given [name].
+  EnumElement2? getEnum2(String name);
+
+  /// Returns the extension defined in this library that has the given [name].
+  ExtensionElement2? getExtension(String name);
+
+  /// Returns the extension type defined in this library that has the
+  /// given [name].
+  ExtensionTypeElement2? getExtensionType(String name);
+
+  /// Returns the getter defined in this library that has the given [name].
+  GetterElement? getGetter(String name);
+
+  /// Returns the mixin defined in this library that has the given [name].
+  MixinElement2? getMixin2(String name);
+
+  /// Returns the setter defined in this library that has the given [name].
+  SetterElement? getSetter(String name);
+
+  /// Returns the function defined in this library that has the given [name].
+  TopLevelFunctionElement? getTopLevelFunction(String name);
+
+  /// Returns the top-level variable defined in this library that has the
+  /// given [name].
+  TopLevelVariableElement2? getTopLevelVariable(String name);
+
+  /// Returns the type alias defined in this library that has the given [name].
+  TypeAliasElement2? getTypeAlias(String name);
 }
 
 /// An `export` directive within a library fragment.

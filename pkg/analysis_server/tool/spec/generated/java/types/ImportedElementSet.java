@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * The set of top-level elements encoded as pairs of the defining library URI and the name, and
@@ -60,8 +59,7 @@ public class ImportedElementSet {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ImportedElementSet) {
-      ImportedElementSet other = (ImportedElementSet) obj;
+    if (obj instanceof ImportedElementSet other) {
       return
         Objects.equals(other.strings, strings) &&
         Arrays.equals(other.uris, uris) &&
@@ -113,8 +111,8 @@ public class ImportedElementSet {
   public int hashCode() {
     return Objects.hash(
       strings,
-      uris,
-      names
+      Arrays.hashCode(uris),
+      Arrays.hashCode(names)
     );
   }
 
@@ -143,11 +141,13 @@ public class ImportedElementSet {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("strings=");
-    builder.append(StringUtils.join(strings, ", ") + ", ");
+    builder.append(strings.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("uris=");
-    builder.append(StringUtils.join(uris, ", ") + ", ");
+    builder.append(Arrays.stream(uris).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("names=");
-    builder.append(StringUtils.join(names, ", "));
+    builder.append(Arrays.stream(names).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

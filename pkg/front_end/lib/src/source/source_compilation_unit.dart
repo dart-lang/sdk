@@ -528,8 +528,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         LibraryBuilder imported = import.importedLibraryBuilder!.origin;
         Library targetLibrary = imported.library;
         libraryDependency = new LibraryDependency.import(targetLibrary,
-            name: import.prefix,
-            combinators: toCombinators(import.combinators))
+            name: import.prefix, combinators: toCombinators(import.combinators))
           ..fileOffset = import.importOffset;
       }
       library.addDependency(libraryDependency);

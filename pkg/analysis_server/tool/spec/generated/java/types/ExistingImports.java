@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Information about all existing imports in a library.
@@ -53,8 +52,7 @@ public class ExistingImports {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ExistingImports) {
-      ExistingImports other = (ExistingImports) obj;
+    if (obj instanceof ExistingImports other) {
       return
         Objects.equals(other.elements, elements) &&
         Objects.equals(other.imports, imports);
@@ -117,9 +115,10 @@ public class ExistingImports {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("elements=");
-    builder.append(elements + ", ");
+    builder.append(elements);
+    builder.append(", ");
     builder.append("imports=");
-    builder.append(StringUtils.join(imports, ", "));
+    builder.append(imports.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

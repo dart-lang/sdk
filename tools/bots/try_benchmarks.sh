@@ -323,12 +323,8 @@ EOF
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart compile js --no-sound-null-safety --platform-binaries=out/ReleaseX64 --benchmarking-x --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --no-sound-null-safety hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --no-sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --sound-null-safety hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --canary --no-sound-null-safety hello.dart
-    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --canary --no-sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --canary --sound-null-safety hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --canary --sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/analysis_server/benchmark/benchmarks.dart run --quick --repeat 1 analysis-server-cold

@@ -6495,10 +6495,10 @@ class LibraryElementImpl extends ElementImpl
   List<ExtensionTypeElementImpl2> extensionTypes = [];
 
   @override
-  List<TopLevelFunctionElementImpl> functions = [];
+  List<MixinElementImpl2> mixins = [];
 
   @override
-  List<MixinElementImpl2> mixins = [];
+  List<TopLevelFunctionElementImpl> topLevelFunctions = [];
 
   @override
   List<TopLevelVariableElementImpl2> topLevelVariables = [];
@@ -6545,7 +6545,7 @@ class LibraryElementImpl extends ElementImpl
       ...classes,
       ...extensions,
       ...extensionTypes,
-      ...functions,
+      ...topLevelFunctions,
       ...mixins,
       ...typeAliases,
       ...getters,
@@ -6838,12 +6838,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   ClassElement2? getClass2(String name) {
-    for (var class_ in classes) {
-      if (class_.name3 == name) {
-        return class_;
-      }
-    }
-    return null;
+    return _getElementByName(classes, name);
   }
 
   EnumElement? getEnum(String name) {
@@ -6856,6 +6851,26 @@ class LibraryElementImpl extends ElementImpl
     return null;
   }
 
+  @override
+  EnumElement2? getEnum2(String name) {
+    return _getElementByName(enums, name);
+  }
+
+  @override
+  ExtensionElement2? getExtension(String name) {
+    return _getElementByName(extensions, name);
+  }
+
+  @override
+  ExtensionTypeElement2? getExtensionType(String name) {
+    return _getElementByName(extensionTypes, name);
+  }
+
+  @override
+  GetterElement? getGetter(String name) {
+    return _getElementByName(getters, name);
+  }
+
   MixinElement? getMixin(String name) {
     for (var unitElement in units) {
       var element = unitElement.getMixin(name);
@@ -6864,6 +6879,31 @@ class LibraryElementImpl extends ElementImpl
       }
     }
     return null;
+  }
+
+  @override
+  MixinElement2? getMixin2(String name) {
+    return _getElementByName(mixins, name);
+  }
+
+  @override
+  SetterElement? getSetter(String name) {
+    return _getElementByName(setters, name);
+  }
+
+  @override
+  TopLevelFunctionElement? getTopLevelFunction(String name) {
+    return _getElementByName(topLevelFunctions, name);
+  }
+
+  @override
+  TopLevelVariableElement2? getTopLevelVariable(String name) {
+    return _getElementByName(topLevelVariables, name);
+  }
+
+  @override
+  TypeAliasElement2? getTypeAlias(String name) {
+    return _getElementByName(typeAliases, name);
   }
 
   /// Return `true` if [reference] comes only from deprecated exports.
@@ -6897,6 +6937,13 @@ class LibraryElementImpl extends ElementImpl
       }
     }
     return prefixes.toList(growable: false);
+  }
+
+  static T? _getElementByName<T extends Element2>(
+    List<T> elements,
+    String name,
+  ) {
+    return elements.firstWhereOrNull((e) => e.name3 == name);
   }
 }
 

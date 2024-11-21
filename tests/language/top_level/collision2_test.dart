@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 get x => 200;
 
 // Ok: can have a setter named x when getter x is defined.

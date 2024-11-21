@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A directive to begin overlaying the contents of a file. The supplied content will be used for
@@ -54,8 +53,7 @@ public class AddContentOverlay {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof AddContentOverlay) {
-      AddContentOverlay other = (AddContentOverlay) obj;
+    if (obj instanceof AddContentOverlay other) {
       return
         Objects.equals(other.type, type) &&
         Objects.equals(other.content, content);
@@ -111,7 +109,8 @@ public class AddContentOverlay {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type + ", ");
+    builder.append(type);
+    builder.append(", ");
     builder.append("content=");
     builder.append(content);
     builder.append("]");
