@@ -1,3 +1,6 @@
+# 0.20.3
+- Allow custom `fromJson` to have an arbitrary parameter type.
+
 # 0.20.2
 
 - Fix generated code syntax error when defining fields containing the dollar sign `$` by using raw strings.
