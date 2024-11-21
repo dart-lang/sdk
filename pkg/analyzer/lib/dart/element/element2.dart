@@ -1528,6 +1528,35 @@ abstract class LibraryElement2 implements Element2, Annotatable {
 
   /// Returns the class defined in this library that has the given [name].
   ClassElement2? getClass2(String name);
+
+  /// Returns the enum defined in this library that has the given [name].
+  EnumElement2? getEnum2(String name);
+
+  /// Returns the extension defined in this library that has the given [name].
+  ExtensionElement2? getExtension(String name);
+
+  /// Returns the extension type defined in this library that has the
+  /// given [name].
+  ExtensionTypeElement2? getExtensionType(String name);
+
+  /// Returns the getter defined in this library that has the given [name].
+  GetterElement? getGetter(String name);
+
+  /// Returns the mixin defined in this library that has the given [name].
+  MixinElement2? getMixin2(String name);
+
+  /// Returns the setter defined in this library that has the given [name].
+  SetterElement? getSetter(String name);
+
+  /// Returns the function defined in this library that has the given [name].
+  TopLevelFunctionElement? getTopLevelFunction(String name);
+
+  /// Returns the top-level variable defined in this library that has the
+  /// given [name].
+  TopLevelVariableElement2? getTopLevelVariable(String name);
+
+  /// Returns the type alias defined in this library that has the given [name].
+  TypeAliasElement2? getTypeAlias(String name);
 }
 
 /// An `export` directive within a library fragment.
