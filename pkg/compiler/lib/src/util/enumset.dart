@@ -35,7 +35,7 @@ extension type const EnumSet<E extends Enum>(Bitset mask) {
 
   /// Creates a set containing [values].
   EnumSet.fromValues(Iterable<E> values)
-      : this(values.fold(Bitset(0), (acc, e) => acc.union(e.mask(0))));
+      : this(values.fold(Bitset.empty(), (acc, e) => acc.union(e.mask(0))));
 
   /// Returns a set containing all enum values in [this] as well as [enumValue].
   @useResult
@@ -149,7 +149,7 @@ class EnumSetDomain<E extends Enum> {
 
   /// Returns a bitset containing [values].
   Bitset fromValues(Iterable<E> values) =>
-      values.fold(Bitset(0), (acc, e) => acc.union(e.mask(offset)));
+      values.fold(Bitset.empty(), (acc, e) => acc.union(e.mask(offset)));
 
   /// Returns a bitset containing all enum values in [bits] as well as
   /// [enumValue].

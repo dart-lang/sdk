@@ -6,39 +6,28 @@ library universe.side_effects;
 
 import '../elements/entities.dart';
 import '../serialization/serialization.dart';
+import '../util/bitset.dart';
 import '../util/enumset.dart';
 
-typedef SideEffectsFlags = EnumSet<SideEffectsFlag>;
-
 enum SideEffectsFlag {
-  // Changes flags.
-  changesIndex,
-  changesInstanceProperty,
-  changesStaticProperty,
-
-  // Depends flags (one for each changes flag).
-  dependsOnIndexStore,
-  dependsOnInstancePropertyStore,
-  dependsOnStaticPropertyStore,
-  ;
-
-  static final int _changesCount = dependsOnIndexStore.index;
-  static final int _dependsCount = values.length - _changesCount;
+  index_,
+  instanceProperty,
+  staticProperty,
 }
+
+final _changes = EnumSetDomain<SideEffectsFlag>(0);
+final _depends = EnumSetDomain<SideEffectsFlag>(SideEffectsFlag.values.length);
 
 class SideEffects {
   /// Tag used for identifying serialized [SideEffects] objects in a debugging
   /// data stream.
   static const String tag = 'side-effects';
 
-  EnumSet<SideEffectsFlag> _flags = EnumSet.empty();
+  Bitset _flags = Bitset.empty();
 
-  static final EnumSet<SideEffectsFlag> allChanges =
-      EnumSet.fromRawBits((1 << SideEffectsFlag._changesCount) - 1);
+  static final Bitset allChanges = _changes.allValues(SideEffectsFlag.values);
 
-  static final EnumSet<SideEffectsFlag> allDepends = EnumSet.fromRawBits(
-      ((1 << SideEffectsFlag._dependsCount) - 1) <<
-          SideEffectsFlag._changesCount);
+  static final Bitset allDepends = _depends.allValues(SideEffectsFlag.values);
 
   SideEffects() {
     setAllSideEffects();
@@ -50,20 +39,20 @@ class SideEffects {
     clearAllSideEffects();
   }
 
-  SideEffects.fromFlags(this._flags);
+  SideEffects._fromBits(int bits) : _flags = Bitset(bits);
 
   /// Deserializes a [SideEffects] object from [source].
   factory SideEffects.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    int flags = source.readInt();
+    int bits = source.readInt();
     source.end(tag);
-    return SideEffects.fromFlags(EnumSet.fromRawBits(flags));
+    return SideEffects._fromBits(bits);
   }
 
   /// Serializes this [SideEffects] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeInt(_flags.mask.bits);
+    sink.writeInt(_flags.bits);
     sink.end(tag);
   }
 
@@ -74,24 +63,37 @@ class SideEffects {
   @override
   int get hashCode => throw UnsupportedError('SideEffects.hashCode');
 
-  bool _getFlag(SideEffectsFlag flag) => _flags.contains(flag);
+  bool _getChangesFlag(SideEffectsFlag flag) => _changes.contains(_flags, flag);
 
-  bool _setFlag(SideEffectsFlag flag) {
+  bool _getDependsFlag(SideEffectsFlag flag) => _depends.contains(_flags, flag);
+
+  bool _setChangesFlag(SideEffectsFlag flag) {
     final before = _flags;
-    _flags += flag;
+    _flags = _changes.add(_flags, flag);
     return before != _flags;
   }
 
-  bool _clearFlag(SideEffectsFlag flag) {
+  bool _setDependsFlag(SideEffectsFlag flag) {
     final before = _flags;
-    _flags -= flag;
+    _flags = _depends.add(_flags, flag);
     return before != _flags;
   }
 
-  EnumSet<SideEffectsFlag> getChangesFlags() => _flags.intersection(allChanges);
+  bool _clearChangesFlag(SideEffectsFlag flag) {
+    final before = _flags;
+    _flags = _changes.remove(_flags, flag);
+    return before != _flags;
+  }
 
-  EnumSet<SideEffectsFlag> getDependsOnFlags() =>
-      _flags.intersection(allDepends);
+  bool _clearDependsFlag(SideEffectsFlag flag) {
+    final before = _flags;
+    _flags = _depends.remove(_flags, flag);
+    return before != _flags;
+  }
+
+  Bitset getChangesFlags() => _flags.intersection(allChanges);
+
+  Bitset getDependsOnFlags() => _flags.intersection(allDepends);
 
   bool hasSideEffects() => getChangesFlags() != 0;
   bool dependsOnSomething() => getDependsOnFlags() != 0;
@@ -121,61 +123,57 @@ class SideEffects {
   }
 
   bool dependsOnStaticPropertyStore() =>
-      _getFlag(SideEffectsFlag.dependsOnStaticPropertyStore);
+      _getDependsFlag(SideEffectsFlag.staticProperty);
 
   bool setDependsOnStaticPropertyStore() =>
-      _setFlag(SideEffectsFlag.dependsOnStaticPropertyStore);
+      _setDependsFlag(SideEffectsFlag.staticProperty);
 
   bool clearDependsOnStaticPropertyStore() =>
-      _clearFlag(SideEffectsFlag.dependsOnStaticPropertyStore);
+      _clearDependsFlag(SideEffectsFlag.staticProperty);
 
   bool setChangesStaticProperty() =>
-      _setFlag(SideEffectsFlag.changesStaticProperty);
+      _setChangesFlag(SideEffectsFlag.staticProperty);
 
   bool clearChangesStaticProperty() =>
-      _clearFlag(SideEffectsFlag.changesStaticProperty);
+      _clearChangesFlag(SideEffectsFlag.staticProperty);
 
   bool changesStaticProperty() =>
-      _getFlag(SideEffectsFlag.changesStaticProperty);
+      _getChangesFlag(SideEffectsFlag.staticProperty);
 
-  bool dependsOnIndexStore() => _getFlag(SideEffectsFlag.dependsOnIndexStore);
+  bool dependsOnIndexStore() => _getDependsFlag(SideEffectsFlag.index_);
 
-  bool setDependsOnIndexStore() =>
-      _setFlag(SideEffectsFlag.dependsOnIndexStore);
+  bool setDependsOnIndexStore() => _setDependsFlag(SideEffectsFlag.index_);
 
-  bool clearDependsOnIndexStore() =>
-      _clearFlag(SideEffectsFlag.dependsOnIndexStore);
+  bool clearDependsOnIndexStore() => _clearDependsFlag(SideEffectsFlag.index_);
 
-  bool setChangesIndex() => _setFlag(SideEffectsFlag.changesIndex);
+  bool setChangesIndex() => _setChangesFlag(SideEffectsFlag.index_);
 
-  bool clearChangesIndex() => _clearFlag(SideEffectsFlag.changesIndex);
+  bool clearChangesIndex() => _clearChangesFlag(SideEffectsFlag.index_);
 
-  bool changesIndex() => _getFlag(SideEffectsFlag.changesIndex);
+  bool changesIndex() => _getChangesFlag(SideEffectsFlag.index_);
 
   bool dependsOnInstancePropertyStore() =>
-      _getFlag(SideEffectsFlag.dependsOnInstancePropertyStore);
+      _getDependsFlag(SideEffectsFlag.instanceProperty);
 
   bool setDependsOnInstancePropertyStore() =>
-      _setFlag(SideEffectsFlag.dependsOnInstancePropertyStore);
+      _setDependsFlag(SideEffectsFlag.instanceProperty);
 
   bool clearDependsOnInstancePropertyStore() =>
-      _setFlag(SideEffectsFlag.dependsOnInstancePropertyStore);
+      _setDependsFlag(SideEffectsFlag.instanceProperty);
 
   bool setChangesInstanceProperty() =>
-      _setFlag(SideEffectsFlag.changesInstanceProperty);
+      _setChangesFlag(SideEffectsFlag.instanceProperty);
 
   bool clearChangesInstanceProperty() =>
-      _clearFlag(SideEffectsFlag.changesInstanceProperty);
+      _clearChangesFlag(SideEffectsFlag.instanceProperty);
 
   bool changesInstanceProperty() =>
-      _getFlag(SideEffectsFlag.changesInstanceProperty);
+      _getChangesFlag(SideEffectsFlag.instanceProperty);
 
-  static EnumSet<SideEffectsFlag> computeDependsOnFlags(
-          EnumSet<SideEffectsFlag> flags) =>
-      EnumSet.fromRawBits(flags.mask.bits << SideEffectsFlag._changesCount);
+  static Bitset computeDependsOnFlags(Bitset flags) =>
+      Bitset(flags.bits << SideEffectsFlag.values.length);
 
-  bool dependsOn(EnumSet<SideEffectsFlag> dependsFlags) =>
-      _flags.intersects(dependsFlags);
+  bool dependsOn(Bitset dependsFlags) => _flags.intersects(dependsFlags);
 
   bool add(SideEffects other) {
     final before = _flags;

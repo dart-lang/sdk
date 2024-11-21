@@ -5,6 +5,8 @@
 import 'package:meta/meta.dart';
 
 extension type const Bitset(int bits) {
+  const Bitset.empty() : this(0);
+
   @useResult
   Bitset intersection(Bitset other) => Bitset(bits & other.bits);
 
