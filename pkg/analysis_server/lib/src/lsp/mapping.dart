@@ -7,6 +7,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_documentation.dart';
+import 'package:analysis_server/src/computer/computer_signature.dart' as server;
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -525,11 +526,7 @@ lsp.Location? fragmentToLocation(
 
   return lsp.Location(
     uri: uriConverter.toClientUri(sourcePath),
-    range: toRange(
-      libraryFragment.lineInfo,
-      nameOffset,
-      nameLength,
-    ),
+    range: toRange(libraryFragment.lineInfo, nameOffset, nameLength),
   );
 }
 
@@ -1519,7 +1516,7 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
 
 lsp.SignatureHelp toSignatureHelp(
   Set<lsp.MarkupKind>? preferredFormats,
-  server.AnalysisGetSignatureResult signature,
+  server.SignatureInformation signature,
 ) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
@@ -1527,32 +1524,21 @@ lsp.SignatureHelp toSignatureHelp(
 
   /// Gets the label for an individual parameter in the form
   ///     String s = 'foo'
-  String getParamLabel(server.ParameterInfo p) {
-    var def = p.defaultValue != null ? ' = ${p.defaultValue}' : '';
-    var prefix =
-        p.kind == server.ParameterKind.REQUIRED_NAMED ? 'required ' : '';
-    return '$prefix${p.type} ${p.name}$def';
+  String getParamLabel(FormalParameterElement p) {
+    var defaultCodeSuffix =
+        p.defaultValueCode != null ? ' = ${p.defaultValueCode}' : '';
+    var requiredPrefix = p.isRequiredNamed ? 'required ' : '';
+    return '$requiredPrefix${p.type} ${p.displayName}$defaultCodeSuffix';
   }
 
   /// Gets the full signature label in the form
   ///     foo(String s, int i, bool a = true)
-  String getSignatureLabel(server.AnalysisGetSignatureResult resp) {
+  String getSignatureLabel(server.SignatureInformation resp) {
     var positionalRequired =
-        signature.parameters
-            .where((p) => p.kind == server.ParameterKind.REQUIRED_POSITIONAL)
-            .toList();
+        signature.parameters.where((p) => p.isRequiredPositional).toList();
     var positionalOptional =
-        signature.parameters
-            .where((p) => p.kind == server.ParameterKind.OPTIONAL_POSITIONAL)
-            .toList();
-    var named =
-        signature.parameters
-            .where(
-              (p) =>
-                  p.kind == server.ParameterKind.OPTIONAL_NAMED ||
-                  p.kind == server.ParameterKind.REQUIRED_NAMED,
-            )
-            .toList();
+        signature.parameters.where((p) => p.isOptionalPositional).toList();
+    var named = signature.parameters.where((p) => p.isNamed).toList();
     var params = [];
     if (positionalRequired.isNotEmpty) {
       params.add(positionalRequired.map(getParamLabel).join(', '));
@@ -1566,7 +1552,7 @@ lsp.SignatureHelp toSignatureHelp(
     return '${resp.name}(${params.join(", ")})';
   }
 
-  lsp.ParameterInformation toParameterInfo(server.ParameterInfo param) {
+  lsp.ParameterInformation toParameterInfo(FormalParameterElement param) {
     // LSP 3.14.0 supports providing label offsets (to avoid clients having
     // to guess based on substrings). We should check the
     // signatureHelp.signatureInformation.parameterInformation.labelOffsetSupport
@@ -1588,15 +1574,15 @@ lsp.SignatureHelp toSignatureHelp(
       ),
     ],
     activeSignature: 0, // activeSignature
-    // TODO(dantup): The LSP spec says this value will default to 0 if it's
-    // not supplied or outside of the value range. However, setting -1 results
-    // in no parameters being selected in VS Code, whereas null/0 will select the first.
-    // We'd like for none to be selected (since we don't support this yet) so
-    // we send -1. I've made a request for LSP to support not selecting a parameter
-    // (because you could also be on param 5 of an invalid call to a function
-    // taking only 3 arguments) here:
-    // https://github.com/Microsoft/language-server-protocol/issues/456#issuecomment-452318297
-    activeParameter: -1, // activeParameter
+    // We must provide a unsigned integer here but it's possible there isn't
+    // a valid value (because the user might be in the 10th argument of an
+    // invocation that only takes 1). The LSP spec allows us to send an
+    // out-of-bounds value so send the first out-of-bound value (`.length`). The
+    // spec says this may be treated as 0, however VS Code will not highlight
+    // any parameter in this case (which is preferred and hopefully other
+    // clients may copy).
+    activeParameter:
+        signature.activeParameterIndex ?? signature.parameters.length,
   );
 }
 

@@ -53,7 +53,7 @@ class CiderSignatureHelpComputer {
       if (signature != null) {
         return SignatureHelpResponse(
           toSignatureHelp(formats, signature),
-          lineInfo.getLocation(computer.argumentList.offset + 1),
+          lineInfo.getLocation(signature.argumentList.offset + 1),
         );
       }
     }
