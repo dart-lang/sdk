@@ -1976,8 +1976,8 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
       final fromTypedData = unsafeCast<JSIntegerArrayBase>(from);
 
       final fromElementSize = fromTypedData.elementSizeInBytes;
-      if (fromElementSize == 1 && this is _WasmI8ArrayBase) {
-        final destTypedData = unsafeCast<_WasmI8ArrayBase>(this);
+      if (fromElementSize == 1 && this is WasmI8ArrayBase) {
+        final destTypedData = unsafeCast<WasmI8ArrayBase>(this);
         copyToWasmI8Array(
           fromTypedData.toJSArrayExternRef()!,
           skipCount,
@@ -2565,16 +2565,16 @@ mixin _UnmodifiableDoubleListMixin {
 // Fast lists
 //
 
-abstract class _WasmI8ArrayBase extends WasmTypedDataBase {
+abstract class WasmI8ArrayBase extends WasmTypedDataBase {
   final WasmArray<WasmI8> _data;
   final int _offsetInElements;
   final int length;
 
-  _WasmI8ArrayBase(this.length)
+  WasmI8ArrayBase(this.length)
     : _data = WasmArray(_newArrayLengthCheck(length)),
       _offsetInElements = 0;
 
-  _WasmI8ArrayBase._(this._data, this._offsetInElements, this.length);
+  WasmI8ArrayBase._(this._data, this._offsetInElements, this.length);
 
   int get elementSizeInBytes => 1;
 
@@ -2679,7 +2679,7 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
   _F64ByteBuffer get buffer => _F64ByteBuffer(_data);
 }
 
-extension WasmI8ArrayBaseExt on _WasmI8ArrayBase {
+extension WasmI8ArrayBaseExt on WasmI8ArrayBase {
   @pragma('wasm:prefer-inline')
   WasmArray<WasmI8> get data => _data;
 
@@ -2719,7 +2719,7 @@ extension WasmF64ArrayBaseExt on _WasmF64ArrayBase {
   int get offsetInElements => _offsetInElements;
 }
 
-class I8List extends _WasmI8ArrayBase
+class I8List extends WasmI8ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<I8List>,
@@ -2761,7 +2761,7 @@ class I8List extends _WasmI8ArrayBase
   }
 }
 
-class U8List extends _WasmI8ArrayBase
+class U8List extends WasmI8ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<U8List>,
@@ -2769,7 +2769,7 @@ class U8List extends _WasmI8ArrayBase
     implements Uint8List {
   U8List(int length) : super(length);
 
-  U8List._(WasmArray<WasmI8> data, int offsetInElements, int length)
+  U8List.withData(WasmArray<WasmI8> data, int offsetInElements, int length)
     : super._(data, offsetInElements, length);
 
   factory U8List._withMutability(
@@ -2779,7 +2779,7 @@ class U8List extends _WasmI8ArrayBase
     bool mutable,
   ) =>
       mutable
-          ? U8List._(buffer, offsetInBytes, length)
+          ? U8List.withData(buffer, offsetInBytes, length)
           : UnmodifiableU8List._(buffer, offsetInBytes, length);
 
   @override
@@ -2792,18 +2792,28 @@ class U8List extends _WasmI8ArrayBase
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     indexCheck(index, length);
-    return _data.readUnsigned(_offsetInElements + index);
+    return getUnchecked(index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
     indexCheck(index, length);
+    setUnchecked(index, value);
+  }
+}
+
+extension U8ListUncheckedOperations on U8List {
+  @pragma("wasm:prefer-inline")
+  int getUnchecked(int index) => _data.readUnsigned(_offsetInElements + index);
+
+  @pragma("wasm:prefer-inline")
+  void setUnchecked(int index, int value) {
     _data.write(_offsetInElements + index, value);
   }
 }
 
-class U8ClampedList extends _WasmI8ArrayBase
+class U8ClampedList extends WasmI8ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<U8ClampedList>,
@@ -3200,10 +3210,10 @@ class UnmodifiableI8List extends I8List with _UnmodifiableIntListMixin {
 
 class UnmodifiableU8List extends U8List with _UnmodifiableIntListMixin {
   UnmodifiableU8List(U8List list)
-    : super._(list._data, list._offsetInElements, list.length);
+    : super.withData(list._data, list._offsetInElements, list.length);
 
   UnmodifiableU8List._(WasmArray<WasmI8> data, int offsetInElements, int length)
-    : super._(data, offsetInElements, length);
+    : super.withData(data, offsetInElements, length);
 
   @override
   @pragma('wasm:prefer-inline')
