@@ -64,6 +64,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super(coreTypes, hierarchy);
 
+  // Coverage-ignore(suite): Not run.
   InterfaceType functionRawType(Nullability nullability) {
     return coreTypes.functionRawType(nullability);
   }
@@ -370,9 +371,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
         returnContextType = new NullabilityAwareFreeTypeParameterEliminator(
-                bottomType: const NeverType.nonNullable(),
-                topType: objectNullableRawType,
-                topFunctionType: functionRawType(Nullability.nonNullable))
+                coreTypes: coreTypes)
             .eliminateToLeast(returnContextType!);
       }
       gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!,

@@ -737,8 +737,8 @@ class BodyBuilder extends StackListenerImpl
           for (Statement statement in declaration.users) {
             statement.parent!.replaceChild(
                 statement,
-                wrapInProblemStatement(statement,
-                    cfe.templateLabelNotFound.withArguments(name)));
+                wrapInProblemStatement(
+                    statement, cfe.templateLabelNotFound.withArguments(name)));
           }
         } else {
           outerSwitchScope.forwardDeclareLabel(name, declaration);
@@ -2790,10 +2790,8 @@ class BodyBuilder extends StackListenerImpl
       Name name = new Name(operator);
       if (!isBinaryOperator(operator) && !isMinusOperator(operator)) {
         if (isUserDefinableOperator(operator)) {
-          push(buildProblem(
-              cfe.templateNotBinaryOperator.withArguments(token),
-              token.charOffset,
-              token.length));
+          push(buildProblem(cfe.templateNotBinaryOperator.withArguments(token),
+              token.charOffset, token.length));
         } else {
           push(buildProblem(cfe.templateInvalidOperator.withArguments(token),
               token.charOffset, token.length));
@@ -3129,8 +3127,8 @@ class BodyBuilder extends StackListenerImpl
           constantContext != ConstantContext.none &&
           !context.allowedInConstantExpression) {
         // Coverage-ignore-block(suite): Not run.
-        addProblem(cfe.messageNotAConstantExpression, token.charOffset,
-            token.length);
+        addProblem(
+            cfe.messageNotAConstantExpression, token.charOffset, token.length);
       }
       if (token.isSynthetic) {
         push(new ParserRecovery(offsetForToken(token)));
@@ -3398,8 +3396,8 @@ class BodyBuilder extends StackListenerImpl
         if (!(readTarget is Field && readTarget.isConst ||
             // Static tear-offs are also compile time constants.
             readTarget is Procedure)) {
-          addProblem(cfe.messageNotAConstantExpression, nameOffset,
-              nameToken.length);
+          addProblem(
+              cfe.messageNotAConstantExpression, nameOffset, nameToken.length);
         }
       }
       return generator;
@@ -4713,8 +4711,8 @@ class BodyBuilder extends StackListenerImpl
     ]));
 
     if (constantContext == ConstantContext.required && constKeyword == null) {
-      addProblem(cfe.messageMissingExplicitConst, offsetForToken(leftBrace),
-          noLength);
+      addProblem(
+          cfe.messageMissingExplicitConst, offsetForToken(leftBrace), noLength);
     }
 
     List<dynamic> setOrMapEntries =
@@ -6405,16 +6403,16 @@ class BodyBuilder extends StackListenerImpl
     ConstantContext savedConstantContext = pop() as ConstantContext;
 
     if (arguments is! Arguments) {
-      push(new ParserErrorGenerator(
-          this, nameToken, cfe.messageSyntheticToken));
+      push(
+          new ParserErrorGenerator(this, nameToken, cfe.messageSyntheticToken));
       arguments = forest.createArguments(offset, []);
     } else if (type is Generator) {
       push(type.invokeConstructor(
           typeArguments, name, arguments, nameToken, nameLastToken, constness,
           inImplicitCreationContext: inImplicitCreationContext));
     } else if (type is ParserRecovery) {
-      push(new ParserErrorGenerator(
-          this, nameToken, cfe.messageSyntheticToken));
+      push(
+          new ParserErrorGenerator(this, nameToken, cfe.messageSyntheticToken));
     } else if (type is InvalidExpression) {
       push(type);
     } else if (type is Expression) {
@@ -6511,13 +6509,13 @@ class BodyBuilder extends StackListenerImpl
       required UnresolvedKind unresolvedKind}) {
     if (arguments == null) {
       // Coverage-ignore-block(suite): Not run.
-      return buildProblem(cfe.messageMissingArgumentList,
-          nameToken.charOffset, nameToken.length);
+      return buildProblem(cfe.messageMissingArgumentList, nameToken.charOffset,
+          nameToken.length);
     }
     if (name.isNotEmpty && arguments.types.isNotEmpty) {
       // TODO(ahe): Point to the type arguments instead.
-      addProblem(cfe.messageConstructorWithTypeArguments,
-          nameToken.charOffset, nameToken.length);
+      addProblem(cfe.messageConstructorWithTypeArguments, nameToken.charOffset,
+          nameToken.length);
     }
 
     String? errorName;
@@ -7101,8 +7099,8 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             offsetForToken(ifToken);
         node = new MapLiteralEntry(
-            buildProblem(cfe.templateExpectedAfterButGot.withArguments(':'),
-                offset, 1),
+            buildProblem(
+                cfe.templateExpectedAfterButGot.withArguments(':'), offset, 1),
             new NullLiteral())
           ..fileOffset = offsetForToken(ifToken);
       }
@@ -7138,8 +7136,8 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             offsetForToken(ifToken);
         node = new MapLiteralEntry(
-            buildProblem(cfe.templateExpectedAfterButGot.withArguments(':'),
-                offset, 1),
+            buildProblem(
+                cfe.templateExpectedAfterButGot.withArguments(':'), offset, 1),
             new NullLiteral())
           ..fileOffset = offsetForToken(ifToken);
       }
@@ -9355,10 +9353,8 @@ class BodyBuilder extends StackListenerImpl
               typeParameter.declaration is ExtensionTypeDeclaration) {
             if (constantContext != ConstantContext.none &&
                 (!inConstructorInitializer || !allowPotentiallyConstantType)) {
-              LocatedMessage message =
-                  cfe.messageTypeVariableInConstantContext.withLocation(
-                      builder.fileUri!,
-                      builder.charOffset!,
+              LocatedMessage message = cfe.messageTypeVariableInConstantContext
+                  .withLocation(builder.fileUri!, builder.charOffset!,
                       typeParameter.name!.length);
               builder.bind(
                   libraryBuilder,
@@ -9450,8 +9446,7 @@ class BodyBuilder extends StackListenerImpl
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
-          cfe.templateNotConstantExpression
-              .withArguments('Method invocation'),
+          cfe.templateNotConstantExpression.withArguments('Method invocation'),
           offset,
           name.text.length);
     }
@@ -9480,8 +9475,7 @@ class BodyBuilder extends StackListenerImpl
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
-          cfe.templateNotConstantExpression
-              .withArguments('Method invocation'),
+          cfe.templateNotConstantExpression.withArguments('Method invocation'),
           offset,
           name.text.length);
     }
@@ -9904,8 +9898,7 @@ class BodyBuilder extends StackListenerImpl
     if (colon != null) {
       Object? identifier = pop();
       if (identifier is ParserRecovery) {
-        push(
-            new ParserErrorGenerator(this, colon, cfe.messageSyntheticToken));
+        push(new ParserErrorGenerator(this, colon, cfe.messageSyntheticToken));
       } else {
         String? name;
         if (identifier is Identifier) {
