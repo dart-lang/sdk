@@ -286,12 +286,12 @@ void f() {
 ''', matchFixMessage: "Hide others to use 'foo' from 'lib1.dart'");
   }
 
-  @FailingTest(reason: 'No error produced')
   Future<void> test_multiLevelParts() async {
     // Create a tree of files that all import 'dart:math' and ensure we find
     // only the import from the parent (not a grandparent, sibling, or child).
     //
-    // - lib                       declares Random
+    // - lib1                      declares A
+    // - lib2                      declares A
     //
     // - root                      has import
     //     - level1_other          has import
@@ -300,56 +300,60 @@ void f() {
     //         - test              has reference <-- testing this
     //             - level3_other  has import
 
-    newFile('$testPackageLibPath/lib.dart', '''
-class Random {}
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/lib2.dart', '''
+class A {}
 ''');
 
     newFile('$testPackageLibPath/root.dart', '''
-import 'dart:math';
+import 'lib1.dart';
 part 'level1_other.dart';
 part 'level1.dart';
 ''');
 
     newFile('$testPackageLibPath/level1_other.dart', '''
 part of 'root.dart';
-import 'dart:math';
+import 'lib1.dart';
 ''');
 
     newFile('$testPackageLibPath/level1.dart', '''
 part of 'root.dart';
-import 'dart:math';
-import 'lib.dart';
+import 'lib1.dart';
+import 'lib2.dart';
 part 'level2_other.dart';
 part 'test.dart';
 ''');
 
     newFile('$testPackageLibPath/level2_other.dart', '''
 part of 'level1.dart';
-import 'dart:math';
+import 'lib1.dart';
 ''');
 
     newFile('$testPackageLibPath/level3_other.dart', '''
 part of 'test.dart';
-import 'dart:math';
+import 'lib1.dart';
 ''');
 
     await resolveTestCode('''
 part of 'level1.dart';
 part 'level3_other.dart';
 
-Random? r;
+A? a;
 ''');
 
     await assertHasFix(
       '''
 part of 'root.dart';
-import 'dart:math' hide Random;
-import 'lib.dart';
+import 'lib1.dart' hide A;
+import 'lib2.dart';
 part 'level2_other.dart';
 part 'test.dart';
 ''',
       target: '$testPackageLibPath/level1.dart',
-      matchFixMessage: "Hide others to use 'Random' from 'lib.dart'",
+      matchFixMessage: "Hide others to use 'A' from 'lib2.dart'",
     );
   }
 
