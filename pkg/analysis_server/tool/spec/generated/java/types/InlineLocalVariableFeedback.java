@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class InlineLocalVariableFeedback extends RefactoringFeedback {
 
-  public static final InlineLocalVariableFeedback[] EMPTY_ARRAY = new InlineLocalVariableFeedback[0];
-
   public static final List<InlineLocalVariableFeedback> EMPTY_LIST = List.of();
 
   /**

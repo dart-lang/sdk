@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class RenameFeedback extends RefactoringFeedback {
 
-  public static final RenameFeedback[] EMPTY_ARRAY = new RenameFeedback[0];
-
   public static final List<RenameFeedback> EMPTY_LIST = List.of();
 
   /**

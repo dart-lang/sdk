@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class InlineMethodFeedback extends RefactoringFeedback {
 
-  public static final InlineMethodFeedback[] EMPTY_ARRAY = new InlineMethodFeedback[0];
-
   public static final List<InlineMethodFeedback> EMPTY_LIST = List.of();
 
   /**

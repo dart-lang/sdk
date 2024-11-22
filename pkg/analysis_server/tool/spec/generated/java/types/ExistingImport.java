@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ExistingImport {
 
-  public static final ExistingImport[] EMPTY_ARRAY = new ExistingImport[0];
-
   public static final List<ExistingImport> EMPTY_LIST = List.of();
 
   /**

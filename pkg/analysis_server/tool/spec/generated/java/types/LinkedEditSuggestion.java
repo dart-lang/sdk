@@ -29,8 +29,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class LinkedEditSuggestion {
 
-  public static final LinkedEditSuggestion[] EMPTY_ARRAY = new LinkedEditSuggestion[0];
-
   public static final List<LinkedEditSuggestion> EMPTY_LIST = List.of();
 
   /**

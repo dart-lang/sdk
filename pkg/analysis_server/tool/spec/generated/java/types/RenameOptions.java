@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class RenameOptions extends RefactoringOptions {
 
-  public static final RenameOptions[] EMPTY_ARRAY = new RenameOptions[0];
-
   public static final List<RenameOptions> EMPTY_LIST = List.of();
 
   /**

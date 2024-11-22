@@ -32,8 +32,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class AddContentOverlay {
 
-  public static final AddContentOverlay[] EMPTY_ARRAY = new AddContentOverlay[0];
-
   public static final List<AddContentOverlay> EMPTY_LIST = List.of();
 
   private final String type;

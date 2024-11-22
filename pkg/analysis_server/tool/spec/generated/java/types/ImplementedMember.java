@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ImplementedMember {
 
-  public static final ImplementedMember[] EMPTY_ARRAY = new ImplementedMember[0];
-
   public static final List<ImplementedMember> EMPTY_LIST = List.of();
 
   /**

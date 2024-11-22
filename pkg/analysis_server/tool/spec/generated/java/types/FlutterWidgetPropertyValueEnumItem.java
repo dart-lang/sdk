@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class FlutterWidgetPropertyValueEnumItem {
 
-  public static final FlutterWidgetPropertyValueEnumItem[] EMPTY_ARRAY = new FlutterWidgetPropertyValueEnumItem[0];
-
   public static final List<FlutterWidgetPropertyValueEnumItem> EMPTY_LIST = List.of();
 
   /**

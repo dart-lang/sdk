@@ -29,8 +29,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class MessageAction {
 
-  public static final MessageAction[] EMPTY_ARRAY = new MessageAction[0];
-
   public static final List<MessageAction> EMPTY_LIST = List.of();
 
   /**

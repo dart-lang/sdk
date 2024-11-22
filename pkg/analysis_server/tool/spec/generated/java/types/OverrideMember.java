@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class OverrideMember {
 
-  public static final OverrideMember[] EMPTY_ARRAY = new OverrideMember[0];
-
   public static final List<OverrideMember> EMPTY_LIST = List.of();
 
   /**

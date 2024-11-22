@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class HoverInformation {
 
-  public static final HoverInformation[] EMPTY_ARRAY = new HoverInformation[0];
-
   public static final List<HoverInformation> EMPTY_LIST = List.of();
 
   /**

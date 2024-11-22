@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class MoveFileOptions extends RefactoringOptions {
 
-  public static final MoveFileOptions[] EMPTY_ARRAY = new MoveFileOptions[0];
-
   public static final List<MoveFileOptions> EMPTY_LIST = List.of();
 
   /**

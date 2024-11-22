@@ -311,14 +311,6 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // fields
       //
-      //
-      // public static final "EMPTY_ARRAY" field
-      //
-      publicField(javaName('EMPTY_ARRAY'), () {
-        writeln(
-          'public static final $className[] EMPTY_ARRAY = new $className[0];',
-        );
-      });
 
       //
       // public static final "EMPTY_LIST" field

@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class Location {
 
-  public static final Location[] EMPTY_ARRAY = new Location[0];
-
   public static final List<Location> EMPTY_LIST = List.of();
 
   /**

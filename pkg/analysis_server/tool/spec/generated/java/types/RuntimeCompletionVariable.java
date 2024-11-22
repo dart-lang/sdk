@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class RuntimeCompletionVariable {
 
-  public static final RuntimeCompletionVariable[] EMPTY_ARRAY = new RuntimeCompletionVariable[0];
-
   public static final List<RuntimeCompletionVariable> EMPTY_LIST = List.of();
 
   /**

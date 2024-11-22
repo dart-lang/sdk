@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class SourceFileEdit {
 
-  public static final SourceFileEdit[] EMPTY_ARRAY = new SourceFileEdit[0];
-
   public static final List<SourceFileEdit> EMPTY_LIST = List.of();
 
   /**

@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ParameterInfo {
 
-  public static final ParameterInfo[] EMPTY_ARRAY = new ParameterInfo[0];
-
   public static final List<ParameterInfo> EMPTY_LIST = List.of();
 
   /**

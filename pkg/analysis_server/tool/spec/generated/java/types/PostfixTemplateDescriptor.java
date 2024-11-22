@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class PostfixTemplateDescriptor {
 
-  public static final PostfixTemplateDescriptor[] EMPTY_ARRAY = new PostfixTemplateDescriptor[0];
-
   public static final List<PostfixTemplateDescriptor> EMPTY_LIST = List.of();
 
   /**

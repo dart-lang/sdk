@@ -38,8 +38,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ChangeContentOverlay {
 
-  public static final ChangeContentOverlay[] EMPTY_ARRAY = new ChangeContentOverlay[0];
-
   public static final List<ChangeContentOverlay> EMPTY_LIST = List.of();
 
   private final String type;

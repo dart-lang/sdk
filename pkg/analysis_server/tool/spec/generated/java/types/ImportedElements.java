@@ -29,8 +29,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ImportedElements {
 
-  public static final ImportedElements[] EMPTY_ARRAY = new ImportedElements[0];
-
   public static final List<ImportedElements> EMPTY_LIST = List.of();
 
   /**

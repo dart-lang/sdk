@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class SourceChange {
 
-  public static final SourceChange[] EMPTY_ARRAY = new SourceChange[0];
-
   public static final List<SourceChange> EMPTY_LIST = List.of();
 
   /**

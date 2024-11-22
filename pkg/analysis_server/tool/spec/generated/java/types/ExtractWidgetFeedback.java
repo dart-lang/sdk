@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ExtractWidgetFeedback extends RefactoringFeedback {
 
-  public static final ExtractWidgetFeedback[] EMPTY_ARRAY = new ExtractWidgetFeedback[0];
-
   public static final List<ExtractWidgetFeedback> EMPTY_LIST = List.of();
 
   /**

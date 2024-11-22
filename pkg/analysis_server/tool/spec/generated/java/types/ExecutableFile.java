@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ExecutableFile {
 
-  public static final ExecutableFile[] EMPTY_ARRAY = new ExecutableFile[0];
-
   public static final List<ExecutableFile> EMPTY_LIST = List.of();
 
   /**

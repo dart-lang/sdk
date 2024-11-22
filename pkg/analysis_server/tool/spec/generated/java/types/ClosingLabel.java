@@ -31,8 +31,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ClosingLabel {
 
-  public static final ClosingLabel[] EMPTY_ARRAY = new ClosingLabel[0];
-
   public static final List<ClosingLabel> EMPTY_LIST = List.of();
 
   /**

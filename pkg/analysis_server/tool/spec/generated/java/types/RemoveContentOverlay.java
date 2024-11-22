@@ -32,8 +32,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class RemoveContentOverlay {
 
-  public static final RemoveContentOverlay[] EMPTY_ARRAY = new RemoveContentOverlay[0];
-
   public static final List<RemoveContentOverlay> EMPTY_LIST = List.of();
 
   private final String type;

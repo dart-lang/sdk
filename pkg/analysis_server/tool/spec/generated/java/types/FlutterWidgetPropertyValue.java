@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class FlutterWidgetPropertyValue {
 
-  public static final FlutterWidgetPropertyValue[] EMPTY_ARRAY = new FlutterWidgetPropertyValue[0];
-
   public static final List<FlutterWidgetPropertyValue> EMPTY_LIST = List.of();
 
   private final Boolean boolValue;

@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class PubStatus {
 
-  public static final PubStatus[] EMPTY_ARRAY = new PubStatus[0];
-
   public static final List<PubStatus> EMPTY_LIST = List.of();
 
   /**

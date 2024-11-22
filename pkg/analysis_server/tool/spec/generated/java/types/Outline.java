@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class Outline {
 
-  public static final Outline[] EMPTY_ARRAY = new Outline[0];
-
   public static final List<Outline> EMPTY_LIST = List.of();
 
   /**

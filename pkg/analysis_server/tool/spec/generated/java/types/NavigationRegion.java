@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class NavigationRegion {
 
-  public static final NavigationRegion[] EMPTY_ARRAY = new NavigationRegion[0];
-
   public static final List<NavigationRegion> EMPTY_LIST = List.of();
 
   /**

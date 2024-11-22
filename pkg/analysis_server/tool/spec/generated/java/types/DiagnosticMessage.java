@@ -31,8 +31,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class DiagnosticMessage {
 
-  public static final DiagnosticMessage[] EMPTY_ARRAY = new DiagnosticMessage[0];
-
   public static final List<DiagnosticMessage> EMPTY_LIST = List.of();
 
   /**

@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ExtractWidgetOptions extends RefactoringOptions {
 
-  public static final ExtractWidgetOptions[] EMPTY_ARRAY = new ExtractWidgetOptions[0];
-
   public static final List<ExtractWidgetOptions> EMPTY_LIST = List.of();
 
   /**
