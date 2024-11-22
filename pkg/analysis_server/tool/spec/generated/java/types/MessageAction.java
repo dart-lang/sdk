@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An action associated with a message that the server is requesting the client to display to the
@@ -49,8 +48,7 @@ public class MessageAction {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof MessageAction) {
-      MessageAction other = (MessageAction) obj;
+    if (obj instanceof MessageAction other) {
       return
         Objects.equals(other.label, label);
     }

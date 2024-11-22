@@ -148,12 +148,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
       return 'getAsInt';
     } else if (name == 'long' || name == 'Long') {
       return 'getAsLong';
-    } else if (name.startsWith('List')) {
-      return 'getAsJsonArray';
-    } else {
-      // TODO(jwren): cleanup
+    } else if (name.startsWith('List') || name.endsWith('[]')) {
       return 'getAsJsonArray';
     }
+
+    throw StateError('Unexpected type for _getAsTypeMethodName: $name');
   }
 
   String _getEqualsLogicForField(TypeObjectField field, String other) {
@@ -171,11 +170,21 @@ class CodegenJavaType extends CodegenJavaVisitor {
   /// for the toString generation.
   String _getToStringForField(TypeObjectField field) {
     var name = javaName(field.name);
-    if (isArray(field.type) || isList(field.type)) {
-      return 'StringUtils.join($name, ", ")';
-    } else {
-      return name;
+    if (isArray(field.type)) {
+      var combined =
+          'Arrays.stream($name)'
+          '.mapToObj(String::valueOf)'
+          '.collect(Collectors.joining(", "))';
+      return field.optional ? '$name == null ? "null" : $combined' : combined;
+    } else if (isList(field.type)) {
+      var combined =
+          '$name.stream()'
+          '.map(String::valueOf)'
+          '.collect(Collectors.joining(", "))';
+      return field.optional ? '$name == null ? "null" : $combined' : combined;
     }
+
+    return name;
   }
 
   bool _isTypeFieldInUpdateContentUnionType(
@@ -279,13 +288,12 @@ class CodegenJavaType extends CodegenJavaVisitor {
     writeln('import java.util.List;');
     writeln('import java.util.Map;');
     writeln('import java.util.Objects;');
-    writeln('import com.google.common.collect.Lists;');
+    writeln('import java.util.stream.Collectors;');
     writeln('import com.google.dart.server.utilities.general.JsonUtilities;');
     writeln('import com.google.gson.JsonArray;');
     writeln('import com.google.gson.JsonElement;');
     writeln('import com.google.gson.JsonObject;');
     writeln('import com.google.gson.JsonPrimitive;');
-    writeln('import org.apache.commons.lang3.StringUtils;');
     writeln();
     javadocComment(
       toHtmlVisitor.collectHtml(() {
@@ -564,8 +572,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
   // compute children recursively
   List<Outline> childrenList = new ArrayList<>();
   JsonElement childrenJsonArray = outlineObject.get("children");
-  if (childrenJsonArray instanceof JsonArray) {
-    for (JsonElement jsonElement : (JsonArray) childrenJsonArray) {
+  if (childrenJsonArray instanceof JsonArray jsonChildren) {
+    for (JsonElement jsonElement : jsonChildren) {
       JsonObject childObject = jsonElement.getAsJsonObject();
       childrenList.add(fromJson(outline, childObject));
     }
@@ -618,6 +626,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //        }
       if (className != 'Outline') {
         publicMethod('toJson', () {
+          if (superclassName != null) {
+            writeln('@Override');
+          }
           writeln('public JsonObject toJson() {');
           indent(() {
             writeln('JsonObject jsonObject = new JsonObject();');
@@ -647,9 +658,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
         writeln('@Override');
         writeln('public boolean equals(Object obj) {');
         indent(() {
-          writeln('if (obj instanceof $className) {');
+          writeln('if (obj instanceof $className other) {');
           indent(() {
-            writeln('$className other = ($className) obj;');
             writeln('return');
             indent(() {
               var equalsForField = <String>[];
@@ -715,8 +725,14 @@ class CodegenJavaType extends CodegenJavaVisitor {
             writeln();
           }
           for (var i = 0; i < fields.length; i++) {
+            var field = fields[i];
             indent(() {
-              write(javaName(fields[i].name));
+              var fieldName = javaName(field.name);
+              if (isArray(field.type)) {
+                write('Arrays.hashCode($fieldName)');
+              } else {
+                write(fieldName);
+              }
               if (i + 1 != fields.length) {
                 write(', ');
               }
@@ -739,12 +755,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('builder.append("[");');
           for (var i = 0; i < fields.length; i++) {
             writeln('builder.append("${javaName(fields[i].name)}=");');
-            write('builder.append(${_getToStringForField(fields[i])}');
+            writeln('builder.append(${_getToStringForField(fields[i])});');
             if (i + 1 != fields.length) {
-              // this is not the last field
-              write(' + ", "');
+              // This is not the last field, so append a comma.
+              writeln('builder.append(", ");');
             }
-            writeln(');');
           }
           writeln('builder.append("]");');
           writeln('return builder.toString();');

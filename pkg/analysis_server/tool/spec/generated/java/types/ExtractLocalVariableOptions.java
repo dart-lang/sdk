@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -53,8 +52,7 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ExtractLocalVariableOptions) {
-      ExtractLocalVariableOptions other = (ExtractLocalVariableOptions) obj;
+    if (obj instanceof ExtractLocalVariableOptions other) {
       return
         Objects.equals(other.name, name) &&
         other.extractAll == extractAll;
@@ -119,6 +117,7 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
     this.name = name;
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("name", name);
@@ -131,7 +130,8 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("extractAll=");
     builder.append(extractAll);
     builder.append("]");

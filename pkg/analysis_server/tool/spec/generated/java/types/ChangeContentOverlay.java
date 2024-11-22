@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A directive to modify an existing file content overlay. One or more ranges of text are deleted
@@ -60,8 +59,7 @@ public class ChangeContentOverlay {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ChangeContentOverlay) {
-      ChangeContentOverlay other = (ChangeContentOverlay) obj;
+    if (obj instanceof ChangeContentOverlay other) {
       return
         Objects.equals(other.type, type) &&
         Objects.equals(other.edits, edits);
@@ -121,9 +119,10 @@ public class ChangeContentOverlay {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type + ", ");
+    builder.append(type);
+    builder.append(", ");
     builder.append("edits=");
-    builder.append(StringUtils.join(edits, ", "));
+    builder.append(edits.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

@@ -353,7 +353,7 @@ abstract class CompilerInterface {
       bool isStatic);
 
   /// Compiles [expression] in library [libraryUri] and file [scriptUri]
-  /// at [line]:[column] to JavaScript.
+  /// at [line]:[column] to JavaScript in [moduleName].
   ///
   /// [libraryUri] and [scriptUri] can be the same, but if for instance
   /// evaluating expressions in a part file the [libraryUri] will be the uri of
@@ -368,6 +368,7 @@ abstract class CompilerInterface {
   /// expression.
   ///
   /// Example values of parameters:
+  /// [moduleName] is of the form '/packages/hello_world_main.dart'
   /// [jsFrameValues] is a map from js variable name to its primitive value
   /// or another variable name, for example
   /// { 'x': '1', 'y': 'y', 'o': 'null' }
@@ -382,6 +383,7 @@ abstract class CompilerInterface {
       int column,
       Map<String, String> jsModules,
       Map<String, String> jsFrameValues,
+      String moduleName,
       String expression);
 
   /// Communicates an error [msg] to the client.
@@ -1105,10 +1107,10 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
-  /// Mapping of libraries to their program compiler.
+  /// Program compilers per module.
   ///
-  /// Produced during initial compilation of the component to JavaScript, cached
-  /// to be used for expression compilation in [compileExpressionToJs].
+  /// Produced during initial compilation of the module to JavaScript,
+  /// cached to be used for expression compilation in [compileExpressionToJs].
   final Map<String, Compiler> cachedProgramCompilers = {};
 
   @override
@@ -1119,6 +1121,7 @@ class FrontendCompiler implements CompilerInterface {
       int column,
       Map<String, String> jsModules,
       Map<String, String> jsFrameValues,
+      String moduleName,
       String expression) async {
     _generator.accept();
     errors.clear();
@@ -1127,17 +1130,18 @@ class FrontendCompiler implements CompilerInterface {
       reportError('JavaScript bundler is null');
       return;
     }
-    if (!cachedProgramCompilers.containsKey(libraryUri)) {
-      reportError('Cannot find kernel2js compiler for $libraryUri.');
+    if (!cachedProgramCompilers.containsKey(moduleName)) {
+      reportError('Cannot find kernel2js compiler for $moduleName.');
       return;
     }
+
     final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
 
     _processedOptions.ticker
-        .logMs('Compiling expression to JavaScript in $libraryUri');
+        .logMs('Compiling expression to JavaScript in $moduleName');
 
-    final Compiler kernel2jsCompiler = cachedProgramCompilers[libraryUri]!;
+    final Compiler kernel2jsCompiler = cachedProgramCompilers[moduleName]!;
     IncrementalCompilerResult compilerResult = _generator.lastKnownGoodResult!;
     Component component = compilerResult.component;
     component.computeCanonicalNames();
@@ -1366,6 +1370,7 @@ class _CompileExpressionToJsRequest {
   late int column;
   Map<String, String> jsModules = <String, String>{};
   Map<String, String> jsFrameValues = <String, String>{};
+  late String moduleName;
   late String expression;
 }
 
@@ -1589,9 +1594,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         }
         break;
       case _State.COMPILE_EXPRESSION_TO_JS_MODULENAME:
-        // TODO(https://github.com/dart-lang/sdk/issues/58265): `moduleName` is
-        // soft-deprecated, so we still need to consume the string value, but it
-        // is unused.
+        compileExpressionToJsRequest.moduleName = string;
         state = _State.COMPILE_EXPRESSION_TO_JS_EXPRESSION;
         break;
       case _State.COMPILE_EXPRESSION_TO_JS_EXPRESSION:
@@ -1603,6 +1606,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
             compileExpressionToJsRequest.column,
             compileExpressionToJsRequest.jsModules,
             compileExpressionToJsRequest.jsFrameValues,
+            compileExpressionToJsRequest.moduleName,
             compileExpressionToJsRequest.expression);
         state = _State.READY_FOR_INSTRUCTION;
         break;
@@ -1740,14 +1744,12 @@ Future<void> processJsonInput(
     int column = getValue<int>("column") ?? -1;
     Map<String, String> jsModules = getMap("jsModules") ?? {};
     Map<String, String> jsFrameValues = getMap("jsFrameValues") ?? {};
+    String moduleName = getValue<String>("moduleName") ?? "";
 
     if (errorMessages.isNotEmpty) {
       compiler.reportError("Errors: $errorMessages.");
       return;
     }
-    // TODO(https://github.com/dart-lang/sdk/issues/58265): `moduleName` is
-    // soft-deprecated, and therefore is unused.
-    unusedKeys.remove("moduleName");
     if (unusedKeys.isNotEmpty) {
       compiler.reportError("Errors: Send over unused data: $unusedKeys.");
     }
@@ -1759,6 +1761,7 @@ Future<void> processJsonInput(
       column,
       jsModules,
       jsFrameValues,
+      moduleName,
       expression,
     );
   } else {

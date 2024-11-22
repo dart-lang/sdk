@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a set of edits that implement a single conceptual change.
@@ -82,8 +81,7 @@ public class SourceChange {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof SourceChange) {
-      SourceChange other = (SourceChange) obj;
+    if (obj instanceof SourceChange other) {
       return
         Objects.equals(other.message, message) &&
         Objects.equals(other.edits, edits) &&
@@ -205,15 +203,20 @@ public class SourceChange {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("message=");
-    builder.append(message + ", ");
+    builder.append(message);
+    builder.append(", ");
     builder.append("edits=");
-    builder.append(StringUtils.join(edits, ", ") + ", ");
+    builder.append(edits.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("linkedEditGroups=");
-    builder.append(StringUtils.join(linkedEditGroups, ", ") + ", ");
+    builder.append(linkedEditGroups.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("selection=");
-    builder.append(selection + ", ");
+    builder.append(selection);
+    builder.append(", ");
     builder.append("selectionLength=");
-    builder.append(selectionLength + ", ");
+    builder.append(selectionLength);
+    builder.append(", ");
     builder.append("id=");
     builder.append(id);
     builder.append("]");

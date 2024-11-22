@@ -238,7 +238,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
       );
       // Check to this library units.
       if (prefixName == null) {
-        for (var function in unitResult.libraryElement2.functions) {
+        for (var function in unitResult.libraryElement2.topLevelFunctions) {
           finder._update(function);
         }
       }

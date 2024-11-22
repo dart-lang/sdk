@@ -762,7 +762,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
   }
 
   void _registerFeature(_Feature feature) {
-    _data._features += feature;
+    _data._features = _data._features.add(feature);
   }
 
   void _registerTypeUse(ir.DartType type, _TypeUseKind kind) {

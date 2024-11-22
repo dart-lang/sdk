@@ -795,6 +795,7 @@ extension type Foo(int value) {
   }
   ''');
         String library = 'package:hello/foo.dart';
+        String module = 'packages/hello/foo.dart';
 
         File dillFile = new File('${tempDir.path}/foo.dart.dill');
         File sourceFile = new File('${dillFile.path}.sources');
@@ -834,6 +835,7 @@ extension type Foo(int value) {
                 libraryUri: library,
                 line: 5,
                 column: 3,
+                moduleName: module,
                 scriptUri: file.uri,
                 jsFrameValues: {"f": "42"});
             count += 1;
@@ -848,6 +850,7 @@ extension type Foo(int value) {
                 libraryUri: library,
                 line: 11,
                 column: 5,
+                moduleName: module,
                 scriptUri: file.uri,
                 jsFrameValues: {r"$this": "42"});
             count += 1;
@@ -888,6 +891,7 @@ extension type Foo(int value) {
       ];
 
       String library = 'package:hello/foo.dart';
+      String module = 'packages/hello/foo.dart';
 
       FrontendServer frontendServer = new FrontendServer();
       Future<int> result = frontendServer.open(args);
@@ -914,7 +918,11 @@ extension type Foo(int value) {
           expect(outputFile.lengthSync(), isPositive);
 
           frontendServer.compileExpressionToJs(
-              expression: '', libraryUri: library, line: 1, column: 1);
+              expression: '',
+              libraryUri: library,
+              line: 1,
+              column: 1,
+              moduleName: module);
           count += 1;
         } else if (count == 2) {
           // Third request is to 'compile-expression-to-js' that fails
@@ -2810,6 +2818,7 @@ e() {
   ''');
 
         String library = 'package:hello/foo.dart';
+        String module = 'packages/hello/foo.dart';
 
         File dillFile = new File('${tempDir.path}/foo.dart.dill');
         File sourceFile = new File('${dillFile.path}.sources');
@@ -2845,7 +2854,11 @@ e() {
             frontendServer.accept();
 
             frontendServer.compileExpressionToJs(
-                expression: '', libraryUri: library, line: 2, column: 1);
+                expression: '',
+                libraryUri: library,
+                line: 2,
+                column: 1,
+                moduleName: module);
             count += 1;
           } else if (count == 1) {
             // Second request is to 'compile-expression-to-js' that fails
@@ -2856,7 +2869,11 @@ e() {
             });
 
             frontendServer.compileExpressionToJs(
-                expression: '2+2', libraryUri: library, line: 2, column: 1);
+                expression: '2+2',
+                libraryUri: library,
+                line: 2,
+                column: 1,
+                moduleName: module);
             count += 1;
           } else if (count == 2) {
             expect(result.errorsCount, equals(0));
@@ -2916,6 +2933,7 @@ e() {
   ''');
 
         String library = 'package:hello/foo.dart';
+        String module = 'packages/hello/foo.dart';
 
         File dillFile = new File('${tempDir.path}/foo.dart.dill');
         File sourceFile = new File('${dillFile.path}.sources');
@@ -2961,7 +2979,8 @@ e() {
                 expression: 'const bool.fromEnvironment("dart.library.html")',
                 libraryUri: library,
                 line: 2,
-                column: 1);
+                column: 1,
+                moduleName: module);
             count += 1;
           } else {
             expect(count, 1);
@@ -3011,6 +3030,7 @@ e() {
   }
   ''');
         String library = 'package:hello/foo.dart';
+        String module = 'packages/hello/foo.dart';
 
         File dillFile = new File('${tempDir.path}/foo.dart.dill');
         File sourceFile = new File('${dillFile.path}.sources');
@@ -3047,7 +3067,11 @@ e() {
             frontendServer.accept();
 
             frontendServer.compileExpressionToJs(
-                expression: '2+2', libraryUri: library, line: 2, column: 1);
+                expression: '2+2',
+                libraryUri: library,
+                line: 2,
+                column: 1,
+                moduleName: module);
             count += 1;
           } else if (count == 1) {
             expect(result.errorsCount, equals(0));
@@ -3068,7 +3092,11 @@ e() {
             expect(outputFile.lengthSync(), isPositive);
 
             frontendServer.compileExpressionToJs(
-                expression: '2+2', libraryUri: library, line: 2, column: 1);
+                expression: '2+2',
+                libraryUri: library,
+                line: 2,
+                column: 1,
+                moduleName: module);
             count += 1;
           } else if (count == 3) {
             expect(result.errorsCount, equals(0));
@@ -3711,13 +3739,10 @@ class FrontendServer {
       required String libraryUri,
       required int line,
       required int column,
+      required String moduleName,
       Uri? scriptUri,
       Map<String, String>? jsFrameValues,
       String boundaryKey = 'abc'}) {
-    // TODO(https://github.com/dart-lang/sdk/issues/58265): `moduleName` is
-    // soft-deprecated, so even though it's unused, the request should still
-    // contain it so it can be parsed correctly.
-    final String moduleName = 'unused';
     if (useJsonForCommunication) {
       outputParser.expectSources = false;
       inputStreamController.add('JSON_INPUT\n'.codeUnits);

@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An attribute for a FlutterOutline.
@@ -90,8 +89,7 @@ public class FlutterOutlineAttribute {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FlutterOutlineAttribute) {
-      FlutterOutlineAttribute other = (FlutterOutlineAttribute) obj;
+    if (obj instanceof FlutterOutlineAttribute other) {
       return
         Objects.equals(other.name, name) &&
         Objects.equals(other.label, label) &&
@@ -222,17 +220,23 @@ public class FlutterOutlineAttribute {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("label=");
-    builder.append(label + ", ");
+    builder.append(label);
+    builder.append(", ");
     builder.append("literalValueBoolean=");
-    builder.append(literalValueBoolean + ", ");
+    builder.append(literalValueBoolean);
+    builder.append(", ");
     builder.append("literalValueInteger=");
-    builder.append(literalValueInteger + ", ");
+    builder.append(literalValueInteger);
+    builder.append(", ");
     builder.append("literalValueString=");
-    builder.append(literalValueString + ", ");
+    builder.append(literalValueString);
+    builder.append(", ");
     builder.append("nameLocation=");
-    builder.append(nameLocation + ", ");
+    builder.append(nameLocation);
+    builder.append(", ");
     builder.append("valueLocation=");
     builder.append(valueLocation);
     builder.append("]");

@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a fix applied to a library.
@@ -53,8 +52,7 @@ public class BulkFixDetail {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof BulkFixDetail) {
-      BulkFixDetail other = (BulkFixDetail) obj;
+    if (obj instanceof BulkFixDetail other) {
       return
         Objects.equals(other.code, code) &&
         other.occurrences == occurrences;
@@ -113,7 +111,8 @@ public class BulkFixDetail {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("code=");
-    builder.append(code + ", ");
+    builder.append(code);
+    builder.append(", ");
     builder.append("occurrences=");
     builder.append(occurrences);
     builder.append("]");

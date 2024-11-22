@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A representation of a class in a type hierarchy.
@@ -91,8 +90,7 @@ public class TypeHierarchyItem {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof TypeHierarchyItem) {
-      TypeHierarchyItem other = (TypeHierarchyItem) obj;
+    if (obj instanceof TypeHierarchyItem other) {
       return
         Objects.equals(other.classElement, classElement) &&
         Objects.equals(other.displayName, displayName) &&
@@ -199,9 +197,9 @@ public class TypeHierarchyItem {
       displayName,
       memberElement,
       superclass,
-      interfaces,
-      mixins,
-      subclasses
+      Arrays.hashCode(interfaces),
+      Arrays.hashCode(mixins),
+      Arrays.hashCode(subclasses)
     );
   }
 
@@ -240,19 +238,25 @@ public class TypeHierarchyItem {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("classElement=");
-    builder.append(classElement + ", ");
+    builder.append(classElement);
+    builder.append(", ");
     builder.append("displayName=");
-    builder.append(displayName + ", ");
+    builder.append(displayName);
+    builder.append(", ");
     builder.append("memberElement=");
-    builder.append(memberElement + ", ");
+    builder.append(memberElement);
+    builder.append(", ");
     builder.append("superclass=");
-    builder.append(superclass + ", ");
+    builder.append(superclass);
+    builder.append(", ");
     builder.append("interfaces=");
-    builder.append(StringUtils.join(interfaces, ", ") + ", ");
+    builder.append(Arrays.stream(interfaces).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("mixins=");
-    builder.append(StringUtils.join(mixins, ", ") + ", ");
+    builder.append(Arrays.stream(mixins).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("subclasses=");
-    builder.append(StringUtils.join(subclasses, ", "));
+    builder.append(Arrays.stream(subclasses).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Deprecated: the only reference to this type has been deprecated.
@@ -95,8 +94,7 @@ public class AnalysisOptions {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof AnalysisOptions) {
-      AnalysisOptions other = (AnalysisOptions) obj;
+    if (obj instanceof AnalysisOptions other) {
       return
         Objects.equals(other.enableAsync, enableAsync) &&
         Objects.equals(other.enableDeferredLoading, enableDeferredLoading) &&
@@ -233,17 +231,23 @@ public class AnalysisOptions {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("enableAsync=");
-    builder.append(enableAsync + ", ");
+    builder.append(enableAsync);
+    builder.append(", ");
     builder.append("enableDeferredLoading=");
-    builder.append(enableDeferredLoading + ", ");
+    builder.append(enableDeferredLoading);
+    builder.append(", ");
     builder.append("enableEnums=");
-    builder.append(enableEnums + ", ");
+    builder.append(enableEnums);
+    builder.append(", ");
     builder.append("enableNullAwareOperators=");
-    builder.append(enableNullAwareOperators + ", ");
+    builder.append(enableNullAwareOperators);
+    builder.append(", ");
     builder.append("generateDart2jsHints=");
-    builder.append(generateDart2jsHints + ", ");
+    builder.append(generateDart2jsHints);
+    builder.append(", ");
     builder.append("generateHints=");
-    builder.append(generateHints + ", ");
+    builder.append(generateHints);
+    builder.append(", ");
     builder.append("generateLints=");
     builder.append(generateLints);
     builder.append("]");

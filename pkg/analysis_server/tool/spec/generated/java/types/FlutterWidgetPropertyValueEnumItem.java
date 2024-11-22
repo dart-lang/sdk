@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An item of an enumeration in a general sense - actual enum value, or a static field in a class.
@@ -67,8 +66,7 @@ public class FlutterWidgetPropertyValueEnumItem {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FlutterWidgetPropertyValueEnumItem) {
-      FlutterWidgetPropertyValueEnumItem other = (FlutterWidgetPropertyValueEnumItem) obj;
+    if (obj instanceof FlutterWidgetPropertyValueEnumItem other) {
       return
         Objects.equals(other.libraryUri, libraryUri) &&
         Objects.equals(other.className, className) &&
@@ -153,11 +151,14 @@ public class FlutterWidgetPropertyValueEnumItem {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("libraryUri=");
-    builder.append(libraryUri + ", ");
+    builder.append(libraryUri);
+    builder.append(", ");
     builder.append("className=");
-    builder.append(className + ", ");
+    builder.append(className);
+    builder.append(", ");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("documentation=");
     builder.append(documentation);
     builder.append("]");

@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A label that is associated with a range of code that may be useful to render at the end of the
@@ -62,8 +61,7 @@ public class ClosingLabel {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ClosingLabel) {
-      ClosingLabel other = (ClosingLabel) obj;
+    if (obj instanceof ClosingLabel other) {
       return
         other.offset == offset &&
         other.length == length &&
@@ -133,9 +131,11 @@ public class ClosingLabel {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("label=");
     builder.append(label);
     builder.append("]");
