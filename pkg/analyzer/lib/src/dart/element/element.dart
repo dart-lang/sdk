@@ -799,7 +799,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<ExtensionElement2> get accessibleExtensions2 {
     return scope.accessibleExtensions
-        .map((element) => element.augmentation as ExtensionElement2)
+        .map((element) => element.augmented as ExtensionElement2)
         .toList();
   }
 
@@ -9186,8 +9186,10 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   String? get name3 => firstFragment.name2;
 
   @override
-  // TODO(scheglov): implement scope
-  Scope get scope => throw UnimplementedError();
+  Scope get scope {
+    var libraryFragment = firstFragment.libraryFragment;
+    return LibraryFragmentScope(libraryFragment);
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {

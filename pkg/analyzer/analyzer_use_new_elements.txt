@@ -227,12 +227,8 @@ test/src/dart/resolution/super_formal_parameter_test.dart
 test/src/services/top_level_declarations_test.dart
 test/src/summary/element_text.dart
 test/src/summary/elements/class_test.dart
-test/src/summary/elements/const_test.dart
 test/src/summary/elements/enum_test.dart
 test/src/summary/elements/extension_type_test.dart
-test/src/summary/elements/library_export_test.dart
-test/src/summary/elements/library_fragment_test.dart
-test/src/summary/elements/library_import_test.dart
 test/src/summary/elements/metadata_test.dart
 test/src/summary/elements/since_sdk_version_test.dart
 test/src/summary/elements/top_level_function_test.dart
