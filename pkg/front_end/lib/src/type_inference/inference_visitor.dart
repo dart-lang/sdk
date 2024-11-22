@@ -11096,40 +11096,46 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget lengthTarget = findInterfaceMember(
         lookupType, lengthName, node.fileOffset,
         includeExtensionMethods: true, isSetter: false);
-    assert(lengthTarget.isInstanceMember);
+    DartType lengthType;
+    if (lengthTarget.isNever) {
+      lengthType = const NeverType.nonNullable();
+      node.isNeverPattern = true;
+    } else {
+      assert(lengthTarget.isInstanceMember);
 
-    DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
-    node.lengthTarget = lengthTarget.classMember!;
+      lengthType = node.lengthType = lengthTarget.getGetterType(this);
+      node.lengthTarget = lengthTarget.classMember!;
 
-    ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
-        lookupType, sublistName, node.fileOffset,
-        includeExtensionMethods: true, isSetter: false);
-    assert(sublistInvokeTarget.isInstanceMember);
+      ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
+          lookupType, sublistName, node.fileOffset,
+          includeExtensionMethods: true, isSetter: false);
+      assert(sublistInvokeTarget.isInstanceMember);
 
-    node.sublistTarget = sublistInvokeTarget.classMember as Procedure;
-    node.sublistType =
-        sublistInvokeTarget.getFunctionType(this).sublistFunctionType;
+      node.sublistTarget = sublistInvokeTarget.classMember as Procedure;
+      node.sublistType =
+          sublistInvokeTarget.getFunctionType(this).sublistFunctionType;
 
-    ObjectAccessTarget minusTarget = findInterfaceMember(
-        lengthType, minusName, node.fileOffset,
-        includeExtensionMethods: true, isSetter: false);
-    assert(minusTarget.isInstanceMember);
-    assert(minusTarget.isSpecialCasedBinaryOperator(this));
+      ObjectAccessTarget minusTarget = findInterfaceMember(
+          lengthType, minusName, node.fileOffset,
+          includeExtensionMethods: true, isSetter: false);
+      assert(minusTarget.isInstanceMember);
+      assert(minusTarget.isSpecialCasedBinaryOperator(this));
 
-    node.minusTarget = minusTarget.classMember as Procedure;
-    node.minusType = replaceReturnType(
-        minusTarget.getFunctionType(this).minusFunctionType,
-        typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-            lengthType, coreTypes.intNonNullableRawType));
+      node.minusTarget = minusTarget.classMember as Procedure;
+      node.minusType = replaceReturnType(
+          minusTarget.getFunctionType(this).minusFunctionType,
+          typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
+              lengthType, coreTypes.intNonNullableRawType));
 
-    ObjectAccessTarget indexGetTarget = findInterfaceMember(
-        lookupType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true, isSetter: false);
-    assert(indexGetTarget.isInstanceMember);
+      ObjectAccessTarget indexGetTarget = findInterfaceMember(
+          lookupType, indexGetName, node.fileOffset,
+          includeExtensionMethods: true, isSetter: false);
+      assert(indexGetTarget.isInstanceMember);
 
-    node.indexGetTarget = indexGetTarget.classMember as Procedure;
-    node.indexGetType =
-        indexGetTarget.getFunctionType(this).indexGetFunctionType;
+      node.indexGetTarget = indexGetTarget.classMember as Procedure;
+      node.indexGetType =
+          indexGetTarget.getFunctionType(this).indexGetFunctionType;
+    }
 
     for (Pattern pattern in node.patterns) {
       if (pattern is RestPattern) {
@@ -11138,41 +11144,39 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    if (node.hasRestPattern) {
-      ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
-          lengthType, greaterThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true, isSetter: false);
-      assert(greaterThanOrEqualTarget.isInstanceMember);
+    if (!node.isNeverPattern) {
+      if (node.hasRestPattern) {
+        ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
+            lengthType, greaterThanOrEqualsName, node.fileOffset,
+            includeExtensionMethods: true, isSetter: false);
+        assert(greaterThanOrEqualTarget.isInstanceMember);
 
-      node.lengthCheckTarget =
-          greaterThanOrEqualTarget.classMember as Procedure;
-      node.lengthCheckType = greaterThanOrEqualTarget
-          .getFunctionType(this)
-          .greaterThanOrEqualsFunctionType;
-    } else if (node.patterns.isEmpty) {
-      ObjectAccessTarget lessThanOrEqualsInvokeTarget = findInterfaceMember(
-          lengthType, lessThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true, isSetter: false);
-      assert(lessThanOrEqualsInvokeTarget.isInstanceMember ||
-          // Coverage-ignore(suite): Not run.
-          lessThanOrEqualsInvokeTarget.isObjectMember);
+        node.lengthCheckTarget =
+            greaterThanOrEqualTarget.classMember as Procedure;
+        node.lengthCheckType = greaterThanOrEqualTarget
+            .getFunctionType(this)
+            .greaterThanOrEqualsFunctionType;
+      } else if (node.patterns.isEmpty) {
+        ObjectAccessTarget lessThanOrEqualsInvokeTarget = findInterfaceMember(
+            lengthType, lessThanOrEqualsName, node.fileOffset,
+            includeExtensionMethods: true, isSetter: false);
+        assert(lessThanOrEqualsInvokeTarget.isInstanceMember);
 
-      node.lengthCheckTarget =
-          lessThanOrEqualsInvokeTarget.classMember as Procedure;
-      node.lengthCheckType = lessThanOrEqualsInvokeTarget
-          .getFunctionType(this)
-          .lessThanOrEqualsFunctionType;
-    } else {
-      ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
-          lengthType, equalsName, node.fileOffset,
-          includeExtensionMethods: true, isSetter: false);
-      assert(equalsInvokeTarget.isInstanceMember ||
-          // Coverage-ignore(suite): Not run.
-          equalsInvokeTarget.isObjectMember);
+        node.lengthCheckTarget =
+            lessThanOrEqualsInvokeTarget.classMember as Procedure;
+        node.lengthCheckType = lessThanOrEqualsInvokeTarget
+            .getFunctionType(this)
+            .lessThanOrEqualsFunctionType;
+      } else {
+        ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
+            lengthType, equalsName, node.fileOffset,
+            includeExtensionMethods: true, isSetter: false);
+        assert(equalsInvokeTarget.isInstanceMember);
 
-      node.lengthCheckTarget = equalsInvokeTarget.classMember as Procedure;
-      node.lengthCheckType =
-          equalsInvokeTarget.getFunctionType(this).equalsFunctionType;
+        node.lengthCheckTarget = equalsInvokeTarget.classMember as Procedure;
+        node.lengthCheckType =
+            equalsInvokeTarget.getFunctionType(this).equalsFunctionType;
+      }
     }
 
     pushRewrite(replacement ?? node);
@@ -11580,20 +11584,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget containsKeyTarget = findInterfaceMember(
         lookupType, containsKeyName, node.fileOffset,
         includeExtensionMethods: true, isSetter: false);
-    assert(containsKeyTarget.isInstanceMember);
+    if (containsKeyTarget.isNever) {
+      node.isNeverPattern = true;
+    } else {
+      assert(containsKeyTarget.isInstanceMember);
 
-    node.containsKeyTarget = containsKeyTarget.classMember as Procedure;
-    node.containsKeyType =
-        containsKeyTarget.getFunctionType(this).containsKeyFunctionType;
+      node.containsKeyTarget = containsKeyTarget.classMember as Procedure;
+      node.containsKeyType =
+          containsKeyTarget
+              .getFunctionType(this)
+              .containsKeyFunctionType;
 
-    ObjectAccessTarget indexGetTarget = findInterfaceMember(
-        lookupType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true, isSetter: false);
-    assert(indexGetTarget.isInstanceMember);
+      ObjectAccessTarget indexGetTarget = findInterfaceMember(
+          lookupType, indexGetName, node.fileOffset,
+          includeExtensionMethods: true, isSetter: false);
+      assert(indexGetTarget.isInstanceMember);
 
-    node.indexGetTarget = indexGetTarget.classMember as Procedure;
-    node.indexGetType =
-        indexGetTarget.getFunctionType(this).indexGetFunctionType;
+      node.indexGetTarget = indexGetTarget.classMember as Procedure;
+      node.indexGetType =
+          indexGetTarget
+              .getFunctionType(this)
+              .indexGetFunctionType;
+    }
 
     assert(checkStack(node, stackBase, [
       /* entries = */ ...repeatedKind(
