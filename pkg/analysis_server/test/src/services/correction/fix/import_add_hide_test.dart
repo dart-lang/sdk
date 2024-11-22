@@ -263,53 +263,6 @@ void f(N? n) {
 ''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart'");
   }
 
-  Future<void> test_double_part() async {
-    newFile('$testPackageLibPath/lib1.dart', '''
-class N {}''');
-    newFile('$testPackageLibPath/lib2.dart', '''
-class N {}''');
-    newFile('$testPackageLibPath/imports.dart', '''
-import 'lib1.dart';
-import 'lib2.dart';
-
-part 'test.dart';
-''');
-    await resolveTestCode('''
-part of 'imports.dart';
-
-void f(N? n) {
-  print(n);
-}
-''');
-    await assertHasFixesWithoutApplying(
-      expectedNumberOfFixesForKind: 2,
-      matchFixMessages: [
-        "Hide others to use 'N' from 'lib1.dart'",
-        "Hide others to use 'N' from 'lib2.dart'",
-      ],
-    );
-    await assertHasFix(
-      '''
-import 'lib1.dart' hide N;
-import 'lib2.dart';
-
-part 'test.dart';
-''',
-      target: '$testPackageLibPath/imports.dart',
-      matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
-    );
-    await assertHasFix(
-      '''
-import 'lib1.dart';
-import 'lib2.dart' hide N;
-
-part 'test.dart';
-''',
-      target: '$testPackageLibPath/imports.dart',
-      matchFixMessage: "Hide others to use 'N' from 'lib1.dart'",
-    );
-  }
-
   Future<void> test_double_variable() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 var foo = 0;''');
@@ -331,6 +284,124 @@ void f() {
   print(foo);
 }
 ''', matchFixMessage: "Hide others to use 'foo' from 'lib1.dart'");
+  }
+
+  @FailingTest(reason: 'No error produced')
+  Future<void> test_multiLevelParts() async {
+    // Create a tree of files that all import 'dart:math' and ensure we find
+    // only the import from the parent (not a grandparent, sibling, or child).
+    //
+    // - lib                       declares Random
+    //
+    // - root                      has import
+    //     - level1_other          has import
+    //     - level1                has imports, is the used reference
+    //         - level2_other      has import
+    //         - test              has reference <-- testing this
+    //             - level3_other  has import
+
+    newFile('$testPackageLibPath/lib.dart', '''
+class Random {}
+''');
+
+    newFile('$testPackageLibPath/root.dart', '''
+import 'dart:math';
+part 'level1_other.dart';
+part 'level1.dart';
+''');
+
+    newFile('$testPackageLibPath/level1_other.dart', '''
+part of 'root.dart';
+import 'dart:math';
+''');
+
+    newFile('$testPackageLibPath/level1.dart', '''
+part of 'root.dart';
+import 'dart:math';
+import 'lib.dart';
+part 'level2_other.dart';
+part 'test.dart';
+''');
+
+    newFile('$testPackageLibPath/level2_other.dart', '''
+part of 'level1.dart';
+import 'dart:math';
+''');
+
+    newFile('$testPackageLibPath/level3_other.dart', '''
+part of 'test.dart';
+import 'dart:math';
+''');
+
+    await resolveTestCode('''
+part of 'level1.dart';
+part 'level3_other.dart';
+
+Random? r;
+''');
+
+    await assertHasFix(
+      '''
+part of 'root.dart';
+import 'dart:math';
+import 'lib.dart';
+part 'level2_other.dart';
+part 'test.dart';
+''',
+      target: 'lib.dart',
+    );
+  }
+
+  Future<void> test_part() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class N {}''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+class N {}''');
+    newFile('$testPackageLibPath/other.dart', '''
+import 'lib1.dart';
+import 'lib2.dart';
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'other.dart';
+import 'lib1.dart';
+import 'lib2.dart';
+
+void f(N? n) {
+  print(n);
+}
+''');
+    await assertHasFixesWithoutApplying(
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Hide others to use 'N' from 'lib1.dart'",
+        "Hide others to use 'N' from 'lib2.dart'",
+      ],
+    );
+    await assertHasFix(
+      '''
+part of 'other.dart';
+import 'lib1.dart' hide N;
+import 'lib2.dart';
+
+void f(N? n) {
+  print(n);
+}
+''',
+      matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
+    );
+    await assertHasFix(
+      '''
+part of 'other.dart';
+import 'lib1.dart';
+import 'lib2.dart' hide N;
+
+void f(N? n) {
+  print(n);
+}
+''',
+      matchFixMessage: "Hide others to use 'N' from 'lib1.dart'",
+    );
   }
 
   Future<void> test_show_prefixed() async {

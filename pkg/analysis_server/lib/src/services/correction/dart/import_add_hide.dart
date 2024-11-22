@@ -40,48 +40,49 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       return const [];
     }
 
-    var (uris, importDirectives) = _getImportDirectives(
+    var (uris, unit, importDirectives) = _getImportDirectives(
       libraryResult,
       unitResult,
       conflictingElements,
       prefix,
     );
 
+    if (unit == null || importDirectives.isEmpty || uris.isEmpty) {
+      return const [];
+    }
+
     var producers = <ResolvedCorrectionProducer>{};
     for (var uri in uris) {
-      for (var MapEntry(:key, :value) in importDirectives.entries) {
-        value = value
-            .whereNot((directive) => directive.uri.stringValue == uri)
-            .toSet();
-        var thisContext = CorrectionProducerContext.createResolved(
-          libraryResult: libraryResult,
-          unitResult: key,
-          applyingBulkFixes: applyingBulkFixes,
-          dartFixContext: context.dartFixContext,
-          diagnostic: diagnostic,
-          selectionLength: selectionLength,
-          selectionOffset: selectionOffset,
-        );
-        producers.addAll([
-          _ImportAddHide(name, uri, prefix, value, context: thisContext),
-          _ImportRemoveShow(name, uri, prefix, value, context: thisContext)
-        ]);
-      }
+      var thisContext = CorrectionProducerContext.createResolved(
+        libraryResult: libraryResult,
+        unitResult: unit,
+        applyingBulkFixes: applyingBulkFixes,
+        dartFixContext: context.dartFixContext,
+        diagnostic: diagnostic,
+        selectionLength: selectionLength,
+        selectionOffset: selectionOffset,
+      );
+      var directives = importDirectives
+          .whereNot((directive) => directive.uri.stringValue == uri)
+          .toSet();
+      producers.addAll([
+        _ImportAddHide(name, uri, prefix, directives, context: thisContext),
+        _ImportRemoveShow(name, uri, prefix, directives, context: thisContext),
+      ]);
     }
     return producers.toList();
   }
 
   /// Returns [ImportDirective]s that import the given [conflictingElements]
   /// into [unitResult].
-  (Set<String>, Map<ResolvedUnitResult, Set<ImportDirective>>)
-      _getImportDirectives(
+  (Set<String>, ResolvedUnitResult?, Set<ImportDirective>) _getImportDirectives(
     ResolvedLibraryResult libraryResult,
     ResolvedUnitResult? unitResult,
     List<Element2> conflictingElements,
     String? prefix,
   ) {
     var uris = <String>{};
-    var importDirectives = <ResolvedUnitResult, Set<ImportDirective>>{};
+    var importDirectives = <ImportDirective>{};
     // Search in each unit up the chain for related imports.
     while (unitResult is ResolvedUnitResult) {
       for (var conflictingElement in conflictingElements) {
@@ -94,7 +95,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
         // and have the same prefix.
         for (var directive in unitResult.unit.directives
             .whereType<ImportDirective>()
-            .whereNot(importDirectives.containsValue)) {
+            .whereNot(importDirectives.contains)) {
           var imported = directive.libraryImport?.importedLibrary2;
           if (imported == null) {
             continue;
@@ -111,20 +112,21 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
             var uri = directive.uri.stringValue;
             if (uri != null) {
               uris.add(uri);
-              if (importDirectives[unitResult] == null) {
-                importDirectives[unitResult] = {directive};
-              } else {
-                importDirectives[unitResult]?.add(directive);
-              }
+              importDirectives.add(directive);
             }
           }
         }
       }
+
+      if (importDirectives.isNotEmpty) {
+        break;
+      }
+
       // We continue up the chain.
       unitResult = libraryResult.parentUnitOf(unitResult);
     }
 
-    return (uris, importDirectives);
+    return (uris, unitResult, importDirectives);
   }
 }
 
