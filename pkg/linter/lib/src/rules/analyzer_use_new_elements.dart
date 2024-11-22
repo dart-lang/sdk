@@ -32,6 +32,7 @@ bool _isOldModelElement(Element2? element) {
       // Skip classes that don't required migration.
       if (const {
         'DirectiveUri',
+        'DirectiveUriWithLibrary',
         'DirectiveUriWithRelativeUri',
         'DirectiveUriWithRelativeUriString',
         'DirectiveUriWithSource',
@@ -39,7 +40,10 @@ bool _isOldModelElement(Element2? element) {
         'ElementAnnotation',
         'ElementKind',
         'ElementLocation',
+        'HideElementCombinator',
         'LibraryLanguageVersion',
+        'NamespaceCombinator',
+        'ShowElementCombinator',
       }.contains(firstFragment.name2)) {
         return false;
       }

@@ -46,11 +46,7 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
     AnalysisSession session,
     GetterElement element,
   ) {
-    return ConvertGetterToMethodRefactoringImpl(
-      workspace,
-      session,
-      element.asElement as PropertyAccessorElement,
-    );
+    return ConvertGetterToMethodRefactoringImpl(workspace, session, element);
   }
 
   /// Return `true` if refactoring is available, possibly without checking all
@@ -73,11 +69,7 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
     AnalysisSession session,
     ExecutableElement2 element,
   ) {
-    return ConvertMethodToGetterRefactoringImpl(
-      workspace,
-      session,
-      element.asElement,
-    );
+    return ConvertMethodToGetterRefactoringImpl(workspace, session, element);
   }
 
   /// Return `true` if refactoring is available, possibly without checking all
@@ -408,6 +400,11 @@ class RefactoringWorkspace {
   /// Whether the [element] is defined in a file that is in a context root.
   bool containsElement(Element element) {
     return containsFile(element.source!.fullName);
+  }
+
+  /// Whether the [element] is defined in a file that is in a context root.
+  bool containsElement2(Element2 element) {
+    return containsFile(element.firstFragment.libraryFragment!.source.fullName);
   }
 
   /// Whether the file with the given [path] is in a context root.

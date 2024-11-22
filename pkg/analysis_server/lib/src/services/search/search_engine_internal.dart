@@ -151,6 +151,7 @@ class SearchEngineImpl implements SearchEngine {
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
   }
 
+  @override
   Future<List<SearchMatch>> searchReferences2(Element2 element) async {
     return await searchReferences(element.asElement!);
   }

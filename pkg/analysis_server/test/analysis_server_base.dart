@@ -101,6 +101,8 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   void Function(Notification)? notificationListener;
 
+  bool get retainDataForTesting => false;
+
   Folder get sdkRoot => newFolder('/sdk');
 
   Future<void> addGeneralAnalysisSubscription(
@@ -186,6 +188,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
       pluginManager: pluginManager,
+      retainDataForTesting: retainDataForTesting,
     );
 
     server.completionState.budgetDuration = const Duration(seconds: 30);

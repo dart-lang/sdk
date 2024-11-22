@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A wrapper around [AnalysisSession] that provides additional utilities.
 ///
@@ -147,6 +148,14 @@ class AnalysisSessionHelper {
     return resolvedLibrary.units.singleWhere((resolvedUnit) {
       return resolvedUnit.path == unitPath;
     });
+  }
+
+  /// Return the resolved unit that declares the given [element].
+  Future<ResolvedUnitResult?> getResolvedUnitByElement2(
+      Element2 element2) async {
+    var element = element2.asElement;
+    if (element == null) return null;
+    return await getResolvedUnitByElement(element);
   }
 
   /// Return the [PropertyAccessorElement] with the given [name] that is

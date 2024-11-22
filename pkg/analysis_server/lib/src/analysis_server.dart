@@ -282,6 +282,7 @@ abstract class AnalysisServer {
     DartFixPromptManager? dartFixPromptManager,
     this.providedByteStore,
     PluginManager? pluginManager,
+    bool retainDataForTesting = false,
   }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
        pubApi = PubApi(
          instrumentationService,
@@ -289,7 +290,9 @@ abstract class AnalysisServer {
          Platform.environment['PUB_HOSTED_URL'],
        ),
        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
-       messageScheduler = MessageScheduler() {
+       messageScheduler = MessageScheduler(
+            testView:
+                retainDataForTesting ? MessageSchedulerTestView() : null) {
     messageScheduler.setServer(this);
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.

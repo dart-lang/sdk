@@ -491,6 +491,41 @@ final a = new MyOtherClass();
     verifyEdit(result, expectedContent);
   }
 
+  Future<void> test_rename_duplicateName_hover_beforeResponding() async {
+    const content = '''
+class MyOtherClass {}
+class MyClass {}
+final a = n^ew MyClass();
+''';
+
+    var code = TestCode.parse(content);
+    const expectedContent = '''
+>>>>>>>>>> lib/main.dart
+class MyOtherClass {}
+class MyOtherClass {}
+final a = new MyOtherClass();
+''';
+    var response = await _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      action: UserPromptActions.renameAnyway,
+      beforeResponding: () => getHover(mainFileUri, code.position.position),
+    );
+
+    var error = response.error;
+    if (error != null) {
+      throw error;
+    }
+
+    var result = WorkspaceEdit.fromJson(
+      response.result as Map<String, Object?>,
+    );
+
+    verifyEdit(result, expectedContent);
+  }
+
   Future<void> test_rename_duplicateName_reject() async {
     const content = '''
 class MyOtherClass {}

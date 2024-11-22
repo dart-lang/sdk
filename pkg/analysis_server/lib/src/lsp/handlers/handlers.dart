@@ -440,6 +440,11 @@ class MessageInfo {
   /// May be null for messages sent prior to initialization.
   final LspClientCapabilities? clientCapabilities;
 
+  /// The completer used to indicate that the handler is paused waiting on user
+  /// response. The completer, if any, is set to complete before a dialog is 
+  /// shown. 
+  final Completer<void>? completer;
+
   MessageInfo({
     required this.performance,
     // TODO(dantup): Consider a version of this that has a non-nullable
@@ -448,6 +453,7 @@ class MessageInfo {
     //  to run without, so it would remove a bunch of boilerplate in the others.
     required this.clientCapabilities,
     this.timeSinceRequest,
+    this.completer,
   });
 }
 
@@ -496,6 +502,9 @@ abstract class ServerStateMessageHandler {
     // will need to specifically check the token after `await`s.
     cancellationToken ??= cancelHandler.createToken(message);
     try {
+      if (cancellationToken.isCancellationRequested) {
+        return cancelled(cancellationToken);
+      }
       var result = await handler.handleMessage(
         message,
         messageInfo,

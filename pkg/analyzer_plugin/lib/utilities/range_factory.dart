@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 
@@ -131,6 +132,21 @@ class RangeFactory {
   /// Return a source range that covers the same range as the given [error].
   SourceRange error(AnalysisError error) {
     return SourceRange(error.offset, error.length);
+  }
+
+  /// Returns a source range that covers the name of the given [fragment].
+  ///
+  /// Returns `null` if the [fragment] does not have an explicit name location,
+  /// such as when it is synthetic.
+  ///
+  /// See [Fragment.name2] and [Fragment.nameOffset2].
+  SourceRange? fragmentName(Fragment fragment) {
+    var nameOffset = fragment.nameOffset2;
+    var nameLength = fragment.name2?.length;
+    if (nameOffset == null || nameLength == null) {
+      return null;
+    }
+    return SourceRange(nameOffset, nameLength);
   }
 
   /// Return a source range that covers the same range as the given [node].

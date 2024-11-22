@@ -163,6 +163,7 @@ class LspAnalysisServer extends AnalysisServer {
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
+    bool retainDataForTesting = false,
   }) : lspClientConfiguration = LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -179,6 +180,7 @@ class LspAnalysisServer extends AnalysisServer {
          LspNotificationManager(baseResourceProvider.pathContext),
          enableBlazeWatcher: enableBlazeWatcher,
          dartFixPromptManager: dartFixPromptManager,
+         retainDataForTesting: retainDataForTesting,
        ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
@@ -495,8 +497,15 @@ class LspAnalysisServer extends AnalysisServer {
     );
   }
 
-  /// Handle a [message] that was read from the communication channel.
-  void handleMessage(Message message, {CancelableToken? cancellationToken}) {
+  /// Handle a [message] that was read from the communication channel. The
+  /// [completer] is used to indicate when the [RequestMessage] handling is
+  /// done. [ResponseMessage] and [NotificationMessage]'s are not waited on
+  /// till finish.
+  void handleMessage(
+    Message message,
+    Completer<void>? completer, {
+    CancelableToken? cancellationToken,
+  }) {
     var startTime = DateTime.now();
     performance.logRequestTiming(message.clientRequestTime);
     runZonedGuarded(() async {
@@ -520,6 +529,7 @@ class LspAnalysisServer extends AnalysisServer {
               performance: performance,
               clientCapabilities: editorClientCapabilities,
               timeSinceRequest: message.timeSinceRequest,
+              completer: completer,
             );
 
             if (message is RequestMessage) {
@@ -551,6 +561,9 @@ class LspAnalysisServer extends AnalysisServer {
         } else {
           showErrorMessageToUser('Unknown message type');
         }
+        if (completer != null && !completer.isCompleted) {
+          completer.complete();
+        }
       } on InconsistentAnalysisException {
         sendErrorResponse(
           message,
@@ -559,6 +572,9 @@ class LspAnalysisServer extends AnalysisServer {
             message: 'Document was modified before operation completed',
           ),
         );
+        if (completer != null && !completer.isCompleted) {
+          completer.complete();
+        }
       } catch (error, stackTrace) {
         var errorMessage =
             message is ResponseMessage
@@ -576,6 +592,9 @@ class LspAnalysisServer extends AnalysisServer {
           ),
         );
         logException(errorMessage, error, stackTrace);
+        if (completer != null && !completer.isCompleted) {
+          completer.complete();
+        }
       }
     }, socketError);
   }
@@ -815,7 +834,6 @@ class LspAnalysisServer extends AnalysisServer {
     messageScheduler.add(
       LspMessage(message: message, cancellationToken: cancellationToken),
     );
-    messageScheduler.notify();
   }
 
   void sendErrorResponse(Message message, ResponseError error) {

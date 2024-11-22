@@ -117,6 +117,9 @@ abstract class SearchEngine {
   /// [element] - the [Element] being referenced by the found matches.
   Future<List<SearchMatch>> searchReferences(Element element);
 
+  /// Returns references to the given [element].
+  Future<List<SearchMatch>> searchReferences2(Element2 element);
+
   /// Returns direct subtypes of the given [type].
   ///
   /// [type] - the [ClassElement] being subtyped by the found matches.
