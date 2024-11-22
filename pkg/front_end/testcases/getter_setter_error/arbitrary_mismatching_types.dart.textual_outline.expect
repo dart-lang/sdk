@@ -1,0 +1,4 @@
+class A {
+  int get x => 42;
+  set x(String _) {}
+}

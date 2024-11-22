@@ -1164,9 +1164,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       setterType = setterBuilder.procedure.setterType;
     }
 
-    if (getterType is InvalidType || setterType is InvalidType) {
-      // Don't report a problem as something else is wrong that has already
-      // been reported.
+    if (libraryFeatures.getterSetterError.isEnabled ||
+        getterType is InvalidType ||
+        setterType is InvalidType) {
+      // Don't report a problem because the it isn't considered a problem in the
+      // current Dart version or because something else is wrong that has
+      // already been reported.
     } else {
       bool isValid = typeEnvironment.isSubtypeOf(
           getterType, setterType, SubtypeCheckMode.withNullabilities);

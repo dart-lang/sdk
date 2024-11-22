@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? _value;
+  synthetic constructor •() → self::A
+    ;
+  get neverGoBack() → core::int?
+    ;
+  set neverGoBack(core::int newValue) → void
+    ;
+}

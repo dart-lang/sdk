@@ -939,12 +939,14 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           /// not a valid getter/setter in `Class` because the type of the getter
           /// `Super.property2` is _not_ a subtype of the setter
           /// `Mixin.property1`.
-          _membersBuilder.registerGetterSetterCheck(
-              new DelayedClassGetterSetterCheck(
-                  classBuilder as SourceClassBuilder,
-                  name,
-                  interfaceGetable,
-                  interfaceSetable));
+          SourceClassBuilder sourceClassBuilder =
+              classBuilder as SourceClassBuilder;
+          if (!sourceClassBuilder
+              .libraryBuilder.libraryFeatures.getterSetterError.isEnabled) {
+            _membersBuilder.registerGetterSetterCheck(
+                new DelayedClassGetterSetterCheck(sourceClassBuilder, name,
+                    interfaceGetable, interfaceSetable));
+          }
         }
       }
       overrides.collectOverrides(

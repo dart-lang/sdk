@@ -109,6 +109,7 @@
         "/testcases/extensions/",
         "/testcases/general/",
         "/testcases/generic_metadata/",
+        "/testcases/getter_setter_error/",
         "/testcases/implicit_getter_calls/",
         "/testcases/incremental/",
         "/testcases/inference_new/",
