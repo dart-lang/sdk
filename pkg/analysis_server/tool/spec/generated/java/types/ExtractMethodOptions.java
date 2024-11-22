@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ExtractMethodOptions extends RefactoringOptions {
 
-  public static final ExtractMethodOptions[] EMPTY_ARRAY = new ExtractMethodOptions[0];
-
   public static final List<ExtractMethodOptions> EMPTY_LIST = List.of();
 
   /**

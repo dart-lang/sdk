@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class RefactoringFeedback {
 
-  public static final RefactoringFeedback[] EMPTY_ARRAY = new RefactoringFeedback[0];
-
   public static final List<RefactoringFeedback> EMPTY_LIST = List.of();
 
   /**

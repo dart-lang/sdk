@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ExtractLocalVariableOptions extends RefactoringOptions {
 
-  public static final ExtractLocalVariableOptions[] EMPTY_ARRAY = new ExtractLocalVariableOptions[0];
-
   public static final List<ExtractLocalVariableOptions> EMPTY_LIST = List.of();
 
   /**

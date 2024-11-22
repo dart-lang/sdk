@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class NavigationTarget {
 
-  public static final NavigationTarget[] EMPTY_ARRAY = new NavigationTarget[0];
-
   public static final List<NavigationTarget> EMPTY_LIST = List.of();
 
   /**

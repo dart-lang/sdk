@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ExtractMethodFeedback extends RefactoringFeedback {
 
-  public static final ExtractMethodFeedback[] EMPTY_ARRAY = new ExtractMethodFeedback[0];
-
   public static final List<ExtractMethodFeedback> EMPTY_LIST = List.of();
 
   /**

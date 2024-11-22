@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class SearchResult {
 
-  public static final SearchResult[] EMPTY_ARRAY = new SearchResult[0];
-
   public static final List<SearchResult> EMPTY_LIST = List.of();
 
   /**

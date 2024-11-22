@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ContextData {
 
-  public static final ContextData[] EMPTY_ARRAY = new ContextData[0];
-
   public static final List<ContextData> EMPTY_LIST = List.of();
 
   /**

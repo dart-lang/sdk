@@ -433,6 +433,46 @@ void f2(int p) {}
 ''');
   }
 
+  Future<void> test_functionType_inside_record_functionType() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2((0, f3));
+}
+
+void f2((int, int Function(int)) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2((0, f3));
+}
+
+void f2((int, int Function(int)) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_functionType_inside_record_functionType_named() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2((f: f3));
+}
+
+void f2(({int Function(int) f}) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2((f: f3));
+}
+
+void f2(({int Function(int) f}) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
   Future<void> test_functionType_notFunctionType() async {
     await resolveTestCode('''
 void f(A a) {

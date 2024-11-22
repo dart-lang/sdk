@@ -30,8 +30,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class RuntimeCompletionExpression {
 
-  public static final RuntimeCompletionExpression[] EMPTY_ARRAY = new RuntimeCompletionExpression[0];
-
   public static final List<RuntimeCompletionExpression> EMPTY_LIST = List.of();
 
   /**

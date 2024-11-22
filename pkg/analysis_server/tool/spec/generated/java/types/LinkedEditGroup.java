@@ -37,8 +37,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class LinkedEditGroup {
 
-  public static final LinkedEditGroup[] EMPTY_ARRAY = new LinkedEditGroup[0];
-
   public static final List<LinkedEditGroup> EMPTY_LIST = List.of();
 
   /**

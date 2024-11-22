@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class HighlightRegion {
 
-  public static final HighlightRegion[] EMPTY_ARRAY = new HighlightRegion[0];
-
   public static final List<HighlightRegion> EMPTY_LIST = List.of();
 
   /**

@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ServerLogEntry {
 
-  public static final ServerLogEntry[] EMPTY_ARRAY = new ServerLogEntry[0];
-
   public static final List<ServerLogEntry> EMPTY_LIST = List.of();
 
   /**

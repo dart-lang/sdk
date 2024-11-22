@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class TypeHierarchyItem {
 
-  public static final TypeHierarchyItem[] EMPTY_ARRAY = new TypeHierarchyItem[0];
-
   public static final List<TypeHierarchyItem> EMPTY_LIST = List.of();
 
   /**

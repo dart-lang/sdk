@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class AnalysisStatus {
 
-  public static final AnalysisStatus[] EMPTY_ARRAY = new AnalysisStatus[0];
-
   public static final List<AnalysisStatus> EMPTY_LIST = List.of();
 
   /**

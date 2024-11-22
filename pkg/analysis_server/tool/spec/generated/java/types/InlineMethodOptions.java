@@ -26,8 +26,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class InlineMethodOptions extends RefactoringOptions {
 
-  public static final InlineMethodOptions[] EMPTY_ARRAY = new InlineMethodOptions[0];
-
   public static final List<InlineMethodOptions> EMPTY_LIST = List.of();
 
   /**

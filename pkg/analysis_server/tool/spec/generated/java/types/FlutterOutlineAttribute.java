@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class FlutterOutlineAttribute {
 
-  public static final FlutterOutlineAttribute[] EMPTY_ARRAY = new FlutterOutlineAttribute[0];
-
   public static final List<FlutterOutlineAttribute> EMPTY_LIST = List.of();
 
   /**

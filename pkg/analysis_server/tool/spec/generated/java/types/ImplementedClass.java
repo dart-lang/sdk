@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ImplementedClass {
 
-  public static final ImplementedClass[] EMPTY_ARRAY = new ImplementedClass[0];
-
   public static final List<ImplementedClass> EMPTY_LIST = List.of();
 
   /**

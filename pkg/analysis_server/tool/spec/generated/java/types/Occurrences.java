@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class Occurrences {
 
-  public static final Occurrences[] EMPTY_ARRAY = new Occurrences[0];
-
   public static final List<Occurrences> EMPTY_LIST = List.of();
 
   /**

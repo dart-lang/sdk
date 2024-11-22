@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class AnalysisError {
 
-  public static final AnalysisError[] EMPTY_ARRAY = new AnalysisError[0];
-
   public static final List<AnalysisError> EMPTY_LIST = List.of();
 
   /**

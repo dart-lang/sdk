@@ -4002,10 +4002,15 @@ void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
 }
 
 ErrorPtr Service::MaybePause(Isolate* isolate, const Error& error) {
+  const bool should_pause_post_current_service_request =
+      isolate->should_pause_post_service_request();
+  if (should_pause_post_current_service_request) {
+    // Ensure that we do not accidentally pause post the next service request.
+    isolate->set_should_pause_post_service_request(false);
+  }
   // Don't pause twice.
   if (!isolate->IsPaused()) {
-    if (isolate->should_pause_post_service_request()) {
-      isolate->set_should_pause_post_service_request(false);
+    if (should_pause_post_current_service_request) {
       if (!error.IsNull()) {
         // Before pausing, restore the sticky error. The debugger will return it
         // from PausePostRequest.

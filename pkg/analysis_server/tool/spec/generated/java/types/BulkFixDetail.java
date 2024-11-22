@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class BulkFixDetail {
 
-  public static final BulkFixDetail[] EMPTY_ARRAY = new BulkFixDetail[0];
-
   public static final List<BulkFixDetail> EMPTY_LIST = List.of();
 
   /**

@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class FlutterWidgetProperty {
 
-  public static final FlutterWidgetProperty[] EMPTY_ARRAY = new FlutterWidgetProperty[0];
-
   public static final List<FlutterWidgetProperty> EMPTY_LIST = List.of();
 
   /**

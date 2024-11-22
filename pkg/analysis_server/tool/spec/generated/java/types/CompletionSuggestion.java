@@ -29,8 +29,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class CompletionSuggestion {
 
-  public static final CompletionSuggestion[] EMPTY_ARRAY = new CompletionSuggestion[0];
-
   public static final List<CompletionSuggestion> EMPTY_LIST = List.of();
 
   /**

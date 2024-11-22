@@ -31,8 +31,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class AnalysisOptions {
 
-  public static final AnalysisOptions[] EMPTY_ARRAY = new AnalysisOptions[0];
-
   public static final List<AnalysisOptions> EMPTY_LIST = List.of();
 
   /**

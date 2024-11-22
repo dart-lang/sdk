@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class ElementDeclaration {
 
-  public static final ElementDeclaration[] EMPTY_ARRAY = new ElementDeclaration[0];
-
   public static final List<ElementDeclaration> EMPTY_LIST = List.of();
 
   /**

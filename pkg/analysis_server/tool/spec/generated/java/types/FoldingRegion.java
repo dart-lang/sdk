@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class FoldingRegion {
 
-  public static final FoldingRegion[] EMPTY_ARRAY = new FoldingRegion[0];
-
   public static final List<FoldingRegion> EMPTY_LIST = List.of();
 
   /**

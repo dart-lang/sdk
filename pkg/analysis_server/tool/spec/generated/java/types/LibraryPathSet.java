@@ -29,8 +29,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class LibraryPathSet {
 
-  public static final LibraryPathSet[] EMPTY_ARRAY = new LibraryPathSet[0];
-
   public static final List<LibraryPathSet> EMPTY_LIST = List.of();
 
   /**

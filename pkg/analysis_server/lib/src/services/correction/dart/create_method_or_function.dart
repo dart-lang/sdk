@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -58,17 +59,42 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       // should be argument of some invocation
       // or child of an expression that is one
       var parameterElement = argument.correspondingParameter;
+      int? recordFieldIndex;
       if (argument.parent case ConditionalExpression parent) {
         if (argument == parent.condition) {
           return;
         }
         parameterElement = parent.correspondingParameter;
+      } else if (argument.parent case RecordLiteral record) {
+        parameterElement = record.correspondingParameter;
+        for (var (index, field)
+            in record.fields.whereNotType<NamedExpression>().indexed) {
+          if (field == argument) {
+            recordFieldIndex = index;
+            break;
+          }
+        }
       }
       if (parameterElement == null) {
         return;
       }
       // should be parameter of function type
       var parameterType = parameterElement.type;
+      if (parameterType is RecordType) {
+        // Finds the corresponding field for argument
+        if (argument is NamedExpression) {
+          var fieldName = argument.name.label.name;
+          for (var field in parameterType.namedFields) {
+            if (field.name == fieldName) {
+              parameterType = field.type;
+              break;
+            }
+          }
+        } else if (recordFieldIndex != null) {
+          var field = parameterType.positionalFields[recordFieldIndex];
+          parameterType = field.type;
+        }
+      }
       if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
         parameterType = FunctionTypeImpl(
           typeFormals: const [],

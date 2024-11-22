@@ -28,8 +28,6 @@ import com.google.gson.JsonPrimitive;
 @SuppressWarnings("unused")
 public class RequestError {
 
-  public static final RequestError[] EMPTY_ARRAY = new RequestError[0];
-
   public static final List<RequestError> EMPTY_LIST = List.of();
 
   /**
