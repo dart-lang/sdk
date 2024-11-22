@@ -317,6 +317,20 @@ Rando^m? r;''');
     );
   }
 
+  Future<void> test_import_multiple() async {
+    await _verifyGoToImports(
+      TestCode.parse('''
+import 'dart:async' as import1;
+import 'dart:async' as import2;
+/*[0*/import 'dart:async';/*0]*/
+/*[1*/import 'dart:core';/*1]*/
+import 'dart:math';
+
+Futur^e<void>? f;
+'''),
+    );
+  }
+
   Future<void> test_import_part() async {
     var otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
     var main = TestCode.parse('''
