@@ -77,11 +77,13 @@ class DtdServices {
   DtdConnectionState get state => _state;
 
   /// Executes the LSP handler for [message] and completes [completer] with the
-  /// result or an [RpcException].
+  /// result or an [RpcException]. The [schedulerCompleter] indicates to the
+  /// [MessageScheduler] that the message processing is done.
   void processMessage(
     IncomingMessage message,
     OperationPerformanceImpl performance,
     Completer<Map<String, Object?>> completer,
+      Completer<void> schedulerCompleter,
   ) async {
     var info = MessageInfo(
       performance: performance,
@@ -117,6 +119,7 @@ class DtdServices {
         'result': result,
       }),
     );
+    schedulerCompleter.complete();
   }
 
   /// Closes the connection to DTD and cleans up.
@@ -201,7 +204,6 @@ class DtdServices {
         completer: completer,
       ),
     );
-    scheduler.notify();
     return completer.future;
   }
 

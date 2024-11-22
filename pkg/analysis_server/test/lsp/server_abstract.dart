@@ -74,6 +74,8 @@ abstract class AbstractLspAnalysisServerTest
   @override
   String get packagesRootPath => resourceProvider.convertPath('/packages');
 
+  bool get retainDataForTesting => false;
+
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
   @override
@@ -309,6 +311,7 @@ abstract class AbstractLspAnalysisServerTest
       httpClient: httpClient,
       processRunner: processRunner,
       dartFixPromptManager: dartFixPromptManager,
+        retainDataForTesting: retainDataForTesting,
     );
     errorNotifier.server = server;
     server.pluginManager = pluginManager;

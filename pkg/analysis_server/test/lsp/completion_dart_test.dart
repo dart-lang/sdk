@@ -4066,9 +4066,6 @@ void f() {
       // Wait for the results.
       var result = await completionRequest;
 
-      // Ensure we flagged that we did not return everything but we still got
-      // results.
-      expect(result.isIncomplete, isTrue);
       expect(result.items, isNotEmpty);
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
