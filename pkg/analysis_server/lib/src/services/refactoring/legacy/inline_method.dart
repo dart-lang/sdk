@@ -18,7 +18,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -55,7 +55,7 @@ String _getMethodSourceForInvocation(
   // prepare edits to replace parameters with arguments
   var edits = <SourceEdit>[];
   part._parameters.forEach((
-    ParameterElement parameter,
+    FormalParameterElement parameter,
     List<_ParameterOccurrence> occurrences,
   ) {
     // prepare argument
@@ -63,7 +63,7 @@ String _getMethodSourceForInvocation(
     for (var arg in arguments) {
       // Compare using names because parameter elements may not be the same
       // instance for methods with generic type arguments.
-      if (arg.staticParameterElement?.name == parameter.name) {
+      if (arg.correspondingParameter?.name3 == parameter.name3) {
         argument = arg;
         break;
       }
@@ -81,7 +81,7 @@ String _getMethodSourceForInvocation(
       // report about a missing required parameter
       if (parameter.isRequiredPositional) {
         status.addError(
-          'No argument for the parameter "${parameter.name}".',
+          'No argument for the parameter "${parameter.name3}".',
           newLocation_fromNode(contextNode),
         );
         return;
@@ -129,7 +129,10 @@ String _getMethodSourceForInvocation(
   }
   // prepare edits to replace conflicting variables
   var conflictingNames = _getNamesConflictingAt(contextNode);
-  part._variables.forEach((VariableElement variable, List<SourceRange> ranges) {
+  part._variables.forEach((
+    VariableElement2 variable,
+    List<SourceRange> ranges,
+  ) {
     var originalName = variable.displayName;
     // prepare unique name
     String uniqueName;
@@ -162,7 +165,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
     var localsRange = _getLocalsConflictingRange(node);
     var enclosingExecutable = getEnclosingExecutableNode(node);
     if (enclosingExecutable != null) {
-      var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
+      var visibleRangeMap = VisibleRangesComputer.forNode2(enclosingExecutable);
       visibleRangeMap.forEach((element, elementRange) {
         if (elementRange.intersects(localsRange)) {
           result.add(element.displayName);
@@ -172,14 +175,14 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   }
   // fields
   {
-    var enclosingInterfaceElement = node.enclosingInterfaceElement;
+    var enclosingInterfaceElement = node.enclosingInterfaceElement2;
     if (enclosingInterfaceElement != null) {
       var elements = [
-        ...enclosingInterfaceElement.allSupertypes.map((e) => e.element),
+        ...enclosingInterfaceElement.allSupertypes.map((type) => type.element3),
         enclosingInterfaceElement,
       ];
       for (var interfaceElement in elements) {
-        var classMembers = getChildren(interfaceElement);
+        var classMembers = getChildren2(interfaceElement);
         for (var classMemberElement in classMembers) {
           result.add(classMemberElement.displayName);
         }
@@ -205,7 +208,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   bool deleteSource = false;
   bool inlineAll = true;
 
-  ExecutableElement? _methodElement;
+  ExecutableElement2? _methodElement;
   late CompilationUnit _methodUnit;
   late CorrectionUtils _methodUtils;
   late AstNode _methodNode;
@@ -215,7 +218,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   _SourcePart? _methodExpressionPart;
   _SourcePart? _methodStatementsPart;
   final List<_ReferenceProcessor> _referenceProcessors = [];
-  final Set<Element> _alreadyMadeAsync = <Element>{};
+  final Set<Element2> _alreadyMadeAsync = <Element2>{};
 
   InlineMethodRefactoringImpl(
     this.searchEngine,
@@ -227,8 +230,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String? get className {
-    var interfaceElement = _methodElement?.enclosingElement3;
-    if (interfaceElement is InterfaceElement) {
+    var interfaceElement = _methodElement?.enclosingElement2;
+    if (interfaceElement is InterfaceElement2) {
       return interfaceElement.displayName;
     }
     return null;
@@ -241,7 +244,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String get refactoringName {
-    if (_methodElement is MethodElement) {
+    if (_methodElement is MethodElement2) {
       return 'Inline Method';
     } else {
       return 'Inline Function';
@@ -267,9 +270,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         methodRange,
         skipLeadingEmptyLines: true,
       );
-      doSourceChange_addElementEdit(
+      doSourceChange_addFragmentEdit(
         change,
-        _methodElement!,
+        _methodElement!.firstFragment,
         newSourceEdit_range(linesRange, ''),
       );
     }
@@ -285,20 +288,31 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     if (result.hasFatalError) {
       return result;
     }
-    // maybe operator
-    if (_methodElement!.isOperator) {
-      result = RefactoringStatus.fatal('Cannot inline operator.');
+    var methodElement = _methodElement!;
+
+    // Disallow inlining an augmented method.
+    var methodFragment = methodElement.firstFragment;
+    if (methodFragment.nextFragment != null) {
+      result = RefactoringStatus.fatal("Can't inline an augmented method.");
       return result;
     }
-    // maybe [a]sync*
-    if (_methodElement!.isGenerator) {
-      result = RefactoringStatus.fatal('Cannot inline a generator.');
+
+    // Disallow inlining an operator.
+    if (methodElement is MethodElement2 && methodElement.isOperator) {
+      result = RefactoringStatus.fatal("Can't inline an operator.");
       return result;
     }
+
+    // Disallow inlining a generator (`sync*` or `async*`).
+    if (methodFragment.isGenerator) {
+      result = RefactoringStatus.fatal("Can't inline a generator.");
+      return result;
+    }
+
     // analyze method body
     result.addStatus(_prepareMethodParts());
     // process references
-    var references = await searchEngine.searchReferences(_methodElement!);
+    var references = await searchEngine.searchReferences2(methodElement);
     _referenceProcessors.clear();
     for (var reference in references) {
       var processor = _ReferenceProcessor(this, reference);
@@ -325,32 +339,32 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     );
 
     var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-    Element? element;
+    Element2? element;
 
     if (selectedNode is FunctionDeclaration) {
-      element = selectedNode.declaredElement;
+      element = selectedNode.declaredFragment?.element;
       isDeclaration = true;
     } else if (selectedNode is MethodDeclaration) {
-      element = selectedNode.declaredElement;
+      element = selectedNode.declaredFragment?.element;
       isDeclaration = true;
     } else if (selectedNode is SimpleIdentifier) {
-      element = selectedNode.writeOrReadElement;
+      element = selectedNode.writeOrReadElement2;
     } else {
       return fatalStatus;
     }
-    if (element is! ExecutableElement) {
+    if (element is! ExecutableElement2) {
       return fatalStatus;
     }
     if (element.isSynthetic) {
       return fatalStatus;
     }
     // maybe operator
-    if (element.isOperator) {
-      return RefactoringStatus.fatal('Cannot inline operator.');
+    if (element is MethodElement2 && element.isOperator) {
+      return RefactoringStatus.fatal("Can't inline an operator.");
     }
     // maybe [a]sync*
-    if (element.isGenerator) {
-      return RefactoringStatus.fatal('Cannot inline a generator.');
+    if (element.firstFragment.isGenerator) {
+      return RefactoringStatus.fatal("Can't inline a generator.");
     }
 
     return RefactoringStatus();
@@ -381,21 +395,21 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
     // prepare selected SimpleIdentifier
     var selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-    Element? element;
+    Element2? element;
     if (selectedNode is FunctionDeclaration) {
-      element = selectedNode.declaredElement;
+      element = selectedNode.declaredFragment?.element;
       isDeclaration = true;
     } else if (selectedNode is MethodDeclaration) {
-      element = selectedNode.declaredElement;
+      element = selectedNode.declaredFragment?.element;
       isDeclaration = true;
     } else if (selectedNode is SimpleIdentifier) {
-      element = selectedNode.writeOrReadElement;
+      element = selectedNode.writeOrReadElement2;
     } else {
       return fatalStatus;
     }
 
     // prepare selected ExecutableElement
-    if (element is! ExecutableElement) {
+    if (element is! ExecutableElement2) {
       return fatalStatus;
     }
     if (element.isSynthetic) {
@@ -403,7 +417,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element;
 
-    var declaration = await sessionHelper.getElementDeclaration(element);
+    var declaration = await sessionHelper.getElementDeclaration2(
+      element.firstFragment,
+    );
     var methodNode = declaration!.node;
     _methodNode = methodNode;
 
@@ -461,7 +477,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       // check if more than one return
       body.accept(_ReturnsValidatorVisitor(result));
     } else {
-      return RefactoringStatus.fatal('Cannot inline method without body.');
+      return RefactoringStatus.fatal("Can't inline a method without a body.");
     }
     return result;
   }
@@ -484,7 +500,7 @@ class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
   final SearchMatch reference;
 
-  late Element refElement;
+  late Element2 refElement;
   late CorrectionUtils _refUtils;
   late SimpleIdentifier _node;
   SourceRange? _refLineRange;
@@ -493,10 +509,10 @@ class _ReferenceProcessor {
   _ReferenceProcessor(this.ref, this.reference);
 
   Future<void> init() async {
-    refElement = reference.element;
+    refElement = reference.element2;
 
     // prepare CorrectionUtils
-    var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
+    var result = await ref.sessionHelper.getResolvedUnitByElement2(refElement);
     _refUtils = CorrectionUtils(result!);
 
     // prepare node and environment
@@ -513,7 +529,7 @@ class _ReferenceProcessor {
   }
 
   void _addRefEdit(SourceEdit edit) {
-    doSourceChange_addElementEdit(ref.change, refElement, edit);
+    doSourceChange_addSourceEdit(ref.change, reference.unitSource, edit);
   }
 
   bool _canInlineBody(AstNode usage) {
@@ -567,7 +583,7 @@ class _ReferenceProcessor {
     // we don't support cascade
     if (cascaded) {
       status.addError(
-        'Cannot inline cascade invocation.',
+        "Can't inline a cascade invocation.",
         newLocation_fromNode(usage),
       );
     }
@@ -652,22 +668,22 @@ class _ReferenceProcessor {
     }
     // If the element being inlined is async, ensure that the function
     // body that encloses the method is also async.
-    if (ref._methodElement!.isAsynchronous) {
+    if (ref._methodElement!.firstFragment.isAsynchronous) {
       var body = _node.thisOrAncestorOfType<FunctionBody>();
       if (body != null) {
         if (body.isSynchronous) {
           if (body.isGenerator) {
             status.addFatalError(
-              'Cannot inline async into sync*.',
+              "Can't inline an 'async' method into a 'sync*' method.",
               newLocation_fromNode(_node),
             );
             return;
           }
-          if (refElement is ExecutableElement) {
-            var executable = refElement as ExecutableElement;
+          if (refElement is ExecutableElement2) {
+            var executable = refElement as ExecutableElement2;
             if (!executable.returnType.isDartAsyncFuture) {
               status.addFatalError(
-                'Cannot inline async into a function that does not return a Future.',
+                "Can't inline an 'async' method into a function that doesn't return a 'Future'.",
                 newLocation_fromNode(_node),
               );
               return;
@@ -694,15 +710,15 @@ class _ReferenceProcessor {
       );
     } else {
       // cannot inline reference to method: var v = new A().method;
-      if (ref._methodElement is MethodElement) {
+      if (ref._methodElement is MethodElement2) {
         status.addFatalError(
-          'Cannot inline class method reference.',
+          "Can't inline a class method reference.",
           newLocation_fromNode(_node),
         );
         return;
       }
       // PropertyAccessorElement
-      if (ref._methodElement is PropertyAccessorElement) {
+      if (ref._methodElement is PropertyAccessorElement2) {
         Expression usage = _node;
         Expression? target;
         var cascade = false;
@@ -790,10 +806,11 @@ class _SourcePart {
   final String _prefix;
 
   /// The occurrences of the method parameters.
-  final Map<ParameterElement, List<_ParameterOccurrence>> _parameters = {};
+  final Map<FormalParameterElement, List<_ParameterOccurrence>> _parameters =
+      {};
 
   /// The occurrences of the method local variables.
-  final Map<VariableElement, List<SourceRange>> _variables = {};
+  final Map<VariableElement2, List<SourceRange>> _variables = {};
 
   /// The offsets of explicit `this` expression references.
   final List<int> _explicitThisOffsets = [];
@@ -824,7 +841,7 @@ class _SourcePart {
   }
 
   void addParameterOccurrence({
-    required ParameterElement parameter,
+    required FormalParameterElement parameter,
     required SourceRange identifierRange,
     required Precedence parentPrecedence,
     required bool inStringInterpolation,
@@ -844,7 +861,7 @@ class _SourcePart {
     );
   }
 
-  void addVariable(VariableElement element, SourceRange identifierRange) {
+  void addVariable(VariableElement2 element, SourceRange identifierRange) {
     var ranges = _variables[element];
     if (ranges == null) {
       ranges = [];
@@ -858,7 +875,7 @@ class _SourcePart {
 /// A visitor that fills [_SourcePart] with fields, parameters and variables.
 class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   /// The [ExecutableElement] being inlined.
-  final ExecutableElement methodElement;
+  final ExecutableElement2 methodElement;
 
   /// The [SourceRange] of the element body.
   final SourceRange bodyRange;
@@ -899,7 +916,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     var nameRange = range.token(node.name);
     if (bodyRange.covers(nameRange)) {
-      var declaredElement = node.declaredElement;
+      var declaredElement = node.declaredFragment?.element;
       if (declaredElement != null) {
         result.addVariable(declaredElement, nameRange);
       }
@@ -915,9 +932,9 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
     // should be a method or field reference
-    var element = node.writeOrReadElement;
-    if (element is ExecutableElement) {
-      if (element is MethodElement || element is PropertyAccessorElement) {
+    var element = node.writeOrReadElement2;
+    if (element is ExecutableElement2) {
+      if (element is MethodElement2 || element is PropertyAccessorElement2) {
         // OK
       } else {
         return;
@@ -925,13 +942,13 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     } else {
       return;
     }
-    if (element.enclosingElement3 is! InterfaceElement) {
+    if (element.enclosingElement2 is! InterfaceElement2) {
       return;
     }
     // record the implicit static or instance reference
     var offset = node.offset;
     if (element.isStatic) {
-      var className = element.enclosingElement3.displayName;
+      var className = element.enclosingElement2!.name3!;
       result.addImplicitClassNameOffset(className, offset);
     } else {
       result.addImplicitThisOffset(offset);
@@ -939,13 +956,13 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addParameter(SimpleIdentifier node) {
-    var parameterElement = getParameterElement(node);
+    var parameterElement = getParameterElement2(node);
     // not a parameter
     if (parameterElement == null) {
       return;
     }
     // not a parameter of the function being inlined
-    if (!methodElement.parameters.contains(parameterElement)) {
+    if (!methodElement.formalParameters.contains(parameterElement)) {
       return;
     }
     // OK, add occurrence
@@ -960,7 +977,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addVariable(SimpleIdentifier node) {
-    var variableElement = getLocalVariableElement(node);
+    var variableElement = getLocalVariableElement2(node);
     if (variableElement != null) {
       var nodeRange = range.node(node);
       result.addVariable(variableElement, nodeRange);

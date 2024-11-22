@@ -53,7 +53,6 @@ lib/src/services/refactoring/legacy/extract_local.dart
 lib/src/services/refactoring/legacy/extract_method.dart
 lib/src/services/refactoring/legacy/extract_widget.dart
 lib/src/services/refactoring/legacy/inline_local.dart
-lib/src/services/refactoring/legacy/inline_method.dart
 lib/src/services/refactoring/legacy/move_file.dart
 lib/src/services/refactoring/legacy/refactoring.dart
 lib/src/services/refactoring/legacy/refactoring_internal.dart
