@@ -173,6 +173,23 @@ class AnalysisSessionHelper {
     return null;
   }
 
+  /// Returns the [PropertyAccessorElement] with the given [name] that is
+  /// exported from the library with the given [uri].
+  ///
+  /// Returns `null` if the library does not export a top-level accessor with
+  /// that name.
+  Future<PropertyAccessorElement2?> getTopLevelPropertyAccessor2(
+      String uri, String name) async {
+    var libraryResult = await session.getLibraryByUri(uri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element2.exportNamespace.get2(name);
+      if (element is PropertyAccessorElement2) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   /// Return a newly resolved, or cached library with the given [path].
   Future<ResolvedLibraryResult?> _getResolvedLibrary(String path) async {
     var result = _resolvedLibraries[path];

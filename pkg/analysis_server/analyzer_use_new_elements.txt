@@ -50,7 +50,6 @@ lib/src/services/kythe/kythe_visitors.dart
 lib/src/services/refactoring/agnostic/change_method_signature.dart
 lib/src/services/refactoring/framework/formal_parameter.dart
 lib/src/services/refactoring/legacy/extract_method.dart
-lib/src/services/refactoring/legacy/extract_widget.dart
 lib/src/services/refactoring/legacy/inline_local.dart
 lib/src/services/refactoring/legacy/move_file.dart
 lib/src/services/refactoring/legacy/refactoring.dart
