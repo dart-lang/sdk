@@ -106,6 +106,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 14),
   ),
 
+  getterSetterError(
+    name: 'getter-setter-error',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   inferenceUpdate1(
     name: 'inference-update-1',
     isEnabledByDefault: true,

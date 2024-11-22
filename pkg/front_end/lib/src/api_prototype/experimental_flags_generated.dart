@@ -169,6 +169,15 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 14),
   );
 
+  static const ExperimentalFlag getterSetterError = const ExperimentalFlag(
+    name: 'getter-setter-error',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag inferenceUpdate1 = const ExperimentalFlag(
     name: 'inference-update-1',
     isEnabledByDefault: true,
@@ -529,6 +538,12 @@ class GlobalFeatures {
         ExperimentalFlag.genericMetadata,
       );
 
+  GlobalFeature? _getterSetterError;
+  GlobalFeature get getterSetterError =>
+      _getterSetterError ??= _computeGlobalFeature(
+        ExperimentalFlag.getterSetterError,
+      );
+
   GlobalFeature? _inferenceUpdate1;
   GlobalFeature get inferenceUpdate1 =>
       _inferenceUpdate1 ??= _computeGlobalFeature(
@@ -772,6 +787,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _getterSetterError;
+  LibraryFeature get getterSetterError =>
+      _getterSetterError ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.getterSetterError,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _inferenceUpdate1;
   LibraryFeature get inferenceUpdate1 =>
       _inferenceUpdate1 ??= globalFeatures._computeLibraryFeature(
@@ -1001,6 +1024,8 @@ class LibraryFeatures {
         return extensionMethods;
       case shared.ExperimentalFlag.genericMetadata:
         return genericMetadata;
+      case shared.ExperimentalFlag.getterSetterError:
+        return getterSetterError;
       case shared.ExperimentalFlag.inferenceUpdate1:
         return inferenceUpdate1;
       case shared.ExperimentalFlag.inferenceUpdate2:
@@ -1083,6 +1108,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.extensionMethods;
     case "generic-metadata":
       return ExperimentalFlag.genericMetadata;
+    case "getter-setter-error":
+      return ExperimentalFlag.getterSetterError;
     case "inference-update-1":
       return ExperimentalFlag.inferenceUpdate1;
     case "inference-update-2":
@@ -1164,6 +1191,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.extensionMethods.isEnabledByDefault,
   ExperimentalFlag.genericMetadata:
       ExperimentalFlag.genericMetadata.isEnabledByDefault,
+  ExperimentalFlag.getterSetterError:
+      ExperimentalFlag.getterSetterError.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate1:
       ExperimentalFlag.inferenceUpdate1.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate2:
@@ -1229,6 +1258,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.enumShorthands: ExperimentalFlag.enumShorthands,
   shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
+  shared.ExperimentalFlag.getterSetterError: ExperimentalFlag.getterSetterError,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
   shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
   shared.ExperimentalFlag.inferenceUpdate3: ExperimentalFlag.inferenceUpdate3,
