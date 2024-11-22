@@ -78,9 +78,9 @@ class RelevanceComputer {
       element,
       distance: inheritanceDistance,
     );
-    var hasDeprecated = featureComputer.hasDeprecatedFeature2(element);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
     var startsWithDollar = featureComputer.startsWithDollarFeature(
       element.displayName,
     );
@@ -353,9 +353,9 @@ class RelevanceComputer {
       elementType,
     );
     var elementKind = _computeElementKind(element);
-    var hasDeprecated = featureComputer.hasDeprecatedFeature2(element);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -380,9 +380,9 @@ class RelevanceComputer {
       elementType,
     );
     var elementKind = _computeElementKind2(element);
-    var hasDeprecated = featureComputer.hasDeprecatedFeature2(element);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -406,9 +406,9 @@ class RelevanceComputer {
       type,
     );
     var elementKind = _computeElementKind(accessor, distance: distance);
-    var hasDeprecated = featureComputer.hasDeprecatedFeature2(accessor);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature2(accessor) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature(accessor) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -439,7 +439,7 @@ class RelevanceComputer {
   /// the completion context.
   double _computeElementKind(Element2 element, {double? distance}) {
     var location = completionLocation;
-    var elementKind = featureComputer.elementKindFeature2(
+    var elementKind = featureComputer.elementKindFeature(
       element,
       location,
       distance: distance,
@@ -461,7 +461,7 @@ class RelevanceComputer {
   /// the completion context.
   double _computeElementKind2(Element2 element, {double? distance}) {
     var location = completionLocation;
-    var elementKind = featureComputer.elementKindFeature2(
+    var elementKind = featureComputer.elementKindFeature(
       element,
       location,
       distance: distance,
@@ -510,7 +510,7 @@ class RelevanceComputer {
     );
     var elementKind = _computeElementKind(element);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -555,7 +555,7 @@ class RelevanceComputer {
       distance: localVariableDistance,
     );
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature2(element) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature(element) : 0.0;
     return computeScore(
       contextType: contextType,
       elementKind: elementKind,
@@ -578,9 +578,9 @@ class RelevanceComputer {
       method,
       distance: inheritanceDistance,
     );
-    var hasDeprecated = featureComputer.hasDeprecatedFeature2(method);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature2(method) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature(method) : 0.0;
     var isNoSuchMethod = featureComputer.isNoSuchMethodFeature(
       _containingMemberName,
       method.displayName,
@@ -698,7 +698,7 @@ class RelevanceComputer {
   int _computeTypeParameterRelevance(TypeParameterElement2 parameter) {
     var elementKind = _computeElementKind(parameter);
     var isConstant =
-        preferConstants ? featureComputer.isConstantFeature2(parameter) : 0.0;
+        preferConstants ? featureComputer.isConstantFeature(parameter) : 0.0;
     return computeScore(elementKind: elementKind, isConstant: isConstant);
   }
 

@@ -1887,6 +1887,10 @@ abstract class MethodElement2 implements ExecutableElement2 {
   /// instances to be invoked as if they were a function.
   static final String CALL_METHOD_NAME = "call";
 
+  /// The name of the method that will be invoked if an attempt is made to
+  /// invoke an undefined method on an object.
+  static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
+
   @override
   MethodElement2 get baseElement;
 
