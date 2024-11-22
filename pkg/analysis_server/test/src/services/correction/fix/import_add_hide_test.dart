@@ -343,12 +343,13 @@ Random? r;
     await assertHasFix(
       '''
 part of 'root.dart';
-import 'dart:math';
+import 'dart:math' hide Random;
 import 'lib.dart';
 part 'level2_other.dart';
 part 'test.dart';
 ''',
-      target: 'lib.dart',
+      target: '$testPackageLibPath/level1.dart',
+      matchFixMessage: "Hide others to use 'Random' from 'lib.dart'",
     );
   }
 
