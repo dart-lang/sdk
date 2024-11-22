@@ -318,7 +318,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// [expected] output.
   Future<void> assertHasFix(
     String expected, {
-    bool Function(AnalysisError)? errorFilter,
+    bool Function(AnalysisError error)? errorFilter,
     String? target,
     int? expectedNumberOfFixesForKind,
     String? matchFixMessage,
