@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  try {
+    {
+      final synthesized Never #0#0 = throw "A";
+      if(!#0#0)
+        throw{for-error-handling} new core::StateError::•("Pattern matching error");
+    }
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Missing exception";
+}
