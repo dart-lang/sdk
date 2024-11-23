@@ -42,6 +42,31 @@ void f(String s, lib.C c) {
 ''');
   }
 
+  Future<void> test_extension_hidden_class() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on String {
+  int get m => 0;
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' as lib hide C;
+import 'package:test/lib.dart' hide C;
+
+void f(String s, lib.C c) {
+  s.m;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib hide C;
+import 'package:test/lib.dart';
+
+void f(String s, C c) {
+  s.m;
+}
+''');
+  }
+
   Future<void> test_extension_hidden_getter() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class C {}
