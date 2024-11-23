@@ -679,7 +679,7 @@ mixin MemberSuggestion implements ElementBasedSuggestion {
       var declaringClass = element.enclosingElement2;
       var referencingInterface = this.referencingInterface;
       if (referencingInterface != null && declaringClass is InterfaceElement2) {
-        inheritanceDistance = featureComputer.inheritanceDistanceFeature2(
+        inheritanceDistance = featureComputer.inheritanceDistanceFeature(
           referencingInterface,
           declaringClass,
         );

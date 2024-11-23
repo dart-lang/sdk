@@ -196,7 +196,7 @@ class PluginServer {
           // YAML files for analysis options and pubspec analysis and quick
           // fixes.
           .where((p) => file_paths.isDart(_resourceProvider.pathContext, p))
-          .toList();
+          .toSet();
 
       await _analyzeFiles(
         analysisContext: analysisContext,
@@ -211,37 +211,30 @@ class PluginServer {
   }) async {
     var file = _resourceProvider.getFile(path);
     var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    var lints = await _computeLints(
+    var diagnostics = await _computeLints(
       analysisContext,
       path,
       analysisOptions: analysisOptions as AnalysisOptionsImpl,
     );
     _channel.sendNotification(
-        protocol.AnalysisErrorsParams(path, lints).toNotification());
+        protocol.AnalysisErrorsParams(path, diagnostics).toNotification());
   }
 
   /// Analyzes the files at the given [paths].
   Future<void> _analyzeFiles({
     required AnalysisContext analysisContext,
-    required List<String> paths,
+    required Set<String> paths,
   }) async {
-    var pathSet = paths.toSet();
-
     // First analyze priority files.
     for (var path in _priorityPaths) {
-      pathSet.remove(path);
-      await _analyzeFile(
-        analysisContext: analysisContext,
-        path: path,
-      );
+      if (paths.remove(path)) {
+        await _analyzeFile(analysisContext: analysisContext, path: path);
+      }
     }
 
     // Then analyze the remaining files.
-    for (var path in pathSet) {
-      await _analyzeFile(
-        analysisContext: analysisContext,
-        path: path,
-      );
+    for (var path in paths) {
+      await _analyzeFile(analysisContext: analysisContext, path: path);
     }
   }
 
@@ -411,9 +404,8 @@ class PluginServer {
     required AnalysisContext analysisContext,
     required List<String> paths,
   }) async {
-    var analyzedPaths = paths
-        .where(analysisContext.contextRoot.isAnalyzed)
-        .toList(growable: false);
+    var analyzedPaths =
+        paths.where(analysisContext.contextRoot.isAnalyzed).toSet();
 
     await _analyzeFiles(
       analysisContext: analysisContext,

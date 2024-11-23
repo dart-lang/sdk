@@ -29,7 +29,6 @@ lib/src/search/element_references.dart
 lib/src/search/type_hierarchy.dart
 lib/src/services/completion/dart/completion_manager.dart
 lib/src/services/completion/dart/declaration_helper.dart
-lib/src/services/completion/dart/feature_computer.dart
 lib/src/services/completion/dart/identifier_helper.dart
 lib/src/services/completion/dart/in_scope_completion_pass.dart
 lib/src/services/completion/dart/not_imported_completion_pass.dart
@@ -49,11 +48,7 @@ lib/src/services/flutter/widget_descriptions.dart
 lib/src/services/kythe/kythe_visitors.dart
 lib/src/services/refactoring/agnostic/change_method_signature.dart
 lib/src/services/refactoring/framework/formal_parameter.dart
-lib/src/services/refactoring/legacy/extract_local.dart
 lib/src/services/refactoring/legacy/extract_method.dart
-lib/src/services/refactoring/legacy/extract_widget.dart
-lib/src/services/refactoring/legacy/inline_local.dart
-lib/src/services/refactoring/legacy/inline_method.dart
 lib/src/services/refactoring/legacy/move_file.dart
 lib/src/services/refactoring/legacy/refactoring.dart
 lib/src/services/refactoring/legacy/refactoring_internal.dart

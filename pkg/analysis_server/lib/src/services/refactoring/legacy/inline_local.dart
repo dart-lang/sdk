@@ -12,7 +12,7 @@ import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -41,7 +41,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   String? get variableName {
-    return _initialState?.element.name;
+    return _initialState?.element.name3;
   }
 
   @override
@@ -53,20 +53,22 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     // prepare variable
-    Element? element;
+    Element2? element;
     var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
     if (offsetNode is SimpleIdentifier) {
-      element = offsetNode.staticElement;
+      element = offsetNode.element;
     } else if (offsetNode is VariableDeclaration) {
-      element = offsetNode.declaredElement;
+      element = offsetNode.declaredFragment?.element;
     }
 
-    if (element is! LocalVariableElement) {
+    if (element is! LocalVariableElement2) {
       return _noLocalVariableStatus();
     }
 
     var helper = AnalysisSessionHelper(resolveResult.session);
-    var declarationResult = await helper.getElementDeclaration(element);
+    var declarationResult = await helper.getElementDeclaration2(
+      element.firstFragment,
+    );
     var node = declarationResult?.node;
     if (node is! VariableDeclaration) {
       return _noLocalVariableStatus();
@@ -86,7 +88,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
       return RefactoringStatus.fatal(message, newLocation_fromNode(node));
     }
     // prepare references
-    var references = await searchEngine.searchReferences(element);
+    var references = await searchEngine.searchReferences2(element);
     // should not have assignments
     for (var reference in references) {
       if (reference.kind != MatchKind.READ) {
@@ -114,14 +116,14 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange() {
     var change = SourceChange(refactoringName);
-    var unitElement = resolveResult.unit.declaredElement!;
+    var libraryFragment = resolveResult.unit.declaredFragment!;
     var state = _initialState!;
     // remove declaration
     {
       var range = utils.getLinesRangeStatements([state.declarationStatement]);
-      doSourceChange_addElementEdit(
+      doSourceChange_addFragmentEdit(
         change,
-        unitElement,
+        libraryFragment,
         newSourceEdit_range(range, ''),
       );
     }
@@ -160,9 +162,9 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         codeForReference = initializerCode;
       }
       // do replace
-      doSourceChange_addElementEdit(
+      doSourceChange_addFragmentEdit(
         change,
-        unitElement,
+        libraryFragment,
         newSourceEdit_range(editRange, codeForReference),
       );
     }
@@ -177,15 +179,15 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a variable that can be inlined.
   RefactoringStatus _checkOffset() {
-    Element? element;
+    Element2? element;
     var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
     if (offsetNode is SimpleIdentifier) {
-      element = offsetNode.staticElement;
+      element = offsetNode.element;
     } else if (offsetNode is VariableDeclaration) {
-      element = offsetNode.declaredElement;
+      element = offsetNode.declaredFragment?.element;
     }
 
-    if (element is! LocalVariableElement) {
+    if (element is! LocalVariableElement2) {
       return _noLocalVariableStatus();
     }
 
@@ -256,7 +258,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 }
 
 class _InitialState {
-  final LocalVariableElement element;
+  final LocalVariableElement2 element;
   final VariableDeclaration node;
   final Expression initializer;
   final VariableDeclarationStatement declarationStatement;

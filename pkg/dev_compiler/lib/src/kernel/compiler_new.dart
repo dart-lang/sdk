@@ -4919,11 +4919,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var labelName = 'SL${_switchLabelStates.length}';
       _switchLabelStates[node] = _SwitchLabelState(labelName, labelState);
 
+      // Since we wrap the switch in a 'while (true)' loop the continue targets
+      // within the switch will no longer target the correct loop so we need
+      // explicit breaks.
+      final savedCurrentContinueTargets = _currentContinueTargets;
+      _currentContinueTargets = [];
+
       for (var c in node.cases) {
         var subcases =
             _visitSwitchCase(c, lastSwitchCase: c == node.cases.last);
         if (subcases.isNotEmpty) cases.addAll(subcases);
       }
+      _currentContinueTargets = savedCurrentContinueTargets;
 
       var switchExpr = _visitExpression(node.expression);
       var switchStmt = js_ast.Switch(labelState, cases);
