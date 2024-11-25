@@ -6229,10 +6229,12 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                __ popq(RAX))
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
-  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
-  // call to tell TSAN about our action.
-  __ pushq(THR);
-  __ MoveRegister(THR, CallingConventions::kArg2Reg);
+  if (FLAG_target_thread_sanitizer) {
+    // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+    // call to tell TSAN about our action.
+    __ MoveRegister(THR, CallingConventions::kArg2Reg);
+  }
+
   __ pushq(RCX);
   __ xorq(RCX, RCX);
   __ pushq(RCX);
@@ -6297,7 +6299,6 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
   __ LoadAcquireFromOffset(CallingConventions::kReturnReg, RSP, 0);
   __ popq(RCX);
   __ popq(RCX);
-  __ popq(THR);
   __ ret();
 }
 
@@ -6307,10 +6308,12 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
-  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
-  // call to tell TSAN about our action.
-  __ pushq(THR);
-  __ MoveRegister(THR, CallingConventions::kArg2Reg);
+  if (FLAG_target_thread_sanitizer) {
+    // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+    // call to tell TSAN about our action.
+    __ MoveRegister(THR, CallingConventions::kArg2Reg);
+  }
+
   __ pushq(RCX);
   __ xorq(RCX, RCX);
   __ pushq(RCX);
@@ -6320,7 +6323,6 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
   __ addq(RSP, Immediate(1024));
   __ popq(RCX);
   __ popq(RCX);
-  __ popq(THR);
   __ ret();
 }
 
