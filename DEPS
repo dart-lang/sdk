@@ -144,7 +144,7 @@ vars = {
   "markdown_rev": "776689c8749ebddd4ea0ec899085bd2aae0e25ba",
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   # dart-native-interop-team@ is rolling breaking changes manually while the assets features are in experimental.
-  "native_rev": "51647776372aa9e1f839efb811aa959fe445c0cf", # disable tools/rev_sdk_deps.dart
+  "native_rev": "028f89d4a59448f9ecda5bd3d4519e2d7c742072", # disable tools/rev_sdk_deps.dart
   "package_config_rev": "2583a4e2f9382409ba3bcfa4887ef2a2a8a2aee3",
   "pool_rev": "0bac9b20ef61ad8bfdd6b92b565dd12e8e2e2c78",
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
@@ -164,7 +164,7 @@ vars = {
   "test_descriptor_rev": "71195671e00f2d330a9ebda0bd48f99364bb30f2",
   "test_process_rev": "7c76f470173366ec90525e49961f2ce1fcf516d3",
   "test_reflective_loader_rev": "30a552df6421e1f68cdc33c98c2512984b6f42b9",
-  "tools_rev": "a6603a45374fc2ed9de4cf0297bde003f141dc9b",
+  "tools_rev": "466bb19b8ad8b278c351914ce20bedb7b32bfc91",
   "vector_math_rev": "ec5080d5e6731bef4deffae78eb778ae787ba92f",
   "watcher_rev": "7a15a903f7ce0737cce7d08ff30402d41b9f7b62",
   "web_rev": "8d243766b45c163a9d18a89de059eba24398d163",
