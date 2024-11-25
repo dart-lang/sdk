@@ -179,7 +179,7 @@ class IncrementalJavaScriptBundler {
     int metadataOffset = 0;
     int symbolsOffset = 0;
     final Map<String, Map<String, List<int>>> manifest = {};
-    final Set<Uri> visited = {};
+    final Map<Uri, Compiler> visited = {};
     final Map<String, Compiler> kernel2JsCompilers = {};
 
     for (Library library in _currentComponent.libraries) {
@@ -189,10 +189,10 @@ class IncrementalJavaScriptBundler {
       }
       final Uri moduleUri =
           _strongComponents.moduleAssignment[library.importUri]!;
-      if (visited.contains(moduleUri)) {
+      if (visited.containsKey(moduleUri)) {
+        kernel2JsCompilers[library.importUri.toString()] = visited[moduleUri]!;
         continue;
       }
-      visited.add(moduleUri);
 
       final Component summaryComponent = _uriToComponent[moduleUri]!;
 
@@ -231,7 +231,8 @@ class IncrementalJavaScriptBundler {
       final Program jsModule = compiler.emitModule(summaryComponent);
 
       // Save program compiler to reuse for expression evaluation.
-      kernel2JsCompilers[moduleName] = compiler;
+      kernel2JsCompilers[library.importUri.toString()] = compiler;
+      visited[moduleUri] = compiler;
 
       String? sourceMapBase;
       if (moduleUri.isScheme('package')) {

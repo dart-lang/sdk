@@ -215,10 +215,7 @@ void main() {
         expect(code, contains('sourceMappingURL=c.dart.lib.js.map'));
 
         // Verify program compilers are created.
-        final String moduleUrl = javaScriptBundler.urlForComponentUri(
-            library.importUri, packageConfig);
-        final String moduleName = javaScriptBundler.makeModuleName(moduleUrl);
-        expect(compilers.keys, equals([moduleName]));
+        expect(compilers.keys, equals([library.importUri.toString()]));
       });
 
       test('converts package: uris into /packages/ uris', () async {
