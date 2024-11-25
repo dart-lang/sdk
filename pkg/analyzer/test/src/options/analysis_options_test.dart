@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
@@ -24,14 +23,15 @@ main() {
 class AnalysisOptionsTest {
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
-  final ResourceProvider resourceProvider = MemoryResourceProvider();
+  final resourceProvider = MemoryResourceProvider();
 
   // TODO(srawlins): Add tests that exercise
   // `optionsProvider.getOptionsFromString` throwing an exception.
   AnalysisOptionsImpl parseOptions(String content) =>
       AnalysisOptionsImpl.fromYaml(
         optionsMap: optionsProvider.getOptionsFromString(content),
-        file: resourceProvider.getFile('/project/analysis_options.yaml'),
+        file: resourceProvider.getFile(resourceProvider.convertPath(
+            '/project/analysis_options.yaml')),
         resourceProvider: resourceProvider,
       );
 
@@ -331,7 +331,7 @@ plugins:
         'toYaml',
         '''
   plugin_one:
-    path: /project/foo/bar
+    path: ${resourceProvider.convertPath('/project/foo/bar')}
 ''',
       ),
     );
@@ -354,7 +354,7 @@ plugins:
         'toYaml',
         '''
   plugin_one:
-    path: /foo/baz
+    path: ${resourceProvider.convertPath('/foo/baz')}
 ''',
       ),
     );
