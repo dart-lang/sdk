@@ -140,6 +140,10 @@ declare_args() {
   # protobuf-gn fails to build if this argument isn't defined. This should never
   # be set to true, becuase we never build within the Fuchsia tree.
   is_fuchsia_tree = false
+
+  # Set to true when compiling in a _shared toolchain, used for
+  # building shared libraries.
+  is_shared_library = false
 }
 
 # =============================================================================
@@ -256,6 +260,11 @@ if (use_flutter_cxx) {
     "//third_party/libcxxabi:libcxxabi_config",
     "//third_party/libcxx:libcxx_config",
   ]
+}
+
+if (is_shared_library) {
+  # Always enable DART_EXPORT in shared toolchain.
+  _native_compiler_configs += [ "//build/config/compiler:dart_shared_lib" ]
 }
 
 if (is_win) {
@@ -456,7 +465,7 @@ if (is_win) {
   }
 }
 
-# Sets default dependencies for executable and shared_library targets.
+# Sets default dependencies for executable and loadable_module targets.
 #
 # Variables
 #   no_default_deps: If true, no standard dependencies will be added.
@@ -464,7 +473,6 @@ foreach(_target_type,
         [
           "executable",
           "loadable_module",
-          "shared_library",
         ]) {
   template(_target_type) {
     target(_target_type, target_name) {
@@ -473,6 +481,128 @@ foreach(_target_type,
         deps = []
       }
       if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+        if (use_flutter_cxx) {
+          deps += [ "//third_party/libcxx" ]
+        }
+        if (is_fuchsia) {
+          deps += [
+            "//build/fuchsia/config/clang:c++-runtime-deps",
+            "//third_party/fuchsia/gn-sdk/src/config:runtime_library_group",
+          ]
+        }
+      }
+    }
+  }
+}
+
+if (!is_shared_library) {
+  # In the main toolchain, shared_library defined as a group with two targets:
+  #
+  # - same library in the _shared toolcahin
+  # - copy of the built library from a toolchain output folder into
+  #   the main output folder
+  template("shared_library") {
+    original_target_name = target_name
+    copy_target_name = "${target_name}_copy"
+    shared_toolchain_target_name =
+        "${original_target_name}(${current_toolchain}_shared)"
+
+    copy(copy_target_name) {
+      forward_variables_from(invoker,
+                             [
+                               "testonly",
+                               "visibility",
+                             ])
+      if (defined(visibility)) {
+        visibility += [ ":$original_target_name" ]
+      }
+
+      deps = [ ":$shared_toolchain_target_name" ]
+
+      # Calculate an output file name produced by an shared library.
+      # Inspired by Fuchsia build config
+      # https://cs.opensource.google/fuchsia/fuchsia/+/main:build/config/BUILDCONFIG.gn;l=3183;drc=86dcff138700c76441db8592b39de7b3997a0050
+      output_name = original_target_name
+      if (defined(invoker.output_name)) {
+        output_name = invoker.output_name
+      }
+
+      output_prefix = "lib"
+      if (!defined(output_extension)) {
+        if (current_os == "mac" || current_os == "ios") {
+          output_extension = "dylib"
+        } else if (current_os == "win") {
+          output_extension = "dll"
+          output_prefix = ""
+        } else if (current_os == "unknown" && current_cpu == "wasm32") {
+          output_extension = "wasm"
+        } else {
+          output_extension = "so"
+        }
+      }
+
+      output_file_name = "$output_prefix$output_name"
+      if (output_extension != "") {
+        output_file_name += ".$output_extension"
+      }
+
+      local_out_dir = root_out_dir
+      shared_out_dir = get_label_info(deps[0], "root_out_dir")
+      if (defined(invoker.output_dir)) {
+        local_out_dir = invoker.output_dir
+
+        # If invoker.output_dir is not root_build_dir, assume it is a
+        # sub-directory of root_out_dir, and adjust the source path accordingly
+        # (e.g. "<toolchain>/foo" -> "<toolchain>-<variant>/foo").
+        if (local_out_dir != root_build_dir) {
+          relative_dir =
+              rebase_path(local_out_dir, root_out_dir, root_build_dir)
+          shared_out_dir = "$shared_out_dir/$relative_dir"
+        }
+      }
+
+      sources = [ "$shared_out_dir/$output_file_name" ]
+      outputs = [ "$local_out_dir/$output_file_name" ]
+    }
+
+    group(target_name) {
+      public_deps = [
+        ":$copy_target_name",
+        ":$shared_toolchain_target_name",
+      ]
+    }
+    not_needed(invoker, "*")
+  }
+} else {
+  # In the -shared toolchain, shared_library is just its normal self,
+  # but if the invoker constrained the visibility, we must make sure
+  # the dependency from the main toolchain is still allowed.
+  template("shared_library") {
+    shared_library(target_name) {
+      # original_target_name = target_name
+      forward_variables_from(invoker, [ "visibility" ])
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "no_default_deps",
+                               "visibility",
+                             ])
+      if (!defined(output_dir)) {
+        output_dir = root_out_dir
+      }
+      if (!defined(output_name)) {
+        output_name = target_name
+      }
+
+      # target_name = original_target_name
+      if (defined(visibility)) {
+        visibility += [ ":$target_name" ]
+      }
+      if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+        if (!defined(deps)) {
+          deps = []
+        }
+
         if (use_flutter_cxx) {
           deps += [ "//third_party/libcxx" ]
         }

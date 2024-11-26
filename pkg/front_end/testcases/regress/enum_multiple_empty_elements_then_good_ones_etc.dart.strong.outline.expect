@@ -1,0 +1,41 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/enum_multiple_empty_elements_then_good_ones_etc.dart:8:8: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//   /*b*/,
+//        ^
+//
+// pkg/front_end/testcases/regress/enum_multiple_empty_elements_then_good_ones_etc.dart:9:8: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//   /*c*/,
+//        ^
+//
+// pkg/front_end/testcases/regress/enum_multiple_empty_elements_then_good_ones_etc.dart:10:8: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//   /*d*/,
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Foo> values = const <self::Foo>[self::Foo::a, self::Foo::e, self::Foo::f];
+  enum-element static const field self::Foo a = const self::Foo::•(0, "a");
+  enum-element static const field self::Foo e = const self::Foo::•(1, "e");
+  enum-element static const field self::Foo f = const self::Foo::•(2, "f");
+  const synthetic constructor •(core::int #index, core::String #name) → self::Foo
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Foo.${this.{core::_Enum::_name}{core::String}}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_multiple_empty_elements_then_good_ones_etc.dart:5:6 -> ListConstant(const <Foo>[const Foo{_Enum.index: 0, _Enum._name: "a"}, const Foo{_Enum.index: 1, _Enum._name: "e"}, const Foo{_Enum.index: 2, _Enum._name: "f"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_multiple_empty_elements_then_good_ones_etc.dart:7:3 -> InstanceConstant(const Foo{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_multiple_empty_elements_then_good_ones_etc.dart:11:3 -> InstanceConstant(const Foo{_Enum.index: 1, _Enum._name: "e"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_multiple_empty_elements_then_good_ones_etc.dart:12:3 -> InstanceConstant(const Foo{_Enum.index: 2, _Enum._name: "f"})
+Extra constant evaluation: evaluated: 9, effectively constant: 4

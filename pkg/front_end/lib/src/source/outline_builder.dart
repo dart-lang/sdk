@@ -2855,12 +2855,12 @@ class OutlineBuilder extends StackListenerImpl {
       List<EnumConstantInfo?>? parsedEnumConstantInfos;
       for (int index = 0; index < enumConstantInfos.length; index++) {
         EnumConstantInfo? info = enumConstantInfos[index];
-        if (info == null) {
-          parsedEnumConstantInfos = enumConstantInfos.take(index).toList();
-        }
-        // Coverage-ignore(suite): Not run.
-        else if (parsedEnumConstantInfos != null) {
+        if (parsedEnumConstantInfos != null && info != null) {
           parsedEnumConstantInfos.add(info);
+        } else if (info == null && parsedEnumConstantInfos == null) {
+          // Skip this one, but copy previous (good) ones.
+          parsedEnumConstantInfos = [];
+          parsedEnumConstantInfos.addAll(enumConstantInfos.sublist(0, index));
         }
       }
       if (parsedEnumConstantInfos != null) {

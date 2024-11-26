@@ -257,6 +257,10 @@ template("gcc_toolchain") {
       if (defined(invoker.is_clang)) {
         is_clang = invoker.is_clang
       }
+
+      if (defined(invoker.toolchain_args)) {
+        forward_variables_from(invoker.toolchain_args, "*")
+      }
     }
 
     if (defined(invoker.deps)) {
