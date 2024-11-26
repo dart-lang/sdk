@@ -1,0 +1,11 @@
+// @dart = 3.6
+
+abstract class A2 implements Enum {
+  void set hashCode(double value) {}
+  void set index(String value) {}
+}
+
+mixin M2 implements Enum {
+  void set hashCode(double value) {}
+  void set index(String value) {}
+}

@@ -1,0 +1,9 @@
+// @dart = 3.6
+
+abstract class B1 {
+  late final int? property6;
+}
+
+abstract class B2 implements B1 {
+  void set property6(int i);
+}

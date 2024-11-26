@@ -1,16 +1,4 @@
 library test;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference_new/property_assign_combiner.dart:29:9: Error: The type 'A' of the getter 'G.target' is not a subtype of the type 'B' of the setter 'G.target'.
-//  - 'A' is from 'pkg/front_end/testcases/inference_new/property_assign_combiner.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/inference_new/property_assign_combiner.dart'.
-//   A get target => throw '';
-//         ^^^^^^
-// pkg/front_end/testcases/inference_new/property_assign_combiner.dart:31:12: Context: This is the declaration of the setter 'G.target'.
-//   void set target(B value) {}
-//            ^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 

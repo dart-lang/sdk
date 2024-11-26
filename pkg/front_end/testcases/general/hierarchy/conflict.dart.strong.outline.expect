@@ -289,24 +289,16 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
     ;
   mixin-super-stub method mixedInMethodDeclaredSetter() → void
     return super.{self::Mixin::mixedInMethodDeclaredSetter}();
-  mixin-super-stub get mixedInFieldDeclaredMethod() → core::int
-    return super.{self::Mixin::mixedInFieldDeclaredMethod};
-  mixin-super-stub set mixedInFieldDeclaredMethod(core::int value) → void
-    return super.{self::Mixin::mixedInFieldDeclaredMethod} = value;
-  mixin-super-stub get mixedInFieldImplementedMethod() → core::int
-    return super.{self::Mixin::mixedInFieldImplementedMethod};
-  mixin-super-stub set mixedInFieldImplementedMethod(core::int value) → void
-    return super.{self::Mixin::mixedInFieldImplementedMethod} = value;
-  mixin-super-stub get extendedMethodMixedInField() → core::int
-    return super.{self::Mixin::extendedMethodMixedInField};
-  mixin-super-stub set extendedMethodMixedInField(core::int value) → void
-    return super.{self::Mixin::extendedMethodMixedInField} = value;
   mixin-super-stub method mixedInMethodDeclaredGetter() → void
     return super.{self::Mixin::mixedInMethodDeclaredGetter}();
   mixin-super-stub method mixedInMethodDeclaredField() → void
     return super.{self::Mixin::mixedInMethodDeclaredField}();
   mixin-super-stub get mixedInGetterDeclaredMethod() → core::int
     return super.{self::Mixin::mixedInGetterDeclaredMethod};
+  mixin-super-stub get mixedInFieldDeclaredMethod() → core::int
+    return super.{self::Mixin::mixedInFieldDeclaredMethod};
+  mixin-super-stub set mixedInFieldDeclaredMethod(core::int value) → void
+    return super.{self::Mixin::mixedInFieldDeclaredMethod} = value;
   mixin-super-stub method mixedInMethodImplementedGetter() → void
     return super.{self::Mixin::mixedInMethodImplementedGetter}();
   mixin-super-stub method mixedInMethodImplementedSetter() → void
@@ -315,8 +307,16 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::mixedInMethodImplementedField}();
   mixin-super-stub get mixedInGetterImplementedMethod() → core::int
     return super.{self::Mixin::mixedInGetterImplementedMethod};
+  mixin-super-stub get mixedInFieldImplementedMethod() → core::int
+    return super.{self::Mixin::mixedInFieldImplementedMethod};
+  mixin-super-stub set mixedInFieldImplementedMethod(core::int value) → void
+    return super.{self::Mixin::mixedInFieldImplementedMethod} = value;
   mixin-super-stub get extendedMethodMixedInGetter() → core::int
     return super.{self::Mixin::extendedMethodMixedInGetter};
+  mixin-super-stub get extendedMethodMixedInField() → core::int
+    return super.{self::Mixin::extendedMethodMixedInField};
+  mixin-super-stub set extendedMethodMixedInField(core::int value) → void
+    return super.{self::Mixin::extendedMethodMixedInField} = value;
   mixin-super-stub method extendedGetterMixedInMethod() → void
     return super.{self::Mixin::extendedGetterMixedInMethod}();
   mixin-super-stub method extendedSetterMixedInMethod() → void
