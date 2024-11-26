@@ -24,8 +24,8 @@ if (is_linux) {
       target_sysroot = rebase_path("//buildtools/sysroot/alpine-linux-x86_64",
                                    root_build_dir)
     } else if (current_cpu == "arm") {
-      target_sysroot = rebase_path("//buildtools/sysroot/alpine-linux-armv7",
-                                   root_build_dir)
+      target_sysroot =
+          rebase_path("//buildtools/sysroot/alpine-linux-armv7", root_build_dir)
     } else if (current_cpu == "arm64") {
       target_sysroot = rebase_path("//buildtools/sysroot/alpine-linux-aarch64",
                                    root_build_dir)
@@ -50,7 +50,9 @@ if (is_linux) {
 }
 
 if ((current_toolchain == host_toolchain ||
-     current_toolchain == default_toolchain) && target_sysroot != "") {
+     current_toolchain == default_toolchain ||
+     current_toolchain == "${default_toolchain}_shared") &&
+    target_sysroot != "") {
   sysroot = target_sysroot
 } else if (is_android) {
   import("//build/config/android/config.gni")
