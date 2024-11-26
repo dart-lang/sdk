@@ -670,7 +670,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/members_node.dart": (
-    hitCount: 1163,
+    hitCount: 1167,
     missCount: 0,
   ),
   // 100.0%.
@@ -905,7 +905,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_enum_builder.dart": (
-    hitCount: 515,
+    hitCount: 517,
     missCount: 0,
   ),
   // 100.0%.
@@ -936,7 +936,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1344,
+    hitCount: 1347,
     missCount: 0,
   ),
   // 100.0%.
@@ -1001,7 +1001,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/inference_visitor.dart": (
-    hitCount: 8249,
+    hitCount: 8254,
     missCount: 0,
   ),
   // 100.0%.
@@ -1016,7 +1016,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/type_inference/matching_expressions.dart": (
-    hitCount: 519,
+    hitCount: 521,
     missCount: 0,
   ),
   // 100.0%.

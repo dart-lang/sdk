@@ -13,13 +13,6 @@ library test;
 //   void set x(double value);
 //            ^
 //
-// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:9:11: Error: The type 'int' of the getter 'A.x' is not a subtype of the type 'double' of the setter 'A.x'.
-//   int get x;
-//           ^
-// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:10:12: Context: This is the declaration of the setter 'A.x'.
-//   void set x(double value);
-//            ^
-//
 import self as self;
 import "dart:core" as core;
 

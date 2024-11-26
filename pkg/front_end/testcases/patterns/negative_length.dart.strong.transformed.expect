@@ -12,26 +12,6 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
   const synthetic constructor •() → self::_NegativeLengthList&Object&ListMixin<self::_NegativeLengthList&Object&ListMixin::E%>
     : super core::Object::•()
     ;
-  get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first() → self::_NegativeLengthList&Object&ListMixin::E% {
-    if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
-      throw _in::IterableElementError::noElement();
-    return this.{core::List::[]}(0){(core::int) → self::_NegativeLengthList&Object&ListMixin::E%};
-  }
-  set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void {
-    if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
-      throw _in::IterableElementError::noElement();
-    this.{core::List::[]=}(0, value){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
-  }
-  get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last() → self::_NegativeLengthList&Object&ListMixin::E% {
-    if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
-      throw _in::IterableElementError::noElement();
-    return this.{core::List::[]}(this.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → self::_NegativeLengthList&Object&ListMixin::E%};
-  }
-  set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void {
-    if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
-      throw _in::IterableElementError::noElement();
-    this.{core::List::[]=}(this.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::int}, value){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
-  }
   @#C3
   get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ iterator() → core::Iterator<self::_NegativeLengthList&Object&ListMixin::E%>
     return new _in::ListIterator::•<self::_NegativeLengthList&Object&ListMixin::E%>(this);
@@ -53,6 +33,26 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     return this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0;
   get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isNotEmpty() → core::bool
     return !this.{col::ListBase::isEmpty}{core::bool};
+  get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first() → self::_NegativeLengthList&Object&ListMixin::E% {
+    if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
+      throw _in::IterableElementError::noElement();
+    return this.{core::List::[]}(0){(core::int) → self::_NegativeLengthList&Object&ListMixin::E%};
+  }
+  set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void {
+    if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
+      throw _in::IterableElementError::noElement();
+    this.{core::List::[]=}(0, value){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
+  }
+  get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last() → self::_NegativeLengthList&Object&ListMixin::E% {
+    if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
+      throw _in::IterableElementError::noElement();
+    return this.{core::List::[]}(this.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::int}){(core::int) → self::_NegativeLengthList&Object&ListMixin::E%};
+  }
+  set /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ last(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void {
+    if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
+      throw _in::IterableElementError::noElement();
+    this.{core::List::[]=}(this.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::int}, value){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
+  }
   get /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ single() → self::_NegativeLengthList&Object&ListMixin::E% {
     if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
       throw _in::IterableElementError::noElement();

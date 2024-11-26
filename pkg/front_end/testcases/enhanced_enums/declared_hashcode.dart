@@ -49,7 +49,7 @@ enum E7 {
 enum E8 {
   element;
 
-  void set hashCode(String value) {} // Error.
+  void set hashCode(String value) {}
 }
 
 enum E9 {

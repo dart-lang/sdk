@@ -164,13 +164,6 @@ library;
 //   B method2() => new B();
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:89:11: Error: The type 'int' of the getter 'property' is not a subtype of the type 'String' of the setter 'property'.
-//   int get property => 42; /* Error */
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:90:12: Context: This is the declaration of the setter 'property'.
-//   void set property(String value) {} /* Error */
-//            ^^^^^^^^
-//
 import self as self;
 import "implements_conflicts_lib.dart" as imp;
 import "dart:core" as core;
@@ -611,16 +604,6 @@ library;
 //            ^^^^^^^^
 // pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:111:12: Context: This is the inherited non-extension type member.
 //   void set property(int value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:100:16: Error: The type 'int' of the inherited getter 'ClassL.property' is not a subtype of the type 'String' of the inherited setter 'ClassM.property'.
-// abstract class ClassLM implements ClassL, ClassM {}
-//                ^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:93:11: Context: This is the declaration of the getter 'ClassL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:97:12: Context: This is the declaration of the setter 'ClassM.property'.
-//   void set property(String value) {}
 //            ^^^^^^^^
 //
 import self as imp;

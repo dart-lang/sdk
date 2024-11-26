@@ -1,15 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/enhanced_enums/setter_getter_type_check.dart:7:3: Error: The type 'E<int>' of the getter 'E.element2' is not a subtype of the type 'E<String>' of the setter 'E.element2'.
-//  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/setter_getter_type_check.dart'.
-//   element2<int>();
-//   ^^^^^^^^
-// pkg/front_end/testcases/enhanced_enums/setter_getter_type_check.dart:10:19: Context: This is the declaration of the setter 'E.element2'.
-//   static void set element2(E<String> val) {} // Error.
-//                   ^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 

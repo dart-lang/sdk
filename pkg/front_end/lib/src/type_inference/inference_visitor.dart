@@ -11591,9 +11591,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       node.containsKeyTarget = containsKeyTarget.classMember as Procedure;
       node.containsKeyType =
-          containsKeyTarget
-              .getFunctionType(this)
-              .containsKeyFunctionType;
+          containsKeyTarget.getFunctionType(this).containsKeyFunctionType;
 
       ObjectAccessTarget indexGetTarget = findInterfaceMember(
           lookupType, indexGetName, node.fileOffset,
@@ -11602,9 +11600,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       node.indexGetTarget = indexGetTarget.classMember as Procedure;
       node.indexGetType =
-          indexGetTarget
-              .getFunctionType(this)
-              .indexGetFunctionType;
+          indexGetTarget.getFunctionType(this).indexGetFunctionType;
     }
 
     assert(checkStack(node, stackBase, [

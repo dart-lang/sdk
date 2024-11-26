@@ -66,13 +66,6 @@ library;
 //   final int index;
 //             ^
 //
-// pkg/front_end/testcases/enhanced_enums/declared_index.dart:52:12: Error: The type 'int' of the inherited field '_Enum.index' is not a subtype of the type 'String' of the setter 'E8.index'.
-//   void set index(String value) {} // Error.
-//            ^^^^^
-// sdk/lib/core/enum.dart:*: Context: This is the declaration of the field '_Enum.index'.
-//   final int index;
-//             ^^^^^
-//
 // pkg/front_end/testcases/enhanced_enums/declared_index.dart:58:14: Error: The return type of the method 'E9.index' is 'double', which does not match the return type, 'int', of the overridden method, '_Enum.index'.
 // Change to a subtype of 'int'.
 //   double get index; // Error.

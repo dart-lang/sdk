@@ -1,0 +1,17 @@
+// @dart = 3.6
+
+Unknown get foo1 => throw 0;
+
+void set foo1(dynamic value) {}
+
+Never get foo2 => throw 0;
+
+void set foo2(Unknown value) {}
+
+String get foo3 => "";
+
+void set foo3(String value) {}
+
+Symbol get foo4 => #foo4;
+
+void set foo4(double value) {}

@@ -1,0 +1,7 @@
+// @dart = 3.6
+
+enum E {
+  element;
+
+  static void set values(Never x) {}
+}
