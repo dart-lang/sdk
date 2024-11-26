@@ -33,7 +33,9 @@ Future<void> main() async {
   await hotReload();
 
   // B is no longer a subtype of A.
-  Expect.equals(
-      "type '(A) => bool' is not a subtype of type '(B) => bool'", helper());
+  Expect.throws<TypeError>(
+      () => helper(),
+      (error) => '$error'.contains(
+          "type '(A) => bool' is not a subtype of type '(B) => bool'"));
   Expect.equals(1, hotReloadGeneration);
 }
