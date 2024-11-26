@@ -8,6 +8,8 @@
   collected while execution is paused, while releasing them once execution
   resumes.
 - Updated `vm_service` constraint to ^14.3.0.
+- [DAP] Updated `dap` constraint to ^1.4.0.
+- [DAP] Set `supportsANSIStyling` to `true` in debug adapter capabilities to indicate that `Output` events might contain ansi color codes.
 
 # 4.2.7
 - Added a new constant `RpcErrorCodes.kConnectionDisposed = -32010` for requests

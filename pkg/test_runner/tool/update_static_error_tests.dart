@@ -8,6 +8,14 @@ library;
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
+import 'package:analyzer/file_system/overlay_file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:args/args.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
@@ -24,6 +32,11 @@ const _usage =
 
 final _dartPath = _findBinary("dart", "exe");
 final _analyzerPath = p.join('pkg', 'analyzer_cli', 'bin', 'analyzer.dart');
+
+/// Maps a set of enabled experiments (stored as a sorted comma-separated list
+/// of experiment names) to an [AnalysisContextCollection] for analyzing files
+/// with those experiments enabled.
+final Map<String, AnalysisContextCollection> _analysisContextCollections = {};
 
 Future<void> main(List<String> args) async {
   var sources = ErrorSource.all.map((e) => e.marker).toList();
@@ -116,55 +129,118 @@ Future<void> main(List<String> args) async {
         parser, "Must provide at least one flag for an operation to perform.");
   }
 
-  var processedFiles = 0;
-  var skippedMultitests = <String>[];
+  var testFiles =
+      _listFiles(results.rest, onlyStaticErrorTests: onlyStaticErrorTests);
 
-  for (var result in results.rest) {
+  for (var testFile in testFiles) {
+    await _processFile(testFiles, testFile,
+        dryRun: dryRun,
+        includeContext: includeContext,
+        remove: removeSources,
+        insert: insertSources);
+  }
+
+  for (var MapEntry(key: experiments, value: contextCollection)
+      in _analysisContextCollections.entries) {
+    if (experiments.isEmpty) {
+      print('Shutting down analyzer...');
+    } else {
+      print('Shutting down analyzer for experiments "$experiments"...');
+    }
+
+    await contextCollection.dispose();
+  }
+}
+
+/// Find all of the files that match [pathGlobs], load corresponding [TestFile]s
+/// and return all tests that should be updated.
+///
+/// Omits multitests since those don't support being used as static error tests.
+/// Omits any [TestFile] that doesn't already contain a static error test
+/// expectation if [onlyStaticErrorTests] is `true`.
+List<TestFile> _listFiles(List<String> pathGlobs,
+    {required bool onlyStaticErrorTests}) {
+  print('Listing files...');
+  var testFiles = <TestFile>[];
+  for (var pathGlob in pathGlobs) {
     // Allow tests to be specified without the extension for compatibility with
     // the regular test runner syntax.
-    if (!result.endsWith(".dart")) {
-      result += ".dart";
-    }
+    if (!pathGlob.endsWith(".dart")) pathGlob += ".dart";
 
     // Allow tests to be specified either relative to the "tests" directory
     // or relative to the current directory.
-    var root = result.startsWith("tests") ? "." : "tests";
-    var glob = Glob(result, recursive: true);
-    for (var entry in glob
-        .listSync(root: root)
-        .whereType<File>()
-        .where((file) => file.path.endsWith('.dart'))) {
-      var processed = await _processFile(
-        entry,
-        dryRun: dryRun,
-        includeContext: includeContext,
-        onlyStaticErrorTests: onlyStaticErrorTests,
-        remove: removeSources,
-        insert: insertSources,
-      );
+    var root = pathGlob.startsWith("tests") ? "." : "tests";
 
-      if (processed) {
-        processedFiles++;
-      } else {
-        skippedMultitests.add(entry.path);
+    for (var file in Glob(pathGlob, recursive: true).listSync(root: root)) {
+      if (file is! File) continue;
+
+      if (!file.path.endsWith(".dart")) continue;
+
+      // Canonicalize the path in the same way StaticError does, so it matches.
+      var f = p.relative(file.path, from: Directory.current.path);
+      var testFile = TestFile.read(Path("."), f);
+
+      if (testFile.isMultitest) {
+        print("Skip ${testFile.path} since this tool can't update multitests.");
+        continue;
       }
+
+      if (onlyStaticErrorTests && testFile.expectedErrors.isEmpty) {
+        print("Skip ${testFile.path} since it isn't a static error test.");
+        continue;
+      }
+
+      testFiles.add(testFile);
     }
   }
 
-  if (skippedMultitests.isNotEmpty) {
-    // If no files were successfully processed, then the user is only pointing
-    // it at multitests and made a mistake.
-    if (processedFiles == 0) {
-      stderr.writeln("Error: This tool doesn't support updating static errors "
-          "in multitests. Couldn't update:");
-    } else {
-      stderr.writeln("Did not update the following multitests:");
+  return testFiles;
+}
+
+/// Lazily creates an analysis context collection that analyze files with the
+/// given set of [experiments].
+AnalysisContextCollection _analyzerCollectionForExperiments(
+    List<TestFile> testFiles, List<String> experiments) {
+  var sorted = experiments.toList()..sort();
+  var experimentsKey = sorted.join(',');
+
+  var collection = _analysisContextCollections[experimentsKey];
+  if (collection != null) return collection;
+
+  if (experiments.isNotEmpty) {
+    print('\nInitializing analyzer for experiments "$experimentsKey"...');
+  } else {
+    print('\nInitializing analyzer...');
+  }
+
+  var paths = [
+    for (var testFile in testFiles)
+      p.normalize(testFile.path.absolute.toNativePath())
+  ];
+
+  ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+
+  // If there are experiments, then synthesize an analysis options file in the
+  // root directory that enables the experiments for all of the tests.
+  if (experiments.isNotEmpty) {
+    var options = StringBuffer();
+    options.writeln('analyzer:');
+    options.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      options.writeln('    - $experiment');
     }
 
-    for (var multitest in skippedMultitests) {
-      stderr.writeln(p.normalize(multitest));
-    }
+    resourceProvider =
+        OverlayResourceProvider(PhysicalResourceProvider.INSTANCE)
+          ..setOverlay(
+              Path('tests/analysis_options.yaml').absolute.toNativePath(),
+              content: options.toString(),
+              modificationStamp: 0);
   }
+
+  return _analysisContextCollections[experimentsKey] =
+      AnalysisContextCollection(
+          includedPaths: paths, resourceProvider: resourceProvider);
 }
 
 void _usageError(ArgParser parser, String message) {
@@ -175,60 +251,40 @@ void _usageError(ArgParser parser, String message) {
   exit(64);
 }
 
-Future<bool> _processFile(File file,
+Future<bool> _processFile(List<TestFile> allTestFiles, TestFile testFile,
     {required bool dryRun,
     required bool includeContext,
-    required bool onlyStaticErrorTests,
     required Set<ErrorSource> remove,
     required Set<ErrorSource> insert}) async {
-  var testFile = TestFile.read(Path("."), file.absolute.path);
-  // Canonicalize the path in the same way StaticError does, so it matches.
-  file = File(p.relative(file.path, from: Directory.current.path));
-
-  // Don't process multitests. The multitest file isn't necessarily a valid or
-  // meaningful Dart file that can be processed by front ends. To process them,
-  // we'd have to split the multitest, run each separate file on the front ends,
-  // and then try to merge the results back together.
-  //
-  // In practice, a test should either be a multitest or a static error test,
-  // but not both.
-  if (testFile.isMultitest) return false;
-
-  if (onlyStaticErrorTests && testFile.expectedErrors.isEmpty) {
-    print("Skip ${file.path} since it isn't a static error test.");
-    return true;
-  }
-
-  stdout.write("${file.path}...");
-
-  var experiments = [
-    if (testFile.experiments.isNotEmpty) ...testFile.experiments
-  ];
+  stdout.write("${testFile.path}...");
 
   var options = [
     ...testFile.sharedOptions,
-    if (experiments.isNotEmpty) "--enable-experiment=${experiments.join(',')}"
+    if (testFile.experiments.isNotEmpty)
+      "--enable-experiment=${testFile.experiments.join(',')}"
   ];
 
   var errors = <StaticError>[];
   if (insert.contains(ErrorSource.analyzer)) {
-    stdout.write("\r${file.path} (Running analyzer...)");
-    errors.addAll(await runAnalyzer(file, options));
+    stdout.write("\r${testFile.path} (Running analyzer...)");
+    errors.addAll(await runAnalyzerLibrary(allTestFiles, testFile));
   }
 
   // If we're inserting web errors, we also need to gather the CFE errors to
   // tell which web errors are web-specific.
-  final cfeErrors = <StaticError>[];
+  var cfeErrors = <StaticError>[];
   if (insert.contains(ErrorSource.cfe) || insert.contains(ErrorSource.web)) {
     var cfeOptions = [
       if (testFile.requirements.contains(Feature.nnbdWeak)) "--nnbd-weak",
       if (testFile.requirements.contains(Feature.nnbdStrong)) "--nnbd-strong",
       ...options
     ];
+
     // Clear the previous line.
-    stdout.write("\r${file.path}                      ");
-    stdout.write("\r${file.path} (Running CFE...)");
-    cfeErrors.addAll(await runCfe(file, cfeOptions));
+    stdout.write("\r${testFile.path}                      ");
+    stdout.write("\r${testFile.path} (Running CFE...)");
+    cfeErrors
+        .addAll(await runCfe(File(testFile.path.toNativePath()), cfeOptions));
     if (insert.contains(ErrorSource.cfe)) {
       errors.addAll(cfeErrors);
     }
@@ -236,18 +292,19 @@ Future<bool> _processFile(File file,
 
   if (insert.contains(ErrorSource.web)) {
     // Clear the previous line.
-    stdout.write("\r${file.path}                      ");
-    stdout.write("\r${file.path} (Running dart2js...)");
-    errors.addAll(await runDart2js(file, options, cfeErrors));
+    stdout.write("\r${testFile.path}                      ");
+    stdout.write("\r${testFile.path} (Running dart2js...)");
+    errors.addAll(await runDart2js(testFile, options, cfeErrors));
   }
 
   // Error expectations can be in imported or part files: iterate over the set
   // of paths that is the main file path plus all paths mentioned in
   // expectations, updating them.
-  for (final path in {file.path, ...errors.map((e) => e.path)}) {
-    final pathErrors = errors.where((e) => e.path == path).toList();
+  for (var path in {testFile.path.toString(), ...errors.map((e) => e.path)}) {
+    var file = File(path);
+    var pathErrors = errors.where((e) => e.path == path).toList();
     var result = updateErrorExpectations(
-        path, File(path).readAsStringSync(), pathErrors,
+        path, file.readAsStringSync(), pathErrors,
         remove: remove, includeContext: includeContext);
 
     stdout.writeln("\r$path (Updated with ${pathErrors.length} errors)");
@@ -255,17 +312,19 @@ Future<bool> _processFile(File file,
     if (dryRun) {
       print(result);
     } else {
-      await File(path).writeAsString(result);
+      file.writeAsString(result);
     }
   }
+
   return true;
 }
 
+// TODO(rnystrom): This is 100x slower than [runAnalyzerLibrary()]. It's no
+// longer used by the static error updater, but convert_multitest.dart still
+// uses it.
 /// Invoke analyzer on [file] and gather all static errors it reports.
-Future<List<StaticError>> runAnalyzer(File file, List<String> options) async {
-  // TODO(rnystrom): Running the analyzer command line each time is very slow.
-  // Either import the analyzer as a library, or at least invoke it in a batch
-  // mode.
+Future<List<StaticError>> runAnalyzerCli(
+    File file, List<String> options) async {
   var result = await Process.run(_dartPath, [
     _analyzerPath,
     ...options,
@@ -285,11 +344,80 @@ Future<List<StaticError>> runAnalyzer(File file, List<String> options) async {
   var errors = <StaticError>[];
   var warnings = <StaticError>[];
   AnalysisCommandOutput.parseErrors(result.stdout as String, errors, warnings);
+
   return [...errors, ...warnings];
+}
+
+/// Analyze [testFile] and return the list of reported errors.
+///
+/// This will lazily created an [AnalysisContextCollection] if this is the first
+/// file being analyzed for a given set of experiment flags.
+Future<List<StaticError>> runAnalyzerLibrary(
+    List<TestFile> allTestFiles, TestFile testFile) async {
+  var absolutePath = testFile.path.absolute.toNativePath();
+
+  var context =
+      _analyzerCollectionForExperiments(allTestFiles, testFile.experiments)
+          .contextFor(absolutePath);
+  var errorsResult = await context.currentSession.getErrors(absolutePath);
+
+  // Convert the analyzer errors to test_runner [StaticErrors].
+  var errors = <StaticError>[];
+  if (errorsResult is ErrorsResult) {
+    for (var diagnostic in errorsResult.errors) {
+      switch (diagnostic.severity) {
+        case Severity.error:
+        case Severity.warning
+            when AnalyzerError.isValidatedWarning(diagnostic.errorCode.name):
+          errors.add(
+              _convertAnalysisError(context, errorsResult.path, diagnostic));
+        default:
+          // Ignore todos and other harmless warnings like unused variables
+          // which the tests are riddled with but we don't want to bother
+          // validating.
+          break;
+      }
+    }
+  }
+
+  return errors;
+}
+
+/// Convert an [AnalysisError] from the analyzer package to the test runner's
+/// [StaticError] type.
+StaticError _convertAnalysisError(AnalysisContext analysisContext,
+    String containingFile, AnalysisError error) {
+  var fileResult =
+      analysisContext.currentSession.getFile(containingFile) as FileResult;
+  var errorLocation = fileResult.lineInfo.getLocation(error.offset);
+
+  var staticError = StaticError(ErrorSource.analyzer,
+      '${error.errorCode.type.name}.${error.errorCode.name}',
+      path: containingFile,
+      line: errorLocation.lineNumber,
+      column: errorLocation.columnNumber,
+      length: error.length);
+
+  for (var context in error.contextMessages) {
+    var contextFileResult =
+        analysisContext.currentSession.getFile(context.filePath) as FileResult;
+    var contextLocation =
+        contextFileResult.lineInfo.getLocation(context.offset);
+
+    staticError.contextMessages.add(StaticError(
+        ErrorSource.context, context.messageText(includeUrl: true),
+        path: context.filePath,
+        line: contextLocation.lineNumber,
+        column: contextLocation.columnNumber,
+        length: context.length));
+  }
+
+  return staticError;
 }
 
 /// Invoke CFE on [file] and gather all static errors it reports.
 Future<List<StaticError>> runCfe(File file, List<String> options) async {
+  var absolutePath = file.absolute.path;
   // TODO(rnystrom): Running the CFE command line each time is slow and wastes
   // time generating code, which we don't care about. Import it as a library or
   // at least run it in batch mode.
@@ -299,15 +427,16 @@ Future<List<StaticError>> runCfe(File file, List<String> options) async {
     "--verify",
     "-o",
     "dev:null", // Output is only created for file URIs.
-    file.absolute.path,
+    absolutePath,
   ]);
 
   // Running the above command may generate a dill file next to the test, which
   // we don't want, so delete it if present.
-  var dill = File("${file.absolute.path}.dill");
+  var dill = File("$absolutePath.dill");
   if (await dill.exists()) {
     await dill.delete();
   }
+
   if (result.exitCode != 0) {
     print("CFE run failed: ${result.stdout}\n${result.stderr}");
     print("Error: failed to update ${file.path}");
@@ -319,16 +448,16 @@ Future<List<StaticError>> runCfe(File file, List<String> options) async {
   return [...errors, ...warnings];
 }
 
-/// Invoke dart2js on [file] and gather all static errors it reports.
-Future<List<StaticError>> runDart2js(
-    File file, List<String> options, List<StaticError> cfeErrors) async {
+/// Invoke dart2js on [testFile] and gather all static errors it reports.
+Future<List<StaticError>> runDart2js(TestFile testFile, List<String> options,
+    List<StaticError> cfeErrors) async {
   var result = await Process.run(_dartPath, [
     'compile',
     'js',
     ...options,
     "-o",
     "dev:null", // Output is only created for file URIs.
-    file.absolute.path,
+    testFile.path.absolute.toNativePath(),
   ]);
 
   var errors = <StaticError>[];
