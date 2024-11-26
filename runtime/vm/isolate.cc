@@ -454,11 +454,6 @@ bool IsolateGroup::ContainsOnlyOneIsolate() {
   return isolate_count_ == 0 || isolate_count_ == 1;
 }
 
-void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  fun();
-}
-
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   isolates_.Remove(isolate);
@@ -1850,14 +1845,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 #undef ISOLATE_METRIC_INIT
 #endif  // !defined(PRODUCT)
 
-  // First we ensure we enter the isolate. This will ensure we're participating
-  // in any safepointing requests from this point on. Other threads requesting a
-  // safepoint operation will therefore wait until we've stopped.
-  //
-  // Though the [result] isolate is still in a state where no memory has been
-  // allocated, which means it's safe to GC the isolate group until here.
-  Thread::EnterIsolate(result);
-
   // Setup the isolate message handler.
   result->message_handler_ = new IsolateMessageHandler(result);
 
@@ -1884,6 +1871,14 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   // traverse the isolate roots (before this point, the roots are only pointing
   // to vm-isolate objects, e.g. null)
   isolate_group->RegisterIsolate(result);
+
+  // Now we enter the isolate. This will ensure we're participating in any
+  // safepointing requests from this point on. Other threads requesting a
+  // safepoint operation will therefore wait until we've stopped.
+  //
+  // Though the [result] isolate is still in a state where no memory has been
+  // allocated, which means it's safe to GC the isolate group until here.
+  Thread::EnterIsolate(result);
 
   if (api_flags.is_service_isolate) {
     ASSERT(!ServiceIsolate::Exists());
@@ -2619,14 +2614,15 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   Dart_IsolateCleanupCallback cleanup = isolate->on_cleanup_callback();
   auto callback_data = isolate->init_callback_data_;
 
-  // From this point on the isolate is no longer visited by GC (which is ok,
-  // since we're just going to delete it anyway).
-  isolate_group->UnregisterIsolate(isolate);
-
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.
   ASSERT(!Thread::Current()->HasActiveState());
   Thread::ExitIsolate(/*isolate_shutdown=*/true);
+  ASSERT(Thread::Current() == nullptr);
+
+  // From this point on the isolate is no longer visited by GC (which is ok,
+  // since we're just going to delete it anyway).
+  isolate_group->UnregisterIsolate(isolate);
 
   // Now it's safe to delete the isolate.
   delete isolate;

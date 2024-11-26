@@ -327,8 +327,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   bool ContainsOnlyOneIsolate();
 
-  void RunWithLockedGroup(std::function<void()> fun);
-
   void ScheduleInterrupts(uword interrupt_bits);
 
   ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
