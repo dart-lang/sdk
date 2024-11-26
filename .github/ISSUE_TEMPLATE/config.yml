@@ -1,0 +1,7 @@
+blank_issues_enabled: true
+contact_links:
+  - name: I want help writing Dart code
+    url: https://stackoverflow.com/tags/dart
+    about: >-
+      Visit Stack Overflow for how-to questions related to using the Dart
+      language, core libraries, or developer tools.
