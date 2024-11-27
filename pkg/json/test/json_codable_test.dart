@@ -27,6 +27,7 @@ void main() {
           'c': {'x': 3}
         },
         'customStringSerializationField': 'hi',
+        'customNullableStringSerialization': null,
         'customMapSerializationField': {
           'z': 'zzz',
         }
@@ -43,6 +44,8 @@ void main() {
       expect(a.setOfSerializableField.single.x, 2);
       expect(a.mapOfSerializableField['c']!.x, 3);
       expect(a.customStringSerializationField, CustomStringSerialization('hi'));
+      expect(a.customNullableStringSerialization,
+          equals(CustomNullableStringSerialization(null)));
       expect(
           a.customMapSerializationField, CustomMapSerialization({'z': 'zzz'}));
 
@@ -318,6 +321,8 @@ class A {
   final CustomStringSerialization customStringSerializationField;
 
   final CustomMapSerialization customMapSerializationField;
+
+  final CustomNullableStringSerialization customNullableStringSerialization;
 }
 
 @JsonCodable()
@@ -412,6 +417,24 @@ class CustomStringSerialization {
   @override
   bool operator ==(Object other) =>
       other is CustomStringSerialization && a == other.a;
+
+  @override
+  int get hashCode => a.hashCode;
+}
+
+class CustomNullableStringSerialization {
+  final String? a;
+
+  CustomNullableStringSerialization(this.a);
+
+  String? toJson() => a;
+
+  factory CustomNullableStringSerialization.fromJson(String? a) =>
+      CustomNullableStringSerialization(a);
+
+  @override
+  bool operator ==(Object other) =>
+      other is CustomNullableStringSerialization && a == other.a;
 
   @override
   int get hashCode => a.hashCode;
