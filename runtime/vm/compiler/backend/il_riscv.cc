@@ -3233,8 +3233,11 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   if (kNumTemps == 1) {
     summary->set_temp(0, Location::RequiresRegister());
   }
-  summary->set_out(0, CanDeoptimize() ? Location::RequiresRegister()
-                                      : Location::MayBeSameAsFirstInput());
+  if (CanDeoptimize() || (op_kind() == Token::kUSHR)) {
+    summary->set_out(0, Location::RequiresRegister());
+  } else {
+    summary->set_out(0, Location::MayBeSameAsFirstInput());
+  }
   return summary;
 }
 
@@ -3491,6 +3494,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler::Label done, adjust;
       __ bgez(result, &done, compiler::Assembler::kNearJump);
       // Result is negative, adjust it.
+      ASSERT(result != right);
       __ bgez(right, &adjust, compiler::Assembler::kNearJump);
       __ sub(result, result, TMP2);
       __ j(&done, compiler::Assembler::kNearJump);

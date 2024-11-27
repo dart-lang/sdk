@@ -1214,7 +1214,7 @@ intptr_t Simulator::WriteExclusiveX(uword addr, intptr_t value, Instr* instr) {
     return 1;  // Failure.
   }
 
-  int64_t old_value = exclusive_access_value_;
+  intptr_t old_value = exclusive_access_value_;
   ClearExclusive();
 
   if ((random_.NextUInt32() % 16) == 0) {
