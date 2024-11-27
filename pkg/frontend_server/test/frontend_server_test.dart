@@ -2385,14 +2385,15 @@ void main(List<String> arguments, SendPort sendPort) {
     });
 
     // This test exercises what happens when a change occurs with a single
-    // module of a multi-module compilation.
+    // library bundle of a multi-bundle compilation.
     group('recompile to JavaScript with in-body change', () {
       Future<void> runTests(
           {required String moduleFormat, bool canary = false}) async {
-        // Five libraries, a to e, in two modules, {a, b} and {c, d, e}:
+        // Five libraries, a to e, in two library bundles, {a, b} and {c, d, e}:
         //    (a <-> b) -> (c <-> d <-> e)
         // In body changes are performed on d and e. With advanced invalidation,
-        // not currently enabled, only the module {c, d, e} will be recompiled.
+        // not currently enabled, only the library bundle {c, d, e} will be
+        // recompiled.
         new File('${tempDir.path}/a.dart')
           ..createSync()
           ..writeAsStringSync("""
@@ -2498,21 +2499,20 @@ e() {
               expect(sourceFile.existsSync(), equals(true));
 
               String source = sourceFile.readAsStringSync();
-              // Split on the comment at the end of each module.
-              List<String> jsModules =
+              // Split on the comment at the end of each library bundle.
+              List<String> jsLibraryBundles =
                   source.split(new RegExp("//# sourceMappingURL=.*.map"));
+              expect(jsLibraryBundles[0], contains('<<a>>'));
+              expect(jsLibraryBundles[0], contains('<<b>>'));
+              expect(jsLibraryBundles[0], not(contains('<<c>>')));
+              expect(jsLibraryBundles[0], not(contains('<<d>>')));
+              expect(jsLibraryBundles[0], not(contains('<<e>>')));
 
-              expect(jsModules[0], contains('<<a>>'));
-              expect(jsModules[0], contains('<<b>>'));
-              expect(jsModules[0], not(contains('<<c>>')));
-              expect(jsModules[0], not(contains('<<d>>')));
-              expect(jsModules[0], not(contains('<<e>>')));
-
-              expect(jsModules[1], not(contains('<<a>>')));
-              expect(jsModules[1], not(contains('<<b>>')));
-              expect(jsModules[1], contains('<<c>>'));
-              expect(jsModules[1], contains('<<d>>'));
-              expect(jsModules[1], contains('<<e>>'));
+              expect(jsLibraryBundles[1], not(contains('<<a>>')));
+              expect(jsLibraryBundles[1], not(contains('<<b>>')));
+              expect(jsLibraryBundles[1], contains('<<c>>'));
+              expect(jsLibraryBundles[1], contains('<<d>>'));
+              expect(jsLibraryBundles[1], contains('<<e>>'));
 
               frontendServer.accept();
 
@@ -2538,17 +2538,17 @@ d() {
               expect(incrementalSourceFile.existsSync(), equals(true));
 
               String source = incrementalSourceFile.readAsStringSync();
-              // Split on the comment at the end of each module.
-              List<String> jsModules =
+              // Split on the comment at the end of each library bundle.
+              List<String> jsLibraryBundles =
                   source.split(new RegExp("//# sourceMappingURL=.*.map"));
 
-              expect(jsModules[0], not(contains('<<a>>')));
-              expect(jsModules[0], not(contains('<<b>>')));
-              expect(jsModules[0], contains('<<c>>'));
-              expect(jsModules[0], not(contains('<<d>>')));
-              expect(jsModules[0], contains('<<d1>>'));
-              expect(jsModules[0], contains('<<d2>>'));
-              expect(jsModules[0], contains('<<e>>'));
+              expect(jsLibraryBundles[0], not(contains('<<a>>')));
+              expect(jsLibraryBundles[0], not(contains('<<b>>')));
+              expect(jsLibraryBundles[0], contains('<<c>>'));
+              expect(jsLibraryBundles[0], not(contains('<<d>>')));
+              expect(jsLibraryBundles[0], contains('<<d1>>'));
+              expect(jsLibraryBundles[0], contains('<<d2>>'));
+              expect(jsLibraryBundles[0], contains('<<e>>'));
 
               frontendServer.accept();
 
@@ -2574,19 +2574,19 @@ e() {
               expect(incrementalSourceFile.existsSync(), equals(true));
 
               String source = incrementalSourceFile.readAsStringSync();
-              // Split on the comment at the end of each module.
-              List<String> jsModules =
+              // Split on the comment at the end of each library bundle.
+              List<String> jsLibraryBundles =
                   source.split(new RegExp("//# sourceMappingURL=.*.map"));
 
-              expect(jsModules[0], not(contains('<<a>>')));
-              expect(jsModules[0], not(contains('<<b>>')));
-              expect(jsModules[0], contains('<<c>>'));
-              expect(jsModules[0], not(contains('<<d>>')));
-              expect(jsModules[0], contains('<<d1>>'));
-              expect(jsModules[0], contains('<<d2>>'));
-              expect(jsModules[0], not(contains('<<e>>')));
-              expect(jsModules[0], contains('<<e1>>'));
-              expect(jsModules[0], contains('<<e2>>'));
+              expect(jsLibraryBundles[0], not(contains('<<a>>')));
+              expect(jsLibraryBundles[0], not(contains('<<b>>')));
+              expect(jsLibraryBundles[0], contains('<<c>>'));
+              expect(jsLibraryBundles[0], not(contains('<<d>>')));
+              expect(jsLibraryBundles[0], contains('<<d1>>'));
+              expect(jsLibraryBundles[0], contains('<<d2>>'));
+              expect(jsLibraryBundles[0], not(contains('<<e>>')));
+              expect(jsLibraryBundles[0], contains('<<e1>>'));
+              expect(jsLibraryBundles[0], contains('<<e2>>'));
 
               frontendServer.accept();
               frontendServer.quit();
@@ -2611,7 +2611,8 @@ e() {
       });
     });
 
-    group('compile to JavaScript all modules with unsound null safety', () {
+    group('compile to JavaScript all library bundles with unsound null safety',
+        () {
       Future<void> runTests(
           {required String moduleFormat, bool canary = false}) async {
         File file = new File('${tempDir.path}/foo.dart')..createSync();
@@ -2670,14 +2671,14 @@ e() {
           expect(result.filename, dillFile.path);
 
           String source = sourceFile.readAsStringSync();
-          // Split on the comment at the end of each module.
-          List<String> jsModules =
+          // Split on the comment at the end of each library bundle.
+          List<String> jsLibraryBundles =
               source.split(new RegExp("//# sourceMappingURL=.*.map"));
 
-          // Both modules should include the unsound null safety check.
-          expect(jsModules[0],
+          // Both library bundles should include the unsound null safety check.
+          expect(jsLibraryBundles[0],
               contains('dart._checkModuleNullSafetyMode(false);'));
-          expect(jsModules[1],
+          expect(jsLibraryBundles[1],
               contains('dart._checkModuleNullSafetyMode(false);'));
           frontendServer.accept();
           frontendServer.quit();
@@ -2701,7 +2702,8 @@ e() {
         timeout: Timeout.none,
         skip: 'https://github.com/dart-lang/sdk/issues/52775');
 
-    group('compile to JavaScript, all modules with sound null safety', () {
+    group('compile to JavaScript, all library bundles with sound null safety',
+        () {
       Future<void> runTests(
           {required String moduleFormat, bool canary = false}) async {
         File file = new File('${tempDir.path}/foo.dart')..createSync();
@@ -2759,15 +2761,16 @@ e() {
           expect(result.filename, dillFile.path);
 
           String source = sourceFile.readAsStringSync();
-          // Split on the comment at the end of each module.
-          List<String> jsModules =
+          // Split on the comment at the end of each library bundle.
+          List<String> jsLibraryBundles =
               source.split(new RegExp("//# sourceMappingURL=.*.map"));
 
-          // Both modules should include the sound null safety validation.
-          expect(
-              jsModules[0], contains('dart._checkModuleNullSafetyMode(true);'));
-          expect(
-              jsModules[1], contains('dart._checkModuleNullSafetyMode(true);'));
+          // Both library bundles should include the sound null safety
+          // validation.
+          expect(jsLibraryBundles[0],
+              contains('dart._checkModuleNullSafetyMode(true);'));
+          expect(jsLibraryBundles[1],
+              contains('dart._checkModuleNullSafetyMode(true);'));
           frontendServer.accept();
           frontendServer.quit();
           expectationCompleter.complete(true);

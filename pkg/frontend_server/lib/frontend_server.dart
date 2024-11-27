@@ -1569,6 +1569,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         state = _State.COMPILE_EXPRESSION_TO_JS_JSMODULES;
         break;
       case _State.COMPILE_EXPRESSION_TO_JS_JSMODULES:
+        // TODO(srujzs): Deprecate jsModules as we never use this.
         if (string == boundaryKey) {
           state = _State.COMPILE_EXPRESSION_TO_JS_JSFRAMEVALUES;
         } else {
