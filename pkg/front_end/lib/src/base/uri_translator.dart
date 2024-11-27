@@ -74,7 +74,8 @@ class UriTranslator {
       // https://github.com/dart-lang/package_config/issues/40 is fixed.
       if (reportMessage) {
         options.reportWithoutLocation(
-            templateInvalidPackageUri.withArguments(uri, '$e'), Severity.error);
+            templateInvalidPackageUri.withArguments(uri, "${e.message}"),
+            Severity.error);
       }
       return null;
     }
