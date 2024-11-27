@@ -1315,6 +1315,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           .build(coreLibrary, addMembersToLibrary: !declaration.isDuplicate);
       if (!declaration.isAugmenting && !declaration.isDuplicate) {
         library.addExtensionTypeDeclaration(extensionTypeDeclaration);
+      } else if (declaration.isDuplicate) {
+        // Set parent so an `enclosingLibrary` call won't crash.
+        extensionTypeDeclaration.parent = library;
       }
     } else if (declaration is SourceMemberBuilder) {
       declaration.buildOutlineNodes((
