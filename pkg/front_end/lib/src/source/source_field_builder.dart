@@ -78,6 +78,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   final bool isTopLevel;
 
+  final bool isPrimaryConstructorField;
+
   final bool isSynthesized;
 
   /// If `true`, this field builder is for the field corresponding to an enum
@@ -98,6 +100,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       required this.name,
       required this.modifiers,
       required this.isTopLevel,
+      required this.isPrimaryConstructorField,
       required this.libraryBuilder,
       required this.declarationBuilder,
       required this.fileUri,
@@ -156,8 +159,27 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       assert(lateIsSetSetterReference == null);
       assert(lateGetterReference == null);
       assert(lateSetterReference == null);
-      _fieldEncoding = new RepresentationFieldEncoding(this, name, nameScheme,
-          fileUri, nameOffset, endOffset, fieldGetterReference);
+      if (isPrimaryConstructorField) {
+        _fieldEncoding = new RepresentationFieldEncoding(this, name, nameScheme,
+            fileUri, nameOffset, endOffset, fieldGetterReference);
+      } else {
+        // Field on a extension type. Encode as abstract.
+        // TODO(johnniwinther): Should we have an erroneous flag on such
+        // members?
+        _fieldEncoding = new AbstractOrExternalFieldEncoding(
+            this,
+            name,
+            nameScheme,
+            fileUri,
+            nameOffset,
+            endOffset,
+            fieldGetterReference,
+            fieldSetterReference,
+            isAbstract: true,
+            isExternal: false,
+            isFinal: isFinal,
+            isCovariantByDeclaration: isCovariantByDeclaration);
+      }
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
             hasInitializer: hasInitializer,
@@ -330,6 +352,9 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   @override
   bool get isAbstract => modifiers.isAbstract;
+
+  bool get isExtensionTypeDeclaredInstanceField =>
+      isExtensionTypeInstanceMember && !isPrimaryConstructorField;
 
   @override
   bool get isConst => modifiers.isConst;
@@ -2055,7 +2080,10 @@ class RepresentationFieldEncoding implements FieldEncoding {
 
   @override
   void set type(DartType value) {
-    assert(_type == null || _type is InferredType,
+    assert(
+        _type == null ||
+            // Coverage-ignore(suite): Not run.
+            _type is InferredType,
         "Type has already been computed for field ${_fieldBuilder.name}.");
     _type = value;
     if (value is! InferredType) {
@@ -2064,6 +2092,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void createBodies(CoreTypes coreTypes, Expression? initializer) {
     // TODO(johnniwinther): Enable this assert.
     //assert(initializer != null);
@@ -2139,6 +2168,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
       const <ClassMember>[];
 
   @override
+  // Coverage-ignore(suite): Not run.
   void buildImplicitDefaultValue() {
     // Not needed.
   }

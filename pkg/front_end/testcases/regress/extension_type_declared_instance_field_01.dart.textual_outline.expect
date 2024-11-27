@@ -1,0 +1,4 @@
+extension type Foo(int _x) {
+  int y;
+  Foo.secondConstructor() : _x = 42, y = 42;
+}

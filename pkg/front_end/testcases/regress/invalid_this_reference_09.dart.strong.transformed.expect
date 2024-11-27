@@ -30,8 +30,8 @@ import "dart:core" as core;
 
 extension type Foo(dynamic x) {
   abstract extension-type-member representation-field get x() → dynamic;
-  abstract extension-type-member representation-field get foo1() → invalid-type;
-  abstract extension-type-member representation-field get foo2() → invalid-type;
+  get foo1 = get self::Foo|foo1;
+  get foo2 = get self::Foo|foo2;
   method baz = self::Foo|baz;
   method tearoff baz = self::Foo|get#baz;
   constructor • = self::Foo|constructor#;
@@ -50,6 +50,8 @@ static extension-type-member method Foo|constructor#(dynamic x) → self::Foo% /
 }
 static extension-type-member method Foo|constructor#_#new#tearOff(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(x);
+static abstract extension-type-member get Foo|foo1() → invalid-type;
+static abstract extension-type-member get Foo|foo2() → invalid-type;
 static extension-type-member method Foo|baz(lowered final self::Foo% /* erasure=dynamic, declared=! */ #this, core::int i) → core::int {
   core::print(invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_09.dart:10:11: Error: The getter 'bar' isn't defined for the class 'Foo'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.

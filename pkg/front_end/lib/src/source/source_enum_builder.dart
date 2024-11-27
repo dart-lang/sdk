@@ -321,6 +321,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         modifiers:
             Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
         isTopLevel: false,
+        isPrimaryConstructorField: false,
         libraryBuilder: libraryBuilder,
         declarationBuilder: this,
         fileUri: fileUri,
@@ -488,6 +489,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             modifiers:
                 Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
             isTopLevel: false,
+            isPrimaryConstructorField: false,
             libraryBuilder: libraryBuilder,
             declarationBuilder: this,
             fileUri: fileUri,

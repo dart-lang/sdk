@@ -9126,6 +9126,14 @@ class BodyBuilder extends StackListenerImpl
       ];
     } else if (builder is SourceFieldBuilder &&
         builder.isDeclarationInstanceMember) {
+      if (builder.isExtensionTypeDeclaredInstanceField) {
+        // Operating on an invalid field. Don't report anything though
+        // as we've already reported that the field isn't valid.
+        return <Initializer>[
+          buildInvalidInitializer(new InvalidExpression(null), fieldNameOffset)
+        ];
+      }
+
       initializedFields ??= <String, int>{};
       if (initializedFields!.containsKey(name)) {
         return <Initializer>[
