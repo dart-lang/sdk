@@ -20,7 +20,7 @@ android_toolchain_suite("clang_arm") {
 }
 
 android_toolchain_suite("clang_x64") {
-  toolchain_cpu = "x86_64"
+  toolchain_cpu = "x64"
 }
 
 android_toolchain_suite("clang_arm64") {
