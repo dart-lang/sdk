@@ -231,6 +231,9 @@ mixin SourceDeclarationBuilderMixin
           }
           addMemberDescriptorInternal(
               memberBuilder, memberKind, memberReference, tearOffReference);
+        } else {
+          // Still set parent to avoid crashes.
+          member.parent = libraryBuilder.library;
         }
       }
     }

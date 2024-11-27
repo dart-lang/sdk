@@ -4,7 +4,7 @@
 
 int DuplicateName = 42;
 
-extension type DuplicateName._(int _x){
+extension type DuplicateName._(int _x) {
   DuplicateName(this._x) {
     bar;
   }
