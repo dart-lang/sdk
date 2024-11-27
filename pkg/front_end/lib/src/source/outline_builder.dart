@@ -2888,7 +2888,6 @@ class OutlineBuilder extends StackListenerImpl {
     if (identifier is Identifier) {
       if (enumConstantInfos == null) {
         if (!leftBrace.isSynthetic) {
-          // Coverage-ignore-block(suite): Not run.
           addProblem(messageEnumDeclarationEmpty, identifier.token.offset,
               identifier.token.length);
         }

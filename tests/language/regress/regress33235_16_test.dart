@@ -30,7 +30,7 @@ class C {
   int n() => 43;
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] 'n' is already declared in this scope.
+  // [cfe] The declaration conflicts with setter 'n'.
 }
 
 main() {

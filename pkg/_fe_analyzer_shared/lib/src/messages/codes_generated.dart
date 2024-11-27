@@ -1482,55 +1482,6 @@ Message _withArgumentsConflictingModifiers(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateConflictsWithConstructor =
-    const Template<Message Function(String name)>(
-      "ConflictsWithConstructor",
-      problemMessageTemplate: r"""Conflicts with constructor '#name'.""",
-      withArguments: _withArgumentsConflictsWithConstructor,
-    );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithConstructor =
-    const Code<Message Function(String name)>(
-      "ConflictsWithConstructor",
-      analyzerCodes: <String>["CONFLICTS_WITH_CONSTRUCTOR"],
-    );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithConstructor(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeConflictsWithConstructor,
-    problemMessage: """Conflicts with constructor '${name}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateConflictsWithFactory =
-    const Template<Message Function(String name)>(
-      "ConflictsWithFactory",
-      problemMessageTemplate: r"""Conflicts with factory '#name'.""",
-      withArguments: _withArgumentsConflictsWithFactory,
-    );
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithFactory =
-    const Code<Message Function(String name)>("ConflictsWithFactory");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithFactory(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(
-    codeConflictsWithFactory,
-    problemMessage: """Conflicts with factory '${name}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
 templateConflictsWithImplicitSetter =
     const Template<Message Function(String name)>(
@@ -1560,27 +1511,28 @@ Message _withArgumentsConflictsWithImplicitSetter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateConflictsWithMember =
+const Template<Message Function(String name)>
+templateConflictsWithImplicitSetterCause =
     const Template<Message Function(String name)>(
-      "ConflictsWithMember",
-      problemMessageTemplate: r"""Conflicts with member '#name'.""",
-      withArguments: _withArgumentsConflictsWithMember,
+      "ConflictsWithImplicitSetterCause",
+      problemMessageTemplate: r"""Field '#name' with the implicit setter.""",
+      withArguments: _withArgumentsConflictsWithImplicitSetterCause,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithMember =
+const Code<Message Function(String name)> codeConflictsWithImplicitSetterCause =
     const Code<Message Function(String name)>(
-      "ConflictsWithMember",
-      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+      "ConflictsWithImplicitSetterCause",
+      severity: Severity.context,
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithMember(String name) {
+Message _withArgumentsConflictsWithImplicitSetterCause(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(
-    codeConflictsWithMember,
-    problemMessage: """Conflicts with member '${name}'.""",
+    codeConflictsWithImplicitSetterCause,
+    problemMessage: """Field '${name}' with the implicit setter.""",
     arguments: {'name': name},
   );
 }
@@ -1607,6 +1559,32 @@ Message _withArgumentsConflictsWithSetter(String name) {
   return new Message(
     codeConflictsWithSetter,
     problemMessage: """Conflicts with setter '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateConflictsWithSetterCause =
+    const Template<Message Function(String name)>(
+      "ConflictsWithSetterCause",
+      problemMessageTemplate: r"""Conflicting setter '#name'.""",
+      withArguments: _withArgumentsConflictsWithSetterCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithSetterCause =
+    const Code<Message Function(String name)>(
+      "ConflictsWithSetterCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithSetterCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeConflictsWithSetterCause,
+    problemMessage: """Conflicting setter '${name}'.""",
     arguments: {'name': name},
   );
 }
@@ -2267,6 +2245,62 @@ const MessageCode messageConstMethod = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateConstructorConflictsWithMember =
+    const Template<Message Function(String name)>(
+      "ConstructorConflictsWithMember",
+      problemMessageTemplate:
+          r"""The constructor conflicts with member '#name'.""",
+      withArguments: _withArgumentsConstructorConflictsWithMember,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConstructorConflictsWithMember =
+    const Code<Message Function(String name)>(
+      "ConstructorConflictsWithMember",
+      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstructorConflictsWithMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeConstructorConflictsWithMember,
+    problemMessage: """The constructor conflicts with member '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateConstructorConflictsWithMemberCause =
+    const Template<Message Function(String name)>(
+      "ConstructorConflictsWithMemberCause",
+      problemMessageTemplate: r"""Conflicting member '#name'.""",
+      withArguments: _withArgumentsConstructorConflictsWithMemberCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+codeConstructorConflictsWithMemberCause =
+    const Code<Message Function(String name)>(
+      "ConstructorConflictsWithMemberCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstructorConflictsWithMemberCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeConstructorConflictsWithMemberCause,
+    problemMessage: """Conflicting member '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorCyclic = messageConstructorCyclic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2759,6 +2793,62 @@ Message _withArgumentsDebugTrace(String name, String string) {
     problemMessage: """Fatal '${name}' at:
 ${string}""",
     arguments: {'name': name, 'string': string},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateDeclarationConflictsWithSetter =
+    const Template<Message Function(String name)>(
+      "DeclarationConflictsWithSetter",
+      problemMessageTemplate:
+          r"""The declaration conflicts with setter '#name'.""",
+      withArguments: _withArgumentsDeclarationConflictsWithSetter,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDeclarationConflictsWithSetter =
+    const Code<Message Function(String name)>(
+      "DeclarationConflictsWithSetter",
+      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDeclarationConflictsWithSetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeDeclarationConflictsWithSetter,
+    problemMessage: """The declaration conflicts with setter '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateDeclarationConflictsWithSetterCause =
+    const Template<Message Function(String name)>(
+      "DeclarationConflictsWithSetterCause",
+      problemMessageTemplate: r"""Conflicting setter '#name'.""",
+      withArguments: _withArgumentsDeclarationConflictsWithSetterCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+codeDeclarationConflictsWithSetterCause =
+    const Code<Message Function(String name)>(
+      "DeclarationConflictsWithSetterCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDeclarationConflictsWithSetterCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeDeclarationConflictsWithSetterCause,
+    problemMessage: """Conflicting setter '${name}'.""",
+    arguments: {'name': name},
   );
 }
 
@@ -5610,6 +5700,60 @@ Message _withArgumentsExtraneousModifierInPrimaryConstructor(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateFactoryConflictsWithMember =
+    const Template<Message Function(String name)>(
+      "FactoryConflictsWithMember",
+      problemMessageTemplate: r"""The factory conflicts with member '#name'.""",
+      withArguments: _withArgumentsFactoryConflictsWithMember,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFactoryConflictsWithMember =
+    const Code<Message Function(String name)>(
+      "FactoryConflictsWithMember",
+      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFactoryConflictsWithMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeFactoryConflictsWithMember,
+    problemMessage: """The factory conflicts with member '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateFactoryConflictsWithMemberCause =
+    const Template<Message Function(String name)>(
+      "FactoryConflictsWithMemberCause",
+      problemMessageTemplate: r"""Conflicting member '#name'.""",
+      withArguments: _withArgumentsFactoryConflictsWithMemberCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFactoryConflictsWithMemberCause =
+    const Code<Message Function(String name)>(
+      "FactoryConflictsWithMemberCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFactoryConflictsWithMemberCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeFactoryConflictsWithMemberCause,
+    problemMessage: """Conflicting member '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8381,6 +8525,63 @@ Message _withArgumentsInstanceAndSynthesizedStaticConflict(String name) {
     codeInstanceAndSynthesizedStaticConflict,
     problemMessage:
         """This instance member conflicts with the synthesized static member called '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateInstanceConflictsWithStatic = const Template<
+  Message Function(String name)
+>(
+  "InstanceConflictsWithStatic",
+  problemMessageTemplate:
+      r"""Instance property '#name' conflicts with static property of the same name.""",
+  withArguments: _withArgumentsInstanceConflictsWithStatic,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInstanceConflictsWithStatic =
+    const Code<Message Function(String name)>(
+      "InstanceConflictsWithStatic",
+      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInstanceConflictsWithStatic(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeInstanceConflictsWithStatic,
+    problemMessage:
+        """Instance property '${name}' conflicts with static property of the same name.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateInstanceConflictsWithStaticCause =
+    const Template<Message Function(String name)>(
+      "InstanceConflictsWithStaticCause",
+      problemMessageTemplate: r"""Conflicting static property '#name'.""",
+      withArguments: _withArgumentsInstanceConflictsWithStaticCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInstanceConflictsWithStaticCause =
+    const Code<Message Function(String name)>(
+      "InstanceConflictsWithStaticCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInstanceConflictsWithStaticCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeInstanceConflictsWithStaticCause,
+    problemMessage: """Conflicting static property '${name}'.""",
     arguments: {'name': name},
   );
 }
@@ -11591,6 +11792,116 @@ const MessageCode messageMapPatternTypeArgumentMismatch = const MessageCode(
   analyzerCodes: <String>["EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS"],
   problemMessage: r"""A map pattern requires exactly two type arguments.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateMemberConflictsWithConstructor =
+    const Template<Message Function(String name)>(
+      "MemberConflictsWithConstructor",
+      problemMessageTemplate:
+          r"""The member conflicts with constructor '#name'.""",
+      withArguments: _withArgumentsMemberConflictsWithConstructor,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMemberConflictsWithConstructor =
+    const Code<Message Function(String name)>(
+      "MemberConflictsWithConstructor",
+      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMemberConflictsWithConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeMemberConflictsWithConstructor,
+    problemMessage: """The member conflicts with constructor '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateMemberConflictsWithConstructorCause =
+    const Template<Message Function(String name)>(
+      "MemberConflictsWithConstructorCause",
+      problemMessageTemplate: r"""Conflicting constructor '#name'.""",
+      withArguments: _withArgumentsMemberConflictsWithConstructorCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+codeMemberConflictsWithConstructorCause =
+    const Code<Message Function(String name)>(
+      "MemberConflictsWithConstructorCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMemberConflictsWithConstructorCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeMemberConflictsWithConstructorCause,
+    problemMessage: """Conflicting constructor '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateMemberConflictsWithFactory =
+    const Template<Message Function(String name)>(
+      "MemberConflictsWithFactory",
+      problemMessageTemplate: r"""The member conflicts with factory '#name'.""",
+      withArguments: _withArgumentsMemberConflictsWithFactory,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMemberConflictsWithFactory =
+    const Code<Message Function(String name)>(
+      "MemberConflictsWithFactory",
+      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMemberConflictsWithFactory(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeMemberConflictsWithFactory,
+    problemMessage: """The member conflicts with factory '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateMemberConflictsWithFactoryCause =
+    const Template<Message Function(String name)>(
+      "MemberConflictsWithFactoryCause",
+      problemMessageTemplate: r"""Conflicting factory '#name'.""",
+      withArguments: _withArgumentsMemberConflictsWithFactoryCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMemberConflictsWithFactoryCause =
+    const Code<Message Function(String name)>(
+      "MemberConflictsWithFactoryCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMemberConflictsWithFactoryCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeMemberConflictsWithFactoryCause,
+    problemMessage: """Conflicting factory '${name}'.""",
+    arguments: {'name': name},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateMemberNotFound =
@@ -15227,6 +15538,62 @@ messageSetOrMapLiteralTooManyTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateSetterConflictsWithDeclaration =
+    const Template<Message Function(String name)>(
+      "SetterConflictsWithDeclaration",
+      problemMessageTemplate:
+          r"""The setter conflicts with declaration '#name'.""",
+      withArguments: _withArgumentsSetterConflictsWithDeclaration,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSetterConflictsWithDeclaration =
+    const Code<Message Function(String name)>(
+      "SetterConflictsWithDeclaration",
+      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSetterConflictsWithDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeSetterConflictsWithDeclaration,
+    problemMessage: """The setter conflicts with declaration '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateSetterConflictsWithDeclarationCause =
+    const Template<Message Function(String name)>(
+      "SetterConflictsWithDeclarationCause",
+      problemMessageTemplate: r"""Conflicting declaration '#name'.""",
+      withArguments: _withArgumentsSetterConflictsWithDeclarationCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+codeSetterConflictsWithDeclarationCause =
+    const Code<Message Function(String name)>(
+      "SetterConflictsWithDeclarationCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSetterConflictsWithDeclarationCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeSetterConflictsWithDeclarationCause,
+    problemMessage: """Conflicting declaration '${name}'.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSetterConstructor = messageSetterConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15437,6 +15804,63 @@ const MessageCode messageStaticAndInstanceConflictCause = const MessageCode(
   severity: Severity.context,
   problemMessage: r"""This is the instance member.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateStaticConflictsWithInstance = const Template<
+  Message Function(String name)
+>(
+  "StaticConflictsWithInstance",
+  problemMessageTemplate:
+      r"""Static property '#name' conflicts with instance property of the same name.""",
+  withArguments: _withArgumentsStaticConflictsWithInstance,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeStaticConflictsWithInstance =
+    const Code<Message Function(String name)>(
+      "StaticConflictsWithInstance",
+      analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsStaticConflictsWithInstance(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeStaticConflictsWithInstance,
+    problemMessage:
+        """Static property '${name}' conflicts with instance property of the same name.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+templateStaticConflictsWithInstanceCause =
+    const Template<Message Function(String name)>(
+      "StaticConflictsWithInstanceCause",
+      problemMessageTemplate: r"""Conflicting instance property '#name'.""",
+      withArguments: _withArgumentsStaticConflictsWithInstanceCause,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeStaticConflictsWithInstanceCause =
+    const Code<Message Function(String name)>(
+      "StaticConflictsWithInstanceCause",
+      severity: Severity.context,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsStaticConflictsWithInstanceCause(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+    codeStaticConflictsWithInstanceCause,
+    problemMessage: """Conflicting instance property '${name}'.""",
+    arguments: {'name': name},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticConstructor = messageStaticConstructor;

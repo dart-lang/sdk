@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/super.dart:27:7: Error: 'n' is already declared in this scope.
+// pkg/front_end/testcases/rasta/super.dart:27:7: Error: The setter conflicts with declaration 'n'.
 //   set n(_) {}
 //       ^
-// pkg/front_end/testcases/rasta/super.dart:26:8: Context: Previous declaration of 'n'.
+// pkg/front_end/testcases/rasta/super.dart:26:8: Context: Conflicting declaration 'n'.
 //   void n() {}
 //        ^
 //

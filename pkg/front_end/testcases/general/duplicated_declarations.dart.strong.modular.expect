@@ -42,14 +42,14 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:13:9: Error: 'Typedef' is already declared in this scope.
 // typedef Typedef = void Function();
 //         ^^^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:15:9: Context: Previous declaration of 'Typedef'.
-// typedef Typedef = Object Function();
+// pkg/front_end/testcases/general/duplicated_declarations.dart:13:9: Context: Previous declaration of 'Typedef'.
+// typedef Typedef = void Function();
 //         ^^^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:15:9: Error: 'Typedef' is already declared in this scope.
 // typedef Typedef = Object Function();
 //         ^^^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:13:9: Context: Previous declaration of 'Typedef'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:13:9: Context: Previous declaration of 'Typedef'.
 // typedef Typedef = void Function();
 //         ^^^^^^^
 //
@@ -63,14 +63,14 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:19:14: Error: 'OldTypedef' is already declared in this scope.
 // typedef void OldTypedef();
 //              ^^^^^^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:21:16: Context: Previous declaration of 'OldTypedef'.
-// typedef Object OldTypedef();
-//                ^^^^^^^^^^
+// pkg/front_end/testcases/general/duplicated_declarations.dart:19:14: Context: Previous declaration of 'OldTypedef'.
+// typedef void OldTypedef();
+//              ^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:21:16: Error: 'OldTypedef' is already declared in this scope.
 // typedef Object OldTypedef();
 //                ^^^^^^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:19:14: Context: Previous declaration of 'OldTypedef'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:19:14: Context: Previous declaration of 'OldTypedef'.
 // typedef void OldTypedef();
 //              ^^^^^^^^^^
 //
@@ -84,22 +84,22 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:23:5: Error: 'field' is already declared in this scope.
 // var field = "3rd";
 //     ^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:25:5: Context: Previous declaration of 'field'.
-// var field = "2nd";
+// pkg/front_end/testcases/general/duplicated_declarations.dart:23:5: Context: Previous declaration of 'field'.
+// var field = "1st";
 //     ^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:25:5: Error: 'field' is already declared in this scope.
 // var field = 4;
 //     ^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:23:5: Context: Previous declaration of 'field'.
-// var field = "3rd";
+// pkg/front_end/testcases/general/duplicated_declarations.dart:23:5: Context: Previous declaration of 'field'.
+// var field = "1st";
 //     ^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:27:5: Error: 'field' is already declared in this scope.
 // var field = 5.0;
 //     ^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:25:5: Context: Previous declaration of 'field'.
-// var field = 4;
+// pkg/front_end/testcases/general/duplicated_declarations.dart:23:5: Context: Previous declaration of 'field'.
+// var field = "1st";
 //     ^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:31:1: Error: 'main' is already declared in this scope.
@@ -112,21 +112,21 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:29:1: Error: 'main' is already declared in this scope.
 // main() {
 // ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:31:1: Context: Previous declaration of 'main'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:27:1: Context: Previous declaration of 'main'.
 // main() {
 // ^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:33:1: Error: 'main' is already declared in this scope.
 // main() {
 // ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:29:1: Context: Previous declaration of 'main'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:27:1: Context: Previous declaration of 'main'.
 // main() {
 // ^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:37:1: Error: 'main' is already declared in this scope.
 // main() {
 // ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:33:1: Context: Previous declaration of 'main'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:27:1: Context: Previous declaration of 'main'.
 // main() {
 // ^^^^
 //
@@ -140,21 +140,21 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:41:7: Error: 'C' is already declared in this scope.
 // class C {
 //       ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:74:7: Context: Previous declaration of 'C'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:43:7: Context: Previous declaration of 'C'.
 // class C {
 //       ^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:67:7: Error: 'C' is already declared in this scope.
 // class C {
 //       ^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:41:7: Context: Previous declaration of 'C'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:43:7: Context: Previous declaration of 'C'.
 // class C {
 //       ^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:71:7: Error: 'C' is already declared in this scope.
 // class C {
 //       ^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:67:7: Context: Previous declaration of 'C'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:43:7: Context: Previous declaration of 'C'.
 // class C {
 //       ^
 //
@@ -168,21 +168,21 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:75:6: Error: 'Enum' is already declared in this scope.
 // enum Enum {
 //      ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:85:6: Context: Previous declaration of 'Enum'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:78:6: Context: Previous declaration of 'Enum'.
 // enum Enum {
 //      ^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:82:6: Error: 'Enum' is already declared in this scope.
 // enum Enum {
 //      ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:75:6: Context: Previous declaration of 'Enum'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:78:6: Context: Previous declaration of 'Enum'.
 // enum Enum {
 //      ^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:88:6: Error: 'Enum' is already declared in this scope.
 // enum Enum {
 //      ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations_part.dart:82:6: Context: Previous declaration of 'Enum'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:78:6: Context: Previous declaration of 'Enum'.
 // enum Enum {
 //      ^^^^
 //

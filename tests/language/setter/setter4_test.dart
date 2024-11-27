@@ -12,7 +12,7 @@ class A {
   void set a(var val) {
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-    // [cfe] 'a' is already declared in this scope.
+    // [cfe] The setter conflicts with declaration 'a'.
     int i = val;
   }
 }

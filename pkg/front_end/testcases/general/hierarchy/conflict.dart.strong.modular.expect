@@ -2,6 +2,13 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/general/hierarchy/conflict.dart:115:12: Error: The setter conflicts with declaration 'declaredMethodAndSetter'.
+//   void set declaredMethodAndSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/hierarchy/conflict.dart:114:8: Context: Conflicting declaration 'declaredMethodAndSetter'.
+//   void declaredMethodAndSetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/general/hierarchy/conflict.dart:90:16: Error: Can't inherit members that conflict with each other.
 // abstract class Class extends Super
 //                ^^^^^^^^^^^^^^^^
@@ -116,13 +123,6 @@ library;
 // pkg/front_end/testcases/general/hierarchy/conflict.dart:57:7: Context: This is the inherited member.
 //   int implementedFieldDeclaredMethod = 0;
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/hierarchy/conflict.dart:115:12: Error: 'declaredMethodAndSetter' is already declared in this scope.
-//   void set declaredMethodAndSetter(int value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/hierarchy/conflict.dart:114:8: Context: Previous declaration of 'declaredMethodAndSetter'.
-//   void declaredMethodAndSetter() {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/hierarchy/conflict.dart:94:12: Error: Can't declare a member that conflicts with an inherited one.
 //   void set extendedMethodDeclaredSetter(int value) {}
