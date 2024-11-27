@@ -662,6 +662,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var universeClass =
         _rtiLibrary.classes.firstWhere((cls) => cls.name == '_Universe');
     var typeRules = _typeRecipeGenerator.liveInterfaceTypeRules;
+    var legacyJavaScriptObjectRecipe = _typeRecipeGenerator.interfaceTypeRecipe(
+        _coreTypes.index
+            .getClass('dart:_interceptors', 'LegacyJavaScriptObject'));
+    var legacyJavaScriptObjectRules =
+        typeRules.remove(legacyJavaScriptObjectRecipe);
     if (typeRules.isNotEmpty) {
       var template = '#._Universe.#(#, JSON.parse(#))';
       var addRulesStatement = js.call(template, [
@@ -671,6 +676,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js.string(jsonEncode(typeRules), "'")
       ]).toStatement();
       _moduleItems.add(addRulesStatement);
+    }
+    if (legacyJavaScriptObjectRules != null) {
+      var legacyJavaScriptObjectAddRules = {
+        legacyJavaScriptObjectRecipe: legacyJavaScriptObjectRules
+      };
+      // The recipe for 'LegacyJavaScriptObject' is updated during the lifetime
+      // of the program and should be emitted with 'addOrUpdateRules' to avoid
+      // clobbering its previous state.
+      var updateRulesStatement =
+          js.statement('#._Universe.#(#, JSON.parse(#))', [
+        _emitLibraryName(_rtiLibrary),
+        _emitMemberName('addOrUpdateRules', memberClass: universeClass),
+        _runtimeCall('typeUniverse'),
+        js.string(jsonEncode(legacyJavaScriptObjectAddRules), "'")
+      ]);
+      _moduleItems.add(updateRulesStatement);
     }
     // Update type rules for `LegacyJavaScriptObject` to add all interop
     // types in this module as a supertype.
