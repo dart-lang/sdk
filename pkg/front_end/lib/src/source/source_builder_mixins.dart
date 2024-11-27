@@ -14,7 +14,6 @@ import '../builder/builder_mixins.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/name_iterator.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
@@ -55,10 +54,6 @@ mixin SourceDeclarationBuilderMixin
   /// library.
   void buildInternal(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
-    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, nameSpace,
-        checkForInstanceVsStaticConflict: true,
-        checkForMethodVsSetterConflict: true);
-
     ClassBuilder objectClassBuilder =
         coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
 
@@ -236,6 +231,9 @@ mixin SourceDeclarationBuilderMixin
           }
           addMemberDescriptorInternal(
               memberBuilder, memberKind, memberReference, tearOffReference);
+        } else {
+          // Still set parent to avoid crashes.
+          member.parent = libraryBuilder.library;
         }
       }
     }
@@ -305,47 +303,4 @@ mixin SourceDeclarationBuilderMixin
 
   @override
   int get typeParametersCount => typeParameters?.length ?? 0;
-}
-
-mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
-  /// Checks for conflicts between constructors and static members declared
-  /// in this type declaration.
-  void checkConstructorStaticConflict() {
-    NameIterator<MemberBuilder> iterator =
-        nameSpace.filteredConstructorNameIterator(
-            includeDuplicates: false, includeAugmentations: true);
-    while (iterator.moveNext()) {
-      String name = iterator.name;
-      MemberBuilder constructor = iterator.current;
-      Builder? member = nameSpace.lookupLocalMember(name, setter: false);
-      if (member == null) continue;
-      if (!member.isStatic) continue;
-      // TODO(ahe): Revisit these messages. It seems like the last two should
-      // be `context` parameter to this message.
-      addProblem(templateConflictsWithMember.withArguments(name),
-          constructor.fileOffset, noLength);
-      if (constructor.isFactory) {
-        addProblem(
-            templateConflictsWithFactory.withArguments("${this.name}.${name}"),
-            member.fileOffset,
-            noLength);
-      } else {
-        addProblem(
-            templateConflictsWithConstructor
-                .withArguments("${this.name}.${name}"),
-            member.fileOffset,
-            noLength);
-      }
-    }
-
-    nameSpace.forEachLocalSetter((String name, Builder setter) {
-      Builder? constructor = nameSpace.lookupConstructor(name);
-      if (constructor == null || !setter.isStatic) return;
-      // Coverage-ignore-block(suite): Not run.
-      addProblem(templateConflictsWithConstructor.withArguments(name),
-          setter.fileOffset, noLength);
-      addProblem(templateConflictsWithSetter.withArguments(name),
-          constructor.fileOffset, noLength);
-    });
-  }
 }

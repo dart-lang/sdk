@@ -58,8 +58,6 @@ extension E3 on int {
   static void set property(int value) {}
   static int field = 3;
   static int field2 = 4;
-  //         ^
-  // [cfe] Conflicts with setter 'field2'.
 
   static int method() => 0;
   //         ^^^^^^
@@ -115,23 +113,18 @@ extension E5 on int {
   static int get property => 1;
   //             ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] Conflicts with setter 'property'.
   static void set property(int value) {}
   //              ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] Conflicts with member 'property'.
   static int get property2 => 1;
   //             ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] Conflicts with setter 'property2'.
   static void set property3(int x) {}
   //              ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] Conflicts with member 'property3'.
   static int field = 3;
   //         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] Conflicts with setter 'field'.
   static int field2 = 3;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
@@ -142,19 +135,15 @@ extension E5 on int {
   int get property => 1;
   //      ^
   // [cfe] 'property' is already declared in this scope.
-  //      ^
-  // [cfe] Conflicts with setter 'property'.
   void set property(int value) {}
   //       ^
   // [cfe] 'property' is already declared in this scope.
-  //       ^
-  // [cfe] Conflicts with member 'property'.
   void set property2(int value) {}
   //       ^
-  // [cfe] Conflicts with member 'property2'.
+  // [cfe] Instance property 'property2' conflicts with static property of the same name.
   int get property3 => 1;
   //      ^
-  // [cfe] Conflicts with setter 'property3'.
+  // [cfe] Instance property 'property3' conflicts with static property of the same name.
   void set field(int value) {}
   //       ^
   // [cfe] Conflicts with the implicit setter of the field 'field'.
@@ -175,12 +164,10 @@ extension E6 on int {
 // Check a static method colliding with a static setter.
 extension E7 on int {
   static int method() => 0;
-  //         ^
-  // [cfe] Conflicts with setter 'method'.
   static void set method(int value) {}
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] Conflicts with member 'method'.
+  // [cfe] The setter conflicts with declaration 'method'.
 }
 
 // Check a static method colliding with a static field.
@@ -204,12 +191,10 @@ extension E9 on int {
 // Check an instance method colliding with an instance setter.
 extension E10 on int {
   int method() => 0;
-  //  ^
-  // [cfe] Conflicts with setter 'method'.
   void set method(int value) {}
   //       ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] Conflicts with member 'method'.
+  // [cfe] The setter conflicts with declaration 'method'.
 }
 
 // Check a static method colliding with an instance getter.
@@ -227,10 +212,9 @@ extension E12 on int {
   static int method() => 0;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] Conflicts with setter 'method'.
   void set method(int value) {}
   //       ^
-  // [cfe] Conflicts with member 'method'.
+  // [cfe] The setter conflicts with declaration 'method'.
 }
 
 // Check an instance method colliding with a static getter.
@@ -245,12 +229,10 @@ extension E13 on int {
 // Check an instance method colliding with a static setter.
 extension E14 on int {
   int method() => 0;
-  //  ^
-  // [cfe] Conflicts with setter 'method'.
   static void set method(int value) {}
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] Conflicts with member 'method'.
+  // [cfe] The setter conflicts with declaration 'method'.
 }
 
 // Check an instance method colliding with a static field.

@@ -225,7 +225,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/uri_translator.dart": (
-    hitCount: 42,
+    hitCount: 49,
     missCount: 0,
   ),
   // 100.0%.
@@ -505,7 +505,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/field.dart": (
-    hitCount: 13,
+    hitCount: 22,
     missCount: 0,
   ),
   // 100.0%.
@@ -670,7 +670,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/hierarchy/members_node.dart": (
-    hitCount: 1167,
+    hitCount: 1142,
     missCount: 0,
   ),
   // 100.0%.
@@ -870,7 +870,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/outline_builder.dart": (
-    hitCount: 2126,
+    hitCount: 2133,
     missCount: 0,
   ),
   // 100.0%.
@@ -885,12 +885,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_mixins.dart": (
-    hitCount: 172,
+    hitCount: 137,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/source/source_class_builder.dart": (
-    hitCount: 1279,
+    hitCount: 1275,
     missCount: 0,
   ),
   // 100.0%.
@@ -916,7 +916,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/source/source_extension_type_declaration_builder.dart":
       (
-    hitCount: 509,
+    hitCount: 508,
     missCount: 0,
   ),
   // 100.0%.
@@ -936,7 +936,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_library_builder.dart": (
-    hitCount: 1347,
+    hitCount: 1309,
     missCount: 0,
   ),
   // 100.0%.
@@ -966,7 +966,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 991,
+    hitCount: 1471,
     missCount: 0,
   ),
   // 100.0%.

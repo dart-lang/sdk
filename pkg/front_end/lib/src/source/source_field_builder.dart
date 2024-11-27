@@ -2014,7 +2014,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   @override
   Initializer buildErroneousInitializer(Expression effect, Expression value,
       {required int fileOffset}) {
-    throw new UnsupportedError("$runtimeType.buildDuplicatedInitializer");
+    return new ShadowInvalidFieldInitializer(type, value, effect)
+      ..fileOffset = fileOffset;
   }
 }
 

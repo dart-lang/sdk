@@ -12,8 +12,8 @@ library;
 // pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:15:9: Error: 'AAlias' is already declared in this scope.
 // typedef AAlias = C<String>; // error
 //         ^^^^^^
-// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:14:9: Context: Previous declaration of 'AAlias'.
-// typedef AAlias = A; //  error
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:11:9: Context: Previous declaration of 'AAlias'.
+// typedef AAlias = A;
 //         ^^^^^^
 //
 // pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:16:9: Error: 'CAlias' is already declared in this scope.
@@ -26,15 +26,15 @@ library;
 // pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:17:9: Error: 'CAlias' is already declared in this scope.
 // typedef CAlias = C<String>; //  error
 //         ^^^^^^
-// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:16:9: Context: Previous declaration of 'CAlias'.
-// typedef CAlias<T> = C<T>; //  error
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:12:9: Context: Previous declaration of 'CAlias'.
+// typedef CAlias<T> = C<T>;
 //         ^^^^^^
 //
 // pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:18:9: Error: 'CAlias' is already declared in this scope.
 // typedef CAlias<T1, T2> = C<T1>; //  error
 //         ^^^^^^
-// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:17:9: Context: Previous declaration of 'CAlias'.
-// typedef CAlias = C<String>; //  error
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:12:9: Context: Previous declaration of 'CAlias'.
+// typedef CAlias<T> = C<T>;
 //         ^^^^^^
 //
 import self as self;

@@ -1,0 +1,34 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:22: Error: Duplicated parameter name 'foo'.
+//   Foo(this.foo, this.foo) {}
+//                      ^^^
+// pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:12: Context: Other parameter named 'foo'.
+//   Foo(this.foo, this.foo) {}
+//            ^^^
+//
+// pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:12: Error: Abstract fields cannot have initializers.
+// Try removing the field initializer or the 'abstract' keyword from the field declaration.
+//   Foo(this.foo, this.foo) {}
+//            ^^^
+//
+// pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:22: Error: 'foo' was already initialized by this constructor.
+//   Foo(this.foo, this.foo) {}
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo extends core::Object {
+  constructor •(core::int foo, core::int foo) → self::Foo
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:12: Error: Abstract fields cannot have initializers.
+Try removing the field initializer or the 'abstract' keyword from the field declaration.
+  Foo(this.foo, this.foo) {}
+           ^^^", final dynamic #t2 = invalid-expression "pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:22: Error: 'foo' was already initialized by this constructor.
+  Foo(this.foo, this.foo) {}
+                     ^" {}
+  abstract get foo() → core::int;
+  abstract set foo(synthesized core::int #externalFieldValue) → void;
+}

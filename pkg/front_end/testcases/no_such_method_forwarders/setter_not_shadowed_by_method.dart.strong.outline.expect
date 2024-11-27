@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/no_such_method_forwarders/setter_not_shadowed_by_method.dart:12:12: Error: 'foo' is already declared in this scope.
+// pkg/front_end/testcases/no_such_method_forwarders/setter_not_shadowed_by_method.dart:12:12: Error: The setter conflicts with declaration 'foo'.
 //   void set foo(int x);
 //            ^^^
-// pkg/front_end/testcases/no_such_method_forwarders/setter_not_shadowed_by_method.dart:10:8: Context: Previous declaration of 'foo'.
+// pkg/front_end/testcases/no_such_method_forwarders/setter_not_shadowed_by_method.dart:10:8: Context: Conflicting declaration 'foo'.
 //   void foo(int x) {}
 //        ^^^
 //
