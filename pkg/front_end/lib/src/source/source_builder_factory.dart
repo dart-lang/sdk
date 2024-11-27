@@ -1714,7 +1714,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         nameOffset: nameOffset,
         endOffset: nameOffset,
         initializerToken: null,
-        hasInitializer: false));
+        hasInitializer: false,
+        isPrimaryConstructorField: true));
   }
 
   @override
@@ -2179,7 +2180,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               initializerToken: startToken,
               hasInitializer: hasInitializer,
               constInitializerToken:
-                  potentiallyNeedInitializerInOutline ? startToken : null));
+                  potentiallyNeedInitializerInOutline ? startToken : null,
+              isPrimaryConstructorField: false));
     }
   }
 
@@ -2193,7 +2195,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int endOffset,
       required Token? initializerToken,
       required bool hasInitializer,
-      Token? constInitializerToken}) {
+      Token? constInitializerToken,
+      required bool isPrimaryConstructorField}) {
     if (hasInitializer) {
       modifiers |= Modifiers.HasInitializer;
     }
@@ -2207,7 +2210,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         type: type,
         isTopLevel: isTopLevel,
-        modifiers: modifiers);
+        modifiers: modifiers,
+        isPrimaryConstructorField: isPrimaryConstructorField);
     _addFragment(fragment);
     return fragment;
   }
