@@ -22,11 +22,7 @@ class Foo {
 late Foo value;
 
 helper() {
-  try {
-    return value.x.toString();
-  } catch (e) {
-    return e.toString();
-  }
+  return value.x.toString();
 }
 
 Future<void> main() async {
@@ -36,8 +32,10 @@ Future<void> main() async {
   await hotReload();
 
   // B is no longer a subtype of A.
-  Expect.equals(
-      "type '(A) => bool' is not a subtype of type '(B) => bool'", helper());
+  Expect.throws<TypeError>(
+      () => helper(),
+      (error) => '$error'.contains(
+          "type '(A) => bool' is not a subtype of type '(B) => bool'"));
   Expect.equals(1, hotReloadGeneration);
 }
 /** DIFF **/
@@ -51,17 +49,13 @@ Future<void> main() async {
  
  typedef bool Predicate(B b);
  
-@@ -22,8 +22,11 @@
+@@ -22,8 +22,7 @@
  late Foo value;
  
  helper() {
 -  value = Foo((A a) => true);
 -  return 'okay';
-+  try {
-+    return value.x.toString();
-+  } catch (e) {
-+    return e.toString();
-+  }
++  return value.x.toString();
  }
  
  Future<void> main() async {

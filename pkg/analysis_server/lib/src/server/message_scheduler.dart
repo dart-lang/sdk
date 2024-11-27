@@ -383,18 +383,19 @@ final class MessageScheduler {
     if (params == null) {
       return;
     }
-    var uri = params.textDocument.uri;
+    var documentChangeUri = params.textDocument.uri;
 
-    String? getDocumentPath(List<lsp.LSPAny?> args) {
+    Uri? getRefactorUri(List<lsp.LSPAny?> args) {
       // TODO(keertip): extract method in AbstractRefactorCommandHandler
       // and use that instead.
       String? path;
       if (args.length == 6) {
         path = args[1] as String?;
       } else if (args.length == 1 && args[0] is Map<String, Object?>) {
-        path = (args.single as Map<String, Object?>).values.first as String;
+        path = (args.single as Map<String, Object?>)['path'] as String?;
       }
-      return path;
+
+      return path != null ? Uri.file(path) : null;
     }
 
     void checkAndCancelRefactor(LspMessage lspMessage) {
@@ -403,8 +404,8 @@ final class MessageScheduler {
       if (execParams != null &&
           execParams.command == Commands.performRefactor) {
         var args = execParams.arguments ?? [];
-        String? path = getDocumentPath(args);
-        if (path == uri.path) {
+        var refactorUri = getRefactorUri(args);
+        if (refactorUri == documentChangeUri) {
           lspMessage.cancellationToken?.cancel(
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );
@@ -419,8 +420,8 @@ final class MessageScheduler {
       var request = lspMessage.message as lsp.RequestMessage;
       var renameParams = _getRenameParams(request);
       if (renameParams != null) {
-        var path = renameParams.textDocument.uri.path;
-        if (path == uri.path) {
+        var renameUri = renameParams.textDocument.uri;
+        if (renameUri == documentChangeUri) {
           lspMessage.cancellationToken?.cancel(
             code: lsp.ErrorCodes.ContentModified.toJson(),
           );

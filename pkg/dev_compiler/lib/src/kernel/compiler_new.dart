@@ -812,6 +812,24 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ]).toStatement();
       _typeRuleLinks.add(addRulesStatement);
     }
+    // Reset type rules for all classes with empty type hierarchies. These
+    // classes implicitly extend `Object` and may have been updated after a
+    // hot reload. This is unnecessary for types in `liveInterfaceTypeRules`,
+    // as `addRules` overrides the old rules.
+    // TODO(57049): Only do this after a hot reload.
+    var emptyInterfaceTypeRecipes =
+        Set.from(_typeRecipeGenerator.visitedInterfaceTypeRecipes)
+          ..removeAll(typeRules.keys);
+    if (emptyInterfaceTypeRecipes.isNotEmpty) {
+      var template = '#._Universe.#(#, JSON.parse(#))';
+      var deleteRulesStatement = js.call(template, [
+        _emitLibraryName(_rtiLibrary),
+        _emitMemberName('deleteRules', memberClass: universeClass),
+        _runtimeCall('typeUniverse'),
+        js.string(jsonEncode(emptyInterfaceTypeRecipes.toList()), "'")
+      ]).toStatement();
+      _typeRuleLinks.add(deleteRulesStatement);
+    }
     // Update type rules for `LegacyJavaScriptObject` to add all interop
     // types in this module as a supertype.
     var updateRules = _typeRecipeGenerator.updateLegacyJavaScriptObjectRules;

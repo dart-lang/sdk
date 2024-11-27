@@ -202,6 +202,9 @@ class Rti {
 
   Object? _isSubtypeCache;
 
+  static Object? _getRawIsSubtypeCache(Rti rti) => rti._isSubtypeCache;
+
+  /// Same as [_getRawIsSubtypeCache] but also initializes the cache.
   static Object? _getIsSubtypeCache(Rti rti) =>
       rti._isSubtypeCache ??= JS('', 'new Map()');
 
@@ -565,6 +568,24 @@ Rti _rtiBind1(Rti environment, Rti types) {
 
 Rti _rtiBind(Rti environment, Rti types) {
   return _Universe.bind(_theUniverse(), environment, types);
+}
+
+/// Resets subtype caches on all evaluated RTIs.
+///
+/// This operation is used when subtyping relationships change in a running
+/// app (such as after a hot reload).
+void resetRtiSubtypeCaches() {
+  var universe = _theUniverse();
+  var cache = _Universe.evalCache(universe);
+  var values = _Utils.mapValues(cache);
+  var length = _Utils.arrayLength(values);
+  for (int i = 0; i < length; i++) {
+    Rti rti = _Utils.asRti(_Utils.arrayAt(values, i));
+    var sCache = Rti._getRawIsSubtypeCache(rti);
+    if (sCache != null) {
+      _Utils.mapClear(sCache);
+    }
+  }
 }
 
 /// Evaluate a ground-term type.
@@ -2308,6 +2329,15 @@ class _Universe {
 
   static void addRules(Object? universe, Object? rules) =>
       _Utils.objectAssign(typeRules(universe), rules);
+
+  static void deleteRules(Object? universe, Object? types) {
+    var universeTypeRules = typeRules(universe);
+    var typeCount = _Utils.arrayLength(types);
+    for (int i = 0; i < typeCount; i++) {
+      var type = _Utils.asString(_Utils.arrayAt(types, i));
+      _Utils.objectDelete(universeTypeRules, type);
+    }
+  }
 
   /// Adds or updates existing type rules in the type [universe].
   ///
@@ -4344,6 +4374,9 @@ class _Utils {
     }
   }
 
+  static void objectDelete(Object? o, Object? property) =>
+      JS('', 'delete #[#]', o, property);
+
   static Object? newArrayOrEmpty(int length) =>
       length > 0
           ? JS('', 'new Array(#)', length)
@@ -4379,6 +4412,11 @@ class _Utils {
 
   static bool stringLessThan(String s1, String s2) =>
       JS('bool', '# < #', s1, s2);
+
+  static JSArray mapValues(Object? map) =>
+      JS('JSArray', 'Array.from(#.values())', map);
+
+  static void mapClear(Object? map) => JS('', '#.clear()', map);
 
   static Object? mapGet(Object? cache, Object? key) =>
       JS('', '#.get(#)', cache, key);
