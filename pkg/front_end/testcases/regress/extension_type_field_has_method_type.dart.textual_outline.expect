@@ -1,0 +1,4 @@
+extension Foo on int {
+  bar(){}
+  bar baz;
+}
