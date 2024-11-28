@@ -2,22 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
 import 'package:reload_test/reload_test_utils.dart';
 
 // Adapted from:
-// https://github.com/dart-lang/sdk/blob/36c0788137d55c6c77f4b9a8be12e557bc764b1c/runtime/vm/isolate_reload_test.cc#L364
+// https://github.com/dart-lang/sdk/blob/d9502e2a906ceeb7c8e9d2e1ff15e2251dae80ce/runtime/vm/isolate_reload_test.cc#L4306
 
-class Foo {
-  final a;
-  Foo(this.a);
+class A {
+  final x, y, z;
+  const A(this.x, this.y, this.z);
+}
+
+var a;
+
+void helper() {
+  a = const A(1, 2, 3);
 }
 
 Future<void> main() async {
-  var foo = Foo(5);
-  Expect.equals(5, foo.a);
+  helper();
   await hotReload(expectRejection: true);
-  Expect.equals(5, foo.a);
-  foo = Foo(10);
-  Expect.equals(10, foo.a);
+  helper();
+  await hotReload(expectRejection: true);
+  helper();
 }

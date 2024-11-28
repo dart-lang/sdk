@@ -6,18 +6,23 @@ import 'package:expect/expect.dart';
 import 'package:reload_test/reload_test_utils.dart';
 
 // Adapted from:
-// https://github.com/dart-lang/sdk/blob/36c0788137d55c6c77f4b9a8be12e557bc764b1c/runtime/vm/isolate_reload_test.cc#L364
+// https://github.com/dart-lang/sdk/blob/368cb645e5ff5baa1d1ed86bfd2e7d818471a652/runtime/vm/isolate_reload_test.cc#L4210
 
-class Foo {
-  final a;
-  Foo(this.a);
+void helper() {
+  a = const A(1);
+  hash1 = a.hashCode;
 }
 
+class A {
+  final x;
+  const A(this.x);
+}
+
+var a, hash1, hash2;
+
 Future<void> main() async {
-  var foo = Foo(5);
-  Expect.equals(5, foo.a);
-  await hotReload(expectRejection: true);
-  Expect.equals(5, foo.a);
-  foo = Foo(10);
-  Expect.equals(10, foo.a);
+  helper();
+  await hotReload();
+  helper();
+  Expect.equals(hash1, hash2);
 }
