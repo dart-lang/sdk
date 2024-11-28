@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 
 import '../base/instrumentation.dart' show InstrumentationValueForMember;
 import '../codes/cfe_codes.dart';
+import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
@@ -255,6 +256,57 @@ class StaticForInVariable implements ForInVariable {
     staticSet.value = rhs..parent = staticSet;
     ExpressionInferenceResult result = visitor
         .inferExpression(staticSet, const UnknownType(), isVoidAllowed: true);
+    return result.expression;
+  }
+}
+
+class ExtensionSetForInVariable implements ForInVariable {
+  final ExtensionSet extensionSet;
+  DartType? setterType;
+
+  ExtensionSetForInVariable(this.extensionSet);
+
+  @override
+  DartType computeElementType(InferenceVisitorBase visitor) {
+    ExpressionInferenceResult receiverResult = visitor.inferExpression(
+        extensionSet.receiver, const UnknownType(),
+        isVoidAllowed: false);
+
+    List<DartType> extensionTypeArguments =
+        visitor.computeExtensionTypeArgument(extensionSet.extension,
+            extensionSet.explicitTypeArguments, receiverResult.inferredType,
+            treeNodeForTesting: extensionSet);
+
+    DartType receiverType = visitor.getExtensionReceiverType(
+        extensionSet.extension, extensionTypeArguments);
+
+    ObjectAccessTarget target = new ExtensionAccessTarget(
+        receiverType,
+        extensionSet.target,
+        null,
+        ClassMemberKind.Setter,
+        extensionTypeArguments);
+
+    setterType = target.getSetterType(visitor);
+    return setterType!;
+  }
+
+  @override
+  Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
+    assert(setterType != null);
+    Expression rhs = visitor.ensureAssignable(
+        setterType!, rhsType, extensionSet.value,
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+            templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopElementTypeNotAssignablePartNullability,
+        isVoidAllowed: true);
+
+    extensionSet.value = rhs..parent = extensionSet;
+    ExpressionInferenceResult result = visitor.inferExpression(
+        extensionSet, const UnknownType(),
+        isVoidAllowed: true);
     return result.expression;
   }
 }
