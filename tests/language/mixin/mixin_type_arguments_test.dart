@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import 'package:expect/expect.dart' show Expect;
 
 @pragma("vm:entry-point") // Prevent obfuscation
@@ -27,27 +23,27 @@ class E {}
 class F {}
 
 @pragma("vm:entry-point") // Prevent obfuscation
-class M1<Tm1> {
+mixin M1<Tm1> {
   Type m1() => M1<Tm1>;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
-class M2<Tm2> {
+mixin M2<Tm2> {
   Type m2() => M2<Tm2>;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
-class M3<Tm3> {
+mixin M3<Tm3> {
   Type m3() => M3<Tm3>;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
-class M4<Tm4> {
+mixin M4<Tm4> {
   Type m4() => M4<Tm4>;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
-class M5<Tm5> {
+mixin M5<Tm5> {
   Type m5() => M5<Tm5>;
 }
 

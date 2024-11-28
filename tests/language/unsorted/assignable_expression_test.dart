@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// @dart=2.19
-
-// Enable the experiments even though the test itself is pinned to 2.19 since
-// the error messages relate to patterns.
-
 // Test to detect syntactically illegal left-hand-side (assignable)
 // expressions.
+//
+// Checks that the pattern feature does not affect invalid legacy code.
+// @dart=2.19
 
 class C {
   static dynamic field = 0;

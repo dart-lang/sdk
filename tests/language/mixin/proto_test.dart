@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 // Tests that a program in csp mode doesn't access the prototype chain
 // on platforms that don't support direct access to __proto__.
 // This test is most useful with --csp and on a platform that doesn't support
@@ -20,7 +16,7 @@ class A {
   bar() => 22;
 }
 
-class B {
+mixin class B {
   var y;
   foo() => 42;
 }
