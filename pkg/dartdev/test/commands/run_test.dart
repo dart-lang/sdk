@@ -8,6 +8,8 @@ import 'dart:io';
 
 import 'package:dartdev/src/resident_frontend_constants.dart';
 import 'package:dartdev/src/resident_frontend_utils.dart';
+import 'package:frontend_server/resident_frontend_server_utils.dart'
+    show ResidentCompilerInfo, sendAndReceiveResponse;
 import 'package:kernel/binary/tag.dart' show sdkHashNull;
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';

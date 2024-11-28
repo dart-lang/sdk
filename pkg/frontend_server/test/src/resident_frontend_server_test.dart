@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:frontend_server/src/resident_frontend_server.dart';
+import 'package:frontend_server/resident_frontend_server_utils.dart'
+    show sendAndReceiveResponse;
 import 'package:frontend_server/starter.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -535,13 +537,11 @@ void main() async {
           InternetAddress.loopbackIPv4, 0, serverInfo);
 
       expect(serverInfo.existsSync(), true);
-      final String info = serverInfo.readAsStringSync();
-      final InternetAddress address = new InternetAddress(
-          info.substring(info.indexOf(':') + 1, info.indexOf(' ')));
-      final int port = int.parse(info.substring(info.lastIndexOf(':') + 1));
 
       final Map<String, dynamic> shutdownResult = await sendAndReceiveResponse(
-          address, port, ResidentFrontendServer.shutdownCommand);
+        ResidentFrontendServer.shutdownCommand,
+        serverInfo,
+      );
 
       expect(shutdownResult, equals(<String, dynamic>{"shutdown": true}));
       expect(serverInfo.existsSync(), false);
@@ -553,17 +553,19 @@ void main() async {
           inactivityTimeout: const Duration(milliseconds: 100));
 
       expect(serverInfo.existsSync(), true);
-      final String info = serverInfo.readAsStringSync();
-      final InternetAddress address = new InternetAddress(
-          info.substring(info.indexOf(':') + 1, info.indexOf(' ')));
-      final int port = int.parse(info.substring(info.lastIndexOf(':') + 1));
 
       await new Future.delayed(const Duration(milliseconds: 150));
       expect(serverInfo.existsSync(), false);
 
-      final Map<String, dynamic> shutdownResult = await sendAndReceiveResponse(
-          address, port, ResidentFrontendServer.shutdownCommand);
-      expect(shutdownResult['errorMessage'], contains('SocketException'));
+      try {
+        await sendAndReceiveResponse(
+          ResidentFrontendServer.shutdownCommand,
+          serverInfo,
+        );
+        fail('Expected to catch PathNotFoundException');
+      } on PathNotFoundException catch (e) {
+        expect(e.message, contains('Cannot open file'));
+      }
     });
 
     test('concurrent startup requests', () async {
@@ -584,13 +586,10 @@ void main() async {
       expect(startWhileAlreadyRunning, null);
       expect(serverInfo.existsSync(), true);
 
-      final String info = serverInfo.readAsStringSync();
-      final InternetAddress address = new InternetAddress(
-          info.substring(info.indexOf(':') + 1, info.indexOf(' ')));
-      final int port = int.parse(info.substring(info.lastIndexOf(':') + 1));
-
       final Map<String, dynamic> shutdownResult = await sendAndReceiveResponse(
-          address, port, ResidentFrontendServer.shutdownCommand);
+        ResidentFrontendServer.shutdownCommand,
+        serverInfo,
+      );
       expect(shutdownResult, equals(<String, dynamic>{"shutdown": true}));
       expect(serverInfo.existsSync(), false);
     });
@@ -600,19 +599,23 @@ void main() async {
           starter(['--resident-info-file-name=${serverInfo.path}']);
       expect(await returnValue, 0);
       expect(serverInfo.existsSync(), true);
-      final String info = serverInfo.readAsStringSync();
-      final InternetAddress address = new InternetAddress(
-          info.substring(info.indexOf(':') + 1, info.indexOf(' ')));
-      final int port = int.parse(info.substring(info.lastIndexOf(':') + 1));
 
       Map<String, dynamic> result = await sendAndReceiveResponse(
-          address, port, ResidentFrontendServer.shutdownCommand);
+        ResidentFrontendServer.shutdownCommand,
+        serverInfo,
+      );
       expect(result, equals(<String, dynamic>{"shutdown": true}));
       expect(serverInfo.existsSync(), false);
 
-      result = await sendAndReceiveResponse(
-          address, port, ResidentFrontendServer.shutdownCommand);
-      expect(result['errorMessage'], contains('SocketException'));
+      try {
+        await sendAndReceiveResponse(
+          ResidentFrontendServer.shutdownCommand,
+          serverInfo,
+        );
+        fail('Expected to catch PathNotFoundException');
+      } on PathNotFoundException catch (e) {
+        expect(e.message, contains('Cannot open file'));
+      }
     });
   });
 }

@@ -1690,6 +1690,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new SuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is StaticSet) {
       return new StaticForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is ExtensionSet) {
+      return new ExtensionSetForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
     } else {
