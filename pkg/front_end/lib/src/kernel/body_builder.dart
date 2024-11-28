@@ -700,17 +700,32 @@ class BodyBuilder extends StackListenerImpl
     Object? element = pop();
     if (element is Statement) {
       return forest.wrapVariables(element);
-    } else if (element is ParserRecovery) {
+    } else {
+      return _handleStatementNotStatement(element, token);
+    }
+  }
+
+  Statement _handleStatementNotStatement(Object? element, Token? token) {
+    if (element is ParserRecovery) {
       return new Block(<Statement>[
         forest.createExpressionStatement(
             element.charOffset,
-            new ParserErrorGenerator(this, token, cfe.messageSyntheticToken)
-                .buildProblem())
+            ParserErrorGenerator.buildProblemExpression(
+                this, cfe.messageSyntheticToken, element.charOffset))
       ])
         ..fileOffset = element.charOffset;
     } else {
-      unhandled("expected statement is ${element.runtimeType}", "popStatement",
-          token.charOffset, uri);
+      unhandled("expected statement is ${element.runtimeType}: $element",
+          "popStatement", token?.charOffset ?? -1, uri);
+    }
+  }
+
+  Statement popStatementNoWrap([Token? token]) {
+    Object? element = pop();
+    if (element is Statement) {
+      return element;
+    } else {
+      return _handleStatementNotStatement(element, token);
     }
   }
 
@@ -7886,7 +7901,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
-    Statement statement = pop() as Statement;
+    Statement statement = popStatementNoWrap();
     LabelTarget target = pop() as LabelTarget;
     _labelScopes.pop();
     // TODO(johnniwinther): Split the handling of breaks and continue.
