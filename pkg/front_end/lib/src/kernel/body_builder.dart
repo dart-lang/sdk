@@ -3342,7 +3342,8 @@ class BodyBuilder extends StackListenerImpl
           (setterBuilder.isField || setterBuilder.isStatic)) {
         setterBuilder = null;
       }
-      if (declaration == null && setterBuilder == null) {
+      if ((declaration == null && setterBuilder == null) ||
+          thisVariable == null) {
         return new UnresolvedNameGenerator(
             this, nameToken, new Name(name, libraryBuilder.nameOrigin),
             unresolvedReadKind: UnresolvedKind.Unknown);

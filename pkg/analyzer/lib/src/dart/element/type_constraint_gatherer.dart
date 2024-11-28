@@ -8,7 +8,17 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
         TypeConstraintGenerator,
         TypeConstraintGeneratorMixin,
         TypeConstraintGeneratorState;
-import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
+    as shared
+    show
+        GeneratedTypeConstraint,
+        MergedTypeConstraint,
+        TypeConstraintFromArgument,
+        TypeConstraintFromExtendsClause,
+        TypeConstraintFromFunctionContext,
+        TypeConstraintFromReturnType,
+        TypeConstraintOrigin,
+        UnknownTypeConstraintOrigin;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -17,6 +27,56 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+
+/// Instance of [shared.GeneratedTypeConstraint] specific to the Analyzer.
+typedef GeneratedTypeConstraint = shared
+    .GeneratedTypeConstraint<DartType, TypeParameterElement, PromotableElement>;
+
+/// Instance of [shared.MergedTypeConstraint] specific to the Analyzer.
+typedef MergedTypeConstraint = shared.MergedTypeConstraint<DartType,
+    TypeParameterElement, PromotableElement, InterfaceType, InterfaceElement>;
+
+/// Instance of [shared.TypeConstraintFromArgument] specific to the Analyzer.
+typedef TypeConstraintFromArgument = shared.TypeConstraintFromArgument<DartType,
+    PromotableElement, TypeParameterElement, InterfaceType, InterfaceElement>;
+
+/// Instance of [shared.TypeConstraintFromExtendsClause] specific to the Analyzer.
+typedef TypeConstraintFromExtendsClause
+    = shared.TypeConstraintFromExtendsClause<DartType, PromotableElement,
+        TypeParameterElement, InterfaceType, InterfaceElement>;
+
+/// Instance of [shared.TypeConstraintFromFunctionContext] specific to the Analyzer.
+typedef TypeConstraintFromFunctionContext
+    = shared.TypeConstraintFromFunctionContext<
+        DartType,
+        DartType,
+        DartType,
+        PromotableElement,
+        TypeParameterElement,
+        InterfaceType,
+        InterfaceElement>;
+
+/// Instance of [shared.TypeConstraintFromReturnType] specific to the Analyzer.
+typedef TypeConstraintFromReturnType = shared.TypeConstraintFromReturnType<
+    DartType,
+    DartType,
+    DartType,
+    PromotableElement,
+    TypeParameterElement,
+    InterfaceType,
+    InterfaceElement>;
+
+/// Instance of [shared.TypeConstraintOrigin] specific to the Analyzer.
+typedef TypeConstraintOrigin = shared.TypeConstraintOrigin<DartType,
+    PromotableElement, TypeParameterElement, InterfaceType, InterfaceElement>;
+
+/// Instance of [shared.UnknownTypeConstraintOrigin] specific to the Analyzer.
+typedef UnknownTypeConstraintOrigin = shared.UnknownTypeConstraintOrigin<
+    DartType,
+    PromotableElement,
+    TypeParameterElement,
+    InterfaceType,
+    InterfaceElement>;
 
 /// Creates sets of [GeneratedTypeConstraint]s for type parameters, based on an
 /// attempt to make one type schema a subtype of another.
@@ -40,9 +100,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   @override
   final Set<TypeParameterElement> typeParametersToConstrain = Set.identity();
 
-  final List<
-      GeneratedTypeConstraint<DartType, TypeParameterElement,
-          PromotableElement>> _constraints = [];
+  final List<GeneratedTypeConstraint> _constraints = [];
   final TypeSystemOperations _typeSystemOperations;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
@@ -72,11 +130,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   void addLowerConstraintForParameter(
       TypeParameterElement element, DartType lower,
       {required AstNode? astNodeForTesting}) {
-    GeneratedTypeConstraint<DartType, TypeParameterElement, PromotableElement>
-        generatedTypeConstraint = GeneratedTypeConstraint<
-            DartType,
-            TypeParameterElement,
-            PromotableElement>.lower(element, SharedTypeSchemaView(lower));
+    GeneratedTypeConstraint generatedTypeConstraint =
+        GeneratedTypeConstraint.lower(element, SharedTypeSchemaView(lower));
     _constraints.add(generatedTypeConstraint);
     if (dataForTesting != null && astNodeForTesting != null) {
       (dataForTesting!.generatedTypeConstraints[astNodeForTesting] ??= [])
@@ -88,11 +143,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   void addUpperConstraintForParameter(
       TypeParameterElement element, DartType upper,
       {required AstNode? astNodeForTesting}) {
-    GeneratedTypeConstraint<DartType, TypeParameterElement, PromotableElement>
-        generatedTypeConstraint = GeneratedTypeConstraint<
-            DartType,
-            TypeParameterElement,
-            PromotableElement>.upper(element, SharedTypeSchemaView(upper));
+    GeneratedTypeConstraint generatedTypeConstraint =
+        GeneratedTypeConstraint.upper(element, SharedTypeSchemaView(upper));
     _constraints.add(generatedTypeConstraint);
     if (dataForTesting != null && astNodeForTesting != null) {
       (dataForTesting!.generatedTypeConstraints[astNodeForTesting] ??= [])
@@ -101,16 +153,10 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }
 
   /// Returns the set of type constraints that was gathered.
-  Map<
-      TypeParameterElement,
-      MergedTypeConstraint<DartType, TypeParameterElement, PromotableElement,
-          InterfaceType, InterfaceElement>> computeConstraints() {
-    var result = <TypeParameterElement,
-        MergedTypeConstraint<DartType, TypeParameterElement, PromotableElement,
-            InterfaceType, InterfaceElement>>{};
+  Map<TypeParameterElement, MergedTypeConstraint> computeConstraints() {
+    var result = <TypeParameterElement, MergedTypeConstraint>{};
     for (var parameter in typeParametersToConstrain) {
-      result[parameter] = MergedTypeConstraint<DartType, TypeParameterElement,
-          PromotableElement, InterfaceType, InterfaceElement>(
+      result[parameter] = MergedTypeConstraint(
         lower: SharedTypeSchemaView(UnknownInferredType.instance),
         upper: SharedTypeSchemaView(UnknownInferredType.instance),
         origin: const UnknownTypeConstraintOrigin(),
@@ -214,11 +260,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 class TypeConstraintGenerationDataForTesting {
   /// Map from nodes requiring type inference to the generated type constraints
   /// for the node.
-  final Map<
-      AstNode,
-      List<
-          GeneratedTypeConstraint<DartType, TypeParameterElement,
-              PromotableElement>>> generatedTypeConstraints = {};
+  final Map<AstNode, List<GeneratedTypeConstraint>> generatedTypeConstraints =
+      {};
 
   /// Merges [other] into the receiver, combining the constraints.
   ///
@@ -228,9 +271,8 @@ class TypeConstraintGenerationDataForTesting {
   /// [other].
   void mergeIn(TypeConstraintGenerationDataForTesting other) {
     for (AstNode node in other.generatedTypeConstraints.keys) {
-      List<
-          GeneratedTypeConstraint<DartType, TypeParameterElement,
-              PromotableElement>>? constraints = generatedTypeConstraints[node];
+      List<GeneratedTypeConstraint>? constraints =
+          generatedTypeConstraints[node];
       if (constraints != null) {
         constraints.addAll(other.generatedTypeConstraints[node]!);
       } else {
