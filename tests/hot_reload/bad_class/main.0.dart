@@ -16,6 +16,8 @@ class Foo {
 Future<void> main() async {
   var foo = Foo(5);
   Expect.equals(5, foo.a);
-  await hotReload();
-  throw Exception('This should never run.');
+  await hotReload(expectRejection: true);
+  Expect.equals(5, foo.a);
+  foo = Foo(10);
+  Expect.equals(10, foo.a);
 }

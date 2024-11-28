@@ -13,5 +13,5 @@ Future<void> hotRestart() async =>
 int get hotReloadGeneration =>
     throw Exception('Not implemented on this platform.');
 
-Future<void> hotReload() async =>
+Future<void> hotReload({bool expectRejection = false}) async =>
     throw Exception('Not implemented on this platform.');

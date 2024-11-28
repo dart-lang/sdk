@@ -4,10 +4,13 @@
 
 // Helper functions for the hot reload test suite.
 
+import 'dart:convert';
 import 'dart:developer' show Service;
 import 'dart:io' as io;
 import 'package:vm_service/vm_service.dart' show VmService, ReloadReport;
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
+
+import '../hot_reload_receipt.dart';
 
 int get hotRestartGeneration =>
     throw Exception('Not implemented on this platform.');
@@ -20,10 +23,19 @@ int get hotReloadGeneration => _reloadCounter;
 
 HotReloadHelper? _hotReloadHelper;
 
-Future<void> hotReload() async {
+Future<void> hotReload({bool expectRejection = false}) async {
   _hotReloadHelper ??= await HotReloadHelper.create();
-  _reloadCounter++;
-  await _hotReloadHelper!.reloadNextGeneration();
+  HotReloadReceipt reloadReceipt;
+  if (expectRejection) {
+    reloadReceipt = await _hotReloadHelper!._rejectNextGeneration();
+  } else {
+    _reloadCounter++;
+    reloadReceipt = await _hotReloadHelper!._reloadNextGeneration();
+  }
+  // Write reload receipt with a leading tag to be recognized by the reload
+  // suite runner and validated.
+  print('${HotReloadReceipt.hotReloadReceiptTag}'
+      '${jsonEncode(reloadReceipt.toJson())}');
 }
 
 /// Helper to mediate with the vm service protocol.
@@ -49,11 +61,17 @@ class HotReloadHelper {
   /// * All dill files have the same name across every generation
   final String dillName;
 
+  /// File name of a dill that contains compile time errors.
+  ///
+  /// We assume that this generation contained expected compile time errors and
+  /// should be rejected at runtime.
+  final String errorDillName;
+
   /// The current generation being executed by the VM.
   int generation = 0;
 
-  HotReloadHelper._(
-      this._vmService, this._id, this.testOutputDirUri, this.dillName);
+  HotReloadHelper._(this._vmService, this._id, this.testOutputDirUri,
+      this.dillName, this.errorDillName);
 
   /// Create a helper that is bound to the current VM and isolate.
   static Future<HotReloadHelper> create() async {
@@ -80,29 +98,92 @@ class HotReloadHelper {
       print('Error: Unable to find generation in dill file: $dillUri.');
       io.exit(1);
     }
+    final dillName = dillUri.pathSegments.last;
+    final errorDillName = dillName.replaceAll('.dill', '.error.dill');
 
     return HotReloadHelper._(
-        vmService, id, dillUri.resolve('../'), dillUri.pathSegments.last);
+        vmService, id, dillUri.resolve('../'), dillName, errorDillName);
   }
 
   /// Trigger a hot-reload on the current isolate for the next generation.
   ///
-  /// Also checks that the generation aftewards exists. If not, the VM service
+  /// Also checks that the generation afterwards exists. If not, the VM service
   /// is disconnected to allow the VM to complete.
-  Future<ReloadReport> reloadNextGeneration() async {
+  Future<HotReloadReceipt> _reloadNextGeneration() async {
     generation += 1;
     final nextGenerationDillUri =
         testOutputDirUri.resolve('generation$generation/$dillName');
     print('Reloading: $nextGenerationDillUri');
     var reloadReport = await _vmService.reloadSources(_id,
         rootLibUri: nextGenerationDillUri.path);
-    final nextNextGenerationDillUri =
-        testOutputDirUri.resolve('generation${generation + 1}/$dillName');
-    final hasNextNextGeneration =
-        io.File.fromUri(nextNextGenerationDillUri).existsSync();
-    if (!hasNextNextGeneration) {
-      await _vmService.dispose();
+    if (!reloadReport.success!) {
+      throw Exception('Reload for generation $generation was rejected.\n'
+          '${reloadReport.reasonForCancelling}');
     }
-    return reloadReport;
+    var reloadReceipt = HotReloadReceipt(
+      generation: generation,
+      status: Status.accepted,
+    );
+    if (!hasNextGeneration) await cleanUp();
+    return reloadReceipt;
+  }
+
+  Future<HotReloadReceipt> _rejectNextGeneration() async {
+    generation += 1;
+    HotReloadReceipt reloadReceipt;
+    final errorDillFile = io.File.fromUri(
+        testOutputDirUri.resolve('generation$generation/$errorDillName'));
+    if (errorDillFile.existsSync()) {
+      // This generation contained a compile time error that has already been
+      // validated and should be rejected.
+      reloadReceipt = HotReloadReceipt(
+          generation: generation,
+          status: Status.rejected,
+          rejectionMessage: HotReloadReceipt.compileTimeErrorMessage);
+    } else {
+      final nextGenerationDillUri =
+          testOutputDirUri.resolve('generation$generation/$dillName');
+      print('Reloading (expecting rejection): $nextGenerationDillUri');
+      final reloadReport = await _vmService.reloadSources(_id,
+          rootLibUri: nextGenerationDillUri.path);
+      if (reloadReport.success!) {
+        throw Exception('Generation $generation was not rejected. Verify the '
+            'calls of `hotReload(expectRejection: true)` in the test source '
+            'match the rejected generation files.');
+      }
+      reloadReceipt = HotReloadReceipt(
+        generation: generation,
+        status: Status.rejected,
+        rejectionMessage: reloadReport.reasonForCancelling,
+      );
+    }
+    if (!hasNextGeneration) await cleanUp();
+    return reloadReceipt;
+  }
+
+  bool get hasNextGeneration {
+    final nextNextGenerationDirUri =
+        testOutputDirUri.resolve('generation${generation + 1}');
+    return io.Directory.fromUri(nextNextGenerationDirUri).existsSync();
+  }
+
+  Future<void> cleanUp() async => await _vmService.dispose();
+}
+
+/// Extension to expose the reason for a failed reload.
+///
+/// This is currently in the json response from the vm-service, but not exposed
+/// as an API in [ReloadReport].
+extension on ReloadReport {
+  String? get reasonForCancelling {
+    final notices = this.json?['notices'] as List?;
+    if (notices != null) {
+      for (final notice in notices) {
+        if (notice['type'] == 'ReasonForCancelling') {
+          return notice['message'] as String?;
+        }
+      }
+    }
+    return null;
   }
 }
