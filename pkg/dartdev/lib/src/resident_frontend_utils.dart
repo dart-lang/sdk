@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io' show File, FileSystemException;
+import 'dart:vmservice_io' show getResidentCompilerInfoFileConsideringArgsImpl;
 
 import 'package:args/args.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
@@ -12,8 +13,6 @@ import 'package:path/path.dart' as p;
 
 import 'commands/compilation_server.dart' show CompilationServerCommand;
 import 'resident_frontend_constants.dart';
-import 'unified_analytics.dart';
-import 'utils.dart' show maybeUriToFilename;
 
 /// The Resident Frontend Compiler's shutdown command.
 final residentServerShutdownCommand = jsonEncode(
@@ -22,34 +21,10 @@ final residentServerShutdownCommand = jsonEncode(
   },
 );
 
-/// The default resident frontend compiler information file.
-///
-/// Resident frontend compiler info files contain the contents:
-/// `address:$address port:$port`.
-File? get defaultResidentServerInfoFile {
-  var dartConfigDir = getDartStorageDirectory();
-  if (dartConfigDir == null) return null;
-
-  return File(p.join(dartConfigDir.path, 'dartdev_compilation_server_info'));
-}
-
-File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) {
-  if (args.wasParsed(CompilationServerCommand.residentCompilerInfoFileFlag)) {
-    return File(maybeUriToFilename(
-      args[CompilationServerCommand.residentCompilerInfoFileFlag],
-    ));
-  } else if (args.wasParsed(
-    CompilationServerCommand.legacyResidentServerInfoFileFlag,
-  )) {
-    return File(maybeUriToFilename(
-      args[CompilationServerCommand.legacyResidentServerInfoFileFlag],
-    ));
-  } else if (defaultResidentServerInfoFile != null) {
-    return defaultResidentServerInfoFile!;
-  } else {
-    return null;
-  }
-}
+File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) =>
+    getResidentCompilerInfoFileConsideringArgsImpl(
+        args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
+            args[CompilationServerCommand.legacyResidentServerInfoFileFlag]);
 
 final String packageConfigName = p.join('.dart_tool', 'package_config.json');
 
