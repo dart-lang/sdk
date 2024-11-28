@@ -1623,21 +1623,29 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
     void issue() {
       readEventIssued = false;
       if (isClosing) return;
+      // Note: it is by design that we don't deliver closedRead event
+      // unless read events are enabled. This also means we will not
+      // fully close (and dispose) of the socket unless it is drained
+      // of accumulated incomming data.
       if (!sendReadEvents) return;
       if (stopRead()) {
         if (isClosedRead && !closedReadEventSent) {
           if (isClosedWrite) close();
+
           var handler = closedEventHandler;
           if (handler == null) return;
+
           closedReadEventSent = true;
           handler();
         }
         return;
       }
+
       var handler = readEventHandler;
       if (handler == null) return;
-      readEventIssued = true;
       handler();
+
+      readEventIssued = true;
       scheduleMicrotask(issue);
     }
 
@@ -1846,6 +1854,9 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
         sendToEventHandler(1 << shutdownReadCommand);
       }
       isClosedRead = true;
+      // Make sure to dispatch a closedRead event. Shutdown is only complete
+      // once the socket is drained of data and readClosed is dispatched.
+      issueReadEvent();
     }
   }
 

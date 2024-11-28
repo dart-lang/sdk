@@ -120,7 +120,7 @@ void main() {
 
   for (final bool debuggerNames in [true, false]) {
     group('Debugger module names: $debuggerNames |', () {
-      test('Creates module uris for file paths', () async {
+      test('Creates component uris for file paths', () async {
         final Uri fileUri = new Uri.file('/c.dart');
 
         final IncrementalJavaScriptBundler javaScriptBundler =
@@ -131,14 +131,15 @@ void main() {
           useDebuggerModuleNames: debuggerNames,
         );
 
-        final String moduleUrl =
+        final String componentUrl =
             javaScriptBundler.urlForComponentUri(fileUri, packageConfig);
-        final String moduleName = javaScriptBundler.makeModuleName(moduleUrl);
-        expect(moduleUrl, '/c.dart');
-        expect(moduleName, 'c.dart');
+        final String libraryBundleName =
+            javaScriptBundler.makeLibraryBundleName(componentUrl);
+        expect(componentUrl, '/c.dart');
+        expect(libraryBundleName, 'c.dart');
       });
 
-      test('Creates module uris for package paths', () async {
+      test('Creates component uris for package paths', () async {
         final Uri packageUri = Uri.parse('package:a/a.dart');
 
         final IncrementalJavaScriptBundler javaScriptBundler =
@@ -149,12 +150,13 @@ void main() {
           useDebuggerModuleNames: debuggerNames,
         );
 
-        final String moduleUrl =
+        final String componentUrl =
             javaScriptBundler.urlForComponentUri(packageUri, packageConfig);
-        final String moduleName = javaScriptBundler.makeModuleName(moduleUrl);
-        expect(moduleUrl,
+        final String libraryBundleName =
+            javaScriptBundler.makeLibraryBundleName(componentUrl);
+        expect(componentUrl,
             debuggerNames ? 'packages/a/lib/a.dart' : '/packages/a/a.dart');
-        expect(moduleName,
+        expect(libraryBundleName,
             debuggerNames ? 'packages/a/lib/a.dart' : 'packages/a/a.dart');
       });
 
@@ -267,11 +269,11 @@ void main() {
             json.decode(utf8.decode(manifestSink.buffer));
         final String code = utf8.decode(codeSink.buffer);
 
-        final String moduleUrl = javaScriptBundler.urlForComponentUri(
+        final String componentUrl = javaScriptBundler.urlForComponentUri(
             library.importUri, packageConfig);
 
         expect(manifest, {
-          '$moduleUrl.lib.js': {
+          '$componentUrl.lib.js': {
             'code': [0, codeSink.buffer.length],
             'sourcemap': [0, sourcemapSink.buffer.length],
           },
@@ -282,7 +284,8 @@ void main() {
         expect(code, contains('sourceMappingURL=a.dart.lib.js.map'));
       });
 
-      test('multi-root uris create modules relative to the root', () async {
+      test('multi-root uris create library bundles relative to the root',
+          () async {
         Uri importUri = Uri.parse('$multiRootScheme:/web/main.dart');
         Uri fileUri = importUri;
         final Library library = new Library(
