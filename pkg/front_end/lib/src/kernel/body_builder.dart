@@ -3288,7 +3288,7 @@ class BodyBuilder extends StackListenerImpl
       VariableBuilder variableBuilder = declaration as VariableBuilder;
       if (constantContext != ConstantContext.none &&
           !variableBuilder.isConst &&
-          !_context.isConstructor &&
+           !(_context.isConstructor && inFieldInitializer) &&
           !libraryFeatures.constFunctions.isEnabled) {
         return new IncompleteErrorGenerator(
             this, nameToken, cfe.messageNotAConstantExpression);

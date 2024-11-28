@@ -1,0 +1,42 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/extension_type_metadata_references_variable.dart:7:6: Error: Not a constant expression.
+//     @bar
+//      ^^^
+//
+// pkg/front_end/testcases/regress/extension_type_metadata_references_variable.dart:7:6: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+//     @bar
+//      ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type Foo(core::int _x) {
+  abstract extension-type-member representation-field get _x() → core::int;
+  constructor _ = self::Foo|constructor#_;
+  constructor tearoff _ = self::Foo|constructor#_#_#tearOff;
+  constructor • = self::Foo|constructor#;
+  constructor tearoff • = self::Foo|constructor#_#new#tearOff;
+}
+static extension-type-member method Foo|constructor#_(core::int _x) → self::Foo% /* erasure=core::int, declared=! */ {
+  lowered final self::Foo% /* erasure=core::int, declared=! */ #this = _x;
+  return #this;
+}
+static extension-type-member method Foo|constructor#_#_#tearOff(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
+  return self::Foo|constructor#_(_x);
+static extension-type-member method Foo|constructor#(core::int _x, core::int bar) → self::Foo% /* erasure=core::int, declared=! */ {
+  lowered final self::Foo% /* erasure=core::int, declared=! */ #this = _x;
+  {
+    @invalid-expression "pkg/front_end/testcases/regress/extension_type_metadata_references_variable.dart:7:6: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+    @bar
+     ^" core::int a1;
+    @invalid-expression "pkg/front_end/testcases/regress/extension_type_metadata_references_variable.dart:7:6: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+    @bar
+     ^" core::int a2;
+  }
+  return #this;
+}
+static extension-type-member method Foo|constructor#_#new#tearOff(core::int _x, core::int bar) → self::Foo% /* erasure=core::int, declared=! */
+  return self::Foo|constructor#(_x, bar);
