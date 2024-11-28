@@ -683,7 +683,6 @@ primary
     |    '(' expression ')'
     |    constructorTearoff
     |    switchExpression
-    |    staticMemberShorthand
     ;
 
 constructorInvocation
@@ -800,8 +799,12 @@ switchExpressionCase
     ;
 
 staticMemberShorthand
-    :    '.' identifierOrNew selector*
-    |    CONST '.' identifierOrNew selector*
+    :    staticMemberShorthandHead selector*
+    ;
+
+staticMemberShorthandHead
+    :    '.' identifierOrNew
+    |    CONST '.' identifierOrNew arguments
     ;
 
 throwExpression
@@ -1037,6 +1040,7 @@ awaitExpression
 postfixExpression
     :    assignableExpression postfixOperator
     |    primary selector*
+    |    staticMemberShorthand
     ;
 
 postfixOperator
