@@ -64,6 +64,8 @@ abstract class _TestFileBase {
 
   /// The parsed error expectation markers in this test, if it is a static
   /// error test.
+  ///
+  /// If empty, the test is not a static error test.
   final List<StaticError> expectedErrors;
 
   /// The name of the multitest section this file corresponds to if it was
@@ -358,7 +360,6 @@ class TestFile extends _TestFileBase {
       result
           .addAll(_parseExpectations(uriString, alreadyParsed: alreadyParsed));
     }
-
     return result;
   }
 

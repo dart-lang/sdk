@@ -2,29 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
 
-class M<T> {
+mixin M<T> {
   t() {
     return T;
   }
 }
 
-class A<U> = Object with M<List<U>>;
+mixin class A<U> = Object with M<List<U>>;
 
 class B0 = Object with A<Set<bool>>;
 
-class B1 = Object with A<Set<int>>;
+mixin class B1 = Object with A<Set<int>>;
 
 class C0 extends B0 {}
 
 class C1 extends B1 {}
 
-class A2<K, V> = Object with M<Map<K, V>>;
+mixin class A2<K, V> = Object with M<Map<K, V>>;
 
 class B2<V> = Object with A2<Set<V>, List<V>>;
 
@@ -34,13 +30,13 @@ class C2<T> extends B2<T> {}
 
 class C3<T> extends B3<T, int> {}
 
-class N {
+mixin N {
   q() {
     return 42;
   }
 }
 
-class O<U> = Object with N;
+mixin class O<U> = Object with N;
 
 class P<K, V> = Object with O<V>;
 
