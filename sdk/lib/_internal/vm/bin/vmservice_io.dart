@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:_vmservice';
 
+part 'resident_compiler_utils.dart';
 part 'vmservice_server.dart';
 
 // The TCP ip/port that dds listens on.
