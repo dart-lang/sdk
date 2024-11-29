@@ -1,3 +1,9 @@
+## 15.0.0
+- Update type of `CodeRef.function` from `FuncRef` to `dynamic` to allow for `NativeFunction`
+  functions ([flutter/devtools #8567]).
+
+[flutter/devtools #8567]: https://github.com/flutter/devtools/issues/8567
+
 ## 14.3.1
 - Fix crash that could occur when trying to send a service extension response
   after the service connection had already been disposed of ([flutter/flutter #157296]).
