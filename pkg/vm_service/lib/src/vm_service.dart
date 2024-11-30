@@ -3205,8 +3205,10 @@ class CodeRef extends ObjRef {
   /*CodeKind*/ String? kind;
 
   /// This code object's corresponding function.
+  ///
+  /// [function] can be one of [FuncRef] or [NativeFunction].
   @optional
-  FuncRef? function;
+  dynamic function;
 
   CodeRef({
     this.name,
@@ -3220,8 +3222,8 @@ class CodeRef extends ObjRef {
   CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'] ?? '';
     kind = json['kind'] ?? '';
-    function =
-        createServiceObject(json['function'], const ['FuncRef']) as FuncRef?;
+    function = createServiceObject(
+        json['function'], const ['FuncRef', 'NativeFunction']) as dynamic;
   }
 
   @override
@@ -3261,9 +3263,11 @@ class Code extends Obj implements CodeRef {
   /*CodeKind*/ String? kind;
 
   /// This code object's corresponding function.
+  ///
+  /// [function] can be one of [FuncRef] or [NativeFunction].
   @optional
   @override
-  FuncRef? function;
+  dynamic function;
 
   Code({
     this.name,
@@ -3277,8 +3281,8 @@ class Code extends Obj implements CodeRef {
   Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'] ?? '';
     kind = json['kind'] ?? '';
-    function =
-        createServiceObject(json['function'], const ['FuncRef']) as FuncRef?;
+    function = createServiceObject(
+        json['function'], const ['FuncRef', 'NativeFunction']) as dynamic;
   }
 
   @override
