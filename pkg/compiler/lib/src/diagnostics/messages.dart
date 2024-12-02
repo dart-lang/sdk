@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The messages in this file should follow the [Guide for Writing
-/// Diagnostics](../../../../front_end/lib/src/fasta/diagnostics.md).
+/// Diagnostics](../../../../front_end/lib/src/base/diagnostics.md).
 ///
 /// Other things to keep in mind:
 ///

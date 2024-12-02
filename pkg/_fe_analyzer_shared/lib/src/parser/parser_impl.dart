@@ -435,7 +435,7 @@ class Parser {
   }
 
   /// This method exists for analyzer compatibility only
-  /// and will be removed once analyzer/fasta integration is complete.
+  /// and will be removed once analyzer/cfe integration is complete.
   ///
   /// Similar to [parseUnit], this method parses a compilation unit,
   /// but stops when it reaches the first declaration or EOF.

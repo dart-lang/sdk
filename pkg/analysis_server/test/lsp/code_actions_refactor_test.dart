@@ -222,7 +222,7 @@ void f() {
     try {
       // Send an edit request immediately after the refactor request.
       var req1 = executeCommand(codeAction.command!);
-      await replaceFile(100, mainFileUri, 'new test content');
+      var req2 = replaceFile(100, mainFileUri, 'new test content');
       completer.complete();
 
       // Expect the first to fail because of the modified content.
@@ -230,6 +230,7 @@ void f() {
         req1,
         throwsA(isResponseError(ErrorCodes.ContentModified)),
       );
+      await req2;
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
       PerformRefactorCommandHandler.delayAfterResolveForTests = null;

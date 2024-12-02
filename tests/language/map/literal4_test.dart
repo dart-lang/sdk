@@ -5,6 +5,9 @@
 //
 // Dart test program testing type checks in map literals.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 class MapLiteral4Test<T> {

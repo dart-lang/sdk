@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that we can use pseudo keywords as names in function level code.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 class PseudoKWTest {

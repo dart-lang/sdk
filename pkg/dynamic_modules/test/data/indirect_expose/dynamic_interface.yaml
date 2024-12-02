@@ -1,0 +1,24 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+callable:
+  - library: 'package:expect/expect.dart'
+  # Sufficient to export interface, even if implementation is private.
+  - library: 'shared/shared.dart'
+    class: 'Interface'
+  - library: 'shared/shared.dart'
+    class: 'Triple'
+  # Sufficient to expose reexported name
+  - library: 'shared/shared.dart'
+    class: 'Exported'
+    # TODO(sigmund): This should be included by default
+  - library: 'dart:core'
+    class: 'Object'
+  - library: 'dart:core'
+    class: 'int'
+  - library: 'dart:core'
+    class: 'pragma'
+    member: '_'
+  - library: 'dart:core'
+    member: 'override'
+

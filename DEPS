@@ -120,7 +120,7 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "core_rev": "6af0821dd8c0ecc5c30d5e67b3c8e16e8d79cda6",
+  "core_rev": "1de837279d3c4ce21fef2a5af8a7f0b668ef3d85",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -132,11 +132,11 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "f6d020e48cc531a0967c91fa88028c086fedfbf9", # disable tools/rev_sdk_deps.dart
-  "dartdoc_rev": "6bbd3d7b535ee4ed889beaeea68d66e54b196aee",
+  "dartdoc_rev": "c7f11603effa88ddacabfd555993f322fca8b3fe",
   "ecosystem_rev": "52e4ceb6f0715bab5c47495429c4a2b7ce708a66",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "b6319d6c2880b44039e75dfed80f7ce150f76d51",
-  "http_rev": "2f954e13948201f2c1df2b722e5583d0ae85b738",
+  "http_rev": "79470d014b467f01b0e7c5b63ab6c86b22dec8db",
   "http_multi_server_rev": "c8aabe36268aa38c906eae46728c10d883b9aced",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
@@ -150,7 +150,7 @@ vars = {
   "protobuf_rev": "ccf104dbc36929c0f8708285d5f3a8fae206343e",
   "pub_rev": "8c2e621c2403cb503cc9959be387d1061a16846a", # disable tools/rev_sdk_deps.dart
   "pub_semver_rev": "ab3eab50cc9f3df650ba7f5571aa2a1ea715dcc8",
-  "shelf_rev": "0bb44cb7b54f856c4c20ff00eed7f006d865bb3e",
+  "shelf_rev": "a2708cd8bce88d5e6391b1cb5bbe80b5a072c55a",
   "source_maps_rev": "b20b97003a48d78a1ecba7e46d932ea4b480dd94",
   "source_span_rev": "f147469ba02108c1ade3680de548b7b447de8c72",
   "sse_rev": "befbd6d35118f59525903242db3888942ac34180",
@@ -173,7 +173,7 @@ vars = {
   "webdriver_rev": "4998763b2b748f9daaf1f58c5004c040a630ccf7",
   "webkit_inspection_protocol_rev": "a834c3b700ead5f1157740d6585ab374f8af1507",
   "yaml_rev": "402655e84389bd1a4208000d75c16d1e5faeb443",
-  "yaml_edit_rev": "3d1421b928ec62cf866ec3487940e560852c5c3b",
+  "yaml_edit_rev": "8bd0fdfbe1e5119367500543d68be10691efce58",
 
   # Windows deps
   "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",

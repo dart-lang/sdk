@@ -21,6 +21,7 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ImportLibrary extends MultiCorrectionProducer {
   final _ImportKind _importKind;
@@ -212,7 +213,8 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       _ImportLibraryCombinator? combinatorProducer;
-      // Maybe update a "show" directive.
+      var importPrefix = import.prefix?.element;
+      // Maybe update a "show"/"hide" directive.
       var combinators = import.combinators;
       if (combinators.length == 1) {
         // Prepare library name - unit name or 'dart:name' for SDK library.
@@ -229,6 +231,7 @@ class ImportLibrary extends MultiCorrectionProducer {
             libraryName,
             combinator,
             name,
+            removePrefix: importPrefix == null,
             context: context,
           );
         } else if (combinator is ShowElementCombinator) {
@@ -238,18 +241,19 @@ class ImportLibrary extends MultiCorrectionProducer {
             libraryName,
             combinator,
             name,
+            removePrefix: importPrefix == null,
             context: context,
           );
         }
       }
       // Maybe apply a prefix.
-      var prefix = import.prefix?.element;
-      if (prefix != null) {
+      if (importPrefix != null) {
         producers.add(
           _ImportLibraryPrefix(
             libraryElement,
-            prefix,
+            importPrefix,
             combinatorProducer,
+            prefix,
             context: context,
           ),
         );
@@ -593,12 +597,15 @@ class _ImportLibraryCombinator extends ResolvedCorrectionProducer {
 
   final String _updatedName;
 
+  final bool _removePrefix;
+
   _ImportLibraryCombinator(
     this._libraryName,
     this._combinator,
     this._updatedName, {
+    bool removePrefix = false,
     required super.context,
-  });
+  }) : _removePrefix = removePrefix;
 
   @override
   CorrectionApplicability get applicability =>
@@ -643,6 +650,20 @@ class _ImportLibraryCombinator extends ResolvedCorrectionProducer {
         SourceRange(offset - 1, length + 1),
         newCombinatorCode,
       );
+      if (_removePrefix) {
+        AstNode? prefix;
+        if (node case NamedType(:var importPrefix?)) {
+          prefix = importPrefix;
+        } else if (node case PrefixedIdentifier(:var prefix)) {
+          prefix = prefix;
+        } else {
+          return;
+        }
+        if (prefix == null) {
+          return;
+        }
+        builder.addDeletion(range.node(prefix));
+      }
     });
   }
 }
@@ -699,12 +720,14 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
 class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   final LibraryElement _importedLibrary;
   final PrefixElement _importPrefix;
+  final String? _nodePrefix;
   final _ImportLibraryCombinator? _editCombinator;
 
   _ImportLibraryPrefix(
     this._importedLibrary,
     this._importPrefix,
-    this._editCombinator, {
+    this._editCombinator,
+    this._nodePrefix, {
     required super.context,
   });
 
@@ -735,9 +758,23 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 
     await _editCombinator?.compute(builder);
 
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(targetNode.offset, '$_prefixName.');
-    });
+    if (_nodePrefix == null) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(targetNode.offset, '$_prefixName.');
+      });
+    } else if (_nodePrefix != _prefixName) {
+      AstNode prefix;
+      if (targetNode case NamedType(:var importPrefix?)) {
+        prefix = importPrefix;
+      } else if (targetNode case PrefixedIdentifier(prefix: var prefixNode)) {
+        prefix = prefixNode;
+      } else {
+        return;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.node(prefix), '$_prefixName.');
+      });
+    }
   }
 }
 

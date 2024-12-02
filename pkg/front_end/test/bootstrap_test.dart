@@ -17,9 +17,9 @@ Future main() async {
   Uri sourceCompiler =
       Uri.base.resolve("pkg/front_end/tool/compile.dart");
   Uri outline = Uri.base.resolve("pkg/front_end/tool/outline.dart");
-  Directory tmp = await Directory.systemTemp.createTemp("fasta_bootstrap");
-  Uri compiledOnceOutput = tmp.uri.resolve("fasta1.dill");
-  Uri compiledTwiceOutput = tmp.uri.resolve("fasta2.dill");
+  Directory tmp = await Directory.systemTemp.createTemp("cfe_bootstrap");
+  Uri compiledOnceOutput = tmp.uri.resolve("cfe1.dill");
+  Uri compiledTwiceOutput = tmp.uri.resolve("cfe2.dill");
   Uri outlineOutput = tmp.uri.resolve("outline.dill");
   try {
     await runCompiler(sourceCompiler, sourceCompiler, compiledOnceOutput);

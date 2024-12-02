@@ -1455,7 +1455,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       worklist.addAll(usedClasses);
       classes.addAll(usedClasses);
 
-      // Get all classes touched by fasta class hierarchy.
+      // Get all classes touched by class hierarchy builder.
       if (builderHierarchy != null) {
         for (Class c in builderHierarchy.classNodes.keys) {
           if (classes.add(c)) worklist.add(c);

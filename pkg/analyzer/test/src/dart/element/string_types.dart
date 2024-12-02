@@ -28,7 +28,7 @@ mixin StringTypes on AbstractTypeSystemTest {
     _defineType('Never', neverNone);
     _defineType('Never?', neverQuestion);
 
-    _defineType('Null?', nullQuestion);
+    _defineType('Null', nullNone);
 
     _defineType('Object', objectNone);
     _defineType('Object?', objectQuestion);

@@ -12,6 +12,7 @@ import 'package:collection/collection.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'messages_info.dart';
@@ -66,7 +67,7 @@ Future<String> getMachineListing(
         'fixStatus':
             fixStatusMap[rule.lintCodes.first.uniqueName] ?? 'unregistered',
         'details': info.deprecatedDetails,
-        'sinceDartSdk': info.addedIn,
+        'sinceDartSdk': _versionToString(info.states.first.since),
       }
   ]);
   return json;
@@ -93,4 +94,10 @@ Map<String, String> readFixStatusMap() {
     for (var MapEntry(key: String code, :YamlMap value) in yaml.entries)
       if (code.startsWith('LintCode.')) code: value['status'] as String,
   };
+}
+
+String _versionToString(Version? version) {
+  if (version == null) return '2.0';
+
+  return '${version.major}.${version.minor}';
 }

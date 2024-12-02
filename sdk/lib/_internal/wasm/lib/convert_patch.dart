@@ -8,7 +8,8 @@ import "dart:_internal"
 import "dart:_js_string_convert";
 import "dart:_js_types";
 import "dart:_js_helper" show jsStringToDartString;
-import "dart:_list" show GrowableList, WasmListBaseUnsafeExtensions;
+import "dart:_list"
+    show GrowableList, WasmListBaseUnsafeExtensions, WasmListBase;
 import "dart:_string";
 import "dart:_typed_data";
 import "dart:_wasm";
@@ -1987,11 +1988,11 @@ class _Utf8Decoder {
     _bomIndex = -1;
   }
 
-  int scan(Uint8List bytes, int start, int end) {
+  int scan(U8List bytes, int start, int end) {
     int size = 0;
     int flags = 0;
     for (int i = start; i < end; i++) {
-      int t = scanTable.readUnsigned(bytes[i]);
+      int t = scanTable.readUnsigned(bytes.getUnchecked(i));
       size += t & sizeMask;
       flags |= t;
     }
@@ -2104,14 +2105,13 @@ class _Utf8Decoder {
   String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
 
-    // Have bytes as Uint8List.
-    Uint8List bytes;
+    final U8List bytes;
     int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = unsafeCast<Uint8List>(codeUnits);
+    if (codeUnits is U8List) {
+      bytes = unsafeCast<U8List>(codeUnits);
       errorOffset = 0;
     } else {
-      bytes = _makeUint8List(codeUnits, start, end);
+      bytes = _makeU8List(codeUnits, start, end);
       errorOffset = start;
       end -= start;
       start = 0;
@@ -2205,17 +2205,17 @@ class _Utf8Decoder {
     return result;
   }
 
-  int skipBomSingle(Uint8List bytes, int start, int end) {
+  int skipBomSingle(U8List bytes, int start, int end) {
     if (end - start >= 3 &&
-        bytes[start] == 0xEF &&
-        bytes[start + 1] == 0xBB &&
-        bytes[start + 2] == 0xBF) {
+        bytes.getUnchecked(start) == 0xEF &&
+        bytes.getUnchecked(start + 1) == 0xBB &&
+        bytes.getUnchecked(start + 2) == 0xBF) {
       return start + 3;
     }
     return start;
   }
 
-  int skipBomChunked(Uint8List bytes, int start, int end) {
+  int skipBomChunked(U8List bytes, int start, int end) {
     assert(start <= end);
     int bomIndex = _bomIndex;
     // Already skipped?
@@ -2229,7 +2229,7 @@ class _Utf8Decoder {
         _bomIndex = bomIndex;
         return start;
       }
-      if (bytes[i++] != bomValues[bomIndex++]) {
+      if (bytes.getUnchecked(i++) != bomValues[bomIndex++]) {
         // No BOM.
         _bomIndex = -1;
         return start;
@@ -2241,7 +2241,7 @@ class _Utf8Decoder {
     return i;
   }
 
-  String decode8(Uint8List bytes, int start, int end, int size) {
+  String decode8(U8List bytes, int start, int end, int size) {
     assert(start < end);
     OneByteString result = OneByteString.withLength(size);
     int i = start;
@@ -2249,7 +2249,7 @@ class _Utf8Decoder {
     if (_state == X1) {
       // Half-way though 2-byte sequence
       assert(_charOrIndex == 2 || _charOrIndex == 3);
-      final int e = bytes[i++] ^ 0x80;
+      final int e = bytes.getUnchecked(i++) ^ 0x80;
       if (e >= 0x40) {
         _state = errorMissingExtension;
         _charOrIndex = i - 1;
@@ -2260,7 +2260,7 @@ class _Utf8Decoder {
     }
     assert(_state == accept);
     while (i < end) {
-      int byte = bytes[i++];
+      int byte = bytes.getUnchecked(i++);
       if (byte >= 0x80) {
         if (byte < 0xC0) {
           _state = errorUnexpectedExtension;
@@ -2273,7 +2273,7 @@ class _Utf8Decoder {
           _charOrIndex = byte & 0x1F;
           break;
         }
-        final int e = bytes[i++] ^ 0x80;
+        final int e = bytes.getUnchecked(i++) ^ 0x80;
         if (e >= 0x40) {
           _state = errorMissingExtension;
           _charOrIndex = i - 1;
@@ -2293,7 +2293,7 @@ class _Utf8Decoder {
     return result;
   }
 
-  String decode16(Uint8List bytes, int start, int end, int size) {
+  String decode16(U8List bytes, int start, int end, int size) {
     assert(start < end);
     final OneByteString transitionTable = unsafeCast<OneByteString>(
       _Utf8Decoder.transitionTable,
@@ -2309,7 +2309,7 @@ class _Utf8Decoder {
 
     // First byte
     assert(!isErrorState(state));
-    final int byte = bytes[i++];
+    final int byte = bytes.getUnchecked(i++);
     final int type = typeTable.codeUnitAtUnchecked(byte) & typeMask;
     if (state == accept) {
       char = byte & (shiftedByteMask >> type);
@@ -2320,7 +2320,7 @@ class _Utf8Decoder {
     }
 
     while (i < end) {
-      final int byte = bytes[i++];
+      final int byte = bytes.getUnchecked(i++);
       final int type = typeTable.codeUnitAtUnchecked(byte) & typeMask;
       if (state == accept) {
         if (char >= 0x10000) {
@@ -2368,4 +2368,75 @@ class _Utf8Decoder {
     );
     return result;
   }
+}
+
+U8List _makeU8List(List<int> codeUnits, int start, int end) {
+  if (codeUnits is WasmListBase) {
+    return _makeU8ListFromWasmListBase(
+      unsafeCast<WasmListBase<int>>(codeUnits),
+      start,
+      end,
+    );
+  }
+
+  if (codeUnits is WasmI8ArrayBase) {
+    return _makeU8ListFromWasmI8ArrayBase(
+      unsafeCast<WasmI8ArrayBase>(codeUnits),
+      start,
+      end,
+    );
+  }
+
+  final int length = end - start;
+  final U8List bytes = U8List(length);
+  for (int i = 0; i < length; i++) {
+    int b = codeUnits[start + i];
+    if ((b & ~0xFF) != 0) {
+      // Replace invalid byte values by FF, which is also invalid.
+      b = 0xFF;
+    }
+    bytes.setUnchecked(i, b);
+  }
+  return bytes;
+}
+
+U8List _makeU8ListFromWasmListBase(
+  WasmListBase<int> codeUnits,
+  int start,
+  int end,
+) {
+  final int length = end - start;
+  final U8List bytes = U8List(length);
+  final WasmArray<Object?> listData = codeUnits.data;
+  final WasmArray<WasmI8> bytesData = bytes.data;
+  for (int i = 0; i < length; i++) {
+    int b = unsafeCast<int>(listData[start + i]);
+    if ((b & ~0xFF) != 0) {
+      // Replace invalid byte values by FF, which is also invalid.
+      b = 0xFF;
+    }
+    bytesData.write(i, b);
+  }
+  return bytes;
+}
+
+U8List _makeU8ListFromWasmI8ArrayBase(
+  WasmI8ArrayBase codeUnits,
+  int start,
+  int end,
+) {
+  final int length = end - start;
+  final U8List bytes = U8List(length);
+  final WasmArray<WasmI8> listData = codeUnits.data;
+  final listDataOffset = codeUnits.offsetInBytes;
+  final WasmArray<WasmI8> bytesData = bytes.data;
+  for (int i = 0; i < length; i++) {
+    int b = listData.readSigned(listDataOffset + start + i);
+    if ((b & ~0xFF) != 0) {
+      // Replace invalid byte values by FF, which is also invalid.
+      b = 0xFF;
+    }
+    bytesData.write(i, b);
+  }
+  return bytes;
 }

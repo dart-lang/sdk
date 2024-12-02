@@ -151,15 +151,22 @@ int f() {
 @reflectiveTest
 class TypePropagationTest extends PubPackageResolutionTest {
   test_assignment_null() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   int v; // declare
   v = null;
   return v; // return
-}''';
-    await resolveTestCode(code);
-    assertType(findElement.localVar('v').type, 'int');
-    assertType(findNode.simple('v; // return'), 'int');
+}
+''');
+
+    var node = findNode.simple('v; // return');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@15
+  element: v@15
+  staticType: int
+''');
   }
 
   test_initializer_hasStaticType() async {
@@ -168,8 +175,15 @@ f() {
   int v = 0;
   return v;
 }''');
-    assertType(findElement.localVar('v').type, 'int');
-    assertType(findNode.simple('v;'), 'int');
+
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@12
+  element: v@12
+  staticType: int
+''');
   }
 
   test_initializer_hasStaticType_parameterized() async {
@@ -178,8 +192,15 @@ f() {
   List<int> v = <int>[];
   return v;
 }''');
-    assertType(findElement.localVar('v').type, 'List<int>');
-    assertType(findNode.simple('v;'), 'List<int>');
+
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@18
+  element: v@18
+  staticType: List<int>
+''');
   }
 
   test_initializer_null() async {
@@ -188,23 +209,36 @@ main() {
   int v = null;
   return v;
 }''');
-    assertType(findElement.localVar('v').type, 'int');
-    assertType(findNode.simple('v;'), 'int');
+
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@15
+  element: v@15
+  staticType: int
+''');
   }
 
   test_invocation_target_prefixed() async {
     newFile('$testPackageLibPath/a.dart', r'''
 int max(int x, int y) => 0;
 ''');
+
     await resolveTestCode('''
 import 'a.dart' as helper;
 main() {
   helper.max(10, 10); // marker
 }''');
-    assertElement(
-      findNode.simple('max(10, 10)'),
-      findElement.importFind('package:test/a.dart').topFunction('max'),
-    );
+
+    var node = findNode.simple('max(10, 10)');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: max
+  staticElement: package:test/a.dart::<fragment>::@function::max
+  element: package:test/a.dart::@function::max
+  staticType: int Function(int, int)
+''');
   }
 
   test_is_subclass() async {
@@ -219,10 +253,27 @@ A f(A p) {
   }
   return p;
 }''');
-    assertElement(
-      findNode.methodInvocation('p.m()'),
-      findElement.method('m', of: 'B'),
-    );
+
+    var node = findNode.methodInvocation('p.m()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: p
+    staticElement: <testLibraryFragment>::@function::f::@parameter::p
+    element: <testLibraryFragment>::@function::f::@parameter::p#element
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    staticElement: <testLibraryFragment>::@class::B::@method::m
+    element: <testLibraryFragment>::@class::B::@method::m#element
+    staticType: B Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: B Function()
+  staticType: B
+''');
   }
 
   test_mutatedOutsideScope() async {
@@ -296,8 +347,15 @@ main() {
   dynamic toString = () => null;
   toString(); // marker
 }''');
-    assertTypeDynamic(findElement.localVar('toString').type);
-    assertTypeDynamic(findNode.simple('toString(); // marker'));
+
+    var node = findNode.simple('toString(); // marker');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: toString
+  staticElement: toString@19
+  element: toString@19
+  staticType: dynamic
+''');
   }
 
   @failingTest

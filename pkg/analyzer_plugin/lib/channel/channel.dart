@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer_plugin/plugin/plugin.dart';
+library;
+
 import 'package:analyzer_plugin/protocol/protocol.dart';
 
 /// A communication channel that allows a [ServerPlugin] to receive [Request]s

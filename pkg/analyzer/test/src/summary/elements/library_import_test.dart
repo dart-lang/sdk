@@ -80,8 +80,11 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           superConstructor: package:test/foo.dart::<fragment>::@class::A::@constructor::new#element
 ''');
-    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo.dart');
+
+    var typeA = library.getClass2('B')!.supertype!;
+    var fragmentA = typeA.element3.firstFragment;
+    var sourceA = fragmentA.libraryFragment.source;
+    expect(sourceA.shortName, 'foo.dart');
   }
 
   test_import_configurations_useFirst() async {
@@ -147,8 +150,11 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new#element
 ''');
-    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_io.dart');
+
+    var typeA = library.getClass2('B')!.supertype!;
+    var fragmentA = typeA.element3.firstFragment;
+    var sourceA = fragmentA.libraryFragment.source;
+    expect(sourceA.shortName, 'foo_io.dart');
   }
 
   test_import_configurations_useFirst_eqTrue() async {
@@ -214,8 +220,11 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           superConstructor: package:test/foo_io.dart::<fragment>::@class::A::@constructor::new#element
 ''');
-    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_io.dart');
+
+    var typeA = library.getClass2('B')!.supertype!;
+    var fragmentA = typeA.element3.firstFragment;
+    var sourceA = fragmentA.libraryFragment.source;
+    expect(sourceA.shortName, 'foo_io.dart');
   }
 
   test_import_configurations_useSecond() async {
@@ -281,8 +290,11 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new#element
 ''');
-    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_html.dart');
+
+    var typeA = library.getClass2('B')!.supertype!;
+    var fragmentA = typeA.element3.firstFragment;
+    var sourceA = fragmentA.libraryFragment.source;
+    expect(sourceA.shortName, 'foo_html.dart');
   }
 
   test_import_configurations_useSecond_eqTrue() async {
@@ -348,8 +360,11 @@ library
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           superConstructor: package:test/foo_html.dart::<fragment>::@class::A::@constructor::new#element
 ''');
-    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_html.dart');
+
+    var typeA = library.getClass2('B')!.supertype!;
+    var fragmentA = typeA.element3.firstFragment;
+    var sourceA = fragmentA.libraryFragment.source;
+    expect(sourceA.shortName, 'foo_html.dart');
   }
 
   test_import_dartCore_explicit() async {

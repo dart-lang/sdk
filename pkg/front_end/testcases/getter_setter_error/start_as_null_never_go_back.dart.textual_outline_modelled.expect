@@ -1,0 +1,5 @@
+class A {
+  int? _value;
+  int? get neverGoBack => _value;
+  set neverGoBack(int newValue) => _value = newValue;
+}

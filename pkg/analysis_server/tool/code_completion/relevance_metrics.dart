@@ -1851,7 +1851,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         }
 
         var superclassDepth = getSuperclassDepth();
-        var interfaceDepth = featureComputer.inheritanceDistance2(
+        var interfaceDepth = featureComputer.inheritanceDistance(
           targetClass,
           memberClass,
         );
@@ -2079,12 +2079,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         int distance;
         if (parameterType.element3 == typeProvider.futureOrElement2) {
           var typeArgument = parameterType.typeArguments[0];
-          distance = featureComputer.inheritanceDistance2(
+          distance = featureComputer.inheritanceDistance(
             argumentType.element3,
             typeProvider.futureElement2,
           );
           if (typeArgument is InterfaceType) {
-            var argDistance = featureComputer.inheritanceDistance2(
+            var argDistance = featureComputer.inheritanceDistance(
               argumentType.element3,
               typeArgument.element3,
             );
@@ -2093,7 +2093,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
             }
           }
         } else {
-          distance = featureComputer.inheritanceDistance2(
+          distance = featureComputer.inheritanceDistance(
             argumentType.element3,
             parameterType.element3,
           );

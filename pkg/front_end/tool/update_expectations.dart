@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'fasta.dart' as fasta;
+import 'cfe.dart' as cfe;
 
 const List<String> standardSuites = <String>[
   'weak',
@@ -29,7 +29,7 @@ Future<void> runStandardSuites([List<String>? args]) async {
         : args.map((String arg) => '${suite}/$arg').toList();
     testingArguments.addAll(tests);
   }
-  await fasta.main([
+  await cfe.main([
     'testing',
     ...testingArguments,
     // Only update comments in the first suite. Note that this only works
@@ -48,7 +48,7 @@ Future<void> runAllSpecialSuites([List<String>? args]) async {
         : args.map((String arg) => '${suite}/$arg').toList();
     testingArguments.addAll(tests);
   }
-  await fasta.main([
+  await cfe.main([
     'testing',
     ...testingArguments,
     '-DupdateExpectations=true',
@@ -66,7 +66,7 @@ Future<void> main(List<String> args) async {
       bool isSpecial = false;
       for (String suite in specialSuites) {
         if (arg.startsWith('$suite/')) {
-          await fasta.main(['testing', arg, '-DupdateExpectations=true']);
+          await cfe.main(['testing', arg, '-DupdateExpectations=true']);
           isSpecial = true;
           break;
         }

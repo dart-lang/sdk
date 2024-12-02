@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A list of associations between paths and the libraries that should be included for code
@@ -29,8 +28,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("unused")
 public class LibraryPathSet {
-
-  public static final LibraryPathSet[] EMPTY_ARRAY = new LibraryPathSet[0];
 
   public static final List<LibraryPathSet> EMPTY_LIST = List.of();
 
@@ -56,8 +53,7 @@ public class LibraryPathSet {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof LibraryPathSet) {
-      LibraryPathSet other = (LibraryPathSet) obj;
+    if (obj instanceof LibraryPathSet other) {
       return
         Objects.equals(other.scope, scope) &&
         Objects.equals(other.libraryPaths, libraryPaths);
@@ -122,9 +118,10 @@ public class LibraryPathSet {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("scope=");
-    builder.append(scope + ", ");
+    builder.append(scope);
+    builder.append(", ");
     builder.append("libraryPaths=");
-    builder.append(StringUtils.join(libraryPaths, ", "));
+    builder.append(libraryPaths.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

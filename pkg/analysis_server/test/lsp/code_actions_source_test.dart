@@ -158,6 +158,7 @@ void f() {
       () async {
         // Apply the command and immediately modify a file afterwards.
         var commandFuture = executeCommand(command);
+        await commandFuture;
         await replaceFile(12345, mainFileUri, 'client-modified-content');
         return commandFuture;
       },

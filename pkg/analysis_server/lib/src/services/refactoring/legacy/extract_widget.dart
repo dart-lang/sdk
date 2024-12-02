@@ -4,18 +4,16 @@
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -39,11 +37,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   late CorrectionUtils utils;
 
-  ClassElement? classBuildContext;
-  ClassElement? classKey;
-  ClassElement? classStatelessWidget;
-  ClassElement? classWidget;
-  PropertyAccessorElement? accessorRequired;
+  ClassElement2? classBuildContext;
+  ClassElement2? classKey;
+  ClassElement2? classStatelessWidget;
+  ClassElement2? classWidget;
+  PropertyAccessorElement2? accessorRequired;
 
   @override
   late String name;
@@ -52,7 +50,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   ClassDeclaration? _enclosingClassNode;
 
   /// If [offset] is in a class, the element of this class, `null` otherwise.
-  ClassElement? _enclosingClassElement;
+  ClassElement2? _enclosingClassElement;
 
   /// The [CompilationUnitMember] that encloses the [offset].
   CompilationUnitMember? _enclosingUnitMember;
@@ -128,16 +126,16 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Check for duplicate declarations.
     if (!result.hasFatalError) {
-      visitLibraryTopLevelElements(resolveResult.libraryElement, (element) {
-        if (hasDisplayName(element, name)) {
+      for (var element in resolveResult.libraryElement2.children2) {
+        if (element.displayName == name) {
           var message = format(
             "Library already declares {0} with name '{1}'.",
-            getElementKindName(element),
+            element.kind.displayName,
             name,
           );
-          result.addError(message, newLocation_fromElement(element));
+          result.addError(message, newLocation_fromElement2(element));
         }
-      });
+      }
     }
 
     return result;
@@ -191,7 +189,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Find the enclosing class.
     _enclosingClassNode = node?.thisOrAncestorOfType<ClassDeclaration>();
-    _enclosingClassElement = _enclosingClassNode?.declaredElement;
+    _enclosingClassElement = _enclosingClassNode?.declaredFragment?.element;
 
     // `new MyWidget(...)`
     var newExpression = node.findInstanceCreationExpression;
@@ -249,19 +247,19 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> _initializeClasses() async {
     var result = RefactoringStatus();
 
-    Future<ClassElement?> getClass(String name) async {
-      var element = await sessionHelper.getFlutterClass(name);
+    Future<ClassElement2?> getClass(String name) async {
+      var element = await sessionHelper.getFlutterClass2(name);
       if (element == null) {
         result.addFatalError("Unable to find '$name' in $widgetsUri");
       }
       return element;
     }
 
-    Future<PropertyAccessorElement?> getAccessor(
+    Future<PropertyAccessorElement2?> getAccessor(
       String uri,
       String name,
     ) async {
-      var element = await sessionHelper.getTopLevelPropertyAccessor(uri, name);
+      var element = await sessionHelper.getTopLevelPropertyAccessor2(uri, name);
       if (element == null) {
         result.addFatalError("Unable to find 'required' in $uri");
       }
@@ -319,9 +317,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
         for (var parameter in parameterList.parameters) {
           parameter = parameter.notDefault;
           if (parameter is NormalFormalParameter) {
-            var element = parameter.declaredElement!;
+            var element = parameter.declaredFragment!.element;
             _parameters.add(
-              _Parameter(element.name, element.type, isMethodParameter: true),
+              _Parameter(element.name3!, element.type, isMethodParameter: true),
             );
           }
         }
@@ -380,7 +378,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// Replace invocations of the [_method] with instantiations of the new
   /// widget class.
   void _replaceInvocationsWithInstantiations(DartFileEditBuilder builder) {
-    var collector = _MethodInvocationsCollector(_method!.declaredElement!);
+    var collector = _MethodInvocationsCollector(
+      _method!.declaredFragment!.element,
+    );
     _enclosingClassNode!.accept(collector);
     for (var invocation in collector.invocations) {
       List<Expression> arguments = invocation.argumentList.arguments;
@@ -580,14 +580,14 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 }
 
 class _MethodInvocationsCollector extends RecursiveAstVisitor<void> {
-  final ExecutableElement methodElement;
+  final ExecutableElement2 methodElement;
   final List<MethodInvocation> invocations = [];
 
   _MethodInvocationsCollector(this.methodElement);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.staticElement == methodElement) {
+    if (node.methodName.element == methodElement) {
       invocations.add(node);
     } else {
       super.visitMethodInvocation(node);
@@ -613,42 +613,42 @@ class _Parameter {
 }
 
 class _ParametersCollector extends RecursiveAstVisitor<void> {
-  final InterfaceElement? enclosingClass;
+  final InterfaceElement2? enclosingClass;
   final SourceRange expressionRange;
 
   final RefactoringStatus status = RefactoringStatus();
-  final Set<Element> uniqueElements = <Element>{};
+  final Set<Element2> uniqueElements = <Element2>{};
   final List<_Parameter> parameters = [];
 
-  List<InterfaceElement>? enclosingClasses;
+  List<InterfaceElement2>? enclosingClasses;
 
   _ParametersCollector(this.enclosingClass, this.expressionRange);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
     if (element == null) {
       return;
     }
     var elementName = element.displayName;
 
     DartType? type;
-    if (element is MethodElement) {
+    if (element is MethodElement2) {
       if (_isMemberOfEnclosingClass(element)) {
         status.addError(
           'Reference to an enclosing class method cannot be extracted.',
         );
       }
-    } else if (element is LocalVariableElement) {
-      if (!expressionRange.contains(element.nameOffset)) {
+    } else if (element is LocalVariableElement2) {
+      if (!expressionRange.contains(element.firstFragment.nameOffset)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");
         } else {
           type = element.type;
         }
       }
-    } else if (element is PropertyAccessorElement) {
-      var field = element.variable2;
+    } else if (element is PropertyAccessorElement2) {
+      var field = element.variable3;
       if (field == null) {
         return;
       }
@@ -657,7 +657,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
           status.addError("Write to '$elementName' cannot be extracted.");
         } else {
           type = field.type;
-          element = element.declaration;
+          element = element.baseElement;
         }
       }
     }
@@ -670,15 +670,15 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] is a member of the [enclosingClass]
   /// or one of its supertypes, interfaces, or mixins.
-  bool _isMemberOfEnclosingClass(Element element) {
+  bool _isMemberOfEnclosingClass(Element2 element) {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
       var enclosingClasses =
-          this.enclosingClasses ??= <InterfaceElement>[
+          this.enclosingClasses ??= <InterfaceElement2>[
             enclosingClass,
-            ...enclosingClass.allSupertypes.map((t) => t.element),
+            ...enclosingClass.allSupertypes.map((t) => t.element3),
           ];
-      return enclosingClasses.contains(element.enclosingElement3);
+      return enclosingClasses.contains(element.enclosingElement2);
     }
     return false;
   }

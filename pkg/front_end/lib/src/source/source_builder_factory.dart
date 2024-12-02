@@ -1369,15 +1369,13 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
               instanceTypeParameterAccess:
                   InstanceTypeParameterAccessState.Allowed);
 
-          if (nominalVariableCopy != null) {
-            if (typeParameters != null) {
-              // Coverage-ignore-block(suite): Not run.
-              typeParameters = nominalVariableCopy.newParameterBuilders
-                ..addAll(typeParameters);
-            } else {
-              typeParameters = nominalVariableCopy.newParameterBuilders;
-            }
-          }
+          // Discard type parameters declared on the constructor. It's not
+          // allowed, an error has already been issued and it will cause
+          // crashes later if they are kept/added to the ones from the parent.
+          // TODO(johnniwinther): This will cause us issuing errors about not
+          // knowing the names of what we discard here. Is there a way to
+          // preserve them?
+          typeParameters = nominalVariableCopy?.newParameterBuilders;
         case ClassFragment():
         case MixinFragment():
         case EnumFragment():

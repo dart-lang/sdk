@@ -97,7 +97,7 @@ class SignatureHelpHandler
       // argument list.
       // The ArgumentList's offset is before the paren, but the request offset
       // will be after.
-      if (autoTriggered && offset != computer.argumentList.offset + 1) {
+      if (autoTriggered && offset != signature.argumentList.offset + 1) {
         return success(null);
       }
 

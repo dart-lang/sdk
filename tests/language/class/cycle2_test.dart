@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check fail because of cycles in super class relationship.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 class C extends B {}
 
 class A extends B {}

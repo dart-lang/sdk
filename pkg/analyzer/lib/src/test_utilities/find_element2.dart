@@ -41,7 +41,7 @@ class FindElement2 extends _FindElementBase {
   }
 
   TopLevelFunctionElement function(String name) {
-    for (var function in libraryElement.functions) {
+    for (var function in libraryElement.topLevelFunctions) {
       if (function.name3 == name) {
         return function;
       }
@@ -144,7 +144,7 @@ class FindElement2 extends _FindElementBase {
         updateResult(node.declaredElement2!);
       },
       variableDeclaration: (node) {
-        updateResult(node.declaredElement2!);
+        updateResult(node.declaredFragment!.element);
       },
     ));
 
@@ -186,7 +186,7 @@ class FindElement2 extends _FindElementBase {
 
     findInExecutables(libraryElement.getters);
     findInExecutables(libraryElement.setters);
-    findInExecutables(libraryElement.functions);
+    findInExecutables(libraryElement.topLevelFunctions);
 
     findInClasses(libraryElement.classes);
     findInClasses(libraryElement.enums);
@@ -463,7 +463,7 @@ abstract class _FindElementBase {
   }
 
   TopLevelFunctionElement topFunction(String name) {
-    for (var function in libraryElement.functions) {
+    for (var function in libraryElement.topLevelFunctions) {
       if (function.name3 == name) {
         return function;
       }

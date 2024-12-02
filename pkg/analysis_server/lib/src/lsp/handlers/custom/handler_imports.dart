@@ -140,6 +140,8 @@ class ImportsHandler
     for (var directive in unit.directives.whereType<ImportDirective>()) {
       var import = directive.libraryImport;
       if (import == null) continue;
+      var importPrefix = directive.prefix?.name;
+      if (importPrefix != prefix) continue;
 
       var importedElement =
           prefix == null

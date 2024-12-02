@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -54,9 +53,23 @@ const a = 42;
 
 Function<@a T>()? x;
 ''');
+
     var T = findNode.typeParameter('T');
-    var annotation = T.declaredElement!.metadata[0];
-    expect(annotation.element, findElement.topGet('a'));
+    assertResolvedNodeText(T, r'''
+TypeParameter
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: a
+        staticElement: <testLibraryFragment>::@getter::a
+        element: <testLibraryFragment>::@getter::a#element
+        staticType: null
+      element: <testLibraryFragment>::@getter::a
+      element2: <testLibraryFragment>::@getter::a#element
+  name: T
+  declaredElement: T@27
+''');
   }
 
   /// Test that when multiple [GenericFunctionType]s are used in a

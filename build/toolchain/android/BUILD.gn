@@ -96,7 +96,7 @@ android_toolchain("clang_x64") {
 }
 
 android_toolchain("clang_arm64") {
-  toolchain_cpu = "aarch64"
+  toolchain_cpu = "arm64"
 }
 
 android_toolchain("clang_riscv64") {

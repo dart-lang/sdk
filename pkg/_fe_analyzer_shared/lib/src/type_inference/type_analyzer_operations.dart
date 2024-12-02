@@ -175,23 +175,23 @@ abstract interface class TypeAnalyzerOperations<
 
   /// Returns `true` if [type] is `Function` from `dart:core`. The method
   /// returns `false` for `Function?` and `Function*`.
-  bool isDartCoreFunction(SharedTypeView<TypeStructure> type);
+  bool isDartCoreFunctionInternal(TypeStructure type);
 
   /// Returns `true` if [type] is `Record` from `dart:core`. The method
   /// returns `false` for `Record?` and `Record*`.
-  bool isDartCoreRecord(SharedTypeView<TypeStructure> type);
+  bool isDartCoreRecordInternal(TypeStructure type);
 
   /// Returns `true` if [type] is `E<T1, ..., Tn>`, `E<T1, ..., Tn>?`, or
   /// `E<T1, ..., Tn>*` for some extension type declaration E, some
   /// non-negative n, and some types T1, ..., Tn.
-  bool isExtensionType(SharedTypeView<TypeStructure> type);
+  bool isExtensionTypeInternal(TypeStructure type);
 
   /// Returns `true` if [type] is `A<T1, ..., Tn>`, `A<T1, ..., Tn>?`, or
   /// `A<T1, ..., Tn>*` for some class, mixin, or enum A, some non-negative n,
   /// and some types T1, ..., Tn. The method returns `false` if [type] is an
   /// extension type, a type alias, `Null`, `Never`, or `FutureOr<X>` for any
   /// type `X`.
-  bool isInterfaceType(SharedTypeView<TypeStructure> type);
+  bool isInterfaceTypeInternal(TypeStructure type);
 
   @override
   bool isNever(SharedTypeView<TypeStructure> type);
@@ -207,9 +207,6 @@ abstract interface class TypeAnalyzerOperations<
   /// The predicate of [isNonNullableInternal] could be computed directly with
   /// a subtype query, but the implementations can do that more efficiently.
   bool isNonNullableInternal(TypeStructure type);
-
-  /// Returns `true` if [type] is `Null`.
-  bool isNull(SharedTypeView<TypeStructure> type);
 
   /// Returns `true` if [type] is `Object` from `dart:core`. The method returns
   /// `false` for `Object?` and `Object*`.
@@ -465,12 +462,11 @@ abstract interface class TypeAnalyzerOperations<
   ///
   /// In the example below the appearance of `X` in the return type of `foo` is
   /// a parameter type of a kind used in type inference. When passed into
-  /// [matchInferableParameter] it will yield the parameter `X` defined by
-  /// `foo`.
+  /// [matchInferableParameterInternal] it will yield the parameter `X` defined
+  /// by `foo`.
   ///
   ///   X foo<X>(bool c, X x1, X x2) => c ? x1 : x2;
-  TypeParameterStructure? matchInferableParameter(
-      SharedTypeView<TypeStructure> type);
+  TypeParameterStructure? matchInferableParameterInternal(TypeStructure type);
 
   /// If [type] is a subtype of the type `Iterable<T>?` for some `T`, returns
   /// the type `T`.  Otherwise returns `null`.
@@ -541,8 +537,7 @@ abstract interface class TypeAnalyzerOperations<
   /// If [type] isn't introduced by a class, mixin, enum, or extension type,
   /// returns null.
   TypeDeclarationMatchResult<TypeDeclarationType, TypeDeclaration,
-          TypeStructure>?
-      matchTypeDeclarationType(SharedTypeView<TypeStructure> type);
+      TypeStructure>? matchTypeDeclarationTypeInternal(TypeStructure type);
 
   /// If [typeSchema] takes the form `FutureOr<T>`, `FutureOr<T>?`, or
   /// `FutureOr<T>*` for some `T`, returns the type schema `T`. Otherwise
@@ -711,8 +706,8 @@ abstract interface class TypeAnalyzerOperations<
       SharedTypeView<TypeStructure> type);
 
   /// Returns [type] suffixed with the [suffix].
-  SharedTypeView<TypeStructure> withNullabilitySuffix(
-      SharedTypeView<TypeStructure> type, NullabilitySuffix suffix);
+  TypeStructure withNullabilitySuffixInternal(
+      TypeStructure type, NullabilitySuffix suffix);
 }
 
 mixin TypeAnalyzerOperationsMixin<
@@ -1399,8 +1394,8 @@ abstract class TypeConstraintGenerator<
       TypeStructure p, TypeStructure q,
       {required bool leftSchema, required AstNode? astNodeForTesting}) {
     switch ((
-      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(p)),
-      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(q))
+      typeAnalyzerOperations.matchTypeDeclarationTypeInternal(p),
+      typeAnalyzerOperations.matchTypeDeclarationTypeInternal(q)
     )) {
       // If `P` is `C<M0, ..., Mk> and `Q` is `C<N0, ..., Nk>`, then the match
       // holds under constraints `C0 + ... + Ck`:
@@ -1455,9 +1450,8 @@ abstract class TypeConstraintGenerator<
     // If `P` is `P0?` the match holds under constraint set `C1 + C2`:
     NullabilitySuffix pNullability = p.nullabilitySuffix;
     if (pNullability == NullabilitySuffix.question) {
-      TypeStructure p0 = typeAnalyzerOperations
-          .withNullabilitySuffix(new SharedTypeView(p), NullabilitySuffix.none)
-          .unwrapTypeView();
+      TypeStructure p0 = typeAnalyzerOperations.withNullabilitySuffixInternal(
+          p, NullabilitySuffix.none);
       final TypeConstraintGeneratorState state = currentState;
 
       // If `P0` is a subtype match for `Q` under constraint set `C1`.
@@ -1494,19 +1488,16 @@ abstract class TypeConstraintGenerator<
     // If `Q` is `Q0?` the match holds under constraint set `C`:
     NullabilitySuffix qNullability = q.nullabilitySuffix;
     if (qNullability == NullabilitySuffix.question) {
-      TypeStructure q0 = typeAnalyzerOperations
-          .withNullabilitySuffix(new SharedTypeView(q), NullabilitySuffix.none)
-          .unwrapTypeView();
+      TypeStructure q0 = typeAnalyzerOperations.withNullabilitySuffixInternal(
+          q, NullabilitySuffix.none);
       final TypeConstraintGeneratorState state = currentState;
 
       // If `P` is `P0?` and `P0` is a subtype match for `Q0` under
       // constraint set `C`.
       NullabilitySuffix pNullability = p.nullabilitySuffix;
       if (pNullability == NullabilitySuffix.question) {
-        TypeStructure p0 = typeAnalyzerOperations
-            .withNullabilitySuffix(
-                new SharedTypeView(p), NullabilitySuffix.none)
-            .unwrapTypeView();
+        TypeStructure p0 = typeAnalyzerOperations.withNullabilitySuffixInternal(
+            p, NullabilitySuffix.none);
         if (performSubtypeConstraintGenerationInternal(p0, q0,
             leftSchema: leftSchema, astNodeForTesting: astNodeForTesting)) {
           return true;
@@ -1590,7 +1581,7 @@ abstract class TypeConstraintGenerator<
     // If `P` is a type variable `X` in `L`, then the match holds:
     //   Under constraint `_ <: X <: Q`.
     NullabilitySuffix pNullability = p.nullabilitySuffix;
-    if (typeAnalyzerOperations.matchInferableParameter(new SharedTypeView(p))
+    if (typeAnalyzerOperations.matchInferableParameterInternal(p)
         case var pParameter?
         when pNullability == NullabilitySuffix.none &&
             typeParametersToConstrain.contains(pParameter)) {
@@ -1602,7 +1593,7 @@ abstract class TypeConstraintGenerator<
     // If `Q` is a type variable `X` in `L`, then the match holds:
     //   Under constraint `P <: X <: _`.
     NullabilitySuffix qNullability = q.nullabilitySuffix;
-    if (typeAnalyzerOperations.matchInferableParameter(new SharedTypeView(q))
+    if (typeAnalyzerOperations.matchInferableParameterInternal(q)
         case var qParameter?
         when qNullability == NullabilitySuffix.none &&
             typeParametersToConstrain.contains(qParameter) &&
@@ -1671,8 +1662,7 @@ abstract class TypeConstraintGenerator<
 
     // If `P` is `Null`, then the match holds under no constraints:
     //  Only if `Q` is nullable.
-    if (pNullability == NullabilitySuffix.none &&
-        typeAnalyzerOperations.isNull(new SharedTypeView(p))) {
+    if (p is SharedNullTypeStructure) {
       return typeAnalyzerOperations.isNullableInternal(q);
     }
 
@@ -1697,7 +1687,7 @@ abstract class TypeConstraintGenerator<
 
     // If `Q` is `Function` then the match holds under no constraints:
     //   If `P` is a function type.
-    if (typeAnalyzerOperations.isDartCoreFunction(new SharedTypeView(q))) {
+    if (typeAnalyzerOperations.isDartCoreFunctionInternal(q)) {
       if (p is SharedFunctionTypeStructure) {
         return true;
       }
@@ -1711,7 +1701,7 @@ abstract class TypeConstraintGenerator<
     // A type `P` is a subtype match for `Record` with respect to `L` under no
     // constraints:
     //   If `P` is a record type or `Record`.
-    if (typeAnalyzerOperations.isDartCoreRecord(new SharedTypeView(q))) {
+    if (typeAnalyzerOperations.isDartCoreRecordInternal(q)) {
       if (p is SharedRecordTypeStructure<TypeStructure>) {
         return true;
       }
@@ -1825,8 +1815,8 @@ abstract class TypeConstraintGenerator<
     //   respect to `L` under constraints `C`.
 
     if ((
-      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(p)),
-      typeAnalyzerOperations.matchTypeDeclarationType(new SharedTypeView(q))
+      typeAnalyzerOperations.matchTypeDeclarationTypeInternal(p),
+      typeAnalyzerOperations.matchTypeDeclarationTypeInternal(q)
     )
         case (
           TypeDeclarationMatchResult(

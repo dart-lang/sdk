@@ -38,9 +38,8 @@ class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<List<DartType>>> actualMap) {
-    _InferredTypeArgumentsDataExtractor(
-            unit.declaredElement!.source.uri, actualMap)
-        .run(unit);
+    var unitUri = unit.declaredFragment!.source.uri;
+    _InferredTypeArgumentsDataExtractor(unitUri, actualMap).run(unit);
   }
 }
 

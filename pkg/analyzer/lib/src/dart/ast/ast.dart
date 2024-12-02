@@ -454,7 +454,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   List<FormalParameterElement?>? get correspondingStaticParameters2 =>
       _correspondingStaticParameters
-          ?.map((parameter) => parameter.asElement2 as FormalParameterElement)
+          ?.map((parameter) => parameter?.asElement2)
           .toList();
 
   @override
@@ -4459,8 +4459,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @experimental
   @override
-  ConstructorElement2? get element =>
-      staticElement?.asElement2 as ConstructorElement2?;
+  ConstructorElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken {
@@ -4834,6 +4833,9 @@ abstract final class DeclaredIdentifier implements Declaration {
   @experimental
   LocalVariableElement2? get declaredElement2;
 
+  @override
+  LocalVariableFragment? get declaredFragment;
+
   /// Whether this variable was declared with the 'const' modifier.
   bool get isConst;
 
@@ -4868,9 +4870,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   @override
   LocalVariableElementImpl? declaredElement;
 
-  @override
-  LocalVariableElementImpl? declaredFragment;
-
   /// Initializes a newly created formal parameter.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
@@ -4894,6 +4893,9 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   LocalVariableElement2? get declaredElement2 {
     return declaredElement.asElement2 as LocalVariableElementImpl2?;
   }
+
+  @override
+  LocalVariableFragment? get declaredFragment => declaredElement;
 
   @override
   Token get endToken => name;
@@ -5618,7 +5620,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @experimental
   @override
   ConstructorElement2? get constructorElement2 =>
-      constructorElement?.asElement2 as ConstructorElement2?;
+      constructorElement?.asElement2;
 
   @experimental
   @override
@@ -15074,8 +15076,7 @@ final class RedirectingConstructorInvocationImpl
 
   @experimental
   @override
-  ConstructorElement2? get element =>
-      staticElement?.asElement2 as ConstructorElement2?;
+  ConstructorElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _argumentList.endToken;
@@ -16626,8 +16627,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @experimental
   @override
-  ConstructorElement2? get element =>
-      staticElement?.asElement2 as ConstructorElement2?;
+  ConstructorElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _argumentList.endToken;

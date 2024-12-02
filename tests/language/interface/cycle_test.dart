@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check fail because of cycles in super interface relationship.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 class C implements B {}
 
 class A implements B {}

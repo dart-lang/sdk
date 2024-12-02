@@ -306,7 +306,7 @@ Future<List<FormalParameterElement>> getHierarchyNamedParameters2(
     searchEngine,
     element.asElement as ParameterElement,
   );
-  return result.map((e) => e.asElement2 as FormalParameterElement).toList();
+  return result.map((e) => e.asElement2).toList();
 }
 
 /// Returns non-synthetic members of the given [InterfaceElement] and its super

@@ -2177,10 +2177,9 @@ class PhiUnboxingHeuristic : public ValueObject {
         // If all the inputs are unboxed integers but with different
         // representations, then pick a representation based on the range
         // of values that flow into the phi node.
-        new_representation =
-            RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
-                ? kUnboxedInt32
-                : kUnboxedInt64;
+        new_representation = Range::Fits(phi->range(), kUnboxedInt32)
+                                 ? kUnboxedInt32
+                                 : kUnboxedInt64;
       }
 
       // Decide if it is worth to unbox an boxed integer phi.
@@ -2202,10 +2201,9 @@ class PhiUnboxingHeuristic : public ValueObject {
         const bool flows_into_unboxed_use = FlowsIntoUnboxedUse(phi);
 
         if (has_unboxed_incoming_value && flows_into_unboxed_use) {
-          new_representation =
-              RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
-                  ? kUnboxedInt32
-                  : kUnboxedInt64;
+          new_representation = Range::Fits(phi->range(), kUnboxedInt32)
+                                   ? kUnboxedInt32
+                                   : kUnboxedInt64;
         }
 #endif
       }

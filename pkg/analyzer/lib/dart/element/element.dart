@@ -546,6 +546,10 @@ abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
+  /// The library fragment referenced by the [source].
+  @experimental
+  LibraryFragment get libraryFragment;
+
   /// The unit referenced by the [source].
   CompilationUnitElement get unit;
 }

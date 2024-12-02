@@ -142,7 +142,9 @@ class A {
 ''');
     _createRefactoring('test async');
     // error
-    return _assertConditionsFatal('Cannot inline async into sync*.');
+    return _assertConditionsFatal(
+      "Can't inline an 'async' method into a 'sync*' method.",
+    );
   }
 
   Future<void> test_bad_async_targetIsSync_doesNotReturnFuture() async {
@@ -159,7 +161,7 @@ class A {
     _createRefactoring('test async');
     // error
     return _assertConditionsFatal(
-      'Cannot inline async into a function that does not return a Future.',
+      "Can't inline an 'async' method into a function that doesn't return a 'Future'.",
     );
   }
 
@@ -178,7 +180,7 @@ class A {
 ''');
     _createRefactoring('test() async*');
     // error
-    return _assertConditionsFatal('Cannot inline a generator.');
+    return _assertConditionsFatal("Can't inline a generator.");
   }
 
   Future<void> test_bad_cascadeInvocation() async {
@@ -200,7 +202,7 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.ERROR,
-      expectedMessage: 'Cannot inline cascade invocation.',
+      expectedMessage: "Can't inline a cascade invocation.",
       expectedContextRange: location,
     );
   }
@@ -271,7 +273,7 @@ class A {
 ''');
     _createRefactoring('-(other)');
     // error
-    return _assertConditionsFatal('Cannot inline operator.');
+    return _assertConditionsFatal("Can't inline an operator.");
   }
 
   Future<void> test_bad_propertyAccessor_synthetic() async {
@@ -303,7 +305,7 @@ void f() {
 ''');
     _createRefactoring('test(a, b)');
     // error
-    return _assertConditionsFatal('Cannot inline class method reference.');
+    return _assertConditionsFatal("Can't inline a class method reference.");
   }
 
   Future<void> test_bad_severalReturns() async {
@@ -1241,7 +1243,7 @@ void f(A a) {
 ''');
     _createRefactoring('test();');
     // error
-    return _assertConditionsFatal('Cannot inline method without body.');
+    return _assertConditionsFatal("Can't inline a method without a body.");
   }
 
   Future<void> test_method_fieldInstance() async {

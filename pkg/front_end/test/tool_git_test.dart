@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Tests the tool `pkg/front_end/tool/fasta`.
+/// Tests the tool `pkg/front_end/tool/cfe`.
 
 import "dart:io";
 
 import "package:expect/expect.dart";
 import "package:front_end/src/codes/cfe_codes.dart" show messageFastaUsageShort;
 
-const String toolPath = "pkg/front_end/tool/fasta";
+const String toolPath = "pkg/front_end/tool/cfe";
 
 const List<String> subtools = const <String>[
   "abcompile",

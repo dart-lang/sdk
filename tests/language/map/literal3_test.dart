@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test program for map literals.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 class MapLiteralTest {

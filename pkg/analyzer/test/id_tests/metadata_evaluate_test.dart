@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/metadata_helper.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -42,8 +42,8 @@ class _MetadataDataComputer extends DataComputer<String> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
-    _MetadataDataExtractor(unit.declaredElement!.source.uri, actualMap)
-        .run(unit);
+    var unitUri = unit.declaredFragment!.source.uri;
+    _MetadataDataExtractor(unitUri, actualMap).run(unit);
   }
 }
 
@@ -55,10 +55,10 @@ class _MetadataDataExtractor extends AstDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, AstNode node) {
     if (node is Declaration) {
-      Element? element = node.declaredElement;
-      if (element != null) {
+      var element = node.declaredFragment?.element;
+      if (element case Annotatable annotatable) {
         List<String> list = [];
-        for (ElementAnnotation annotation in element.metadata) {
+        for (var annotation in annotatable.metadata2.annotations) {
           if (annotation is ElementAnnotationImpl) {
             var resolved = parseAnnotation(annotation);
             list.addAll(evaluationToText(resolved,

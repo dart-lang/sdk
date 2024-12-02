@@ -719,8 +719,21 @@ f(A a) {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo();');
-    assertElement(invocation, findElement.method('foo'));
+    var node = findNode.methodInvocation('foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_targetNull_class() async {
@@ -1427,8 +1440,31 @@ f() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0);');
-    assertElement(invocation, findElement.method('foo'));
+    var node = findNode.methodInvocation('foo(0);');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    staticElement: <testLibraryFragment>::@class::A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
   }
 
   test_targetSimpleIdentifier_prefix_class() async {
@@ -1686,8 +1722,26 @@ void g() {
 }
 ''');
 
-    var identifier = findNode.constructorReference('C.new');
-    assertElement(identifier, findElement.unnamedConstructor('C'));
+    var node = findNode.constructorReference('C.new');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibraryFragment>::@class::C
+      element2: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: <testLibraryFragment>::@class::C::@constructor::new
+      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      staticType: null
+    staticElement: <testLibraryFragment>::@class::C::@constructor::new
+    element: <testLibraryFragment>::@class::C::@constructor::new#element
+  parameter: <testLibraryFragment>::@setter::f::@parameter::_f
+  staticType: C Function()
+''');
   }
 
   // TODO(srawlins): Complete tests of all cases of rewriting (or not) a

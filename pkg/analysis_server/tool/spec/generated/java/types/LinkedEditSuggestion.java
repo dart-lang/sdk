@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A suggestion of a value that could be used to replace all of the linked edit regions in a
@@ -29,8 +28,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("unused")
 public class LinkedEditSuggestion {
-
-  public static final LinkedEditSuggestion[] EMPTY_ARRAY = new LinkedEditSuggestion[0];
 
   public static final List<LinkedEditSuggestion> EMPTY_LIST = List.of();
 
@@ -54,8 +51,7 @@ public class LinkedEditSuggestion {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof LinkedEditSuggestion) {
-      LinkedEditSuggestion other = (LinkedEditSuggestion) obj;
+    if (obj instanceof LinkedEditSuggestion other) {
       return
         Objects.equals(other.value, value) &&
         Objects.equals(other.kind, kind);
@@ -114,7 +110,8 @@ public class LinkedEditSuggestion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("value=");
-    builder.append(value + ", ");
+    builder.append(value);
+    builder.append(", ");
     builder.append("kind=");
     builder.append(kind);
     builder.append("]");

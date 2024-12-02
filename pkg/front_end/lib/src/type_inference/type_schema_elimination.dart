@@ -20,9 +20,9 @@ import 'type_schema.dart' show UnknownType;
 ///
 /// Note that the greatest closure of a type schema is always a supertype of any
 /// type which matches the schema.
-DartType greatestClosure(
-    DartType schema, DartType topType, DartType bottomType) {
-  return _TypeSchemaEliminationVisitor.run(false, schema, topType, bottomType);
+DartType greatestClosure(DartType schema, {required DartType topType}) {
+  return _TypeSchemaEliminationVisitor.run(schema,
+      computeLeastClosure: false, topType: topType);
 }
 
 /// Returns the least closure of the given type [schema] with respect to `?`.
@@ -38,8 +38,9 @@ DartType greatestClosure(
 ///
 /// Note that the least closure of a type schema is always a subtype of any type
 /// which matches the schema.
-DartType leastClosure(DartType schema, DartType topType, DartType bottomType) {
-  return _TypeSchemaEliminationVisitor.run(true, schema, topType, bottomType);
+DartType leastClosure(DartType schema, {required DartType topType}) {
+  return _TypeSchemaEliminationVisitor.run(schema,
+      computeLeastClosure: true, topType: topType);
 }
 
 /// Visitor that computes least and greatest closures of a type schema.
@@ -48,16 +49,15 @@ DartType leastClosure(DartType schema, DartType topType, DartType bottomType) {
 /// type, otherwise it returns the result of substituting `?` with `Null` or
 /// `Object`, as appropriate.
 class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
-  final DartType topType;
-  final DartType bottomType;
+  final DartType _topType;
 
-  _TypeSchemaEliminationVisitor(this.topType, this.bottomType);
+  _TypeSchemaEliminationVisitor(this._topType);
 
   @override
   DartType? visitAuxiliaryType(AuxiliaryType node, Variance variance) {
-    bool isLeastClosure = variance == Variance.covariant;
+    bool computeLeastClosure = variance == Variance.covariant;
     if (node is UnknownType) {
-      return isLeastClosure ? bottomType : topType;
+      return computeLeastClosure ? const NeverType.nonNullable() : _topType;
     }
     // Coverage-ignore-block(suite): Not run.
     throw new UnsupportedError(
@@ -67,21 +67,18 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   /// Runs an instance of the visitor on the given [schema] and returns the
   /// resulting type.  If the schema contains no instances of `?`, the original
   /// schema object is returned to avoid unnecessary allocation.
-  static DartType run(bool isLeastClosure, DartType schema, DartType topType,
-      DartType bottomType) {
+  static DartType run(DartType schema,
+      {required bool computeLeastClosure, required DartType topType}) {
     assert(topType == const DynamicType() ||
         topType is InterfaceType &&
             topType.nullability == Nullability.nullable &&
             topType.classNode.enclosingLibrary.importUri.isScheme("dart") &&
             topType.classNode.enclosingLibrary.importUri.path == "core" &&
             topType.classNode.name == "Object");
-    assert(bottomType == const NeverType.nonNullable() ||
-        // Coverage-ignore(suite): Not run.
-        bottomType is NullType);
     _TypeSchemaEliminationVisitor visitor =
-        new _TypeSchemaEliminationVisitor(topType, bottomType);
-    DartType? result = schema.accept1(
-        visitor, isLeastClosure ? Variance.covariant : Variance.contravariant);
+        new _TypeSchemaEliminationVisitor(topType);
+    DartType? result = schema.accept1(visitor,
+        computeLeastClosure ? Variance.covariant : Variance.contravariant);
     return result ?? schema;
   }
 }

@@ -5,7 +5,7 @@
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
 // Instead modify 'tools/experimental_features.yaml' and run
-// 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
+// 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
 const Version defaultLanguageVersion = const Version(3, 7);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
@@ -104,6 +104,14 @@ enum ExperimentalFlag {
     isExpired: true,
     experimentEnabledVersion: const Version(2, 14),
     experimentReleasedVersion: const Version(2, 14),
+  ),
+
+  getterSetterError(
+    name: 'getter-setter-error',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
   ),
 
   inferenceUpdate1(

@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An indication of a problem with the execution of the server, typically in response to a request.
@@ -28,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("unused")
 public class RequestError {
-
-  public static final RequestError[] EMPTY_ARRAY = new RequestError[0];
 
   public static final List<RequestError> EMPTY_LIST = List.of();
 
@@ -59,8 +56,7 @@ public class RequestError {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof RequestError) {
-      RequestError other = (RequestError) obj;
+    if (obj instanceof RequestError other) {
       return
         Objects.equals(other.code, code) &&
         Objects.equals(other.message, message) &&
@@ -132,9 +128,11 @@ public class RequestError {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("code=");
-    builder.append(code + ", ");
+    builder.append(code);
+    builder.append(", ");
     builder.append("message=");
-    builder.append(message + ", ");
+    builder.append(message);
+    builder.append(", ");
     builder.append("stackTrace=");
     builder.append(stackTrace);
     builder.append("]");

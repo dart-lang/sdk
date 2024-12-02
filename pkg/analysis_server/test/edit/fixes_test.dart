@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -31,6 +33,29 @@ class FixesTest extends PubPackageAnalysisServerTest {
     super.setUp();
     registerBuiltInProducers();
     await setRoots(included: [workspaceRootPath], excluded: []);
+  }
+
+  Future<void> test_concurrentModifications() async {
+    var file = server.resourceProvider.getFile(testFile.path);
+    var futures = <Future<void>>[];
+
+    // Send many requests to modify files and get fixes.
+    for (var i = 1; i < 100; i++) {
+      futures.add(_addOverlay(testFile.path, 'var i = $i;'));
+      await pumpEventQueue();
+      futures.add(
+        handleSuccessfulRequest(
+          EditGetFixesParams(
+            file.path,
+            0,
+          ).toRequest('$i', clientUriConverter: server.uriConverter),
+        ),
+      );
+      await pumpEventQueue();
+    }
+
+    // Except all to complete.
+    await Future.wait(futures);
   }
 
   Future<void> test_fileOutsideRoot() async {

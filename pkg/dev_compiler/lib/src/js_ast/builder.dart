@@ -1708,8 +1708,8 @@ class MiniJsParser {
     if (isGetter || isSetter) {
       var token = lastToken;
       getToken();
-      if (lastCategory == COLON) {
-        // That wasn't a accessor but the 'get' or 'set' property: retropedal.
+      if (lastCategory == COLON || lastCategory == LPAREN) {
+        // That wasn't a accessor but the 'get' or 'set' property/function.
         isGetter = isSetter = false;
         name = LiteralString('"$token"');
       }

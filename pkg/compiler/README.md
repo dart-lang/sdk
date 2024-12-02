@@ -266,9 +266,9 @@ functionality is publicly exposed.
 
   * `lib/src/source_file_provider.dart`: _TODO: add details_.
 
-* Parsing: most of the parsing logic is now in the `front_end` package,
-  currently under `pkg/front_end/lib/src/fasta/scanner` and
-  `pkg/front_end/lib/src/fasta/parser`. The `front_end` parser is AST agnostic
+* Parsing: most of the parsing logic is now in the `fe_analyzer_shared` package,
+  currently under `pkg/_fe_analyzer_shared/lib/src/scanner` and
+  `pkg/fe_analyzer_shared/lib/src/parser`. The `front_end` parser is AST agnostic
   and uses listeners to create on the side what they want as the result of
   parsing. The logic to create dart2js' ASTs is defined in listeners within the
   compiler package:
@@ -361,12 +361,6 @@ functionality is publicly exposed.
   * `loop_handler.dart`
 
 * `tool`: some helper scripts, some of these could be deleted
-
-  * `tool/perf.dart`: used by our benchmark runners to measure performance of
-    some frontend pieces of dart2js. We should be able to delete it in the near
-    future once the front end code is moved into `fasta`.
-
-  * `tool/perf_test.dart`: small test to ensure we don't break `perf.dart`.
 
   * `tool/track_memory.dart`: a helper script to see memory usage of dart2js
     while it's running. Used in the past to profile the global analysis phases

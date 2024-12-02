@@ -38,9 +38,8 @@ class _InferredVariableTypesDataComputer extends DataComputer<DartType> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<DartType>> actualMap) {
-    _InferredVariableTypesDataExtractor(
-            unit.declaredElement!.source.uri, actualMap)
-        .run(unit);
+    var unitUri = unit.declaredFragment!.source.uri;
+    _InferredVariableTypesDataExtractor(unitUri, actualMap).run(unit);
   }
 }
 
@@ -50,23 +49,23 @@ class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
   @override
   DartType? computeNodeValue(Id id, AstNode node) {
     if (node is VariableDeclaration) {
-      var element = node.declaredElement!;
+      var element = node.declaredFragment!.element;
       if (element.hasImplicitType) {
         return element.type;
       }
     } else if (node is FormalParameter) {
-      var element = node.declaredElement!;
+      var element = node.declaredFragment!.element;
       if (element.hasImplicitType) {
         return element.type;
       }
     } else if (node is FunctionDeclarationStatement) {
-      var element = node.functionDeclaration.declaredElement!;
+      var element = node.functionDeclaration.declaredFragment!.element;
       if (element.hasImplicitReturnType) {
         return element.returnType;
       }
     } else if (node is FunctionExpression &&
         node.parent is! FunctionDeclaration) {
-      var element = node.declaredElement!;
+      var element = node.declaredFragment!.element;
       if (element.hasImplicitReturnType) {
         return element.returnType;
       }

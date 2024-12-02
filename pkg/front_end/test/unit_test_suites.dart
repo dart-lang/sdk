@@ -567,11 +567,6 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
       if (!filter.startsWith(prefix)) {
         continue;
       }
-      // Remove the 'fasta/' from filters, if there, because it is not used
-      // in the name defined in testing.json.
-      if (filter.startsWith("fasta/")) {
-        filter = filter.substring("fasta/".length);
-      }
     }
     for (int shard = 0; shard < suite.shardCount; shard++) {
       if (chunkNum++ % options.shardCount != options.shard) continue;

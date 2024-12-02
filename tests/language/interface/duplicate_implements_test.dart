@@ -4,6 +4,9 @@
 // Check that duplicate types in implements/extends list are
 // compile-time errors.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 abstract class I {}
 
 abstract class J {}

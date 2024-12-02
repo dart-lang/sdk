@@ -1693,9 +1693,7 @@ mixin StandardBounds {
             nominalEliminationTargets: {
           if (nominalEliminationTarget != null) nominalEliminationTarget
         },
-            bottomType: const NeverType.nonNullable(),
-            topType: coreTypes.objectNullableRawType,
-            topFunctionType: coreTypes.functionNonNullableRawType,
+            coreTypes: coreTypes,
             unhandledTypeHandler: (type, recursor) => false);
     DartType result = _getNullabilityAwareStandardUpperBound(
         eliminator.eliminateToGreatest(bound1), type2);
@@ -1730,9 +1728,7 @@ mixin StandardBounds {
         new NullabilityAwareTypeParameterEliminator(
             structuralEliminationTargets: {},
             nominalEliminationTargets: {type1.left.parameter},
-            bottomType: const NeverType.nonNullable(),
-            topType: coreTypes.objectNullableRawType,
-            topFunctionType: coreTypes.functionNonNullableRawType,
+            coreTypes: coreTypes,
             unhandledTypeHandler: (type, recursor) => false);
     Nullability resultingNullability =
         uniteNullabilities(type1.right.declaredNullability, type2.nullability);

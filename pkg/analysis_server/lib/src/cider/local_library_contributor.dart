@@ -219,7 +219,7 @@ class LibraryElementSuggestionBuilder
       }
     }
     if (opType.includeReturnValueSuggestions) {
-      var typeSystem = request.libraryElement.typeSystem;
+      var typeSystem = request.libraryElement2.typeSystem;
       var contextType = request.contextType;
       if (contextType is InterfaceType) {
         // TODO(scheglov): This looks not ideal - we should suggest getters.

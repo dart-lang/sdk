@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A wrapper around [AnalysisSession] that provides additional utilities.
 ///
@@ -149,6 +150,14 @@ class AnalysisSessionHelper {
     });
   }
 
+  /// Return the resolved unit that declares the given [element].
+  Future<ResolvedUnitResult?> getResolvedUnitByElement2(
+      Element2 element2) async {
+    var element = element2.asElement;
+    if (element == null) return null;
+    return await getResolvedUnitByElement(element);
+  }
+
   /// Return the [PropertyAccessorElement] with the given [name] that is
   /// exported from the library with the given [uri], or `null` if the
   /// library does not export a top-level accessor with such name.
@@ -158,6 +167,23 @@ class AnalysisSessionHelper {
     if (libraryResult is LibraryElementResult) {
       var element = libraryResult.element.exportNamespace.get(name);
       if (element is PropertyAccessorElement) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  /// Returns the [PropertyAccessorElement] with the given [name] that is
+  /// exported from the library with the given [uri].
+  ///
+  /// Returns `null` if the library does not export a top-level accessor with
+  /// that name.
+  Future<PropertyAccessorElement2?> getTopLevelPropertyAccessor2(
+      String uri, String name) async {
+    var libraryResult = await session.getLibraryByUri(uri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element2.exportNamespace.get2(name);
+      if (element is PropertyAccessorElement2) {
         return element;
       }
     }

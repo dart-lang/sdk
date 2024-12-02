@@ -76,21 +76,21 @@ void experimentalFlags() {
     String generated =
         generateExperimentalFlags.generateFeAnalyzerSharedFile(repoDir);
     check(generated, generatedFile,
-        "dart pkg/front_end/tool/fasta.dart generate-experimental-flags");
+        "dart pkg/front_end/tool/cfe.dart generate-experimental-flags");
   }
   {
     Uri generatedFile =
         generateExperimentalFlags.computeCfeGeneratedFile(repoDir);
     String generated = generateExperimentalFlags.generateCfeFile(repoDir);
     check(generated, generatedFile,
-        "dart pkg/front_end/tool/fasta.dart generate-experimental-flags");
+        "dart pkg/front_end/tool/cfe.dart generate-experimental-flags");
   }
   {
     Uri generatedFile =
         generateExperimentalFlags.computeKernelGeneratedFile(repoDir);
     String generated = generateExperimentalFlags.generateKernelFile(repoDir);
     check(generated, generatedFile,
-        "dart pkg/front_end/tool/fasta.dart generate-experimental-flags");
+        "dart pkg/front_end/tool/cfe.dart generate-experimental-flags");
   }
 }
 
@@ -100,11 +100,11 @@ void messages() {
 
   Uri generatedFile = generateMessages.computeSharedGeneratedFile(repoDir);
   check(messages.sharedMessages, generatedFile,
-      "dart pkg/front_end/tool/fasta.dart generate-messages");
+      "dart pkg/front_end/tool/cfe.dart generate-messages");
 
   Uri cfeGeneratedFile = generateMessages.computeCfeGeneratedFile(repoDir);
   check(messages.cfeMessages, cfeGeneratedFile,
-      "dart pkg/front_end/tool/fasta.dart generate-messages");
+      "dart pkg/front_end/tool/cfe.dart generate-messages");
 }
 
 bool _checkFoundErrors = false;

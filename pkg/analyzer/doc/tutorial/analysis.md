@@ -6,9 +6,9 @@ This document explains how to use the analyzer package to analyze Dart code.
 
 The analysis of Dart code depends on a set of metadata (data outside the code
 being analyzed). An _analysis context_ is a representation of a set of code that
-should be analyzed using the same sources of metadata (same package_spec.json
-file, same analysis options file, etc.). That set of code typically corresponds
-to a package.
+should be analyzed using the same sources of metadata (same
+`package_config.json` file). That set of code typically corresponds to a
+package.
 
 Despite the fact that the analyzer APIs do not support its use in an incremental
 system, it is used that way by the analysis server, and that fact has influenced
@@ -36,11 +36,9 @@ need to start by configuring the analysis context(s) in which analysis is to be
 performed. An analysis context tells the analyzer how to perform analysis, and
 includes such information as
 
-- how to resolve `package:` URIs,
+- how to resolve `package:` URIs, and
 
-- which defined variables are defined, if any, and what their value is, and
-
-- any configuration information included in an analysis options file.
+- which defined variables are defined, if any, and what their value is.
 
 Fortunately, the analyzer package can do most of the work for you. All you need
 to do is create an instance of `AnalysisContextCollection`, giving it the paths

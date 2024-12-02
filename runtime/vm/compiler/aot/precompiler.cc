@@ -176,10 +176,12 @@ struct RetainReasons : public AllStatic {
       "signature of entry point function";
 };
 
-class RetainedReasonsWriter : public ValueObject {
+class RetainedReasonsWriter : public StackResource {
  public:
   explicit RetainedReasonsWriter(Zone* zone)
-      : zone_(zone), retained_reasons_map_(zone) {}
+      : StackResource(Thread::Current()),
+        zone_(zone),
+        retained_reasons_map_(zone) {}
 
   bool Init(const char* filename) {
     if (filename == nullptr) return false;

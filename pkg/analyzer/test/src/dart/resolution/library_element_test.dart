@@ -155,7 +155,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   void _assertFeatureSet(List<Feature> expected) {
-    var featureSet = result.libraryElement.featureSet;
+    var featureSet = result.libraryElement2.featureSet;
 
     var actual = ExperimentStatus.knownFeatures.values
         .where(featureSet.isEnabled)
@@ -168,7 +168,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
     required Version package,
     required Version? override,
   }) async {
-    var element = result.libraryElement;
+    var element = result.libraryElement2;
     expect(element.languageVersion.package, package);
     expect(element.languageVersion.override, override);
   }
@@ -182,7 +182,7 @@ library my.name;
 ''');
 
     expect(
-      result.libraryElement.toString(),
+      result.libraryElement2.toString(),
       'library package:test/test.dart',
     );
   }
@@ -193,7 +193,7 @@ library;
 ''');
 
     expect(
-      result.libraryElement.toString(),
+      result.libraryElement2.toString(),
       'library package:test/test.dart',
     );
   }
@@ -204,7 +204,7 @@ class A {}
 ''');
 
     expect(
-      result.libraryElement.toString(),
+      result.libraryElement2.toString(),
       'library package:test/test.dart',
     );
   }

@@ -33,6 +33,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class ConstantEvaluationConfiguration {
@@ -2503,13 +2504,13 @@ class _InstanceCreationEvaluator {
           );
         }
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
-            .getBool2(variableName, _namedValues, _constructor);
+            .getBool2(variableName, _namedValues, _constructor.asElement2);
       } else if (definingClass == typeProvider.intElement) {
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
-            .getInt2(variableName, _namedValues, _constructor);
+            .getInt2(variableName, _namedValues, _constructor.asElement2);
       } else if (definingClass == typeProvider.stringElement) {
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
-            .getString2(variableName, _namedValues, _constructor);
+            .getString2(variableName, _namedValues, _constructor.asElement2);
       }
     } else if (_constructor.name == 'hasEnvironment' &&
         definingClass == typeProvider.boolElement) {

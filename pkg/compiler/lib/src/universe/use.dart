@@ -226,7 +226,7 @@ class StaticUse {
     source.begin(tag);
     MemberEntity element = source.readMember();
     StaticUseKind kind = source.readEnum(StaticUseKind.values);
-    final bitMask = EnumSet<_StaticUseFlag>(source.readInt());
+    final bitMask = EnumSet<_StaticUseFlag>.fromRawBits(source.readInt());
     InterfaceType? type;
     CallStructure? callStructure;
     ImportEntity? deferredImport;
@@ -268,7 +268,7 @@ class StaticUse {
       if (constant != null) _StaticUseFlag.constant,
       if (typeArguments != null) _StaticUseFlag.typeArguments,
     ]);
-    sink.writeInt(bitMask.mask);
+    sink.writeInt(bitMask.mask.bits);
     if (type != null) {
       sink.writeDartType(type!);
     }

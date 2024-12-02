@@ -1,39 +1,24 @@
 ---
-name: General issue
-about: Report a bug or suggest a feature
-title: 'Create an issue'
+name: Report a general issue.
+about: Report a bug or file a feature request.
 ---
-Thank you for taking the time to file an issue!
 
-This tracker is for issues related to:
+Thank you for taking the time to file an issue! This tracker is for issues related to the Dart analyzer and linter, the Dart core libraries (`dart:async`, `dart:io`, etc.), the Dart native and web compilers, and the Dart VM.
 
-* Dart analyzer and linter
-* Dart core libraries (`dart:async`, `dart:io`, etc.)
-* Dart native and web compilers
-* Dart VM
+When reporting an issue, please include:
 
-Some other pieces of the Dart ecosystem are maintained elsewhere.
-Please file issues in their repository:
+- The Dart version and tooling diagnostic info (`dart info`)
+- Whether you are using Windows, macOS, or Linux (if applicable)
+- Whether you are using Chrome, Safari, Firefox, Edge (if applicable)
 
-* Dart language: https://github.com/dart-lang/language
-* Dart website: https://github.com/dart-lang/site-www
-* Flutter: https://github.com/flutter/flutter
-* Dart and Flutter DevTools: https://github.com/flutter/devtools
-* `dart format`: https://github.com/dart-lang/dart_style
-* `dart test`: https://github.com/dart-lang/test
-* `dart pub`: https://github.com/dart-lang/pub
+Other pieces of the Dart ecosystem are maintained elsewhere; please file issues in their respective repositories:
 
-If you aren't sure, file the issue here, and we'll find the right home for it.
-In your issue, please include:
+- Flutter: https://github.com/flutter/flutter
+- Dart language: https://github.com/dart-lang/language
+- Dart website: https://github.com/dart-lang/site-www
+- `dart format`: https://github.com/dart-lang/dart_style
+- `dart pub`: https://github.com/dart-lang/pub
+- `dart test`: https://github.com/dart-lang/test
+- Dart & Flutter DevTools: https://github.com/flutter/devtools
 
-* Dart version and tooling diagnostic info (`dart info`)
-* Whether you are using Windows, macOS, or Linux (if applicable)
-* Whether you are using Chrome, Safari, Firefox, Edge (if applicable)
-
-Missing some or all of the above might make the issue take longer or
-be impossible to act on.
-
-If you simply have a question, please consider using the listed Dart
-developer communities on the following page:
-
-https://dart.dev/community#join-the-conversation
+If you have a question, instead of using this issue tracker, please refer to the community resources at: https://dart.dev/community#join-the-conversation.

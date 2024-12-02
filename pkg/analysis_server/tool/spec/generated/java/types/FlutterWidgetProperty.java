@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A property of a Flutter widget.
@@ -28,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("unused")
 public class FlutterWidgetProperty {
-
-  public static final FlutterWidgetProperty[] EMPTY_ARRAY = new FlutterWidgetProperty[0];
 
   public static final List<FlutterWidgetProperty> EMPTY_LIST = List.of();
 
@@ -103,8 +100,7 @@ public class FlutterWidgetProperty {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FlutterWidgetProperty) {
-      FlutterWidgetProperty other = (FlutterWidgetProperty) obj;
+    if (obj instanceof FlutterWidgetProperty other) {
       return
         Objects.equals(other.documentation, documentation) &&
         Objects.equals(other.expression, expression) &&
@@ -262,21 +258,29 @@ public class FlutterWidgetProperty {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("documentation=");
-    builder.append(documentation + ", ");
+    builder.append(documentation);
+    builder.append(", ");
     builder.append("expression=");
-    builder.append(expression + ", ");
+    builder.append(expression);
+    builder.append(", ");
     builder.append("id=");
-    builder.append(id + ", ");
+    builder.append(id);
+    builder.append(", ");
     builder.append("isRequired=");
-    builder.append(isRequired + ", ");
+    builder.append(isRequired);
+    builder.append(", ");
     builder.append("isSafeToUpdate=");
-    builder.append(isSafeToUpdate + ", ");
+    builder.append(isSafeToUpdate);
+    builder.append(", ");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("children=");
-    builder.append(StringUtils.join(children, ", ") + ", ");
+    builder.append(children == null ? "null" : children.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("editor=");
-    builder.append(editor + ", ");
+    builder.append(editor);
+    builder.append(", ");
     builder.append("value=");
     builder.append(value);
     builder.append("]");

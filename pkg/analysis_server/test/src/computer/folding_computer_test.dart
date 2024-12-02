@@ -44,18 +44,14 @@ class FoldingComputerTest extends AbstractContextTest {
     Map<int, FoldingKind> expected, {
     Set<FoldingKind>? onlyVerify,
   }) {
-    var expectedRegions =
-        expected.entries.map((entry) {
-          var range = code.ranges[entry.key].sourceRange;
-          return FoldingRegion(entry.value, range.offset, range.length);
-        }).toSet();
+    var expectedRegions = expected.entries.map((entry) {
+      var range = code.ranges[entry.key].sourceRange;
+      return FoldingRegion(entry.value, range.offset, range.length);
+    }).toSet();
 
-    var actualRegions =
-        onlyVerify == null
-            ? regions.toSet()
-            : regions
-                .where((region) => onlyVerify.contains(region.kind))
-                .toSet();
+    var actualRegions = onlyVerify == null
+        ? regions.toSet()
+        : regions.where((region) => onlyVerify.contains(region.kind)).toSet();
 
     expect(actualRegions, expectedRegions);
   }
@@ -573,6 +569,97 @@ void f/*[0*/() {
     expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.LITERAL});
   }
 
+  Future<void> test_literal_list_insideNullAwareElement() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final List<List<String>> things = <List<String>>[/*[1*/
+    ?<String>[/*[2*/
+      "one",
+      "two"
+    /*2]*/];
+  /*1]*/];
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL
+    });
+  }
+
+  Future<void> test_literal_list_insideNullAwareKey() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Map<List<String>, bool> things = <List<String>, bool>{/*[1*/
+    ?<String>[/*[2*/
+      "one",
+      "two"
+    /*2]*/]: true
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL
+    });
+  }
+
+  Future<void> test_literal_list_insideNullAwareValue() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Map<Symbol, List<String>> things = <Symbol, List<String>>{/*[1*/
+    #key: ?<String>[/*[2*/
+      "one",
+      "two"
+    /*2]*/]
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL
+    });
+  }
+
+  Future<void> test_literal_list_withNullAwareElement() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final List<String> things = <String>[/*[1*/
+    "one",
+    ?null
+    "two"
+  /*1]*/];
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.LITERAL});
+  }
+
   Future<void> test_literal_map() async {
     var content = '''
 // Content before
@@ -582,6 +669,92 @@ void f/*[0*/() {
     "one": "one",
     "two": "two"
     /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.LITERAL});
+  }
+
+  Future<void> test_literal_map_insideNullAwareKey() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Map<Map<String, int>, false>  things = <Map<String, int>, false>{/*[1*/
+    ?<String, int>{/*[2*/
+      "one": 1,
+      "two": 2
+    /*2]*/}: true
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL
+    });
+  }
+
+  Future<void> test_literal_map_insideNullAwareValue() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Map<Symbol, Map<String, int>>  things = <Symbol, Map<String, int>>{/*[1*/
+    #key: ?<String, int>{/*[2*/
+      "one": 1,
+      "two": 2
+    /*2]*/}
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL
+    });
+  }
+
+  Future<void> test_literal_map_withNullAwareKey() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Map<String, int> things = <String, int>{/*[1*/
+    "one": 1,
+    ?null: 0,
+    "two": 2
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.LITERAL});
+  }
+
+  Future<void> test_literal_map_withNullAwareValue() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Map<String, int> things = <String, int>{/*[1*/
+    "one": 1,
+    "null": ?null,
+    "two": 2
+  /*1]*/};
 }/*0]*/
 
 // Content after
@@ -616,6 +789,97 @@ void f/*[0*/() {
       1: FoldingKind.LITERAL,
       2: FoldingKind.LITERAL,
     });
+  }
+
+  Future<void> test_literal_set_insideNullAwareElement() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Set<Set<String>> things = <Set<String>>{/*[1*/
+    ?<String>{/*[2*/
+      "one",
+      "two"
+    /*2]*/}
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL
+    });
+  }
+
+  Future<void> test_literal_set_insideNullAwareKey() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Map<Set<String>, bool> things = <Set<String>, bool>{/*[1*/
+    ?<String>{/*[2*/
+      "one",
+      "two"
+    /*2]*/}: true
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL
+    });
+  }
+
+  Future<void> test_literal_set_insideNullAwareValue() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Map<Symbol, Set<String>> things = <Symbol, Set<String>>{/*[1*/
+    #key: ?<String>{/*[2*/
+      "one",
+      "two"
+    /*2]*/}
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.FUNCTION_BODY,
+      1: FoldingKind.LITERAL,
+      2: FoldingKind.LITERAL
+    });
+  }
+
+  Future<void> test_literal_set_withNullAwareElement() async {
+    var content = '''
+// Content before
+
+void f/*[0*/() {
+  final Set<String> things = <String>{/*[1*/
+    "one",
+    ?null
+    "two"
+  /*1]*/};
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.FUNCTION_BODY, 1: FoldingKind.LITERAL});
   }
 
   Future<void> test_mixin() async {

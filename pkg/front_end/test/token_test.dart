@@ -14,7 +14,7 @@ void main() {
   });
 }
 
-/// Assert that fasta PrecedenceInfo implements analyzer TokenType.
+/// Assert that PrecedenceInfo implements analyzer TokenType.
 @reflectiveTest
 class TokenTest {
   void test_comments() {

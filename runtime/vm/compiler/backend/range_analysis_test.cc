@@ -52,7 +52,7 @@ TEST_CASE(RangeTests) {
   TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max, NO_CLAMP, result_min,         \
                  result_max)
 
-#define CLAMP_TO_SMI(b) (b.Clamp(RangeBoundary::kRangeBoundarySmi))
+#define CLAMP_TO_SMI(b) (b.Clamp(Range::Smi()))
 #define TEST_RANGE_OP_SMI(Op, l_min, l_max, r_min, r_max, res_min, res_max)    \
   TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max, CLAMP_TO_SMI, res_min, res_max)
 
@@ -101,7 +101,7 @@ TEST_CASE(RangeTests) {
 }
 
 TEST_CASE(RangeTestsInt64Range) {
-  const Range fullInt64Range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
+  const Range fullInt64Range = Range::Int64();
 
   Range* all = new Range(RangeBoundary(kMinInt64), RangeBoundary(kMaxInt64));
   EXPECT(all->Equals(&fullInt64Range));
@@ -131,12 +131,10 @@ TEST_CASE(RangeTestsInt64Range) {
 }
 
 TEST_CASE(RangeUtils) {
-  // Use kMin/kMax instead of +/-inf as any range with a +/-inf bound is
-  // converted to the full int64 range due to wrap-around.
-  const RangeBoundary negativeInfinity =
-      RangeBoundary::FromConstant(RangeBoundary::kMin);
-  const RangeBoundary positiveInfinity =
-      RangeBoundary::FromConstant(RangeBoundary::kMax);
+  // Use MinInt64/MaxInt64 bounds as any wrap-around range is
+  // converted to the full int64 range.
+  const RangeBoundary negativeInfinity = RangeBoundary::MinInt64();
+  const RangeBoundary positiveInfinity = RangeBoundary::MaxInt64();
 
   // [-inf, +inf].
   const Range& range_0 = *(new Range(negativeInfinity, positiveInfinity));
@@ -197,7 +195,7 @@ TEST_CASE(RangeUtils) {
   EXPECT(!Range::OnlyNegativeOrZero(range_0, range_0));
   EXPECT(!Range::OnlyPositiveOrZero(range_0, range_0));
 
-  EXPECT(Range::ConstantAbsMax(&range_0) == RangeBoundary::kMax);
+  EXPECT(Range::ConstantAbsMax(&range_0) == kMaxInt64);
   EXPECT(Range::ConstantAbsMax(&range_h) == 2);
   EXPECT(Range::ConstantAbsMax(&range_i) == 1);
 
@@ -208,28 +206,26 @@ TEST_CASE(RangeUtils) {
 }
 
 TEST_CASE(RangeBinaryOp) {
-  Range* range_a = new Range(RangeBoundary::FromConstant(-1),
-                             RangeBoundary::FromConstant(RangeBoundary::kMax));
-  range_a->Clamp(RangeBoundary::kRangeBoundaryInt32);
+  Range* range_a =
+      new Range(RangeBoundary::FromConstant(-1), RangeBoundary::MaxInt64());
+  range_a->Clamp(Range::Full(kUnboxedInt32));
   EXPECT(range_a->min().ConstantValue() == -1);
   EXPECT(range_a->max().ConstantValue() == kMaxInt32);
-  range_a->set_max(RangeBoundary::FromConstant(RangeBoundary::kMax));
+  range_a->set_max(RangeBoundary::MaxInt64());
 
-  Range* range_b = new Range(RangeBoundary::FromConstant(RangeBoundary::kMin),
-                             RangeBoundary::FromConstant(1));
-  range_b->Clamp(RangeBoundary::kRangeBoundaryInt32);
+  Range* range_b =
+      new Range(RangeBoundary::MinInt64(), RangeBoundary::FromConstant(1));
+  range_b->Clamp(Range::Full(kUnboxedInt32));
   EXPECT(range_b->min().ConstantValue() == kMinInt32);
   EXPECT(range_b->max().ConstantValue() == 1);
-  range_b->set_min(RangeBoundary::FromConstant(RangeBoundary::kMin));
+  range_b->set_min(RangeBoundary::MinInt64());
 
   {
     Range result;
     Range::BinaryOp(Token::kADD, range_a, range_b, nullptr, &result);
     ASSERT(!Range::IsUnknown(&result));
-    EXPECT(result.min().Equals(
-        RangeBoundary::MinConstant(RangeBoundary::kRangeBoundaryInt64)));
-    EXPECT(result.max().Equals(
-        RangeBoundary::MaxConstant(RangeBoundary::kRangeBoundaryInt64)));
+    EXPECT(result.min().Equals(RangeBoundary::MinInt64()));
+    EXPECT(result.max().Equals(RangeBoundary::MaxInt64()));
   }
 
   // Test that [5, 10] + [0, 5] = [5, 15].
@@ -527,66 +523,66 @@ TEST_CASE(RangeIntersectionMinMax) {
 TEST_CASE(RangeJoinMinMax) {
   // Test IntersectionMin and IntersectionMax methods which for constants are
   // simply defined as Min/Max respectively.
-  const RangeBoundary::RangeSize size = RangeBoundary::kRangeBoundarySmi;
+  const Range full_range = Range::Smi();
 
   // Constants.
   EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(0),
-                                RangeBoundary::FromConstant(1), size)
+                                RangeBoundary::FromConstant(1), full_range)
              .ConstantValue() == 1);
   EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(0),
-                                RangeBoundary::FromConstant(-1), size)
+                                RangeBoundary::FromConstant(-1), full_range)
              .ConstantValue() == 0);
   EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(1),
-                                RangeBoundary::FromConstant(0), size)
+                                RangeBoundary::FromConstant(0), full_range)
              .ConstantValue() == 1);
   EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(-1),
-                                RangeBoundary::FromConstant(0), size)
+                                RangeBoundary::FromConstant(0), full_range)
              .ConstantValue() == 0);
   EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(0),
-                                RangeBoundary::FromConstant(1), size)
+                                RangeBoundary::FromConstant(1), full_range)
              .ConstantValue() == 0);
   EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(0),
-                                RangeBoundary::FromConstant(-1), size)
+                                RangeBoundary::FromConstant(-1), full_range)
              .ConstantValue() == -1);
   EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(1),
-                                RangeBoundary::FromConstant(0), size)
+                                RangeBoundary::FromConstant(0), full_range)
              .ConstantValue() == 0);
   EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(-1),
-                                RangeBoundary::FromConstant(0), size)
+                                RangeBoundary::FromConstant(0), full_range)
              .ConstantValue() == -1);
 
   // Constants vs. kMinInt64 / kMaxInt64.
   EXPECT(RangeBoundary::JoinMin(RangeBoundary(kMinInt64),
-                                RangeBoundary::FromConstant(-1), size)
-             .IsMinimumOrBelow(size));
+                                RangeBoundary::FromConstant(-1), full_range)
+             .IsLessOrEqual(full_range.min()));
 
   EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(-1),
-                                RangeBoundary(kMinInt64), size)
-             .IsMinimumOrBelow(size));
+                                RangeBoundary(kMinInt64), full_range)
+             .IsLessOrEqual(full_range.min()));
 
   EXPECT(RangeBoundary::JoinMin(RangeBoundary::FromConstant(1),
-                                RangeBoundary(kMinInt64), size)
-             .IsMinimumOrBelow(size));
+                                RangeBoundary(kMinInt64), full_range)
+             .IsLessOrEqual(full_range.min()));
 
   EXPECT(RangeBoundary::JoinMin(RangeBoundary(kMinInt64),
-                                RangeBoundary::FromConstant(1), size)
-             .IsMinimumOrBelow(size));
+                                RangeBoundary::FromConstant(1), full_range)
+             .IsLessOrEqual(full_range.min()));
 
   EXPECT(RangeBoundary::JoinMax(RangeBoundary(kMaxInt64),
-                                RangeBoundary::FromConstant(-1), size)
-             .IsMaximumOrAbove(size));
+                                RangeBoundary::FromConstant(-1), full_range)
+             .IsGreaterOrEqual(full_range.max()));
 
   EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(-1),
-                                RangeBoundary(kMaxInt64), size)
-             .IsMaximumOrAbove(size));
+                                RangeBoundary(kMaxInt64), full_range)
+             .IsGreaterOrEqual(full_range.max()));
 
   EXPECT(RangeBoundary::JoinMax(RangeBoundary::FromConstant(1),
-                                RangeBoundary(kMaxInt64), size)
-             .IsMaximumOrAbove(size));
+                                RangeBoundary(kMaxInt64), full_range)
+             .IsGreaterOrEqual(full_range.max()));
 
   EXPECT(RangeBoundary::JoinMax(RangeBoundary(kMaxInt64),
-                                RangeBoundary::FromConstant(1), size)
-             .IsMaximumOrAbove(size));
+                                RangeBoundary::FromConstant(1), full_range)
+             .IsGreaterOrEqual(full_range.max()));
 }
 
 #if defined(DART_PRECOMPILER) && defined(TARGET_ARCH_IS_64_BIT)

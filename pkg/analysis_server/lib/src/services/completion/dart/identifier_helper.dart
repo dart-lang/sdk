@@ -59,12 +59,10 @@ class IdentifierHelper {
     if (candidateName == null) {
       return;
     }
-    for (var unit in state.libraryElement.units) {
-      for (var childElement in unit.children) {
-        if (childElement.name == candidateName) {
+    for (var childElement in state.libraryElement.children2) {
+        if (childElement.name3 == candidateName) {
           // Don't suggest a name that's already declared in the library.
           return;
-        }
       }
     }
     var matcherScore = state.matcher.score(candidateName);

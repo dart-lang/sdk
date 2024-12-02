@@ -387,6 +387,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     DartFixPromptManager? dartFixPromptManager,
     super.providedByteStore,
     super.pluginManager,
+    bool retainDataForTesting = false,
   }) : lspClientConfiguration = lsp.LspClientConfiguration(
          baseResourceProvider.pathContext,
        ),
@@ -404,6 +405,7 @@ class LegacyAnalysisServer extends AnalysisServer {
          requestStatistics: requestStatistics,
          enableBlazeWatcher: enableBlazeWatcher,
          dartFixPromptManager: dartFixPromptManager,
+         retainDataForTesting: retainDataForTesting,
        ) {
     var contextManagerCallbacks = ServerContextManagerCallbacks(
       this,
@@ -548,8 +550,13 @@ class LegacyAnalysisServer extends AnalysisServer {
     sendStatusNotificationNew(status);
   }
 
-  /// Handle a [request] that was read from the communication channel.
-  void handleRequest(Request request, CancelableToken? cancellationToken) {
+  /// Handle a [request] that was read from the communication channel. The completer
+  /// is used to indicate when the request handling is done.
+  void handleRequest(
+    Request request,
+    Completer<void> completer,
+    CancelableToken? cancellationToken,
+  ) {
     var startTime = DateTime.now();
     performance.logRequestTiming(request.clientRequestTime);
 
@@ -594,6 +601,7 @@ class LegacyAnalysisServer extends AnalysisServer {
                 ServerRecentPerformance.slowRequestsThreshold) {
           recentPerformance.slowRequests.add(requestPerformance!);
         }
+        completer.complete();
       },
       (exception, stackTrace) {
         if (exception is InconsistentAnalysisException) {
@@ -620,6 +628,7 @@ class LegacyAnalysisServer extends AnalysisServer {
           var response = Response(request.id, error: error);
           sendResponse(response);
         }
+        completer.complete();
       },
     );
   }
@@ -635,7 +644,6 @@ class LegacyAnalysisServer extends AnalysisServer {
           cancellationToken: cancellationToken,
         ),
       );
-      messageScheduler.notify();
     } else if (requestOrResponse is Response) {
       handleResponse(requestOrResponse);
     }

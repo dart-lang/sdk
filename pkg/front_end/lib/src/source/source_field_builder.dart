@@ -814,7 +814,9 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   void setGenericCovariantImpl() {
-    _field.isCovariantByClass = true;
+    if (_field.hasSetter) {
+      _field.isCovariantByClass = true;
+    }
   }
 
   @override
@@ -1175,7 +1177,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void setGenericCovariantImpl() {
-    _field.isCovariantByClass = true;
+    if (_field.hasSetter) {
+      _field.isCovariantByClass = true;
+    }
     _lateSetter?.function.positionalParameters.single.isCovariantByClass = true;
   }
 
@@ -2134,7 +2138,6 @@ class RepresentationFieldEncoding implements FieldEncoding {
       const <ClassMember>[];
 
   @override
-  // Coverage-ignore(suite): Not run.
   void buildImplicitDefaultValue() {
     // Not needed.
   }

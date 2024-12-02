@@ -2120,6 +2120,8 @@ void ElfHeader::Write(ElfWriteStream* stream) const {
   uword flags = elf::EF_ARM_ABI | (TargetCPUFeatures::hardfp_supported()
                                        ? elf::EF_ARM_ABI_FLOAT_HARD
                                        : elf::EF_ARM_ABI_FLOAT_SOFT);
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  uword flags = elf::EF_RISCV_RVC | elf::EF_RISCV_FLOAT_ABI_DOUBLE;
 #else
   uword flags = 0;
 #endif

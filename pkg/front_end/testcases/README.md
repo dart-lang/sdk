@@ -32,26 +32,26 @@ If you want to update the test expectations for a specific folder of tests such 
 dart pkg/front_end/tool/update_expectations.dart general/...
 ```
 
-## Dart 1.0 Outlines
+## Dart 3.0 Outlines
 
 * Status file: [outline.status](outline.status)
-* Standalone test: [pkg/front_end/test/fasta/outline_test.dart](../test/fasta/outline_test.dart)
+* Standalone test: [pkg/front_end/test/outline_sutie.dart](../test/outline_suite.dart)
 * Expectation prefix: `.outline.expect`
 * How to update expectations:
 
 ```
-./pkg/front_end/tool/fasta testing -DupdateExpectations=true outline/test1 outline/test2 ...
+./pkg/front_end/tool/cfe testing -DupdateExpectations=true outline/test1 outline/test2 ...
 ```
 
-## Dart 2.0 (strong mode)
+## Dart 3.0 (strong mode)
 
 * Status file: [strong.status](strong.status)
-* Standalone test: [pkg/front_end/test/fasta/strong_test.dart](../test/fasta/strong_test.dart)
+* Standalone test: [pkg/front_end/test/strong_suite.dart](../test/strong_suite.dart)
 * Expectation prefix: `.strong.expect`
 * How to update expectations:
 
 ```
-./pkg/front_end/tool/fasta testing -DupdateExpectations=true -DupdateComments=true strong/test1 strong/test2 ...
+./pkg/front_end/tool/cfe testing -DupdateExpectations=true -DupdateComments=true strong/test1 strong/test2 ...
 ```
 
 Note: strong mode configuration additionally parses comments in the test file and can precisely match internal details of the compiler such as the inferred type of an expression or if a warning was emitted at a given location.

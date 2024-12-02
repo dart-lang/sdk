@@ -3116,8 +3116,6 @@ class BinaryBuilder {
     DartType? requiredType = readDartTypeOption();
     DartType? matchedValueType = readDartTypeOption();
     int flags = readByte();
-    bool needsCheck = flags & 0x1 != 0;
-    bool hasRestPattern = flags & 0x2 != 0;
     DartType? lookupType = readDartTypeOption();
     Reference? lengthTargetReference = readNullableMemberReference();
     DartType? lengthType = readDartTypeOption();
@@ -3132,9 +3130,8 @@ class BinaryBuilder {
     return new ListPattern(typeArgument, patterns)
       ..requiredType = requiredType
       ..matchedValueType = matchedValueType
-      ..needsCheck = needsCheck
+      ..flags = flags
       ..lookupType = lookupType
-      ..hasRestPattern = hasRestPattern
       ..lengthTargetReference = lengthTargetReference
       ..lengthType = lengthType
       ..lengthCheckTargetReference = lengthCheckTargetReference
@@ -3156,7 +3153,6 @@ class BinaryBuilder {
     DartType? requiredType = readDartTypeOption();
     DartType? matchedValueType = readDartTypeOption();
     int flags = readByte();
-    bool needsCheck = flags & 0x1 != 0;
     DartType? lookupType = readDartTypeOption();
     Reference? containsKeyTargetReference = readNullableMemberReference();
     FunctionType? containsKeyType = readDartTypeOption() as FunctionType?;
@@ -3165,7 +3161,7 @@ class BinaryBuilder {
     return new MapPattern(keyType, valueType, entries)
       ..requiredType = requiredType
       ..matchedValueType = matchedValueType
-      ..needsCheck = needsCheck
+      ..flags = flags
       ..lookupType = lookupType
       ..containsKeyTargetReference = containsKeyTargetReference
       ..containsKeyType = containsKeyType

@@ -187,11 +187,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
 
   DartType computeGreatestClosure(DartType type) {
-    return greatestClosure(type, const DynamicType(), bottomType);
+    return greatestClosure(type, topType: const DynamicType());
   }
 
   DartType computeGreatestClosure2(DartType type) {
-    return greatestClosure(type, coreTypes.objectNullableRawType, bottomType);
+    return greatestClosure(type, topType: coreTypes.objectNullableRawType);
   }
 
   DartType computeNullable(DartType type) {

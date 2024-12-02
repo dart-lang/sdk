@@ -903,7 +903,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           elementReference,
           fragment,
         );
-        _libraryBuilder.element.functions.add(element);
+        _libraryBuilder.element.topLevelFunctions.add(element);
 
         elementBuilder = TopLevelFunctionElementBuilder(
           element: element,

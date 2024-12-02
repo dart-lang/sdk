@@ -124,8 +124,8 @@ void f() {
     await assertNoErrorsInCode(code);
 
     var body = findNode.singleFunctionBody;
-    var element = findElement.parameter('x');
-    expect(body.isPotentiallyMutatedInScope(element), expected);
+    var element = findElement2.parameter('x');
+    expect(body.isPotentiallyMutatedInScope2(element), expected);
   }
 
   /// Assign that `v` in the only [FunctionBody] is not mutated.
@@ -133,7 +133,7 @@ void f() {
     await assertNoErrorsInCode(code);
 
     var body = findNode.singleFunctionBody;
-    var element = findElement.localVar('v');
-    expect(body.isPotentiallyMutatedInScope(element), expected);
+    var element = findElement2.localVar('v');
+    expect(body.isPotentiallyMutatedInScope2(element), expected);
   }
 }

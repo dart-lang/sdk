@@ -16,7 +16,7 @@ To generate the declarations used by the analyzer, run
 `dart pkg/analyzer/tool/experiments/generate.dart`.
 
 To generate the declarations used by the front-end, run
-`dart pkg/front_end/tool/fasta.dart generate-experimental-flags`.
+`dart pkg/front_end/tool/cfe.dart generate-experimental-flags`.
 
 ## Summary representation
 

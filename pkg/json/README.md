@@ -55,6 +55,8 @@ class Manager extends User {
 
 All native JSON types are supported (`int`, `double`, `String`, `bool`, `Null`).
 
+Supports `DateTime`, serializing it to an ISO-8601 String.
+
 The core collection types `List`, `Set`, and `Map` are also supported, if their
 elements are supported types. For elements which require more than just a cast,
 the type must be statically provided through a generic type argument on the

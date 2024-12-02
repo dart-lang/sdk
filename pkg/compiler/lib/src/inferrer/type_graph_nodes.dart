@@ -160,13 +160,13 @@ abstract class TypeInformation {
   EnumSet<_Flag> _flags = EnumSet.empty();
 
   /// Number of times this [TypeInformation] has changed type.
-  int get refineCount => _flags.mask >> NUM_TYPE_INFO_FLAGS;
+  int get refineCount => _flags.mask.bits >> NUM_TYPE_INFO_FLAGS;
 
-  void incrementRefineCount() =>
-      _flags = EnumSet(_flags.mask + (1 << NUM_TYPE_INFO_FLAGS));
+  void incrementRefineCount() => _flags =
+      EnumSet.fromRawBits(_flags.mask.bits + (1 << NUM_TYPE_INFO_FLAGS));
 
-  void clearRefineCount() =>
-      _flags = EnumSet(_flags.mask & ((1 << NUM_TYPE_INFO_FLAGS) - 1));
+  void clearRefineCount() => _flags =
+      EnumSet.fromRawBits(_flags.mask.bits & ((1 << NUM_TYPE_INFO_FLAGS) - 1));
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
@@ -228,7 +228,7 @@ abstract class TypeInformation {
   }
 
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
-    _flags += _Flag.abandonInferencing;
+    _flags = _flags.add(_Flag.abandonInferencing);
     // Do not remove [this] as a user of nodes in [inputs],
     // because our tracing analysis could be interested in tracing
     // this node.
@@ -275,14 +275,14 @@ abstract class TypeInformation {
     // Do not remove users because the tracing analysis could be interested
     // in tracing the users of this node.
     _inputs = STOP_TRACKING_INPUTS_MARKER;
-    _flags += _Flag.abandonInferencing;
-    _flags += _Flag.isStable;
+    _flags = _flags.add(_Flag.abandonInferencing);
+    _flags = _flags.add(_Flag.isStable);
   }
 
   void maybeResume() {
     if (!mightResume) return;
-    _flags -= _Flag.abandonInferencing;
-    _flags -= _Flag.doNotEnqueue;
+    _flags = _flags.remove(_Flag.abandonInferencing);
+    _flags = _flags.remove(_Flag.doNotEnqueue);
   }
 
   /// Destroys information not needed after type inference.
@@ -501,10 +501,10 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   void markCalled() {
     if (_flags.contains(_Flag.isCalled)) {
       if (!_flags.contains(_Flag.isCalledMoreThanOnce)) {
-        _flags += _Flag.isCalledMoreThanOnce;
+        _flags = _flags.add(_Flag.isCalledMoreThanOnce);
       }
     } else {
-      _flags += _Flag.isCalled;
+      _flags = _flags.add(_Flag.isCalled);
     }
   }
 
@@ -809,7 +809,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
             .abstractValue,
         _inputType = abstractValueDomain.uncomputedType,
         super._internal() {
-    _flags += _Flag.isClosureParameter;
+    _flags = _flags.add(_Flag.isClosureParameter);
   }
 
   ParameterTypeInformation.static(
@@ -834,7 +834,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
             _createInstanceMemberStaticType(abstractValueDomain, type, _method),
         _inputType = abstractValueDomain.uncomputedType,
         super._withInputs() {
-    _flags += _Flag.isInstanceMemberParameter;
+    _flags = _flags.add(_Flag.isInstanceMemberParameter);
     _flags = _flags.update(_Flag.isVirtual, isVirtual);
   }
 
@@ -1223,12 +1223,12 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   }
 
   void invalidateTargetsIncludeComplexNoSuchMethod() {
-    _flags -= _Flag.hasTargetsIncludeComplexNoSuchMethod;
+    _flags = _flags.remove(_Flag.hasTargetsIncludeComplexNoSuchMethod);
   }
 
   bool targetsIncludeComplexNoSuchMethod(InferrerEngine inferrer) {
     if (!_hasTargetsIncludeComplexNoSuchMethod) {
-      _flags += _Flag.hasTargetsIncludeComplexNoSuchMethod;
+      _flags = _flags.add(_Flag.hasTargetsIncludeComplexNoSuchMethod);
       final value = targets.any((target) => inferrer.memberHierarchyBuilder
               .anyTargetMember(target, (MemberEntity e) {
             return e.isFunction &&
@@ -1572,7 +1572,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 /// type.
 class ConcreteTypeInformation extends TypeInformation {
   ConcreteTypeInformation(super.type) : super.untracked() {
-    _flags += _Flag.isStable;
+    _flags = _flags.add(_Flag.isStable);
   }
 
   @override

@@ -13,21 +13,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
  */
 @SuppressWarnings("unused")
 public class InlineMethodFeedback extends RefactoringFeedback {
-
-  public static final InlineMethodFeedback[] EMPTY_ARRAY = new InlineMethodFeedback[0];
 
   public static final List<InlineMethodFeedback> EMPTY_LIST = List.of();
 
@@ -58,8 +55,7 @@ public class InlineMethodFeedback extends RefactoringFeedback {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof InlineMethodFeedback) {
-      InlineMethodFeedback other = (InlineMethodFeedback) obj;
+    if (obj instanceof InlineMethodFeedback other) {
       return
         Objects.equals(other.className, className) &&
         Objects.equals(other.methodName, methodName) &&
@@ -117,6 +113,7 @@ public class InlineMethodFeedback extends RefactoringFeedback {
     );
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     if (className != null) {
@@ -132,9 +129,11 @@ public class InlineMethodFeedback extends RefactoringFeedback {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("className=");
-    builder.append(className + ", ");
+    builder.append(className);
+    builder.append(", ");
     builder.append("methodName=");
-    builder.append(methodName + ", ");
+    builder.append(methodName);
+    builder.append(", ");
     builder.append("isDeclaration=");
     builder.append(isDeclaration);
     builder.append("]");

@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_08.dart:7:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   var foo = this();
+//       ^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_08.dart:7:13: Error: Expected identifier, but got 'this'.
+//   var foo = this();
+//             ^^^^
+//
+import self as self;
+
+extension Foo on dynamic {
+  field foo = self::Foo|foo;
+  method bar = self::Foo|bar;
+  method tearoff bar = self::Foo|get#bar;
+}
+static field invalid-type Foo|foo;
+static extension-member method Foo|bar(lowered final dynamic #this) → dynamic
+  ;
+static extension-member method Foo|get#bar(lowered final dynamic #this) → () → dynamic
+  return () → dynamic => self::Foo|bar(#this);

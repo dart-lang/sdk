@@ -1,0 +1,37 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_10.dart:6:14: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final foo1 = bar;
+//              ^^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_10.dart:7:14: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final foo2 = baz(0);
+//              ^^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_10.dart:6:21: Error: Undefined name 'bar'.
+//   late final foo1 = bar;
+//                     ^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_10.dart:7:21: Error: Can't access 'this' in a field initializer to read 'baz'.
+//   late final foo2 = baz(0);
+//                     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Foo on dynamic {
+  field foo1 = self::Foo|foo1;
+  field foo2 = self::Foo|foo2;
+  method baz = self::Foo|baz;
+  method tearoff baz = self::Foo|get#baz;
+}
+late static final field invalid-type Foo|foo1;
+late static final field invalid-type Foo|foo2;
+static extension-member method Foo|baz(lowered final dynamic #this, core::int i) → core::int
+  ;
+static extension-member method Foo|get#baz(lowered final dynamic #this) → (core::int) → core::int
+  return (core::int i) → core::int => self::Foo|baz(#this, i);

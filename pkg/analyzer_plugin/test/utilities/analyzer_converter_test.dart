@@ -141,8 +141,11 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     ];
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
 
-    var pluginErrors =
-        converter.convertAnalysisErrors(analyzerErrors, lineInfo: lineInfo);
+    var pluginErrors = converter.convertAnalysisErrors(
+      analyzerErrors,
+      lineInfo: lineInfo,
+      options: analyzer.AnalysisOptionsImpl(),
+    );
     expect(pluginErrors, hasLength(analyzerErrors.length));
     assertError(pluginErrors[0], analyzerErrors[0],
         startColumn: 4, startLine: 2);
@@ -177,7 +180,10 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
       await createError(25),
     ];
 
-    var pluginErrors = converter.convertAnalysisErrors(analyzerErrors);
+    var pluginErrors = converter.convertAnalysisErrors(
+      analyzerErrors,
+      options: analyzer.AnalysisOptionsImpl(),
+    );
     expect(pluginErrors, hasLength(analyzerErrors.length));
     assertError(pluginErrors[0], analyzerErrors[0]);
     assertError(pluginErrors[1], analyzerErrors[1]);

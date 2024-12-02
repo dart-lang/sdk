@@ -195,7 +195,8 @@ final class AnalysisOptionsBuilder {
     }
   }
 
-  void _applyPluginsOptions(YamlNode? plugins) {
+  void _applyPluginsOptions(
+      YamlNode? plugins, ResourceProvider? resourceProvider) {
     if (plugins is! YamlMap) {
       return;
     }
@@ -232,8 +233,23 @@ final class AnalysisOptionsBuilder {
         source = VersionedPluginSource(constraint: value);
       } else {
         var pathSource = pluginNode.valueAt(AnalysisOptionsFile.path);
-        if (pathSource case YamlScalar(:String value)) {
-          source = PathPluginSource(path: value);
+        if (pathSource case YamlScalar(value: String pathValue)) {
+          var file = this.file;
+          assert(
+            file != null,
+            "AnalysisOptionsImpl must be initialized with a non-null 'file' if "
+            'plugins are specified with path constraints.',
+          );
+          if (file != null &&
+              resourceProvider != null &&
+              resourceProvider.pathContext.isRelative(pathValue)) {
+            // We need to store the absolute path, before this value is used in
+            // a synthetic pub package.
+            pathValue =
+                resourceProvider.pathContext.join(file.parent.path, pathValue);
+            pathValue = resourceProvider.pathContext.normalize(pathValue);
+          }
+          source = PathPluginSource(path: pathValue);
         }
       }
 
@@ -379,8 +395,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// [optionsMap].
   ///
   /// Optionally pass [file] as the file where the YAML can be found.
-  factory AnalysisOptionsImpl.fromYaml(
-      {required YamlMap optionsMap, File? file}) {
+  factory AnalysisOptionsImpl.fromYaml({
+    required YamlMap optionsMap,
+    File? file,
+    ResourceProvider? resourceProvider,
+  }) {
     var builder = AnalysisOptionsBuilder()..file = file;
 
     var analyzer = optionsMap.valueAt(AnalysisOptionsFile.analyzer);
@@ -433,7 +452,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
     // Process the 'plugins' option.
     var plugins = optionsMap.valueAt(AnalysisOptionsFile.plugins);
-    builder._applyPluginsOptions(plugins);
+    builder._applyPluginsOptions(plugins, resourceProvider);
 
     var ruleConfigs = parseLinterSection(optionsMap);
     if (ruleConfigs != null) {

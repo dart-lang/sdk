@@ -213,7 +213,7 @@ In this minitutorial we used these `dart:ffi` features:
 * Manipulating C memory through `Pointer`s with `allocate`, `free`, `load`, `store`, and `elementAt`.
 
 There are many `dart:ffi` features not covered in this tutorial.
-Please refer to the [API documentation](https://api.dart.dev/stable/dart-ffi/dart-ffi-library.html) for more info.
+Please refer to the [API documentation](https://api.dart.dev/dart-ffi/dart-ffi-library.html) for more info.
 
 Feature which `dart:ffi` does not support:
 

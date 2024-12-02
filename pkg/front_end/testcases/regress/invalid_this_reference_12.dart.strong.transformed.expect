@@ -1,0 +1,44 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:11:3: Error: 'foo' is already declared in this scope.
+//   foo([int bar = foo.baz]) {
+//   ^^^
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:10:19: Context: Previous declaration of 'foo'.
+// extension type foo(dynamic whatnot) {
+//                   ^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:6:18: Error: Not a constant expression.
+//   foo([int bar = foo.baz]) {
+//                  ^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:11:22: Error: Member not found: 'baz'.
+//   foo([int bar = foo.baz]) {
+//                      ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension /* unnamed */ _extension#0 on dynamic {
+  method foo = self::_extension#0|foo;
+  method tearoff foo = self::_extension#0|get#foo;
+}
+extension type foo(dynamic whatnot) {
+  abstract extension-type-member representation-field get whatnot() → dynamic;
+  constructor • = self::foo|constructor#;
+  constructor tearoff • = self::foo|constructor#_#new#tearOff;
+}
+static extension-member method _extension#0|foo(lowered final dynamic #this, [core::int bar = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_12.dart:6:18: Error: Not a constant expression.
+  foo([int bar = foo.baz]) {
+                 ^^^"]) → dynamic {}
+static extension-member method _extension#0|get#foo(lowered final dynamic #this) → ([core::int]) → dynamic
+  return ([core::int bar = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_12.dart:6:18: Error: Not a constant expression.
+  foo([int bar = foo.baz]) {
+                 ^^^"]) → dynamic => self::_extension#0|foo(#this, bar);
+static extension-type-member method foo|constructor#(dynamic whatnot) → self::foo% /* erasure=dynamic, declared=! */ {
+  lowered final self::foo% /* erasure=dynamic, declared=! */ #this = whatnot;
+  return #this;
+}
+static extension-type-member method foo|constructor#_#new#tearOff(dynamic whatnot) → self::foo% /* erasure=dynamic, declared=! */
+  return self::foo|constructor#(whatnot);

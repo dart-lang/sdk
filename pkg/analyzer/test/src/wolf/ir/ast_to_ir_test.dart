@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/wolf/ir/ast_to_ir.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
@@ -1823,15 +1823,26 @@ class AstToIRTestBase extends PubPackageResolutionTest {
 
   void analyze(Declaration declaration) {
     switch (declaration) {
-      case FunctionDeclaration(
-          :var declaredElement!,
-          functionExpression: FunctionExpression(:var body)
-        ):
-      case MethodDeclaration(:var declaredElement!, :var body):
-        ir = astToIR(declaredElement, body,
-            typeProvider: typeProvider,
-            typeSystem: typeSystem,
-            eventListener: astNodes);
+      case FunctionDeclaration():
+        var declaredElement = declaration.declaredFragment!.element;
+        ir = astToIR(
+          declaredElement,
+          declaration.functionExpression.body,
+          typeProvider: typeProvider,
+          typeSystem: typeSystem,
+          inheritanceManager: inheritanceManager,
+          eventListener: astNodes,
+        );
+      case MethodDeclaration():
+        var declaredElement = declaration.declaredFragment!.element;
+        ir = astToIR(
+          declaredElement,
+          declaration.body,
+          typeProvider: typeProvider,
+          typeSystem: typeSystem,
+          inheritanceManager: inheritanceManager,
+          eventListener: astNodes,
+        );
       default:
         throw UnimplementedError(
             'TODO(paulberry): ${declaration.declaredElement}');
@@ -1875,8 +1886,8 @@ class _CallDispatcher implements CallDispatcher {
     CallHandler? handler;
     switch (callDescriptor) {
       case ElementCallDescriptor(:var name, :var element):
-        if (element.enclosingElement3
-            case InstanceElement(name: var typeName)) {
+        if (element.enclosingElement2
+            case InstanceElement2(name3: var typeName)) {
           name = '${typeName ?? '<unnamed>'}.$name';
         }
         handler = _test._callHandlers[name];

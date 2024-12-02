@@ -1318,33 +1318,6 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
     const BinaryFeedback& binary_feedback = call->BinaryFeedback();
 
     switch (recognized_kind) {
-      case MethodRecognizer::kMathMin:
-      case MethodRecognizer::kMathMax: {
-        // We can handle only monomorphic min/max call sites with both arguments
-        // being either doubles or smis.
-        if (targets.IsMonomorphic() && (call->FirstArgIndex() == 0)) {
-          intptr_t result_cid = kIllegalCid;
-          if (binary_feedback.IncludesOperands(kDoubleCid)) {
-            result_cid = kDoubleCid;
-          } else if (binary_feedback.IncludesOperands(kSmiCid)) {
-            result_cid = kSmiCid;
-          }
-          if (result_cid != kIllegalCid) {
-            MathMinMaxInstr* min_max = new (Z) MathMinMaxInstr(
-                recognized_kind, new (Z) Value(call->ArgumentAt(0)),
-                new (Z) Value(call->ArgumentAt(1)), call->deopt_id(),
-                result_cid);
-            const Cids* cids = Cids::CreateMonomorphic(Z, result_cid);
-            AddCheckClass(min_max->left()->definition(), *cids,
-                          call->deopt_id(), call->env(), call);
-            AddCheckClass(min_max->right()->definition(), *cids,
-                          call->deopt_id(), call->env(), call);
-            ReplaceCall(call, min_max);
-            return;
-          }
-        }
-        break;
-      }
       case MethodRecognizer::kDoubleFromInteger: {
         if (call->HasICData() && targets.IsMonomorphic() &&
             (call->FirstArgIndex() == 0)) {
@@ -3155,6 +3128,49 @@ static bool InlineMathIntPow(FlowGraph* flow_graph,
   return false;
 }
 
+static bool InlineMathMinMax(MethodRecognizer::Kind kind,
+                             FlowGraph* flow_graph,
+                             Instruction* call,
+                             GraphEntryInstr* graph_entry,
+                             FunctionEntryInstr** entry,
+                             Instruction** last,
+                             Definition** result) {
+  intptr_t i = call->AsStaticCall()->FirstArgIndex();
+  if (call->ArgumentValueAt(i + 0)->Type()->IsDouble() &&
+      call->ArgumentValueAt(i + 1)->Type()->IsDouble()) {
+    *last = *entry = new (Z)
+        FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                           call->GetBlock()->try_index(), DeoptId::kNone);
+    *result = new (Z) MathMinMaxInstr(
+        kind, new (Z) Value(call->ArgumentAt(i + 0)),
+        new (Z) Value(call->ArgumentAt(i + 1)), DeoptId::kNone, kUnboxedDouble);
+    flow_graph->AppendTo(
+        *last, *result,
+        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+        FlowGraph::kValue);
+    *last = *result;
+    return true;
+  }
+#if defined(TARGET_ARCH_IS_64_BIT)
+  if (call->ArgumentValueAt(i + 0)->Type()->IsInt() &&
+      call->ArgumentValueAt(i + 1)->Type()->IsInt()) {
+    *last = *entry = new (Z)
+        FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                           call->GetBlock()->try_index(), DeoptId::kNone);
+    *result = new (Z) MathMinMaxInstr(
+        kind, new (Z) Value(call->ArgumentAt(i + 0)),
+        new (Z) Value(call->ArgumentAt(i + 1)), DeoptId::kNone, kUnboxedInt64);
+    flow_graph->AppendTo(
+        *last, *result,
+        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+        FlowGraph::kValue);
+    *last = *result;
+    return true;
+  }
+#endif
+  return false;
+}
+
 bool CallSpecializer::TryInlineRecognizedMethod(
     FlowGraph* flow_graph,
     intptr_t receiver_cid,
@@ -3225,6 +3241,10 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kClassIDgetID:
       return InlineLoadClassId(flow_graph, call, graph_entry, entry, last,
                                result);
+    case MethodRecognizer::kMathMin:
+    case MethodRecognizer::kMathMax:
+      return InlineMathMinMax(kind, flow_graph, call, graph_entry, entry, last,
+                              result);
     default:
       break;
   }

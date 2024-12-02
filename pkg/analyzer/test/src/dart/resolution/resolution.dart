@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -63,6 +64,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
   FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;
+
+  InheritanceManager3 get inheritanceManager {
+    var library = result.libraryElement2 as LibraryElementImpl;
+    return library.session.inheritanceManager;
+  }
 
   ClassElement get intElement => typeProvider.intElement;
 

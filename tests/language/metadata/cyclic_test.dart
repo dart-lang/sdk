@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Check that metadata on a class 'Super' using subtypes of 'Super' are not
 // considered as cyclic inheritance or lead to crashes.
 

@@ -1,0 +1,9 @@
+extension type Foo(dynamic x) {
+  int baz(int i) {}
+  late final foo1 = bar;
+  late final foo2 = baz(0);
+}
+
+extension type Foo2._(dynamic _input) {
+  Foo2.fromInt(int i) : this._(i * 2);
+}

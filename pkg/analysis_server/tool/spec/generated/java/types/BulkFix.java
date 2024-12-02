@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of bulk fixes to a library.
@@ -28,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("unused")
 public class BulkFix {
-
-  public static final BulkFix[] EMPTY_ARRAY = new BulkFix[0];
 
   public static final List<BulkFix> EMPTY_LIST = List.of();
 
@@ -53,8 +50,7 @@ public class BulkFix {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof BulkFix) {
-      BulkFix other = (BulkFix) obj;
+    if (obj instanceof BulkFix other) {
       return
         Objects.equals(other.path, path) &&
         Objects.equals(other.fixes, fixes);
@@ -117,9 +113,10 @@ public class BulkFix {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("path=");
-    builder.append(path + ", ");
+    builder.append(path);
+    builder.append(", ");
     builder.append("fixes=");
-    builder.append(StringUtils.join(fixes, ", "));
+    builder.append(fixes.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

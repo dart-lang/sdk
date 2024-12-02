@@ -319,7 +319,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     // Analyzer: impossible, we have only one suffix
 
     // * if S is Null then Null
-    check(nullQuestion, nullNone);
+    // Analyzer: impossible; `Null?` is always represented as `Null`.
 
     // * if S is FutureOr<R> and R is nullable then S
     check(futureOrQuestion(intQuestion), futureOrNone(intQuestion));

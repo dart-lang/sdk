@@ -5,6 +5,9 @@
 // test cannot use Expect.throws, because Expect.throws uses the same
 // pattern.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 main() {

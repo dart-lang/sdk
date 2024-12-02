@@ -553,8 +553,9 @@ class ContextLocatorImpl {
           AnalysisOptionsProvider(workspace.createSourceFactory(null, null));
 
       var options = AnalysisOptionsImpl.fromYaml(
-        file: optionsFile,
         optionsMap: provider.getOptionsFromFile(optionsFile),
+        file: optionsFile,
+        resourceProvider: resourceProvider,
       );
 
       return options.enabledLegacyPluginNames.toSet();

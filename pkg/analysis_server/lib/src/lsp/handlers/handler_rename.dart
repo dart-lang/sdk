@@ -219,6 +219,11 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
           return error(ServerErrorCodes.RenameNotValid, finalStatus.message!);
         }
 
+        // Set the completer to complete to show that request is paused, and
+        // that processing of incoming messages can continue while we wait
+        // for the user's response. 
+        message.completer?.complete();
+
         // Otherwise, ask the user whether to proceed with the rename.
         var userChoice = await prompt(
           MessageType.warning,

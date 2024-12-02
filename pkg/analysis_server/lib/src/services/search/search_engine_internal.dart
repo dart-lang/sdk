@@ -151,6 +151,7 @@ class SearchEngineImpl implements SearchEngine {
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
   }
 
+  @override
   Future<List<SearchMatch>> searchReferences2(Element2 element) async {
     return await searchReferences(element.asElement!);
   }
@@ -292,8 +293,7 @@ class SearchMatchImpl implements SearchMatch {
   Element2 get element2 => element.asElement2!;
 
   @override
-  LibraryElement2 get libraryElement2 =>
-      libraryElement.asElement2 as LibraryElement2;
+  LibraryElement2 get libraryElement2 => libraryElement.asElement2;
 
   @override
   String toString() {

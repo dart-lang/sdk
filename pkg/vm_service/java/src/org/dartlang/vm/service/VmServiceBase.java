@@ -298,7 +298,7 @@ abstract class VmServiceBase implements VmServiceConst {
   /**
    * Invoke a specific service protocol extension method.
    * <p>
-   * See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
+   * See https://api.dart.dev/dart-developer/dart-developer-library.html.
    */
   public void callServiceExtension(String isolateId, String method, ServiceExtensionConsumer consumer) {
     JsonObject params = new JsonObject();
@@ -309,7 +309,7 @@ abstract class VmServiceBase implements VmServiceConst {
   /**
    * Invoke a specific service protocol extension method.
    * <p>
-   * See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
+   * See https://api.dart.dev/dart-developer/dart-developer-library.html.
    */
   public void callServiceExtension(String isolateId, String method, JsonObject params, ServiceExtensionConsumer consumer) {
     params.addProperty("isolateId", isolateId);

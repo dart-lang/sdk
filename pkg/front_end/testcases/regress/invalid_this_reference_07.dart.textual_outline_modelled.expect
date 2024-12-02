@@ -1,0 +1,9 @@
+class FooClass {
+  bar() {}
+  var foo = this();
+}
+
+extension type Foo(dynamic d) {
+  bar() {}
+  var foo = this();
+}

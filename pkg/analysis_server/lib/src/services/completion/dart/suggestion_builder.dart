@@ -19,7 +19,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// A container with enough information to do filtering, and if necessary
@@ -297,9 +296,9 @@ class SuggestionBuilder {
         field,
         distance: inheritanceDistance,
       );
-      var hasDeprecated = featureComputer.hasDeprecatedFeature2(field);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
       var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature2(field) : 0.0;
+          _preferConstants ? featureComputer.isConstantFeature(field) : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         field.name3 ?? '',
       );
@@ -343,7 +342,7 @@ class SuggestionBuilder {
     var elementKind = _computeElementKind(element);
     var isConstant =
         _preferConstants
-            ? request.featureComputer.isConstantFeature2(element)
+            ? request.featureComputer.isConstantFeature(element)
             : 0.0;
     relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
@@ -421,9 +420,9 @@ class SuggestionBuilder {
         getter,
         distance: inheritanceDistance,
       );
-      var hasDeprecated = featureComputer.hasDeprecatedFeature2(getter);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(getter);
       var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature2(getter) : 0.0;
+          _preferConstants ? featureComputer.isConstantFeature(getter) : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         getter.displayName,
       );
@@ -607,7 +606,7 @@ class SuggestionBuilder {
     );
     var isConstant =
         _preferConstants
-            ? request.featureComputer.isConstantFeature2(element)
+            ? request.featureComputer.isConstantFeature(element)
             : 0.0;
     relevance ??= relevanceComputer.computeScore(
       contextType: contextType,
@@ -646,9 +645,9 @@ class SuggestionBuilder {
       method,
       distance: inheritanceDistance,
     );
-    var hasDeprecated = featureComputer.hasDeprecatedFeature2(method);
+    var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
     var isConstant =
-        _preferConstants ? featureComputer.isConstantFeature2(method) : 0.0;
+        _preferConstants ? featureComputer.isConstantFeature(method) : 0.0;
     var isNoSuchMethod = featureComputer.isNoSuchMethodFeature(
       _containingMemberName,
       method.displayName,
@@ -966,9 +965,9 @@ class SuggestionBuilder {
         setter,
         distance: inheritanceDistance,
       );
-      var hasDeprecated = featureComputer.hasDeprecatedFeature2(setter);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(setter);
       var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature2(setter) : 0.0;
+          _preferConstants ? featureComputer.isConstantFeature(setter) : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         setter.displayName,
       );
@@ -1129,9 +1128,9 @@ class SuggestionBuilder {
         type,
       );
       var elementKind = _computeElementKind(getter);
-      var hasDeprecated = featureComputer.hasDeprecatedFeature2(getter);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(getter);
       var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature2(getter) : 0.0;
+          _preferConstants ? featureComputer.isConstantFeature(getter) : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         getter.displayName,
       );
@@ -1181,9 +1180,9 @@ class SuggestionBuilder {
         type,
       );
       var elementKind = _computeElementKind(setter);
-      var hasDeprecated = featureComputer.hasDeprecatedFeature2(setter);
+      var hasDeprecated = featureComputer.hasDeprecatedFeature(setter);
       var isConstant =
-          _preferConstants ? featureComputer.isConstantFeature2(setter) : 0.0;
+          _preferConstants ? featureComputer.isConstantFeature(setter) : 0.0;
       var startsWithDollar = featureComputer.startsWithDollarFeature(
         setter.displayName,
       );
@@ -1271,7 +1270,7 @@ class SuggestionBuilder {
     var elementKind = _computeElementKind(parameter);
     var isConstant =
         _preferConstants
-            ? request.featureComputer.isConstantFeature2(parameter)
+            ? request.featureComputer.isConstantFeature(parameter)
             : 0.0;
     relevance ??= relevanceComputer.computeScore(
       elementKind: elementKind,
@@ -1363,7 +1362,7 @@ class SuggestionBuilder {
   /// the completion context.
   double _computeElementKind(Element2 element, {double? distance}) {
     var location = request.opType.completionLocation;
-    var elementKind = request.featureComputer.elementKindFeature2(
+    var elementKind = request.featureComputer.elementKindFeature(
       element,
       location,
       distance: distance,
@@ -1577,8 +1576,8 @@ class SuggestionBuilder {
 
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element2 element) {
-    var doc = request.documentationComputer.compute(
-      element.asElement!,
+    var doc = request.documentationComputer.compute2(
+      element,
       includeSummary: true,
     );
     if (doc is DocumentationWithSummary) {
@@ -1605,7 +1604,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement.typeProvider.neverType;
+      var neverType = request.libraryElement2.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1618,7 +1617,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement.typeProvider.neverType;
+      var neverType = request.libraryElement2.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1631,7 +1630,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters2;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement.typeProvider.neverType;
+      var neverType = request.libraryElement2.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
     return element.instantiate(
@@ -1643,8 +1642,8 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element2 element) {
-    var doc = request.documentationComputer.compute(
-      element.asElement!,
+    var doc = request.documentationComputer.compute2(
+      element,
       includeSummary: true,
     );
     if (doc is DocumentationWithSummary) {

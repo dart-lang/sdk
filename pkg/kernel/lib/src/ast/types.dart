@@ -774,7 +774,7 @@ class NeverType extends DartType {
   }
 }
 
-class NullType extends DartType {
+class NullType extends DartType implements SharedNullTypeStructure<DartType> {
   @override
   final int hashCode = 415324;
 
@@ -1615,9 +1615,9 @@ class IntersectionType extends DartType {
             (leftNullability == Nullability.nullable &&
                 rightNullability == Nullability.nonNullable) ||
             // pkg/front_end/test/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/types/fasta_types_test
-            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/incremental_hello_test
+            // pkg/front_end/test/types/cfe_types_test
+            // pkg/front_end/tool/cfe_perf_test
             // nnbd/issue42089
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
@@ -1638,8 +1638,8 @@ class IntersectionType extends DartType {
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.legacy &&
                 rightNullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/incremental_hello_test
+            // pkg/front_end/tool/cfe_perf_test
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
                 rightNullability == Nullability.undetermined) ||
@@ -1647,15 +1647,15 @@ class IntersectionType extends DartType {
             // tests rather than real situations:
             //
             // pkg/front_end/test/types/kernel_type_parser_test
-            // pkg/front_end/test/types/fasta_types_test
+            // pkg/front_end/test/types/cfe_types_test
             (leftNullability == Nullability.legacy &&
                 rightNullability == Nullability.nullable) ||
             // pkg/front_end/test/types/kernel_type_parser_test
-            // pkg/front_end/test/types/fasta_types_test
+            // pkg/front_end/test/types/cfe_types_test
             (leftNullability == Nullability.nonNullable &&
                 rightNullability == Nullability.nullable) ||
             // pkg/front_end/test/types/kernel_type_parser_test
-            // pkg/front_end/test/types/fasta_types_test
+            // pkg/front_end/test/types/cfe_types_test
             (leftNullability == Nullability.undetermined &&
                 rightNullability == Nullability.legacy) ||
             // pkg/kernel/test/clone_test
@@ -1777,9 +1777,9 @@ class IntersectionType extends DartType {
             (lhsNullability == Nullability.nullable &&
                 rhsNullability == Nullability.nonNullable) ||
             // pkg/front_end/test/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/types/fasta_types_test
-            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/incremental_hello_test
+            // pkg/front_end/test/types/cfe_types_test
+            // pkg/front_end/tool/cfe_perf_test
             // nnbd/issue42089
             (lhsNullability == Nullability.nullable &&
                 rhsNullability == Nullability.nullable) ||
@@ -1798,9 +1798,9 @@ class IntersectionType extends DartType {
             // inference/infer_types_on_loop_indices_for_each_loop_async
             (lhsNullability == Nullability.legacy &&
                 rhsNullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/tool/fasta_perf_test
-            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/incremental_hello_test
+            // pkg/front_end/tool/cfe_perf_test
+            // pkg/front_end/test/incremental_hello_test
             (lhsNullability == Nullability.nullable &&
                 rhsNullability == Nullability.undetermined) ||
 
@@ -1809,11 +1809,11 @@ class IntersectionType extends DartType {
             //     rhsNullability == Nullability.nullable) ||
 
             // pkg/front_end/test/types/kernel_type_parser_test
-            // pkg/front_end/test/types/fasta_types_test
+            // pkg/front_end/test/types/cfe_types_test
             (lhsNullability == Nullability.undetermined &&
                 rhsNullability == Nullability.legacy) ||
             // pkg/front_end/test/types/kernel_type_parser_test
-            // pkg/front_end/test/types/fasta_types_test
+            // pkg/front_end/test/types/cfe_types_test
             (lhsNullability == Nullability.nonNullable &&
                 rhsNullability == Nullability.nullable),
         "Unexpected nullabilities for: LHS nullability = $lhsNullability, "

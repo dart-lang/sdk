@@ -164,7 +164,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get boolElement2 {
-    return boolElement.asElement2 as ClassElement2;
+    return boolElement.asElement2;
   }
 
   @override
@@ -189,7 +189,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get doubleElement2 {
-    return doubleElement.asElement2 as ClassElement2;
+    return doubleElement.asElement2;
   }
 
   @override
@@ -215,7 +215,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2? get enumElement2 {
-    return enumElement?.asElement2 as ClassElement2?;
+    return enumElement?.asElement2;
   }
 
   @override
@@ -255,7 +255,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get futureElement2 {
-    return futureElement.asElement2 as ClassElement2;
+    return futureElement.asElement2;
   }
 
   @override
@@ -274,7 +274,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get futureOrElement2 {
-    return futureOrElement.asElement2 as ClassElement2;
+    return futureOrElement.asElement2;
   }
 
   @override
@@ -293,7 +293,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get intElement2 {
-    return intElement.asElement2 as ClassElement2;
+    return intElement.asElement2;
   }
 
   @override
@@ -321,7 +321,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get iterableElement2 {
-    return iterableElement.asElement2 as ClassElement2;
+    return iterableElement.asElement2;
   }
 
   @override
@@ -340,7 +340,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get listElement2 {
-    return listElement.asElement2 as ClassElement2;
+    return listElement.asElement2;
   }
 
   @override
@@ -350,7 +350,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get mapElement2 {
-    return mapElement.asElement2 as ClassElement2;
+    return mapElement.asElement2;
   }
 
   @override
@@ -372,7 +372,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get nullElement2 {
-    return nullElement.asElement2 as ClassElement2;
+    return nullElement.asElement2;
   }
 
   @override
@@ -387,7 +387,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get numElement2 {
-    return numElement.asElement2 as ClassElement2;
+    return numElement.asElement2;
   }
 
   @override
@@ -406,7 +406,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get objectElement2 {
-    return objectElement.asElement2 as ClassElement2;
+    return objectElement.asElement2;
   }
 
   @override
@@ -432,7 +432,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get recordElement2 {
-    return recordElement.asElement2 as ClassElement2;
+    return recordElement.asElement2;
   }
 
   @override
@@ -450,7 +450,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get setElement2 {
-    return setElement.asElement2 as ClassElement2;
+    return setElement.asElement2;
   }
 
   @override
@@ -474,7 +474,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get streamElement2 {
-    return streamElement.asElement2 as ClassElement2;
+    return streamElement.asElement2;
   }
 
   @override
@@ -484,7 +484,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get stringElement2 {
-    return stringElement.asElement2 as ClassElement2;
+    return stringElement.asElement2;
   }
 
   @override
@@ -499,7 +499,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   ClassElement2 get symbolElement2 {
-    return symbolElement.asElement2 as ClassElement2;
+    return symbolElement.asElement2;
   }
 
   @override

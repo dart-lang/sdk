@@ -1639,10 +1639,14 @@ CommentReference
 foo(int p) {}
 ''');
 
-    assertElement(
-      findNode.simple('p]'),
-      findElement.parameter('p'),
-    );
+    var node = findNode.simple('p]');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: p
+  staticElement: <testLibraryFragment>::@function::foo::@parameter::p
+  element: <testLibraryFragment>::@function::foo::@parameter::p#element
+  staticType: null
+''');
   }
 
   test_beforeFunction_expressionBody() async {
@@ -1717,7 +1721,14 @@ CommentReference
 get g => null;
 ''');
 
-    assertElement(findNode.simple('int]'), intElement);
+    var node = findNode.simple('int]');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: int
+  staticElement: dart:core::<fragment>::@class::int
+  element: dart:core::@class::int
+  staticType: null
+''');
   }
 
   test_beforeMethod() async {

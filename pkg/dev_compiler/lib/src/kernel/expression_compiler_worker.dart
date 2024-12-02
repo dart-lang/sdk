@@ -504,7 +504,9 @@ class ExpressionCompilerWorker {
 
     expressionCompiler = ExpressionCompiler(
       _compilerOptions,
-      _moduleFormat,
+      _moduleFormat == ModuleFormat.ddc && _canaryFeatures
+          ? ModuleFormat.ddcLibraryBundle
+          : _moduleFormat,
       errors,
       incrementalCompiler,
       kernel2jsCompiler,

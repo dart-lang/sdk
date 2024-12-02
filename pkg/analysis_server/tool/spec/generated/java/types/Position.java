@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A position within a file.
@@ -28,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("unused")
 public class Position {
-
-  public static final Position[] EMPTY_ARRAY = new Position[0];
 
   public static final List<Position> EMPTY_LIST = List.of();
 
@@ -53,8 +50,7 @@ public class Position {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Position) {
-      Position other = (Position) obj;
+    if (obj instanceof Position other) {
       return
         Objects.equals(other.file, file) &&
         other.offset == offset;
@@ -113,7 +109,8 @@ public class Position {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("file=");
-    builder.append(file + ", ");
+    builder.append(file);
+    builder.append(", ");
     builder.append("offset=");
     builder.append(offset);
     builder.append("]");

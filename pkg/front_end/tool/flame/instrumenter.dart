@@ -15,7 +15,7 @@ import 'package:kernel/kernel.dart';
 
 import '../additional_targets.dart';
 import '../command_line.dart';
-import '../compile.dart' as fasta_compile;
+import '../compile.dart' as cfe_compile;
 
 /// Instrumenter that can produce flame graphs, count invocations,
 /// perform time tracking etc.
@@ -287,7 +287,7 @@ Future<void> compileInstrumentationLibrary(Directory tmpDir,
     InstrumenterConfig config, List<String> arguments, Uri output) async {
   print("Compiling the instrumentation library.");
   Uri instrumentationLibDill = tmpDir.uri.resolve("instrumenter.dill");
-  await fasta_compile.main([
+  await cfe_compile.main([
     "--omit-platform",
     "-o=${instrumentationLibDill.toFilePath()}",
     Platform.script.resolve(config.libFilename).toFilePath()
@@ -297,7 +297,7 @@ Future<void> compileInstrumentationLibrary(Directory tmpDir,
   }
 
   print("Compiling the given input.");
-  await fasta_compile.main(arguments);
+  await cfe_compile.main(arguments);
 
   print("Reading the compiled dill.");
   Component component = new Component();

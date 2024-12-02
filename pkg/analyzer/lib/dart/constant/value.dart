@@ -13,7 +13,9 @@
 library;
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:meta/meta.dart';
 
 /// A representation of the value of a compile-time constant expression.
 ///
@@ -101,6 +103,15 @@ abstract class DartObject {
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
   ExecutableElement? toFunctionValue();
+
+  /// Return an element corresponding to the value of the object being
+  /// represented, or `null`
+  /// if
+  /// * this object is not of a function type,
+  /// * the value of the object being represented is not known, or
+  /// * the value of the object being represented is `null`.
+  @experimental
+  ExecutableElement2? toFunctionValue2();
 
   /// Return an integer corresponding to the value of the object being
   /// represented, or `null` if

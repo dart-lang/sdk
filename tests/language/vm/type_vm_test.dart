@@ -4,6 +4,9 @@
 // VMOptions=--enable_type_checks --enable_asserts --no_show_internal_names
 // Dart test program testing type checks.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 class C {

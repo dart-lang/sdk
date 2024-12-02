@@ -10,6 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/lint/constants.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -1338,7 +1340,8 @@ extension ElementExtension on Element {
 
     if (self is PropertyAccessorElement) {
       var enclosingElement = self.enclosingElement3;
-      if (enclosingElement is InterfaceElement && isState(enclosingElement)) {
+      if (enclosingElement is InterfaceElement &&
+          isState(enclosingElement.asElement2)) {
         // The BuildContext object is the field on Flutter's State class.
         // This object can only be guarded by async gaps with a mounted
         // check on the State.

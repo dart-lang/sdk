@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A type at runtime.
@@ -28,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("unused")
 public class RuntimeCompletionExpressionType {
-
-  public static final RuntimeCompletionExpressionType[] EMPTY_ARRAY = new RuntimeCompletionExpressionType[0];
 
   public static final List<RuntimeCompletionExpressionType> EMPTY_LIST = List.of();
 
@@ -88,8 +85,7 @@ public class RuntimeCompletionExpressionType {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof RuntimeCompletionExpressionType) {
-      RuntimeCompletionExpressionType other = (RuntimeCompletionExpressionType) obj;
+    if (obj instanceof RuntimeCompletionExpressionType other) {
       return
         Objects.equals(other.libraryPath, libraryPath) &&
         Objects.equals(other.kind, kind) &&
@@ -232,19 +228,25 @@ public class RuntimeCompletionExpressionType {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("libraryPath=");
-    builder.append(libraryPath + ", ");
+    builder.append(libraryPath);
+    builder.append(", ");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("typeArguments=");
-    builder.append(StringUtils.join(typeArguments, ", ") + ", ");
+    builder.append(typeArguments == null ? "null" : typeArguments.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("returnType=");
-    builder.append(returnType + ", ");
+    builder.append(returnType);
+    builder.append(", ");
     builder.append("parameterTypes=");
-    builder.append(StringUtils.join(parameterTypes, ", ") + ", ");
+    builder.append(parameterTypes == null ? "null" : parameterTypes.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("parameterNames=");
-    builder.append(StringUtils.join(parameterNames, ", "));
+    builder.append(parameterNames == null ? "null" : parameterNames.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

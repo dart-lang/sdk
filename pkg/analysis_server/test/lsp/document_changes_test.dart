@@ -214,7 +214,7 @@ class Bar {
       ],
       openFile(mainFileUri, content),
     ]);
-
+     await pumpEventQueue(times: 50000);
     expect(server.resourceProvider.hasOverlay(mainFilePath), isTrue);
   }
 

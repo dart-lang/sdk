@@ -24,19 +24,28 @@ class ForElementResolutionTest_ForEachPartsWithDeclaration
   test_withDeclaration_scope() async {
     await assertNoErrorsInCode(r'''
 main() {
-  <int>[for (var i in [1, 2, 3]) i]; // 1
-  <double>[for (var i in [1.1, 2.2, 3.3]) i]; // 2
+  <int>[for (var i in [1]) i]; // 1
+  <double>[for (var i in [1.1]) i]; // 2
 }
 ''');
 
-    assertElement(
-      findNode.simple('i]; // 1'),
-      findNode.declaredIdentifier('i in [1, 2').declaredElement!,
-    );
-    assertElement(
-      findNode.simple('i]; // 2'),
-      findNode.declaredIdentifier('i in [1.1').declaredElement!,
-    );
+    var node_1 = findNode.simple('i]; // 1');
+    assertResolvedNodeText(node_1, r'''
+SimpleIdentifier
+  token: i
+  staticElement: i@26
+  element: i@26
+  staticType: int
+''');
+
+    var node_2 = findNode.simple('i]; // 2');
+    assertResolvedNodeText(node_2, r'''
+SimpleIdentifier
+  token: i
+  staticElement: i@65
+  element: i@65
+  staticType: double
+''');
   }
 
   test_withIdentifier_topLevelVariable() async {
@@ -46,10 +55,15 @@ main() {
   <int>[for (v in [1, 2, 3]) v];
 }
 ''');
-    assertElement(
-      findNode.simple('v];'),
-      findElement.topGet('v'),
-    );
+
+    var node = findNode.simple('v];');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: <testLibraryFragment>::@getter::v
+  element: <testLibraryFragment>::@getter::v#element
+  staticType: int
+''');
   }
 }
 
@@ -758,14 +772,23 @@ main() {
 }
 ''');
 
-    assertElement(
-      findNode.simple('i]; // 1'),
-      findNode.variableDeclaration('i = 1;').declaredElement!,
-    );
-    assertElement(
-      findNode.simple('i]; // 2'),
-      findNode.variableDeclaration('i = 1.1;').declaredElement!,
-    );
+    var node_1 = findNode.simple('i]; // 1');
+    assertResolvedNodeText(node_1, r'''
+SimpleIdentifier
+  token: i
+  staticElement: i@26
+  element: i@26
+  staticType: int
+''');
+
+    var node_2 = findNode.simple('i]; // 2');
+    assertResolvedNodeText(node_2, r'''
+SimpleIdentifier
+  token: i
+  staticElement: i@78
+  element: i@78
+  staticType: double
+''');
   }
 }
 

@@ -528,8 +528,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         LibraryBuilder imported = import.importedLibraryBuilder!.origin;
         Library targetLibrary = imported.library;
         libraryDependency = new LibraryDependency.import(targetLibrary,
-            name: import.prefix,
-            combinators: toKernelCombinators(import.combinators))
+            name: import.prefix, combinators: toCombinators(import.combinators))
           ..fileOffset = import.importOffset;
       }
       library.addDependency(libraryDependency);
@@ -538,7 +537,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     for (Export export in _builderFactoryResult.exports) {
       LibraryDependency libraryDependency = new LibraryDependency.export(
           export.exportedLibraryBuilder.library,
-          combinators: toKernelCombinators(export.combinators))
+          combinators: toCombinators(export.combinators))
         ..fileOffset = export.charOffset;
       library.addDependency(libraryDependency);
       export.libraryDependency = libraryDependency;

@@ -1776,7 +1776,7 @@ CompileType SimdOpInstr::ComputeType() const {
 }
 
 CompileType MathMinMaxInstr::ComputeType() const {
-  return CompileType::FromCid(result_cid_);
+  return CompileType::FromUnboxedRepresentation(representation());
 }
 
 CompileType CaseInsensitiveCompareInstr::ComputeType() const {

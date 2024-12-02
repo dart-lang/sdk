@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show AbstractScanner;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart' as fasta;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +15,7 @@ void main() {
   });
 }
 
-/// Assert that fasta PrecedenceInfo implements analyzer TokenType.
+/// Assert that PrecedenceInfo implements analyzer TokenType.
 @reflectiveTest
 class PrecedenceInfoTest {
   void assertInfo(check(String source, Token token)) {
@@ -282,7 +281,7 @@ class PrecedenceInfoTest {
       var userDefinable = userDefinableOperatorLexemes.contains(source);
       expect(token.type.isUserDefinableOperator, userDefinable, reason: source);
       expect(token.isUserDefinableOperator, userDefinable, reason: source);
-      expect(fasta.isUserDefinableOperator(token.lexeme), userDefinable,
+      expect(isUserDefinableOperator(token.lexeme), userDefinable,
           reason: source);
     });
   }

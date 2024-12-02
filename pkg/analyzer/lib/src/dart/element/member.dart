@@ -69,6 +69,9 @@ class ConstructorMember extends ExecutableMember
   bool get isFactory => declaration.isFactory;
 
   @override
+  String? get lookupName => _element2.lookupName;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -108,12 +111,10 @@ class ConstructorMember extends ExecutableMember
   }
 
   @override
-  ConstructorElement2? get superConstructor2 =>
-      superConstructor.asElement2 as ConstructorElement2;
+  ConstructorElement2? get superConstructor2 => superConstructor?.asElement2;
 
   @override
-  ConstructorElement2 get _element2 =>
-      declaration.asElement2 as ConstructorElement2;
+  ConstructorElement2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -222,10 +223,8 @@ abstract class ExecutableMember extends Member
   Element2? get enclosingElement2 => _element2.enclosingElement2;
 
   @override
-  List<FormalParameterElement> get formalParameters => parameters
-      .map((fragment) => fragment.asElement2 as FormalParameterElement?)
-      .nonNulls
-      .toList();
+  List<FormalParameterElement> get formalParameters =>
+      parameters.map((fragment) => fragment.asElement2).toList();
 
   @override
   bool get hasImplicitReturnType => declaration.hasImplicitReturnType;
@@ -558,6 +557,9 @@ class FieldMember extends VariableMember
   LibraryElement2? get library2 => _element2.library2;
 
   @override
+  String? get lookupName => _element2.lookupName;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -693,6 +695,9 @@ class GetterMember extends PropertyAccessorMember implements GetterElement {
 
   @override
   GetterFragment get firstFragment => _element2.firstFragment;
+
+  @override
+  String? get lookupName => _element2.lookupName;
 
   @override
   PropertyInducingElement2? get variable3 =>
@@ -991,6 +996,9 @@ class MethodMember extends ExecutableMember
   MethodFragment get firstFragment => _element2.firstFragment;
 
   @override
+  String? get lookupName => name3;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -1131,6 +1139,9 @@ class ParameterMember extends VariableMember
   LibraryElement2? get library2 => _element2.library2;
 
   @override
+  String? get lookupName => _element2.lookupName;
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -1160,8 +1171,7 @@ class ParameterMember extends VariableMember
   @override
   List<TypeParameterElement2> get typeParameters2 => _element2.typeParameters2;
 
-  FormalParameterElement get _element2 =>
-      declaration.asElement2 as FormalParameterElement;
+  FormalParameterElement get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
@@ -1396,6 +1406,9 @@ class SetterMember extends PropertyAccessorMember implements SetterElement {
 
   @override
   SetterFragment get firstFragment => _element2.firstFragment;
+
+  @override
+  String? get lookupName => _element2.lookupName;
 
   @override
   PropertyInducingElement2? get variable3 =>

@@ -31,23 +31,23 @@ class X5 extends A with B, C implements D, E {}
 ''');
 
     assertElementTypes(
-      findElement.class_('X1').allSupertypes,
+      findElement2.class_('X1').allSupertypes,
       ['Object', 'A'],
     );
     assertElementTypes(
-      findElement.class_('X2').allSupertypes,
+      findElement2.class_('X2').allSupertypes,
       ['Object', 'B'],
     );
     assertElementTypes(
-      findElement.class_('X3').allSupertypes,
+      findElement2.class_('X3').allSupertypes,
       ['Object', 'A', 'B'],
     );
     assertElementTypes(
-      findElement.class_('X4').allSupertypes,
+      findElement2.class_('X4').allSupertypes,
       ['Object', 'A', 'B', 'C'],
     );
     assertElementTypes(
-      findElement.class_('X5').allSupertypes,
+      findElement2.class_('X5').allSupertypes,
       ['Object', 'A', 'B', 'C', 'D', 'E'],
     );
   }
@@ -64,15 +64,15 @@ class X3 extends C<double> {}
 ''');
 
     assertElementTypes(
-      findElement.class_('X1').allSupertypes,
+      findElement2.class_('X1').allSupertypes,
       ['Object', 'A<String>'],
     );
     assertElementTypes(
-      findElement.class_('X2').allSupertypes,
+      findElement2.class_('X2').allSupertypes,
       ['Object', 'B<String, List<int>>'],
     );
     assertElementTypes(
-      findElement.class_('X3').allSupertypes,
+      findElement2.class_('X3').allSupertypes,
       ['Object', 'B<int, double>', 'C<double>'],
     );
   }
@@ -91,7 +91,7 @@ class X extends A {}
     ]);
 
     assertElementTypes(
-      findElement.class_('X').allSupertypes,
+      findElement2.class_('X').allSupertypes,
       ['A', 'B', 'C'],
     );
   }
@@ -103,7 +103,7 @@ class A extends Function {}
       error(
           CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY, 16, 8),
     ]);
-    var a = findElement.class_('A');
+    var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
   }
 
@@ -114,7 +114,7 @@ class A extends Function {}
 ''', [
       error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 32, 8),
     ]);
-    var a = findElement.class_('A');
+    var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
   }
 
@@ -128,7 +128,7 @@ class C extends Object with A, Function, B {}
     ]);
 
     assertElementTypes(
-      findElement.class_('C').mixins,
+      findElement2.class_('C').mixins,
       ['A', 'B'],
     );
   }
@@ -144,7 +144,7 @@ class C extends Object with A, Function, B {}
     ]);
 
     assertElementTypes(
-      findElement.class_('C').mixins,
+      findElement2.class_('C').mixins,
       ['A', 'B'],
     );
   }

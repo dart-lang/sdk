@@ -36,7 +36,6 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
 
   test_class_Null() {
     isAlwaysExhaustive(nullNone);
-    isAlwaysExhaustive(nullQuestion);
   }
 
   test_class_sealed() {

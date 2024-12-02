@@ -29271,7 +29271,7 @@ The analyzer produces this diagnostic when a `BuildContext` is referenced
 by a `StatefulWidget` after an asynchronous gap without first checking the
 `mounted` property.
 
-Storing a `BuildContext` for later use can lead to difficult to diagnose
+Storing a `BuildContext` for later use can lead to difficult-to-diagnose
 crashes. Asynchronous gaps implicitly store a `BuildContext`, making them
 easy to overlook for diagnosis.
 

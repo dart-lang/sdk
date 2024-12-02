@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 import "package:expect/variations.dart";
 
@@ -102,9 +105,9 @@ void testStackTrace(void testCase(dynamic condition), List<int> lineNumbers) {
 }
 
 main() {
-  testStackTrace(test1, [10, 19]);
-  testStackTrace(test2, [27, 36]);
-  testStackTrace(test3, [46, 55]);
-  testStackTrace(test4, [61]); //# 01: ok
-  testStackTrace(test5, [68]); //# 02: ok
+  testStackTrace(test1, [13, 22]);
+  testStackTrace(test2, [30, 39]);
+  testStackTrace(test3, [49, 58]);
+  testStackTrace(test4, [64]); //# 01: ok
+  testStackTrace(test5, [71]); //# 02: ok
 }

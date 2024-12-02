@@ -5,6 +5,8 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 /// String identifiers mapped to associated severities.
@@ -77,6 +79,7 @@ class ErrorProcessor {
   ///
   /// Note: [code] is normalized to uppercase; `errorCode.name` for regular
   /// analysis issues uses uppercase; `errorCode.name` for lints uses lowercase.
+  @visibleForTesting
   bool appliesTo(AnalysisError error) =>
       code == error.errorCode.name ||
       code == error.errorCode.name.toUpperCase();
@@ -84,24 +87,15 @@ class ErrorProcessor {
   @override
   String toString() => "ErrorProcessor[code='$code', severity=$severity]";
 
-  /// Return an error processor associated in the [analysisOptions] for the
+  /// Returns an error processor associated in the [analysisOptions] for the
   /// given [error], or `null` if none is found.
   static ErrorProcessor? getProcessor(
-      AnalysisOptions? analysisOptions, AnalysisError error) {
-    if (analysisOptions == null) {
-      return null;
-    }
-
-    // Let the user configure how specific errors are processed.
-    List<ErrorProcessor> processors = analysisOptions.errorProcessors;
-
-    // Add the strong mode processor.
-    processors = processors.toList();
-    for (var processor in processors) {
-      if (processor.appliesTo(error)) {
-        return processor;
-      }
-    }
-    return null;
+    // TODO(srawlins): Make `analysisOptions` non-nullable, in a breaking
+    // change release.
+    AnalysisOptions? analysisOptions,
+    AnalysisError error,
+  ) {
+    return analysisOptions?.errorProcessors
+        .firstWhereOrNull((processor) => processor.appliesTo(error));
   }
 }

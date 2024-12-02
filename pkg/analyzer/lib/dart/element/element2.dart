@@ -52,7 +52,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
         DirectiveUri,
-        DirectiveUriWithUnit,
         ElementAnnotation,
         ElementKind,
         ElementLocation,
@@ -442,9 +441,24 @@ abstract class Element2 {
   /// The object can be used to locate this element at a later time.
   ElementLocation? get location;
 
+  /// The name to use for lookup in maps.
+  ///
+  /// It is usually the same as [name3], with a few special cases.
+  ///
+  /// Just like [name3], it can be `null` if the element does not have
+  /// a name, for example an unnamed extension, or because of parser recovery.
+  ///
+  /// For a [SetterElement] the result has `=` at the end.
+  ///
+  /// For an unary operator `-` the result is `unary-`.
+  /// For a binary operator `-` the result is just `-`.
+  String? get lookupName;
+
   /// The name of this element.
   ///
   /// Returns `null` if this element doesn't have a name.
+  ///
+  /// See [Fragment.name2] for details.
   String? get name3;
 
   /// The non-synthetic element that caused this element to be created.
@@ -979,6 +993,8 @@ abstract class Fragment {
   /// for such synthetic fragments.
   ///
   /// For a [SetterFragment] this is the identifier, without `=` at the end.
+  ///
+  /// For both unary and binary `-` operator this is `-`.
   String? get name2;
 
   /// The offset of the [name2] of this element.
@@ -1254,6 +1270,9 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// constructor will be returned.
   ConstructorElement2? get unnamedConstructor2;
 
+  /// Returns the constructor from [constructors2] that has the given [name].
+  ConstructorElement2? getNamedConstructor2(String name);
+
   /// Create the [InterfaceType] for this element with the given
   /// [typeArguments] and [nullabilitySuffix].
   InterfaceType instantiate({
@@ -1426,12 +1445,6 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   /// `part` directive.
   List<LibraryFragment> get fragments;
 
-  /// The functions defined in this library.
-  ///
-  /// There is no guarantee of the order in which the functions will be
-  /// returned. In particular, they are not guaranteed to be in lexical order.
-  List<TopLevelFunctionElement> get functions;
-
   /// The getters defined in this library.
   ///
   /// There is no guarantee of the order in which the getters will be returned.
@@ -1483,6 +1496,12 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   /// In particular, they are not guaranteed to be in lexical order.
   List<SetterElement> get setters;
 
+  /// The functions defined in this library.
+  ///
+  /// There is no guarantee of the order in which the functions will be
+  /// returned. In particular, they are not guaranteed to be in lexical order.
+  List<TopLevelFunctionElement> get topLevelFunctions;
+
   /// The top level variables defined in this library.
   ///
   /// There is no guarantee of the order in which the top level variables will
@@ -1506,6 +1525,38 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   ///
   /// This is the same URI as `firstFragment.source.uri` returns.
   Uri get uri;
+
+  /// Returns the class defined in this library that has the given [name].
+  ClassElement2? getClass2(String name);
+
+  /// Returns the enum defined in this library that has the given [name].
+  EnumElement2? getEnum2(String name);
+
+  /// Returns the extension defined in this library that has the given [name].
+  ExtensionElement2? getExtension(String name);
+
+  /// Returns the extension type defined in this library that has the
+  /// given [name].
+  ExtensionTypeElement2? getExtensionType(String name);
+
+  /// Returns the getter defined in this library that has the given [name].
+  GetterElement? getGetter(String name);
+
+  /// Returns the mixin defined in this library that has the given [name].
+  MixinElement2? getMixin2(String name);
+
+  /// Returns the setter defined in this library that has the given [name].
+  SetterElement? getSetter(String name);
+
+  /// Returns the function defined in this library that has the given [name].
+  TopLevelFunctionElement? getTopLevelFunction(String name);
+
+  /// Returns the top-level variable defined in this library that has the
+  /// given [name].
+  TopLevelVariableElement2? getTopLevelVariable(String name);
+
+  /// Returns the type alias defined in this library that has the given [name].
+  TypeAliasElement2? getTypeAlias(String name);
 }
 
 /// An `export` directive within a library fragment.
@@ -1835,6 +1886,10 @@ abstract class MethodElement2 implements ExecutableElement2 {
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
   static final String CALL_METHOD_NAME = "call";
+
+  /// The name of the method that will be invoked if an attempt is made to
+  /// invoke an undefined method on an object.
+  static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
 
   @override
   MethodElement2 get baseElement;
@@ -2581,9 +2636,4 @@ abstract class VariableFragment implements Fragment {
 
   @override
   VariableFragment? get previousFragment;
-}
-
-extension DirectiveUriWithUnitExtension on DirectiveUriWithUnit {
-  /// The library fragment associated with this directive.
-  LibraryFragment get libraryFragment => unit as LibraryFragment;
 }

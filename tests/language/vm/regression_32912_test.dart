@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 dynamic _defaultCallback<T>(T t) => t;
 
 void bar<T>([dynamic Function(T) f = _defaultCallback]) {}  //# 01: compile-time error

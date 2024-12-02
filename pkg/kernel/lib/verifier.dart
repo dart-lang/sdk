@@ -1030,10 +1030,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitStaticGet(StaticGet node) {
     enterTreeNode(node);
     visitChildren(node);
-    // Currently Constructor.hasGetter returns `false` even though fasta uses it
-    // as a getter for internal purposes:
+    // TODO(johnniwinther): Can this be deleted now?
+    // Currently Constructor.hasGetter returns `false` even though the CFE uses
+    // it as a getter for internal purposes:
     //
-    // Fasta is letting all call site of a redirecting constructor be resolved
+    // CFE is letting all call site of a redirecting constructor be resolved
     // to the real target.  In order to resolve it, it seems to add a body into
     // the redirecting-factory constructor which caches the target constructor.
     // That cache is via a `StaticGet(real-constructor)` node, which we make

@@ -125,10 +125,14 @@ void bar([int foo = foo + 1]) {
 }
 ''');
 
-    assertElement(
-      findNode.simple('foo + 1'),
-      findElement.topGet('foo'),
-    );
+    var node = findNode.simple('foo + 1');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <testLibraryFragment>::@getter::foo
+  element: <testLibraryFragment>::@getter::foo#element
+  staticType: int
+''');
   }
 
   test_formalParameterScope_type() async {
@@ -140,15 +144,23 @@ void bar(a a) {
 }
 ''');
 
-    assertElement(
-      findNode.namedType('a a'),
-      findElement.class_('a'),
-    );
+    var node_1 = findNode.namedType('a a');
+    assertResolvedNodeText(node_1, r'''
+NamedType
+  name: a
+  element: <testLibraryFragment>::@class::a
+  element2: <testLibrary>::@class::a
+  type: a
+''');
 
-    assertElement(
-      findNode.simple('a;'),
-      findElement.parameter('a'),
-    );
+    var node_2 = findNode.simple('a;');
+    assertResolvedNodeText(node_2, r'''
+SimpleIdentifier
+  token: a
+  staticElement: <testLibraryFragment>::@function::bar::@parameter::a
+  element: <testLibraryFragment>::@function::bar::@parameter::a#element
+  staticType: a
+''');
   }
 
   test_getter_formalParameters() async {

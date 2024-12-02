@@ -13,13 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a class member that is implemented or overridden.
@@ -28,8 +27,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @SuppressWarnings("unused")
 public class ImplementedMember {
-
-  public static final ImplementedMember[] EMPTY_ARRAY = new ImplementedMember[0];
 
   public static final List<ImplementedMember> EMPTY_LIST = List.of();
 
@@ -53,8 +50,7 @@ public class ImplementedMember {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ImplementedMember) {
-      ImplementedMember other = (ImplementedMember) obj;
+    if (obj instanceof ImplementedMember other) {
       return
         other.offset == offset &&
         other.length == length;
@@ -113,7 +109,8 @@ public class ImplementedMember {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
     builder.append(length);
     builder.append("]");

@@ -379,7 +379,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             var isWidget = isFlutterWidgetParameter(parameter);
             collector.addSuggestion(
               NamedArgumentSuggestion(
-                parameter: parameter,
+                parameter: parameter.asElement2,
                 appendColon: true,
                 appendComma: appendComma,
                 replacementLength: replacementLength,
@@ -741,7 +741,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (constructorElement == null) {
         return;
       }
-      var libraryElement = state.libraryElement;
+      var libraryElement = state.libraryElement.asElement as LibraryElement;
       declarationHelper(
         mustBeConstant: constructorElement.isConst,
       ).addPossibleRedirectionsInLibrary(constructorElement, libraryElement);
@@ -2020,7 +2020,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                     var isWidget = isFlutterWidgetParameter(parameter);
                     collector.addSuggestion(
                       NamedArgumentSuggestion(
-                        parameter: parameter,
+                        parameter:
+                            parameter.asElement2,
                         matcherScore: matcherScore,
                         appendColon: appendColon,
                         appendComma: false,

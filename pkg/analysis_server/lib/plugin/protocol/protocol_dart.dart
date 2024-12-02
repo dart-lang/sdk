@@ -45,7 +45,7 @@ Element convertElement2(engine.Element2 element) {
   var name = getElementDisplayName2(element);
   var elementTypeParameters = _getTypeParametersString2(element);
   var aliasedType = getAliasedTypeString2(element);
-  var elementParameters = _getParametersString2(element);
+  var elementParameters = getParametersString2(element);
   var elementReturnType = getReturnTypeString2(element);
   return Element(
     kind,
@@ -238,7 +238,7 @@ String? getParametersString(engine.Element element) {
   return '($sb)';
 }
 
-String? _getParametersString2(engine.Element2 element) {
+String? getParametersString2(engine.Element2 element) {
   // TODO(scheglov): expose the corresponding feature from ExecutableElement
   List<engine.FormalParameterElement> parameters;
   if (element is engine.ExecutableElement2) {

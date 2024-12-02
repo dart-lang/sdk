@@ -4,6 +4,9 @@
 // Dart test to catch error reporting bugs in class fields declarations.
 // Should be an error because we have a getter overriding a function name.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 class A {
   int a() { // //# 00: ok
     return 1;// //# 00: ok

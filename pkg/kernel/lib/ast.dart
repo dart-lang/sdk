@@ -74,10 +74,11 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     show
         SharedDynamicTypeStructure,
-        SharedNamedFunctionParameterStructure,
         SharedFunctionTypeStructure,
         SharedInvalidTypeStructure,
+        SharedNamedFunctionParameterStructure,
         SharedNamedTypeStructure,
+        SharedNullTypeStructure,
         SharedRecordTypeStructure,
         SharedTypeParameterStructure,
         SharedTypeStructure,

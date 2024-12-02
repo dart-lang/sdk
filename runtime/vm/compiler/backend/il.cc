@@ -1103,7 +1103,16 @@ bool MathMinMaxInstr::AttributesEqual(const Instruction& other) const {
   auto const other_op = other.AsMathMinMax();
   ASSERT(other_op != nullptr);
   return (op_kind() == other_op->op_kind()) &&
-         (result_cid() == other_op->result_cid());
+         (representation() == other_op->representation());
+}
+
+Definition* MathMinMaxInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return nullptr;
+  if (left()->definition()->OriginalDefinition() ==
+      right()->definition()->OriginalDefinition()) {
+    return left()->definition();
+  }
+  return this;
 }
 
 bool BinaryIntegerOpInstr::AttributesEqual(const Instruction& other) const {
@@ -2388,6 +2397,20 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     SetInputAt(1, l);
   }
 
+  if (left()->definition() == right()->definition()) {
+    switch (op_kind()) {
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+        return left()->definition();
+      case Token::kBIT_XOR:
+      case Token::kSUB:
+        return flow_graph->TryCreateConstantReplacementFor(this,
+                                                           Object::smi_zero());
+      default:
+        break;
+    }
+  }
+
   int64_t rhs;
   if (!Evaluator::ToIntegerConstant(right(), &rhs)) {
     return this;
@@ -3173,7 +3196,8 @@ Definition* UnboxLaneInstr::Canonicalize(FlowGraph* flow_graph) {
 
 bool BoxIntegerInstr::ValueFitsSmi() const {
   Range* range = value()->definition()->range();
-  return RangeUtils::Fits(range, RangeBoundary::kRangeBoundarySmi);
+  return RangeUtils::IsWithin(range, compiler::target::kSmiMin,
+                              compiler::target::kSmiMax);
 }
 
 Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {

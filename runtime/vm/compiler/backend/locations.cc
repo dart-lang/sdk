@@ -409,6 +409,8 @@ const char* Location::Name() const {
           return "0";
         case kSameAsFirstOrSecondInput:
           return "0|1";
+        case kMayBeSameAsFirstInput:
+          return "0?";
         case kRequiresStack:
           return "RS";
       }

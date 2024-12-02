@@ -1197,7 +1197,7 @@ class LibraryReader {
         fragment.element = element;
       } else {
         var element = TopLevelFunctionElementImpl(reference2, fragment);
-        _libraryElement.functions.add(element);
+        _libraryElement.topLevelFunctions.add(element);
       }
 
       var linkedData = FunctionElementLinkedData(

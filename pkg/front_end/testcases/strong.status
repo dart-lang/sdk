@@ -3,8 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Status file for the strong_suite.dart test suite. This is testing generating
-# Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
-# strong-mode enabled.
+# Kernel ASTs directly, that is, code in pkg/kernel.
 
 # Macros are in development
 macros/scope_access: SemiFuzzFailure

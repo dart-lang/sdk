@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test explicit import of dart:core in the source code..
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 library DynamicPrefixCoreTest.dart;
 
 import "package:expect/expect.dart";

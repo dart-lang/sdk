@@ -837,6 +837,55 @@ class C {
 ''');
   }
 
+  Future<void> test_functionType_method_inside_record_functionType() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2((m3,));
+  }
+
+  void m2((int Function(int),) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2((m3,));
+  }
+
+  void m2((int Function(int),) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
+  Future<void>
+  test_functionType_method_inside_record_functionType_named() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2((f: m3));
+  }
+
+  void m2(({int Function(int) f}) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2((f: m3));
+  }
+
+  void m2(({int Function(int) f}) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
   Future<void> test_functionType_method_targetClass() async {
     await resolveTestCode('''
 void f(A a) {

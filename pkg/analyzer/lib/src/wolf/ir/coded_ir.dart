@@ -30,7 +30,7 @@ class CodedIRContainer extends BaseIRContainer {
 
   @override
   int countParameters(TypeRef type) =>
-      (decodeType(type) as FunctionType).parameters.length;
+      (decodeType(type) as FunctionType).formalParameters.length;
 
   CallDescriptor decodeCallDescriptor(CallDescriptorRef callDescriptorRef) =>
       _callDescriptorTable[callDescriptorRef.index];

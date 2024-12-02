@@ -9,15 +9,12 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart' as analyzer;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/element.dart' as analyzer;
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 typedef StaticOptions =
     Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>;
@@ -87,67 +84,68 @@ class TypeDefinitionHandler
         DartType? type;
         if (node is NamedType) {
           originEntity = node.name2;
-          var element = node.element;
-          if (element is InterfaceElement) {
+          var element = node.element2;
+          if (element case InterfaceElement2 element) {
             type = element.thisType;
           }
         } else if (node is VariableDeclaration) {
           originEntity = node.name;
-          type = node.declaredElement?.type;
+          type = node.declaredFragment?.element.type;
         } else if (node is DeclaredIdentifier) {
           originEntity = node.name;
-          type = node.declaredElement?.type;
+          type = node.declaredFragment?.element.type;
         } else if (node is Expression) {
           originEntity = node;
           type = _getType(node);
         } else if (node is FormalParameter) {
           originEntity = node.name;
-          type = node.declaredElement?.type;
+          type = node.declaredFragment?.element.type;
         }
         if (originEntity == null) {
           return success(_emptyResult);
         }
 
-        analyzer.Element? element;
+        Element2? element;
         if (type is InterfaceType) {
-          element = type.element;
+          element = type.element3;
         } else if (type is TypeParameterType) {
-          element = type.element;
+          element = type.element3;
         }
-        if (element is! analyzer.ElementImpl) {
+        if (element is! Element2) {
           return success(_emptyResult);
         }
 
-        // Obtain a `LineInfo` for the targets file to map offsets.
-        var targetUnitElement =
-            element.thisOrAncestorOfType<CompilationUnitElement>();
-        var targetLineInfo = targetUnitElement?.lineInfo;
-        if (targetLineInfo == null) {
+        // TODO(dantup): Consider returning all fragments for the type instead
+        //  of only the first.
+        var targetFragment = element.nonSynthetic2.firstFragment;
+        var targetUnit = targetFragment.libraryFragment;
+        if (targetUnit == null) {
           return success(_emptyResult);
         }
 
-        var converter = AnalyzerConverter();
-        var location = converter.locationFromElement(element);
-        if (location == null) {
+        var nameOffset = targetFragment.nameOffset2;
+        var nameLength = targetFragment.name2?.length;
+        if (nameOffset == null || nameLength == null) {
           return success(_emptyResult);
         }
 
+        var nameRange = toRange(targetUnit.lineInfo, nameOffset, nameLength);
         if (supportsLocationLink) {
           return success(
             TextDocumentTypeDefinitionResult.t2([
               _toLocationLink(
-                result.lineInfo,
-                targetLineInfo,
                 originEntity,
-                element,
-                location,
+                result.lineInfo,
+                targetFragment,
+                nameRange,
+                targetUnit,
               ),
             ]),
           );
         } else {
           return success(
             TextDocumentTypeDefinitionResult.t1(
-              Definition.t2(_toLocation(location, targetLineInfo)),
+              Definition.t2(_toLocation(targetFragment, nameRange, targetUnit)),
             ),
           );
         }
@@ -155,37 +153,38 @@ class TypeDefinitionHandler
     });
   }
 
-  /// Creates an LSP [Location] for the server [location].
-  Location _toLocation(plugin.Location location, LineInfo lineInfo) {
+  /// Creates an LSP [Location] for navigating to [targetFragment].
+  Location _toLocation(
+    Fragment targetFragment,
+    Range targetNameRange,
+    LibraryFragment targetUnit,
+  ) {
     return Location(
-      uri: uriConverter.toClientUri(location.file),
-      range: toRange(lineInfo, location.offset, location.length),
+      uri: uriConverter.toClientUri(targetUnit.source.fullName),
+      range: targetNameRange,
     );
   }
 
-  /// Creates an LSP [LocationLink] for the server [targetLocation].
+  /// Creates an LSP [LocationLink] for navigating to [targetFragment].
   ///
   /// Uses [originLineInfo] and [originEntity] to compute `originSelectionRange`
-  /// and [targetLineInfo] and [targetElement] for code ranges.
+  /// and [targetFragment] and [targetUnit] for code ranges.
   LocationLink _toLocationLink(
-    LineInfo originLineInfo,
-    LineInfo targetLineInfo,
     SyntacticEntity originEntity,
-    analyzer.ElementImpl targetElement,
-    plugin.Location targetLocation,
+    LineInfo originLineInfo,
+    Fragment targetFragment,
+    Range targetNameRange,
+    LibraryFragment targetUnit,
   ) {
-    var nameRange = toRange(
-      targetLineInfo,
-      targetLocation.offset,
-      targetLocation.length,
-    );
+    var (codeOffset, codeLength) = switch (targetFragment) {
+      ElementImpl e => (e.codeOffset, e.codeLength),
+      _ => (null, null),
+    };
 
-    var codeOffset = targetElement.codeOffset;
-    var codeLength = targetElement.codeLength;
     var codeRange =
         codeOffset != null && codeLength != null
-            ? toRange(targetLineInfo, codeOffset, codeLength)
-            : nameRange;
+            ? toRange(targetUnit.lineInfo, codeOffset, codeLength)
+            : targetNameRange;
 
     return LocationLink(
       originSelectionRange: toRange(
@@ -193,9 +192,9 @@ class TypeDefinitionHandler
         originEntity.offset,
         originEntity.length,
       ),
-      targetUri: uriConverter.toClientUri(targetLocation.file),
+      targetUri: uriConverter.toClientUri(targetUnit.source.fullName),
       targetRange: codeRange,
-      targetSelectionRange: nameRange,
+      targetSelectionRange: targetNameRange,
     );
   }
 
@@ -203,10 +202,10 @@ class TypeDefinitionHandler
   /// invoking Go to Type Definition.
   static DartType? _getType(Expression node) {
     if (node is SimpleIdentifier) {
-      var element = node.staticElement;
-      if (element is InterfaceElement) {
+      var element = node.element;
+      if (element case InterfaceElement2 element) {
         return element.thisType;
-      } else if (element is VariableElement) {
+      } else if (element case VariableElement2 element) {
         if (node.inDeclarationContext()) {
           return element.type;
         }
@@ -215,9 +214,11 @@ class TypeDefinitionHandler
           return element.type;
         }
       } else if (node.inSetterContext()) {
-        var writeElement = node.writeElement;
-        if (writeElement is PropertyAccessorElement) {
-          return writeElement.variable2?.type;
+        var writeElement = node.writeOrReadElement2;
+        if (writeElement
+            case GetterElement(:var variable3) ||
+                SetterElement(:var variable3)) {
+          return variable3?.type;
         }
       }
     }

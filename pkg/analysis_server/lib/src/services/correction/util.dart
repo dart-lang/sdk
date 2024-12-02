@@ -227,6 +227,17 @@ LocalVariableElement? getLocalVariableElement(SimpleIdentifier node) {
   return null;
 }
 
+/// Return the variable's element if [node] is a reference to a local variable.
+///
+/// Returns `null` if it isn't a reference to a local variable.
+LocalVariableElement2? getLocalVariableElement2(SimpleIdentifier node) {
+  var element = node.element;
+  if (element is LocalVariableElement2) {
+    return element;
+  }
+  return null;
+}
+
 /// Return the nearest common ancestor of the given [nodes].
 AstNode? getNearestCommonAncestor(List<AstNode> nodes) {
   // may be no nodes
@@ -274,6 +285,17 @@ Expression? getNodeQualifier(SimpleIdentifier node) {
 ParameterElement? getParameterElement(SimpleIdentifier node) {
   var element = node.staticElement;
   if (element is ParameterElement) {
+    return element;
+  }
+  return null;
+}
+
+/// Returns the parameter's element if the [node] is a reference to a parameter.
+///
+/// Returns `null` if it isn't a reference to a parameter.
+FormalParameterElement? getParameterElement2(SimpleIdentifier node) {
+  var element = node.element;
+  if (element is FormalParameterElement) {
     return element;
   }
   return null;

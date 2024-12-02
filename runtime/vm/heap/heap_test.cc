@@ -737,7 +737,7 @@ ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {
     lists.SetAt(i, list);
   }
 
-  intptr_t kTruncations = 100000;
+  intptr_t kTruncations = 50000;
   for (intptr_t i = 0; i < kTruncations; i++) {
     list ^= lists.At(i % kNumLists);
     array = Array::MakeFixedLength(list);

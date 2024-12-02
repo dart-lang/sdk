@@ -7,7 +7,7 @@
 // for a field which has initializer with closure and captured receiver.
 
 class Foo<T> {
-  late final aField = () {
+  late var aField = () {
     return <T>[];
   };
 }

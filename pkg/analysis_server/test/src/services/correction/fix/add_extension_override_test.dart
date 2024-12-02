@@ -20,6 +20,39 @@ class AddExtensionOverrideTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_EXTENSION_OVERRIDE;
 
+  Future<void> test_method() async {
+    await resolveTestCode('''
+extension E on int {
+  void foo() {}
+}
+extension E2 on int {
+  void foo() {}
+}
+f() {
+  0.foo();
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  void foo() {}
+}
+extension E2 on int {
+  void foo() {}
+}
+f() {
+  E(0).foo();
+}
+''', matchFixMessage: "Add an extension override for 'E'");
+
+    await assertHasFixesWithoutApplying(
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Add an extension override for 'E'",
+        "Add an extension override for 'E2'",
+      ],
+    );
+  }
+
   Future<void> test_no_name() async {
     await resolveTestCode('''
 extension E on int {

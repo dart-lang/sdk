@@ -174,6 +174,14 @@ class ElementPrinter {
     });
   }
 
+  void writeElementList2(String name, List<Element2> elements) {
+    _sink.writeElements(name, elements, (element) {
+      _sink.writeIndentedLine(() {
+        writeElement2(element);
+      });
+    });
+  }
+
   void writelnNamedElement2(String name, Element2? element) {
     _sink.writeIndentedLine(() {
       _sink.write('$name: ');

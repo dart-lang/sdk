@@ -501,7 +501,6 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
 
   test_null() {
     isNotStrictlyNonNullable(nullNone);
-    isNotStrictlyNonNullable(nullQuestion);
   }
 
   test_typeParameter_boundNone() {

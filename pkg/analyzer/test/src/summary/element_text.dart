@@ -239,7 +239,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementList('getters', e, e.getters, _writeGetterElement);
       _writeElementList('setters', e, e.setters, _writeSetterElement);
       _writeElementList(
-          'functions', e, e.functions, _writeTopLevelFunctionElement);
+          'functions', e, e.topLevelFunctions, _writeTopLevelFunctionElement);
 
       if (configuration.withExportScope) {
         _sink.writelnWithIndent('exportedReferences');
@@ -449,6 +449,23 @@ class _Element2Writer extends _AbstractElementWriter {
   void _writeElementName(Element2 e) {
     var name = e.name3 ?? '<null-name>';
     _sink.write(name);
+
+    switch (e) {
+      case MethodElement2():
+        if (e.name3 == '-' && e.formalParameters.isEmpty) {
+          expect(e.lookupName, 'unary-');
+        } else {
+          expect(e.lookupName, e.name3);
+        }
+      case SetterElement():
+        if (e.name3 case var name?) {
+          expect(e.lookupName, '$name=');
+        } else {
+          expect(e.lookupName, isNull);
+        }
+      default:
+        expect(e.lookupName, e.name3);
+    }
   }
 
   void _writeElementReference(String name, Element2? e) {

@@ -48,7 +48,8 @@ class LinterLintCode extends LintCode {
 
       for (var MapEntry(key: errorName, value: codeInfo)
           in lintMessages['LintCode']!.entries) {
-        if (codeInfo.isRemoved) continue;
+        var lintName = codeInfo.sharedName ?? errorName;
+        if (messagesRuleInfo[lintName]!.removed) continue;
         out.write(codeInfo.toAnalyzerComments(indent: '  '));
         if (codeInfo.deprecatedMessage case var deprecatedMessage?) {
           out.writeln('  @Deprecated("$deprecatedMessage")');
@@ -57,7 +58,7 @@ class LinterLintCode extends LintCode {
         out.writeln(codeInfo.toAnalyzerCode(
           'LinterLintCode',
           errorName,
-          sharedNameReference: 'LintNames.${codeInfo.sharedName ?? errorName}',
+          sharedNameReference: 'LintNames.$lintName',
         ));
         out.writeln();
       }

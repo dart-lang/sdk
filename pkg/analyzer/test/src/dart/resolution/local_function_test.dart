@@ -23,11 +23,27 @@ f() {
   g();
 }
 ''');
-    var element = findElement.localFunction('g');
-    expect(element.name, 'g');
-    expect(element.nameOffset, 8);
 
-    assertElement(findNode.methodInvocation('g();'), element);
+    var element = findElement2.localFunction('g');
+    var fragment = element.firstFragment;
+    expect(fragment.name2, 'g');
+    expect(fragment.nameOffset2, 8);
+    expect(element.name3, 'g');
+
+    var node = findNode.methodInvocation('g();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: g@8
+    element: g@8
+    staticType: Null Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Null Function()
+  staticType: Null
+''');
   }
 
   test_element_ifStatement() async {
@@ -40,9 +56,11 @@ f() {
       error(WarningCode.UNUSED_ELEMENT, 23, 1),
     ]);
     var node = findNode.functionDeclaration('g() {}');
-    var element = node.declaredElement!;
-    expect(element.name, 'g');
-    expect(element.nameOffset, 23);
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    expect(fragment.name2, 'g');
+    expect(fragment.nameOffset2, 23);
+    expect(element.name3, 'g');
   }
 
   test_element_switchCase() async {
@@ -56,11 +74,27 @@ f(int a) {
   }
 }
 ''');
-    var element = findElement.localFunction('g');
-    expect(element.name, 'g');
-    expect(element.nameOffset, 44);
 
-    assertElement(findNode.methodInvocation('g();'), element);
+    var element = findElement2.localFunction('g');
+    var fragment = element.firstFragment;
+    expect(fragment.name2, 'g');
+    expect(fragment.nameOffset2, 44);
+    expect(element.name3, 'g');
+
+    var node = findNode.methodInvocation('g();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: g@44
+    element: g@44
+    staticType: Null Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Null Function()
+  staticType: Null
+''');
   }
 
   test_element_switchCase_language219() async {
@@ -75,10 +109,26 @@ f(int a) {
   }
 }
 ''');
-    var element = findElement.localFunction('g');
-    expect(element.name, 'g');
-    expect(element.nameOffset, 60);
 
-    assertElement(findNode.methodInvocation('g();'), element);
+    var element = findElement2.localFunction('g');
+    var fragment = element.firstFragment;
+    expect(fragment.name2, 'g');
+    expect(fragment.nameOffset2, 60);
+    expect(element.name3, 'g');
+
+    var node = findNode.methodInvocation('g();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    staticElement: g@60
+    element: g@60
+    staticType: Null Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Null Function()
+  staticType: Null
+''');
   }
 }

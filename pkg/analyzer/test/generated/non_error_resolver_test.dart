@@ -3082,6 +3082,16 @@ main() { lib1.f1(); lib.f2(); lib.f3(); }
 ''');
   }
 
+  test_type_parameter_extends_futureOr_of_extension_type() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+
+extension type E(int i) {}
+
+void f<T extends FutureOr<E>>() {}
+''');
+  }
+
   test_typeArgument_boundToFunctionType() async {
     await assertNoErrorsInCode('''
 class A<T extends void Function(T)>{}

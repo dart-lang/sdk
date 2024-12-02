@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test checking that static/instance field shadowing do not conflict.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 class A {
   int instanceFieldInA = 0;
   static int staticFieldInA = 0;

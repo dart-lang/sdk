@@ -799,7 +799,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   List<ExtensionElement2> get accessibleExtensions2 {
     return scope.accessibleExtensions
-        .map((element) => element.augmentation as ExtensionElement2)
+        .map((element) => element.augmented as ExtensionElement2)
         .toList();
   }
 
@@ -1914,6 +1914,9 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
   });
 
   @override
+  LibraryFragment get libraryFragment => unit;
+
+  @override
   Source get source => unit.source;
 }
 
@@ -2922,6 +2925,11 @@ abstract class ElementImpl implements Element, Element2 {
   }
 
   @override
+  String? get lookupName {
+    return name3;
+  }
+
+  @override
   List<ElementAnnotationImpl> get metadata {
     return _metadata;
   }
@@ -3274,6 +3282,11 @@ abstract class ElementImpl2 implements Element2 {
   @override
   ElementLocation? get location {
     return _cachedLocation ??= ElementLocationImpl.fromElement(this);
+  }
+
+  @override
+  String? get lookupName {
+    return name3;
   }
 
   @override
@@ -6219,12 +6232,17 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
 
   @override
   ConstructorElement2? get unnamedConstructor2 =>
-      unnamedConstructor.asElement2 as ConstructorElement2;
+      unnamedConstructor?.asElement2;
 
   @override
   ConstructorElement? getNamedConstructor(String name) {
     name = name.ifEqualThen('new', '');
     return constructors.firstWhereOrNull((element) => element.name == name);
+  }
+
+  @override
+  ConstructorElement2? getNamedConstructor2(String name) {
+    return constructors2.firstWhereOrNull((e) => e.name3 == name);
   }
 
   @override
@@ -6400,8 +6418,7 @@ class LabelElementImpl2 extends ElementImpl2
   LabelElement2 get baseElement => this;
 
   @override
-  ExecutableElement2? get enclosingElement2 =>
-      super.enclosingElement2 as ExecutableElement2?;
+  ExecutableElement2? get enclosingElement2 => null;
 
   @override
   LabelFragment get firstFragment => _wrappedElement;
@@ -6478,10 +6495,10 @@ class LibraryElementImpl extends ElementImpl
   List<ExtensionTypeElementImpl2> extensionTypes = [];
 
   @override
-  List<TopLevelFunctionElementImpl> functions = [];
+  List<MixinElementImpl2> mixins = [];
 
   @override
-  List<MixinElementImpl2> mixins = [];
+  List<TopLevelFunctionElementImpl> topLevelFunctions = [];
 
   @override
   List<TopLevelVariableElementImpl2> topLevelVariables = [];
@@ -6528,7 +6545,7 @@ class LibraryElementImpl extends ElementImpl
       ...classes,
       ...extensions,
       ...extensionTypes,
-      ...functions,
+      ...topLevelFunctions,
       ...mixins,
       ...typeAliases,
       ...getters,
@@ -6819,6 +6836,11 @@ class LibraryElementImpl extends ElementImpl
     return null;
   }
 
+  @override
+  ClassElement2? getClass2(String name) {
+    return _getElementByName(classes, name);
+  }
+
   EnumElement? getEnum(String name) {
     for (var unitElement in units) {
       var element = unitElement.getEnum(name);
@@ -6829,6 +6851,26 @@ class LibraryElementImpl extends ElementImpl
     return null;
   }
 
+  @override
+  EnumElement2? getEnum2(String name) {
+    return _getElementByName(enums, name);
+  }
+
+  @override
+  ExtensionElement2? getExtension(String name) {
+    return _getElementByName(extensions, name);
+  }
+
+  @override
+  ExtensionTypeElement2? getExtensionType(String name) {
+    return _getElementByName(extensionTypes, name);
+  }
+
+  @override
+  GetterElement? getGetter(String name) {
+    return _getElementByName(getters, name);
+  }
+
   MixinElement? getMixin(String name) {
     for (var unitElement in units) {
       var element = unitElement.getMixin(name);
@@ -6837,6 +6879,31 @@ class LibraryElementImpl extends ElementImpl
       }
     }
     return null;
+  }
+
+  @override
+  MixinElement2? getMixin2(String name) {
+    return _getElementByName(mixins, name);
+  }
+
+  @override
+  SetterElement? getSetter(String name) {
+    return _getElementByName(setters, name);
+  }
+
+  @override
+  TopLevelFunctionElement? getTopLevelFunction(String name) {
+    return _getElementByName(topLevelFunctions, name);
+  }
+
+  @override
+  TopLevelVariableElement2? getTopLevelVariable(String name) {
+    return _getElementByName(topLevelVariables, name);
+  }
+
+  @override
+  TypeAliasElement2? getTypeAlias(String name) {
+    return _getElementByName(typeAliases, name);
   }
 
   /// Return `true` if [reference] comes only from deprecated exports.
@@ -6870,6 +6937,13 @@ class LibraryElementImpl extends ElementImpl
       }
     }
     return prefixes.toList(growable: false);
+  }
+
+  static T? _getElementByName<T extends Element2>(
+    List<T> elements,
+    String name,
+  ) {
+    return elements.firstWhereOrNull((e) => e.name3 == name);
   }
 }
 
@@ -7773,6 +7847,14 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   ElementKind get kind => ElementKind.METHOD;
+
+  @override
+  String? get lookupName {
+    if (name3 == '-' && formalParameters.isEmpty) {
+      return 'unary-';
+    }
+    return name3;
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -9066,6 +9148,10 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
     reference.element2 = this;
   }
 
+  PrefixElementImpl get asElement {
+    return imports.first.prefix!.element;
+  }
+
   @override
   Null get enclosingElement2 => null;
 
@@ -9100,8 +9186,10 @@ class PrefixElementImpl2 extends ElementImpl2 implements PrefixElement2 {
   String? get name3 => firstFragment.name2;
 
   @override
-  // TODO(scheglov): implement scope
-  Scope get scope => throw UnimplementedError();
+  Scope get scope {
+    var libraryFragment = firstFragment.libraryFragment;
+    return LibraryFragmentScope(libraryFragment);
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -9749,6 +9837,14 @@ class SetterElementImpl extends PropertyAccessorElementImpl2
   ElementKind get kind => ElementKind.SETTER;
 
   @override
+  String? get lookupName {
+    if (name3 case var name?) {
+      return '$name=';
+    }
+    return null;
+  }
+
+  @override
   Element2 get nonSynthetic2 {
     if (!isSynthetic) {
       return this;
@@ -9866,20 +9962,12 @@ class SuperFormalParameterElementImpl2 extends FormalParameterElementImpl
   SuperFormalParameterElementImpl2(super.firstFragment);
 
   @override
-  SuperFormalParameterFragment get firstFragment =>
-      super.firstFragment as SuperFormalParameterFragment;
+  SuperFormalParameterElementImpl get firstFragment =>
+      super.firstFragment as SuperFormalParameterElementImpl;
 
   @override
   FormalParameterElement? get superConstructorParameter2 {
-    var superConstructorParameter =
-        (firstFragment as SuperFormalParameterElementImpl)
-            .superConstructorParameter;
-    return switch (superConstructorParameter) {
-      ParameterMember() =>
-        superConstructorParameter.asElement2 as FormalParameterElement?,
-      FormalParameterFragment()? => superConstructorParameter.element,
-      _ => null,
-    };
+    return firstFragment.superConstructorParameter?.asElement2;
   }
 }
 

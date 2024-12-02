@@ -337,6 +337,7 @@ class Location : public ValueObject {
     kWritableRegister,
     kSameAsFirstInput,
     kSameAsFirstOrSecondInput,
+    kMayBeSameAsFirstInput,
     // Forces the location to be spilled to the stack.
     // Currently only used for `Handle` arguments in `FfiCall` instructions.
     // Only available in optimized mode.
@@ -396,6 +397,12 @@ class Location : public ValueObject {
   // of the value then it is cheap to destroy.
   static Location SameAsFirstOrSecondInput() {
     return UnallocatedLocation(kSameAsFirstOrSecondInput);
+  }
+
+  // Used for a three address instruction that can let its output be
+  // the same as an input if convenient.
+  static Location MayBeSameAsFirstInput() {
+    return UnallocatedLocation(kMayBeSameAsFirstInput);
   }
 
   // Empty location. Used if there the location should be ignored.

@@ -59,6 +59,6 @@ class AnalysisGetSignatureHandler extends LegacyHandler {
       return;
     }
 
-    sendResult(signature);
+    sendResult(signature.toLegacyProtocol());
   }
 }

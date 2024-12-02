@@ -1,0 +1,4 @@
+extension Foo on dynamic {
+  var foo = this();
+  bar() {}
+}

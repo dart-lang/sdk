@@ -78,7 +78,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
   hasCrashed = true;
   Map<String, dynamic> data = <String, dynamic>{};
   data["type"] = "crash";
-  data["client"] = "package:fasta";
+  data["client"] = "package:cfe";
   if (uri != null) data["uri"] = "$uri";
   if (charOffset != null) data["offset"] = charOffset;
   data["error"] = safeToString(error);

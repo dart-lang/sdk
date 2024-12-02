@@ -126,7 +126,7 @@ class PrefixFragment {
           imported!,
           name,
           importOffset,
-          toKernelCombinators(combinators));
+          toCombinators(combinators));
     }
 
     return builder = new PrefixBuilder(
