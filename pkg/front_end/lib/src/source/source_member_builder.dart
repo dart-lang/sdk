@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/common.dart';
+import '../base/name_space.dart';
 import '../base/problems.dart' show unsupported;
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -49,8 +50,8 @@ abstract class SourceMemberBuilder implements MemberBuilder {
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
 
   /// Checks the signature types of this member.
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment);
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment);
 
   /// Returns `true` if this member is declared using the `augment` modifier.
   bool get isAugmentation;

@@ -21,6 +21,7 @@ import '../base/messages.dart'
         messageSuperInitializerNotLast,
         noLength;
 import '../base/modifiers.dart';
+import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -362,8 +363,8 @@ abstract class AbstractSourceConstructorBuilder
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
     library.checkTypesInConstructorBuilder(this, formals, typeEnvironment);
   }
 
@@ -986,13 +987,13 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
-    super.checkTypes(library, typeEnvironment);
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
+    super.checkTypes(library, nameSpace, typeEnvironment);
     List<DeclaredSourceConstructorBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (DeclaredSourceConstructorBuilder augmentation in augmentations) {
-        augmentation.checkTypes(library, typeEnvironment);
+        augmentation.checkTypes(library, nameSpace, typeEnvironment);
       }
     }
   }
@@ -1214,8 +1215,8 @@ class SyntheticSourceConstructorBuilder extends MemberBuilderImpl
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {}
 }
 
 class SourceExtensionTypeConstructorBuilder

@@ -14,17 +14,13 @@ import '../builder/builder_mixins.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
-import 'source_constructor_builder.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
-import 'source_procedure_builder.dart';
 
 abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
   void buildScopes(LibraryBuilder coreLibrary);
@@ -155,30 +151,13 @@ mixin SourceDeclarationBuilderMixin
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     forEach((String name, Builder builder) {
-      if (builder is SourceFieldBuilder) {
-        // Check fields.
-        libraryBuilder.checkTypesInField(builder, typeEnvironment);
-      } else if (builder is SourceProcedureBuilder) {
-        // Check procedures
-        libraryBuilder.checkTypesInFunctionBuilder(builder, typeEnvironment);
-        if (builder.isGetter) {
-          Builder? setterDeclaration =
-              nameSpace.lookupLocalMember(builder.name, setter: true);
-          if (setterDeclaration != null) {
-            libraryBuilder.checkGetterSetterTypes(builder,
-                setterDeclaration as ProcedureBuilder, typeEnvironment);
-          }
-        }
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        assert(false, "Unexpected member: $builder.");
-      }
+      (builder as SourceMemberBuilder)
+          .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     });
 
     nameSpace.forEachConstructor((String name, MemberBuilder builder) {
-      if (builder is SourceConstructorBuilder) {
-        builder.checkTypes(libraryBuilder, typeEnvironment);
-      }
+      (builder as SourceMemberBuilder)
+          .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     });
   }
 

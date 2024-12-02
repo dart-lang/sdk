@@ -7,6 +7,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/modifiers.dart';
+import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -672,13 +673,29 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
-    library.checkTypesInFunctionBuilder(this, typeEnvironment);
+  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
+    List<TypeParameterBuilder>? typeParameters = this.typeParameters;
+    if (typeParameters != null && typeParameters.isNotEmpty) {
+      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+    }
+    libraryBuilder.checkTypesInFunctionBuilder(this, typeEnvironment);
     List<SourceProcedureBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceProcedureBuilder augmentation in augmentations) {
-        augmentation.checkTypes(library, typeEnvironment);
+        augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+      }
+    }
+    if (isGetter) {
+      if (!isClassMember) {
+        // Getter/setter type conflict for class members is handled in the class
+        // hierarchy builder.
+        Builder? setterDeclaration =
+            nameSpace.lookupLocalMember(name, setter: true);
+        if (setterDeclaration != null) {
+          libraryBuilder.checkGetterSetterTypes(
+              this, setterDeclaration as ProcedureBuilder, typeEnvironment);
+        }
       }
     }
   }
