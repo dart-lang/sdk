@@ -1511,7 +1511,7 @@ class SuggestionBuilder {
       );
       hasNamedParameters = namedParameters.isNotEmpty;
 
-      defaultArgumentList = computeCompletionDefaultArgumentList2(
+      defaultArgumentList = computeCompletionDefaultArgumentList(
         element,
         requiredParameters,
         namedParameters,

@@ -96,7 +96,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       }
 
       var codeStyleOptions = getCodeStyleOptions(unitResult.file);
-      var defaultValue = getDefaultStringParameterValue2(
+      var defaultValue = getDefaultStringParameterValue(
         missingParameter,
         codeStyleOptions.preferredQuoteForStrings,
       );

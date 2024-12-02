@@ -106,7 +106,7 @@ class RelevanceComputer {
       case ClassSuggestion():
         return computeTopLevelRelevance2(
           suggestion.element,
-          elementType: instantiateInstanceElement2(
+          elementType: instantiateInstanceElement(
             suggestion.element,
             neverType,
           ),
@@ -129,7 +129,7 @@ class RelevanceComputer {
       case EnumSuggestion():
         return computeTopLevelRelevance(
           suggestion.element,
-          elementType: instantiateInstanceElement2(
+          elementType: instantiateInstanceElement(
             suggestion.element,
             neverType,
           ),
@@ -144,7 +144,7 @@ class RelevanceComputer {
       case ExtensionTypeSuggestion():
         return computeTopLevelRelevance(
           suggestion.element,
-          elementType: instantiateInstanceElement2(
+          elementType: instantiateInstanceElement(
             suggestion.element,
             neverType,
           ),
@@ -201,7 +201,7 @@ class RelevanceComputer {
       case MixinSuggestion():
         return computeTopLevelRelevance(
           suggestion.element,
-          elementType: instantiateInstanceElement2(
+          elementType: instantiateInstanceElement(
             suggestion.element,
             neverType,
           ),
@@ -427,7 +427,7 @@ class RelevanceComputer {
     bool isNotImportedLibrary,
   ) {
     var enclosingClass = element.enclosingElement2;
-    var returnType = instantiateInstanceElement2(enclosingClass, neverType);
+    var returnType = instantiateInstanceElement(enclosingClass, neverType);
     return computeTopLevelRelevance(
       element,
       elementType: returnType,

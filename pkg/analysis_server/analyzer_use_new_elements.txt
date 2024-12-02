@@ -32,7 +32,6 @@ lib/src/services/completion/dart/declaration_helper.dart
 lib/src/services/completion/dart/identifier_helper.dart
 lib/src/services/completion/dart/in_scope_completion_pass.dart
 lib/src/services/completion/dart/not_imported_completion_pass.dart
-lib/src/services/completion/dart/utilities.dart
 lib/src/services/completion/dart/visibility_tracker.dart
 lib/src/services/completion/postfix/postfix_completion.dart
 lib/src/services/completion/statement/statement_completion.dart
