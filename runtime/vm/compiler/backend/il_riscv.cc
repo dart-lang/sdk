@@ -3142,7 +3142,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   // Right (locs.in(1)) is not constant.
   const Register right = locs.in(1).reg();
-  Range* right_range = shift_left->right_range();
   if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
@@ -3157,7 +3156,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       const intptr_t max_right =
           compiler::target::kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
+          !shift_left->IsShiftCountInRange(max_right - 1);
       if (right_needs_check) {
         __ CompareObject(right, Smi::ZoneHandle(Smi::New(max_right)));
         __ BranchIf(CS, deopt);
@@ -3169,10 +3168,10 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
+      !shift_left->IsShiftCountInRange(Smi::kBits - 1);
   if (!shift_left->can_overflow()) {
     if (right_needs_check) {
-      if (!RangeUtils::IsPositive(right_range)) {
+      if (!shift_left->RightOperandIsPositive()) {
         ASSERT(shift_left->CanDeoptimize());
         __ bltz(right, deopt);
       }
@@ -3213,7 +3212,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (op_kind() == Token::kTRUNCDIV) {
     summary->set_in(0, Location::RequiresRegister());
-    if (RightIsPowerOfTwoConstant()) {
+    if (RightOperandIsPowerOfTwoConstant()) {
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(right_constant));
     } else {
@@ -3401,11 +3400,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kADD: {
       if (deopt == nullptr) {
         __ add(result, left, right);
-      } else if (RangeUtils::IsPositive(right_range())) {
+      } else if (RightOperandIsPositive()) {
         ASSERT(result != left);
         __ add(result, left, right);
         __ blt(result, left, deopt);
-      } else if (RangeUtils::IsNegative(right_range())) {
+      } else if (RightOperandIsNegative()) {
         ASSERT(result != left);
         __ add(result, left, right);
         __ bgt(result, left, deopt);
@@ -3417,11 +3416,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kSUB: {
       if (deopt == nullptr) {
         __ sub(result, left, right);
-      } else if (RangeUtils::IsPositive(right_range())) {
+      } else if (RightOperandIsPositive()) {
         ASSERT(result != left);
         __ sub(result, left, right);
         __ bgt(result, left, deopt);
-      } else if (RangeUtils::IsNegative(right_range())) {
+      } else if (RightOperandIsNegative()) {
         ASSERT(result != left);
         __ sub(result, left, right);
         __ blt(result, left, deopt);
@@ -3456,7 +3455,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      if (RangeUtils::CanBeZero(right_range())) {
+      if (RightOperandCanBeZero()) {
         // Handle divide by zero in runtime.
         __ beqz(right, deopt);
       }
@@ -3465,7 +3464,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ div(TMP, TMP, TMP2);
       __ SmiTag(result, TMP);
 
-      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+      if (RightOperandCanBeMinusOne()) {
         // Check the corner case of dividing the 'MIN_SMI' with -1, in which
         // case we cannot tag the result.
         __ SmiUntag(TMP2, result);
@@ -3474,7 +3473,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      if (RangeUtils::CanBeZero(right_range())) {
+      if (RightOperandCanBeZero()) {
         // Handle divide by zero in runtime.
         __ beqz(right, deopt);
       }
@@ -3511,7 +3510,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(TMP, right);
       // asrv[w] operation masks the count to 6/5 bits.
       const intptr_t kCountLimit = XLEN - 1;
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
+      if (!IsShiftCountInRange(kCountLimit)) {
         __ LoadImmediate(TMP2, kCountLimit);
         compiler::Label shift_in_bounds;
         __ ble(TMP, TMP2, &shift_in_bounds, compiler::Assembler::kNearJump);
@@ -3542,10 +3541,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // If left operand is non-negative, the result always
       // fits into Smi range.
       //
-      if (!RangeUtils::OnlyLessThanOrEqualTo(
-              right_range(), 64 - compiler::target::kSmiBits - 1)) {
-        if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(),
-                                               kBitsPerInt64 - 1)) {
+      if (!IsShiftCountInRange(64 - compiler::target::kSmiBits - 1)) {
+        if (!IsShiftCountInRange(kBitsPerInt64 - 1)) {
           ASSERT(result != left);
           ASSERT(result != right);
           __ li(result, 0);
@@ -3578,8 +3575,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       // At this point left operand is non-negative, so unsigned shift
       // can't overflow.
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(),
-                                             compiler::target::kSmiBits - 1)) {
+      if (!IsShiftCountInRange(compiler::target::kSmiBits - 1)) {
         ASSERT(result != left);
         ASSERT(result != right);
         __ li(result, 0);
@@ -3602,7 +3598,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       const intptr_t kCountLimit = XLEN - 1;
       COMPILE_ASSERT(kCountLimit + 1 == kBitsPerInt64);
       compiler::Label done;
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
+      if (!IsShiftCountInRange(kCountLimit)) {
         __ LoadImmediate(TMP2, kCountLimit);
         compiler::Label shift_in_bounds;
         __ ble(TMP, TMP2, &shift_in_bounds, compiler::Assembler::kNearJump);
@@ -5377,14 +5373,12 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
  public:
   Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
                       Register divisor,
-                      Range* divisor_range,
                       Register tmp,
                       Register out)
       : ThrowErrorSlowPathCode(instruction,
                                kIntegerDivisionByZeroExceptionRuntimeEntry),
         is_mod_(instruction->op_kind() == Token::kMOD),
         divisor_(divisor),
-        divisor_range_(divisor_range),
         tmp_(tmp),
         out_(out),
         adjust_sign_label_() {}
@@ -5406,7 +5400,13 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
     //   out += divisor;
     if (has_adjust_sign()) {
       __ Bind(adjust_sign_label());
-      if (RangeUtils::Overlaps(divisor_range_, -1, 1)) {
+      if (instruction()->AsBinaryInt64Op()->RightOperandIsPositive()) {
+        // Always positive.
+        __ add(out_, out_, divisor_);
+      } else if (instruction()->AsBinaryInt64Op()->RightOperandIsNegative()) {
+        // Always negative.
+        __ sub(out_, out_, divisor_);
+      } else {
         // General case.
         compiler::Label adjust, done;
         __ bgez(divisor_, &adjust, compiler::Assembler::kNearJump);
@@ -5415,12 +5415,6 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
         __ Bind(&adjust);
         __ add(out_, out_, divisor_);
         __ Bind(&done);
-      } else if (divisor_range_->IsPositive()) {
-        // Always positive.
-        __ add(out_, out_, divisor_);
-      } else {
-        // Always negative.
-        __ sub(out_, out_, divisor_);
       }
       __ j(exit_label());
     }
@@ -5428,7 +5422,9 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
 
   const char* name() override { return "int64 divide"; }
 
-  bool has_divide_by_zero() { return RangeUtils::CanBeZero(divisor_range_); }
+  bool has_divide_by_zero() {
+    return instruction()->AsBinaryInt64Op()->RightOperandCanBeZero();
+  }
 
   bool has_adjust_sign() { return is_mod_; }
 
@@ -5442,7 +5438,6 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
  private:
   bool is_mod_;
   Register divisor_;
-  Range* divisor_range_;
   Register tmp_;
   Register out_;
   compiler::Label adjust_sign_label_;
@@ -5462,9 +5457,8 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
   // other architectures?
 
   // Prepare a slow path.
-  Range* right_range = instruction->right()->definition()->range();
   Int64DivideSlowPath* slow_path =
-      new (Z) Int64DivideSlowPath(instruction, right, right_range, tmp, out);
+      new (Z) Int64DivideSlowPath(instruction, right, tmp, out);
 
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
@@ -5504,7 +5498,7 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
         zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
     summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                       Location::RequiresRegister()));
-    if (RightIsPositive() && right()->definition()->IsConstant()) {
+    if (RightOperandIsPositive() && right()->definition()->IsConstant()) {
       ConstantInstr* constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(constant));
     } else {
@@ -5547,8 +5541,9 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary* summary = new (zone) LocationSummary(
           zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
       summary->set_in(0, Location::RequiresRegister());
-      summary->set_in(1, RightIsPositive() ? LocationRegisterOrConstant(right())
-                                           : Location::RequiresRegister());
+      summary->set_in(1, RightOperandIsPositive()
+                             ? LocationRegisterOrConstant(right())
+                             : Location::RequiresRegister());
       summary->set_out(0, Location::RequiresRegister());
       return summary;
     }
