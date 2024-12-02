@@ -651,9 +651,11 @@ class SyntheticTypeName implements TypeName {
   String get fullName => name;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fullNameOffset => nameOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fullNameLength => noLength;
 }
 

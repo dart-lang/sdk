@@ -250,11 +250,6 @@ mixin SourceDeclarationBuilderMixin
       Reference memberReference,
       Reference? tearOffReference);
 
-  /// Type parameters declared.
-  ///
-  /// This is `null` if the declaration is not generic.
-  List<NominalParameterBuilder>? get typeParameters;
-
   /// The scope in which the [typeParameters] are declared.
   LookupScope get typeParameterScope;
 

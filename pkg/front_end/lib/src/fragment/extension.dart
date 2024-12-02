@@ -66,6 +66,7 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
     _extensionThisType = type;
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Returns the 'extension this type' of the extension declaration prepared
   /// for by this builder.
   ///

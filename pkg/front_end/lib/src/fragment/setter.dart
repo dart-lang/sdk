@@ -17,6 +17,7 @@ class SetterFragment implements Fragment, FunctionFragment {
   final List<MetadataBuilder>? metadata;
   final Modifiers modifiers;
   final TypeBuilder returnType;
+  final NominalParameterNameSpace typeParameterNameSpace;
   final List<NominalParameterBuilder>? typeParameters;
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
@@ -37,6 +38,7 @@ class SetterFragment implements Fragment, FunctionFragment {
       required this.modifiers,
       required this.returnType,
       required this.typeParameters,
+      required this.typeParameterNameSpace,
       required this.typeParameterScope,
       required this.formals,
       required this.asyncModifier,

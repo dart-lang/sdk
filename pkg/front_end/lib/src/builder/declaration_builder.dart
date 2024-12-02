@@ -11,6 +11,11 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
 
   ConstructorScope get constructorScope;
 
+  /// Type parameters declared on this declaration.
+  ///
+  /// This is `null` if the declaration is not generic.
+  List<NominalParameterBuilder>? get typeParameters;
+
   LibraryBuilder get libraryBuilder;
 
   @override

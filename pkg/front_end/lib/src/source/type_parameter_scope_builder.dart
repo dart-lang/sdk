@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 
+import '../api_prototype/lowering_predicates.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
@@ -12,11 +14,16 @@ import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/synthesized_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
+import 'builder_factory.dart';
 import 'name_scheme.dart';
 import 'source_builder_factory.dart';
 import 'source_class_builder.dart';
@@ -1018,7 +1025,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
     required SourceLoader loader,
     required SourceLibraryBuilder enclosingLibraryBuilder,
     DeclarationBuilder? declarationBuilder,
-    required List<NominalParameterBuilder> unboundNominalVariables,
+    required List<NominalParameterBuilder> unboundNominalParameters,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
     required List<_AddBuilder> builders,
     required IndexedLibrary? indexedLibrary,
@@ -1224,7 +1231,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             name: fragment.name,
             typeParameters: fragment.typeParameters,
             supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalVariables: unboundNominalVariables,
+                unboundNominalParameters: unboundNominalParameters,
                 compilationUnitScope: fragment.compilationUnitScope,
                 problemReporting: problemReporting,
                 objectTypeBuilder: loader.target.objectType,
@@ -1279,7 +1286,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             name: fragment.name,
             typeParameters: fragment.typeParameters,
             supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalVariables: unboundNominalVariables,
+                unboundNominalParameters: unboundNominalParameters,
                 compilationUnitScope: fragment.compilationUnitScope,
                 problemReporting: problemReporting,
                 objectTypeBuilder: loader.target.objectType,
@@ -1329,7 +1336,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
       case NamedMixinApplicationFragment():
         BuilderFactoryImpl.applyMixins(
-            unboundNominalVariables: unboundNominalVariables,
+            unboundNominalParameters: unboundNominalParameters,
             compilationUnitScope: fragment.compilationUnitScope,
             problemReporting: problemReporting,
             objectTypeBuilder: loader.target.objectType,
@@ -1368,7 +1375,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             typeParameters: fragment.typeParameters,
             underscoreEnumTypeBuilder: loader.target.underscoreEnumType,
             supertypeBuilder: BuilderFactoryImpl.applyMixins(
-                unboundNominalVariables: unboundNominalVariables,
+                unboundNominalParameters: unboundNominalParameters,
                 compilationUnitScope: fragment.compilationUnitScope,
                 problemReporting: problemReporting,
                 objectTypeBuilder: loader.target.objectType,
@@ -1589,9 +1596,21 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
       case GetterFragment():
         String name = fragment.name;
-
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
+
+        var (
+          List<NominalParameterBuilder>? typeParameters,
+          List<FormalParameterBuilder>? formals
+        ) = _createTypeParametersAndFormals(declarationBuilder,
+            fragment.typeParameters, fragment.formals, unboundNominalParameters,
+            isInstanceMember: isInstanceMember,
+            fileUri: fragment.fileUri,
+            nameOffset: fragment.nameOffset);
+
+        fragment.typeParameterNameSpace.addTypeParameters(
+            problemReporting, typeParameters,
+            ownerName: name, allowNameConflict: true);
 
         NameScheme nameScheme = new NameScheme(
             containerName: containerName,
@@ -1620,8 +1639,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             modifiers: fragment.modifiers,
             returnType: fragment.returnType,
             name: name,
-            typeParameters: fragment.typeParameters,
-            formals: fragment.formals,
+            typeParameters: typeParameters,
+            formals: formals,
             kind: kind,
             libraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
@@ -1645,9 +1664,22 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
       case SetterFragment():
         String name = fragment.name;
-
         final bool isInstanceMember = containerType != ContainerType.Library &&
             !fragment.modifiers.isStatic;
+
+        var (
+          List<NominalParameterBuilder>? typeParameters,
+          List<FormalParameterBuilder>? formals
+        ) = _createTypeParametersAndFormals(declarationBuilder,
+            fragment.typeParameters, fragment.formals, unboundNominalParameters,
+            isInstanceMember: isInstanceMember,
+            fileUri: fragment.fileUri,
+            nameOffset: fragment.nameOffset);
+
+        fragment.typeParameterNameSpace.addTypeParameters(
+            problemReporting, typeParameters,
+            ownerName: name, allowNameConflict: true);
+
         final bool isExtensionMember = containerType == ContainerType.Extension;
         final bool isExtensionTypeMember =
             containerType == ContainerType.ExtensionType;
@@ -1686,8 +1718,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             modifiers: fragment.modifiers,
             returnType: fragment.returnType,
             name: name,
-            typeParameters: fragment.typeParameters,
-            formals: fragment.formals,
+            typeParameters: typeParameters,
+            formals: formals,
             kind: kind,
             libraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
@@ -1713,11 +1745,25 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
       case MethodFragment():
         String name = fragment.name;
+        final bool isInstanceMember = containerType != ContainerType.Library &&
+            !fragment.modifiers.isStatic;
+
+        var (
+          List<NominalParameterBuilder>? typeParameters,
+          List<FormalParameterBuilder>? formals
+        ) = _createTypeParametersAndFormals(declarationBuilder,
+            fragment.typeParameters, fragment.formals, unboundNominalParameters,
+            isInstanceMember: isInstanceMember,
+            fileUri: fragment.fileUri,
+            nameOffset: fragment.nameOffset);
+
+        fragment.typeParameterNameSpace.addTypeParameters(
+            problemReporting, typeParameters,
+            ownerName: name, allowNameConflict: true);
+
         ProcedureKind kind = fragment.kind;
         assert(kind == ProcedureKind.Method || kind == ProcedureKind.Operator);
 
-        final bool isInstanceMember = containerType != ContainerType.Library &&
-            !fragment.modifiers.isStatic;
         final bool isExtensionMember = containerType == ContainerType.Extension;
         final bool isExtensionTypeMember =
             containerType == ContainerType.ExtensionType;
@@ -1755,8 +1801,8 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
             modifiers: fragment.modifiers,
             returnType: fragment.returnType,
             name: name,
-            typeParameters: fragment.typeParameters,
-            formals: fragment.formals,
+            typeParameters: typeParameters,
+            formals: formals,
             kind: kind,
             libraryBuilder: enclosingLibraryBuilder,
             declarationBuilder: declarationBuilder,
@@ -1778,8 +1824,32 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               procedureBuilder;
         }
       case ConstructorFragment():
-        String name = fragment.name;
+        List<NominalParameterBuilder>? typeParameters = fragment.typeParameters;
+        switch (declarationBuilder!) {
+          case ExtensionBuilder():
+          case ExtensionTypeDeclarationBuilder():
+            NominalParameterCopy? nominalVariableCopy =
+                BuilderFactoryImpl.copyTypeParameters(
+                    unboundNominalParameters, declarationBuilder.typeParameters,
+                    kind: TypeParameterKind.extensionSynthesized,
+                    instanceTypeParameterAccess:
+                        InstanceTypeParameterAccessState.Allowed);
+            if (nominalVariableCopy != null) {
+              if (typeParameters != null) {
+                // Coverage-ignore-block(suite): Not run.
+                typeParameters = nominalVariableCopy.newParameterBuilders
+                  ..addAll(typeParameters);
+              } else {
+                typeParameters = nominalVariableCopy.newParameterBuilders;
+              }
+            }
+          case ClassBuilder():
+        }
+        fragment.typeParameterNameSpace.addTypeParameters(
+            problemReporting, typeParameters,
+            ownerName: fragment.name, allowNameConflict: true);
 
+        String name = fragment.name;
         NameScheme nameScheme = new NameScheme(
             isInstanceMember: false,
             containerName: containerName,
@@ -1805,7 +1875,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: name,
-              typeParameters: fragment.typeParameters,
+              typeParameters: typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
               declarationBuilder: declarationBuilder,
@@ -1826,10 +1896,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: fragment.name,
-              typeParameters: fragment.typeParameters,
+              typeParameters: typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder!,
+              declarationBuilder: declarationBuilder,
               fileUri: fragment.fileUri,
               startOffset: fragment.startOffset,
               fileOffset: fragment.fullNameOffset,
@@ -2041,7 +2111,7 @@ class LibraryNameSpaceBuilder {
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
     required ProblemReporting problemReporting,
-    required List<NominalParameterBuilder> unboundNominalVariables,
+    required List<NominalParameterBuilder> unboundNominalParameters,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
   }) {
     Map<String, Builder> getables = {};
@@ -2128,7 +2198,7 @@ class LibraryNameSpaceBuilder {
           loader: enclosingLibraryBuilder.loader,
           problemReporting: problemReporting,
           enclosingLibraryBuilder: enclosingLibraryBuilder,
-          unboundNominalVariables: unboundNominalVariables,
+          unboundNominalParameters: unboundNominalParameters,
           mixinApplications: mixinApplications,
           builders: addBuilders,
           indexedLibrary: indexedLibrary,
@@ -2346,6 +2416,7 @@ class DeclarationNameSpaceBuilder {
       required ContainerType containerType,
       required ContainerName containerName,
       bool includeConstructors = true}) {
+    List<NominalParameterBuilder> unboundNominalParameters = [];
     Map<String, Builder> getables = {};
     Map<String, MemberBuilder> setables = {};
     Map<String, MemberBuilder> constructors = {};
@@ -2363,8 +2434,8 @@ class DeclarationNameSpaceBuilder {
           enclosingLibraryBuilder: enclosingLibraryBuilder,
           declarationBuilder: declarationBuilder,
           builders: addBuilders,
-          // TODO(johnniwinther): Avoid passing these:
-          unboundNominalVariables: const [],
+          unboundNominalParameters: unboundNominalParameters,
+          // TODO(johnniwinther): Avoid passing this:
           mixinApplications: const {},
           indexedLibrary: indexedLibrary,
           indexedContainer: indexedContainer,
@@ -2384,6 +2455,9 @@ class DeclarationNameSpaceBuilder {
     getables.forEach(checkConflicts);
     setables.forEach(checkConflicts);
     constructors.forEach(checkConflicts);
+
+    enclosingLibraryBuilder
+        .registerUnboundNominalParameters(unboundNominalParameters);
 
     return new DeclarationNameSpaceImpl(
         getables: getables,
@@ -2504,4 +2578,114 @@ bool isDuplicatedDeclaration(Builder? existing, Builder other) {
         !other.isMixinApplication;
   }
   return true;
+}
+
+/// Creates synthesized type parameters and formals for extension and extension
+/// type instance members.
+(
+  List<NominalParameterBuilder>? typeParameters,
+  List<FormalParameterBuilder>? formals
+) _createTypeParametersAndFormals(
+    DeclarationBuilder? declarationBuilder,
+    List<NominalParameterBuilder>? typeParameters,
+    List<FormalParameterBuilder>? formals,
+    List<NominalParameterBuilder> _unboundNominalVariables,
+    {required bool isInstanceMember,
+    required Uri fileUri,
+    required int nameOffset}) {
+  if (isInstanceMember) {
+    switch (declarationBuilder) {
+      case ExtensionBuilder():
+        NominalParameterCopy? nominalVariableCopy =
+            BuilderFactoryImpl.copyTypeParameters(
+                _unboundNominalVariables, declarationBuilder.typeParameters,
+                kind: TypeParameterKind.extensionSynthesized,
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Allowed);
+
+        if (nominalVariableCopy != null) {
+          if (typeParameters != null) {
+            typeParameters = nominalVariableCopy.newParameterBuilders
+              ..addAll(typeParameters);
+          } else {
+            typeParameters = nominalVariableCopy.newParameterBuilders;
+          }
+        }
+
+        TypeBuilder thisType = declarationBuilder.onType;
+        if (nominalVariableCopy != null) {
+          thisType = new SynthesizedTypeBuilder(
+              thisType,
+              nominalVariableCopy.newToOldParameterMap,
+              nominalVariableCopy.substitutionMap);
+        }
+        List<FormalParameterBuilder> synthesizedFormals = [
+          new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+              Modifiers.Final, thisType, syntheticThisName, nameOffset,
+              fileUri: fileUri,
+              isExtensionThis: true,
+              hasImmediatelyDeclaredInitializer: false)
+        ];
+        if (formals != null) {
+          synthesizedFormals.addAll(formals);
+        }
+        formals = synthesizedFormals;
+      case ExtensionTypeDeclarationBuilder():
+        NominalParameterCopy? nominalVariableCopy =
+            BuilderFactoryImpl.copyTypeParameters(
+                _unboundNominalVariables, declarationBuilder.typeParameters,
+                kind: TypeParameterKind.extensionSynthesized,
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Allowed);
+
+        if (nominalVariableCopy != null) {
+          if (typeParameters != null) {
+            typeParameters = nominalVariableCopy.newParameterBuilders
+              ..addAll(typeParameters);
+          } else {
+            typeParameters = nominalVariableCopy.newParameterBuilders;
+          }
+        }
+
+        TypeBuilder thisType =
+            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                declarationBuilder, const NullabilityBuilder.omitted(),
+                arguments: declarationBuilder.typeParameters != null
+                    ? new List<TypeBuilder>.generate(
+                        declarationBuilder.typeParameters!.length,
+                        (int index) =>
+                            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                                typeParameters![index],
+                                const NullabilityBuilder.omitted(),
+                                instanceTypeParameterAccess:
+                                    InstanceTypeParameterAccessState.Allowed))
+                    : null,
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Allowed);
+
+        if (nominalVariableCopy != null) {
+          thisType = new SynthesizedTypeBuilder(
+              thisType,
+              nominalVariableCopy.newToOldParameterMap,
+              nominalVariableCopy.substitutionMap);
+        }
+        List<FormalParameterBuilder> synthesizedFormals = [
+          new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+              Modifiers.Final, thisType, syntheticThisName, nameOffset,
+              fileUri: fileUri,
+              isExtensionThis: true,
+              hasImmediatelyDeclaredInitializer: false)
+        ];
+        if (formals != null) {
+          synthesizedFormals.addAll(formals);
+        }
+        formals = synthesizedFormals;
+      case ClassFragment():
+      case MixinFragment():
+      case EnumFragment():
+      case ClassBuilder():
+      case null:
+    }
+  }
+  return (typeParameters, formals);
 }
