@@ -354,14 +354,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void beginExtensionBody(TypeBuilder? extensionThisType) {
+  void beginExtensionBody() {
     ExtensionFragment declarationFragment =
         _declarationFragments.current as ExtensionFragment;
     _typeScopes.push(new TypeScope(TypeScopeKind.extensionDeclaration,
         declarationFragment.bodyScope, _typeScopes.current));
-    if (extensionThisType != null) {
-      declarationFragment.registerExtensionThisType(extensionThisType);
-    }
   }
 
   @override
