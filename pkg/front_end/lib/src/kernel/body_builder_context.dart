@@ -1023,11 +1023,11 @@ class RedirectingFactoryBodyBuilderContext extends BodyBuilderContext
 
 class ParameterBodyBuilderContext extends BodyBuilderContext {
   factory ParameterBodyBuilderContext(
+      LibraryBuilder libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
       FormalParameterBuilder formalParameterBuilder) {
-    final DeclarationBuilder declarationBuilder =
-        formalParameterBuilder.parent.declarationBuilder!;
-    return new ParameterBodyBuilderContext._(declarationBuilder.libraryBuilder,
-        declarationBuilder, formalParameterBuilder);
+    return new ParameterBodyBuilderContext._(
+        libraryBuilder, declarationBuilder, formalParameterBuilder);
   }
 
   ParameterBodyBuilderContext._(
