@@ -12,7 +12,9 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibrarySdkPrefixedTest);
+    defineReflectiveTests(ImportLibrarySdkPrefixedWithShowTest);
     defineReflectiveTests(ImportLibrarySdkTest);
+    defineReflectiveTests(ImportLibrarySdkWithShowTest);
   });
 }
 
@@ -30,6 +32,29 @@ void f() {
 ''');
     await assertHasFix('''
 import 'dart:async' as prefix;
+
+void f() {
+  prefix.Completer? c;
+  print('\$c');
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibrarySdkPrefixedWithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED_SHOW;
+
+  Future<void> test_prefixed_class_async() async {
+    await resolveTestCode('''
+void f() {
+  prefix.Completer? c;
+  print('\$c');
+}
+''');
+    await assertHasFix('''
+import 'dart:async' as prefix show Completer;
 
 void f() {
   prefix.Completer? c;
@@ -345,6 +370,29 @@ import 'dart:math';
 
 @pi
 void f() {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibrarySdkWithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_SHOW;
+
+  Future<void> test_prefixed_class_async() async {
+    await resolveTestCode('''
+void f() {
+  Completer? c;
+  print('\$c');
+}
+''');
+    await assertHasFix('''
+import 'dart:async' show Completer;
+
+void f() {
+  Completer? c;
+  print('\$c');
 }
 ''');
   }
