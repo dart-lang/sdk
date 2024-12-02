@@ -372,8 +372,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
     variable.initializer = result.nullAwareAction..parent = variable;
 
-    DartType inferredType =
-        inferDeclarationType(result.inferredType, forSyntheticVariable: true);
+    DartType inferredType = inferDeclarationType(result.nullAwareActionType,
+        forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
         new InstrumentationValueForType(inferredType));
     variable.type = inferredType;
