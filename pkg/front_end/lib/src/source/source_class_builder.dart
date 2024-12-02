@@ -1152,14 +1152,14 @@ class SourceClassBuilder extends ClassBuilderImpl
     while (memberIterator.moveNext()) {
       SourceMemberBuilder builder = memberIterator.current;
       builder.checkVariance(this, typeEnvironment);
-      builder.checkTypes(libraryBuilder, typeEnvironment);
+      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
         fullConstructorIterator<SourceMemberBuilder>();
     while (constructorIterator.moveNext()) {
       SourceMemberBuilder builder = constructorIterator.current;
-      builder.checkTypes(libraryBuilder, typeEnvironment);
+      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
   }
 

@@ -16,6 +16,7 @@ import '../base/messages.dart'
         templateRedirectingFactoryIncompatibleTypeArgument,
         templateTypeArgumentMismatch;
 import '../base/modifiers.dart';
+import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
 import '../builder/builder.dart';
@@ -318,13 +319,13 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
     library.checkTypesInFunctionBuilder(this, typeEnvironment);
     List<SourceFactoryBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceFactoryBuilder augmentation in augmentations) {
-        augmentation.checkTypes(library, typeEnvironment);
+        augmentation.checkTypes(library, nameSpace, typeEnvironment);
       }
     }
   }
@@ -655,8 +656,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
     library.checkTypesInRedirectingFactoryBuilder(this, typeEnvironment);
   }
 

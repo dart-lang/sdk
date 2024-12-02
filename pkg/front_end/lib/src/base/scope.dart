@@ -746,8 +746,8 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
 

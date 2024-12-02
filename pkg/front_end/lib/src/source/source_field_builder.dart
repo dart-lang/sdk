@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -13,6 +13,7 @@ import 'package:kernel/type_environment.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/modifiers.dart' show Modifiers;
+import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart' show LookupScope;
 import '../builder/builder.dart';
@@ -652,8 +653,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
     library.checkTypesInField(this, typeEnvironment);
   }
 

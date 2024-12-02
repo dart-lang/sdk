@@ -2009,22 +2009,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
-      if (declaration is SourceFieldBuilder) {
-        declaration.checkTypes(this, typeEnvironment);
-      } else if (declaration is SourceProcedureBuilder) {
-        List<TypeParameterBuilder>? typeParameters = declaration.typeParameters;
-        if (typeParameters != null && typeParameters.isNotEmpty) {
-          checkTypeParameterDependencies(typeParameters);
-        }
-        declaration.checkTypes(this, typeEnvironment);
-        if (declaration.isGetter) {
-          Builder? setterDeclaration = libraryNameSpace
-              .lookupLocalMember(declaration.name, setter: true);
-          if (setterDeclaration != null) {
-            checkGetterSetterTypes(declaration,
-                setterDeclaration as ProcedureBuilder, typeEnvironment);
-          }
-        }
+      if (declaration is SourceMemberBuilder) {
+        declaration.checkTypes(this, libraryNameSpace, typeEnvironment);
       } else if (declaration is SourceClassBuilder) {
         List<TypeParameterBuilder>? typeParameters = declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {
