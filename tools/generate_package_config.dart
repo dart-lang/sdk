@@ -88,23 +88,30 @@ void main(List<String> args) {
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
 
-  // Remove any packages with identical names.
+  // Check for duplicate packages - the same package sourced from multiple
+  // repositories.
   final uniqueNames = packages.map((p) => p.name).toSet();
 
   var hasDuplicatePackages = false;
 
   for (var name in uniqueNames) {
-    var matches = [
-      for (final p in packages)
-        if (p.name == name) p
-    ];
+    var matches = packages.where((p) => p.name == name).toList();
     if (matches.length > 1) {
-      print('Duplicates found for package:$name');
-      for (var package in matches) {
-        print('  ${package.rootUri}');
-      }
+      final inMonorepos = matches.where((p) => p.inMonorepo).toList();
 
-      hasDuplicatePackages = true;
+      if (inMonorepos.length == 1) {
+        // De-duplicating package 'name' - select just the monorepo version.
+        packages.removeWhere((p) {
+          return p.name == name && !p.inMonorepo;
+        });
+      } else {
+        print('Duplicates found for package:$name');
+        for (var package in matches) {
+          print('  ${package.rootUri}');
+        }
+
+        hasDuplicatePackages = true;
+      }
     }
   }
 
@@ -291,6 +298,14 @@ class Package {
     this.packageUri,
     this.languageVersion,
   });
+
+  /// Whether this package lives in a monorepo.
+  bool get inMonorepo {
+    // By convention (and for our purposes), a monorepo package lives in a
+    // `pkgs` directory.
+    final paths = posix(rootUri).split('/');
+    return paths.length >= 2 && paths[paths.length - 2] == 'pkgs';
+  }
 
   Map<String, Object?> toMap(String relativeTo) {
     return {

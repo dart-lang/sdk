@@ -414,7 +414,7 @@ void main(List<String> args) => print("$b $args");
     expect(result.stdout, isEmpty);
     expect(
       result.stderr,
-      contains('Could not find an option named "vm-name".'),
+      contains('Could not find an option named "--vm-name".'),
     );
     expect(result.exitCode, 64);
   });
@@ -433,7 +433,7 @@ void main(List<String> args) => print("$b $args");
     expect(result.stdout, isEmpty);
     expect(
       result.stderr,
-      contains('Could not find an option named "verbose_gc".'),
+      contains('Could not find an option named "--verbose_gc".'),
     );
     expect(result.exitCode, 64);
   });

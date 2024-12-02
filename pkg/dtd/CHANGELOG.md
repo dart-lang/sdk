@@ -1,3 +1,8 @@
+## 2.4.1-wip
+
+## 2.4.0
+- Bump `unified_analytics` dependency to ^7.0.0.
+
 ## 2.3.0
 - Indicate compatibility with `package:web_socket_channel` 2.x and 3.x.
 - Bump minimum version for `package:unified_analytics` to 6.1.0.

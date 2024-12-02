@@ -8,7 +8,7 @@
 #
 # Packages can be rolled to the latest version with `tools/manage_deps.dart`.
 #
-# For example
+# For example:
 #
 #     dart tools/manage_deps.dart bump third_party/pkg/dart_style
 
@@ -120,19 +120,13 @@ vars = {
   # EOL comment after a dependency to disable this and pin it at its current
   # revision.
 
-  "args_rev": "e623652744c82533829f2e62b1aba1a6cf06e291",
+  "args_rev": "09c0fca1785c9df39288a48f767994eed80bed40",
   "async_rev": "c0d81f8699682d01d657a9bf827107d11904a247",
-  "bazel_worker_rev": "aa3cc9e826350b960e0c5a67e6065bcedba8b0ac",
-  "benchmark_harness_rev": "44f125ae1d045aa3de09fe88a8dd70cb7352d563",
-  "boolean_selector_rev": "d6c7c36ae1111f11cc24306d71d3ab2deea8fa68",
-  "browser_launcher_rev": "e5fc5d488eb5038bfec2a6690c72ab8dd353e101",
   "characters_rev": "7633a16a22c626e19ca750223237396315268a06",
-  "cli_util_rev": "c36b3941e38092d6d6f87ac27d9e88f153d3ac38",
-  "clock_rev": "7956d60042f4ea979c4554d43eeb57d087627869",
   "collection_rev": "24b75d85df6a26aac7be13b56ff1ce4360c04a64",
   "convert_rev": "9035cafefc1da4315f26058734d0c2a19d5ab56a",
+  "core_rev": "2a436d5c21964c2658a3b669d9bdef802637dd81",
   "crypto_rev": "eede7d6918c51159c1422b7449f40dbac660ee57",
-  "csslib_rev": "a3700b05bbcc42782e8a7024790dbf019d89c249",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -146,16 +140,13 @@ vars = {
   "dart_style_rev": "5d35f4d829ffb8532d345d95d3e9504ae6cd839e", # disable tools/rev_sdk_deps.dart
   "dartdoc_rev": "5df03dd913a0a2e20421cac61112aa84111160e0",
   "ecosystem_rev": "2d58550f9e3fd8ecbc3b2e4444095fcb204a66c6",
-  "file_rev": "6842feaef1c4e06239bd30f8d3ef722838b1c97e",
   "fixnum_rev": "83293b8ed86ccd574a94fcf4a2da43f31c1b43e0",
   "flute_rev": "a531c96a8b43d015c6bfbbfe3ab54867b0763b8b",
   "glob_rev": "00a9c82d31c01ae88ec9ae4021d842e9b832aa52",
-  "html_rev": "6d3bc86cf2ab530ef3fa5f84b5980dc318a02af4",
   "http_rev": "f59cd79e1322c6272481e4f2ccfa9afcb37a6525",
   "http_multi_server_rev": "e7515b5896b83d522189802a1e14e103e19426c0",
   "http_parser_rev": "ce528cf82f3d26ac761e29b2494a9e0c270d4939",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
-  "json_rpc_2_rev": "b4810dc7bee5828f240586c81f3f34853cacdbce",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # manually rolled
   "lints_rev": "5016d63c889936b2100520f999591d0492d9afe3",
   "logging_rev": "6fa056098ceca03d399bff64592822b2ae5dee6e",
@@ -184,7 +175,7 @@ vars = {
   "test_descriptor_rev": "a3db1efe3dc725dcae9ee61647d3bfc19b3231ac",
   "test_process_rev": "52ee3f5ab70ed965bb7122c1d499081fbccd0bde",
   "test_reflective_loader_rev": "598af2f503955020af0eaa82558d574a03934078",
-  "tools_rev": "d4995d47b99d5e9564abfed2218f4a23df75983b",
+  "tools_rev": "466bb19b8ad8b278c351914ce20bedb7b32bfc91",
   "typed_data_rev": "2bb9e6ead6394e2d4ec6068c5ece8b2ec0e2b945",
   "vector_math_rev": "2cfbe2c115a57b368ccbc3c89ebd38a06764d3d1",
   "watcher_rev": "3b850778ad0b62db3aa2cfe48832870c2461db30",
@@ -382,34 +373,20 @@ deps = {
       Var("dart_git") + "args.git" + "@" + Var("args_rev"),
   Var("dart_root") + "/third_party/pkg/async":
       Var("dart_git") + "async.git" + "@" + Var("async_rev"),
-  Var("dart_root") + "/third_party/pkg/bazel_worker":
-      Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_rev"),
-  Var("dart_root") + "/third_party/pkg/benchmark_harness":
-      Var("dart_git") + "benchmark_harness.git" + "@" +
-      Var("benchmark_harness_rev"),
-  Var("dart_root") + "/third_party/pkg/boolean_selector":
-      Var("dart_git") + "boolean_selector.git" +
-      "@" + Var("boolean_selector_rev"),
-  Var("dart_root") + "/third_party/pkg/browser_launcher":
-      Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/characters": {
     # Contact athom@ or ensure that license requirements are met before using
     # this dependency in other parts of the Dart SDK.
     "url": Var("dart_git") + "characters.git" + "@" + Var("characters_rev"),
     "condition": "checkout_flute",
   },
-  Var("dart_root") + "/third_party/pkg/cli_util":
-      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
-  Var("dart_root") + "/third_party/pkg/clock":
-      Var("dart_git") + "clock.git" + "@" + Var("clock_rev"),
   Var("dart_root") + "/third_party/pkg/collection":
       Var("dart_git") + "collection.git" + "@" + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/convert":
       Var("dart_git") + "convert.git" + "@" + Var("convert_rev"),
+  Var("dart_root") + "/third_party/pkg/core":
+      Var("dart_git") + "core.git" + "@" + Var("core_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
       Var("dart_git") + "crypto.git" + "@" + Var("crypto_rev"),
-  Var("dart_root") + "/third_party/pkg/csslib":
-      Var("dart_git") + "csslib.git" + "@" + Var("csslib_rev"),
   Var("dart_root") + "/third_party/pkg/dart_style":
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
@@ -422,13 +399,8 @@ deps = {
     "url": Var("dart_git") + "flute.git" + "@" + Var("flute_rev"),
     "condition": "checkout_flute",
   },
-  Var("dart_root") + "/third_party/pkg/file":
-      Var("dart_git") + "external/github.com/google/file.dart"
-      + "@" + Var("file_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       Var("dart_git") + "glob.git" + "@" + Var("glob_rev"),
-  Var("dart_root") + "/third_party/pkg/html":
-      Var("dart_git") + "html.git" + "@" + Var("html_rev"),
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
@@ -438,8 +410,6 @@ deps = {
       Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
       Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
-  Var("dart_root") + "/third_party/pkg/json_rpc_2":
-      Var("dart_git") + "json_rpc_2.git" + "@" + Var("json_rpc_2_rev"),
   Var("dart_root") + "/third_party/pkg/leak_tracker":
       Var("dart_git") + "leak_tracker.git" + "@" + Var("leak_tracker_rev"),
   Var("dart_root") + "/third_party/pkg/lints":
