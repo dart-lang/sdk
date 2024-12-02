@@ -59,6 +59,10 @@ Dart_Port PortMap::CreatePort(PortHandler* handler) {
     return ILLEGAL_PORT;
   }
 
+#if defined(DEBUG)
+  handler->CheckAccess();
+#endif
+
   const Dart_Port port = AllocatePort();
   if (auto ports = handler->ports(ml)) {
     ports->Insert(PortHandler::PortSetEntry{port});
