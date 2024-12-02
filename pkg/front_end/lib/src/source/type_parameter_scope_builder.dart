@@ -2000,6 +2000,39 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
         }
       case FactoryFragment():
         String name = fragment.name;
+        NominalParameterCopy? nominalParameterCopy =
+            BuilderFactoryImpl.copyTypeParameters(
+                unboundNominalParameters, declarationBuilder!.typeParameters,
+                kind: TypeParameterKind.function,
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Allowed);
+        List<NominalParameterBuilder>? typeParameters =
+            nominalParameterCopy?.newParameterBuilders;
+        TypeBuilder returnType;
+        switch (declarationBuilder) {
+          case ExtensionBuilder():
+            // Make the synthesized return type invalid for extensions.
+            returnType = new NamedTypeBuilderImpl.forInvalidType(
+                fragment.constructorName.fullName,
+                const NullabilityBuilder.omitted(),
+                messageExtensionDeclaresConstructor.withLocation(
+                    fragment.fileUri,
+                    fragment.constructorName.fullNameOffset,
+                    fragment.constructorName.fullNameLength));
+          case ClassBuilder():
+          case ExtensionTypeDeclarationBuilder():
+            returnType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                declarationBuilder, const NullabilityBuilder.omitted(),
+                arguments: nominalParameterCopy?.newTypeArguments,
+                fileUri: fragment.fileUri,
+                charOffset: fragment.constructorName.fullNameOffset,
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Allowed);
+        }
+
+        fragment.typeParameterNameSpace.addTypeParameters(
+            problemReporting, typeParameters,
+            ownerName: fragment.name, allowNameConflict: true);
 
         NameScheme nameScheme = new NameScheme(
             containerName: containerName,
@@ -2030,12 +2063,12 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           factoryBuilder = new RedirectingFactoryBuilder(
               metadata: fragment.metadata,
               modifiers: fragment.modifiers,
-              returnType: fragment.returnType,
+              returnType: returnType,
               name: name,
-              typeParameters: fragment.typeParameters,
+              typeParameters: typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder!,
+              declarationBuilder: declarationBuilder,
               fileUri: fragment.fileUri,
               startOffset: fragment.startOffset,
               nameOffset: fragment.fullNameOffset,
@@ -2052,12 +2085,12 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
           factoryBuilder = new SourceFactoryBuilder(
               metadata: fragment.metadata,
               modifiers: fragment.modifiers,
-              returnType: fragment.returnType,
+              returnType: returnType,
               name: name,
-              typeParameters: fragment.typeParameters,
+              typeParameters: typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder!,
+              declarationBuilder: declarationBuilder,
               fileUri: fragment.fileUri,
               startOffset: fragment.startOffset,
               nameOffset: fragment.fullNameOffset,

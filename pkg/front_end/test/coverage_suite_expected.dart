@@ -475,7 +475,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/class.dart": (
-    hitCount: 10,
+    hitCount: 9,
     missCount: 0,
   ),
   // 100.0%.
@@ -490,7 +490,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/extension.dart": (
-    hitCount: 19,
+    hitCount: 16,
     missCount: 0,
   ),
   // 100.0%.
@@ -520,7 +520,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/fragment/mixin.dart": (
-    hitCount: 10,
+    hitCount: 9,
     missCount: 0,
   ),
   // 100.0%.
@@ -870,7 +870,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/outline_builder.dart": (
-    hitCount: 2133,
+    hitCount: 2127,
     missCount: 0,
   ),
   // 100.0%.
@@ -880,7 +880,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_builder_factory.dart": (
-    hitCount: 1238,
+    hitCount: 1212,
     missCount: 0,
   ),
   // 100.0%.
@@ -966,7 +966,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/type_parameter_scope_builder.dart": (
-    hitCount: 1541,
+    hitCount: 1560,
     missCount: 0,
   ),
   // 100.0%.

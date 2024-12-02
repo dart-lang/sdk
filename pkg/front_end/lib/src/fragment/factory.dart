@@ -13,8 +13,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
   final int endOffset;
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
-  final TypeBuilder returnType;
-  final List<NominalParameterBuilder>? typeParameters;
+  final NominalParameterNameSpace typeParameterNameSpace;
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final AsyncMarker asyncModifier;
@@ -31,8 +30,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
       required this.endOffset,
       required this.modifiers,
       required this.metadata,
-      required this.returnType,
-      required this.typeParameters,
+      required this.typeParameterNameSpace,
       required this.typeParameterScope,
       required this.formals,
       required this.asyncModifier,

@@ -1630,38 +1630,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int endOffset,
       required String? nativeMethodName,
       required AsyncMarker asyncModifier}) {
-    TypeBuilder returnType;
-    List<TypeBuilder>? returnTypeArguments;
     DeclarationFragment enclosingDeclaration = _declarationFragments.current;
-    if (enclosingDeclaration.kind ==
-        DeclarationFragmentKind.extensionDeclaration) {
-      // Make the synthesized return type invalid for extensions.
-      String name = enclosingDeclaration.name;
-      returnType = new NamedTypeBuilderImpl.forInvalidType(
-          name,
-          const NullabilityBuilder.omitted(),
-          messageExtensionDeclaresConstructor.withLocation(
-              _compilationUnit.fileUri, nameOffset, name.length));
-    } else {
-      returnType = addNamedType(
-          new SyntheticTypeName(enclosingDeclaration.name, nameOffset),
-          const NullabilityBuilder.omitted(),
-          returnTypeArguments = [],
-          nameOffset,
-          instanceTypeParameterAccess:
-              InstanceTypeParameterAccessState.Allowed);
-    }
 
     ConstructorName constructorName = computeAndValidateConstructorName(
         enclosingDeclaration, identifier,
         isFactory: true);
 
-    List<NominalParameterBuilder>? typeParameters = copyTypeParameters(
-            _unboundNominalParameters, enclosingDeclaration.typeParameters,
-            kind: TypeParameterKind.function,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Allowed)
-        ?.newParameterBuilders;
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+
     FactoryFragment fragment = new FactoryFragment(
         constructorName: constructorName,
         fileUri: _compilationUnit.fileUri,
@@ -1670,33 +1647,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         endOffset: endOffset,
         modifiers: modifiers | Modifiers.Static,
         metadata: metadata,
-        returnType: returnType,
-        typeParameters: typeParameters,
+        typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: _typeScopes.current.lookupScope,
         formals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName,
         redirectionTarget: redirectionTarget);
 
-    if (returnTypeArguments != null && typeParameters != null) {
-      for (TypeParameterBuilder typeParameter in typeParameters) {
-        returnTypeArguments.add(addNamedType(
-            new SyntheticTypeName(typeParameter.name, nameOffset),
-            const NullabilityBuilder.omitted(),
-            null,
-            nameOffset,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Allowed));
-      }
-    }
-
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: identifier.name, allowNameConflict: true);
 
     _addFragment(fragment);
     if (nativeMethodName != null) {
