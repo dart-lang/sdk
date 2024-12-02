@@ -68,7 +68,7 @@ Uri _dartBin = Uri.file(Platform.resolvedExecutable);
 Uri dartAotBin = _dartBin
     .resolve(Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
 Uri ddcAotSnapshot = _dartBin.resolve('snapshots/dartdevc_aot.dart.snapshot');
-Uri kernelWOrkerAotSnapshot =
+Uri kernelWorkerAotSnapshot =
     _dartBin.resolve('snapshots/kernel_worker_aot.dart.snapshot');
 Uri buildRootUri = repoRoot.resolve(buildFolder);
 Uri ddcSdkOutline = buildRootUri.resolve('ddc_outline.dill');
