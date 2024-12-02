@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -31,7 +31,17 @@ class PreferFinalFields extends LintRule {
 }
 
 class _DeclarationsCollector extends RecursiveAstVisitor<void> {
-  final fields = <FieldElement, VariableDeclaration>{};
+  final fields = <FieldElement2, VariableDeclaration>{};
+  final InheritanceManager3 inheritanceManager;
+
+  _DeclarationsCollector(this.inheritanceManager);
+  bool overridesField(FieldElement2 field) {
+    var enclosingElement = field.enclosingElement2;
+    if (enclosingElement is! InterfaceElement2) return false;
+    return inheritanceManager.getOverridden4(enclosingElement,
+            Name.forLibrary(field.library2, '${field.name3!}=')) !=
+        null;
+  }
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
@@ -42,10 +52,10 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
     }
 
     for (var variable in node.fields.variables) {
-      var element = variable.declaredElement;
-      if (element is FieldElement &&
+      var element = variable.declaredFragment?.element;
+      if (element is FieldElement2 &&
           element.isPrivate &&
-          !element.overridesField) {
+          !overridesField(element)) {
         fields[element] = variable;
       }
     }
@@ -56,7 +66,7 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
   /// The collection of fields declared in this library.
   ///
   /// This visitor removes a field when it finds that it is assigned anywhere.
-  final Map<FieldElement, VariableDeclaration> _fields;
+  final Map<FieldElement2, VariableDeclaration> _fields;
 
   _FieldMutationFinder(this._fields);
 
@@ -83,8 +93,10 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
   }
 
   void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
-    var element = assignment.writeElement?.canonicalElement;
-    if (element is FieldElement) {
+    var element = assignment.writeElement2?.canonicalElement2;
+    element = element?.baseElement;
+
+    if (element is FieldElement2) {
       _fields.remove(element);
     }
   }
@@ -99,7 +111,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declarationsCollector = _DeclarationsCollector();
+    var declarationsCollector =
+        _DeclarationsCollector(context.inheritanceManager);
     node.accept(declarationsCollector);
     var fields = declarationsCollector.fields;
 
@@ -134,19 +147,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on VariableElement {
-  bool get overridesField {
-    var enclosingElement = enclosingElement3;
-    if (enclosingElement is! InterfaceElement) return false;
-
-    var library = this.library;
-    if (library == null) return false;
-
-    return enclosingElement.thisType
-            .lookUpSetter2(name, inherited: true, library) !=
-        null;
-  }
-
+extension on VariableElement2 {
   bool isSetInConstructor(ConstructorDeclaration constructor) =>
       constructor.initializers.any(isSetInInitializer) ||
       constructor.parameters.parameters.any(isSetInParameter);
@@ -154,12 +155,12 @@ extension on VariableElement {
   /// Whether `this` is initialized in [initializer].
   bool isSetInInitializer(ConstructorInitializer initializer) =>
       initializer is ConstructorFieldInitializer &&
-      initializer.fieldName.canonicalElement == this;
+      initializer.fieldName.canonicalElement2 == this;
 
   /// Whether `this` is initialized with [parameter].
   bool isSetInParameter(FormalParameter parameter) {
-    var formalField = parameter.declaredElement;
-    return formalField is FieldFormalParameterElement &&
-        formalField.field == this;
+    var formalField = parameter.declaredFragment?.element;
+    return formalField is FieldFormalParameterElement2 &&
+        formalField.field2 == this;
   }
 }
