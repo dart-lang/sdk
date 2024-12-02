@@ -12,7 +12,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final int formalsOffset;
   final Modifiers modifiers;
   final OmittedTypeBuilder returnType;
-  final List<NominalParameterBuilder>? typeParameters;
+  final NominalParameterNameSpace typeParameterNameSpace;
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final bool forAbstractClassOrMixin;
@@ -27,7 +27,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
       required this.formalsOffset,
       required this.modifiers,
       required this.returnType,
-      required this.typeParameters,
+      required this.typeParameterNameSpace,
       required this.typeParameterScope,
       required this.formals,
       required this.forAbstractClassOrMixin,

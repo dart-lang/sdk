@@ -1925,6 +1925,19 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
       case PrimaryConstructorFragment():
         String name = fragment.name;
 
+        NominalParameterCopy? nominalVariableCopy =
+            BuilderFactoryImpl.copyTypeParameters(
+                unboundNominalParameters, declarationBuilder!.typeParameters,
+                kind: TypeParameterKind.extensionSynthesized,
+                instanceTypeParameterAccess:
+                    InstanceTypeParameterAccessState.Allowed);
+
+        List<NominalParameterBuilder>? typeParameters =
+            nominalVariableCopy?.newParameterBuilders;
+        fragment.typeParameterNameSpace.addTypeParameters(
+            problemReporting, typeParameters,
+            ownerName: fragment.name, allowNameConflict: true);
+
         NameScheme nameScheme = new NameScheme(
             isInstanceMember: false,
             containerName: containerName,
@@ -1950,7 +1963,7 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: name,
-              typeParameters: fragment.typeParameters,
+              typeParameters: typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
               declarationBuilder: declarationBuilder,
@@ -1972,10 +1985,10 @@ void _computeBuildersFromFragments(String name, List<Fragment> fragments,
               modifiers: fragment.modifiers,
               returnType: fragment.returnType,
               name: fragment.name,
-              typeParameters: fragment.typeParameters,
+              typeParameters: typeParameters,
               formals: fragment.formals,
               libraryBuilder: enclosingLibraryBuilder,
-              declarationBuilder: declarationBuilder!,
+              declarationBuilder: declarationBuilder,
               fileUri: fragment.fileUri,
               startOffset: fragment.startOffset,
               fileOffset: fragment.fileOffset,

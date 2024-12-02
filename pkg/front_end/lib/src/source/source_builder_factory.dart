@@ -1477,13 +1477,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
-    NominalParameterCopy? nominalVariableCopy = copyTypeParameters(
-        _unboundNominalParameters, _declarationFragments.current.typeParameters,
-        kind: TypeParameterKind.extensionSynthesized,
-        instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed);
-    List<NominalParameterBuilder>? typeParameters =
-        nominalVariableCopy?.newParameterBuilders;
-
     ConstructorName constructorName;
     String declarationName = _declarationFragments.current.name;
     if (name == 'new') {
@@ -1508,6 +1501,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           fullNameOffset: formalsOffset,
           fullNameLength: noLength);
     }
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+
     PrimaryConstructorFragment fragment = new PrimaryConstructorFragment(
         constructorName: constructorName,
         fileUri: _compilationUnit.fileUri,
@@ -1515,7 +1511,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         formalsOffset: formalsOffset,
         modifiers: isConst ? Modifiers.Const : Modifiers.empty,
         returnType: addInferableType(),
-        typeParameters: typeParameters,
+        typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         forAbstractClassOrMixin: false,
@@ -1529,9 +1525,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             ? new Token.eof(-1)
             : null);
 
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: constructorName.name, allowNameConflict: true);
     _addFragment(fragment);
     if (isConst) {
       _declarationFragments.current.declaresConstConstructor = true;
