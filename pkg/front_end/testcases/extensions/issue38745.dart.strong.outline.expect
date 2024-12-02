@@ -17,13 +17,12 @@ library;
 //   final int property2 = 42;
 //             ^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:17:19: Error: Conflicts with member 'property2'.
+// pkg/front_end/testcases/extensions/issue38745.dart:17:19: Error: Static property 'property2' conflicts with instance property of the same name.
 //   static void set property2(int value) {}
-//                   ^
-//
-// pkg/front_end/testcases/extensions/issue38745.dart:15:13: Error: Conflicts with setter 'property2'.
+//                   ^^^^^^^^^
+// pkg/front_end/testcases/extensions/issue38745.dart:15:13: Context: Conflicting instance property 'property2'.
 //   final int property2 = 42;
-//             ^
+//             ^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

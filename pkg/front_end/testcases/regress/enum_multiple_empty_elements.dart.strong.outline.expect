@@ -1,0 +1,34 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/enum_multiple_empty_elements.dart:7:8: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//   /*a*/,
+//        ^
+//
+// pkg/front_end/testcases/regress/enum_multiple_empty_elements.dart:8:8: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//   /*b*/,
+//        ^
+//
+// pkg/front_end/testcases/regress/enum_multiple_empty_elements.dart:5:6: Error: An enum declaration can't be empty.
+// enum Foo {
+//      ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Foo> values = const <self::Foo>[];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Foo
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "Foo.${this.{core::_Enum::_name}{core::String}}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_multiple_empty_elements.dart:5:6 -> ListConstant(const <Foo>[])
+Extra constant evaluation: evaluated: 6, effectively constant: 1

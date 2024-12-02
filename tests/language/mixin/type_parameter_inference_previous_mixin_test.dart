@@ -2,21 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
+import "package:expect/static_type_helper.dart";
 
 abstract class A<T> {
   // This is ok because type inference will ensure that in C, A and M are
   // instantiated with the same T.
-  T f(T x) => x; //# 01: ok
+  T f(T x) => x;
 }
 
 class B {}
 
-abstract class M1 implements A<B> {}
+mixin M1 implements A<B> {}
 
 mixin M2<T> on A<T> {
   T f(T x) => x;
@@ -30,12 +27,16 @@ class C extends Object with M1, M2 {}
 main() {
   C c = new C();
 
-  // M is instantiated with B, so C.g has type (B) -> B.
-  B Function(B) x = c.g; //# 02: ok
-  Null Function(Null) x = c.g; //# 03: compile-time error
-  Object Function(Object) x = c.g; //# 04: compile-time error
+  // M is instantiated with B.
+  A<B> asA = c; // Allowed.
+
+  // So C.g has type (B) -> B.
+  // Static type.
+  Expect.equals(typeOf<B Function(B)>(), c.g.staticType);
+  // Runtime type. Is covariant-by-generic, so actual argument type is Object?.
+  Expect.equals(typeOf<B Function(Object?)>(), c.g.runtimeType);
 
   // And verify that the runtime system has the right type for the type
   // parameter
-  Expect.equals(c.h(), B); //# 05: ok
+  Expect.equals(B, c.h());
 }

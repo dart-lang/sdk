@@ -1,0 +1,33 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/declared_values.dart:7:6: Error: The type 'List<E>' of the getter 'E.values' is not a subtype of the type 'Never' of the setter 'E.values'.
+//  - 'List' is from 'dart:core'.
+//  - 'E' is from 'pkg/front_end/testcases/getter_setter_error/pre_feature/declared_values.dart'.
+// enum E {
+//      ^^^^...
+// pkg/front_end/testcases/getter_setter_error/pre_feature/declared_values.dart:10:19: Context: This is the declaration of the setter 'E.values'.
+//   static void set values(Never x) {} // Error.
+//                   ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::element];
+  enum-element static const field self::E element = const self::E::•(0, "element");
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+  static set values(Never x) → void
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_values.dart:7:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_values.dart:8:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 7, effectively constant: 2

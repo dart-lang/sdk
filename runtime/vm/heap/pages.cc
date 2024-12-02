@@ -1660,7 +1660,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   // G = kA, and estimate k from the previous cycle.
   const intptr_t allocated_since_previous_gc =
       before.CombinedUsedInWords() - last_usage_.CombinedUsedInWords();
-  intptr_t grow_heap;
+  intptr_t growth_in_pages;
   if (allocated_since_previous_gc > 0) {
     intptr_t garbage =
         before.CombinedUsedInWords() - after.CombinedUsedInWords();
@@ -1673,69 +1673,74 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
 
     const int garbage_ratio = static_cast<int>(k * 100);
 
-    // Define GC to be 'worthwhile' iff at least fraction t of heap is garbage.
-    double t = 1.0 - desired_utilization_;
-    // If we spend too much time in GC, strive for even more free space.
-    if (gc_time_fraction > garbage_collection_time_ratio_) {
-      t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
-    }
-
     // Number of pages we can allocate and still be within the desired growth
     // ratio.
-    const intptr_t grow_pages =
+    const intptr_t growth_ratio_heuristic =
         (static_cast<intptr_t>(after.CombinedUsedInWords() /
                                desired_utilization_) -
          (after.CombinedUsedInWords())) /
         kPageSizeInWords;
     if (garbage_ratio == 0) {
       // No garbage in the previous cycle so it would be hard to compute a
-      // grow_heap size based on estimated garbage so we use growth ratio
+      // growth_in_pages size based on estimated garbage so we use growth ratio
       // heuristics instead.
-      grow_heap =
-          Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_pages);
+      growth_in_pages = growth_ratio_heuristic;
     } else if (garbage_collection_time_ratio_ == 0) {
       // Exclude time from the growth policy decision for --deterministic.
-      grow_heap =
-          Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_pages);
+      growth_in_pages = growth_ratio_heuristic;
+    } else if (gc_time_fraction <= garbage_collection_time_ratio_) {
+      // Stick with the ratio hueristic when we're staying under the desired
+      // time fraction.
+      growth_in_pages = growth_ratio_heuristic;
     } else {
-      // Find minimum 'grow_heap' such that after increasing capacity by
-      // 'grow_heap' pages and filling them, we expect a GC to be worthwhile.
+      // Define GC to be 'worthwhile' iff at least fraction t of heap is
+      // garbage.
+      double t = 1.0 - desired_utilization_;
+      // If we spend too much time in GC, strive for even more free space.
+      if (gc_time_fraction > garbage_collection_time_ratio_) {
+        t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
+      }
+
+      // Find minimum 'growth_in_pages' such that after increasing capacity by
+      // 'growth_in_pages' pages and filling them, we expect a GC to be
+      // worthwhile.
       intptr_t max = heap_growth_max_;
       intptr_t min = 0;
-      intptr_t local_grow_heap = 0;
+      intptr_t local_growth_in_pages = 0;
       while (min < max) {
-        local_grow_heap = (max + min) / 2;
-        const intptr_t limit =
-            after.CombinedUsedInWords() + (local_grow_heap * kPageSizeInWords);
+        local_growth_in_pages = (max + min) / 2;
+        const intptr_t limit = after.CombinedUsedInWords() +
+                               (local_growth_in_pages * kPageSizeInWords);
         const intptr_t allocated_before_next_gc =
             limit - (after.CombinedUsedInWords());
         const double estimated_garbage = k * allocated_before_next_gc;
         if (t <= estimated_garbage / limit) {
-          max = local_grow_heap - 1;
+          max = local_growth_in_pages - 1;
         } else {
-          min = local_grow_heap + 1;
+          min = local_growth_in_pages + 1;
         }
       }
-      local_grow_heap = (max + min) / 2;
-      grow_heap = local_grow_heap;
-      ASSERT(grow_heap >= 0);
+      local_growth_in_pages = (max + min) / 2;
+      growth_in_pages = local_growth_in_pages;
+      ASSERT(growth_in_pages >= 0);
       // If we are going to grow by heap_grow_max_ then ensure that we
       // will be growing the heap at least by the growth ratio heuristics.
-      if (grow_heap >= heap_growth_max_) {
-        grow_heap = Utils::Maximum(grow_pages, grow_heap);
+      if (growth_in_pages >= heap_growth_max_) {
+        growth_in_pages =
+            Utils::Maximum(growth_in_pages, growth_ratio_heuristic);
       }
     }
   } else {
-    grow_heap = 0;
+    growth_in_pages = 0;
   }
   last_usage_ = after;
 
   intptr_t max_capacity_in_words = heap_->old_space()->max_capacity_in_words_;
   if (max_capacity_in_words != 0) {
-    ASSERT(grow_heap >= 0);
+    ASSERT(growth_in_pages >= 0);
     // Fraction of asymptote used.
     double f = static_cast<double>(after.CombinedUsedInWords() +
-                                   (kPageSizeInWords * grow_heap)) /
+                                   (kPageSizeInWords * growth_in_pages)) /
                static_cast<double>(max_capacity_in_words);
     ASSERT(f >= 0.0);
     // Increase weight at the high end.
@@ -1744,13 +1749,13 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     f = 1.0 - f;
     ASSERT(f <= 1.0);
     // Discount growth more the closer we get to the desired asymptote.
-    grow_heap = static_cast<intptr_t>(grow_heap * f);
+    growth_in_pages = static_cast<intptr_t>(growth_in_pages * f);
     // Minimum growth step after reaching the asymptote.
     intptr_t min_step = (2 * MB) / kPageSize;
-    grow_heap = Utils::Maximum(min_step, grow_heap);
+    growth_in_pages = Utils::Maximum(min_step, growth_in_pages);
   }
 
-  RecordUpdate(before, after, grow_heap, "gc");
+  RecordUpdate(before, after, growth_in_pages, "gc");
 }
 
 void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
@@ -1767,6 +1772,9 @@ void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   }
 
   // Apply growth cap.
+  intptr_t heap_growth_min = FLAG_new_gen_semi_max_size * MB / kPageSize;
+  growth_in_pages =
+      Utils::Maximum(static_cast<intptr_t>(heap_growth_min), growth_in_pages);
   growth_in_pages =
       Utils::Minimum(static_cast<intptr_t>(heap_growth_max_), growth_in_pages);
 

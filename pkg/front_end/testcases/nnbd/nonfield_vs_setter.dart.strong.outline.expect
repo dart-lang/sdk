@@ -7,6 +7,20 @@ library;
 //   void set Class(value) {}
 //            ^^^^^
 //
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:6:10: Error: The setter conflicts with declaration 'topLevelMethodAndSetter'.
+// void set topLevelMethodAndSetter(value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:5:1: Context: Conflicting declaration 'topLevelMethodAndSetter'.
+// topLevelMethodAndSetter() {}
+// ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:9:10: Error: The setter conflicts with declaration 'topLevelMethodAndSetter'.
+// void set topLevelMethodAndSetter(value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:5:1: Context: Conflicting declaration 'topLevelMethodAndSetter'.
+// topLevelMethodAndSetter() {}
+// ^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:9:10: Error: 'topLevelMethodAndSetter' is already declared in this scope.
 // void set topLevelMethodAndSetter(value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^
@@ -14,71 +28,68 @@ library;
 // void set topLevelMethodAndSetter(value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:9:10: Error: Conflicts with member 'topLevelMethodAndSetter'.
-// void set topLevelMethodAndSetter(value) {}
-//          ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:6:10: Error: Conflicts with member 'topLevelMethodAndSetter'.
-// void set topLevelMethodAndSetter(value) {}
-//          ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:5:1: Error: Conflicts with setter 'topLevelMethodAndSetter'.
-// topLevelMethodAndSetter() {}
-// ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:13:10: Error: Conflicts with member 'classAndSetter'.
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:13:10: Error: The setter conflicts with declaration 'classAndSetter'.
 // void set classAndSetter(value) {}
-//          ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:11:7: Error: Conflicts with setter 'classAndSetter'.
+//          ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:11:7: Context: Conflicting declaration 'classAndSetter'.
 // class classAndSetter {}
-//       ^
+//       ^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:34:12: Error: Conflicts with member 'extensionInstanceMethodAndSetter'.
-//   void set extensionInstanceMethodAndSetter(value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:33:3: Error: Conflicts with setter 'extensionInstanceMethodAndSetter'.
-//   extensionInstanceMethodAndSetter() {}
-//   ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:37:19: Error: Conflicts with member 'extensionStaticMethodAndSetter'.
-//   static void set extensionStaticMethodAndSetter(value) {}
-//                   ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:36:10: Error: Conflicts with setter 'extensionStaticMethodAndSetter'.
-//   static extensionStaticMethodAndSetter() {}
-//          ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:40:19: Error: Conflicts with member 'extensionInstanceMethodAndStaticSetter'.
-//   static void set extensionInstanceMethodAndStaticSetter(value) {}
-//                   ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:39:3: Error: Conflicts with setter 'extensionInstanceMethodAndStaticSetter'.
-//   extensionInstanceMethodAndStaticSetter() {}
-//   ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:43:12: Error: Conflicts with member 'extensionStaticMethodAndInstanceSetter'.
-//   void set extensionStaticMethodAndInstanceSetter(value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:42:10: Error: Conflicts with setter 'extensionStaticMethodAndInstanceSetter'.
-//   static extensionStaticMethodAndInstanceSetter() {}
-//          ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:17:12: Error: 'instanceMethodAndSetter' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:17:12: Error: The setter conflicts with declaration 'instanceMethodAndSetter'.
 //   void set instanceMethodAndSetter(value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:16:3: Context: Previous declaration of 'instanceMethodAndSetter'.
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:16:3: Context: Conflicting declaration 'instanceMethodAndSetter'.
 //   instanceMethodAndSetter() {}
 //   ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:20:19: Error: 'staticMethodAndSetter' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:20:19: Error: The setter conflicts with declaration 'staticMethodAndSetter'.
 //   static void set staticMethodAndSetter(value) {}
 //                   ^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:19:10: Context: Previous declaration of 'staticMethodAndSetter'.
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:19:10: Context: Conflicting declaration 'staticMethodAndSetter'.
 //   static staticMethodAndSetter() {}
 //          ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:23:19: Error: The setter conflicts with declaration 'instanceMethodAndStaticSetter'.
+//   static void set instanceMethodAndStaticSetter(value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:22:3: Context: Conflicting declaration 'instanceMethodAndStaticSetter'.
+//   instanceMethodAndStaticSetter() {}
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:26:12: Error: The setter conflicts with declaration 'staticMethodAndInstanceSetter'.
+//   void set staticMethodAndInstanceSetter(value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:25:10: Context: Conflicting declaration 'staticMethodAndInstanceSetter'.
+//   static staticMethodAndInstanceSetter() {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:34:12: Error: The setter conflicts with declaration 'extensionInstanceMethodAndSetter'.
+//   void set extensionInstanceMethodAndSetter(value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:33:3: Context: Conflicting declaration 'extensionInstanceMethodAndSetter'.
+//   extensionInstanceMethodAndSetter() {}
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:37:19: Error: The setter conflicts with declaration 'extensionStaticMethodAndSetter'.
+//   static void set extensionStaticMethodAndSetter(value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:36:10: Context: Conflicting declaration 'extensionStaticMethodAndSetter'.
+//   static extensionStaticMethodAndSetter() {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:40:19: Error: The setter conflicts with declaration 'extensionInstanceMethodAndStaticSetter'.
+//   static void set extensionInstanceMethodAndStaticSetter(value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:39:3: Context: Conflicting declaration 'extensionInstanceMethodAndStaticSetter'.
+//   extensionInstanceMethodAndStaticSetter() {}
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:43:12: Error: The setter conflicts with declaration 'extensionStaticMethodAndInstanceSetter'.
+//   void set extensionStaticMethodAndInstanceSetter(value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:42:10: Context: Conflicting declaration 'extensionStaticMethodAndInstanceSetter'.
+//   static extensionStaticMethodAndInstanceSetter() {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:23:19: Error: This static member conflicts with an instance member.
 //   static void set instanceMethodAndStaticSetter(value) {}

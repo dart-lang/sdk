@@ -6229,12 +6229,10 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                __ popq(RAX))
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
-  if (FLAG_target_thread_sanitizer) {
-    // On TSAN builds StoreRelease/LoadAcquire will do a runtime
-    // call to tell TSAN about our action.
-    __ MoveRegister(THR, CallingConventions::kArg2Reg);
-  }
-
+  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+  // call to tell TSAN about our action.
+  __ pushq(THR);
+  __ MoveRegister(THR, CallingConventions::kArg2Reg);
   __ pushq(RCX);
   __ xorq(RCX, RCX);
   __ pushq(RCX);
@@ -6299,6 +6297,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
   __ LoadAcquireFromOffset(CallingConventions::kReturnReg, RSP, 0);
   __ popq(RCX);
   __ popq(RCX);
+  __ popq(THR);
   __ ret();
 }
 
@@ -6308,12 +6307,10 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
-  if (FLAG_target_thread_sanitizer) {
-    // On TSAN builds StoreRelease/LoadAcquire will do a runtime
-    // call to tell TSAN about our action.
-    __ MoveRegister(THR, CallingConventions::kArg2Reg);
-  }
-
+  // On TSAN builds StoreRelease/LoadAcquire will do a runtime
+  // call to tell TSAN about our action.
+  __ pushq(THR);
+  __ MoveRegister(THR, CallingConventions::kArg2Reg);
   __ pushq(RCX);
   __ xorq(RCX, RCX);
   __ pushq(RCX);
@@ -6323,6 +6320,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
   __ addq(RSP, Immediate(1024));
   __ popq(RCX);
   __ popq(RCX);
+  __ popq(THR);
   __ ret();
 }
 
@@ -6331,6 +6329,8 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
   EXPECT_EQ(123, res);
   if (!FLAG_target_thread_sanitizer) {
     EXPECT_DISASSEMBLY_NOT_WINDOWS(
+        "push thr\n"
+        "movq thr,rsi\n"
         "push rcx\n"
         "xorq rcx,rcx\n"
         "push rcx\n"
@@ -6340,6 +6340,7 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
         "addq rsp,0x400\n"
         "pop rcx\n"
         "pop rcx\n"
+        "pop thr\n"
         "ret\n");
   }
 }

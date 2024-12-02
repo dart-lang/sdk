@@ -1560,6 +1560,12 @@ if (!self.deferred_loader) {
      * application.
      */
     hotReloadEnd() {
+      // Clear RTI subtype caches before initializing libraries.
+      // These needs to be done before hot reload completes (and any new
+      // libraries initialize) in case subtype hierarchies updated.
+      let dartRtiLibrary = this.importLibrary('dart:_rti');
+      dartRtiLibrary.resetRtiSubtypeCaches();
+
       // On a hot reload, we reuse the existing library objects to ensure all
       // references remain valid and continue to be unique. We track in
       // `previouslyLoaded` which libraries already exist in the system, so we

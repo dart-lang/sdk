@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
 
 class S {
@@ -13,9 +9,9 @@ class S {
   S.foo() : i = 1742;
 }
 
-class M1 {}
+mixin class M1 {}
 
-class M2 {}
+mixin class M2 {}
 
 class C extends S with M1, M2 {
   C.foo() : super.foo();

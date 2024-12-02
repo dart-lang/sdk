@@ -8,14 +8,12 @@
 
 class C {
   C.n() {}
-//^
-// [cfe] Conflicts with member 'n'.
 //  ^
 // [analyzer] COMPILE_TIME_ERROR.CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER
 
   static int get n {
   //             ^
-  // [cfe] Conflicts with constructor 'C.n'.
+  // [cfe] The member conflicts with constructor 'C.n'.
     return 42;
   }
 }

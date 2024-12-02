@@ -1,0 +1,2 @@
+import 'package:foobar%32' as b;
+import 'package:foobar1' as a;

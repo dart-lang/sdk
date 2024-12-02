@@ -2,35 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
+// A mixin class declaration *can* declare factory and trivial generative
+// constructors.
 
-// A mixin declaration cannot declare any (factory) constructors.
+import "package:expect/expect.dart";
 
-class A {}
+class A {
+  const A();
+  const A.baz();
+}
 
-class B implements A {
+class B implements N {
   const B();
 }
 
-mixin M on A {
-  factory M.foo() => throw "uncalled"; //# 01: compile-time error
-  const factory M.bar() = B; //# 02: compile-time error
-  M.baz(); //# 03: compile-time error
+mixin class N {
+  // It's OK for a mixin derived from a class to have factory constructors
+  // and trivial constructors.
+  // (Trivial means: No initializer list, no body, no parameters, and not
+  // forwarding.)
+  factory N.foo() => const B();
+  const factory N.bar() = B;
+  N.baz();
 }
 
-class MA extends A with M {}
-
-class N {
-  // It's OK for a mixin derived from a class to have factory constructors.
-  factory N.quux() => throw "uncalled"; //# none: ok
-  N.bar(); //# 04: compile-time error
-}
-
-class NA extends A with N {}
+// Used as mixin.
+class NA = A with N;
 
 main() {
-  new MA();
-  new NA();
+  // Constructors on `N` can be used directly.
+  Expect.identical(const B(), N.foo());
+  const N bar = N.bar();
+  N n = N.baz();
+
+  // Constructors from `A` inherited by `NA`.
+  NA na = const NA(); // Inherited from A.
+  na = const NA.baz(); // Inherited from A, not shadowed by N.
 }

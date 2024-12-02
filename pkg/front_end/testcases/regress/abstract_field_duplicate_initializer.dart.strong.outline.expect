@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:22: Error: Duplicated parameter name 'foo'.
+//   Foo(this.foo, this.foo) {}
+//                      ^^^
+// pkg/front_end/testcases/regress/abstract_field_duplicate_initializer.dart:7:12: Context: Other parameter named 'foo'.
+//   Foo(this.foo, this.foo) {}
+//            ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo extends core::Object {
+  constructor •(core::int foo, core::int foo) → self::Foo
+    ;
+  abstract get foo() → core::int;
+  abstract set foo(synthesized core::int #externalFieldValue) → void;
+}

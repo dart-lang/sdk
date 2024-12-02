@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:dartdev/src/resident_frontend_utils.dart';
+import 'package:frontend_server/resident_frontend_server_utils.dart'
+    show ResidentCompilerInfo;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'utils.dart';

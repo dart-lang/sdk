@@ -18,6 +18,7 @@
 
 #include "vm/constants.h"
 #include "vm/random.h"
+#include "vm/simulator_memory.h"
 
 namespace dart {
 
@@ -161,6 +162,7 @@ class Simulator {
   static int32_t flag_stop_sim_at_;
   Random random_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
+  SimulatorMemory memory_;
 
   // Registered breakpoints.
   Instr* break_pc_;
@@ -220,8 +222,8 @@ class Simulator {
   // performs atomic compare-and-swap with remembered value to observe value
   // changes. This implementation of ldrex/strex instructions does not detect
   // ABA situation and our uses of ldrex/strex don't need this detection.
-  uword exclusive_access_addr_;
-  uword exclusive_access_value_;
+  uword exclusive_access_addr_ = 0;
+  uword exclusive_access_value_ = 0;
 
   // Executing is handled based on the instruction type.
   void DecodeType01(Instr* instr);  // Both type 0 and type 1 rolled into one.

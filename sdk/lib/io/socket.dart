@@ -619,7 +619,12 @@ final class ConnectionTask<S> {
 /// ([RawSocketEvent.closed]).
 abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Set or get, if the [RawSocket] should listen for [RawSocketEvent.read]
-  /// events. Default is `true`.
+  /// and [RawSocketEvent.readClosed] events. Default is `true`.
+  ///
+  /// Warning: setting [readEventsEnabled] to `false` might prevent socket
+  /// from fully closing when [SocketDirection.receive] and
+  /// [SocketDirection.send] directions are shutdown independently. See
+  /// [shutdown] for more details.
   abstract bool readEventsEnabled;
 
   /// Set or get, if the [RawSocket] should listen for [RawSocketEvent.write]
@@ -636,8 +641,8 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// The [host] can either be a [String] or an [InternetAddress]. If [host] is a
   /// [String], [connect] will perform a [InternetAddress.lookup] and try
   /// all returned [InternetAddress]es, until connected. If IPv4 and IPv6
-  /// addresses are both availble then connections over IPv4 are preferred. If
-  /// no connection can be establed then the error from the first failing
+  /// addresses are both available then connections over IPv4 are preferred. If
+  /// no connection can be established then the error from the first failing
   /// connection is returned.
   ///
   /// The argument [sourceAddress] can be used to specify the local
@@ -788,6 +793,17 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// and calling it several times is supported. Calling
   /// shutdown with either [SocketDirection.both] or [SocketDirection.receive]
   /// can result in a [RawSocketEvent.readClosed] event.
+  ///
+  /// Warning: [SocketDirection.receive] direction is only considered to be
+  /// to be fully shutdown once all available data is drained and
+  /// [RawSocketEvent.readClosed] is dispatched. Shutting down
+  /// [SocketDirection.receive] and [SocketDirection.send] directions separately
+  /// without draining the data will lead to socket staying around until the
+  /// data is drained. This can happen if [readEventsEnabled] is set
+  /// to `false` or if received data is not [read] in response to these
+  /// events. This does not apply to shutting down both directions
+  /// simultaneously using [SocketDirection.both] which will discard all
+  /// received data instead.
   void shutdown(SocketDirection direction);
 
   /// Customize the [RawSocket].

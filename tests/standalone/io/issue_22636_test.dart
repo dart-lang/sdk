@@ -8,7 +8,9 @@
 
 import "dart:async";
 import "dart:io";
+
 import "package:expect/expect.dart";
+import "package:expect/async_helper.dart";
 
 final Duration delay = new Duration(milliseconds: 100);
 final List<int> data = new List.generate(100, (i) => i % 20 + 65);
@@ -28,10 +30,11 @@ void serverListen(RawSocket serverSide) {
             serverSide.writeEventsEnabled = true;
           });
         } else {
-          new Future.delayed(delay, () {
+          new Future.delayed(delay, () async {
             Expect.isTrue(serverReadClosedReceived);
             serverSide.shutdown(SocketDirection.send);
-            server.close();
+            await server.close();
+            asyncEnd();
           });
         }
         break;
@@ -58,5 +61,6 @@ Future test() async {
 }
 
 void main() {
+  asyncStart();
   test();
 }

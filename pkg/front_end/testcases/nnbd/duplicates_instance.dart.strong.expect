@@ -30,6 +30,34 @@ library;
 //   int instanceField = 1;
 //       ^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:26:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter1'.
+//   void set instanceFieldAndSetter1(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:25:7: Context: Field 'instanceFieldAndSetter1' with the implicit setter.
+//   int instanceFieldAndSetter1 = 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:34:7: Error: Conflicts with setter 'instanceFieldAndSetter2'.
+//   int instanceFieldAndSetter2 = 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:30:12: Context: Conflicting setter 'instanceFieldAndSetter2'.
+//   void set instanceFieldAndSetter2(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:37:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter1'.
+//   void set instanceLateFinalFieldAndSetter1(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:36:18: Context: Field 'instanceLateFinalFieldAndSetter1' with the implicit setter.
+//   late final int instanceLateFinalFieldAndSetter1;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:45:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter2'.
+//   late final int instanceLateFinalFieldAndSetter2;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:41:12: Context: Conflicting setter 'instanceLateFinalFieldAndSetter2'.
+//   void set instanceLateFinalFieldAndSetter2(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/duplicates_instance.dart:48:13: Error: 'instanceDuplicateFieldAndSetter' is already declared in this scope.
 //   final int instanceDuplicateFieldAndSetter = 2;
 //             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -58,49 +86,17 @@ library;
 //   void set instanceDuplicateFieldAndDuplicateSetter(int value) {
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:26:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter1'.
-//   void set instanceFieldAndSetter1(int value) {
-//            ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:25:7: Error: Conflicts with setter 'instanceFieldAndSetter1'.
-//   int instanceFieldAndSetter1 = 1;
-//       ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:30:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter2'.
-//   void set instanceFieldAndSetter2(int value) {
-//            ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:34:7: Error: Conflicts with setter 'instanceFieldAndSetter2'.
-//   int instanceFieldAndSetter2 = 1;
-//       ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:37:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter1'.
-//   void set instanceLateFinalFieldAndSetter1(int value) {
-//            ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:36:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter1'.
-//   late final int instanceLateFinalFieldAndSetter1;
-//                  ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:41:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter2'.
-//   void set instanceLateFinalFieldAndSetter2(int value) {
-//            ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:45:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter2'.
-//   late final int instanceLateFinalFieldAndSetter2;
-//                  ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:73:12: Error: 'instanceMethodAndSetter1' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:73:12: Error: The setter conflicts with declaration 'instanceMethodAndSetter1'.
 //   void set instanceMethodAndSetter1(int value) {
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:72:7: Context: Previous declaration of 'instanceMethodAndSetter1'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:72:7: Context: Conflicting declaration 'instanceMethodAndSetter1'.
 //   int instanceMethodAndSetter1() => 1;
 //       ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:81:7: Error: 'instanceMethodAndSetter2' is already declared in this scope.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:81:7: Error: The declaration conflicts with setter 'instanceMethodAndSetter2'.
 //   int instanceMethodAndSetter2() => 1;
 //       ^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:77:12: Context: Previous declaration of 'instanceMethodAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:77:12: Context: Conflicting setter 'instanceMethodAndSetter2'.
 //   void set instanceMethodAndSetter2(int value) {
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
 //

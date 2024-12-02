@@ -2069,43 +2069,60 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
       return false;
 
     case Token::kSHR:
-      return !RangeUtils::IsPositive(right_range());
+      return !RightOperandIsPositive();
 
     case Token::kUSHR:
     case Token::kSHL:
-      return can_overflow() || !RangeUtils::IsPositive(right_range());
+      return can_overflow() || !RightOperandIsPositive();
 
     case Token::kMOD:
-      return RangeUtils::CanBeZero(right_range());
+      return RightOperandCanBeZero();
 
     case Token::kTRUNCDIV:
-      return RangeUtils::CanBeZero(right_range()) ||
-             RangeUtils::Overlaps(right_range(), -1, -1);
+      return RightOperandCanBeZero() || RightOperandCanBeMinusOne();
 
     default:
       return can_overflow();
   }
 }
 
-bool BinaryIntegerOpInstr::RightIsNonZero() const {
+bool BinaryIntegerOpInstr::RightOperandCanBeZero() const {
   if (right()->BindsToConstant()) {
     const auto& constant = right()->BoundConstant();
-    if (!constant.IsInteger()) return false;
-    return Integer::Cast(constant).Value() != 0;
+    if (!constant.IsInteger()) return true;
+    return Integer::Cast(constant).Value() == 0;
   }
-  return !RangeUtils::CanBeZero(right()->definition()->range());
+  return RangeUtils::CanBeZero(right_range());
 }
 
-bool BinaryIntegerOpInstr::RightIsPositive() const {
+bool BinaryIntegerOpInstr::RightOperandCanBeMinusOne() const {
+  if (right()->BindsToConstant()) {
+    const auto& constant = right()->BoundConstant();
+    if (!constant.IsInteger()) return true;
+    return Integer::Cast(constant).Value() == -1;
+  }
+  return RangeUtils::Overlaps(right_range(), -1, -1);
+}
+
+bool BinaryIntegerOpInstr::RightOperandIsPositive() const {
   if (right()->BindsToConstant()) {
     const auto& constant = right()->BoundConstant();
     if (!constant.IsInteger()) return false;
     return Integer::Cast(constant).Value() > 0;
   }
-  return RangeUtils::IsPositive(right()->definition()->range());
+  return RangeUtils::IsPositive(right_range());
 }
 
-bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
+bool BinaryIntegerOpInstr::RightOperandIsNegative() const {
+  if (right()->BindsToConstant()) {
+    const auto& constant = right()->BoundConstant();
+    if (!constant.IsInteger()) return false;
+    return Integer::Cast(constant).Value() < 0;
+  }
+  return RangeUtils::IsNegative(right_range());
+}
+
+bool BinaryIntegerOpInstr::RightOperandIsPowerOfTwoConstant() const {
   if (!right()->BindsToConstant()) return false;
   const Object& constant = right()->BoundConstant();
   if (!constant.IsSmi()) return false;
@@ -2121,7 +2138,7 @@ bool BinaryIntegerOpInstr::IsShiftCountInRange(int64_t max) const {
     const int64_t value = Integer::Cast(constant).Value();
     return (0 <= value) && (value <= max);
   }
-  return RangeUtils::IsWithin(right()->definition()->range(), 0, max);
+  return RangeUtils::IsWithin(right_range(), 0, max);
 }
 
 static intptr_t RepresentationBits(Representation r) {
@@ -2279,26 +2296,9 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
                                                  Value* right,
                                                  intptr_t deopt_id) {
   BinaryIntegerOpInstr* op = nullptr;
-  Range* right_range = nullptr;
-  switch (op_kind) {
-    case Token::kMOD:
-    case Token::kTRUNCDIV:
-      if (representation != kTagged) break;
-      FALL_THROUGH;
-    case Token::kSHL:
-    case Token::kSHR:
-    case Token::kUSHR:
-      if (auto const const_def = right->definition()->AsConstant()) {
-        right_range = new Range();
-        const_def->InferRange(nullptr, right_range);
-      }
-      break;
-    default:
-      break;
-  }
   switch (representation) {
     case kTagged:
-      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id, right_range);
+      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id);
       break;
     case kUnboxedInt32:
       if (!BinaryInt32OpInstr::IsSupported(op_kind, left, right)) {

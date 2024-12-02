@@ -64,6 +64,8 @@ $content
     Object? isDefault = anything,
     Object? isRequired = anything,
     Object? isNullable = anything,
+    Object? isEditable = anything,
+    Object? notEditableReason = anything,
     Object? options = anything,
   }) {
     return isA<EditableArgument>()
@@ -75,6 +77,12 @@ $content
         .having((arg) => arg.isDefault, 'isDefault', isDefault)
         .having((arg) => arg.isRequired, 'isRequired', isRequired)
         .having((arg) => arg.isNullable, 'isNullable', isNullable)
+        .having((arg) => arg.isEditable, 'isEditable', isEditable)
+        .having(
+          (arg) => arg.notEditableReason,
+          'notEditableReason',
+          notEditableReason,
+        )
         .having((arg) => arg.options, 'options', options)
         // Some extra checks that should be true for all.
         .having(
@@ -82,6 +90,16 @@ $content
               arg.value == null ||
               arg.value?.toString() != arg.displayValue?.toString(),
           'different value and displayValues',
+          isTrue,
+        )
+        .having(
+          (arg) => (arg.notEditableReason == null) == arg.isEditable,
+          'notEditableReason must be supplied if isEditable=false',
+          isTrue,
+        )
+        .having(
+          (arg) => arg.value == null || arg.isEditable,
+          'isEditable must be true if there is a value',
           isTrue,
         )
         .having(
@@ -125,6 +143,292 @@ class MyWidget extends StatelessWidget {
           isArg('aPositionalNotSupplied', hasArgument: false),
           isArg('aNamedNotSupplied', hasArgument: false),
         ]),
+      ),
+    );
+  }
+
+  test_isEditable_false_positional_optional() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget([int? a, int? b, int? c]);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(
+      result,
+      hasArgs(
+        orderedEquals([
+          isArg('a', isEditable: true),
+          isArg('b', isEditable: true),
+          isArg(
+            'c',
+            // c is not editable because it is not guaranteed that we can insert
+            // a default value for b (it could be a private value or require
+            // imports).
+            isEditable: false,
+            notEditableReason:
+                "A value for the 3rd parameter can't be added until a value "
+                'for all preceding positional parameters have been added.',
+          ),
+        ]),
+      ),
+    );
+  }
+
+  test_isEditable_false_positional_required1() async {
+    failTestOnErrorDiagnostic = false;
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int a, int b);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget();
+}
+''');
+    expect(
+      result,
+      hasArg(
+        // b is not editable because there are missing required previous
+        // arguments (a).
+        isArg(
+          'b',
+          isEditable: false,
+          notEditableReason:
+              "A value for the 2nd parameter can't be added until a value "
+              'for all preceding positional parameters have been added.',
+        ),
+      ),
+    );
+  }
+
+  test_isEditable_false_positional_required2() async {
+    failTestOnErrorDiagnostic = false;
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int a, int b, int c);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(
+      result,
+      hasArg(
+        // c is not editable because there are missing required previous
+        // arguments (b).
+        isArg(
+          'c',
+          isEditable: false,
+          notEditableReason:
+              "A value for the 3rd parameter can't be added until a value "
+              'for all preceding positional parameters have been added.',
+        ),
+      ),
+    );
+  }
+
+  test_isEditable_false_string_adjacent() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(String s);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget('a' 'b');
+}
+''');
+    expect(
+      result,
+      hasArg(
+        isArg(
+          's',
+          type: 'string',
+          value: isNull,
+          displayValue: 'ab',
+          isDefault: false,
+          isEditable: false,
+          notEditableReason: "Adjacent strings can't be edited",
+        ),
+      ),
+    );
+  }
+
+  test_isEditable_false_string_interpolated() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(String s);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget('${context.runtimeType}');
+}
+''');
+    expect(
+      result,
+      hasArgs(
+        orderedEquals([
+          isArg(
+            's',
+            type: 'string',
+            value: isNull,
+            displayValue: r"'${context.runtimeType}'",
+            isEditable: false,
+            notEditableReason: "Interpolated strings can't be edited",
+          ),
+        ]),
+      ),
+    );
+  }
+
+  test_isEditable_false_string_withNewlines() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(String sEscaped, String sLiteral);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(
+    'a\nb',
+    """
+a
+b
+""",
+  );
+}
+''');
+    expect(
+      result,
+      hasArgs(
+        orderedEquals([
+          isArg(
+            'sEscaped',
+            type: 'string',
+            value: isNull,
+            displayValue: 'a\nb',
+            isEditable: false,
+            notEditableReason: "Strings containing newlines can't be edited",
+          ),
+          isArg(
+            'sLiteral',
+            type: 'string',
+            value: isNull,
+            displayValue: 'a\nb\n',
+            isEditable: false,
+            notEditableReason: "Strings containing newlines can't be edited",
+          ),
+        ]),
+      ),
+    );
+  }
+
+  test_isEditable_true_named() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget({int? a, int? b, int? c});
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(a: 1);
+}
+''');
+    expect(
+      result,
+      hasArgs(
+        orderedEquals([
+          isArg('a', isEditable: true),
+          isArg('b', isEditable: true),
+          isArg('c', isEditable: true),
+        ]),
+      ),
+    );
+  }
+
+  test_isEditable_true_positional_required() async {
+    failTestOnErrorDiagnostic = false;
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int a, int b);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(
+      result,
+      hasArg(
+        isArg(
+          'b',
+          // b is editable because it's the next argument and we don't need
+          // to add anything additional.
+          isEditable: true,
+        ),
+      ),
+    );
+  }
+
+  test_isEditable_true_string_dollar_escaped() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(String s);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget('\${1}');
+}
+''');
+    expect(
+      result,
+      hasArg(
+        isArg(
+          's',
+          type: 'string',
+          value: r'${1}',
+          displayValue: isNull,
+          isEditable: true,
+        ),
+      ),
+    );
+  }
+
+  test_isEditable_true_string_dollar_raw() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(String s);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(r'${1}');
+}
+''');
+    expect(
+      result,
+      hasArg(
+        isArg(
+          's',
+          type: 'string',
+          value: r'${1}',
+          displayValue: isNull,
+          isEditable: true,
+        ),
+      ),
+    );
+  }
+
+  test_isEditable_true_string_tripleQuoted_withoutNewlines() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(String s);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget("""string_value""");
+}
+''');
+    expect(
+      result,
+      hasArg(
+        isArg(
+          's',
+          type: 'string',
+          value: 'string_value',
+          displayValue: isNull,
+          isEditable: true,
+        ),
       ),
     );
   }

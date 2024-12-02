@@ -1,7 +1,10 @@
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
+
+// Checks what happens if a const map can has a key which overrides `hashCode`
+// in a nasty way.
+// Overriding `hashCode` in const map keys was made an error in Dart 3.0.
 // @dart=2.19
 
 import 'package:expect/expect.dart';

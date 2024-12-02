@@ -66,13 +66,6 @@ library;
 //   int get hashCode => _getHash(this);
 //           ^
 //
-// pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:52:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'String' of the setter 'E8.hashCode'.
-//   void set hashCode(String value) {} // Error.
-//            ^^^^^^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the declaration of the getter 'Object.hashCode'.
-//   int get hashCode => _getHash(this);
-//           ^^^^^^^^
-//
 // pkg/front_end/testcases/enhanced_enums/declared_hashcode.dart:58:14: Error: The return type of the method 'E9.hashCode' is 'double', which does not match the return type, 'int', of the overridden method, 'Object.hashCode'.
 // Change to a subtype of 'int'.
 //   double get hashCode; // Error.

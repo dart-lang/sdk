@@ -22,8 +22,6 @@ import '../../base/messages.dart'
         templateCantInferTypesDueToNoCombinedSignature,
         templateCantInferReturnTypeDueToNoCombinedSignature,
         templateCantInferTypeDueToNoCombinedSignature,
-        templateDuplicatedDeclaration,
-        templateDuplicatedDeclarationCause,
         templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
@@ -135,52 +133,6 @@ abstract class MembersNodeBuilder {
             name.length,
             instanceMember.fileUri);
       }
-    } else {
-      // This message can be reported twice (when merging localMembers with
-      // classSetters, or localSetters with classMembers). By ensuring that
-      // we always report the one with higher charOffset as the duplicate,
-      // the message duplication logic ensures that we only report this
-      // problem once.
-      ClassMember existing;
-      ClassMember duplicate;
-      assert(a.fileUri == b.fileUri ||
-          // Coverage-ignore(suite): Not run.
-          a.name.text == "toString" &&
-              (a.fileUri.isScheme("org-dartlang-sdk") &&
-                      a.fileUri.pathSegments.isNotEmpty &&
-                      a.fileUri.pathSegments.last == "enum.dart" ||
-                  b.fileUri.isScheme("org-dartlang-sdk") &&
-                      b.fileUri.pathSegments.isNotEmpty &&
-                      b.fileUri.pathSegments.last == "enum.dart"));
-
-      if (a.fileUri != b.fileUri) {
-        // Coverage-ignore-block(suite): Not run.
-        if (a.fileUri.isScheme("org-dartlang-sdk")) {
-          existing = a;
-          duplicate = b;
-        } else {
-          assert(b.fileUri.isScheme("org-dartlang-sdk"));
-          existing = b;
-          duplicate = a;
-        }
-      } else {
-        if (a.charOffset < b.charOffset) {
-          existing = a;
-          duplicate = b;
-        } else {
-          existing = b;
-          duplicate = a;
-        }
-      }
-      declarationBuilder.libraryBuilder.addProblem(
-          templateDuplicatedDeclaration.withArguments(name),
-          duplicate.charOffset,
-          name.length,
-          duplicate.fileUri,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
-                existing.fileUri, existing.charOffset, name.length)
-          ]);
     }
   }
 }

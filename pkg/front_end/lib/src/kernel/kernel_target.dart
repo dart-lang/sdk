@@ -1609,6 +1609,7 @@ class KernelTarget {
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
     for (SourceFieldBuilder fieldBuilder in uninitializedFields) {
+      if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
       if (initializedFieldBuilders == null ||
           !initializedFieldBuilders.contains(fieldBuilder)) {
         if (!fieldBuilder.isLate) {
@@ -1653,6 +1654,7 @@ class KernelTarget {
       Set<FieldBuilder> fieldBuilders = entry.value;
       for (SourceFieldBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
+        if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
           Initializer initializer = fieldBuilder.buildImplicitInitializer();
           constructorBuilder.prependInitializer(initializer);

@@ -5,11 +5,6 @@
 part of 'declaration_builders.dart';
 
 abstract class ExtensionBuilder implements DeclarationBuilder {
-  /// Type parameters declared on the extension.
-  ///
-  /// This is `null` if the extension is not generic.
-  List<NominalParameterBuilder>? get typeParameters;
-
   /// The type of the on-clause of the extension declaration.
   TypeBuilder get onType;
 

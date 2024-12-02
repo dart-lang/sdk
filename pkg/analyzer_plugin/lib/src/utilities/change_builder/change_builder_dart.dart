@@ -2226,12 +2226,35 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return ImportLibraryElementResultImpl(null);
   }
 
-  String importLibraryWithAbsoluteUri(Uri uri, [String? prefix]) {
-    return _importLibrary(uri, prefix: prefix, forceAbsolute: true).uriText;
+  String importLibraryWithAbsoluteUri(
+    Uri uri, {
+    String? prefix,
+    String? shownName,
+    bool useShow = false,
+  }) {
+    return _importLibrary(
+      uri,
+      prefix: prefix,
+      shownName: shownName,
+      useShow: useShow,
+      forceAbsolute: true,
+    ).uriText;
   }
 
-  String importLibraryWithRelativeUri(Uri uri, [String? prefix]) {
-    return _importLibrary(uri, prefix: prefix, forceRelative: true).uriText;
+  String importLibraryWithRelativeUri(
+    Uri uri, {
+    String? prefix,
+    String? shownName,
+    bool useShow = false,
+  }) {
+    return _importLibrary(
+      uri,
+      prefix: prefix,
+      shownName: shownName,
+      useShow: useShow,
+      forceAbsolute: true,
+      forceRelative: true,
+    ).uriText;
   }
 
   @override

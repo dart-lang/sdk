@@ -801,35 +801,79 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var universeClass =
         _rtiLibrary.classes.firstWhere((cls) => cls.name == '_Universe');
-    var typeRules = _typeRecipeGenerator.liveInterfaceTypeRules;
-    if (typeRules.isNotEmpty) {
+
+    // Emits either an 'addRules', 'addOrUpdateRules', or 'deleteRules'
+    // statement for a JSON-serializable [rules] made of RTI type rules.
+    //
+    // 'addRules' overrides existing state. Calling this function multiple
+    // times is safe for types whose hierarchies can be exhaustively
+    // discovered at compile-time, which is true for all types that aren't
+    // 'LegacyJavaScriptObject'.
+    //
+    // TODO: The above assumption may not hold if a class's hierarchy
+    // changes after a hot reload. Outdated 'addRules' invocations (during
+    // linking) may clobber updated type rules.
+    js_ast.Statement emitRulesStatement(Object? rules,
+        {required String rulesFunction}) {
       var template = '#._Universe.#(#, JSON.parse(#))';
-      var addRulesStatement = js.call(template, [
+      var rulesExpr = js.call(template, [
         _emitLibraryName(_rtiLibrary),
-        _emitMemberName('addRules', memberClass: universeClass),
+        _emitMemberName(rulesFunction, memberClass: universeClass),
         _runtimeCall('typeUniverse'),
-        js.string(jsonEncode(typeRules), "'")
-      ]).toStatement();
-      _typeRuleLinks.add(addRulesStatement);
-    }
-    // Update type rules for `LegacyJavaScriptObject` to add all interop
-    // types in this module as a supertype.
-    var updateRules = _typeRecipeGenerator.updateLegacyJavaScriptObjectRules;
-    if (updateRules.isNotEmpty) {
-      // All JavaScript interop classes should be mutual subtypes with
-      // `LegacyJavaScriptObject`. To achieve this the rules are manually
-      // added here. There is special redirecting rule logic in the dart:_rti
-      // library for interop types because otherwise they would duplicate
-      // a lot of supertype information.
-      var updateRulesStatement =
-          js.statement('#._Universe.#(#, JSON.parse(#))', [
-        _emitLibraryName(_rtiLibrary),
-        _emitMemberName('addOrUpdateRules', memberClass: universeClass),
-        _runtimeCall('typeUniverse'),
-        js.string(jsonEncode(updateRules), "'")
+        js.string(jsonEncode(rules), "'")
       ]);
-      _typeRuleLinks.add(updateRulesStatement);
+      return rulesExpr.toStatement();
     }
+
+    // We must emit type rules for every interface type encountered by DDC,
+    // with several caveats:
+    // 1) 'LegacyJavaScriptObject' has special treatment. Its hierarchy
+    //    accumulates across libraries and must always be emitted in 'append'
+    //    mode ('addOrUpdateRules') to avoid clobbering its previous state.
+    // 2) We manually add rules for mutual subtype relationships between
+    //    'LegacyJavaScriptObject' and all JavaScript interop classes. There is
+    //    special redirecting rule logic in the dart:_rti library for interop
+    //    types because otherwise they would duplicate a lot of supertype
+    //    information.
+    // 3) The RTI treats an empty type hierarchy as implicitly containing
+    //    'Object'. We explicitly emit 'deleteRules' instructions in case
+    //    a type hierarchy was deleted or edited to extend 'Object' after hot
+    //    reload.
+    var legacyJavaScriptObjectRecipe = _typeRecipeGenerator.interfaceTypeRecipe(
+        _coreTypes.index
+            .getClass('dart:_interceptors', 'LegacyJavaScriptObject'));
+    var legacyJavaScriptObjectRules = _typeRecipeGenerator
+        .liveInterfaceTypeRules[legacyJavaScriptObjectRecipe];
+    var typeRulesExceptLegacyJavaScriptObject = _typeRecipeGenerator
+        .liveInterfaceTypeRules
+      ..remove(legacyJavaScriptObjectRecipe);
+    var typesThatOnlyExtendObject =
+        Set.from(_typeRecipeGenerator.visitedInterfaceTypeRecipes)
+          ..removeAll(typeRulesExceptLegacyJavaScriptObject.keys)
+          ..remove(legacyJavaScriptObjectRecipe);
+    var legacyJavaScriptObjectMutualSubtypingRules =
+        _typeRecipeGenerator.updateLegacyJavaScriptObjectRules;
+
+    if (typeRulesExceptLegacyJavaScriptObject.isNotEmpty) {
+      _typeRuleLinks.add(emitRulesStatement(
+          typeRulesExceptLegacyJavaScriptObject,
+          rulesFunction: 'addRules'));
+    }
+    if (typesThatOnlyExtendObject.isNotEmpty) {
+      _typeRuleLinks.add(emitRulesStatement(typesThatOnlyExtendObject.toList(),
+          rulesFunction: 'deleteRules'));
+    }
+    if (legacyJavaScriptObjectRules != null) {
+      _typeRuleLinks.add(emitRulesStatement({
+        legacyJavaScriptObjectRecipe: legacyJavaScriptObjectRules,
+      }, rulesFunction: 'addOrUpdateRules'));
+    }
+    if (legacyJavaScriptObjectMutualSubtypingRules.isNotEmpty) {
+      _typeRuleLinks.add(emitRulesStatement(
+          legacyJavaScriptObjectMutualSubtypingRules,
+          rulesFunction: 'addOrUpdateRules'));
+    }
+
     var jsInteropTypeRecipes = _typeRecipeGenerator.visitedJsInteropTypeRecipes;
     if (jsInteropTypeRecipes.isNotEmpty) {
       // Update the `LegacyJavaScriptObject` class with the type tags for all

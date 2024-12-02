@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
+import "package:expect/static_type_helper.dart";
 
 abstract class Base {
   void f(int i);
@@ -12,7 +10,7 @@ abstract class Base {
   void h({int i});
 }
 
-abstract class Mixin implements Base {}
+mixin Mixin implements Base {}
 
 class Derived extends Object with Mixin {
   // Type `(int) -> void` should be inherited from `Base`
@@ -27,28 +25,7 @@ class Derived extends Object with Mixin {
 
 main() {
   var d = new Derived();
-  d.f('bad');
-  //  ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
-  d.g('bad');
-  //  ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
-  d.h(i: 'bad');
-  //     ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
-  Object x = d.f(1);
-  //           ^
-  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] This expression has type 'void' and can't be used.
-  Object y = d.g(1);
-  //           ^
-  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] This expression has type 'void' and can't be used.
-  Object z = d.h(i: 1);
-  //           ^
-  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] This expression has type 'void' and can't be used.
+  d.f.expectStaticType<Exactly<void Function(int)>>();
+  d.g.expectStaticType<Exactly<void Function([int])>>();
+  d.h.expectStaticType<Exactly<void Function({int i})>>();
 }

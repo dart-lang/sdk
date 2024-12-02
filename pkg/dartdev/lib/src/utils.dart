@@ -109,15 +109,6 @@ ArgParser globalDartdevOptionsParser({bool verbose = false}) {
   return argParser;
 }
 
-/// Try parsing [maybeUri] as a file uri or [maybeUri] itself if that fails.
-String maybeUriToFilename(String maybeUri) {
-  try {
-    return Uri.parse(maybeUri).toFilePath();
-  } catch (_) {
-    return maybeUri;
-  }
-}
-
 /// Given a data structure which is a Map of String to dynamic values, return
 /// the same structure (`Map<String, dynamic>`) with the correct runtime types.
 Map<String, dynamic> castStringKeyedMap(dynamic untyped) {

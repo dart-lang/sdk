@@ -2762,9 +2762,10 @@ void FlowGraph::TryMergeTruncDivMod(
             kSmiCid);
 
         // Replace with TruncDivMod.
-        TruncDivModInstr* div_mod = new (Z) TruncDivModInstr(
-            curr_instr->left()->CopyWithType(),
-            curr_instr->right()->CopyWithType(), curr_instr->deopt_id());
+        TruncDivModInstr* div_mod =
+            new (Z) TruncDivModInstr(curr_instr->left()->CopyWithType(),
+                                     curr_instr->right()->CopyWithType(),
+                                     curr_instr->DeoptimizationTarget());
         curr_instr->ReplaceWith(div_mod, nullptr);
         other_binop->ReplaceUsesWith(div_mod);
         other_binop->RemoveFromGraph();

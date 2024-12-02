@@ -4,19 +4,17 @@ library;
 //
 // pkg/front_end/testcases/extensions/issue38713.dart:7:19: Error: Conflicts with the implicit setter of the field 'property2'.
 //   static void set property2(int? x) {}
-//                   ^
-//
-// pkg/front_end/testcases/extensions/issue38713.dart:6:15: Error: Conflicts with setter 'property2'.
+//                   ^^^^^^^^^
+// pkg/front_end/testcases/extensions/issue38713.dart:6:15: Context: Field 'property2' with the implicit setter.
 //   static int? property2;
-//               ^
+//               ^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38713.dart:9:19: Error: Conflicts with member 'property3'.
-//   static void set property3(int? x) {}
-//                   ^
-//
-// pkg/front_end/testcases/extensions/issue38713.dart:10:12: Error: Conflicts with setter 'property3'.
+// pkg/front_end/testcases/extensions/issue38713.dart:10:12: Error: Instance property 'property3' conflicts with static property of the same name.
 //   int? get property3 => 1;
-//            ^
+//            ^^^^^^^^^
+// pkg/front_end/testcases/extensions/issue38713.dart:9:19: Context: Conflicting static property 'property3'.
+//   static void set property3(int? x) {}
+//                   ^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

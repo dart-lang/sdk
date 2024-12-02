@@ -89,10 +89,11 @@ void f() {
     var errorFixes = await _getFixesAt(testFile, 'Completer<String>');
     expect(errorFixes, hasLength(1));
     var fixes = errorFixes[0].fixes;
-    expect(fixes, hasLength(3));
+    expect(fixes, hasLength(4));
     expect(fixes[0].message, matches('Import library'));
-    expect(fixes[1].message, matches('Create class'));
-    expect(fixes[2].message, matches('Create mixin'));
+    expect(fixes[1].message, matches("Import library .+ with 'show'"));
+    expect(fixes[2].message, matches('Create class'));
+    expect(fixes[3].message, matches('Create mixin'));
   }
 
   Future<void> test_fromPlugins() async {

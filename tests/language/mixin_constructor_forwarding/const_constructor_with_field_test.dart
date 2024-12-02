@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
 
-abstract class Mixin {
+mixin Mixin {
   // Declares an instance variable.
   // Declaration would be valid in a "const class", but mixin application
   // won't get const constructor forwarders.
@@ -65,31 +61,14 @@ main() {
   Expect.equals(42, new Application.c14(42).m);
   Expect.equals(42, new Application.c15(x: 42).m);
 
-  Expect.equals(37, new Application.c2().m); //# issue38304: ok
+  Expect.equals(37, new Application.c2().m);
   Expect.equals(37, new Application.c3().m);
-  Expect.equals(37, new Application.c5().m); //# issue38304: continued
+  Expect.equals(37, new Application.c5().m);
   Expect.equals(37, new Application.c6().m);
-  Expect.equals(87, new Application.c8().m); //# issue38304: continued
+  Expect.equals(87, new Application.c8().m);
   Expect.equals(87, new Application.c9().m);
-  Expect.equals(87, new Application.c11().m); //# issue38304: continued
+  Expect.equals(87, new Application.c11().m);
   Expect.equals(87, new Application.c12().m);
-  Expect.equals(87, new Application.c14().m); //# issue38304: continued
+  Expect.equals(87, new Application.c14().m);
   Expect.equals(87, new Application.c15().m);
-
-  // Don't make constructors const if mixin declares instance variable.
-  const Application.c4(42); //# 00: compile-time error
-  const Application.c5(42); //# 01: compile-time error
-  const Application.c6(x: 42); //# 02: compile-time error
-  const Application.c7(42); //# 03: compile-time error
-  const Application.c8(42); //# 04: compile-time error
-  const Application.c9(x: 42); //# 05: compile-time error
-  const Application.c10(42); //# 06: compile-time error
-  const Application.c11(42); //# 07: compile-time error
-  const Application.c12(x: 42); //# 08: compile-time error
-  const Application.c13(42); //# 09: compile-time error
-  const Application.c14(42); //# 10: compile-time error
-  const Application.c15(x: 42); //# 11: compile-time error
-
-  // Only insert forwarders for generative constructors.
-  new Application(); //# 12: compile-time error
 }

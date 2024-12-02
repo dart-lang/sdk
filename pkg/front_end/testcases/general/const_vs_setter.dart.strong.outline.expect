@@ -1,0 +1,40 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/const_vs_setter.dart:19:12: Error: Instance property 'e' conflicts with static property of the same name.
+//   void set e(_) {}
+//            ^
+// pkg/front_end/testcases/general/const_vs_setter.dart:18:16: Context: Conflicting static property 'e'.
+//   static const e = 123;
+//                ^
+//
+// pkg/front_end/testcases/general/const_vs_setter.dart:18:16: Error: This static member conflicts with an instance member.
+//   static const e = 123;
+//                ^
+// pkg/front_end/testcases/general/const_vs_setter.dart:19:12: Context: This is the instance member.
+//   void set e(_) {}
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static const field core::int c = 42;
+  static const field core::int d = 87;
+  static const field core::int e = 123;
+  synthetic constructor •() → self::Class
+    ;
+  static set c(wildcard dynamic _#wc1#formal) → void
+    ;
+  static set d(core::int value) → void
+    ;
+  set e(wildcard dynamic _#wc2#formal) → void
+    ;
+}
+static const field core::int a = 42;
+static const field core::int b = 87;
+static set a(wildcard dynamic _#wc0#formal) → void
+  ;
+static set b(core::int value) → void
+  ;

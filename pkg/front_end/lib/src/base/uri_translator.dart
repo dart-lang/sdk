@@ -67,14 +67,13 @@ class UriTranslator {
             : _packageUriNotFoundNoReport)(uri);
       }
       return translated;
-    }
-    // Coverage-ignore(suite): Not run.
-    on ArgumentError catch (e) {
+    } on ArgumentError catch (e) {
       // TODO(sigmund): catch a more precise error when
       // https://github.com/dart-lang/package_config/issues/40 is fixed.
       if (reportMessage) {
         options.reportWithoutLocation(
-            templateInvalidPackageUri.withArguments(uri, '$e'), Severity.error);
+            templateInvalidPackageUri.withArguments(uri, "${e.message}"),
+            Severity.error);
       }
       return null;
     }

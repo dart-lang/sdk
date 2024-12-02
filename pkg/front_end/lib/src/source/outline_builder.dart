@@ -1108,14 +1108,7 @@ class OutlineBuilder extends StackListenerImpl {
         assert(checkState(token, [
           unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder])
         ]));
-        Object? extensionThisType = peek();
-        _builderFactory.beginExtensionBody(extensionThisType is TypeBuilder
-            ? extensionThisType
-            : new InvalidTypeBuilderImpl(
-                uri,
-                extensionThisType is ParserRecovery
-                    ? extensionThisType.charOffset
-                    : TreeNode.noOffset));
+        _builderFactory.beginExtensionBody();
         break;
       case DeclarationKind.ExtensionType:
         declarationContext = DeclarationContext.ExtensionTypeBody;
@@ -2855,12 +2848,12 @@ class OutlineBuilder extends StackListenerImpl {
       List<EnumConstantInfo?>? parsedEnumConstantInfos;
       for (int index = 0; index < enumConstantInfos.length; index++) {
         EnumConstantInfo? info = enumConstantInfos[index];
-        if (info == null) {
-          parsedEnumConstantInfos = enumConstantInfos.take(index).toList();
-        }
-        // Coverage-ignore(suite): Not run.
-        else if (parsedEnumConstantInfos != null) {
+        if (parsedEnumConstantInfos != null && info != null) {
           parsedEnumConstantInfos.add(info);
+        } else if (info == null && parsedEnumConstantInfos == null) {
+          // Skip this one, but copy previous (good) ones.
+          parsedEnumConstantInfos = [];
+          parsedEnumConstantInfos.addAll(enumConstantInfos.sublist(0, index));
         }
       }
       if (parsedEnumConstantInfos != null) {
@@ -2888,7 +2881,6 @@ class OutlineBuilder extends StackListenerImpl {
     if (identifier is Identifier) {
       if (enumConstantInfos == null) {
         if (!leftBrace.isSynthetic) {
-          // Coverage-ignore-block(suite): Not run.
           addProblem(messageEnumDeclarationEmpty, identifier.token.offset,
               identifier.token.length);
         }

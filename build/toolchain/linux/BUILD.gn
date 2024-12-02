@@ -6,6 +6,7 @@ import("//build/config/sysroot.gni")
 import("//build/toolchain/ccache.gni")
 import("//build/toolchain/gcc_toolchain.gni")
 import("//build/toolchain/rbe.gni")
+import("//build/toolchain/toolchain_suite.gni")
 
 declare_args() {
   ia32_toolchain_prefix = ""
@@ -54,7 +55,14 @@ if (dart_sysroot == "alpine") {
       rebase_path("//buildtools/linux-x64/clang/bin", root_build_dir)
 }
 
-gcc_toolchain("arm") {
+template("gcc_toolchain_suite") {
+  toolchain_suite(target_name) {
+    toolchain_template = "gcc_toolchain"
+    forward_variables_from(invoker, "*")
+  }
+}
+
+gcc_toolchain_suite("arm") {
   prefix = "arm-linux-gnueabihf-"
   if (arm_toolchain_prefix != "") {
     prefix = arm_toolchain_prefix
@@ -75,7 +83,7 @@ gcc_toolchain("arm") {
   is_clang = false
 }
 
-gcc_toolchain("clang_arm") {
+gcc_toolchain_suite("clang_arm") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
@@ -97,7 +105,7 @@ gcc_toolchain("clang_arm") {
   is_clang = true
 }
 
-gcc_toolchain("arm64") {
+gcc_toolchain_suite("arm64") {
   prefix = "aarch64-linux-gnu-"
   if (arm64_toolchain_prefix != "") {
     prefix = arm64_toolchain_prefix
@@ -118,7 +126,7 @@ gcc_toolchain("arm64") {
   is_clang = false
 }
 
-gcc_toolchain("clang_arm64") {
+gcc_toolchain_suite("clang_arm64") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
@@ -140,7 +148,7 @@ gcc_toolchain("clang_arm64") {
   is_clang = true
 }
 
-gcc_toolchain("clang_x86") {
+gcc_toolchain_suite("clang_x86") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
@@ -162,7 +170,7 @@ gcc_toolchain("clang_x86") {
   is_clang = true
 }
 
-gcc_toolchain("x86") {
+gcc_toolchain_suite("x86") {
   prefix = "i686-linux-gnu-"
   if (ia32_toolchain_prefix != "") {
     prefix = ia32_toolchain_prefix
@@ -182,7 +190,7 @@ gcc_toolchain("x86") {
   is_clang = false
 }
 
-gcc_toolchain("clang_x64") {
+gcc_toolchain_suite("clang_x64") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
@@ -204,7 +212,7 @@ gcc_toolchain("clang_x64") {
   is_clang = true
 }
 
-gcc_toolchain("x64") {
+gcc_toolchain_suite("x64") {
   prefix = "x86_64-linux-gnu-"
   if (x64_toolchain_prefix != "") {
     prefix = x64_toolchain_prefix
@@ -224,7 +232,7 @@ gcc_toolchain("x64") {
   is_clang = false
 }
 
-gcc_toolchain("riscv32") {
+gcc_toolchain_suite("riscv32") {
   prefix = "riscv32-linux-gnu-"
   if (riscv32_toolchain_prefix != "") {
     prefix = riscv32_toolchain_prefix
@@ -245,7 +253,7 @@ gcc_toolchain("riscv32") {
   is_clang = false
 }
 
-gcc_toolchain("clang_riscv32") {
+gcc_toolchain_suite("clang_riscv32") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"
@@ -267,7 +275,7 @@ gcc_toolchain("clang_riscv32") {
   is_clang = true
 }
 
-gcc_toolchain("riscv64") {
+gcc_toolchain_suite("riscv64") {
   prefix = "riscv64-linux-gnu-"
   if (riscv64_toolchain_prefix != "") {
     prefix = riscv64_toolchain_prefix
@@ -288,7 +296,7 @@ gcc_toolchain("riscv64") {
   is_clang = false
 }
 
-gcc_toolchain("clang_riscv64") {
+gcc_toolchain_suite("clang_riscv64") {
   prefix = rebased_clang_dir
   cc = "${compiler_prefix}${prefix}/clang"
   cxx = "${compiler_prefix}${prefix}/clang++"

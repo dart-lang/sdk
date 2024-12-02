@@ -55,14 +55,14 @@ abstract class _Class1&Super&Mixin extends self::Super implements self::Mixin /*
   synthetic constructor •() → self::_Class1&Super&Mixin
     : super self::Super::•()
     ;
+  method method() → void {
+    super.{self::Super::method}();
+  }
   get property() → core::int {
     return super.{self::Super::property};
   }
   set property(core::int value) → void {
     super.{self::Super::property} = value;
-  }
-  method method() → void {
-    super.{self::Super::method}();
   }
 }
 class Class1 extends self::_Class1&Super&Mixin {
@@ -74,14 +74,14 @@ abstract class _Class2&Object&Mixin extends core::Object implements self::Mixin 
   const synthetic constructor •() → self::_Class2&Object&Mixin
     : super core::Object::•()
     ;
+  method method() → void {
+    super.{self::Super::method}();
+  }
   get property() → core::int {
     return super.{self::Super::property};
   }
   set property(core::int value) → void {
     super.{self::Super::property} = value;
-  }
-  method method() → void {
-    super.{self::Super::method}();
   }
 }
 class Class2 extends self::_Class2&Object&Mixin implements self::Super {

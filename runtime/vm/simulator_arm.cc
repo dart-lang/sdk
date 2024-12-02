@@ -37,6 +37,8 @@ DEFINE_FLAG(uint64_t,
             ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
+DEFINE_FLAG(bool, sim_buffer_memory, false, "Simulate weak memory ordering.");
+
 // This macro provides a platform independent use of sscanf. The reason for
 // SScanF not being implemented in a platform independent way through
 // OS in the same way as SNPrint is that the Windows C Run-Time
@@ -723,7 +725,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
 
 void Simulator::Init() {}
 
-Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
+Simulator::Simulator() : memory_(FLAG_sim_buffer_memory) {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -992,39 +994,39 @@ void Simulator::UnimplementedInstruction(Instr* instr) {
 }
 
 DART_FORCE_INLINE intptr_t Simulator::ReadW(uword addr, Instr* instr) {
-  return *reinterpret_cast<intptr_t*>(addr);
+  return memory_.Load<intptr_t>(addr);
 }
 
 DART_FORCE_INLINE void Simulator::WriteW(uword addr,
                                          intptr_t value,
                                          Instr* instr) {
-  *reinterpret_cast<intptr_t*>(addr) = value;
+  memory_.Store(addr, value);
 }
 
 DART_FORCE_INLINE uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
-  return *reinterpret_cast<uint16_t*>(addr);
+  return memory_.Load<uint16_t>(addr);
 }
 
 DART_FORCE_INLINE int16_t Simulator::ReadH(uword addr, Instr* instr) {
-  return *reinterpret_cast<int16_t*>(addr);
+  return memory_.Load<int16_t>(addr);
 }
 
 DART_FORCE_INLINE void Simulator::WriteH(uword addr,
                                          uint16_t value,
                                          Instr* instr) {
-  *reinterpret_cast<uint16_t*>(addr) = value;
+  memory_.Store(addr, value);
 }
 
 DART_FORCE_INLINE uint8_t Simulator::ReadBU(uword addr) {
-  return *reinterpret_cast<uint8_t*>(addr);
+  return memory_.Load<uint8_t>(addr);
 }
 
 DART_FORCE_INLINE int8_t Simulator::ReadB(uword addr) {
-  return *reinterpret_cast<int8_t*>(addr);
+  return memory_.Load<int8_t>(addr);
 }
 
 DART_FORCE_INLINE void Simulator::WriteB(uword addr, uint8_t value) {
-  *reinterpret_cast<uint8_t*>(addr) = value;
+  memory_.Store(addr, value);
 }
 
 void Simulator::ClearExclusive() {
@@ -1053,8 +1055,8 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
     return 1;  // Spurious failure.
   }
 
-  auto atomic_addr = reinterpret_cast<RelaxedAtomic<int32_t>*>(addr);
-  if (atomic_addr->compare_exchange_weak(old_value, value)) {
+  if (memory_.CompareExchange(addr, old_value, value,
+                              std::memory_order_relaxed)) {
     return 0;  // Success.
   }
   return 1;  // Failure.
@@ -1406,6 +1408,9 @@ typedef void (*SimulatorNativeCallWrapper)(Dart_NativeArguments arguments,
                                            Dart_NativeFunction target);
 
 void Simulator::SupervisorCall(Instr* instr) {
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
   int svc = instr->SvcField();
   switch (svc) {
     case Instr::kSimulatorRedirectCode: {
@@ -3393,6 +3398,7 @@ DART_FORCE_INLINE void Simulator::InstructionDecodeImpl(Instr* instr) {
     } else if (instr->InstructionBits() ==
                static_cast<int32_t>(kDataMemoryBarrier)) {
       // Format(instr, "dmb ish");
+      memory_.FlushAll();
       std::atomic_thread_fence(std::memory_order_seq_cst);
     } else {
       if (instr->IsSIMDDataProcessing()) {
@@ -3655,6 +3661,10 @@ int64_t Simulator::Call(int32_t entry,
   } else {
     return_value = Utils::LowHighTo64Bits(get_register(R0), get_register(R1));
   }
+
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
   return return_value;
 }
 

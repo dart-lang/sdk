@@ -1141,20 +1141,12 @@ shared_library("entrypoints_verification_test") {
   deps = [ ":dart" ]
   sources = [ "entrypoints_verification_test.cc" ]
   include_dirs = [ ".." ]
-  defines = [
-    # The only effect of DART_SHARED_LIB is to export the Dart API.
-    "DART_SHARED_LIB",
-  ]
 }
 
 shared_library("ffi_test_dynamic_library") {
   deps = [ ":dart" ]
   sources = [ "ffi_test/ffi_test_dynamic_library.cc" ]
   include_dirs = [ ".." ]
-  defines = [
-    # The only effect of DART_SHARED_LIB is to export the Dart API.
-    "DART_SHARED_LIB",
-  ]
 }
 
 shared_library("ffi_test_functions") {
@@ -1180,10 +1172,7 @@ shared_library("ffi_test_functions") {
     sources += [ "ffi_test/clobber_$current_cpu.S" ]
   }
   include_dirs = [ ".." ]
-  defines = [
-    # The only effect of DART_SHARED_LIB is to export the Dart API.
-    "DART_SHARED_LIB",
-  ]
+
   if (is_win) {
     # TODO(dartbug.com/40579): This wrongly links in dart.exe on precompiled.
     libs = [ "dart.lib" ]

@@ -157,14 +157,6 @@ class LogicalOrPatternResult<
       required super.matchedValueType});
 }
 
-/// Result for analyzing a pattern in [TypeAnalyzer].
-class PatternResult<TypeStructure extends SharedTypeStructure<TypeStructure>> {
-  /// The matched value type that was used to type check the pattern.
-  final SharedTypeView<TypeStructure> matchedValueType;
-
-  PatternResult({required this.matchedValueType});
-}
-
 /// Result for analyzing a map pattern in [TypeAnalyzer.analyzeMapPattern].
 class MapPatternResult<TypeStructure extends SharedTypeStructure<TypeStructure>,
     Error> extends PatternResult<TypeStructure> {
@@ -334,22 +326,6 @@ class PatternAssignmentAnalysisResult<
   });
 }
 
-/// Container for the result of running type analysis on a pattern variable
-/// declaration.
-class PatternVariableDeclarationAnalysisResult<
-    TypeStructure extends SharedTypeStructure<TypeStructure>> {
-  /// The type schema of the pattern on the left hand size of the declaration.
-  final SharedTypeSchemaView<TypeStructure> patternSchema;
-
-  /// The type of the initializer expression.
-  final SharedTypeView<TypeStructure> initializerType;
-
-  PatternVariableDeclarationAnalysisResult({
-    required this.patternSchema,
-    required this.initializerType,
-  });
-}
-
 /// Result for analyzing a pattern-for-in statement or element in
 /// [TypeAnalyzer.analyzePatternForIn].
 class PatternForInResult<
@@ -367,6 +343,30 @@ class PatternForInResult<
       {required this.elementType,
       required this.expressionType,
       required this.patternForInExpressionIsNotIterableError});
+}
+
+/// Result for analyzing a pattern in [TypeAnalyzer].
+class PatternResult<TypeStructure extends SharedTypeStructure<TypeStructure>> {
+  /// The matched value type that was used to type check the pattern.
+  final SharedTypeView<TypeStructure> matchedValueType;
+
+  PatternResult({required this.matchedValueType});
+}
+
+/// Container for the result of running type analysis on a pattern variable
+/// declaration.
+class PatternVariableDeclarationAnalysisResult<
+    TypeStructure extends SharedTypeStructure<TypeStructure>> {
+  /// The type schema of the pattern on the left hand size of the declaration.
+  final SharedTypeSchemaView<TypeStructure> patternSchema;
+
+  /// The type of the initializer expression.
+  final SharedTypeView<TypeStructure> initializerType;
+
+  PatternVariableDeclarationAnalysisResult({
+    required this.patternSchema,
+    required this.initializerType,
+  });
 }
 
 /// Result for analyzing a record pattern in

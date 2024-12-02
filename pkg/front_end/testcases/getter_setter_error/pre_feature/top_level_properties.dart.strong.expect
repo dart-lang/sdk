@@ -1,0 +1,43 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/top_level_properties.dart:8:1: Error: Type 'Unknown' not found.
+// Unknown get foo1 => throw 0;
+// ^^^^^^^
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/top_level_properties.dart:13:15: Error: Type 'Unknown' not found.
+// void set foo2(Unknown value) {}
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/top_level_properties.dart:20:12: Error: The type 'Symbol' of the getter 'foo4' is not a subtype of the type 'double' of the setter 'foo4'.
+//  - 'Symbol' is from 'dart:core'.
+// Symbol get foo4 => #foo4;
+//            ^^^^
+// pkg/front_end/testcases/getter_setter_error/pre_feature/top_level_properties.dart:21:10: Context: This is the declaration of the setter 'foo4'.
+// void set foo4(double value) {}
+//          ^^^^
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/top_level_properties.dart:13:15: Error: 'Unknown' isn't a type.
+// void set foo2(Unknown value) {}
+//               ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static get foo1() → invalid-type
+  return throw 0;
+static set foo1(dynamic value) → void {}
+static get foo2() → Never
+  return throw 0;
+static set foo2(invalid-type value) → void {}
+static get foo3() → core::String
+  return "";
+static set foo3(core::String value) → void {}
+static get foo4() → core::Symbol
+  return #C1;
+static set foo4(core::double value) → void {}
+
+constants  {
+  #C1 = #foo4
+}

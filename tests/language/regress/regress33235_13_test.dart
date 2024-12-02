@@ -31,6 +31,8 @@ class C {
   // [cfe] This static member conflicts with an instance member.
 
   int n() => 42;
+  //  ^
+  // [cfe] The declaration conflicts with setter 'n'.
 }
 
 main() {

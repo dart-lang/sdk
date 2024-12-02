@@ -489,6 +489,21 @@ List<LspEntity> getCustomClasses() {
             'argument to be required, but still allow an explicit `null`.',
       ),
       field(
+        'isEditable',
+        type: 'boolean',
+        comment:
+            'Whether this argument can be add/edited. If not, '
+            'notEditableReason will contain an explanation for why.',
+      ),
+      field(
+        'notEditableReason',
+        type: 'String',
+        canBeUndefined: true,
+        comment:
+            'If isEditable is false, contains a human-readable '
+            'description of why.',
+      ),
+      field(
         'options',
         type: 'string',
         array: true,

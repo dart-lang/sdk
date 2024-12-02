@@ -10,14 +10,6 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
   const synthetic constructor •() → self::_NegativeLengthList&Object&ListMixin<self::_NegativeLengthList&Object&ListMixin::E%>
     : super core::Object::•()
     ;
-  mixin-super-stub get first() → self::_NegativeLengthList&Object&ListMixin::E%
-    return super.{col::ListBase::first};
-  mixin-super-stub set first(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void
-    return super.{col::ListBase::first} = value;
-  mixin-super-stub get last() → self::_NegativeLengthList&Object&ListMixin::E%
-    return super.{col::ListBase::last};
-  mixin-super-stub set last(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void
-    return super.{col::ListBase::last} = value;
   mixin-super-stub get iterator() → core::Iterator<self::_NegativeLengthList&Object&ListMixin::E%>
     return super.{col::ListBase::iterator};
   mixin-super-stub method elementAt(core::int index) → self::_NegativeLengthList&Object&ListMixin::E%
@@ -30,6 +22,14 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     return super.{col::ListBase::isEmpty};
   mixin-super-stub get isNotEmpty() → core::bool
     return super.{col::ListBase::isNotEmpty};
+  mixin-super-stub get first() → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::first};
+  mixin-super-stub set first(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void
+    return super.{col::ListBase::first} = value;
+  mixin-super-stub get last() → self::_NegativeLengthList&Object&ListMixin::E%
+    return super.{col::ListBase::last};
+  mixin-super-stub set last(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% value) → void
+    return super.{col::ListBase::last} = value;
   mixin-super-stub get single() → self::_NegativeLengthList&Object&ListMixin::E%
     return super.{col::ListBase::single};
   mixin-super-stub method contains(core::Object? element) → core::bool

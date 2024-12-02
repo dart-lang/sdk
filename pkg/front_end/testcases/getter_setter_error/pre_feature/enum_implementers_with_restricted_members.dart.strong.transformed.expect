@@ -1,0 +1,46 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/enum_implementers_with_restricted_members.dart:8:12: Error: The type 'int' of the inherited getter 'Enum.index' is not a subtype of the type 'String' of the setter 'A2.index'.
+//   void set index(String value) {} // Error.
+//            ^^^^^
+// sdk/lib/core/enum.dart:*: Context: This is the declaration of the getter 'Enum.index'.
+//   int get index;
+//           ^^^^^
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/enum_implementers_with_restricted_members.dart:9:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'double' of the setter 'A2.hashCode'.
+//   void set hashCode(double value) {} // Error.
+//            ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the declaration of the getter 'Object.hashCode'.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/enum_implementers_with_restricted_members.dart:13:12: Error: The type 'int' of the inherited getter 'Enum.index' is not a subtype of the type 'String' of the setter 'M2.index'.
+//   void set index(String value) {} // Error.
+//            ^^^^^
+// sdk/lib/core/enum.dart:*: Context: This is the declaration of the getter 'Enum.index'.
+//   int get index;
+//           ^^^^^
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/enum_implementers_with_restricted_members.dart:14:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'double' of the setter 'M2.hashCode'.
+//   void set hashCode(double value) {} // Error.
+//            ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the declaration of the getter 'Object.hashCode'.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A2 extends core::Object implements core::Enum {
+  synthetic constructor •() → self::A2
+    : super core::Object::•()
+    ;
+  set index(core::String value) → void {}
+  set hashCode(core::double value) → void {}
+}
+abstract class M2 extends core::Object implements core::Enum /*isMixinDeclaration*/  {
+  set index(core::String value) → void {}
+  set hashCode(core::double value) → void {}
+}

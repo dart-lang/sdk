@@ -2818,24 +2818,129 @@ ExtensionTypeDeclaresInstanceField:
       int? field;
     }
 
-ConflictsWithConstructor:
-  problemMessage: "Conflicts with constructor '#name'."
-  analyzerCode: CONFLICTS_WITH_CONSTRUCTOR
-
-ConflictsWithFactory:
-  problemMessage: "Conflicts with factory '#name'."
-
-ConflictsWithMember:
-  problemMessage: "Conflicts with member '#name'."
+StaticConflictsWithInstance:
+  problemMessage: "Static property '#name' conflicts with instance property of the same name."
   analyzerCode: CONFLICTS_WITH_MEMBER
+  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
+  script: |
+    class A {
+      void set foo(_) {}
+      static int get foo => 42;
+    }
+
+StaticConflictsWithInstanceCause:
+  problemMessage: "Conflicting instance property '#name'."
+  severity: CONTEXT
+
+InstanceConflictsWithStatic:
+  problemMessage: "Instance property '#name' conflicts with static property of the same name."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
+  script: |
+    class A {
+      static void set foo(_) {}
+      int get foo => 42;
+    }
+
+InstanceConflictsWithStaticCause:
+  problemMessage: "Conflicting static property '#name'."
+  severity: CONTEXT
+
+SetterConflictsWithDeclaration:
+  problemMessage: "The setter conflicts with declaration '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class Foo {}
+    set Foo(_) {}
+
+SetterConflictsWithDeclarationCause:
+  problemMessage: "Conflicting declaration '#name'."
+  severity: CONTEXT
+
+ConstructorConflictsWithMember:
+  problemMessage: "The constructor conflicts with member '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class A {
+      static int get foo => 42;
+      A.foo();
+    }
+
+ConstructorConflictsWithMemberCause:
+  problemMessage: "Conflicting member '#name'."
+  severity: CONTEXT
+
+FactoryConflictsWithMember:
+  problemMessage: "The factory conflicts with member '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class A {
+      static int get foo => 42;
+      factory A.foo() => throw '';
+    }
+
+FactoryConflictsWithMemberCause:
+  problemMessage: "Conflicting member '#name'."
+  severity: CONTEXT
+
+MemberConflictsWithConstructor:
+  problemMessage: "The member conflicts with constructor '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class A {
+      A.foo();
+      static void foo() {}
+    }
+
+MemberConflictsWithConstructorCause:
+  problemMessage: "Conflicting constructor '#name'."
+  severity: CONTEXT
+
+MemberConflictsWithFactory:
+  problemMessage: "The member conflicts with factory '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    class A {
+      factory A.foo() => throw '';
+      static void foo() {}
+    }
+
+MemberConflictsWithFactoryCause:
+  problemMessage: "Conflicting factory '#name'."
+  severity: CONTEXT
+
+DeclarationConflictsWithSetter:
+  problemMessage: "The declaration conflicts with setter '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    void set foo(_) {}
+    void foo() {}
+
+DeclarationConflictsWithSetterCause:
+  problemMessage: "Conflicting setter '#name'."
+  severity: CONTEXT
 
 ConflictsWithImplicitSetter:
   problemMessage: "Conflicts with the implicit setter of the field '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    int? foo;
+    void set foo(_) {}
+
+ConflictsWithImplicitSetterCause:
+  problemMessage: "Field '#name' with the implicit setter."
+  severity: CONTEXT
 
 ConflictsWithSetter:
   problemMessage: "Conflicts with setter '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER
+  script: |
+    void set foo(_) {}
+    int? foo;
+
+ConflictsWithSetterCause:
+  problemMessage: "Conflicting setter '#name'."
+  severity: CONTEXT
 
 ConflictsWithTypeParameter:
   problemMessage: "Conflicts with type variable '#name'."
@@ -4909,6 +5014,7 @@ ObjectMixesIn:
 
 StaticAndInstanceConflict:
   problemMessage: "This static member conflicts with an instance member."
+  exampleAllowMoreCodes: true # TODO(johnniwinther): Avoid this
   script:
     - |
       class C {

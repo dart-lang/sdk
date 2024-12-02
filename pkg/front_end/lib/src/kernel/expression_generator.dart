@@ -4350,6 +4350,11 @@ class ParserErrorGenerator extends Generator {
   void printOn(StringSink sink) {}
 
   Expression buildProblem() {
+    return buildProblemExpression(_helper, message, fileOffset);
+  }
+
+  static Expression buildProblemExpression(
+      ExpressionGeneratorHelper _helper, Message message, int fileOffset) {
     return _helper.buildProblem(message, fileOffset, noLength,
         suppressMessage: true);
   }

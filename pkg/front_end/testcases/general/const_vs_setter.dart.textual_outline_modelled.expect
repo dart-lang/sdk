@@ -1,0 +1,16 @@
+class Class {
+  static const c = 42;
+  static const e = 123;
+  static const int d = 87;
+  static set c(_) {}
+  static void set d(int value) {}
+  void set e(_) {}
+}
+
+const a = 42;
+
+const int b = 87;
+
+set a(_) {}
+
+void set b(int value) {}

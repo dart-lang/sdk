@@ -1,0 +1,30 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/extension_type_declared_instance_field_02.dart:6:7: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int y;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type Foo(core::int _x) {
+  abstract extension-type-member representation-field get _x() → core::int;
+  get y = get self::Foo|y;
+  set y = set self::Foo|y;
+  constructor • = self::Foo|constructor#;
+  constructor tearoff • = self::Foo|constructor#_#new#tearOff;
+  constructor secondConstructor = self::Foo|constructor#secondConstructor;
+  constructor tearoff secondConstructor = self::Foo|constructor#_#secondConstructor#tearOff;
+}
+static extension-type-member method Foo|constructor#(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member method Foo|constructor#_#new#tearOff(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
+  return self::Foo|constructor#(_x);
+static abstract extension-type-member get Foo|y() → core::int;
+static abstract extension-type-member set Foo|y(synthesized core::int #externalFieldValue) → void;
+external static extension-type-member method Foo|constructor#secondConstructor() → self::Foo% /* erasure=core::int, declared=! */;
+static extension-type-member method Foo|constructor#_#secondConstructor#tearOff() → self::Foo% /* erasure=core::int, declared=! */
+  return self::Foo|constructor#secondConstructor();

@@ -40,6 +40,7 @@ DEFINE_FLAG(bool,
             sim_allow_unaligned_accesses,
             true,
             "Allow unaligned accesses to Normal memory.");
+DEFINE_FLAG(bool, sim_buffer_memory, false, "Simulate weak memory ordering.");
 
 // This macro provides a platform independent use of sscanf. The reason for
 // SScanF not being implemented in a platform independent way through
@@ -778,7 +779,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
 
 void Simulator::Init() {}
 
-Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
+Simulator::Simulator() : memory_(FLAG_sim_buffer_memory) {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -1110,7 +1111,7 @@ intptr_t Simulator::ReadX(uword addr,
   const bool allow_unaligned_access =
       FLAG_sim_allow_unaligned_accesses && !must_be_aligned;
   if (allow_unaligned_access || (addr & 7) == 0) {
-    return LoadUnaligned(reinterpret_cast<intptr_t*>(addr));
+    return memory_.Load<intptr_t>(addr);
   }
   UnalignedAccess("read", addr, instr);
   return 0;
@@ -1118,7 +1119,7 @@ intptr_t Simulator::ReadX(uword addr,
 
 void Simulator::WriteX(uword addr, intptr_t value, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 7) == 0) {
-    StoreUnaligned(reinterpret_cast<intptr_t*>(addr), value);
+    memory_.Store(addr, value);
     return;
   }
   UnalignedAccess("write", addr, instr);
@@ -1130,7 +1131,7 @@ uint32_t Simulator::ReadWU(uword addr,
   const bool allow_unaligned_access =
       FLAG_sim_allow_unaligned_accesses && !must_be_aligned;
   if (allow_unaligned_access || (addr & 3) == 0) {
-    return LoadUnaligned(reinterpret_cast<uint32_t*>(addr));
+    return memory_.Load<uint32_t>(addr);
   }
   UnalignedAccess("read unsigned single word", addr, instr);
   return 0;
@@ -1138,7 +1139,7 @@ uint32_t Simulator::ReadWU(uword addr,
 
 int32_t Simulator::ReadW(uword addr, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 3) == 0) {
-    return LoadUnaligned(reinterpret_cast<int32_t*>(addr));
+    return memory_.Load<int32_t>(addr);
   }
   UnalignedAccess("read single word", addr, instr);
   return 0;
@@ -1146,7 +1147,7 @@ int32_t Simulator::ReadW(uword addr, Instr* instr) {
 
 void Simulator::WriteW(uword addr, uint32_t value, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 3) == 0) {
-    StoreUnaligned(reinterpret_cast<uint32_t*>(addr), value);
+    memory_.Store(addr, value);
     return;
   }
   UnalignedAccess("write single word", addr, instr);
@@ -1154,7 +1155,7 @@ void Simulator::WriteW(uword addr, uint32_t value, Instr* instr) {
 
 uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
-    return LoadUnaligned(reinterpret_cast<uint16_t*>(addr));
+    return memory_.Load<uint16_t>(addr);
   }
   UnalignedAccess("unsigned halfword read", addr, instr);
   return 0;
@@ -1162,7 +1163,7 @@ uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
 
 int16_t Simulator::ReadH(uword addr, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
-    return LoadUnaligned(reinterpret_cast<int16_t*>(addr));
+    return memory_.Load<int16_t>(addr);
   }
   UnalignedAccess("signed halfword read", addr, instr);
   return 0;
@@ -1170,25 +1171,22 @@ int16_t Simulator::ReadH(uword addr, Instr* instr) {
 
 void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
   if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
-    StoreUnaligned(reinterpret_cast<uint16_t*>(addr), value);
+    memory_.Store(addr, value);
     return;
   }
   UnalignedAccess("halfword write", addr, instr);
 }
 
 uint8_t Simulator::ReadBU(uword addr) {
-  uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
-  return *ptr;
+  return memory_.Load<uint8_t>(addr);
 }
 
 int8_t Simulator::ReadB(uword addr) {
-  int8_t* ptr = reinterpret_cast<int8_t*>(addr);
-  return *ptr;
+  return memory_.Load<int8_t>(addr);
 }
 
 void Simulator::WriteB(uword addr, uint8_t value) {
-  uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
-  *ptr = value;
+  memory_.Store(addr, value);
 }
 
 void Simulator::ClearExclusive() {
@@ -1202,7 +1200,7 @@ intptr_t Simulator::ReadExclusiveX(uword addr, Instr* instr) {
   return exclusive_access_value_;
 }
 
-intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
+uint32_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
   exclusive_access_addr_ = addr;
   exclusive_access_value_ = ReadWU(addr, instr, /*must_be_aligned=*/true);
   return exclusive_access_value_;
@@ -1216,21 +1214,21 @@ intptr_t Simulator::WriteExclusiveX(uword addr, intptr_t value, Instr* instr) {
     return 1;  // Failure.
   }
 
-  int64_t old_value = exclusive_access_value_;
+  intptr_t old_value = exclusive_access_value_;
   ClearExclusive();
 
   if ((random_.NextUInt32() % 16) == 0) {
     return 1;  // Suprious failure.
   }
 
-  auto atomic_addr = reinterpret_cast<RelaxedAtomic<int64_t>*>(addr);
-  if (atomic_addr->compare_exchange_weak(old_value, value)) {
+  if (memory_.CompareExchange(addr, old_value, value,
+                              std::memory_order_relaxed)) {
     return 0;  // Success.
   }
   return 1;  // Failure.
 }
 
-intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
+intptr_t Simulator::WriteExclusiveW(uword addr, uint32_t value, Instr* instr) {
   // In a well-formed code store-exclusive instruction should always follow
   // a corresponding load-exclusive instruction with the same address.
   ASSERT((exclusive_access_addr_ == 0) || (exclusive_access_addr_ == addr));
@@ -1238,54 +1236,34 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
     return 1;  // Failure.
   }
 
-  int32_t old_value = static_cast<uint32_t>(exclusive_access_value_);
+  uint32_t old_value = static_cast<uint32_t>(exclusive_access_value_);
   ClearExclusive();
 
   if ((random_.NextUInt32() % 16) == 0) {
     return 1;  // Spurious failure.
   }
 
-  auto atomic_addr = reinterpret_cast<RelaxedAtomic<int32_t>*>(addr);
-  if (atomic_addr->compare_exchange_weak(old_value, value)) {
+  if (memory_.CompareExchange(addr, old_value, value,
+                              std::memory_order_relaxed)) {
     return 0;  // Success.
   }
   return 1;  // Failure.
 }
 
 intptr_t Simulator::ReadAcquire(uword addr, Instr* instr) {
-  // TODO(42074): Once we switch to C++20 we should change this to use use
-  // `std::atomic_ref<T>` which supports performing atomic operations on
-  // non-atomic data.
-  COMPILE_ASSERT(sizeof(std::atomic<intptr_t>) == sizeof(intptr_t));
-  return reinterpret_cast<std::atomic<intptr_t>*>(addr)->load(
-      std::memory_order_acquire);
+  return memory_.Load<uint64_t>(addr, std::memory_order_acquire);
 }
 
 uint32_t Simulator::ReadAcquireW(uword addr, Instr* instr) {
-  // TODO(42074): Once we switch to C++20 we should change this to use use
-  // `std::atomic_ref<T>` which supports performing atomic operations on
-  // non-atomic data.
-  COMPILE_ASSERT(sizeof(std::atomic<intptr_t>) == sizeof(intptr_t));
-  return reinterpret_cast<std::atomic<uint32_t>*>(addr)->load(
-      std::memory_order_acquire);
+  return memory_.Load<uint32_t>(addr, std::memory_order_acquire);
 }
 
 void Simulator::WriteRelease(uword addr, intptr_t value, Instr* instr) {
-  // TODO(42074): Once we switch to C++20 we should change this to use use
-  // `std::atomic_ref<T>` which supports performing atomic operations on
-  // non-atomic data.
-  COMPILE_ASSERT(sizeof(std::atomic<intptr_t>) == sizeof(intptr_t));
-  reinterpret_cast<std::atomic<intptr_t>*>(addr)->store(
-      value, std::memory_order_release);
+  memory_.Store(addr, value, std::memory_order_release);
 }
 
 void Simulator::WriteReleaseW(uword addr, uint32_t value, Instr* instr) {
-  // TODO(42074): Once we switch to C++20 we should change this to use use
-  // `std::atomic_ref<T>` which supports performing atomic operations on
-  // non-atomic data.
-  COMPILE_ASSERT(sizeof(std::atomic<intptr_t>) == sizeof(intptr_t));
-  reinterpret_cast<std::atomic<uint32_t>*>(addr)->store(
-      value, std::memory_order_release);
+  memory_.Store(addr, value, std::memory_order_release);
 }
 
 // Unsupported instructions use Format to print an error and stop execution.
@@ -1695,6 +1673,9 @@ typedef void (*SimulatorNativeCallWrapper)(Dart_NativeArguments arguments,
                                            Dart_NativeFunction target);
 
 void Simulator::DoRedirectedCall(Instr* instr) {
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
   SimulatorSetjmpBuffer buffer(this);
   if (!setjmp(buffer.buffer_)) {
     int64_t saved_lr = get_register(LR);
@@ -1823,6 +1804,7 @@ void Simulator::DecodeSystem(Instr* instr) {
 
   if (instr->InstructionBits() == kDataMemoryBarrier) {
     // Format(instr, "dmb ish");
+    memory_.FlushAll();
     std::atomic_thread_fence(std::memory_order_seq_cst);
     return;
   }
@@ -3907,6 +3889,10 @@ int64_t Simulator::Call(int64_t entry,
   } else {
     return_value = get_register(R0);
   }
+
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
   return return_value;
 }
 

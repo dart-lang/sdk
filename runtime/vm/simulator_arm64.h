@@ -18,6 +18,7 @@
 
 #include "vm/constants.h"
 #include "vm/random.h"
+#include "vm/simulator_memory.h"
 
 namespace dart {
 
@@ -145,6 +146,7 @@ class Simulator {
   static int64_t flag_stop_sim_at_;
   Random random_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
+  SimulatorMemory memory_;
 
   // Registered breakpoints.
   Instr* break_pc_;
@@ -185,8 +187,8 @@ class Simulator {
   intptr_t ReadExclusiveX(uword addr, Instr* instr);
   intptr_t WriteExclusiveX(uword addr, intptr_t value, Instr* instr);
   // 32 bit versions.
-  intptr_t ReadExclusiveW(uword addr, Instr* instr);
-  intptr_t WriteExclusiveW(uword addr, intptr_t value, Instr* instr);
+  uint32_t ReadExclusiveW(uword addr, Instr* instr);
+  intptr_t WriteExclusiveW(uword addr, uint32_t value, Instr* instr);
 
   // Load Acquire & Store Release.
   intptr_t ReadAcquire(uword addr, Instr* instr);
@@ -199,8 +201,8 @@ class Simulator {
   // performs atomic compare-and-swap with remembered value to observe value
   // changes. This implementation of ldxr/stxr instructions does not detect
   // ABA situation and our uses of ldxr/stxr don't need this detection.
-  uword exclusive_access_addr_;
-  uword exclusive_access_value_;
+  uword exclusive_access_addr_ = 0;
+  uword exclusive_access_value_ = 0;
 
   // Helper functions to set the conditional flags in the architecture state.
   void SetNZFlagsW(int32_t val);

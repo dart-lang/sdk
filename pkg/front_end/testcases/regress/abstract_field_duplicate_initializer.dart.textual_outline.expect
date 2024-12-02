@@ -1,0 +1,4 @@
+abstract class Foo {
+  abstract int foo;
+  Foo(this.foo, this.foo) {}
+}

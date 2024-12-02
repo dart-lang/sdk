@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension /* unnamed */ _extension#0 on core::String {
+  method bar = self::_extension#0|bar;
+  method tearoff bar = self::_extension#0|get#bar;
+  set foo = self::_extension#0|set#foo;
+}
+static extension-member method _extension#0|set#foo(lowered final core::String #this, core::int value) → void
+  ;
+static extension-member method _extension#0|bar(lowered final core::String #this, core::List<core::int> input) → dynamic
+  ;
+static extension-member method _extension#0|get#bar(lowered final core::String #this) → (core::List<core::int>) → dynamic
+  return (core::List<core::int> input) → dynamic => self::_extension#0|bar(#this, input);

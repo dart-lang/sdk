@@ -40,6 +40,7 @@ class ClassFragment extends DeclarationFragment implements Fragment {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   DeclarationFragmentKind get kind => DeclarationFragmentKind.classDeclaration;
 
   @override

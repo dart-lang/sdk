@@ -71,6 +71,13 @@ class TypeRecipeGenerator {
   void addLiveTypeAncestries(InterfaceType type) =>
       _recipeVisitor.addLiveTypeAncestries(type);
 
+  /// Returns all recipes for [InterfaceType]s that have appeared in type
+  /// recipes.
+  List<String> get visitedInterfaceTypeRecipes => [
+        for (var type in _recipeVisitor.visitedInterfaceTypes)
+          interfaceTypeRecipe(type.classNode)
+      ];
+
   /// Returns a mapping of type hierarchies for all [InterfaceType]s that have
   /// appeared in type recipes.
   ///

@@ -561,9 +561,7 @@ class LspAnalysisServer extends AnalysisServer {
         } else {
           showErrorMessageToUser('Unknown message type');
         }
-        if (completer != null && !completer.isCompleted) {
-          completer.complete();
-        }
+        completer?.setComplete();
       } on InconsistentAnalysisException {
         sendErrorResponse(
           message,
@@ -572,9 +570,7 @@ class LspAnalysisServer extends AnalysisServer {
             message: 'Document was modified before operation completed',
           ),
         );
-        if (completer != null && !completer.isCompleted) {
-          completer.complete();
-        }
+        completer?.setComplete();
       } catch (error, stackTrace) {
         var errorMessage =
             message is ResponseMessage
@@ -592,9 +588,7 @@ class LspAnalysisServer extends AnalysisServer {
           ),
         );
         logException(errorMessage, error, stackTrace);
-        if (completer != null && !completer.isCompleted) {
-          completer.complete();
-        }
+        completer?.setComplete();
       }
     }, socketError);
   }
@@ -1393,5 +1387,14 @@ class LspServerContextManagerCallbacks
     return analysisServer.lspClientConfiguration.global.showTodoTypes.contains(
       error.code.toUpperCase(),
     );
+  }
+}
+
+extension on Completer<void> {
+  void setComplete() {
+    if (isCompleted) {
+      return;
+    }
+    complete();
   }
 }

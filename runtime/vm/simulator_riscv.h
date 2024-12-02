@@ -11,6 +11,7 @@
 
 #include "vm/constants.h"
 #include "vm/random.h"
+#include "vm/simulator_memory.h"
 
 namespace dart {
 
@@ -344,17 +345,17 @@ class Simulator {
   static constexpr uword kEndSimulatingPC = -2;
 
   // I state.
-  uintx_t pc_;
+  uintx_t pc_ = 0;
   uintx_t xregs_[kNumberOfCpuRegisters];
-  uint64_t instret_;  // "Instructions retired" - mandatory counter.
+  uint64_t instret_ = 0;  // "Instructions retired" - mandatory counter.
 
   // A state.
-  uintx_t reserved_address_;
-  uintx_t reserved_value_;
+  uintx_t reserved_address_ = 0;
+  uintx_t reserved_value_ = 0;
 
   // F/D state.
   double fregs_[kNumberOfFpuRegisters];
-  uint32_t fcsr_;
+  uint32_t fcsr_ = 0;
 
   // Simulator support.
   char* stack_;
@@ -362,7 +363,8 @@ class Simulator {
   uword overflow_stack_limit_;
   uword stack_base_;
   Random random_;
-  SimulatorSetjmpBuffer* last_setjmp_buffer_;
+  SimulatorSetjmpBuffer* last_setjmp_buffer_ = nullptr;
+  SimulatorMemory memory_;
 
   static bool IsIllegalAddress(uword addr) { return addr < 64 * 1024; }
 

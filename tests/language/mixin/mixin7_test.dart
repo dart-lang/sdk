@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
 
 class I<T> {}
@@ -16,15 +12,15 @@ class K<T> {}
 
 class S<T> {}
 
-class M<T> {
+mixin M<T> {
   m() {
     return T;
   }
 }
 
-class A<U, V> = Object with M implements I<V>; // M is raw.
+mixin class A<U, V> = Object with M implements I<V>; // M is raw.
 
-class B<T> = Object with A implements J<T>; // A is raw.
+mixin class B<T> = Object with A implements J<T>; // A is raw.
 
 class C<T> = S<List<T>> with B implements K<T>; // B is raw.
 

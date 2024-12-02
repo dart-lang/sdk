@@ -3,15 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show File, FileSystemException, InternetAddress, Socket;
+import 'dart:io' show File, FileSystemException;
+import 'dart:vmservice_io' show getResidentCompilerInfoFileConsideringArgsImpl;
 
 import 'package:args/args.dart';
+import 'package:frontend_server/resident_frontend_server_utils.dart'
+    show sendAndReceiveResponse;
 import 'package:path/path.dart' as p;
 
 import 'commands/compilation_server.dart' show CompilationServerCommand;
 import 'resident_frontend_constants.dart';
-import 'unified_analytics.dart';
-import 'utils.dart' show maybeUriToFilename;
 
 /// The Resident Frontend Compiler's shutdown command.
 final residentServerShutdownCommand = jsonEncode(
@@ -20,81 +21,12 @@ final residentServerShutdownCommand = jsonEncode(
   },
 );
 
-/// The default resident frontend compiler information file.
-///
-/// Resident frontend compiler info files contain the contents:
-/// `address:$address port:$port`.
-File? get defaultResidentServerInfoFile {
-  var dartConfigDir = getDartStorageDirectory();
-  if (dartConfigDir == null) return null;
-
-  return File(p.join(dartConfigDir.path, 'dartdev_compilation_server_info'));
-}
-
-File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) {
-  if (args.wasParsed(CompilationServerCommand.residentCompilerInfoFileFlag)) {
-    return File(maybeUriToFilename(
-      args[CompilationServerCommand.residentCompilerInfoFileFlag],
-    ));
-  } else if (args.wasParsed(
-    CompilationServerCommand.legacyResidentServerInfoFileFlag,
-  )) {
-    return File(maybeUriToFilename(
-      args[CompilationServerCommand.legacyResidentServerInfoFileFlag],
-    ));
-  } else if (defaultResidentServerInfoFile != null) {
-    return defaultResidentServerInfoFile!;
-  } else {
-    return null;
-  }
-}
+File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) =>
+    getResidentCompilerInfoFileConsideringArgsImpl(
+        args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
+            args[CompilationServerCommand.legacyResidentServerInfoFileFlag]);
 
 final String packageConfigName = p.join('.dart_tool', 'package_config.json');
-
-final class ResidentCompilerInfo {
-  final String? _sdkHash;
-  final InternetAddress _address;
-  final int _port;
-
-  /// The SDK hash that kernel files compiled using the Resident Frontend
-  /// Compiler associated with this object will be stamped with.
-  String? get sdkHash => _sdkHash;
-
-  /// The address that the Resident Frontend Compiler associated with this
-  /// object is listening from.
-  InternetAddress get address => _address;
-
-  /// The port number that the Resident Frontend Compiler associated with this
-  /// object is listening on.
-  int get port => _port;
-
-  /// Extracts the value associated with a key from [entries], where [entries]
-  /// is a [String] with the format '$key1:$value1 $key2:$value2 $key3:$value3 ...'.
-  static String _extractValueAssociatedWithKey(String entries, String key) =>
-      RegExp('$key:' r'(\S+)(\s|$)').allMatches(entries).first[1]!;
-
-  static ResidentCompilerInfo fromFile(File file) {
-    final fileContents = file.readAsStringSync();
-
-    return ResidentCompilerInfo._(
-      sdkHash: fileContents.contains('sdkHash:')
-          ? _extractValueAssociatedWithKey(fileContents, 'sdkHash')
-          : null,
-      address: InternetAddress(
-        _extractValueAssociatedWithKey(fileContents, 'address'),
-      ),
-      port: int.parse(_extractValueAssociatedWithKey(fileContents, 'port')),
-    );
-  }
-
-  ResidentCompilerInfo._({
-    required String? sdkHash,
-    required int port,
-    required InternetAddress address,
-  })  : _sdkHash = sdkHash,
-        _port = port,
-        _address = address;
-}
 
 /// Removes the [serverInfoFile].
 void cleanupResidentServerInfo(File serverInfoFile) {
@@ -206,38 +138,6 @@ Future<bool> isFileAotSnapshot(final File file) async {
   }
 
   return false;
-}
-
-// TODO: when frontend_server is migrated to null safe Dart, everything
-// below this comment can be removed and imported from resident_frontend_server
-
-/// Sends a compilation [request] to the Resident Frontend Compiler associated
-/// with [serverInfoFile], and returns the compiler's JSON response.
-///
-/// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
-Future<Map<String, dynamic>> sendAndReceiveResponse(
-  String request,
-  File serverInfoFile,
-) async {
-  Socket? client;
-  Map<String, dynamic> jsonResponse;
-  final residentCompilerInfo = ResidentCompilerInfo.fromFile(serverInfoFile);
-  try {
-    client = await Socket.connect(
-      residentCompilerInfo.address,
-      residentCompilerInfo.port,
-    );
-    client.write(request);
-    final data = String.fromCharCodes(await client.first);
-    jsonResponse = jsonDecode(data);
-  } catch (e) {
-    jsonResponse = <String, dynamic>{
-      responseSuccessString: false,
-      responseErrorString: e.toString(),
-    };
-  }
-  client?.destroy();
-  return jsonResponse;
 }
 
 /// Used to create compile requests for the run CLI command.

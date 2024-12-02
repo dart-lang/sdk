@@ -17,7 +17,7 @@ Object? context<T>(T x) => x;
 T contextType<T>(Object? result) => result as T;
 
 extension StaticType<T> on T {
-  /// Check the static type.
+  /// Check the static type against another type wrt. sub- and supertype.
   ///
   /// Use as follows (assuming `e` has static type `num`):
   /// ```dart
@@ -45,6 +45,18 @@ extension StaticType<T> on T {
     callback<T>();
     return this;
   }
+
+  /// The static type as a `Type` object.
+  ///
+  /// Can be used for doing "same type" equality checks, like
+  /// ```dart
+  /// Expect(typeOf<int Function(int)>(), value.functionName.staticType);
+  /// ```
+  /// The [Type.operator==] distinguishes some types that are equivalent
+  /// wrt. super- and sub-typing, like `dynamic` and `Object?`.
+  /// It also performs normalization, so `typeOf<FutureOr<Object>> == Object`,
+  /// even if they differ as static types.
+  Type get staticType => T;
 }
 
 /// Invokes [callback] with the static type of [value].

@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(https://github.com/dart-lang/sdk/issues/51557): Decide if the mixins
-// being applied in this test should be "mixin", "mixin class" or the test
-// should be left at 2.19.
-// @dart=2.19
-
 // Test errors required by new enhanced enum syntax.
 
 // Classes which implement `Enum`, but are not `enum` declarations,
@@ -40,6 +35,8 @@ abstract class AbstractImplementsWithValues implements Enum {
 }
 
 abstract class AbstractExtendsWithValues extends Enum {
+//                                               ^
+// [cfe] The class 'Enum' can't be extended outside of its library because it's an interface class.
   int get values => 42;
   //      ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ENUM_VALUES
@@ -54,6 +51,8 @@ abstract class AbstractImplementsWithIndex implements Enum {
 }
 
 abstract class AbstractExtendsWithIndex extends Enum {
+//                                              ^
+// [cfe] The class 'Enum' can't be extended outside of its library because it's an interface class.
   int get index => 42;
   //      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_CONCRETE_ENUM_MEMBER
@@ -163,6 +162,7 @@ abstract class MixesInEnum with MyEnum {
   //                            ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
   // [cfe] The class 'MyEnum' can't be used as a mixin because it extends a class other than 'Object'.
+  // [cfe] The class 'MyEnum' can't be used as a mixin because it isn't a mixin class nor a mixin.
 }
 
 mixin MixinImplementsEnum implements MyEnum {
@@ -194,6 +194,7 @@ enum EnumMixesInEnum with MyEnum {
   //                      ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
   // [cfe] The class 'MyEnum' can't be used as a mixin because it extends a class other than 'Object'.
+  // [cfe] The class 'MyEnum' can't be used as a mixin because it isn't a mixin class nor a mixin.
   e1;
 }
 

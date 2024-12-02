@@ -16,6 +16,8 @@ abbreviate
 abc
 abcdef
 abs
+absorb
+absorbed
 accepting
 accompany
 accounting
@@ -1188,6 +1190,7 @@ obstruct
 obtaining
 occasionally
 occupied
+occupy
 offending
 ogham
 okay
@@ -1313,6 +1316,7 @@ precompiled
 precompiles
 precompiling
 precomputed
+precursor
 preexisted
 preexisting
 preferably
@@ -1703,6 +1707,7 @@ sq
 sra
 srawlins
 src
+srujzs
 ssa
 st
 stability

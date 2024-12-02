@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 class _RenderTabBar extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, _TabBarParentData>,
@@ -23,9 +19,9 @@ class BoxParentData extends ParentData {}
 
 class SectorParentData extends ParentData {}
 
-class ContainerParentDataMixin<ChildType extends RenderObject> {}
+mixin class ContainerParentDataMixin<ChildType extends RenderObject> {}
 
-class ContainerRenderObjectMixin<ChildType extends RenderObject,
+mixin class ContainerRenderObjectMixin<ChildType extends RenderObject,
     ParentDataType extends ContainerParentDataMixin<ChildType>> {}
 
 class SectorChildListParentData extends SectorParentData
@@ -39,7 +35,7 @@ class RenderSectorWithChildren extends RenderDecoratedSector
 class ContainerBoxParentDataMixin<ChildType extends RenderObject>
     extends BoxParentData with ContainerParentDataMixin<ChildType> {}
 
-class RenderBoxContainerDefaultsMixin<ChildType extends RenderBox,
+mixin class RenderBoxContainerDefaultsMixin<ChildType extends RenderBox,
         ParentDataType extends ContainerBoxParentDataMixin<ChildType>>
     implements ContainerRenderObjectMixin<ChildType, ParentDataType> {}
 

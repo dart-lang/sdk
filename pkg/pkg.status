@@ -138,6 +138,8 @@ vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/external_compilation_service_test: SkipByDesign # Spawns a secondary process.
 vm_service/test/field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/forward_compile_expression_error_from_external_client_with_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/forward_compile_expression_error_from_external_client_without_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_allocation_traces_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_instances_as_*: SkipByDesign # Debugger is disabled in AOT mode
 vm_service/test/get_instances_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.

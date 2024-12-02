@@ -15,7 +15,7 @@ import 'package:vm_service/vm_service_io.dart';
 
 import 'common/test_helper.dart';
 
-Future<Isolate> waitForFirstRunnableIsolate(VmService service) async {
+Future<Isolate> waitForFirstPausedRunnableIsolate(VmService service) async {
   VM vm;
   do {
     vm = await service.getVM();
@@ -24,7 +24,7 @@ Future<Isolate> waitForFirstRunnableIsolate(VmService service) async {
   Isolate isolate;
   do {
     isolate = await service.getIsolate(isolateId);
-  } while (!isolate.runnable!);
+  } while (!isolate.runnable! || isolate.pauseEvent == null);
   return isolate;
 }
 
@@ -131,7 +131,7 @@ void main() {
 
     // Wait for the isolate to become runnable as `evaluateInFrame` requires
     // the isolate to be runnable.
-    final isolate = await waitForFirstRunnableIsolate(service);
+    final isolate = await waitForFirstPausedRunnableIsolate(service);
     final isolateId = isolate.id!;
 
     // Get the variable for 'myInstance'.
@@ -178,7 +178,7 @@ void main() {
     service = await vmServiceConnectUri(dds!.wsUri!.toString());
 
     // Get the expected isolateId.
-    final isolate = await waitForFirstRunnableIsolate(service);
+    final isolate = await waitForFirstPausedRunnableIsolate(service);
     final isolateId = isolate.id!;
 
     // Ask DAP for all threads.

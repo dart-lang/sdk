@@ -4,6 +4,12 @@
 
 part of dart._vmservice;
 
+final class _CompileExpressionErrorDetails {
+  final String details;
+
+  _CompileExpressionErrorDetails(this.details);
+}
+
 class RunningIsolates implements MessageRouter {
   final isolates = <int, RunningIsolate>{};
   int? _rootPortId;
@@ -96,8 +102,14 @@ class _Evaluator {
       kernelBase64 = await _compileExpression(
         responseJson['result'] as Map<String, dynamic>,
       );
-    } catch (e) {
-      return Response.from(encodeCompilationError(_message, e.toString()));
+    } on _CompileExpressionErrorDetails catch (e) {
+      return Response.from(
+        encodeRpcError(
+          _message,
+          kExpressionCompilationError,
+          details: e.details,
+        ),
+      );
     }
     return await _evaluateCompiledExpression(kernelBase64);
   }
@@ -128,6 +140,26 @@ class _Evaluator {
     return _isolate.routeRequest(_service, buildScope);
   }
 
+  /// If [response] represents a valid JSON-RPC result, then this function
+  /// returns the 'kernelBytes' property of that result. Otherwise, this
+  /// function throws a [_CompileExpressionErrorDetails] object wrapping the
+  /// 'details' property of the JSON-RPC error.
+  static String _getKernelBytesOrThrowErrorDetails(
+    Map<String, dynamic> response,
+  ) {
+    if (response['result'] != null) {
+      return (response['result'] as Map<String, dynamic>)['kernelBytes']
+          as String;
+    }
+    final error = response['error'] as Map<String, dynamic>;
+    final data = error['data'] as Map<String, dynamic>;
+    throw _CompileExpressionErrorDetails(data['details']);
+  }
+
+  /// If compilation fails, this method will throw a
+  /// [_CompileExpressionErrorDetails] object that will be used to populate the
+  /// 'details' field of the response to the evaluation RPC that requested this
+  /// compilation to happen.
   Future<String> _compileExpression(
     Map<String, dynamic> buildScopeResponseResult,
   ) {
@@ -182,14 +214,13 @@ class _Evaluator {
           }),
         ),
       );
-      return completer.future.then((s) => jsonDecode(s)).then((json) {
-        final jsonMap = json as Map<String, dynamic>;
-        if (jsonMap.containsKey('error')) {
-          throw jsonMap['error'] as Object;
-        }
-        return (jsonMap['result'] as Map<String, dynamic>)['kernelBytes']
-            as String;
-      });
+      return completer.future
+          .then((s) => jsonDecode(s))
+          .then(
+            (json) => _getKernelBytesOrThrowErrorDetails(
+              json as Map<String, dynamic>,
+            ),
+          );
     } else {
       // fallback to compile using kernel service
       final compileExpressionParams = <String, dynamic>{
@@ -205,16 +236,11 @@ class _Evaluator {
       return _isolate
           .routeRequest(_service, compileExpression)
           .then((response) => response.decodeJson())
-          .then((json) {
-            final response = json as Map<String, dynamic>;
-            if (response['result'] != null) {
-              return (response['result'] as Map<String, dynamic>)['kernelBytes']
-                  as String;
-            }
-            final error = response['error'] as Map<String, dynamic>;
-            final data = error['data'] as Map<String, dynamic>;
-            throw data['details'] as Object;
-          });
+          .then(
+            (json) => _getKernelBytesOrThrowErrorDetails(
+              json as Map<String, dynamic>,
+            ),
+          );
     }
   }
 

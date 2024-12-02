@@ -250,13 +250,7 @@ config("compiler") {
   }
 
   if (is_android || is_linux || is_mac || is_ios || is_fuchsia) {
-    if (use_flutter_cxx) {
-      # shared_library_config isn't transitive, so we don't automatically get
-      # another versions of libcxx with and without -fPIC. Properly setting this
-      # up so only shard libraries pay the extra cost fPIC over fPIE means
-      # something like separate GN toolchains like in the Fuchsia GN build. For
-      # now, globally enabling fPIC is okay because it is limited to test-only
-      # builds.
+    if (is_shared_library) {
       cflags += [ "-fPIC" ]
       ldflags += [ "-fPIC" ]
     } else {
@@ -915,4 +909,8 @@ config("symbols") {
       "-ggdb3",
     ]
   }
+}
+
+config("dart_shared_lib") {
+  defines = [ "DART_SHARED_LIB" ]
 }

@@ -15,13 +15,13 @@ mixin M1 implements Enum {
 }
 
 abstract class A2 implements Enum {
-  void set index(String value) {} // Error.
-  void set hashCode(double value) {} // Error.
+  void set index(String value) {}
+  void set hashCode(double value) {}
 }
 
 mixin M2 implements Enum {
-  void set index(String value) {} // Error.
-  void set hashCode(double value) {} // Error.
+  void set index(String value) {}
+  void set hashCode(double value) {}
 }
 
 abstract class A3 implements Enum {

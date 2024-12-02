@@ -2,21 +2,19 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/field_setter_conflict.dart:7:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldInPartSetterInMain'.
-// void set topLevelFieldInPartSetterInMain(int? value) {}
-//          ^
-//
 // pkg/front_end/testcases/nnbd/field_setter_conflict_part.dart:39:6: Error: Conflicts with setter 'topLevelFieldInPartSetterInMain'.
 // int? topLevelFieldInPartSetterInMain;
-//      ^
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_setter_conflict.dart:7:10: Context: Conflicting setter 'topLevelFieldInPartSetterInMain'.
+// void set topLevelFieldInPartSetterInMain(int? value) {}
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/field_setter_conflict_part.dart:40:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldInMainSetterInPart'.
 // void set topLevelFieldInMainSetterInPart(int? value) {}
-//          ^
-//
-// pkg/front_end/testcases/nnbd/field_setter_conflict.dart:8:6: Error: Conflicts with setter 'topLevelFieldInMainSetterInPart'.
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_setter_conflict.dart:8:6: Context: Field 'topLevelFieldInMainSetterInPart' with the implicit setter.
 // int? topLevelFieldInMainSetterInPart;
-//      ^
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

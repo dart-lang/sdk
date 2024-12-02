@@ -31,6 +31,8 @@ DEFINE_FLAG(uint64_t,
             ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
+DEFINE_FLAG(bool, sim_buffer_memory, false, "Simulate weak memory ordering.");
+
 // SimulatorSetjmpBuffer are linked together, and the last created one
 // is referenced by the Simulator. When an exception is thrown, the exception
 // runtime looks at where to jump and finds the corresponding
@@ -180,14 +182,7 @@ Simulator* Simulator::Current() {
 
 void Simulator::Init() {}
 
-Simulator::Simulator()
-    : pc_(0),
-      instret_(0),
-      reserved_address_(0),
-      reserved_value_(0),
-      fcsr_(0),
-      random_(),
-      last_setjmp_buffer_(nullptr) {
+Simulator::Simulator() : random_(), memory_(FLAG_sim_buffer_memory) {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -318,6 +313,9 @@ void Simulator::RunCall(intx_t entry, PreservedRegisters* preserved) {
   set_xreg(RA, kEndSimulatingPC);
   Execute();
   CheckPreservedRegisters(preserved);
+
+  // We can't instrument the runtime.
+  memory_.FlushAll();
 }
 
 int64_t Simulator::Call(intx_t entry,
@@ -379,6 +377,10 @@ int64_t Simulator::Call(intx_t entry,
   } else {
     return_value = get_xreg(A0);
   }
+
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
   return return_value;
 }
 
@@ -1927,6 +1929,7 @@ void Simulator::InterpretOP32_ROTATE(Instr instr) {
 void Simulator::InterpretMISCMEM(Instr instr) {
   switch (instr.funct3()) {
     case FENCE:
+      memory_.FlushAll();
       std::atomic_thread_fence(std::memory_order_acq_rel);
       break;
     case FENCEI:
@@ -2102,6 +2105,9 @@ void Simulator::InterpretECALL(Instr instr) {
     FATAL("Stack misaligned at call to C function");
   }
 
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
   SimulatorSetjmpBuffer buffer(this);
   if (!setjmp(buffer.buffer_)) {
     uintx_t saved_ra = get_xreg(RA);
@@ -2200,9 +2206,8 @@ void Simulator::InterpretLR(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   reserved_address_ = addr;
-  reserved_value_ = atomic->load(instr.memory_order());
+  reserved_value_ = memory_.Load<type>(addr, instr.memory_order());
   set_xreg(instr.rd(), reserved_value_);
 }
 
@@ -2212,7 +2217,6 @@ void Simulator::InterpretSC(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
-  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   if (addr != reserved_address_) {
     set_xreg(instr.rd(), 1);
     return;
@@ -2224,7 +2228,7 @@ void Simulator::InterpretSC(Instr instr) {
   type expected = reserved_value_;
   type desired = get_xreg(instr.rs2());
   bool success =
-      atomic->compare_exchange_strong(expected, desired, instr.memory_order());
+      memory_.CompareExchange(addr, expected, desired, instr.memory_order());
   set_xreg(instr.rd(), success ? 0 : 1);
 }
 
@@ -2234,6 +2238,7 @@ void Simulator::InterpretAMOSWAP(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   type desired = get_xreg(instr.rs2());
   type result = atomic->exchange(desired, instr.memory_order());
@@ -2246,6 +2251,7 @@ void Simulator::InterpretAMOADD(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   type arg = get_xreg(instr.rs2());
   type result = atomic->fetch_add(arg, instr.memory_order());
@@ -2258,6 +2264,7 @@ void Simulator::InterpretAMOXOR(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   type arg = get_xreg(instr.rs2());
   type result = atomic->fetch_xor(arg, instr.memory_order());
@@ -2270,6 +2277,7 @@ void Simulator::InterpretAMOAND(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   type arg = get_xreg(instr.rs2());
   type result = atomic->fetch_and(arg, instr.memory_order());
@@ -2282,6 +2290,7 @@ void Simulator::InterpretAMOOR(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   type arg = get_xreg(instr.rs2());
   type result = atomic->fetch_or(arg, instr.memory_order());
@@ -2294,6 +2303,7 @@ void Simulator::InterpretAMOMIN(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   type expected = atomic->load(std::memory_order_relaxed);
   type compare = get_xreg(instr.rs2());
@@ -2311,6 +2321,7 @@ void Simulator::InterpretAMOMAX(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   type expected = atomic->load(std::memory_order_relaxed);
   type compare = get_xreg(instr.rs2());
@@ -2328,6 +2339,7 @@ void Simulator::InterpretLOADORDERED(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   type value = atomic->load(instr.memory_order());
   set_xreg(instr.rd(), sign_extend(value));
@@ -2339,6 +2351,7 @@ void Simulator::InterpretSTOREORDERED(Instr instr) {
   if ((addr & (sizeof(type) - 1)) != 0) {
     FATAL("Misaligned atomic memory operation");
   }
+  memory_.FlushAddress(addr);
   type value = get_xreg(instr.rs2());
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   atomic->store(value, instr.memory_order());
@@ -3368,7 +3381,7 @@ type Simulator::MemoryRead(uintx_t addr, Register base) {
     }
   }
 #endif
-  return LoadUnaligned(reinterpret_cast<type*>(addr));
+  return memory_.Load<type>(addr);
 }
 
 template <typename type>
@@ -3389,7 +3402,7 @@ void Simulator::MemoryWrite(uintx_t addr, type value, Register base) {
     }
   }
 #endif
-  StoreUnaligned(reinterpret_cast<type*>(addr), value);
+  memory_.Store<type>(addr, value);
 }
 
 enum ControlStatusRegister {

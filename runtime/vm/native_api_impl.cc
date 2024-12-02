@@ -43,6 +43,26 @@ class IsolateLeaveScope {
   DISALLOW_COPY_AND_ASSIGN(IsolateLeaveScope);
 };
 
+class DartApiCallScope : public ValueObject {
+ public:
+  DartApiCallScope() : active_(Dart::SetActiveApiCall()) {}
+  ~DartApiCallScope() {
+    if (active_) {
+      Dart::ResetActiveApiCall();
+    }
+  }
+  bool active() const { return active_; }
+
+ private:
+  const bool active_;
+};
+
+#define ENTER_API_CALL_OR_RETURN(failure_value)                                \
+  DartApiCallScope api_call_scope;                                             \
+  if (!api_call_scope.active()) {                                              \
+    return failure_value;                                                      \
+  }
+
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
   AllocOnlyStackZone zone;
   std::unique_ptr<Message> msg = WriteApiMessage(
@@ -89,20 +109,19 @@ Dart_NewConcurrentNativePort(const char* name,
                  CURRENT_FUNC);
     return ILLEGAL_PORT;
   }
-  if (!Dart::SetActiveApiCall()) {
-    return ILLEGAL_PORT;
-  }
+  ENTER_API_CALL_OR_RETURN(ILLEGAL_PORT);
   // Start the native port without a current isolate.
   IsolateLeaveScope saver(Isolate::Current());
 
   NativeMessageHandler* nmh =
       new NativeMessageHandler(name, handler, max_concurrency);
   Dart_Port port_id = PortMap::CreatePort(nmh);
-  Dart::ResetActiveApiCall();
   return port_id;
 }
 
 DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
+  ENTER_API_CALL_OR_RETURN(false)
+
   // Close the native port without a current isolate.
   IsolateLeaveScope saver(Isolate::Current());
 
@@ -121,14 +140,15 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
                                             intptr_t* response_json_length,
                                             char** error) {
 #if !defined(PRODUCT)
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate == nullptr || !isolate->is_service_isolate());
-  IsolateLeaveScope saver(isolate);
-
-  if (!Dart::IsInitialized()) {
+  DartApiCallScope api_call;
+  if (!api_call.active()) {
     *error = ::dart::Utils::StrDup("VM Service is not active.");
     return false;
   }
+
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate == nullptr || !isolate->is_service_isolate());
+  IsolateLeaveScope saver(isolate);
 
   // We only allow one isolate reload at a time.  If this turns out to be on the
   // critical path, we can change it to have a global datastructure which is

@@ -1103,8 +1103,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #endif
   }
 
-  Mutex* mutex() { return &mutex_; }
-
 #if !defined(PRODUCT)
   Debugger* debugger() const { return debugger_; }
 
@@ -1575,11 +1573,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   GrowableObjectArrayPtr finalizers_;
   bool single_step_ = false;
   bool has_resumption_breakpoints_ = false;
-  bool is_system_isolate_ = false;
   // End accessed from generated code.
 
   IsolateGroup* const isolate_group_;
-  IdleTimeHandler idle_time_handler_;
   std::unique_ptr<IsolateObjectStore> isolate_object_store_;
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
@@ -1706,8 +1702,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   HandlerInfoCache handler_info_cache_;
   CatchEntryMovesCache catch_entry_moves_cache_;
 
-  DispatchTable* dispatch_table_ = nullptr;
-
   // Used during message sending of messages between isolates.
   std::unique_ptr<WeakTable> forward_table_new_;
   std::unique_ptr<WeakTable> forward_table_old_;
@@ -1755,6 +1749,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ArrayPtr loaded_prefixes_set_storage_;
 
   MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
+
+  bool is_system_isolate_ = false;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;

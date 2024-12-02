@@ -27,7 +27,7 @@ abstract class B2 implements B1 {
 
   void set property5(int? i); // ok
 
-  void set property6(int i); // error
+  void set property6(int i); // ok
 }
 
 abstract class C1 {

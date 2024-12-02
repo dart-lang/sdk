@@ -459,28 +459,29 @@ class DeclarationHelper {
 
   /// Adds suggestions for any constructors that are visible within the not yet
   /// imported [library].
-  void addNotImportedConstructors(LibraryElement library) {
+  void addNotImportedConstructors(LibraryElement2 library) {
     var importData = ImportData(
-      libraryUri: library.source.uri,
+      libraryUri: library.uri,
       prefix: null,
       isNotImported: true,
     );
-    _addConstructors(library, importData);
+    _addConstructors(library.asElement as LibraryElement, importData);
   }
 
   /// Add members from all the applicable extensions that are visible in the
   /// not yet imported [library] that are applicable for the given [type].
   void addNotImportedExtensionMethods({
-    required LibraryElement library,
+    required LibraryElement2 library,
     required DartType type,
     required Set<String> excludedGetters,
     required bool includeMethods,
     required bool includeSetters,
   }) {
+    var libraryElement = library.asElement as LibraryElement;
     var applicableExtensions = library.exportNamespace.definedNames.values
         .whereType<ExtensionElement>()
         .applicableTo(
-          targetLibrary: library,
+          targetLibrary: libraryElement,
           // Ignore nullability, consistent with non-extension members.
           targetType:
               type.isDartCoreNull
@@ -489,7 +490,7 @@ class DeclarationHelper {
           strictCasts: false,
         );
     var importData = ImportData(
-      libraryUri: library.source.uri,
+      libraryUri: library.uri,
       prefix: null,
       isNotImported: true,
     );
@@ -503,14 +504,14 @@ class DeclarationHelper {
 
   /// Adds suggestions for any top-level declarations that are visible within
   /// the not yet imported [library].
-  void addNotImportedTopLevelDeclarations(LibraryElement library) {
+  void addNotImportedTopLevelDeclarations(LibraryElement2 library) {
     var importData = ImportData(
-      libraryUri: library.source.uri,
+      libraryUri: library.uri,
       prefix: null,
       isNotImported: true,
     );
     _addExternalTopLevelDeclarations(
-      library: library,
+      library: library.asElement as LibraryElement,
       namespace: library.exportNamespace,
       importData: importData,
     );

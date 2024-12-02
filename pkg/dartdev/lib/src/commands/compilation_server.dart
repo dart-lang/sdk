@@ -7,6 +7,8 @@ import 'dart:io' show File;
 
 import 'package:args/args.dart';
 import 'package:dartdev/src/generate_kernel.dart';
+import 'package:frontend_server/resident_frontend_server_utils.dart'
+    show ResidentCompilerInfo;
 
 import '../core.dart';
 import '../resident_frontend_constants.dart';

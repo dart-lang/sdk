@@ -31,12 +31,12 @@ abstract class _Class1&Super&Mixin = self::Super with self::Mixin /*isAnonymousM
   synthetic constructor •() → self::_Class1&Super&Mixin
     : super self::Super::•()
     ;
+  mixin-super-stub method method() → void
+    return super.{self::Mixin::method}();
   mixin-super-stub get property() → core::int
     return super.{self::Mixin::property};
   mixin-super-stub set property(core::int value) → void
     return super.{self::Mixin::property} = value;
-  mixin-super-stub method method() → void
-    return super.{self::Mixin::method}();
 }
 class Class1 extends self::_Class1&Super&Mixin {
   synthetic constructor •() → self::Class1
@@ -46,12 +46,12 @@ abstract class _Class2&Object&Mixin = core::Object with self::Mixin /*isAnonymou
   const synthetic constructor •() → self::_Class2&Object&Mixin
     : super core::Object::•()
     ;
+  mixin-super-stub method method() → void
+    return super.{self::Mixin::method}();
   mixin-super-stub get property() → core::int
     return super.{self::Mixin::property};
   mixin-super-stub set property(core::int value) → void
     return super.{self::Mixin::property} = value;
-  mixin-super-stub method method() → void
-    return super.{self::Mixin::method}();
 }
 class Class2 extends self::_Class2&Object&Mixin implements self::Super {
   synthetic constructor •() → self::Class2

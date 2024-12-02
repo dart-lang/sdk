@@ -433,6 +433,8 @@ abstract class IntegrationTestMixin {
   /// Stream controller for [onAnalysisOutline].
   late StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
+  /// Deprecated - no longer supported.
+  ///
   /// Used to request that completion suggestions for the given offset in the
   /// given file be returned.
   ///

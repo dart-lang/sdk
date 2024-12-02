@@ -158,18 +158,10 @@ self.\$dartReloadModifiedModules = async function(subAppName, callback) {
 }
 
 // Append a helper function for hot reload.
-self.\$injectedFilesAndLibrariesToReload = function() {
-  // Resolve the next generation's directory and load all modified files.
-  let nextGeneration = self.dartDevEmbedder.hotReloadGeneration + 1;
-  if (previousGenerations.has(nextGeneration)) {
-    throw Error('Fatal error: Previous generations are being re-run.');
-  }
-  previousGenerations.add(nextGeneration);
-  let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
-  // Stop if the next generation does not exist.
-  if (modifiedFilePaths == void 0) {
-    return;
-  }
+self.\$injectedFilesAndLibrariesToReload = function(fileGeneration) {
+  modifiedFilePaths = modifiedFilesPerGeneration[fileGeneration];
+  if (modifiedFilePaths == null) return null;
+  // Collect reload generation resources.
   let fileUrls = [];
   let libraryIds = [];
   for (let i = 0; i < modifiedFilePaths.length; i++) {
@@ -443,20 +435,12 @@ let _scriptUrls = {
 
     // Append hot reload runner-specific logic.
     let modifiedFilesPerGeneration = ${_encoder.convert(modifiedFilesPerGeneration)};
-    let previousGenerations = new Set();
 
-    self.\$injectedFilesAndLibrariesToReload = function() {
-      // Resolve the next generation's directory and load all modified files.
-      let nextGeneration = self.dartDevEmbedder.hotReloadGeneration + 1;
-      if (previousGenerations.has(nextGeneration)) {
-        throw Error('Fatal error: Previous generations are being re-run.');
-      }
-      previousGenerations.add(nextGeneration);
-      let modifiedFilePaths = modifiedFilesPerGeneration[nextGeneration];
-      // Stop if the next generation does not exist.
-      if (modifiedFilePaths == void 0) {
-        return;
-      }
+    // Append a helper function for hot reload.
+    self.\$injectedFilesAndLibrariesToReload = function(fileGeneration) {
+      modifiedFilePaths = modifiedFilesPerGeneration[fileGeneration];
+      if (modifiedFilePaths == null) return null;
+      // Collect reload generation resources.
       let fileUrls = [];
       let libraryIds = [];
       for (let i = 0; i < modifiedFilePaths.length; i++) {
@@ -468,6 +452,7 @@ let _scriptUrls = {
       return [fileUrls, libraryIds];
     }
 
+    let previousGenerations = new Set();
     self.\$dartReloadModifiedModules = async function(subAppName, callback) {
       let expectedName = "$entrypointModuleName";
       if (subAppName !== expectedName) {

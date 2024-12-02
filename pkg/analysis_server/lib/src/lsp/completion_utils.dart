@@ -240,7 +240,7 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
         (FormalParameterElement param) => param.isNamed,
       );
 
-      defaultArgumentList = computeCompletionDefaultArgumentList2(
+      defaultArgumentList = computeCompletionDefaultArgumentList(
         element,
         requiredParameters,
         namedParameters,

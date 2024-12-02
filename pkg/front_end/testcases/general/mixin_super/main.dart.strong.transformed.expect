@@ -190,16 +190,16 @@ abstract class _Class1b&Class1a&Mixin1 extends self::Class1a implements self::Mi
   synthetic constructor •() → self::_Class1b&Class1a&Mixin1
     : super self::Class1a::•()
     ;
+  method method1() → void {
+    super.{mai::Super1::method1}();
+  }
+  method method2() → void {}
   get property1() → core::int {
     return super.{mai::Super1::property1};
   }
   get property2() → core::int {
     return 42;
   }
-  method method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  method method2() → void {}
   set property1(core::int value) → void {
     super.{mai::Super1::property1} = value;
   }
@@ -225,16 +225,16 @@ abstract class _Class2b&Class2a&Mixin1 extends self::Class2a implements self::Mi
   synthetic constructor •() → self::_Class2b&Class2a&Mixin1
     : super self::Class2a::•()
     ;
+  method method1() → void {
+    super.{mai::Super1::method1}();
+  }
+  method method2() → void {}
   get property1() → core::int {
     return super.{mai::Super1::property1};
   }
   get property2() → core::int {
     return 42;
   }
-  method method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  method method2() → void {}
   set property1(core::int value) → void {
     super.{mai::Super1::property1} = value;
   }
@@ -260,16 +260,16 @@ abstract class _Class3b&Class3a&Mixin1 extends self::Class3a implements self::Mi
   synthetic constructor •() → self::_Class3b&Class3a&Mixin1
     : super self::Class3a::•()
     ;
+  method method1() → void {
+    super.{mai::Super1::method1}();
+  }
+  method method2() → void {}
   get property1() → core::int {
     return super.{mai::Super1::property1};
   }
   get property2() → core::int {
     return 42;
   }
-  method method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  method method2() → void {}
   set property1(core::int value) → void {
     super.{mai::Super1::property1} = value;
   }
@@ -295,16 +295,16 @@ abstract class _Class4b&Class4a&Mixin2 extends self::Class4a implements mai::Mix
   synthetic constructor •() → self::_Class4b&Class4a&Mixin2
     : super self::Class4a::•()
     ;
+  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
+    super.{mai::Super1::method1}();
+  }
+  method /* from org-dartlang-testcase:///main_lib.dart */ method2() → void {}
   get /* from org-dartlang-testcase:///main_lib.dart */ property1() → core::int {
     return super.{mai::Super1::property1};
   }
   get /* from org-dartlang-testcase:///main_lib.dart */ property2() → core::int {
     return 42;
   }
-  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  method /* from org-dartlang-testcase:///main_lib.dart */ method2() → void {}
   set /* from org-dartlang-testcase:///main_lib.dart */ property1(core::int value) → void {
     super.{mai::Super1::property1} = value;
   }
@@ -330,16 +330,16 @@ abstract class _Class5b&Class5a&Mixin2 extends self::Class5a implements mai::Mix
   synthetic constructor •() → self::_Class5b&Class5a&Mixin2
     : super self::Class5a::•()
     ;
+  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
+    super.{mai::Super1::method1}();
+  }
+  method /* from org-dartlang-testcase:///main_lib.dart */ method2() → void {}
   get /* from org-dartlang-testcase:///main_lib.dart */ property1() → core::int {
     return super.{mai::Super1::property1};
   }
   get /* from org-dartlang-testcase:///main_lib.dart */ property2() → core::int {
     return 42;
   }
-  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  method /* from org-dartlang-testcase:///main_lib.dart */ method2() → void {}
   set /* from org-dartlang-testcase:///main_lib.dart */ property1(core::int value) → void {
     super.{mai::Super1::property1} = value;
   }
@@ -365,16 +365,16 @@ abstract class _Class6b&Class6a&Mixin2 extends self::Class6a implements mai::Mix
   synthetic constructor •() → self::_Class6b&Class6a&Mixin2
     : super self::Class6a::•()
     ;
+  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
+    super.{mai::Super1::method1}();
+  }
+  method /* from org-dartlang-testcase:///main_lib.dart */ method2() → void {}
   get /* from org-dartlang-testcase:///main_lib.dart */ property1() → core::int {
     return super.{mai::Super1::property1};
   }
   get /* from org-dartlang-testcase:///main_lib.dart */ property2() → core::int {
     return 42;
   }
-  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  method /* from org-dartlang-testcase:///main_lib.dart */ method2() → void {}
   set /* from org-dartlang-testcase:///main_lib.dart */ property1(core::int value) → void {
     super.{mai::Super1::property1} = value;
   }

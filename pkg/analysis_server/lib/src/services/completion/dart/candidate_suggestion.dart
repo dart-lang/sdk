@@ -783,7 +783,7 @@ final class NamedArgumentSuggestion extends CandidateSuggestion
     // Optionally add Flutter child widget details.
     // TODO(pq): revisit this special casing; likely it can be generalized away.
     if (isWidget && appendColon) {
-      var defaultValue = getDefaultStringParameterValue2(
+      var defaultValue = getDefaultStringParameterValue(
         parameter,
         preferredQuoteForStrings,
       );

@@ -21,6 +21,7 @@ dependencies:
   dds_service_extensions: any
   dtd_impl: any
   front_end: any
+  frontend_server: any
   http: any
   kernel: any
   logging: any

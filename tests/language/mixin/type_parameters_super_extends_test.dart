@@ -2,17 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class S<T> {
   bool matches(o) {
-    bool isChecked = checkUsingIs(o);
-    if (checkedMode) {
-      Expect.equals(isChecked, checkUsingCheckedMode(o));
+    bool isChecked = checkUsingIs(o); // `is` check.
+    if (checkedImplicitDowncasts) {
+      Expect.equals(isChecked, checkUsingDowncast(o)); // `as` check, implicit.
     }
     return isChecked;
   }
@@ -21,27 +18,17 @@ class S<T> {
     return o is T;
   }
 
-  bool checkUsingCheckedMode(o) {
+  bool checkUsingDowncast(o) {
     try {
-      T x = o;
+      T x = o as dynamic;
     } on Error {
       return false;
     }
     return true;
   }
-
-  static final bool checkedMode = computeCheckedMode();
-  static bool computeCheckedMode() {
-    try {
-      int x = "foo" as dynamic;
-    } on Error {
-      return true;
-    }
-    return false;
-  }
 }
 
-class M {}
+mixin M {}
 
 class C0<T> extends S with M {}
 

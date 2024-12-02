@@ -2400,8 +2400,8 @@ class FlowModel<Type extends Object> {
       PromotionModel<Type>? otherPromotionModel = right?.model;
       PromotionModel<Type> newPromotionModel = otherPromotionModel == null
           ? promotionModel
-          : PromotionModel.inheritTested(helper.typeOperations, promotionModel,
-              otherPromotionModel.tested);
+          : PromotionModel.inheritTested(
+              promotionModel, otherPromotionModel.tested);
       if (!identical(newPromotionModel, promotionModel)) {
         result =
             result.updatePromotionInfo(helper, promotionKey, newPromotionModel);
@@ -2496,8 +2496,8 @@ class FlowModel<Type extends Object> {
       }
       // Tests are kept regardless of whether they are in `this` model or the
       // new base model.
-      List<Type> newTested = PromotionModel.joinTested(
-          thisModel.tested, baseModel.tested, helper.typeOperations);
+      List<Type> newTested =
+          PromotionModel.joinTested(thisModel.tested, baseModel.tested);
       // The variable is definitely assigned if it was definitely assigned
       // either in `this` model or the new base model.
       bool newAssigned = thisModel.assigned || baseModel.assigned;
@@ -2720,8 +2720,7 @@ class FlowModel<Type extends Object> {
       Type? promotedType) {
     List<Type> newTested = info.tested;
     if (testedType != null) {
-      newTested = PromotionModel._addTypeToUniqueList(
-          info.tested, testedType, helper.typeOperations);
+      newTested = PromotionModel._addTypeToUniqueList(info.tested, testedType);
     }
 
     List<Type>? newPromotedTypes = info.promotedTypes;
@@ -3321,7 +3320,7 @@ class PromotionModel<Type extends Object> {
       }
 
       // Add only unique candidates.
-      if (!_typeListContains(typeOperations, candidates!, type)) {
+      if (!candidates!.contains(type)) {
         candidates!.add(type);
         return;
       }
@@ -3390,10 +3389,8 @@ class PromotionModel<Type extends Object> {
   /// regardless of the type of loop.
   @visibleForTesting
   static PromotionModel<Type> inheritTested<Type extends Object>(
-      FlowAnalysisTypeOperations<Type> typeOperations,
-      PromotionModel<Type> model,
-      List<Type> tested) {
-    List<Type> newTested = joinTested(tested, model.tested, typeOperations);
+      PromotionModel<Type> model, List<Type> tested) {
+    List<Type> newTested = joinTested(tested, model.tested);
     if (identical(newTested, model.tested)) return model;
     return new PromotionModel<Type>(
         promotedTypes: model.promotedTypes,
@@ -3429,9 +3426,8 @@ class PromotionModel<Type extends Object> {
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
-    List<Type> newTested = newWriteCaptured
-        ? const []
-        : joinTested(first.tested, second.tested, typeOperations);
+    List<Type> newTested =
+        newWriteCaptured ? const [] : joinTested(first.tested, second.tested);
     SsaNode<Type>? newSsaNode = propertySsaNode;
     if (newSsaNode == null && !newWriteCaptured) {
       (newSsaNode, newFlowModel) = SsaNode._join(
@@ -3500,8 +3496,8 @@ class PromotionModel<Type extends Object> {
   ///   small in real-world cases)
   /// - The sense of equality for the union operation is determined by `==`.
   /// - The types of interests lists are considered immutable.
-  static List<Type> joinTested<Type extends Object>(List<Type> types1,
-      List<Type> types2, FlowAnalysisTypeOperations<Type> typeOperations) {
+  static List<Type> joinTested<Type extends Object>(
+      List<Type> types1, List<Type> types2) {
     // Ensure that types1 is the shorter list.
     if (types1.length > types2.length) {
       List<Type> tmp = types1;
@@ -3517,11 +3513,11 @@ class PromotionModel<Type extends Object> {
     // not present in it.
     for (int i = shared; i < types1.length; i++) {
       Type typeToAdd = types1[i];
-      if (_typeListContains(typeOperations, types2, typeToAdd)) continue;
+      if (types2.contains(typeToAdd)) continue;
       List<Type> result = types2.toList()..add(typeToAdd);
       for (i++; i < types1.length; i++) {
         typeToAdd = types1[i];
-        if (_typeListContains(typeOperations, types2, typeToAdd)) continue;
+        if (types2.contains(typeToAdd)) continue;
         result.add(typeToAdd);
       }
       return result;
@@ -3575,9 +3571,9 @@ class PromotionModel<Type extends Object> {
           ? [promoted]
           : (promotedTypes.toList()..add(promoted));
 
-  static List<Type> _addTypeToUniqueList<Type extends Object>(List<Type> types,
-      Type newType, FlowAnalysisTypeOperations<Type> typeOperations) {
-    if (_typeListContains(typeOperations, types, newType)) return types;
+  static List<Type> _addTypeToUniqueList<Type extends Object>(
+      List<Type> types, Type newType) {
+    if (types.contains(newType)) return types;
     return new List<Type>.of(types)..add(newType);
   }
 
@@ -3611,16 +3607,6 @@ class PromotionModel<Type extends Object> {
           unassigned: newUnassigned,
           ssaNode: newSsaNode);
     }
-  }
-
-  static bool _typeListContains<Type extends Object>(
-      FlowAnalysisTypeOperations<Type> typeOperations,
-      List<Type> list,
-      Type searchType) {
-    for (Type type in list) {
-      if (type == searchType) return true;
-    }
-    return false;
   }
 }
 

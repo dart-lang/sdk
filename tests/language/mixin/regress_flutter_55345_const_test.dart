@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 // Verifies that references to deduplicated mixins are properly updated
 // in types which are only accessible through constants.
 // Regression test for https://github.com/flutter/flutter/issues/55345.
 
-class Diagnosticable {}
+mixin Diagnosticable {}
 
 class SomeClass with Diagnosticable {}
 

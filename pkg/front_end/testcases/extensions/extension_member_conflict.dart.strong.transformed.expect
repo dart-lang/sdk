@@ -107,6 +107,20 @@ library;
 //   static void set duplicateStaticGetterAndSetter(int value) {}
 //                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:54:19: Error: Static property 'instanceGetterAndStaticSetter' conflicts with instance property of the same name.
+//   static void set instanceGetterAndStaticSetter(int value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:53:11: Context: Conflicting instance property 'instanceGetterAndStaticSetter'.
+//   int get instanceGetterAndStaticSetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:57:12: Error: Instance property 'instanceSetterAndStaticGetter' conflicts with static property of the same name.
+//   void set instanceSetterAndStaticGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:56:18: Context: Conflicting static property 'instanceSetterAndStaticGetter'.
+//   static int get instanceSetterAndStaticGetter => 0;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/extensions/extension_member_conflict.dart:60:14: Error: 'instanceGetterAndStaticField' is already declared in this scope.
 //   static int instanceGetterAndStaticField = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -117,25 +131,9 @@ library;
 // pkg/front_end/testcases/extensions/extension_member_conflict.dart:63:20: Error: 'instanceGetterAndStaticField' is already declared in this scope.
 //   static final int instanceGetterAndStaticField = 0;
 //                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/extensions/extension_member_conflict.dart:60:14: Context: Previous declaration of 'instanceGetterAndStaticField'.
-//   static int instanceGetterAndStaticField = 0;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/extension_member_conflict.dart:54:19: Error: Conflicts with member 'instanceGetterAndStaticSetter'.
-//   static void set instanceGetterAndStaticSetter(int value) {}
-//                   ^
-//
-// pkg/front_end/testcases/extensions/extension_member_conflict.dart:53:11: Error: Conflicts with setter 'instanceGetterAndStaticSetter'.
-//   int get instanceGetterAndStaticSetter => 0;
-//           ^
-//
-// pkg/front_end/testcases/extensions/extension_member_conflict.dart:57:12: Error: Conflicts with member 'instanceSetterAndStaticGetter'.
-//   void set instanceSetterAndStaticGetter(int value) {}
-//            ^
-//
-// pkg/front_end/testcases/extensions/extension_member_conflict.dart:56:18: Error: Conflicts with setter 'instanceSetterAndStaticGetter'.
-//   static int get instanceSetterAndStaticGetter => 0;
-//                  ^
+// pkg/front_end/testcases/extensions/extension_member_conflict.dart:59:11: Context: Previous declaration of 'instanceGetterAndStaticField'.
+//   int get instanceGetterAndStaticField => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

@@ -1,0 +1,25 @@
+//
+// Problems outside component:
+//
+// Error: Invalid package URI 'package:foobar1':
+//   Package URIs must start with the package name followed by a '/'.
+//
+// Error: Invalid package URI 'package:foobar2':
+//   Package URIs must start with the package name followed by a '/'.
+//
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_59606.dart:1:8: Error: Not found: 'package:foobar1'
+// import 'package:foobar1' as a;
+//        ^
+//
+// pkg/front_end/testcases/regress/issue_59606.dart:2:8: Error: Not found: 'package:foobar2'
+// import 'package:foobar%32' as b;
+//        ^
+//
+import self as self;
+
+import "package:foobar1" as a;
+import "package:foobar2" as b;

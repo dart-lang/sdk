@@ -7,8 +7,6 @@
 
 class C {
   var a;
-  //  ^
-  // [cfe] Conflicts with setter 'a'.
 
   get a {
   //  ^

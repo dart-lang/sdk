@@ -60,39 +60,53 @@ enum RuntimePlatforms {
   final bool emitsJS;
 }
 
-/// Encodes information provided in a hot_reload test's configuration file.
+/// Encodes information provided in a hot_reload test's config.json file.
+///
+/// The following keys are supported:
+///
+/// - "exclude": A list of strings that specify the names of the platforms that
+///   should not run this test. The runtime names must match the enum values in
+///   [RuntimePlatforms].
+/// - "expectedErrors": A map of strings to strings that specifies file
+///   generations expected to be rejected as not viable for hot reload and the
+///   error text associated with their rejection messages.
 ///
 /// Example structure:
 /// {
 ///   "exclude": ["vm", "chrome"]
+///   "expectedErrors": {"1": "You wouldn't hot reload a car"}
 /// }
 class ReloadTestConfiguration {
-  final Map<String, dynamic> _values;
   final Set<RuntimePlatforms> excludedPlatforms;
-  final String? expectedError;
+  final Map<int, String> expectedErrors;
 
-  ReloadTestConfiguration._(
-      this._values, this.excludedPlatforms, this.expectedError);
+  ReloadTestConfiguration._(this.excludedPlatforms, this.expectedErrors);
 
   factory ReloadTestConfiguration() => ReloadTestConfiguration._(
-      const <String, dynamic>{}, <RuntimePlatforms>{}, null);
+      const <RuntimePlatforms>{}, const <int, String>{});
 
   factory ReloadTestConfiguration.fromJsonFile(Uri file) {
     final Map<String, dynamic> jsonData =
         jsonDecode(File.fromUri(file).readAsStringSync());
     final excludedPlatforms = <RuntimePlatforms>{};
-    var rawExcludedPlatforms = jsonData['exclude'];
+    final rawExcludedPlatforms = jsonData['exclude'];
     if (rawExcludedPlatforms != null) {
       for (final String platform in rawExcludedPlatforms) {
         final runtimePlatform = RuntimePlatforms.values.byName(platform);
         excludedPlatforms.add(runtimePlatform);
       }
     }
+    final expectedErrors = <int, String>{};
+    final rawExpectedErrors =
+        jsonData['expectedErrors'] as Map<String, dynamic>?;
+    if (rawExpectedErrors != null) {
+      for (final entry in rawExpectedErrors.entries) {
+        expectedErrors[int.parse(entry.key)] = entry.value as String;
+      }
+    }
     return ReloadTestConfiguration._(
-        jsonData, excludedPlatforms, jsonData['expectedError']);
-  }
-
-  String toJson() {
-    return JsonEncoder().convert(_values);
+      excludedPlatforms,
+      expectedErrors,
+    );
   }
 }

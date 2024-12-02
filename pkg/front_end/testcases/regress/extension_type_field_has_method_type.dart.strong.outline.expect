@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/extension_type_field_has_method_type.dart:7:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   bar baz;
+//       ^^^
+//
+// pkg/front_end/testcases/regress/extension_type_field_has_method_type.dart:7:3: Error: 'bar' isn't a type.
+//   bar baz;
+//   ^^^
+// pkg/front_end/testcases/regress/extension_type_field_has_method_type.dart:6:3: Context: This isn't a type.
+//   bar(){}
+//   ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Foo on core::int {
+  method bar = self::Foo|bar;
+  method tearoff bar = self::Foo|get#bar;
+  field baz = self::Foo|baz;
+}
+static field invalid-type Foo|baz;
+static extension-member method Foo|bar(lowered final core::int #this) → dynamic
+  ;
+static extension-member method Foo|get#bar(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::Foo|bar(#this);

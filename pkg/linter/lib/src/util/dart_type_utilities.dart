@@ -215,7 +215,7 @@ class InterfaceTypeDefinition {
   InterfaceTypeDefinition(this.name, this.library);
 
   @override
-  int get hashCode => name.hashCode ^ library.hashCode;
+  int get hashCode => Object.hash(name, library);
 
   @override
   bool operator ==(Object other) {

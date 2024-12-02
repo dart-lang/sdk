@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 // VMOptions=--optimization_counter_threshold=1
 
 import "package:expect/expect.dart";
@@ -95,7 +91,7 @@ Map<int, String> var10 = {
   63: 'Nu+u\u26659S'
 };
 
-class X0 {}
+mixin class X0 {}
 
 class X1 with X0 {
   bool foo1_0(List<int> par1, bool par2) => true;

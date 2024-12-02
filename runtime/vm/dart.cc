@@ -501,27 +501,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Isolate::SetRegisterKernelBlobCallback(params->register_kernel_blob);
   Isolate::SetUnregisterKernelBlobCallback(params->unregister_kernel_blob);
 
-#ifndef PRODUCT
-  const bool support_service = true;
-  Service::SetGetServiceAssetsCallback(params->get_service_assets);
-#else
-  const bool support_service = false;
-#endif
-
-  const bool is_dart2_aot_precompiler =
-      FLAG_precompiled_mode && !kDartPrecompiledRuntime;
-
-  if (!is_dart2_aot_precompiler &&
-      (support_service || !kDartPrecompiledRuntime)) {
-    ServiceIsolate::Run();
-  }
-
-#ifndef DART_PRECOMPILED_RUNTIME
-  if (params->start_kernel_isolate) {
-    KernelIsolate::InitializeState();
-  }
-#endif  // DART_PRECOMPILED_RUNTIME
-
   return nullptr;
 }
 
@@ -538,6 +517,21 @@ char* Dart::Init(const Dart_InitializeParams* params) {
     return retval;
   }
   DartInitializationState::SetInitialized();
+
+  // The service and kernel isolates require the VM state to be initialized.
+  // The embedder, not the VM, should trigger creation of the service and kernel
+  // isolates. https://github.com/dart-lang/sdk/issues/33433
+#if !defined(PRODUCT)
+  Service::SetGetServiceAssetsCallback(params->get_service_assets);
+  ServiceIsolate::Run();
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (params->start_kernel_isolate) {
+    KernelIsolate::InitializeState();
+  }
+#endif
+
   return nullptr;
 }
 

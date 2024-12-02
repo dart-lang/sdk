@@ -3020,19 +3020,14 @@ void BinaryIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       Range::Full(RequiredInputRepresentation(0), TaggedMode::kTaggedIsSmi);
   const Range right_range =
       Range::Full(RequiredInputRepresentation(1), TaggedMode::kTaggedIsSmi);
-  InferRangeHelper(GetInputRange(left(), &left_range),
-                   GetInputRange(right(), &right_range), range);
-}
-
-void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range smi_range = Range::Smi();
-  const Range* right_smi_range = GetInputRange(right(), &smi_range);
+  const Range* right_input_range = GetInputRange(right(), &right_range);
   if (op_kind() == Token::kSHL || op_kind() == Token::kSHR ||
       op_kind() == Token::kUSHR || op_kind() == Token::kMOD ||
       op_kind() == Token::kTRUNCDIV) {
-    CacheRange(&right_range_, right_smi_range, smi_range);
+    CacheRange(&right_range_, right_input_range, right_range);
   }
-  InferRangeHelper(GetInputRange(left(), &smi_range), right_smi_range, range);
+  InferRangeHelper(GetInputRange(left(), &left_range), right_input_range,
+                   range);
 }
 
 void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {

@@ -4346,7 +4346,10 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   Zone* zone = thread->zone();
 
   Function& forwarder = Function::Handle(zone);
-  forwarder ^= Object::Clone(*this, Heap::kOld);
+  // Load with relaxed atomics to prevent data race with updating original's
+  // properties that are overridden below for the copy anyway.
+  forwarder ^= Object::Clone(*this, Heap::kOld,
+                             /*load_with_relaxed_atomics=*/true);
 
   forwarder.reset_unboxed_parameters_and_return();
 

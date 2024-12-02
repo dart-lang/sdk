@@ -24,15 +24,6 @@ library;
 //   void set y(A value);
 //            ^
 //
-// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:6:9: Error: The type 'A' of the getter 'A.x' is not a subtype of the type 'B' of the setter 'A.x'.
-//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart'.
-//   A get x;
-//         ^
-// pkg/front_end/testcases/inference_new/infer_field_override_accessors.dart:7:12: Context: This is the declaration of the setter 'A.x'.
-//   void set x(B value);
-//            ^
-//
 import self as self;
 import "dart:core" as core;
 

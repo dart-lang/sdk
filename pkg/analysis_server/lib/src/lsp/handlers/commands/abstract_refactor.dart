@@ -178,6 +178,7 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
     }
 
     if (parameters['kind'] is! String ||
+        // TODO(dantup): We should migrate this to URIs.
         parameters['path'] is! String ||
         (parameters['docVersion'] is! int?) ||
         parameters['offset'] is! int ||

@@ -4,4 +4,4 @@ file:/tools/OWNERS_CFE
 file:/OWNERS
 
 # Add the VM team as owners of ResidentFrontendServer-related files.
-per-file lib/src/resident_frontend_server.dart, test/src/resident_frontend_server_test.dart = file:/tools/OWNERS_VM
+per-file lib/resident_frontend_server_utils.dart,lib/src/resident_frontend_server.dart,test/src/resident_frontend_server_test.dart=file:/tools/OWNERS_VM

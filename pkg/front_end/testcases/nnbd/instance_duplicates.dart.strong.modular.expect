@@ -42,6 +42,20 @@ library;
 //   int? methodAndFieldAndSetter1() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:20:12: Error: The setter conflicts with declaration 'methodAndFieldAndSetter1'.
+//   void set methodAndFieldAndSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:18:8: Context: Conflicting declaration 'methodAndFieldAndSetter1'.
+//   int? methodAndFieldAndSetter1() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:20:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter1'.
+//   void set methodAndFieldAndSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:19:8: Context: Field 'methodAndFieldAndSetter1' with the implicit setter.
+//   int? methodAndFieldAndSetter1;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:23:8: Error: 'methodAndFieldAndSetter2' is already declared in this scope.
 //   int? methodAndFieldAndSetter2() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,12 +63,33 @@ library;
 //   int? methodAndFieldAndSetter2;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: 'methodAndFieldAndSetter3' is already declared in this scope.
-//   int? methodAndFieldAndSetter3;
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:24:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter2'.
+//   void set methodAndFieldAndSetter2(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:22:8: Context: Field 'methodAndFieldAndSetter2' with the implicit setter.
+//   int? methodAndFieldAndSetter2;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:27:8: Context: Previous declaration of 'methodAndFieldAndSetter3'.
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:27:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter3'.
 //   int? methodAndFieldAndSetter3() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:26:12: Context: Conflicting setter 'methodAndFieldAndSetter3'.
+//   void set methodAndFieldAndSetter3(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: Conflicts with setter 'methodAndFieldAndSetter3'.
+//   int? methodAndFieldAndSetter3;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:26:12: Context: Conflicting setter 'methodAndFieldAndSetter3'.
+//   void set methodAndFieldAndSetter3(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: Conflicts with setter 'methodAndFieldAndSetter4'.
+//   int? methodAndFieldAndSetter4;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:30:12: Context: Conflicting setter 'methodAndFieldAndSetter4'.
+//   void set methodAndFieldAndSetter4(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:32:8: Error: 'methodAndFieldAndSetter4' is already declared in this scope.
 //   int? methodAndFieldAndSetter4() {}
@@ -70,6 +105,13 @@ library;
 //   int? methodAndFinalFieldAndSetter1() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:36:12: Error: The setter conflicts with declaration 'methodAndFinalFieldAndSetter1'.
+//   void set methodAndFinalFieldAndSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:34:8: Context: Conflicting declaration 'methodAndFinalFieldAndSetter1'.
+//   int? methodAndFinalFieldAndSetter1() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:39:8: Error: 'methodAndFinalFieldAndSetter2' is already declared in this scope.
 //   int? methodAndFinalFieldAndSetter2() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -77,12 +119,12 @@ library;
 //   final int? methodAndFinalFieldAndSetter2 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:44:14: Error: 'methodAndFinalFieldAndSetter3' is already declared in this scope.
-//   final int? methodAndFinalFieldAndSetter3 = 0;
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:43:8: Context: Previous declaration of 'methodAndFinalFieldAndSetter3'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:43:8: Error: The declaration conflicts with setter 'methodAndFinalFieldAndSetter3'.
 //   int? methodAndFinalFieldAndSetter3() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:42:12: Context: Conflicting setter 'methodAndFinalFieldAndSetter3'.
+//   void set methodAndFinalFieldAndSetter3(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:48:8: Error: 'methodAndFinalFieldAndSetter4' is already declared in this scope.
 //   int? methodAndFinalFieldAndSetter4() {}
@@ -91,10 +133,45 @@ library;
 //   final int? methodAndFinalFieldAndSetter4 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:51:12: Error: The setter conflicts with declaration 'methodAndSetter1'.
+//   void set methodAndSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:50:8: Context: Conflicting declaration 'methodAndSetter1'.
+//   int? methodAndSetter1() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:12: Error: The setter conflicts with declaration 'methodAndSetter2'.
+//   int? set methodAndSetter2() {}
+//            ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:53:8: Context: Conflicting declaration 'methodAndSetter2'.
+//   void methodAndSetter2(int? value) {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:57:12: Error: Conflicts with the implicit setter of the field 'fieldAndSetter1'.
+//   void set fieldAndSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:56:8: Context: Field 'fieldAndSetter1' with the implicit setter.
+//   int? fieldAndSetter1;
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:60:12: Error: Conflicts with the implicit setter of the field 'fieldAndSetter2'.
+//   void set fieldAndSetter2(int? value) {}
+//            ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:59:8: Context: Field 'fieldAndSetter2' with the implicit setter.
+//   int? fieldAndSetter2;
+//        ^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:63:14: Error: 'fieldAndFinalFieldAndSetter1' is already declared in this scope.
 //   final int? fieldAndFinalFieldAndSetter1 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:62:8: Context: Previous declaration of 'fieldAndFinalFieldAndSetter1'.
+//   int? fieldAndFinalFieldAndSetter1;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:64:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter1'.
+//   void set fieldAndFinalFieldAndSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:62:8: Context: Field 'fieldAndFinalFieldAndSetter1' with the implicit setter.
 //   int? fieldAndFinalFieldAndSetter1;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
@@ -104,6 +181,13 @@ library;
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:66:14: Context: Previous declaration of 'fieldAndFinalFieldAndSetter2'.
 //   final int? fieldAndFinalFieldAndSetter2 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter3'.
+//   int? fieldAndFinalFieldAndSetter3;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:70:12: Context: Conflicting setter 'fieldAndFinalFieldAndSetter3'.
+//   void set fieldAndFinalFieldAndSetter3(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:72:14: Error: 'fieldAndFinalFieldAndSetter3' is already declared in this scope.
 //   final int? fieldAndFinalFieldAndSetter3 = 0;
@@ -118,114 +202,6 @@ library;
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:75:14: Context: Previous declaration of 'fieldAndFinalFieldAndSetter4'.
 //   final int? fieldAndFinalFieldAndSetter4 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:20:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter1'.
-//   void set methodAndFieldAndSetter1(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:19:8: Error: Conflicts with setter 'methodAndFieldAndSetter1'.
-//   int? methodAndFieldAndSetter1;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:24:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter2'.
-//   void set methodAndFieldAndSetter2(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:22:8: Error: Conflicts with setter 'methodAndFieldAndSetter2'.
-//   int? methodAndFieldAndSetter2;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:26:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter3'.
-//   void set methodAndFieldAndSetter3(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: Conflicts with setter 'methodAndFieldAndSetter3'.
-//   int? methodAndFieldAndSetter3;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:30:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter4'.
-//   void set methodAndFieldAndSetter4(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: Conflicts with setter 'methodAndFieldAndSetter4'.
-//   int? methodAndFieldAndSetter4;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:57:12: Error: Conflicts with the implicit setter of the field 'fieldAndSetter1'.
-//   void set fieldAndSetter1(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:56:8: Error: Conflicts with setter 'fieldAndSetter1'.
-//   int? fieldAndSetter1;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:60:12: Error: Conflicts with the implicit setter of the field 'fieldAndSetter2'.
-//   void set fieldAndSetter2(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:59:8: Error: Conflicts with setter 'fieldAndSetter2'.
-//   int? fieldAndSetter2;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:64:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter1'.
-//   void set fieldAndFinalFieldAndSetter1(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:62:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter1'.
-//   int? fieldAndFinalFieldAndSetter1;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:68:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter2'.
-//   void set fieldAndFinalFieldAndSetter2(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:67:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter2'.
-//   int? fieldAndFinalFieldAndSetter2;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:70:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter3'.
-//   void set fieldAndFinalFieldAndSetter3(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter3'.
-//   int? fieldAndFinalFieldAndSetter3;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:74:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter4'.
-//   void set fieldAndFinalFieldAndSetter4(int? value) {}
-//            ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:76:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter4'.
-//   int? fieldAndFinalFieldAndSetter4;
-//        ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:36:12: Error: 'methodAndFinalFieldAndSetter1' is already declared in this scope.
-//   void set methodAndFinalFieldAndSetter1(int? value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:34:8: Context: Previous declaration of 'methodAndFinalFieldAndSetter1'.
-//   int? methodAndFinalFieldAndSetter1() {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:43:8: Error: 'methodAndFinalFieldAndSetter3' is already declared in this scope.
-//   int? methodAndFinalFieldAndSetter3() {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:42:12: Context: Previous declaration of 'methodAndFinalFieldAndSetter3'.
-//   void set methodAndFinalFieldAndSetter3(int? value) {}
-//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:51:12: Error: 'methodAndSetter1' is already declared in this scope.
-//   void set methodAndSetter1(int? value) {}
-//            ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:50:8: Context: Previous declaration of 'methodAndSetter1'.
-//   int? methodAndSetter1() {}
-//        ^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:12: Error: 'methodAndSetter2' is already declared in this scope.
-//   int? set methodAndSetter2() {}
-//            ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:53:8: Context: Previous declaration of 'methodAndSetter2'.
-//   void methodAndSetter2(int? value) {}
-//        ^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:28: Error: A setter should have exactly one formal parameter.
 //   int? set methodAndSetter2() {}
@@ -243,35 +219,13 @@ library;
 //   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
 //     ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:5: Error: The setter 'methodAndFieldAndSetter3' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter3'.
-//   c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:39: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
 //   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
-//                                       ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:90:39: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
-//   c.methodAndFinalFieldAndSetter3 = c.methodAndFinalFieldAndSetter3;
 //                                       ^
 //
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:26: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
 //   c.methodAndSetter1 = c.methodAndSetter1;
 //                          ^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:97:5: Error: The setter 'fieldAndFinalFieldAndSetter2' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter2'.
-//   c.fieldAndFinalFieldAndSetter2 = c.fieldAndFinalFieldAndSetter2;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:99:5: Error: The setter 'fieldAndFinalFieldAndSetter4' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter4'.
-//   c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -280,8 +234,10 @@ class Class extends core::Object {
   field core::int? methodAndField2 = null;
   final field core::int? methodAndFinalField2 = 0;
   field core::int? methodAndFieldAndSetter2 = null;
+  field core::int? methodAndFieldAndSetter3 = null;
   field core::int? methodAndFieldAndSetter4 = null;
   final field core::int? methodAndFinalFieldAndSetter2 = 0;
+  final field core::int? methodAndFinalFieldAndSetter3 = 0;
   final field core::int? methodAndFinalFieldAndSetter4 = 0;
   field core::int? fieldAndSetter1 = null;
   field core::int? fieldAndSetter2 = null;
@@ -295,12 +251,10 @@ class Class extends core::Object {
   method methodAndField1() → core::int? {}
   method methodAndFinalField1() → core::int? {}
   method methodAndFieldAndSetter1() → core::int? {}
-  method methodAndFieldAndSetter3() → core::int? {}
   method methodAndFinalFieldAndSetter1() → core::int? {}
   set methodAndFinalFieldAndSetter1(core::int? value) → void {}
   set methodAndFinalFieldAndSetter2(core::int? value) → void {}
   set methodAndFinalFieldAndSetter3(core::int? value) → void {}
-  method methodAndFinalFieldAndSetter3() → core::int? {}
   set methodAndFinalFieldAndSetter4(core::int? value) → void {}
   method methodAndSetter1() → core::int? {}
   set methodAndSetter1(core::int? value) → void {}
@@ -311,6 +265,8 @@ class Class extends core::Object {
                            ^";
     {}
   }
+  set fieldAndFinalFieldAndSetter2(core::int? value) → void {}
+  set fieldAndFinalFieldAndSetter4(core::int? value) → void {}
 }
 static method test(self::Class c) → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the class 'Class'.
@@ -327,19 +283,13 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
     ^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}methodAndFieldAndSetter1 = c.{self::Class::methodAndFieldAndSetter1}{() → core::int?};
   c.{self::Class::methodAndFieldAndSetter2} = c.{self::Class::methodAndFieldAndSetter2}{core::int?};
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:5: Error: The setter 'methodAndFieldAndSetter3' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter3'.
-  c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
-    ^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}methodAndFieldAndSetter3 = c.{self::Class::methodAndFieldAndSetter3}{() → core::int?};
+  c.{self::Class::methodAndFieldAndSetter3} = c.{self::Class::methodAndFieldAndSetter3}{core::int?};
   c.{self::Class::methodAndFieldAndSetter4} = c.{self::Class::methodAndFieldAndSetter4}{core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter1} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:39: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
                                       ^" in c.{self::Class::methodAndFinalFieldAndSetter1}{() → core::int?} as{TypeError} core::int?;
   c.{self::Class::methodAndFinalFieldAndSetter2} = c.{self::Class::methodAndFinalFieldAndSetter2}{core::int?};
-  c.{self::Class::methodAndFinalFieldAndSetter3} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:90:39: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
-  c.methodAndFinalFieldAndSetter3 = c.methodAndFinalFieldAndSetter3;
-                                      ^" in c.{self::Class::methodAndFinalFieldAndSetter3}{() → core::int?} as{TypeError} core::int?;
+  c.{self::Class::methodAndFinalFieldAndSetter3} = c.{self::Class::methodAndFinalFieldAndSetter3}{core::int?};
   c.{self::Class::methodAndFinalFieldAndSetter4} = c.{self::Class::methodAndFinalFieldAndSetter4}{core::int?};
   c.{self::Class::methodAndSetter1} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:26: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
   c.methodAndSetter1 = c.methodAndSetter1;
@@ -348,16 +298,8 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   c.{self::Class::fieldAndSetter1} = c.{self::Class::fieldAndSetter1}{core::int?};
   c.{self::Class::fieldAndSetter2} = c.{self::Class::fieldAndSetter2}{core::int?};
   c.{self::Class::fieldAndFinalFieldAndSetter1} = c.{self::Class::fieldAndFinalFieldAndSetter1}{core::int?};
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:97:5: Error: The setter 'fieldAndFinalFieldAndSetter2' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter2'.
-  c.fieldAndFinalFieldAndSetter2 = c.fieldAndFinalFieldAndSetter2;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}fieldAndFinalFieldAndSetter2 = c.{self::Class::fieldAndFinalFieldAndSetter2}{core::int?};
+  c.{self::Class::fieldAndFinalFieldAndSetter2} = c.{self::Class::fieldAndFinalFieldAndSetter2}{core::int?};
   c.{self::Class::fieldAndFinalFieldAndSetter3} = c.{self::Class::fieldAndFinalFieldAndSetter3}{core::int?};
-  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:99:5: Error: The setter 'fieldAndFinalFieldAndSetter4' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter4'.
-  c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}fieldAndFinalFieldAndSetter4 = c.{self::Class::fieldAndFinalFieldAndSetter4}{core::int?};
+  c.{self::Class::fieldAndFinalFieldAndSetter4} = c.{self::Class::fieldAndFinalFieldAndSetter4}{core::int?};
 }
 static method main() → dynamic {}

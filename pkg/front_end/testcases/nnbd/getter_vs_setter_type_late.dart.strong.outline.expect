@@ -2,20 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:30:12: Error: The type 'int?' of the inherited field 'B1.property6' is not a subtype of the type 'int' of the setter 'B2.property6'.
-//   void set property6(int i); // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:20:19: Context: This is the declaration of the field 'B1.property6'.
-//   late final int? property6;
-//                   ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:50:12: Error: The type 'int?' of the getter 'C2.property6' is not a subtype of the type 'int' of the inherited setter 'C1.property6'.
-//   int? get property6; // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:38:12: Context: This is the declaration of the setter 'C1.property6'.
-//   late int property6;
-//            ^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/getter_vs_setter_type_late.dart:50:12: Error: The return type of the method 'C2.property6' is 'int?', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
 // Change to a subtype of 'int'.
 //   int? get property6; // error

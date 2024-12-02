@@ -14,18 +14,13 @@ import '../builder/builder_mixins.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/name_iterator.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
-import 'source_constructor_builder.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
-import 'source_procedure_builder.dart';
 
 abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
   void buildScopes(LibraryBuilder coreLibrary);
@@ -55,10 +50,6 @@ mixin SourceDeclarationBuilderMixin
   /// library.
   void buildInternal(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
-    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, nameSpace,
-        checkForInstanceVsStaticConflict: true,
-        checkForMethodVsSetterConflict: true);
-
     ClassBuilder objectClassBuilder =
         coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
 
@@ -160,30 +151,13 @@ mixin SourceDeclarationBuilderMixin
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     forEach((String name, Builder builder) {
-      if (builder is SourceFieldBuilder) {
-        // Check fields.
-        libraryBuilder.checkTypesInField(builder, typeEnvironment);
-      } else if (builder is SourceProcedureBuilder) {
-        // Check procedures
-        libraryBuilder.checkTypesInFunctionBuilder(builder, typeEnvironment);
-        if (builder.isGetter) {
-          Builder? setterDeclaration =
-              nameSpace.lookupLocalMember(builder.name, setter: true);
-          if (setterDeclaration != null) {
-            libraryBuilder.checkGetterSetterTypes(builder,
-                setterDeclaration as ProcedureBuilder, typeEnvironment);
-          }
-        }
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        assert(false, "Unexpected member: $builder.");
-      }
+      (builder as SourceMemberBuilder)
+          .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     });
 
     nameSpace.forEachConstructor((String name, MemberBuilder builder) {
-      if (builder is SourceConstructorBuilder) {
-        builder.checkTypes(libraryBuilder, typeEnvironment);
-      }
+      (builder as SourceMemberBuilder)
+          .checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     });
   }
 
@@ -236,6 +210,9 @@ mixin SourceDeclarationBuilderMixin
           }
           addMemberDescriptorInternal(
               memberBuilder, memberKind, memberReference, tearOffReference);
+        } else {
+          // Still set parent to avoid crashes.
+          member.parent = libraryBuilder.library;
         }
       }
     }
@@ -251,11 +228,6 @@ mixin SourceDeclarationBuilderMixin
       BuiltMemberKind memberKind,
       Reference memberReference,
       Reference? tearOffReference);
-
-  /// Type parameters declared.
-  ///
-  /// This is `null` if the declaration is not generic.
-  List<NominalParameterBuilder>? get typeParameters;
 
   /// The scope in which the [typeParameters] are declared.
   LookupScope get typeParameterScope;
@@ -305,47 +277,4 @@ mixin SourceDeclarationBuilderMixin
 
   @override
   int get typeParametersCount => typeParameters?.length ?? 0;
-}
-
-mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
-  /// Checks for conflicts between constructors and static members declared
-  /// in this type declaration.
-  void checkConstructorStaticConflict() {
-    NameIterator<MemberBuilder> iterator =
-        nameSpace.filteredConstructorNameIterator(
-            includeDuplicates: false, includeAugmentations: true);
-    while (iterator.moveNext()) {
-      String name = iterator.name;
-      MemberBuilder constructor = iterator.current;
-      Builder? member = nameSpace.lookupLocalMember(name, setter: false);
-      if (member == null) continue;
-      if (!member.isStatic) continue;
-      // TODO(ahe): Revisit these messages. It seems like the last two should
-      // be `context` parameter to this message.
-      addProblem(templateConflictsWithMember.withArguments(name),
-          constructor.fileOffset, noLength);
-      if (constructor.isFactory) {
-        addProblem(
-            templateConflictsWithFactory.withArguments("${this.name}.${name}"),
-            member.fileOffset,
-            noLength);
-      } else {
-        addProblem(
-            templateConflictsWithConstructor
-                .withArguments("${this.name}.${name}"),
-            member.fileOffset,
-            noLength);
-      }
-    }
-
-    nameSpace.forEachLocalSetter((String name, Builder setter) {
-      Builder? constructor = nameSpace.lookupConstructor(name);
-      if (constructor == null || !setter.isStatic) return;
-      // Coverage-ignore-block(suite): Not run.
-      addProblem(templateConflictsWithConstructor.withArguments(name),
-          setter.fileOffset, noLength);
-      addProblem(templateConflictsWithSetter.withArguments(name),
-          constructor.fileOffset, noLength);
-    });
-  }
 }

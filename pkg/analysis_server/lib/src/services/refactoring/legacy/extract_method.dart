@@ -353,12 +353,14 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
             sb.write(' ');
           }
         }
-        // name
-        sb.write(parameter.name);
         // optional function-typed parameter parameters
         if (parameter.parameters != null) {
+          sb.write('Function');
           sb.write(parameter.parameters);
+          sb.write(' ');
         }
+        // name
+        sb.write(parameter.name);
       }
       sb.write(')');
     }
@@ -1849,8 +1851,10 @@ extension on LibraryElement {
           parametersBuffer.write(', ');
         }
         parametersBuffer.write(parameterType);
-        parametersBuffer.write(' ');
-        parametersBuffer.write(parameter.name);
+        if (parameter.name.isNotEmpty) {
+          parametersBuffer.write(' ');
+          parametersBuffer.write(parameter.name);
+        }
       }
       parametersBuffer.write(')');
       return getTypeSource(type.returnType, librariesToImport);

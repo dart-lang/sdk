@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.53 Support static access shorthands.
+//
 // v0.52 Support a `switchExpression` with no cases.
 //
 // v0.51 Add support for digit separators in numeric literals.
@@ -802,6 +804,15 @@ switchExpressionCase
     :    guardedPattern '=>' expression
     ;
 
+staticMemberShorthand
+    :    staticMemberShorthandHead selector*
+    ;
+
+staticMemberShorthandHead
+    :    '.' identifierOrNew
+    |    CONST '.' identifierOrNew arguments
+    ;
+
 throwExpression
     :    THROW expression
     ;
@@ -1035,6 +1046,7 @@ awaitExpression
 postfixExpression
     :    assignableExpression postfixOperator
     |    primary selector*
+    |    staticMemberShorthand
     ;
 
 postfixOperator
@@ -1176,6 +1188,7 @@ constantPattern
     |    CONST typeArguments? '[' elements? ']'
     |    CONST typeArguments? LBRACE elements? RBRACE
     |    CONST '(' expression ')'
+    |    staticMemberShorthand
     ;
 
 variablePattern

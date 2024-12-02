@@ -58,34 +58,6 @@ library;
 //     hashCode = 3; // Error.
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:18:12: Error: The type 'int' of the inherited getter 'Enum.index' is not a subtype of the type 'String' of the setter 'A2.index'.
-//   void set index(String value) {} // Error.
-//            ^^^^^
-// sdk/lib/core/enum.dart:*: Context: This is the declaration of the getter 'Enum.index'.
-//   int get index;
-//           ^^^^^
-//
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:19:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'double' of the setter 'A2.hashCode'.
-//   void set hashCode(double value) {} // Error.
-//            ^^^^^^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the declaration of the getter 'Object.hashCode'.
-//   int get hashCode => _getHash(this);
-//           ^^^^^^^^
-//
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:23:12: Error: The type 'int' of the inherited getter 'Enum.index' is not a subtype of the type 'String' of the setter 'M2.index'.
-//   void set index(String value) {} // Error.
-//            ^^^^^
-// sdk/lib/core/enum.dart:*: Context: This is the declaration of the getter 'Enum.index'.
-//   int get index;
-//           ^^^^^
-//
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:24:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'double' of the setter 'M2.hashCode'.
-//   void set hashCode(double value) {} // Error.
-//            ^^^^^^^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the declaration of the getter 'Object.hashCode'.
-//   int get hashCode => _getHash(this);
-//           ^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 

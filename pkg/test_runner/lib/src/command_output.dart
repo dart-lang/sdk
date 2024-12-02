@@ -434,9 +434,9 @@ class BrowserCommandOutput extends CommandOutput
 /// A parsed analyzer error diagnostic.
 class AnalyzerError implements Comparable<AnalyzerError> {
   /// The set of static warnings which must be expected in a test. Any warning
-  /// not specified here which is reported by the analyzer does not need to be
-  /// expected, and never causes a test to fail.
-  static const Set<String> _specifiedWarnings = {
+  /// not listed here does not need to be expected, and never causes a test to
+  /// fail.
+  static const Set<String> _validatedWarnings = {
     'dead_null_aware_expression',
     'invalid_null_aware_operator',
     'invalid_null_aware_element_or_map_entry',
@@ -447,6 +447,14 @@ class AnalyzerError implements Comparable<AnalyzerError> {
     'unreachable_switch_case',
     'unreachable_switch_default',
   };
+
+  /// Whether [code] is a warning that should be expected by a test.
+  ///
+  /// Any warning whose code is not covered here is implicitly ignored by the
+  /// test runner. Tests often have unused local variables, dead code, etc. and
+  /// we don't want to clutter up the test expectations with those.
+  static bool isValidatedWarning(String code) =>
+      _validatedWarnings.contains(code.toLowerCase());
 
   /// The set of hints which must be expected in a test. Any hint not specified
   /// here which is reported by the analyzer does not need to be expected, and
@@ -480,7 +488,7 @@ class AnalyzerError implements Comparable<AnalyzerError> {
         continue;
       }
 
-      if (type == 'STATIC_WARNING' && !_specifiedWarnings.contains(code)) {
+      if (type == 'STATIC_WARNING' && !_validatedWarnings.contains(code)) {
         continue;
       }
 

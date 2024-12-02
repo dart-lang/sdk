@@ -10,7 +10,6 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -42,8 +41,8 @@ String buildClosureParameters(
 
   var hasNamed = false;
   var hasOptionalPositional = false;
-  var parameters = type.parameters;
-  var existingNames = parameters.map((p) => p.name).toSet();
+  var parameters = type.formalParameters;
+  var existingNames = parameters.map((p) => p.displayName).toSet();
   for (var i = 0; i < parameters.length; ++i) {
     var parameter = parameters[i];
     if (i != 0) {
@@ -60,7 +59,7 @@ String buildClosureParameters(
       buffer.write(parameter.type);
       buffer.write(' ');
     }
-    var name = parameter.name;
+    var name = parameter.displayName;
     if (name.isEmpty) {
       name = 'p$i';
       var index = 1;
@@ -89,49 +88,6 @@ String buildClosureParameters(
 /// Compute default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].
 CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
-  Element element,
-  Iterable<ParameterElement> requiredParams,
-  Iterable<ParameterElement> namedParams,
-) {
-  var sb = StringBuffer();
-  var ranges = <int>[];
-
-  int offset;
-
-  for (var param in requiredParams) {
-    if (sb.isNotEmpty) {
-      sb.write(', ');
-    }
-    offset = sb.length;
-
-    var name = param.name;
-    sb.write(name);
-    ranges.addAll([offset, name.length]);
-  }
-
-  for (var param in namedParams) {
-    if (param.hasRequired || param.isRequiredNamed) {
-      if (sb.isNotEmpty) {
-        sb.write(', ');
-      }
-      var name = param.name;
-      sb.write('$name: ');
-      offset = sb.length;
-      // TODO(pq): fix to use getDefaultStringParameterValue()
-      sb.write(name);
-      ranges.addAll([offset, name.length]);
-    }
-  }
-
-  return CompletionDefaultArgumentList(
-    text: sb.isNotEmpty ? sb.toString() : null,
-    ranges: ranges.isNotEmpty ? ranges : null,
-  );
-}
-
-/// Compute default argument list text and ranges based on the given
-/// [requiredParams] and [namedParams].
-CompletionDefaultArgumentList computeCompletionDefaultArgumentList2(
   Element2 element,
   Iterable<FormalParameterElement> requiredParams,
   Iterable<FormalParameterElement> namedParams,
@@ -210,31 +166,6 @@ protocol.Element createLocalElement(
 
 /// Return a default argument value for the given [parameter].
 DefaultArgument? getDefaultStringParameterValue(
-  ParameterElement parameter,
-  String quote,
-) {
-  var type = parameter.type;
-  if (type is InterfaceType) {
-    if (type.isDartCoreList) {
-      return DefaultArgument('[]', cursorPosition: 1);
-    } else if (type.isDartCoreMap) {
-      return DefaultArgument('{}', cursorPosition: 1);
-    } else if (type.isDartCoreString) {
-      return DefaultArgument('$quote$quote', cursorPosition: 1);
-    }
-  } else if (type is FunctionType) {
-    var params = type.parameters
-        .map((p) => '${getTypeString(p.type)}${p.name}')
-        .join(', ');
-    // TODO(devoncarew): Support having this method return text with newlines.
-    var text = '($params) {  }';
-    return DefaultArgument(text, cursorPosition: text.length - 2);
-  }
-  return null;
-}
-
-/// Return a default argument value for the given [parameter].
-DefaultArgument? getDefaultStringParameterValue2(
   FormalParameterElement parameter,
   String quote,
 ) {
@@ -248,8 +179,8 @@ DefaultArgument? getDefaultStringParameterValue2(
       return DefaultArgument('$quote$quote', cursorPosition: 1);
     }
   } else if (type is FunctionType) {
-    var params = type.parameters
-        .map((p) => '${getTypeString(p.type)}${p.name}')
+    var params = type.formalParameters
+        .map((p) => '${getTypeString(p.type)}${p.displayName}')
         .join(', ');
     // TODO(devoncarew): Support having this method return text with newlines.
     var text = '($params) {  }';
@@ -282,24 +213,8 @@ String getTypeString(DartType type) {
   }
 }
 
-/// Instantiates the given [InterfaceElement]
+/// Instantiates the given [InterfaceElement2]
 InterfaceType instantiateInstanceElement(
-  InterfaceElement element,
-  NeverType neverType,
-) {
-  var typeParameters = element.typeParameters;
-  var typeArguments = const <DartType>[];
-  if (typeParameters.isNotEmpty) {
-    typeArguments = List.filled(typeParameters.length, neverType);
-  }
-  return element.instantiate(
-    typeArguments: typeArguments,
-    nullabilitySuffix: NullabilitySuffix.none,
-  );
-}
-
-/// Instantiates the given [InterfaceElement]
-InterfaceType instantiateInstanceElement2(
   InterfaceElement2 element,
   NeverType neverType,
 ) {
@@ -316,10 +231,10 @@ InterfaceType instantiateInstanceElement2(
 
 /// Returns true if the [parameter] is part of a constructor for a Flutter
 /// [Widget].
-bool isFlutterWidgetParameter(ParameterElement parameter) {
-  var element = parameter.enclosingElement3;
-  if (element is ConstructorElement &&
-      element.enclosingElement3.augmented.firstFragment.isWidget) {
+bool isFlutterWidgetParameter(FormalParameterElement parameter) {
+  var element = parameter.enclosingElement2;
+  if (element is ConstructorElement2 &&
+      element.enclosingElement2.isWidget) {
     return true;
   }
   return false;
@@ -330,22 +245,22 @@ bool isFlutterWidgetParameter(ParameterElement parameter) {
 String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   // Get the type from the identifier element.
   DartType type;
-  var element = identifier.staticElement;
+  var element = identifier.element;
   if (element == null) {
     return DYNAMIC;
-  } else if (element is FunctionTypedElement) {
-    if (element is PropertyAccessorElement && element.isSetter) {
+  } else if (element is FunctionTypedElement2) {
+    if (element is PropertyAccessorElement2 && element is SetterElement) {
       return null;
     }
     type = element.returnType;
-  } else if (element is TypeAliasElement) {
+  } else if (element is TypeAliasElement2) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
       type = aliasedType.returnType;
     } else {
       return null;
     }
-  } else if (element is VariableElement) {
+  } else if (element is VariableElement2) {
     type = element.type;
   } else {
     return null;

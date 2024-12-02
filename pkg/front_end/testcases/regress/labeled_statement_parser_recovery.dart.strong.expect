@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/labeled_statement_parser_recovery.dart:7:12: Error: Expected an identifier, but got ';'.
+// Try inserting an identifier before ';'.
+//   int bar, ;
+//            ^
+//
+import self as self;
+
+static method foo() → void {
+  {
+    invalid-expression "pkg/front_end/testcases/regress/labeled_statement_parser_recovery.dart:7:12: Error: This couldn't be parsed.
+  int bar, ;
+           ^";
+  }
+}

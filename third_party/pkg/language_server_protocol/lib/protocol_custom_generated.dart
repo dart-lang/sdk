@@ -1484,6 +1484,10 @@ class EditableArgument implements ToJsonable {
   /// is no argument or because it is explicitly provided as the same value.
   final bool isDefault;
 
+  /// Whether this argument can be add/edited. If not, notEditableReason may
+  /// contain an explanation for why.
+  final bool isEditable;
+
   /// Whether this argument can be `null`. It is possible for an argument to be
   /// required, but still allow an explicit `null`.
   final bool isNullable;
@@ -1493,6 +1497,9 @@ class EditableArgument implements ToJsonable {
 
   /// The name of the corresponding parameter.
   final String name;
+
+  /// An optional reason for why isEditable is false.
+  final String? notEditableReason;
 
   /// The set of values allowed for this argument if it is an enum. Values are
   /// qualified in the form `EnumName.valueName`.
@@ -1511,9 +1518,11 @@ class EditableArgument implements ToJsonable {
     this.displayValue,
     required this.hasArgument,
     required this.isDefault,
+    required this.isEditable,
     required this.isNullable,
     required this.isRequired,
     required this.name,
+    this.notEditableReason,
     this.options,
     required this.type,
     this.value,
@@ -1523,9 +1532,11 @@ class EditableArgument implements ToJsonable {
     displayValue,
     hasArgument,
     isDefault,
+    isEditable,
     isNullable,
     isRequired,
     name,
+    notEditableReason,
     lspHashCode(options),
     type,
     value,
@@ -1538,9 +1549,11 @@ class EditableArgument implements ToJsonable {
         displayValue == other.displayValue &&
         hasArgument == other.hasArgument &&
         isDefault == other.isDefault &&
+        isEditable == other.isEditable &&
         isNullable == other.isNullable &&
         isRequired == other.isRequired &&
         name == other.name &&
+        notEditableReason == other.notEditableReason &&
         const DeepCollectionEquality().equals(options, other.options) &&
         type == other.type &&
         value == other.value;
@@ -1554,9 +1567,13 @@ class EditableArgument implements ToJsonable {
     }
     result['hasArgument'] = hasArgument;
     result['isDefault'] = isDefault;
+    result['isEditable'] = isEditable;
     result['isNullable'] = isNullable;
     result['isRequired'] = isRequired;
     result['name'] = name;
+    if (notEditableReason != null) {
+      result['notEditableReason'] = notEditableReason;
+    }
     if (options != null) {
       result['options'] = options;
     }
@@ -1602,6 +1619,15 @@ class EditableArgument implements ToJsonable {
       if (!_canParseBool(
         obj,
         reporter,
+        'isEditable',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      if (!_canParseBool(
+        obj,
+        reporter,
         'isNullable',
         allowsUndefined: false,
         allowsNull: false,
@@ -1622,6 +1648,15 @@ class EditableArgument implements ToJsonable {
         reporter,
         'name',
         allowsUndefined: false,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      if (!_canParseString(
+        obj,
+        reporter,
+        'notEditableReason',
+        allowsUndefined: true,
         allowsNull: false,
       )) {
         return false;
@@ -1655,12 +1690,16 @@ class EditableArgument implements ToJsonable {
     final hasArgument = hasArgumentJson as bool;
     final isDefaultJson = json['isDefault'];
     final isDefault = isDefaultJson as bool;
+    final isEditableJson = json['isEditable'];
+    final isEditable = isEditableJson as bool;
     final isNullableJson = json['isNullable'];
     final isNullable = isNullableJson as bool;
     final isRequiredJson = json['isRequired'];
     final isRequired = isRequiredJson as bool;
     final nameJson = json['name'];
     final name = nameJson as String;
+    final notEditableReasonJson = json['notEditableReason'];
+    final notEditableReason = notEditableReasonJson as String?;
     final optionsJson = json['options'];
     final options =
         (optionsJson as List<Object?>?)?.map((item) => item as String).toList();
@@ -1672,9 +1711,11 @@ class EditableArgument implements ToJsonable {
       displayValue: displayValue,
       hasArgument: hasArgument,
       isDefault: isDefault,
+      isEditable: isEditable,
       isNullable: isNullable,
       isRequired: isRequired,
       name: name,
+      notEditableReason: notEditableReason,
       options: options,
       type: type,
       value: value,

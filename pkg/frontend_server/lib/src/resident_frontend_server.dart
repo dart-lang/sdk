@@ -392,32 +392,6 @@ class ResidentFrontendServer {
   }
 }
 
-/// Sends the JSON string [request] to the resident frontend server
-/// and returns server's response in JSON
-///
-/// Clients must use this function when wanting to interact with a
-/// ResidentFrontendServer instance.
-Future<Map<String, dynamic>> sendAndReceiveResponse(
-    InternetAddress address, int port, String request) async {
-  Socket? client;
-  Map<String, dynamic> jsonResponse;
-  try {
-    client = await Socket.connect(address, port);
-    client.write(request);
-    final String data = new String.fromCharCodes(await client.first);
-    jsonResponse = jsonDecode(data);
-  } catch (e) {
-    jsonResponse = <String, Object>{
-      'success': false,
-      'errorMessage': e.toString(),
-    };
-  }
-  if (client != null) {
-    client.destroy();
-  }
-  return jsonResponse;
-}
-
 /// Closes the ServerSocket and removes the [serverInfoFile] that is used
 /// to access this instance of the Resident Frontend Server.
 Future<void> residentServerCleanup(

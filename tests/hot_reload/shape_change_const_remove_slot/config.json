@@ -1,0 +1,6 @@
+{
+  "expectedErrors": {
+    "1": "Const class cannot remove fields: Library:'hot-reload-test:///main.dart' Class: A",
+    "2": "Const class cannot remove fields: Library:'hot-reload-test:///main.dart' Class: A"
+  }
+}

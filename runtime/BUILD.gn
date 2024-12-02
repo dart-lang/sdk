@@ -335,10 +335,7 @@ shared_library("dart_jit_library") {
   ldflags = [ "-Wl,-install_name,@rpath/Dart.framework/Dart" ]
   public = [ "include/dart_api.h" ]
   deps = [ ":libdart_jit" ]
-  public_configs = [
-    ":dart_public_config",
-    ":dart_shared_lib",
-  ]
+  public_configs = [ ":dart_public_config" ]
 }
 
 action("generate_version_cc_file") {

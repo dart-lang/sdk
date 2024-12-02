@@ -1,0 +1,31 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/getter_setter_error/pre_feature/declared_hashcode.dart:10:12: Error: The type 'int' of the inherited getter 'Object.hashCode' is not a subtype of the type 'String' of the setter 'E.hashCode'.
+//   void set hashCode(String value) {} // Error.
+//            ^^^^^^^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: This is the declaration of the getter 'Object.hashCode'.
+//   int get hashCode => _getHash(this);
+//           ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::element];
+  enum-element static const field self::E element = const self::E::•(0, "element");
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+  set hashCode(core::String value) → void
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///declared_hashcode.dart:7:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///declared_hashcode.dart:8:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 7, effectively constant: 2

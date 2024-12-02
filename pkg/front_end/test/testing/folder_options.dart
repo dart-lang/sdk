@@ -135,6 +135,7 @@ class SuiteFolderOptions {
       // Force enable features in development.
       ExperimentalFlag.nullAwareElements: true,
       ExperimentalFlag.inferenceUsingBounds: true,
+      ExperimentalFlag.getterSetterError: true,
     };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {

@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 class S0 {}
 
 class S1 extends Object {}
 
 class S2 extends S0 {}
 
-class M0 {}
+mixin M0 {}
 
-class M1 extends Object {}
+mixin class M1 extends Object {}
 
 mixin M2 on M0 {}
 

@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 import "package:expect/expect.dart";
+import "package:expect/static_type_helper.dart";
 
 abstract class A<T> {
   // This is ok because type inference will ensure that in C, A and M are
@@ -22,7 +19,7 @@ mixin M1<T> on A<T> {
   Type h() => T;
 }
 
-class M2<T> {
+mixin class M2<T> {
   T g(T x) => x;
   Type h() => T;
 }
@@ -45,33 +42,25 @@ main() {
   E e = new E();
   F f = new F();
 
-  // M1 is instantiated with B, so C.g has type (B) -> B.
-  B Function(B) x = c.g; //# 02: ok
-  B Function(B) x = d.g; //# 03: ok
-  Null Function(Null) x = c.g; //# 04: compile-time error
-  Null Function(Null) x = d.g; //# 05: compile-time error
-  Object Function(Object) x = c.g; //# 06: compile-time error
-  Object Function(Object) x = d.g; //# 07: compile-time error
-
+  // M1 is instantiated with B, so C.g has static type (B) -> B.
+  Expect.equals(typeOf<B Function(B)>(), c.g.staticType);
+  // Is covariant-by-generics, so runtime parameter type is Object?.
+  Expect.equals(typeOf<B Function(Object?)>(), c.g.runtimeType);
   // And verify that the runtime system has the right type for the type
   // parameter
-  Expect.equals(c.h(), B); //# 08: ok
-  Expect.equals(c.h(), B); //# 09: ok
+  Expect.equals(B, c.h());
 
-  // M2 is instantiated with dynamic, so E.g has type (dynamic) -> dynamic.
-  dynamic Function(dynamic) x = e.g; //# 10: ok
-  B Function(B) x = e.g; //# 11: compile-time error
+  Expect.equals(typeOf<B Function(B)>(), d.g.staticType);
+  Expect.equals(typeOf<B Function(Object?)>(), d.g.runtimeType);
+  Expect.equals(B, d.h());
 
-  // And verify that the runtime system has the right type for the type
-  // parameter
-  Expect.equals(e.h(), dynamic); //# 12: ok
+  // M2 is instantiated with dynamic, E.g has static type (dynamic) -> dynamic.
+  Expect.equals(typeOf<dynamic Function(dynamic)>(), e.g.staticType);
+  Expect.equals(typeOf<dynamic Function(Object?)>(), e.g.runtimeType);
+  Expect.equals(dynamic, e.h());
 
   // M2 is instantiated with B, so F.g has type (B) -> B.
-  B Function(B) x = f.g; //# 13: ok
-  Null Function(Null) x = f.g; //# 14: compile-time error
-  Object Function(Object) x = f.g; //# 15: compile-time error
-
-  // And verify that the runtime system has the right type for the type
-  // parameter
-  Expect.equals(f.h(), B); //# 16: ok
+  Expect.equals(typeOf<B Function(B)>(), f.g.staticType);
+  Expect.equals(typeOf<B Function(Object?)>(), f.g.runtimeType);
+  Expect.equals(B, f.h());
 }

@@ -26,11 +26,6 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ImportLibrary extends MultiCorrectionProducer {
   final _ImportKind _importKind;
 
-  /// Initialize a newly created instance that will add an import of
-  /// `dart:async`.
-  ImportLibrary.dartAsync({required super.context})
-    : _importKind = _ImportKind.dartAsync;
-
   /// Initialize a newly created instance that will add an import for an
   /// extension.
   ImportLibrary.forExtension({required super.context})
@@ -65,10 +60,6 @@ class ImportLibrary extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     return switch (_importKind) {
-      _ImportKind.dartAsync => _importLibrary(
-        DartFixKind.IMPORT_ASYNC,
-        Uri.parse('dart:async'),
-      ),
       _ImportKind.forExtension => await _producersForExtension(),
       _ImportKind.forExtensionMember => await _producersForExtensionMember(),
       _ImportKind.forExtensionType => await _producersForExtensionType(),
@@ -154,29 +145,66 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// Otherwise, both are returned in the order: absolute, relative.
   List<ResolvedCorrectionProducer> _importLibrary(
     FixKind fixKind,
-    Uri library, {
+    FixKind fixKindShow,
+    Uri library,
+    String name, {
     String? prefix,
     bool includeRelativeFix = false,
   }) {
     if (!includeRelativeFix) {
       return [
         _ImportAbsoluteLibrary(fixKind, library, prefix, context: context),
+        _ImportAbsoluteLibrary(
+          fixKindShow,
+          library,
+          prefix,
+          show: name,
+          context: context,
+        ),
       ];
     }
     var codeStyleOptions = getCodeStyleOptions(unitResult.file);
     if (codeStyleOptions.usePackageUris) {
       return [
         _ImportAbsoluteLibrary(fixKind, library, prefix, context: context),
+        _ImportAbsoluteLibrary(
+          fixKindShow,
+          library,
+          prefix,
+          show: name,
+          context: context,
+        ),
       ];
     }
     if (codeStyleOptions.useRelativeUris) {
       return [
         _ImportRelativeLibrary(fixKind, library, prefix, context: context),
+        _ImportRelativeLibrary(
+          fixKindShow,
+          library,
+          prefix,
+          show: name,
+          context: context,
+        ),
       ];
     }
     return [
       _ImportAbsoluteLibrary(fixKind, library, prefix, context: context),
+      _ImportAbsoluteLibrary(
+        fixKindShow,
+        library,
+        prefix,
+        show: name,
+        context: context,
+      ),
       _ImportRelativeLibrary(fixKind, library, prefix, context: context),
+      _ImportRelativeLibrary(
+        fixKindShow,
+        library,
+        prefix,
+        show: name,
+        context: context,
+      ),
     ];
   }
 
@@ -282,29 +310,46 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
       // Compute the fix kind.
       FixKind fixKind;
+      FixKind fixKindShow;
       if (libraryElement.isInSdk) {
         fixKind =
             prefix.isEmptyOrNull
                 ? DartFixKind.IMPORT_LIBRARY_SDK
                 : DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED;
+        fixKindShow =
+            prefix.isEmptyOrNull
+                ? DartFixKind.IMPORT_LIBRARY_SDK_SHOW
+                : DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED_SHOW;
       } else if (_isLibSrcPath(librarySource.fullName)) {
         // Bad: non-API.
         fixKind =
             prefix.isEmptyOrNull
                 ? DartFixKind.IMPORT_LIBRARY_PROJECT3
                 : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED;
+        fixKindShow =
+            prefix.isEmptyOrNull
+                ? DartFixKind.IMPORT_LIBRARY_PROJECT3_SHOW
+                : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW;
       } else if (declaration.library != libraryElement) {
         // Ugly: exports.
         fixKind =
             prefix.isEmptyOrNull
                 ? DartFixKind.IMPORT_LIBRARY_PROJECT2
                 : DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED;
+        fixKindShow =
+            prefix.isEmptyOrNull
+                ? DartFixKind.IMPORT_LIBRARY_PROJECT2_SHOW
+                : DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED_SHOW;
       } else {
         // Good: direct declaration.
         fixKind =
             prefix.isEmptyOrNull
                 ? DartFixKind.IMPORT_LIBRARY_PROJECT1
                 : DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED;
+        fixKindShow =
+            prefix.isEmptyOrNull
+                ? DartFixKind.IMPORT_LIBRARY_PROJECT1_SHOW
+                : DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED_SHOW;
       }
       // If both files are in the same package's 'lib' folder, also include a
       // relative import.
@@ -316,7 +361,9 @@ class ImportLibrary extends MultiCorrectionProducer {
       producers.addAll(
         _importLibrary(
           fixKind,
+          fixKindShow,
           librarySource.uri,
+          name,
           prefix: prefix,
           includeRelativeFix: includeRelativeUri,
         ),
@@ -543,6 +590,7 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
   final FixKind _fixKind;
   final String? _prefix;
   final Uri _library;
+  final String? _show;
 
   String _uriText = '';
 
@@ -550,8 +598,9 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
     this._fixKind,
     this._library,
     this._prefix, {
+    String? show,
     required super.context,
-  });
+  }) : _show = show;
 
   @override
   CorrectionApplicability get applicability =>
@@ -572,14 +621,18 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
       if (builder is DartFileEditBuilderImpl) {
-        _uriText = builder.importLibraryWithAbsoluteUri(_library, _prefix);
+        _uriText = builder.importLibraryWithAbsoluteUri(
+          _library,
+          prefix: _prefix,
+          shownName: _show,
+          useShow: _show != null,
+        );
       }
     });
   }
 }
 
 enum _ImportKind {
-  dartAsync,
   forExtension,
   forExtensionMember,
   forExtensionType,
@@ -783,6 +836,7 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
   final FixKind _fixKind;
   final String? _prefix;
   final Uri _library;
+  final String? _show;
 
   String _uriText = '';
 
@@ -790,8 +844,9 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
     this._fixKind,
     this._library,
     this._prefix, {
+    String? show,
     required super.context,
-  });
+  }) : _show = show;
 
   @override
   CorrectionApplicability get applicability =>
@@ -812,7 +867,12 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
       if (builder is DartFileEditBuilderImpl) {
-        _uriText = builder.importLibraryWithRelativeUri(_library, _prefix);
+        _uriText = builder.importLibraryWithRelativeUri(
+          _library,
+          prefix: _prefix,
+          shownName: _show,
+          useShow: _show != null,
+        );
       }
     });
   }

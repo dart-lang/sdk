@@ -2,24 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(51557): Decide if the mixins being applied in this test should be
-// "mixin", "mixin class" or the test should be left at 2.19.
-// @dart=2.19
-
 // Signature conformance test.
-abstract class CII {
+abstract mixin class CII {
   int id(int x);
 }
 
-class CSI {
+mixin CSI {
   String id(int x) => "$x";
 }
 
-class CIS {
+mixin CIS {
   int id(String x) => 0;
 }
 
-class CTT<T> {
+mixin CTT<T> {
   T id(T x) => x;
 }
 
@@ -67,15 +63,15 @@ abstract class NIIx {
   int? id({int? x}) => x;
 }
 
-class NIIxy {
+mixin NIIxy {
   int? id({int? x, int? y}) => y;
 }
 
-class NIIy {
+mixin NIIy {
   int? id({int? y}) => y;
 }
 
-class NII {
+mixin NII {
   int? id(int? x) => x;
 }
 
@@ -107,15 +103,15 @@ abstract class N6 extends NIIx with NII {}
 //                                  ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
 
-class NBABxy<A, B> {
+mixin NBABxy<A, B> {
   B? id ({A? x, B? y}) => y;
 }
 
-class NTTy<T> {
+mixin NTTy<T> {
   T? id({T? y}) => y;
 }
 
-class NTTx<T> {
+mixin NTTx<T> {
   T? id(T? x) => x;
 }
 
@@ -158,15 +154,15 @@ abstract class OII {
   int? id([int? x]) => x;
 }
 
-class OIII {
+mixin OIII {
   int? id([int? x, int? y]) => y;
 }
 
-class OIIy {
+mixin OIIy {
   int? id([int? y]) => y;
 }
 
-class PII {
+mixin PII {
   int? id(int? x) => x;
 }
 
@@ -188,15 +184,15 @@ abstract class O6 extends OII with PII {}
 //                                 ^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
 
-class OBAB<A, B> {
+mixin OBAB<A, B> {
   B? id ([A? x, B? y]) => y;
 }
 
-class OTTy<T> {
+mixin OTTy<T> {
   T? id([T? y]) => y;
 }
 
-class PTT<T> {
+mixin PTT<T> {
   T? id(T? x) => x;
 }
 
@@ -231,19 +227,19 @@ abstract class GTTnum {
   T id<T extends num>(x);
 }
 
-class MTTnum {
+mixin MTTnum {
   T id<T extends num>(x) => x;
 }
 
-class MTTint {
+mixin MTTint {
   T id<T extends int>(x) => x;
 }
 
-class MTT {
+mixin MTT {
   T id<T>(x) => x;
 }
 
-class MTTnumR {
+mixin MTTnumR {
   T id<T extends num, R>(x) => x;
 }
 class G1 = GTTnum with MTTnum;

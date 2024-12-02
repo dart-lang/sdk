@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:frontend_server/resident_frontend_server_utils.dart'
+    show ResidentCompilerInfo, sendAndReceiveResponse;
 import 'package:kernel/binary/tag.dart' show isValidSdkHash;
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';

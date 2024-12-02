@@ -13,14 +13,15 @@ import 'package:kernel/util/graph.dart';
 /// Implements a Path-based strong component algorithm.
 /// See https://en.wikipedia.org/wiki/Path-based_strong_component_algorithm
 ///
-/// The file URI for each library is used as an identifier for the module
-/// name. [moduleAssignment] will be populated with a mapping of library URI to
-/// module name, while [modules] will be populated with a mapping of module
-/// name to library set.
+/// The file URI for each library is used as an identifier for the library
+/// bundle name. [libraryImportToLibraryBundleImport] will be populated with a
+/// mapping of library URI to library bundle name, while
+/// [libraryBundleImportToLibraries] will be populated with a mapping of library
+/// bundle name to library set.
 ///
 /// JavaScript import semantics do not permit circular imports in the same
 /// manner that Dart does. When compiling a set of libraries with circular
-/// imports, these must be combined into a single JavaScript module.
+/// imports, these must be combined into a single JavaScript library bundle.
 ///
 /// On incremental updates, we completely recompute the strongly connected
 /// components, but only for the partial component produced.
@@ -47,15 +48,16 @@ class StrongComponents {
   /// The filesystem instance for resolving files.
   final FileSystem? fileSystem;
 
-  /// The set of libraries for each module URI.
+  /// Libraries for each library bundle URI.
   ///
-  /// This is populated after calling [computeModules] once.
-  final Map<Uri, List<Library>> modules = <Uri, List<Library>>{};
+  /// This is populated after calling [computeLibraryBundles] once.
+  final Map<Uri, List<Library>> libraryBundleImportToLibraries =
+      <Uri, List<Library>>{};
 
-  /// The module URI for each library file URI.
+  /// The library bundle URI for each library URI.
   ///
-  /// This is populated after calling [computeModules] once.
-  final Map<Uri, Uri> moduleAssignment = <Uri, Uri>{};
+  /// This is populated after calling [computeLibraryBundles] once.
+  final Map<Uri, Uri> libraryImportToLibraryBundleImport = <Uri, Uri>{};
 
   /// Compute the strongly connected components for the current program.
   ///
@@ -66,8 +68,9 @@ class StrongComponents {
   ///
   /// Throws an [Exception] if [mainUri] cannot be located in the given
   /// component.
-  Future<void> computeModules([Map<Uri, Library>? partialComponent]) async {
-    assert(modules.isEmpty);
+  Future<void> computeLibraryBundles(
+      [Map<Uri, Library>? partialComponent]) async {
+    assert(libraryBundleImportToLibraries.isEmpty);
     if (component.libraries.isEmpty) {
       return;
     }
@@ -87,13 +90,16 @@ class StrongComponents {
         new _LibraryGraph(entrypoint, loadedLibraries, partialComponent));
     for (List<Library> component in results) {
       assert(component.isNotEmpty);
-      final Uri moduleUri = component
+      // Pick a Uri to associate this component with. We choose the entrypoint
+      // if it exists or just the first library's Uri.
+      final Uri componentUri = component
           .firstWhere((lib) => lib.importUri == mainUri,
               orElse: () => component.first)
           .importUri;
-      modules[moduleUri] = component;
+      libraryBundleImportToLibraries[componentUri] = component;
       for (Library componentLibrary in component) {
-        moduleAssignment[componentLibrary.importUri] = moduleUri;
+        libraryImportToLibraryBundleImport[componentLibrary.importUri] =
+            componentUri;
       }
     }
   }

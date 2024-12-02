@@ -31,6 +31,8 @@ class C {
   // [cfe] This static member conflicts with an instance member.
 
   int get n => 42;
+  //      ^
+  // [cfe] Instance property 'n' conflicts with static property of the same name.
 }
 
 main() {

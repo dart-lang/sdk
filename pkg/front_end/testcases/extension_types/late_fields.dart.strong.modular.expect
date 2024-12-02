@@ -39,19 +39,20 @@ extension type ET1(core::int id) {
 }
 extension type ET2(core::int id) {
   abstract extension-type-member representation-field get id() → core::int;
-  abstract extension-type-member representation-field get x() → core::int;
+  get x = get self::ET2|x;
+  set x = set self::ET2|x;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
 extension type ET3(core::int id) {
   abstract extension-type-member representation-field get id() → core::int;
-  abstract extension-type-member representation-field get x() → core::int;
+  get x = get self::ET3|x;
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
 extension type ET4(core::int id) {
   abstract extension-type-member representation-field get id() → core::int;
-  abstract extension-type-member representation-field get x() → core::int;
+  get x = get self::ET4|x;
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
@@ -70,18 +71,22 @@ static extension-type-member method ET2|constructor#(core::int id) → self::ET2
 }
 static extension-type-member method ET2|constructor#_#new#tearOff(core::int id) → self::ET2% /* erasure=core::int, declared=! */
   return self::ET2|constructor#(id);
+static abstract extension-type-member get ET2|x() → core::int;
+static abstract extension-type-member set ET2|x(synthesized core::int #externalFieldValue) → void;
 static extension-type-member method ET3|constructor#(core::int id) → self::ET3% /* erasure=core::int, declared=! */ {
   lowered final self::ET3% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
 static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(id);
+static abstract extension-type-member get ET3|x() → core::int;
 static extension-type-member method ET4|constructor#(core::int id) → self::ET4% /* erasure=core::int, declared=! */ {
   lowered final self::ET4% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
 static extension-type-member method ET4|constructor#_#new#tearOff(core::int id) → self::ET4% /* erasure=core::int, declared=! */
   return self::ET4|constructor#(id);
+static abstract extension-type-member get ET4|x() → core::int;
 static method main() → dynamic {
   core::print(#C1);
   core::print(#C1);

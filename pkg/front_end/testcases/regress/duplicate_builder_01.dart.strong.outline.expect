@@ -19,13 +19,6 @@ library;
 // extension type foo(String foo) {
 //                           ^
 //
-// pkg/front_end/testcases/regress/duplicate_builder_01.dart:8:7: Error: 'foo' isn't a type.
-//   set foo(double x) { }
-//       ^
-// pkg/front_end/testcases/regress/duplicate_builder_01.dart:7:27: Context: This isn't a type.
-// extension type foo(String foo) {
-//                           ^
-//
 import self as self;
 import "dart:core" as core;
 

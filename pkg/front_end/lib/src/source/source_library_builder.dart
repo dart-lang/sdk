@@ -37,7 +37,6 @@ import '../base/uris.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -553,86 +552,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  /// Checks [nameSpace] for conflicts between setters and non-setters and
-  /// reports them in [sourceLibraryBuilder].
-  ///
-  /// If [checkForInstanceVsStaticConflict] is `true`, conflicts between
-  /// instance and static members of the same name are reported.
-  ///
-  /// If [checkForMethodVsSetterConflict] is `true`, conflicts between
-  /// methods and setters of the same name are reported.
-  static void checkMemberConflicts(
-      SourceLibraryBuilder sourceLibraryBuilder, NameSpace nameSpace,
-      {required bool checkForInstanceVsStaticConflict,
-      required bool checkForMethodVsSetterConflict}) {
-    nameSpace.forEachLocalSetter((String name, MemberBuilder setter) {
-      Builder? getable = nameSpace.lookupLocalMember(name, setter: false);
-      if (getable == null) {
-        // Setter without getter.
-        return;
-      }
-
-      bool isConflictingSetter = false;
-      Set<Builder> conflictingGetables = {};
-      for (Builder? currentGetable = getable;
-          currentGetable != null;
-          currentGetable = currentGetable.next) {
-        if (currentGetable is FieldBuilder) {
-          if (currentGetable.isAssignable) {
-            // Setter with writable field.
-            isConflictingSetter = true;
-            conflictingGetables.add(currentGetable);
-          }
-        } else if (checkForMethodVsSetterConflict && !currentGetable.isGetter) {
-          // Setter with method.
-          conflictingGetables.add(currentGetable);
-        }
-      }
-      for (SourceMemberBuilderImpl? currentSetter =
-              setter as SourceMemberBuilderImpl?;
-          currentSetter != null;
-          currentSetter = currentSetter.next as SourceMemberBuilderImpl?) {
-        bool conflict = conflictingGetables.isNotEmpty;
-        for (Builder? currentGetable = getable;
-            currentGetable != null;
-            currentGetable = currentGetable.next) {
-          if (checkForInstanceVsStaticConflict &&
-              currentGetable.isDeclarationInstanceMember !=
-                  currentSetter.isDeclarationInstanceMember) {
-            conflict = true;
-            conflictingGetables.add(currentGetable);
-          }
-        }
-        if (isConflictingSetter) {
-          currentSetter.isConflictingSetter = true;
-        }
-        if (conflict) {
-          if (currentSetter.isConflictingSetter) {
-            sourceLibraryBuilder.addProblem(
-                templateConflictsWithImplicitSetter.withArguments(name),
-                currentSetter.fileOffset,
-                noLength,
-                currentSetter.fileUri);
-          } else {
-            sourceLibraryBuilder.addProblem(
-                templateConflictsWithMember.withArguments(name),
-                currentSetter.fileOffset,
-                noLength,
-                currentSetter.fileUri);
-          }
-        }
-      }
-      for (Builder conflictingGetable in conflictingGetables) {
-        // TODO(ahe): Context argument to previous message?
-        sourceLibraryBuilder.addProblem(
-            templateConflictsWithSetter.withArguments(name),
-            conflictingGetable.fileOffset,
-            noLength,
-            conflictingGetable.fileUri!);
-      }
-    });
-  }
-
   /// Builds the core AST structure of this library as needed for the outline.
   Library buildOutlineNodes(LibraryBuilder coreLibrary) {
     assert(checkState(
@@ -657,10 +576,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     /*for (SourceCompilationUnit part in parts) {
       part.buildOutlineNode(library);
     }*/
-
-    checkMemberConflicts(this, libraryNameSpace,
-        checkForInstanceVsStaticConflict: false,
-        checkForMethodVsSetterConflict: true);
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
@@ -805,7 +720,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         problemReporting: this,
         enclosingLibraryBuilder: this,
         mixinApplications: _mixinApplications!,
-        unboundNominalVariables: _unboundNominalVariables,
+        unboundNominalParameters: _unboundNominalParameters,
         indexedLibrary: indexedLibrary);
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
@@ -1315,6 +1230,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           .build(coreLibrary, addMembersToLibrary: !declaration.isDuplicate);
       if (!declaration.isAugmenting && !declaration.isDuplicate) {
         library.addExtensionTypeDeclaration(extensionTypeDeclaration);
+      } else if (declaration.isDuplicate) {
+        // Set parent so an `enclosingLibrary` call won't crash.
+        extensionTypeDeclaration.parent = library;
       }
     } else if (declaration is SourceMemberBuilder) {
       declaration.buildOutlineNodes((
@@ -1482,7 +1400,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  final List<NominalParameterBuilder> _unboundNominalVariables = [];
+  final List<NominalParameterBuilder> _unboundNominalParameters = [];
 
   /// Adds all unbound nominal parameters to [nominalParameters] and unbound
   /// structural parameters to [structuralParameters], mapping them to this
@@ -1508,12 +1426,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.collectUnboundTypeParameters(
           this, nominalParameters, structuralParameters);
     }
-    for (NominalParameterBuilder builder in _unboundNominalVariables) {
+    for (NominalParameterBuilder builder in _unboundNominalParameters) {
       nominalParameters[builder] = this;
     }
-    _unboundNominalVariables.clear();
+    _unboundNominalParameters.clear();
 
     state = SourceLibraryBuilderState.unboundTypeParametersCollected;
+  }
+
+  void registerUnboundNominalParameters(
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    _unboundNominalParameters.addAll(unboundNominalParameters);
   }
 
   /// Computes variances of type parameters on typedefs.
@@ -2086,22 +2009,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
-      if (declaration is SourceFieldBuilder) {
-        declaration.checkTypes(this, typeEnvironment);
-      } else if (declaration is SourceProcedureBuilder) {
-        List<TypeParameterBuilder>? typeParameters = declaration.typeParameters;
-        if (typeParameters != null && typeParameters.isNotEmpty) {
-          checkTypeParameterDependencies(typeParameters);
-        }
-        declaration.checkTypes(this, typeEnvironment);
-        if (declaration.isGetter) {
-          Builder? setterDeclaration = libraryNameSpace
-              .lookupLocalMember(declaration.name, setter: true);
-          if (setterDeclaration != null) {
-            checkGetterSetterTypes(declaration,
-                setterDeclaration as ProcedureBuilder, typeEnvironment);
-          }
-        }
+      if (declaration is SourceMemberBuilder) {
+        declaration.checkTypes(this, libraryNameSpace, typeEnvironment);
       } else if (declaration is SourceClassBuilder) {
         List<TypeParameterBuilder>? typeParameters = declaration.typeParameters;
         if (typeParameters != null && typeParameters.isNotEmpty) {

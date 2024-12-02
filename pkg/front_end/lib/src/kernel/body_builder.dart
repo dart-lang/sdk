@@ -700,17 +700,32 @@ class BodyBuilder extends StackListenerImpl
     Object? element = pop();
     if (element is Statement) {
       return forest.wrapVariables(element);
-    } else if (element is ParserRecovery) {
+    } else {
+      return _handleStatementNotStatement(element, token);
+    }
+  }
+
+  Statement _handleStatementNotStatement(Object? element, Token? token) {
+    if (element is ParserRecovery) {
       return new Block(<Statement>[
         forest.createExpressionStatement(
             element.charOffset,
-            new ParserErrorGenerator(this, token, cfe.messageSyntheticToken)
-                .buildProblem())
+            ParserErrorGenerator.buildProblemExpression(
+                this, cfe.messageSyntheticToken, element.charOffset))
       ])
         ..fileOffset = element.charOffset;
     } else {
-      unhandled("expected statement is ${element.runtimeType}", "popStatement",
-          token.charOffset, uri);
+      unhandled("expected statement is ${element.runtimeType}: $element",
+          "popStatement", token?.charOffset ?? -1, uri);
+    }
+  }
+
+  Statement popStatementNoWrap([Token? token]) {
+    Object? element = pop();
+    if (element is Statement) {
+      return element;
+    } else {
+      return _handleStatementNotStatement(element, token);
     }
   }
 
@@ -3273,7 +3288,7 @@ class BodyBuilder extends StackListenerImpl
       VariableBuilder variableBuilder = declaration as VariableBuilder;
       if (constantContext != ConstantContext.none &&
           !variableBuilder.isConst &&
-          !_context.isConstructor &&
+           !(_context.isConstructor && inFieldInitializer) &&
           !libraryFeatures.constFunctions.isEnabled) {
         return new IncompleteErrorGenerator(
             this, nameToken, cfe.messageNotAConstantExpression);
@@ -3342,7 +3357,8 @@ class BodyBuilder extends StackListenerImpl
           (setterBuilder.isField || setterBuilder.isStatic)) {
         setterBuilder = null;
       }
-      if (declaration == null && setterBuilder == null) {
+      if ((declaration == null && setterBuilder == null) ||
+          thisVariable == null) {
         return new UnresolvedNameGenerator(
             this, nameToken, new Name(name, libraryBuilder.nameOrigin),
             unresolvedReadKind: UnresolvedKind.Unknown);
@@ -7885,7 +7901,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
-    Statement statement = pop() as Statement;
+    Statement statement = popStatementNoWrap();
     LabelTarget target = pop() as LabelTarget;
     _labelScopes.pop();
     // TODO(johnniwinther): Split the handling of breaks and continue.
@@ -9126,6 +9142,14 @@ class BodyBuilder extends StackListenerImpl
       ];
     } else if (builder is SourceFieldBuilder &&
         builder.isDeclarationInstanceMember) {
+      if (builder.isExtensionTypeDeclaredInstanceField) {
+        // Operating on an invalid field. Don't report anything though
+        // as we've already reported that the field isn't valid.
+        return <Initializer>[
+          buildInvalidInitializer(new InvalidExpression(null), fieldNameOffset)
+        ];
+      }
+
       initializedFields ??= <String, int>{};
       if (initializedFields!.containsKey(name)) {
         return <Initializer>[

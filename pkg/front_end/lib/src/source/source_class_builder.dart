@@ -86,7 +86,7 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    with ClassDeclarationMixin, SourceTypedDeclarationBuilderMixin
+    with ClassDeclarationMixin
     implements
         Comparable<SourceClassBuilder>,
         ClassDeclaration,
@@ -280,12 +280,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   SourceLibraryBuilder get parent => libraryBuilder;
 
   Class build(LibraryBuilder coreLibrary) {
-    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, nameSpace,
-        // These checks are performed as part of the class hierarchy
-        // computation.
-        checkForInstanceVsStaticConflict: false,
-        checkForMethodVsSetterConflict: false);
-
     void buildBuilders(Builder declaration) {
       if (declaration.parent != this) {
         if (declaration.parent?.origin != origin) {
@@ -402,8 +396,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
     }
-
-    checkConstructorStaticConflict();
 
     cls.procedures.sort(compareProcedures);
     return cls;
@@ -1160,14 +1152,14 @@ class SourceClassBuilder extends ClassBuilderImpl
     while (memberIterator.moveNext()) {
       SourceMemberBuilder builder = memberIterator.current;
       builder.checkVariance(this, typeEnvironment);
-      builder.checkTypes(libraryBuilder, typeEnvironment);
+      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
         fullConstructorIterator<SourceMemberBuilder>();
     while (constructorIterator.moveNext()) {
       SourceMemberBuilder builder = constructorIterator.current;
-      builder.checkTypes(libraryBuilder, typeEnvironment);
+      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
   }
 

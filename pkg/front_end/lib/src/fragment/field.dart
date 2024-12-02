@@ -17,6 +17,9 @@ class FieldFragment implements Fragment {
   final TypeBuilder type;
   final bool isTopLevel;
   final Modifiers modifiers;
+  // TODO(johnniwinther): Create separate fragment for primary constructor
+  // fields.
+  final bool isPrimaryConstructorField;
 
   SourceFieldBuilder? _builder;
 
@@ -30,13 +33,15 @@ class FieldFragment implements Fragment {
       required this.metadata,
       required this.type,
       required this.isTopLevel,
-      required this.modifiers})
+      required this.modifiers,
+      required this.isPrimaryConstructorField})
       : _initializerToken = initializerToken,
         _constInitializerToken = constInitializerToken;
 
-  // Coverage-ignore(suite): Not run.
   bool get hasSetter {
-    if (modifiers.isFinal) {
+    if (modifiers.isConst) {
+      return false;
+    } else if (modifiers.isFinal) {
       if (modifiers.isLate) {
         return !modifiers.hasInitializer;
       } else {

@@ -2930,6 +2930,13 @@ class MiniAstOperations
   }
 
   @override
+  Type greatestClosureOfTypeInternal(Type type,
+      List<SharedTypeParameterStructure<Type>> typeParametersToEliminate) {
+    // TODO(paulberry): Implement greatest closure of types in mini ast.
+    throw UnimplementedError();
+  }
+
+  @override
   bool isAlwaysExhaustiveType(SharedTypeView<Type> type) {
     var query = type.unwrapTypeView().type;
     return _exhaustiveness[query] ??
@@ -2991,6 +2998,53 @@ class MiniAstOperations
   }
 
   @override
+  bool isNonNullableInternal(Type type) {
+    Type unwrappedType = type;
+    if (unwrappedType is DynamicType ||
+        unwrappedType is SharedUnknownTypeStructure ||
+        unwrappedType is VoidType ||
+        unwrappedType is NullType ||
+        unwrappedType is InvalidType) {
+      return false;
+    } else if (unwrappedType
+        case TypeParameterType(
+          :var promotion,
+          :var typeParameter,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      if (promotion != null) {
+        return isNonNullableInternal(promotion);
+      } else {
+        return isNonNullableInternal(typeParameter.bound);
+      }
+    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return false;
+    } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
+      return isNonNullableInternal(typeArgument);
+    }
+    return true;
+  }
+
+  @override
+  bool isNullableInternal(Type type) {
+    Type unwrappedType = type;
+    if (unwrappedType is DynamicType ||
+        unwrappedType is SharedUnknownTypeStructure ||
+        unwrappedType is VoidType ||
+        unwrappedType is NullType) {
+      return true;
+    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return false;
+    } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
+      return isNullableInternal(typeArgument);
+    }
+    // TODO(cstefantsova): Update to a fast-pass implementation when the
+    // mini-ast testing framework supports looking up superinterfaces of
+    // extension types or looking up bounds of type parameters.
+    return _typeSystem.isSubtype(NullType.instance, unwrappedType);
+  }
+
+  @override
   bool isObject(SharedTypeView<Type> type) {
     Type unwrappedType = type.unwrapTypeView();
     return unwrappedType is PrimaryType &&
@@ -3033,6 +3087,13 @@ class MiniAstOperations
       SharedTypeSchemaView<Type> elementTypeSchema) {
     return SharedTypeSchemaView(PrimaryType(TypeRegistry.iterable,
         args: [elementTypeSchema.unwrapTypeSchemaView()]));
+  }
+
+  @override
+  Type leastClosureOfTypeInternal(Type type,
+      List<SharedTypeParameterStructure<Type>> typeParametersToEliminate) {
+    // TODO(paulberry): Implement greatest closure of types in mini ast.
+    throw UnimplementedError();
   }
 
   @override
@@ -3177,6 +3238,20 @@ class MiniAstOperations
   }
 
   @override
+  Type? matchTypeParameterBoundInternal(Type type) {
+    if (type
+        case TypeParameterType(
+          :var promotion,
+          :var typeParameter,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return promotion ?? typeParameter.bound;
+    } else {
+      return null;
+    }
+  }
+
+  @override
   SharedTypeView<Type> normalize(SharedTypeView<Type> type) {
     var query = '${type.unwrapTypeView()}';
     return SharedTypeView(
@@ -3246,81 +3321,6 @@ class MiniAstOperations
   @override
   Type withNullabilitySuffixInternal(Type type, NullabilitySuffix modifier) {
     return type.withNullability(modifier);
-  }
-
-  @override
-  Type greatestClosureOfTypeInternal(Type type,
-      List<SharedTypeParameterStructure<Type>> typeParametersToEliminate) {
-    // TODO(paulberry): Implement greatest closure of types in mini ast.
-    throw UnimplementedError();
-  }
-
-  @override
-  Type leastClosureOfTypeInternal(Type type,
-      List<SharedTypeParameterStructure<Type>> typeParametersToEliminate) {
-    // TODO(paulberry): Implement greatest closure of types in mini ast.
-    throw UnimplementedError();
-  }
-
-  @override
-  Type? matchTypeParameterBoundInternal(Type type) {
-    if (type
-        case TypeParameterType(
-          :var promotion,
-          :var typeParameter,
-          nullabilitySuffix: NullabilitySuffix.none
-        )) {
-      return promotion ?? typeParameter.bound;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  bool isNonNullableInternal(Type type) {
-    Type unwrappedType = type;
-    if (unwrappedType is DynamicType ||
-        unwrappedType is SharedUnknownTypeStructure ||
-        unwrappedType is VoidType ||
-        unwrappedType is NullType ||
-        unwrappedType is InvalidType) {
-      return false;
-    } else if (unwrappedType
-        case TypeParameterType(
-          :var promotion,
-          :var typeParameter,
-          nullabilitySuffix: NullabilitySuffix.none
-        )) {
-      if (promotion != null) {
-        return isNonNullableInternal(promotion);
-      } else {
-        return isNonNullableInternal(typeParameter.bound);
-      }
-    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      return false;
-    } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
-      return isNonNullableInternal(typeArgument);
-    }
-    return true;
-  }
-
-  @override
-  bool isNullableInternal(Type type) {
-    Type unwrappedType = type;
-    if (unwrappedType is DynamicType ||
-        unwrappedType is SharedUnknownTypeStructure ||
-        unwrappedType is VoidType ||
-        unwrappedType is NullType) {
-      return true;
-    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      return false;
-    } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
-      return isNullableInternal(typeArgument);
-    }
-    // TODO(cstefantsova): Update to a fast-pass implementation when the
-    // mini-ast testing framework supports looking up superinterfaces of
-    // extension types or looking up bounds of type parameters.
-    return _typeSystem.isSubtype(NullType.instance, unwrappedType);
   }
 }
 
@@ -4934,9 +4934,6 @@ class Var extends Node
           type == null ? null : Type(type), this, expectInferredType,
           location: computeLocation());
 
-  @override
-  void preVisit(PreVisitor visitor) {}
-
   /// Creates an expression representing a postfix increment or decrement
   /// operation applied to this variable.
   Expression postIncDec() {
@@ -4946,6 +4943,9 @@ class Var extends Node
       location: location,
     );
   }
+
+  @override
+  void preVisit(PreVisitor visitor) {}
 
   /// Creates an expression representing a read of this variable, which as a
   /// side effect will call the given callback with the returned promoted type.
@@ -6325,9 +6325,6 @@ class _PropertyElement {
   /// The name of the property (used by toString)
   final String _name;
 
-  @override
-  String toString() => '$_type.$_name';
-
   /// Whether the property is promotable.
   final bool isPromotable;
 
@@ -6348,6 +6345,9 @@ class _PropertyElement {
       assert(whyNotPromotable == null);
     }
   }
+
+  @override
+  String toString() => '$_type.$_name';
 }
 
 class _VariableBinder extends VariableBinder<Node, Var> {

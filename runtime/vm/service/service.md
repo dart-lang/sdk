@@ -2228,7 +2228,7 @@ class @Code extends @Object {
   CodeKind kind;
 
   // This code object's corresponding function.
-  @Function function [optional];
+  @Function|NativeFunction function [optional];
 }
 ```
 
@@ -2243,7 +2243,7 @@ class Code extends Object {
   CodeKind kind;
 
   // This code object's corresponding function.
-  @Function function [optional];
+  @Function|NativeFunction function [optional];
 }
 ```
 

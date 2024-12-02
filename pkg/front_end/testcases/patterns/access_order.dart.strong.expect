@@ -10,14 +10,6 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> = cor
   const synthetic constructor •() → self::_MyList&Object&ListMixin<self::_MyList&Object&ListMixin::E%>
     : super core::Object::•()
     ;
-  mixin-super-stub get first() → self::_MyList&Object&ListMixin::E%
-    return super.{col::ListBase::first};
-  mixin-super-stub set first(covariant-by-class self::_MyList&Object&ListMixin::E% value) → void
-    return super.{col::ListBase::first} = value;
-  mixin-super-stub get last() → self::_MyList&Object&ListMixin::E%
-    return super.{col::ListBase::last};
-  mixin-super-stub set last(covariant-by-class self::_MyList&Object&ListMixin::E% value) → void
-    return super.{col::ListBase::last} = value;
   mixin-super-stub get iterator() → core::Iterator<self::_MyList&Object&ListMixin::E%>
     return super.{col::ListBase::iterator};
   mixin-super-stub method elementAt(core::int index) → self::_MyList&Object&ListMixin::E%
@@ -30,6 +22,14 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> = cor
     return super.{col::ListBase::isEmpty};
   mixin-super-stub get isNotEmpty() → core::bool
     return super.{col::ListBase::isNotEmpty};
+  mixin-super-stub get first() → self::_MyList&Object&ListMixin::E%
+    return super.{col::ListBase::first};
+  mixin-super-stub set first(covariant-by-class self::_MyList&Object&ListMixin::E% value) → void
+    return super.{col::ListBase::first} = value;
+  mixin-super-stub get last() → self::_MyList&Object&ListMixin::E%
+    return super.{col::ListBase::last};
+  mixin-super-stub set last(covariant-by-class self::_MyList&Object&ListMixin::E% value) → void
+    return super.{col::ListBase::last} = value;
   mixin-super-stub get single() → self::_MyList&Object&ListMixin::E%
     return super.{col::ListBase::single};
   mixin-super-stub method contains(core::Object? element) → core::bool

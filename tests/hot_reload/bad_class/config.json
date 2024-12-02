@@ -1,4 +1,5 @@
 {
-  "exclude": [],
-  "expectedError": "Error: Expected ';' after this"
+  "expectedErrors": {
+    "1": "Error: Expected ';' after this"
+  }
 }

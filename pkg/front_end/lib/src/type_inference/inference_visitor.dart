@@ -372,8 +372,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
     variable.initializer = result.nullAwareAction..parent = variable;
 
-    DartType inferredType =
-        inferDeclarationType(result.inferredType, forSyntheticVariable: true);
+    DartType inferredType = inferDeclarationType(result.nullAwareActionType,
+        forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
         new InstrumentationValueForType(inferredType));
     variable.type = inferredType;
@@ -1690,6 +1690,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new SuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is StaticSet) {
       return new StaticForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is ExtensionSet) {
+      return new ExtensionSetForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
     } else {
@@ -11591,9 +11593,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       node.containsKeyTarget = containsKeyTarget.classMember as Procedure;
       node.containsKeyType =
-          containsKeyTarget
-              .getFunctionType(this)
-              .containsKeyFunctionType;
+          containsKeyTarget.getFunctionType(this).containsKeyFunctionType;
 
       ObjectAccessTarget indexGetTarget = findInterfaceMember(
           lookupType, indexGetName, node.fileOffset,
@@ -11602,9 +11602,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       node.indexGetTarget = indexGetTarget.classMember as Procedure;
       node.indexGetType =
-          indexGetTarget
-              .getFunctionType(this)
-              .indexGetFunctionType;
+          indexGetTarget.getFunctionType(this).indexGetFunctionType;
     }
 
     assert(checkStack(node, stackBase, [
