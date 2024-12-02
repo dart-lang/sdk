@@ -227,8 +227,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     if gn_args['target_os'] in ['linux', 'win']:
         gn_args['dart_use_fallback_root_certificates'] = True
 
-    gn_args['bssl_use_clang_integrated_as'] = True
-
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
             # Default to -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
