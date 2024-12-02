@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element2.dart';
@@ -99,22 +100,53 @@ class EditableArgumentsHandler
 
     var textDocument = server.getVersionedDocumentIdentifier(result.path);
 
-    // Build a map of the parameters that have matching arguments.
+    // Build a map of parameters to their positional index so we can tell
+    // whether a parameter that doesn't already have an argument will be
+    // editable (positionals can only be added if all previous positionals
+    // exist).
+    var currentParameterIndex = 0;
+    var parametersWithIndex = parameters.map(
+      (parameter) => (
+        parameter,
+        parameter.isPositional ? currentParameterIndex++ : null,
+      ),
+    );
+    var numPositionals = parameters.where((p) => p.isPositional).length;
+    var numSuppliedPositionals =
+        argumentList.arguments
+            .where((argument) => argument is! NamedExpression)
+            .length;
+
+    // Build a map of the parameters that have arguments so we can put them
+    // first.
     var parametersWithArguments = {
       for (var argument in argumentList.arguments)
         argument.correspondingParameter: argument,
     };
 
+    // Build the complete list of editable arguments.
     var editableArguments = [
-      // First include the arguments in the order they were specified.
+      // First arguments that exist in the order they were specified.
       for (var MapEntry(key: parameter, value: argument)
           in parametersWithArguments.entries)
-        if (parameter != null) _toEditableArgument(parameter, argument),
-      // Then the remaining parameters.
-      for (var parameter in parameters.where(
-        (p) => !parametersWithArguments.containsKey(p),
+        if (parameter != null)
+          _toEditableArgument(
+            parameter,
+            argument,
+            numPositionals: numPositionals,
+            numSuppliedPositionals: numSuppliedPositionals,
+          ),
+      // Then the remaining parameters that don't have existing arguments.
+      for (var (parameter, index) in parametersWithIndex.where(
+        (p) => !parametersWithArguments.containsKey(p.$1),
       ))
-        _toEditableArgument(parameter, null),
+        _toEditableArgument(
+          parameter,
+          null,
+          positionalIndex: index,
+          numPositionals: numPositionals,
+          numSuppliedPositionals: numSuppliedPositionals,
+        ),
     ];
 
     return EditableArguments(
@@ -151,14 +183,37 @@ class EditableArgumentsHandler
 
   /// Checks whether [argument] is editable and if not, returns a human-readable
   /// description why.
-  String? _getNotEditableReason(Expression argument) {
-    return switch (argument) {
-      AdjacentStrings() => "Adjacent strings can't be edited",
-      StringInterpolation() => "Interpolated strings can't be edited",
-      SimpleStringLiteral() when argument.value.contains('\n') =>
-        "Strings containing newlines can't be edited",
-      _ => null,
-    };
+  String? _getNotEditableReason({
+    required Expression? argument,
+    required int? positionalIndex,
+    required int numPositionals,
+    required int numSuppliedPositionals,
+  }) {
+    // If the argument has an existing value, editability is based only on that
+    // value.
+    if (argument != null) {
+      return switch (argument) {
+        AdjacentStrings() => "Adjacent strings can't be edited",
+        StringInterpolation() => "Interpolated strings can't be edited",
+        SimpleStringLiteral() when argument.value.contains('\n') =>
+          "Strings containing newlines can't be edited",
+        _ => null,
+      };
+    }
+
+    // If we are missing positionals, we can only add this one if it is the next
+    // (first missing) one.
+    if (positionalIndex != null && numSuppliedPositionals < numPositionals) {
+      // To be allowed, we must be the next one. Eg. our index is equal to the
+      // length/count of the existing ones.
+      if (positionalIndex != numSuppliedPositionals) {
+        return 'A value for the ${(positionalIndex + 1).toStringWithSuffix()} '
+            "parameter can't be added until a value for all preceding "
+            'positional parameters have been added.';
+      }
+    }
+
+    return null;
   }
 
   /// Computes the values for a parameter and argument and returns them along
@@ -194,8 +249,11 @@ class EditableArgumentsHandler
   /// is an argument that can be edited.
   EditableArgument? _toEditableArgument(
     FormalParameterElement parameter,
-    Expression? argument,
-  ) {
+    Expression? argument, {
+    int? positionalIndex,
+    required int numPositionals,
+    required int numSuppliedPositionals,
+  }) {
     var valueExpression =
         argument is NamedExpression ? argument.expression : argument;
 
@@ -206,10 +264,13 @@ class EditableArgumentsHandler
     Object? value;
     List<String>? options;
 
-    // Check whether this value may be editable (for example is not an
-    // interpolated string).
-    var notEditableReason =
-        valueExpression != null ? _getNotEditableReason(valueExpression) : null;
+    // Determine whether a value for this parameter is editable.
+    var notEditableReason = _getNotEditableReason(
+      argument: valueExpression,
+      positionalIndex: positionalIndex,
+      numPositionals: numPositionals,
+      numSuppliedPositionals: numSuppliedPositionals,
+    );
 
     if (parameter.type.isDartCoreDouble) {
       type = 'double';

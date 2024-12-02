@@ -147,6 +147,88 @@ class MyWidget extends StatelessWidget {
     );
   }
 
+  test_isEditable_false_positional_optional() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget([int? a, int? b, int? c]);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(
+      result,
+      hasArgs(
+        orderedEquals([
+          isArg('a', isEditable: true),
+          isArg('b', isEditable: true),
+          isArg(
+            'c',
+            // c is not editable because it is not guaranteed that we can insert
+            // a default value for b (it could be a private value or require
+            // imports).
+            isEditable: false,
+            notEditableReason:
+                "A value for the 3rd parameter can't be added until a value "
+                'for all preceding positional parameters have been added.',
+          ),
+        ]),
+      ),
+    );
+  }
+
+  test_isEditable_false_positional_required1() async {
+    failTestOnErrorDiagnostic = false;
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int a, int b);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget();
+}
+''');
+    expect(
+      result,
+      hasArg(
+        // b is not editable because there are missing required previous
+        // arguments (a).
+        isArg(
+          'b',
+          isEditable: false,
+          notEditableReason:
+              "A value for the 2nd parameter can't be added until a value "
+              'for all preceding positional parameters have been added.',
+        ),
+      ),
+    );
+  }
+
+  test_isEditable_false_positional_required2() async {
+    failTestOnErrorDiagnostic = false;
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int a, int b, int c);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(
+      result,
+      hasArg(
+        // c is not editable because there are missing required previous
+        // arguments (b).
+        isArg(
+          'c',
+          isEditable: false,
+          notEditableReason:
+              "A value for the 3rd parameter can't be added until a value "
+              'for all preceding positional parameters have been added.',
+        ),
+      ),
+    );
+  }
+
   test_isEditable_false_string_adjacent() async {
     var result = await getEditableArgumentsFor(r'''
 class MyWidget extends StatelessWidget {
@@ -234,6 +316,50 @@ b
             notEditableReason: "Strings containing newlines can't be edited",
           ),
         ]),
+      ),
+    );
+  }
+
+  test_isEditable_true_named() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget({int? a, int? b, int? c});
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(a: 1);
+}
+''');
+    expect(
+      result,
+      hasArgs(
+        orderedEquals([
+          isArg('a', isEditable: true),
+          isArg('b', isEditable: true),
+          isArg('c', isEditable: true),
+        ]),
+      ),
+    );
+  }
+
+  test_isEditable_true_positional_required() async {
+    failTestOnErrorDiagnostic = false;
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget extends StatelessWidget {
+  const MyWidget(int a, int b);
+
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(
+      result,
+      hasArg(
+        isArg(
+          'b',
+          // b is editable because it's the next argument and we don't need
+          // to add anything additional.
+          isEditable: true,
+        ),
       ),
     );
   }
