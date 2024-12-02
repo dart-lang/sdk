@@ -2545,7 +2545,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   // Right (locs.in(1)) is not constant.
   Register right = locs.in(1).reg();
-  Range* right_range = shift_left->right_range();
   if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for can_overflow().
     // If left is constant, we know the maximal allowed size for right.
@@ -2559,7 +2558,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
+          !shift_left->IsShiftCountInRange(max_right - 1);
       if (right_needs_check) {
         __ cmpl(right,
                 compiler::Immediate(static_cast<int32_t>(Smi::New(max_right))));
@@ -2572,11 +2571,11 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
+      !shift_left->IsShiftCountInRange(Smi::kBits - 1);
   ASSERT(right == ECX);  // Count must be in ECX
   if (!shift_left->can_overflow()) {
     if (right_needs_check) {
-      if (!RangeUtils::IsPositive(right_range)) {
+      if (!shift_left->RightOperandIsPositive()) {
         ASSERT(shift_left->CanDeoptimize());
         __ cmpl(right, compiler::Immediate(0));
         __ j(NEGATIVE, deopt);
@@ -2628,7 +2627,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 1;
     LocationSummary* summary = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    if (RightIsPowerOfTwoConstant()) {
+    if (RightOperandIsPowerOfTwoConstant()) {
       summary->set_in(0, Location::RequiresRegister());
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       // The programmer only controls one bit, so the constant is safe.
@@ -2865,7 +2864,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
 
     case Token::kTRUNCDIV: {
-      if (RangeUtils::CanBeZero(right_range())) {
+      if (RightOperandCanBeZero()) {
         // Handle divide by zero in runtime.
         __ testl(right, right);
         __ j(ZERO, deopt);
@@ -2878,7 +2877,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       __ cdq();         // Sign extend EAX -> EDX:EAX.
       __ idivl(right);  //  EAX: quotient, EDX: remainder.
-      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+      if (RightOperandCanBeMinusOne()) {
         // Check the corner case of dividing the 'MIN_SMI' with -1, in which
         // case we cannot tag the result.
         __ cmpl(result, compiler::Immediate(0x40000000));
@@ -2888,7 +2887,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      if (RangeUtils::CanBeZero(right_range())) {
+      if (RightOperandCanBeZero()) {
         // Handle divide by zero in runtime.
         __ testl(right, right);
         __ j(ZERO, deopt);
@@ -2914,7 +2913,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ cmpl(result, compiler::Immediate(0));
       __ j(GREATER_EQUAL, &done, compiler::Assembler::kNearJump);
       // Result is negative, adjust it.
-      if (RangeUtils::Overlaps(right_range(), -1, 1)) {
+      if (RightOperandCanBeMinusOne()) {
         // Right can be positive and negative.
         compiler::Label subtract;
         __ cmpl(right, compiler::Immediate(0));
@@ -2923,7 +2922,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ jmp(&done, compiler::Assembler::kNearJump);
         __ Bind(&subtract);
         __ subl(result, right);
-      } else if (right_range()->IsPositive()) {
+      } else if (RightOperandIsPositive()) {
         // Right is positive.
         __ addl(result, right);
       } else {
@@ -2942,7 +2941,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       // sarl operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
+      if (!IsShiftCountInRange(kCountLimit)) {
         __ cmpl(right, compiler::Immediate(kCountLimit));
         compiler::Label count_ok;
         __ j(LESS, &count_ok, compiler::Assembler::kNearJump);
@@ -2973,13 +2972,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // If left operand is non-negative, the result always
       // fits into Smi range.
       //
-      if (!RangeUtils::OnlyLessThanOrEqualTo(
-              right_range(), 64 - compiler::target::kSmiBits - 1)) {
+      if (!IsShiftCountInRange(64 - compiler::target::kSmiBits - 1)) {
         __ cmpl(right, compiler::Immediate(64 - compiler::target::kSmiBits));
         compiler::Label shift_less_34;
         __ j(LESS, &shift_less_34, compiler::Assembler::kNearJump);
-        if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(),
-                                               kBitsPerInt64 - 1)) {
+        if (!IsShiftCountInRange(kBitsPerInt64 - 1)) {
           __ cmpl(right, compiler::Immediate(kBitsPerInt64));
           compiler::Label shift_less_64;
           __ j(LESS, &shift_less_64, compiler::Assembler::kNearJump);
@@ -3013,8 +3010,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       // At this point left operand is non-negative, so unsigned shift
       // can't overflow.
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(),
-                                             compiler::target::kSmiBits - 1)) {
+      if (!IsShiftCountInRange(compiler::target::kSmiBits - 1)) {
         __ cmpl(right, compiler::Immediate(compiler::target::kSmiBits));
         compiler::Label shift_less_30;
         __ j(LESS, &shift_less_30, compiler::Assembler::kNearJump);
@@ -5436,7 +5432,7 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
           zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
       summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                         Location::RequiresRegister()));
-      if (RightIsPositive() && right()->definition()->IsConstant()) {
+      if (RightOperandIsPositive() && right()->definition()->IsConstant()) {
         ConstantInstr* constant = right()->definition()->AsConstant();
         summary->set_in(1, Location::Constant(constant));
       } else {

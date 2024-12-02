@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -15,17 +13,10 @@ import '../util/dart_type_utilities.dart';
 const _desc =
     r'Only throw instances of classes extending either Exception or Error.';
 
-const _errorClassName = 'Error';
-
-const _exceptionClassName = 'Exception';
-
-const _library = 'dart.core';
-
-final LinkedHashSet<InterfaceTypeDefinition> _interfaceDefinitions =
-    LinkedHashSet.of([
-  InterfaceTypeDefinition(_exceptionClassName, _library),
-  InterfaceTypeDefinition(_errorClassName, _library),
-]);
+final Set<InterfaceTypeDefinition> _interfaceDefinitions = {
+  InterfaceTypeDefinition('Exception', 'dart.core'),
+  InterfaceTypeDefinition('Error', 'dart.core'),
+};
 
 bool _isThrowable(DartType? type) {
   var typeForInterfaceCheck = type?.typeForInterfaceCheck;

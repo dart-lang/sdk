@@ -149,6 +149,18 @@ class EditableArgumentsHandler
     };
   }
 
+  /// Checks whether [argument] is editable and if not, returns a human-readable
+  /// description why.
+  String? _getNotEditableReason(Expression argument) {
+    return switch (argument) {
+      AdjacentStrings() => "Adjacent strings can't be edited",
+      StringInterpolation() => "Interpolated strings can't be edited",
+      SimpleStringLiteral() when argument.value.contains('\n') =>
+        "Strings containing newlines can't be edited",
+      _ => null,
+    };
+  }
+
   /// Computes the values for a parameter and argument and returns them along
   /// with a flag indicating if the default parameter value is being used.
   _Values _getValues(
@@ -194,6 +206,11 @@ class EditableArgumentsHandler
     Object? value;
     List<String>? options;
 
+    // Check whether this value may be editable (for example is not an
+    // interpolated string).
+    var notEditableReason =
+        valueExpression != null ? _getNotEditableReason(valueExpression) : null;
+
     if (parameter.type.isDartCoreDouble) {
       type = 'double';
       value =
@@ -232,11 +249,22 @@ class EditableArgumentsHandler
       return null;
     }
 
-    // If the value is not a literal, include the source as displayValue.
-    var displayValue =
-        valueExpression is! Literal ? valueExpression?.toSource() : null;
-    // Unless it turns out to match the value (converted to string).
-    if (displayValue != null && displayValue == value?.toString()) {
+    var isEditable = notEditableReason == null;
+
+    // Compute a displayValue.
+    String? displayValue;
+    if (!isEditable) {
+      // Not editable, so show the value or source in displayValue.
+      displayValue = value?.toString() ?? valueExpression?.toSource();
+      // And remove the value.
+      value = null;
+    } else if (valueExpression is! Literal) {
+      // Also provide the source if it was not a literal.
+      displayValue = valueExpression?.toSource();
+    }
+
+    // Never provide a displayValue if it's the same as value.
+    if (displayValue == value) {
       displayValue = null;
     }
 
@@ -251,6 +279,8 @@ class EditableArgumentsHandler
       isRequired: parameter.isRequired,
       isNullable:
           parameter.type.nullabilitySuffix == NullabilitySuffix.question,
+      isEditable: notEditableReason == null,
+      notEditableReason: notEditableReason,
     );
   }
 }

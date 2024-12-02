@@ -3399,7 +3399,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
   // Right (locs.in(1)) is not constant.
   const Register right = locs.in(1).reg();
-  Range* right_range = shift_left->right_range();
   if (shift_left->left()->BindsToConstant() && shift_left->can_overflow()) {
     // TODO(srdjan): Implement code below for is_truncating().
     // If left is constant, we know the maximal allowed size for right.
@@ -3415,7 +3414,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       const intptr_t max_right =
           compiler::target::kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
+          !shift_left->IsShiftCountInRange(max_right - 1);
       if (right_needs_check) {
         __ cmp(right, compiler::Operand(compiler::target::ToRawSmi(max_right)));
         __ b(deopt, CS);
@@ -3427,10 +3426,10 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      !RangeUtils::IsWithin(right_range, 0, (compiler::target::kSmiBits - 1));
+      !shift_left->IsShiftCountInRange(compiler::target::kSmiBits - 1);
   if (!shift_left->can_overflow()) {
     if (right_needs_check) {
-      if (!RangeUtils::IsPositive(right_range)) {
+      if (!shift_left->RightOperandIsPositive()) {
         ASSERT(shift_left->CanDeoptimize());
         __ cmp(right, compiler::Operand(0));
         __ b(deopt, MI);
@@ -3471,7 +3470,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   // Calculate number of temporaries.
   intptr_t num_temps = 0;
   if (op_kind() == Token::kTRUNCDIV) {
-    if (RightIsPowerOfTwoConstant()) {
+    if (RightOperandIsPowerOfTwoConstant()) {
       num_temps = 1;
     } else {
       num_temps = 2;
@@ -3486,7 +3485,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, num_temps, LocationSummary::kNoCall);
   if (op_kind() == Token::kTRUNCDIV) {
     summary->set_in(0, Location::RequiresRegister());
-    if (RightIsPowerOfTwoConstant()) {
+    if (RightOperandIsPowerOfTwoConstant()) {
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(right_constant));
       summary->set_temp(0, Location::RequiresRegister());
@@ -3739,7 +3738,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      if (RangeUtils::CanBeZero(right_range())) {
+      if (RightOperandCanBeZero()) {
         // Handle divide by zero in runtime.
         __ cmp(right, compiler::Operand(0));
         __ b(deopt, EQ);
@@ -3750,7 +3749,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(IP, right);
       __ IntegerDivide(result, temp, IP, dtemp, DTMP);
 
-      if (RangeUtils::Overlaps(right_range(), -1, -1)) {
+      if (RightOperandCanBeMinusOne()) {
         // Check the corner case of dividing the 'MIN_SMI' with -1, in which
         // case we cannot tag the result.
         __ CompareImmediate(result, 0x40000000);
@@ -3760,7 +3759,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      if (RangeUtils::CanBeZero(right_range())) {
+      if (RightOperandCanBeZero()) {
         // Handle divide by zero in runtime.
         __ cmp(right, compiler::Operand(0));
         __ b(deopt, EQ);
@@ -3799,7 +3798,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(IP, right);
       // sarl operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(), kCountLimit)) {
+      if (!IsShiftCountInRange(kCountLimit)) {
         __ CompareImmediate(IP, kCountLimit);
         __ LoadImmediate(IP, kCountLimit, GT);
       }
@@ -3827,10 +3826,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // If left operand is non-negative, the result always
       // fits into Smi range.
       //
-      if (!RangeUtils::OnlyLessThanOrEqualTo(
-              right_range(), 64 - compiler::target::kSmiBits - 1)) {
-        if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(),
-                                               kBitsPerInt64 - 1)) {
+      if (!IsShiftCountInRange(64 - compiler::target::kSmiBits - 1)) {
+        if (!IsShiftCountInRange(kBitsPerInt64 - 1)) {
           __ CompareImmediate(IP, kBitsPerInt64);
           // If shift amount >= 64, then result is 0.
           __ LoadImmediate(result, 0, GE);
@@ -3859,8 +3856,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       // At this point left operand is non-negative, so unsigned shift
       // can't overflow.
-      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(),
-                                             compiler::target::kSmiBits - 1)) {
+      if (!IsShiftCountInRange(compiler::target::kSmiBits - 1)) {
         __ CompareImmediate(IP, compiler::target::kSmiBits);
         // Left operand >= 0, shift amount >= kSmiBits. Result is 0.
         __ LoadImmediate(result, 0, GE);
@@ -6301,7 +6297,7 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
         zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
     summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                       Location::RequiresRegister()));
-    if (RightIsPositive() && right()->definition()->IsConstant()) {
+    if (RightOperandIsPositive() && right()->definition()->IsConstant()) {
       ConstantInstr* constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(constant));
     } else {

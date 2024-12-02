@@ -3377,7 +3377,7 @@ class C {
     return d;
   }
 
-  int res(int callback(int x, int y), int b) {
+  int res(int Function(int x, int y) callback, int b) {
     int c = callback(b, 2);
     return c;
   }
@@ -3600,6 +3600,53 @@ int f() {
 
 int res() {
   return 42;
+}
+''');
+  }
+
+  Future<void> test_statements_topFunction_parameters_function() async {
+    await indexTestUnit('''
+Future<void> f(void f(String x), String a) async {
+// start
+  f(a);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+Future<void> f(void f(String x), String a) async {
+// start
+  res(f, a);
+// end
+}
+
+void res(void Function(String x) f, String a) {
+  f(a);
+}
+''');
+  }
+
+  Future<void>
+  test_statements_topFunction_parameters_function_functionSyntax() async {
+    await indexTestUnit('''
+Future<void> f(void Function(String) f, String a) async {
+// start
+  f(a);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+Future<void> f(void Function(String) f, String a) async {
+// start
+  res(f, a);
+// end
+}
+
+void res(void Function(String) f, String a) {
+  f(a);
 }
 ''');
   }

@@ -9173,6 +9173,8 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
 
 class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
+  static constexpr intptr_t kShiftCountLimit = 63;
+
   BinaryIntegerOpInstr(Token::Kind op_kind,
                        Value* left,
                        Value* right,
@@ -9180,7 +9182,8 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
       : TemplateDefinition(deopt_id),
         op_kind_(op_kind),
         can_overflow_(true),
-        is_truncating_(false) {
+        is_truncating_(false),
+        right_range_(nullptr) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -9216,16 +9219,25 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
     set_can_overflow(false);
   }
 
-  // Returns true if right is either a non-zero Integer constant or has a range
-  // that does not include the possibility of being zero.
-  bool RightIsNonZero() const;
+  // Returns true if compiler cannot prove that rhs operand is not zero.
+  bool RightOperandCanBeZero() const;
+
+  // Returns true if compiler cannot prove that rhs operand is not -1.
+  bool RightOperandCanBeMinusOne() const;
 
   // Returns true if rhs operand is positive.
-  bool RightIsPositive() const;
+  bool RightOperandIsPositive() const;
 
-  // Returns true if right is a non-zero Smi constant which absolute value is
-  // a power of two.
-  bool RightIsPowerOfTwoConstant() const;
+  // Returns true if rhs operand is negative.
+  bool RightOperandIsNegative() const;
+
+  // Returns true if rhs opernad is a non-zero Smi constant which
+  // absolute value is a power of two.
+  bool RightOperandIsPowerOfTwoConstant() const;
+
+  // Returns true if the shift amount (right operand) is guaranteed to be in
+  // [0..max] range.
+  bool IsShiftCountInRange(int64_t max = kShiftCountLimit) const;
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -9244,7 +9256,8 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 #define FIELD_LIST(F)                                                          \
   F(const Token::Kind, op_kind_)                                               \
   F(bool, can_overflow_)                                                       \
-  F(bool, is_truncating_)
+  F(bool, is_truncating_)                                                      \
+  F(Range*, right_range_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BinaryIntegerOpInstr,
                                           TemplateDefinition,
@@ -9252,15 +9265,11 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 #undef FIELD_LIST
 
  protected:
+  Range* right_range() const { return right_range_; }
+
   void InferRangeHelper(const Range* left_range,
                         const Range* right_range,
                         Range* range);
-
-  static constexpr intptr_t kShiftCountLimit = 63;
-
-  // Returns true if the shift amount (right operand) is guaranteed to be in
-  // [0..max] range.
-  bool IsShiftCountInRange(int64_t max = kShiftCountLimit) const;
 
  private:
   Definition* CreateConstantResult(FlowGraph* graph, const Integer& result);
@@ -9273,27 +9282,16 @@ class BinarySmiOpInstr : public BinaryIntegerOpInstr {
   BinarySmiOpInstr(Token::Kind op_kind,
                    Value* left,
                    Value* right,
-                   intptr_t deopt_id,
-                   // Provided by BinaryIntegerOpInstr::Make for constant RHS.
-                   Range* right_range = nullptr)
-      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
-        right_range_(right_range) {}
+                   intptr_t deopt_id)
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {}
 
   virtual bool ComputeCanDeoptimize() const;
 
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(BinarySmiOp)
 
-  Range* right_range() const { return right_range_; }
-
-#define FIELD_LIST(F) F(Range*, right_range_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BinarySmiOpInstr,
-                                          BinaryIntegerOpInstr,
-                                          FIELD_LIST)
-#undef FIELD_LIST
+  DECLARE_EMPTY_SERIALIZATION(BinarySmiOpInstr, BinaryIntegerOpInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
@@ -9433,7 +9431,7 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
         return !IsShiftCountInRange();
       case Token::kMOD:
       case Token::kTRUNCDIV:
-        return !RightIsNonZero();
+        return RightOperandCanBeZero();
       default:
         return false;
     }
