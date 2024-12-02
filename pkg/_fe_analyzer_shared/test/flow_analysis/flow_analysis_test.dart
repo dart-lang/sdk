@@ -4846,24 +4846,24 @@ main() {
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'bool']);
-      expect(PromotionModel.joinTested(s1, s2, h.typeOperations), expected);
-      expect(PromotionModel.joinTested(s2, s1, h.typeOperations), expected);
+      expect(PromotionModel.joinTested(s1, s2), expected);
+      expect(PromotionModel.joinTested(s2, s1), expected);
     });
 
     test('common prefix', () {
       var s1 = _makeTypes(['double', 'int', 'String']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'String', 'bool']);
-      expect(PromotionModel.joinTested(s1, s2, h.typeOperations), expected);
-      expect(PromotionModel.joinTested(s2, s1, h.typeOperations), expected);
+      expect(PromotionModel.joinTested(s1, s2), expected);
+      expect(PromotionModel.joinTested(s2, s1), expected);
     });
 
     test('order mismatch', () {
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['int', 'double']);
       var expected = _matchOfInterestSet(['double', 'int']);
-      expect(PromotionModel.joinTested(s1, s2, h.typeOperations), expected);
-      expect(PromotionModel.joinTested(s2, s1, h.typeOperations), expected);
+      expect(PromotionModel.joinTested(s1, s2), expected);
+      expect(PromotionModel.joinTested(s2, s1), expected);
     });
 
     test('small common prefix', () {
@@ -4871,8 +4871,8 @@ main() {
       var s2 = _makeTypes(['int', 'List', 'bool', 'Future']);
       var expected = _matchOfInterestSet(
           ['int', 'double', 'String', 'bool', 'List', 'Future']);
-      expect(PromotionModel.joinTested(s1, s2, h.typeOperations), expected);
-      expect(PromotionModel.joinTested(s2, s1, h.typeOperations), expected);
+      expect(PromotionModel.joinTested(s1, s2), expected);
+      expect(PromotionModel.joinTested(s2, s1), expected);
     });
   });
 
