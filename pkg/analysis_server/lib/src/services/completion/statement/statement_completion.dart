@@ -10,7 +10,7 @@ import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -158,11 +158,11 @@ class StatementCompletionProcessor {
 
   int get selectionOffset => statementContext.selectionOffset;
 
-  Source get source => unitElement.source;
+  Source get source => unitFragment.source;
 
   CompilationUnit get unit => statementContext.resolveResult.unit;
 
-  CompilationUnitElement get unitElement => unit.declaredElement!;
+  LibraryFragment get unitFragment => unit.declaredFragment!;
 
   Future<StatementCompletion> compute() async {
     var node = _selectedNode();
@@ -232,7 +232,7 @@ class StatementCompletionProcessor {
 
   void _addInsertEdit(int offset, String text) {
     var edit = SourceEdit(offset, 0, text);
-    doSourceChange_addElementEdit(change, unitElement, edit);
+    doSourceChange_addFragmentEdit(change, unitFragment, edit);
   }
 
   void _addReplaceEdit(SourceRange range, String text) {
@@ -243,7 +243,7 @@ class StatementCompletionProcessor {
     //  the edits are applied. The implementation needs to be cleaned up in
     //  order to prevent the conflicting edit from being generated.
     // doSourceChange_addElementEdit(change, unitElement, edit);
-    var fileEdit = change.getFileEdit(unitElement.source.fullName);
+    var fileEdit = change.getFileEdit(unitFragment.source.fullName);
     if (fileEdit == null) {
       fileEdit = SourceFileEdit(file, 0);
       change.addFileEdit(fileEdit);

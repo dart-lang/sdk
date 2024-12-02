@@ -8,7 +8,7 @@ import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -620,7 +620,7 @@ final class PostfixCompletionProcessor {
   }
 
   Expression? _findOuterExpression(AstNode? start, InterfaceType builtInType) {
-    if (start is SimpleIdentifier && start.staticElement is PrefixElement) {
+    if (start is SimpleIdentifier && start.element is PrefixElement2) {
       return null;
     }
 
