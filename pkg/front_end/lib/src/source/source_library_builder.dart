@@ -720,7 +720,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         problemReporting: this,
         enclosingLibraryBuilder: this,
         mixinApplications: _mixinApplications!,
-        unboundNominalVariables: _unboundNominalVariables,
+        unboundNominalParameters: _unboundNominalParameters,
         indexedLibrary: indexedLibrary);
 
     Iterable<SourceLibraryBuilder>? augmentationLibraries =
@@ -1400,7 +1400,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  final List<NominalParameterBuilder> _unboundNominalVariables = [];
+  final List<NominalParameterBuilder> _unboundNominalParameters = [];
 
   /// Adds all unbound nominal parameters to [nominalParameters] and unbound
   /// structural parameters to [structuralParameters], mapping them to this
@@ -1426,12 +1426,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       part.collectUnboundTypeParameters(
           this, nominalParameters, structuralParameters);
     }
-    for (NominalParameterBuilder builder in _unboundNominalVariables) {
+    for (NominalParameterBuilder builder in _unboundNominalParameters) {
       nominalParameters[builder] = this;
     }
-    _unboundNominalVariables.clear();
+    _unboundNominalParameters.clear();
 
     state = SourceLibraryBuilderState.unboundTypeParametersCollected;
+  }
+
+  void registerUnboundNominalParameters(
+      List<NominalParameterBuilder> unboundNominalParameters) {
+    _unboundNominalParameters.addAll(unboundNominalParameters);
   }
 
   /// Computes variances of type parameters on typedefs.

@@ -20,11 +20,11 @@ import '../source/builder_factory.dart';
 import '../source/constructor_declaration.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
-import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart';
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'declaration_builders.dart';
+import 'member_builder.dart';
 import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
@@ -52,8 +52,6 @@ abstract class ParameterBuilder {
 class FormalParameterBuilder extends BuilderImpl
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
-
-  SourceFunctionBuilder? _parent;
 
   @override
   final int fileOffset;
@@ -107,15 +105,8 @@ class FormalParameterBuilder extends BuilderImpl
   }
 
   @override
-  SourceFunctionBuilder get parent {
-    assert(_parent != null, "Parent has not been set for $this.");
-    return _parent!;
-  }
-
-  void set parent(SourceFunctionBuilder value) {
-    assert(_parent == null, "Parent has already been set for $this.");
-    _parent = value;
-  }
+  // Coverage-ignore(suite): Not run.
+  Builder? get parent => null;
 
   @override
   bool get isRequiredPositional => kind.isRequiredPositional;
@@ -200,7 +191,6 @@ class FormalParameterBuilder extends BuilderImpl
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
-      .._parent = _parent
       ..variable = variable;
   }
 
@@ -215,7 +205,6 @@ class FormalParameterBuilder extends BuilderImpl
           fileUri: fileUri,
           isExtensionThis: isExtensionThis,
           hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
-        ..parent = parent
         ..variable = variable;
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
@@ -227,7 +216,6 @@ class FormalParameterBuilder extends BuilderImpl
           fileUri: fileUri,
           isExtensionThis: isExtensionThis,
           hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
-        ..parent = parent
         ..variable = variable;
     } else {
       return this;
@@ -249,7 +237,8 @@ class FormalParameterBuilder extends BuilderImpl
     }
   }
 
-  bool get needsDefaultValuesBuiltAsOutlineExpressions {
+  static bool needsDefaultValuesBuiltAsOutlineExpressions(
+      MemberBuilder memberBuilder) {
     // For modular compilation we need to include default values for optional
     // and named parameters in several cases:
     // * for const constructors to enable constant evaluation,
@@ -259,25 +248,27 @@ class FormalParameterBuilder extends BuilderImpl
     //   in mixin applications, and
     // * for factories, to uphold the invariant that optional parameters always
     //   have default values, even during modular compilation.
-    if (parent is ConstructorBuilder) {
+    if (memberBuilder is ConstructorBuilder) {
       return true;
-    } else if (parent is SourceFactoryBuilder) {
-      return parent.isFactory;
+    } else if (memberBuilder is SourceFactoryBuilder) {
+      return memberBuilder.isFactory;
     } else {
-      return parent.isClassInstanceMember;
+      return memberBuilder.isClassInstanceMember;
     }
   }
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder) {
-    if (needsDefaultValuesBuiltAsOutlineExpressions) {
+  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder? declarationBuilder,
+      {required bool buildDefaultValue}) {
+    if (buildDefaultValue) {
       if (initializerToken != null) {
-        final DeclarationBuilder declarationBuilder =
-            parent.declarationBuilder!;
-        LookupScope scope = declarationBuilder.scope;
-        BodyBuilderContext bodyBuilderContext =
-            new ParameterBodyBuilderContext(this);
+        LookupScope scope =
+            declarationBuilder?.scope ?? // Coverage-ignore(suite): Not run.
+                libraryBuilder.scope;
+        BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
+            libraryBuilder, declarationBuilder, this);
         BodyBuilder bodyBuilder = libraryBuilder.loader
             .createBodyBuilderForOutlineExpression(
                 libraryBuilder, bodyBuilderContext, scope, fileUri);

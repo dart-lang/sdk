@@ -176,14 +176,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
                 Modifiers.empty, stringType, "#name", fileOffset,
                 fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
         member.formals!.insert(0, nameFormalParameterBuilder);
-        nameFormalParameterBuilder.parent = member;
 
         FormalParameterBuilder indexFormalParameterBuilder =
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
                 Modifiers.empty, intType, "#index", fileOffset,
                 fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
         member.formals!.insert(0, indexFormalParameterBuilder);
-        indexFormalParameterBuilder.parent = member;
       }
     }
 

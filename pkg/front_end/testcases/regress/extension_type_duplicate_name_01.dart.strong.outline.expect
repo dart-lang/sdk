@@ -9,13 +9,6 @@ library;
 // int DuplicateName = 42;
 //     ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/regress/extension_type_duplicate_name_01.dart:11:11: Error: 'DuplicateName' isn't a type.
-//   int get bar => 42;
-//           ^
-// pkg/front_end/testcases/regress/extension_type_duplicate_name_01.dart:11:11: Context: This isn't a type.
-//   int get bar => 42;
-//           ^
-//
 import self as self;
 import "dart:core" as core;
 

@@ -10,12 +10,6 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
   @override
   final int fileOffset;
 
-  /// The type of `this` in instance methods declared in extension declarations.
-  ///
-  /// Instance methods declared in extension declarations methods are extended
-  /// with a synthesized parameter of this type.
-  TypeBuilder? _extensionThisType;
-
   SourceExtensionBuilder? _builder;
 
   late final List<MetadataBuilder>? metadata;
@@ -55,34 +49,6 @@ class ExtensionFragment extends DeclarationFragment implements Fragment {
   @override
   DeclarationFragmentKind get kind =>
       DeclarationFragmentKind.extensionDeclaration;
-
-  /// Registers the 'extension this type' of the extension declaration prepared
-  /// for by this builder.
-  ///
-  /// See [extensionThisType] for terminology.
-  void registerExtensionThisType(TypeBuilder type) {
-    assert(_extensionThisType == null,
-        "Extension this type has already been set.");
-    _extensionThisType = type;
-  }
-
-  /// Returns the 'extension this type' of the extension declaration prepared
-  /// for by this builder.
-  ///
-  /// The 'extension this type' is the type mentioned in the on-clause of the
-  /// extension declaration. For instance `B` in this extension declaration:
-  ///
-  ///     extension A on B {
-  ///       B method() => this;
-  ///     }
-  ///
-  /// The 'extension this type' is the type if `this` expression in instance
-  /// methods declared in extension declarations.
-  TypeBuilder get extensionThisType {
-    assert(_extensionThisType != null,
-        "DeclarationBuilder.extensionThisType has not been set on $this.");
-    return _extensionThisType!;
-  }
 
   @override
   String toString() => '$runtimeType($name,$fileUri,$fileOffset)';

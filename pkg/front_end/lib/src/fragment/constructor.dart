@@ -15,6 +15,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   final List<MetadataBuilder>? metadata;
   final OmittedTypeBuilder returnType;
   final List<NominalParameterBuilder>? typeParameters;
+  final NominalParameterNameSpace typeParameterNameSpace;
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final String? nativeMethodName;
@@ -33,6 +34,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
       required this.metadata,
       required this.returnType,
       required this.typeParameters,
+      required this.typeParameterNameSpace,
       required this.typeParameterScope,
       required this.formals,
       required this.nativeMethodName,

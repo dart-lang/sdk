@@ -94,7 +94,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   /// concrete target.
   Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
 
-  final List<NominalParameterBuilder> _unboundNominalVariables = [];
+  final List<NominalParameterBuilder> _unboundNominalParameters = [];
 
   final List<StructuralParameterBuilder> _unboundStructuralVariables = [];
 
@@ -354,14 +354,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   }
 
   @override
-  void beginExtensionBody(TypeBuilder? extensionThisType) {
+  void beginExtensionBody() {
     ExtensionFragment declarationFragment =
         _declarationFragments.current as ExtensionFragment;
     _typeScopes.push(new TypeScope(TypeScopeKind.extensionDeclaration,
         declarationFragment.bodyScope, _typeScopes.current));
-    if (extensionThisType != null) {
-      declarationFragment.registerExtensionThisType(extensionThisType);
-    }
   }
 
   @override
@@ -983,7 +980,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
   static TypeBuilder? applyMixins(
       {required ProblemReporting problemReporting,
       required SourceLibraryBuilder enclosingLibraryBuilder,
-      required List<NominalParameterBuilder> unboundNominalVariables,
+      required List<NominalParameterBuilder> unboundNominalParameters,
       required TypeBuilder? supertype,
       required MixinApplicationBuilder? mixinApplicationBuilder,
       required int startOffset,
@@ -1120,7 +1117,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
                 new NominalParameterNameSpace();
 
             NominalParameterCopy nominalVariableCopy = copyTypeParameters(
-                unboundNominalVariables, typeParameters,
+                unboundNominalParameters, typeParameters,
                 kind: TypeParameterKind.extensionSynthesized,
                 instanceTypeParameterAccess:
                     InstanceTypeParameterAccessState.Allowed)!;
@@ -1363,116 +1360,17 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       switch (declarationFragment) {
         case ExtensionFragment():
         case ExtensionTypeFragment():
-          NominalParameterCopy? nominalVariableCopy = copyTypeParameters(
-              _unboundNominalVariables, declarationFragment.typeParameters,
-              kind: TypeParameterKind.extensionSynthesized,
-              instanceTypeParameterAccess:
-                  InstanceTypeParameterAccessState.Allowed);
-
           // Discard type parameters declared on the constructor. It's not
           // allowed, an error has already been issued and it will cause
           // crashes later if they are kept/added to the ones from the parent.
           // TODO(johnniwinther): This will cause us issuing errors about not
           // knowing the names of what we discard here. Is there a way to
           // preserve them?
-          typeParameters = nominalVariableCopy?.newParameterBuilders;
+          typeParameters = null;
         case ClassFragment():
         case MixinFragment():
         case EnumFragment():
       }
-    } else if (!isStatic) {
-      switch (declarationFragment) {
-        case ExtensionFragment():
-          NominalParameterCopy? nominalVariableCopy = copyTypeParameters(
-              _unboundNominalVariables, declarationFragment.typeParameters,
-              kind: TypeParameterKind.extensionSynthesized,
-              instanceTypeParameterAccess:
-                  InstanceTypeParameterAccessState.Allowed);
-
-          if (nominalVariableCopy != null) {
-            if (typeParameters != null) {
-              typeParameters = nominalVariableCopy.newParameterBuilders
-                ..addAll(typeParameters);
-            } else {
-              typeParameters = nominalVariableCopy.newParameterBuilders;
-            }
-          }
-
-          TypeBuilder thisType = declarationFragment.extensionThisType;
-          if (nominalVariableCopy != null) {
-            thisType = new SynthesizedTypeBuilder(
-                thisType,
-                nominalVariableCopy.newToOldParameterMap,
-                nominalVariableCopy.substitutionMap);
-          }
-          List<FormalParameterBuilder> synthesizedFormals = [
-            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                Modifiers.Final, thisType, syntheticThisName, nameOffset,
-                fileUri: _compilationUnit.fileUri,
-                isExtensionThis: true,
-                hasImmediatelyDeclaredInitializer: false)
-          ];
-          if (formals != null) {
-            synthesizedFormals.addAll(formals);
-          }
-          formals = synthesizedFormals;
-        case ExtensionTypeFragment():
-          NominalParameterCopy? nominalVariableCopy = copyTypeParameters(
-              _unboundNominalVariables, declarationFragment.typeParameters,
-              kind: TypeParameterKind.extensionSynthesized,
-              instanceTypeParameterAccess:
-                  InstanceTypeParameterAccessState.Allowed);
-
-          if (nominalVariableCopy != null) {
-            if (typeParameters != null) {
-              typeParameters = nominalVariableCopy.newParameterBuilders
-                ..addAll(typeParameters);
-            } else {
-              typeParameters = nominalVariableCopy.newParameterBuilders;
-            }
-          }
-
-          TypeBuilder thisType = addNamedType(
-              new SyntheticTypeName(declarationFragment.name, nameOffset),
-              const NullabilityBuilder.omitted(),
-              declarationFragment.typeParameters != null
-                  ? new List<TypeBuilder>.generate(
-                      declarationFragment.typeParameters!.length,
-                      (int index) =>
-                          new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                              typeParameters![index],
-                              const NullabilityBuilder.omitted(),
-                              instanceTypeParameterAccess:
-                                  InstanceTypeParameterAccessState.Allowed))
-                  : null,
-              nameOffset,
-              instanceTypeParameterAccess:
-                  InstanceTypeParameterAccessState.Allowed);
-
-          if (nominalVariableCopy != null) {
-            thisType = new SynthesizedTypeBuilder(
-                thisType,
-                nominalVariableCopy.newToOldParameterMap,
-                nominalVariableCopy.substitutionMap);
-          }
-          List<FormalParameterBuilder> synthesizedFormals = [
-            new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                Modifiers.Final, thisType, syntheticThisName, nameOffset,
-                fileUri: _compilationUnit.fileUri,
-                isExtensionThis: true,
-                hasImmediatelyDeclaredInitializer: false)
-          ];
-          if (formals != null) {
-            synthesizedFormals.addAll(formals);
-          }
-          formals = synthesizedFormals;
-        case ClassFragment():
-        case MixinFragment():
-        case EnumFragment():
-      }
-    }
-
-    if (isConstructor) {
       ConstructorName constructorName =
           computeAndValidateConstructorName(declarationFragment, identifier);
       addConstructor(
@@ -1579,13 +1477,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
 
-    NominalParameterCopy? nominalVariableCopy = copyTypeParameters(
-        _unboundNominalVariables, _declarationFragments.current.typeParameters,
-        kind: TypeParameterKind.extensionSynthesized,
-        instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed);
-    List<NominalParameterBuilder>? typeParameters =
-        nominalVariableCopy?.newParameterBuilders;
-
     ConstructorName constructorName;
     String declarationName = _declarationFragments.current.name;
     if (name == 'new') {
@@ -1610,6 +1501,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
           fullNameOffset: formalsOffset,
           fullNameLength: noLength);
     }
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+
     PrimaryConstructorFragment fragment = new PrimaryConstructorFragment(
         constructorName: constructorName,
         fileUri: _compilationUnit.fileUri,
@@ -1617,7 +1511,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         formalsOffset: formalsOffset,
         modifiers: isConst ? Modifiers.Const : Modifiers.empty,
         returnType: addInferableType(),
-        typeParameters: typeParameters,
+        typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         forAbstractClassOrMixin: false,
@@ -1631,9 +1525,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             ? new Token.eof(-1)
             : null);
 
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: constructorName.name, allowNameConflict: true);
     _addFragment(fragment);
     if (isConst) {
       _declarationFragments.current.declaresConstConstructor = true;
@@ -1660,6 +1551,8 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
 
     ConstructorFragment fragment = new ConstructorFragment(
         constructorName: constructorName,
@@ -1671,6 +1564,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         metadata: metadata,
         returnType: addInferableType(),
         typeParameters: typeParameters,
+        typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         nativeMethodName: nativeMethodName,
@@ -1686,9 +1580,6 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
             ? (beginInitializers ?? new Token.eof(-1))
             : null);
 
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: constructorName.name, allowNameConflict: true);
     _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeConstructorFragment(fragment);
@@ -1732,38 +1623,15 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       required int endOffset,
       required String? nativeMethodName,
       required AsyncMarker asyncModifier}) {
-    TypeBuilder returnType;
-    List<TypeBuilder>? returnTypeArguments;
     DeclarationFragment enclosingDeclaration = _declarationFragments.current;
-    if (enclosingDeclaration.kind ==
-        DeclarationFragmentKind.extensionDeclaration) {
-      // Make the synthesized return type invalid for extensions.
-      String name = enclosingDeclaration.name;
-      returnType = new NamedTypeBuilderImpl.forInvalidType(
-          name,
-          const NullabilityBuilder.omitted(),
-          messageExtensionDeclaresConstructor.withLocation(
-              _compilationUnit.fileUri, nameOffset, name.length));
-    } else {
-      returnType = addNamedType(
-          new SyntheticTypeName(enclosingDeclaration.name, nameOffset),
-          const NullabilityBuilder.omitted(),
-          returnTypeArguments = [],
-          nameOffset,
-          instanceTypeParameterAccess:
-              InstanceTypeParameterAccessState.Allowed);
-    }
 
     ConstructorName constructorName = computeAndValidateConstructorName(
         enclosingDeclaration, identifier,
         isFactory: true);
 
-    List<NominalParameterBuilder>? typeParameters = copyTypeParameters(
-            _unboundNominalVariables, enclosingDeclaration.typeParameters,
-            kind: TypeParameterKind.function,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Allowed)
-        ?.newParameterBuilders;
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+
     FactoryFragment fragment = new FactoryFragment(
         constructorName: constructorName,
         fileUri: _compilationUnit.fileUri,
@@ -1772,33 +1640,16 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         endOffset: endOffset,
         modifiers: modifiers | Modifiers.Static,
         metadata: metadata,
-        returnType: returnType,
-        typeParameters: typeParameters,
+        typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: _typeScopes.current.lookupScope,
         formals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName,
         redirectionTarget: redirectionTarget);
 
-    if (returnTypeArguments != null && typeParameters != null) {
-      for (TypeParameterBuilder typeParameter in typeParameters) {
-        returnTypeArguments.add(addNamedType(
-            new SyntheticTypeName(typeParameter.name, nameOffset),
-            const NullabilityBuilder.omitted(),
-            null,
-            nameOffset,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Allowed));
-      }
-    }
-
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(typeParameterScope.kind == TypeScopeKind.memberTypeParameters,
         "Unexpected type scope: $typeParameterScope.");
-
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: identifier.name, allowNameConflict: true);
 
     _addFragment(fragment);
     if (nativeMethodName != null) {
@@ -1985,6 +1836,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         enclosingDeclaration?.kind ==
             DeclarationFragmentKind.extensionTypeDeclaration);
 
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+
     GetterFragment fragment = new GetterFragment(
         name: name,
         fileUri: _compilationUnit.fileUri,
@@ -1997,13 +1851,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: modifiers,
         returnType: returnType ?? addInferableType(),
         typeParameters: typeParameters,
+        typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: name, allowNameConflict: true);
     _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeGetterFragment(fragment);
@@ -2047,6 +1899,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       returnType = addVoidType(nameOffset);
     }
 
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+
     SetterFragment fragment = new SetterFragment(
         name: name,
         fileUri: _compilationUnit.fileUri,
@@ -2059,13 +1914,11 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: modifiers,
         returnType: returnType,
         typeParameters: typeParameters,
+        typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: name, allowNameConflict: true);
     _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeSetterFragment(fragment);
@@ -2116,6 +1969,9 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       }
     }
 
+    NominalParameterNameSpace typeParameterNameSpace =
+        _nominalParameterNameSpaces.pop();
+
     MethodFragment fragment = new MethodFragment(
         name: name,
         fileUri: _compilationUnit.fileUri,
@@ -2128,14 +1984,12 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         modifiers: modifiers,
         returnType: returnType ?? addInferableType(),
         typeParameters: typeParameters,
+        typeParameterNameSpace: typeParameterNameSpace,
         typeParameterScope: typeParameterScope.lookupScope,
         formals: formals,
         kind: kind,
         asyncModifier: asyncModifier,
         nativeMethodName: nativeMethodName);
-    _nominalParameterNameSpaces.pop().addTypeParameters(
-        _problemReporting, typeParameters,
-        ownerName: name, allowNameConflict: true);
     _addFragment(fragment);
     if (nativeMethodName != null) {
       _addNativeMethodFragment(fragment);
@@ -2360,7 +2214,7 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
         variableName, charOffset, fileUri,
         bound: bound, metadata: metadata, kind: kind, isWildcard: isWildcard);
 
-    _unboundNominalVariables.add(builder);
+    _unboundNominalParameters.add(builder);
     return builder;
   }
 
@@ -2478,14 +2332,14 @@ class BuilderFactoryImpl implements BuilderFactory, BuilderFactoryResult {
       Map<NominalParameterBuilder, SourceLibraryBuilder> nominalVariables,
       Map<StructuralParameterBuilder, SourceLibraryBuilder>
           structuralVariables) {
-    for (NominalParameterBuilder builder in _unboundNominalVariables) {
+    for (NominalParameterBuilder builder in _unboundNominalParameters) {
       nominalVariables[builder] = libraryBuilder;
     }
     for (StructuralParameterBuilder builder in _unboundStructuralVariables) {
       structuralVariables[builder] = libraryBuilder;
     }
     _unboundStructuralVariables.clear();
-    _unboundNominalVariables.clear();
+    _unboundNominalParameters.clear();
   }
 
   @override

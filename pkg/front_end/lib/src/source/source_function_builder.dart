@@ -143,11 +143,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   SourceFunctionBuilderImpl(this.metadata, this.modifiers, this.name,
       this.typeParameters, this.formals, this.nativeMethodName) {
     returnType.registerInferredTypeListener(this);
-    if (formals != null) {
-      for (int i = 0; i < formals!.length; i++) {
-        formals![i].parent = this;
-      }
-    }
   }
 
   @override
@@ -512,7 +507,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals!) {
-          formal.buildOutlineExpressions(libraryBuilder);
+          formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
+              buildDefaultValue: FormalParameterBuilder
+                  .needsDefaultValuesBuiltAsOutlineExpressions(this));
         }
       }
       hasBuiltOutlineExpressions = true;

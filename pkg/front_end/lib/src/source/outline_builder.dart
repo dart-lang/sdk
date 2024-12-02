@@ -1108,14 +1108,7 @@ class OutlineBuilder extends StackListenerImpl {
         assert(checkState(token, [
           unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder])
         ]));
-        Object? extensionThisType = peek();
-        _builderFactory.beginExtensionBody(extensionThisType is TypeBuilder
-            ? extensionThisType
-            : new InvalidTypeBuilderImpl(
-                uri,
-                extensionThisType is ParserRecovery
-                    ? extensionThisType.charOffset
-                    : TreeNode.noOffset));
+        _builderFactory.beginExtensionBody();
         break;
       case DeclarationKind.ExtensionType:
         declarationContext = DeclarationContext.ExtensionTypeBody;
