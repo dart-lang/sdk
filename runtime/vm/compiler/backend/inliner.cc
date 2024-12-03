@@ -1232,7 +1232,7 @@ class CallSiteInliner : public ValueObject {
         constant_arg_count == 0 ? function.optimized_instruction_count() : 0;
     const intptr_t call_site_count =
         constant_arg_count == 0 ? function.optimized_call_site_count() : 0;
-    InliningDecision decision =
+    volatile InliningDecision decision =
         ShouldWeInline(function, instruction_count, call_site_count);
     if (!decision.value) {
       TRACE_INLINING(

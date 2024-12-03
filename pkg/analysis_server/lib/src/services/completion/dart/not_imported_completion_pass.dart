@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_state.da
 import 'package:analysis_server/src/services/completion/dart/declaration_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
@@ -26,7 +26,7 @@ class ConstructorsOperation extends NotImportedOperation {
     : _declarationHelper = declarationHelper;
 
   /// Compute any candidate suggestions for elements in the [library].
-  void computeSuggestionsIn(LibraryElement library) {
+  void computeSuggestionsIn(LibraryElement2 library) {
     _declarationHelper.addNotImportedConstructors(library);
   }
 }
@@ -62,7 +62,7 @@ class InstanceExtensionMembersOperation extends NotImportedOperation {
        _includeSetters = includeSetters;
 
   /// Compute any candidate suggestions for elements in the [library].
-  void computeSuggestionsIn(LibraryElement library) {
+  void computeSuggestionsIn(LibraryElement2 library) {
     _declarationHelper.addNotImportedExtensionMethods(
       library: library,
       type: _type,
@@ -137,8 +137,8 @@ class NotImportedCompletionPass {
         continue;
       }
 
-      var library = request.libraryElement;
-      var element = elementResult.element;
+      var library = request.libraryElement2;
+      var element = elementResult.element2;
       if (element == library) {
         // Don't suggest elements from the library in which completion is being
         // requested. They've already been suggested.
@@ -166,7 +166,7 @@ class NotImportedCompletionPass {
             }
 
             var exportNamespace = element.exportNamespace;
-            var exportElements = exportNamespace.definedNames.values.toList();
+            var exportElements = exportNamespace.definedNames2.values.toList();
 
             performance.run('staticMembers', (_) {
               operation.computeSuggestionsIn(
@@ -198,9 +198,9 @@ class StaticMembersOperation extends NotImportedOperation {
 
   /// Compute any candidate suggestions for elements in the [library].
   void computeSuggestionsIn(
-    LibraryElement library,
-    List<Element> exportElements,
-    Set<Element> importedElements,
+    LibraryElement2 library,
+    List<Element2> exportElements,
+    Set<Element2> importedElements,
   ) {
     // TODO(brianwilkerson): Determine whether we need the element parameters.
     _declarationHelper.addNotImportedTopLevelDeclarations(library);
@@ -211,19 +211,21 @@ class StaticMembersOperation extends NotImportedOperation {
 class _ImportSummary {
   /// The elements that are imported from libraries that are only partially
   /// imported.
-  Set<Element> importedElements = Set<Element>.identity();
+  Set<Element2> importedElements = Set<Element2>.identity();
 
   /// The libraries that are imported in their entirety.
-  Set<LibraryElement> importedLibraries = Set<LibraryElement>.identity();
+  Set<LibraryElement2> importedLibraries = Set<LibraryElement2>.identity();
 
-  _ImportSummary(LibraryElement library) {
-    for (var import in library.definingCompilationUnit.libraryImports) {
-      var importedLibrary = import.importedLibrary;
-      if (importedLibrary != null) {
-        if (import.combinators.isEmpty) {
-          importedLibraries.add(importedLibrary);
-        } else {
-          importedElements.addAll(import.namespace.definedNames.values);
+  _ImportSummary(LibraryElement2 library) {
+    for (var fragment in library.fragments) {
+      for (var import in fragment.libraryImports2) {
+        var importedLibrary = import.importedLibrary2;
+        if (importedLibrary != null) {
+          if (import.combinators.isEmpty) {
+            importedLibraries.add(importedLibrary);
+          } else {
+            importedElements.addAll(import.namespace.definedNames2.values);
+          }
         }
       }
     }

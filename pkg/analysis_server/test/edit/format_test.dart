@@ -174,15 +174,48 @@ void f() {
     expect(formatResult.selectionLength, equals(3));
   }
 
+  /// Verify version 2.19 is passed to the formatter so it will not produce any
+  /// edits for code containing records (since it fails to parse).
+  Future<void> test_format_version_2_19() async {
+    writeTestPackageConfig(languageVersion: '2.19');
+    addTestFile('''
+var          a = (1, 2);
+''');
+    await waitForTasksFinished();
+    await _expectFormatError(0, 3);
+  }
+
+  /// Verify version 3.0 is passed to the formatter so will produce edits for
+  /// code containing records.
+  Future<void> test_format_version_3_0() async {
+    addTestFile('''
+var          a = (1, 2);
+''');
+    await waitForTasksFinished();
+    var formatResult = await _formatAt(0, 3);
+
+    expect(formatResult.edits, isNotNull);
+    expect(formatResult.edits, hasLength(1));
+  }
+
   Future<void> test_format_withErrors() async {
     addTestFile('''
 void f() { int x =
 ''');
     await waitForTasksFinished();
+    await _expectFormatError(0, 3);
+  }
+
+  Future<void> _expectFormatError(
+    int selectionOffset,
+    int selectionLength, {
+    int? lineLength,
+  }) async {
     var request = EditFormatParams(
       testFile.path,
-      0,
-      3,
+      selectionOffset,
+      selectionLength,
+      lineLength: lineLength,
     ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     expect(response, isResponseFailure('0'));

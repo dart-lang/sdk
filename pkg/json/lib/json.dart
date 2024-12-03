@@ -394,16 +394,16 @@ mixin _FromJson on _Shared {
     // Otherwise, check if `classDecl` has a `fromJson` constructor.
     final constructors = await builder.constructorsOf(classDecl);
     final fromJson = constructors
-        .firstWhereOrNull((c) => c.identifier.name == 'fromJson')
-        ?.identifier;
+        .firstWhereOrNull((c) => c.identifier.name == 'fromJson');
+
     if (fromJson != null) {
       return RawCode.fromParts([
         if (nullCheck != null) nullCheck,
-        fromJson,
+        fromJson.identifier,
         '(',
         jsonReference,
         ' as ',
-        introspectionData.jsonMapCode,
+        fromJson.positionalParameters.first.type.code,
         ')',
       ]);
     }

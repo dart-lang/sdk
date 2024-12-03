@@ -153,6 +153,9 @@ abstract final class CustomMethods {
   static const dartTextDocumentContentDidChange = Method(
     'dart/textDocumentContentDidChange',
   );
+
+  /// Method for requesting the set of editable arguments at a location in a
+  /// document.
   static const dartTextDocumentEditableArguments = Method(
     'experimental/dart/textDocument/editableArguments',
   );
