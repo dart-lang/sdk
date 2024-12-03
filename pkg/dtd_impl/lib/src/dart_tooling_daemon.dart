@@ -313,7 +313,9 @@ class DartToolingDaemon {
         return innerHandler(request);
       };
 
-  Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws) {
+  // Note: the WebSocketChannel type below is needed for compatibility with
+  // package:shelf_web_socket v2.
+  Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws, _) {
         final client = DTDClient.fromWebSocket(
           this,
           ws,

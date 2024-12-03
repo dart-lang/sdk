@@ -10,6 +10,7 @@
 - Updated `vm_service` constraint to ^14.3.0.
 - [DAP] Updated `dap` constraint to ^1.4.0.
 - [DAP] Set `supportsANSIStyling` to `true` in debug adapter capabilities to indicate that `Output` events might contain ansi color codes.
+- Update to be forward compatible with `package:shelf_web_socket` version `3.x`.
 
 # 4.2.7
 - Added a new constant `RpcErrorCodes.kConnectionDisposed = -32010` for requests
