@@ -581,9 +581,6 @@ class IsolateSpawnState {
                     IsolateGroup* group);
   ~IsolateSpawnState();
 
-  Isolate* isolate() const { return isolate_; }
-  void set_isolate(Isolate* value) { isolate_ = value; }
-
   Dart_Port parent_port() const { return parent_port_; }
   Dart_Port origin_id() const { return origin_id_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
@@ -608,7 +605,6 @@ class IsolateSpawnState {
   IsolateGroup* isolate_group() const { return isolate_group_; }
 
  private:
-  Isolate* isolate_ = nullptr;
   Dart_Port parent_port_;
   Dart_Port origin_id_ = ILLEGAL_PORT;
   Dart_Port on_exit_port_;
@@ -880,12 +876,14 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return;
     }
 
-    state_->set_isolate(child);
     if (state_->origin_id() != ILLEGAL_PORT) {
       // origin_id is set to parent isolate main port id when spawning via
       // spawnFunction.
       child->set_origin_id(state_->origin_id());
     }
+    bool errors_are_fatal = state_->errors_are_fatal();
+    Dart_Port on_error_port = state_->on_error_port();
+    Dart_Port on_exit_port = state_->on_exit_port();
 
     bool success = true;
     {
@@ -895,18 +893,22 @@ class SpawnIsolateTask : public ThreadPool::Task {
       HandleScope hs(thread);
 
       success = EnqueueEntrypointInvocationAndNotifySpawner(thread);
+
+      // Destruction of [IsolateSpawnState] may cause destruction of [Message]
+      // which make need to delete persistent handles, so explicitly delete it
+      // now while we are in the right safepoint state.
+      state_ = nullptr;
     }
 
     if (!success) {
-      state_ = nullptr;
       Dart_ShutdownIsolate();
       return;
     }
 
     // All preconditions are met for this to always succeed.
     char* error = nullptr;
-    if (!Dart_RunLoopAsync(state_->errors_are_fatal(), state_->on_error_port(),
-                           state_->on_exit_port(), &error)) {
+    if (!Dart_RunLoopAsync(errors_are_fatal, on_error_port, on_exit_port,
+                           &error)) {
       FATAL("Dart_RunLoopAsync() failed: %s. Please file a Dart VM bug report.",
             error);
     }
@@ -1030,12 +1032,13 @@ class SpawnIsolateTask : public ThreadPool::Task {
     // isolate group).
     if (has_current_isolate) {
       ASSERT(IsolateGroup::Current() == state_->isolate_group());
+      TransitionNativeToVM transition(Thread::Current());
       state_ = nullptr;
     } else if (state_->isolate_group() != nullptr) {
       ASSERT(IsolateGroup::Current() == nullptr);
       const bool kBypassSafepoint = false;
       const bool result = Thread::EnterIsolateGroupAsHelper(
-          state_->isolate_group(), Thread::kUnknownTask, kBypassSafepoint);
+          state_->isolate_group(), Thread::kSpawnTask, kBypassSafepoint);
       ASSERT(result);
       state_ = nullptr;
       Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);

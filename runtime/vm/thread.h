@@ -365,9 +365,8 @@ class Thread : public ThreadState {
     kScavengerTask,
     kSampleBlockTask,
     kIncrementalCompactorTask,
+    kSpawnTask,
   };
-  // Converts a TaskKind to its corresponding C-String name.
-  static const char* TaskKindToCString(TaskKind kind);
 
   ~Thread();
 

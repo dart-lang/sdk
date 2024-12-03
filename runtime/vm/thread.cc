@@ -253,24 +253,6 @@ ErrorPtr Thread::StealStickyError() {
   return return_value;
 }
 
-const char* Thread::TaskKindToCString(TaskKind kind) {
-  switch (kind) {
-    case kUnknownTask:
-      return "kUnknownTask";
-    case kMutatorTask:
-      return "kMutatorTask";
-    case kCompilerTask:
-      return "kCompilerTask";
-    case kSweeperTask:
-      return "kSweeperTask";
-    case kMarkerTask:
-      return "kMarkerTask";
-    default:
-      UNREACHABLE();
-      return "";
-  }
-}
-
 void Thread::AssertNonMutatorInvariants() {
   ASSERT(BypassSafepoints());
   ASSERT(store_buffer_block_ == nullptr);
