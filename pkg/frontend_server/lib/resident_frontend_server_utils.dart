@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show jsonDecode;
-import 'dart:io' show File, InternetAddress, Socket;
+import 'dart:io' show Directory, File, InternetAddress, Platform, Socket;
+
+import 'package:path/path.dart' as path;
 
 final class ResidentCompilerInfo {
   final String? _sdkHash;
@@ -51,6 +53,40 @@ final class ResidentCompilerInfo {
   })  : _sdkHash = sdkHash,
         _port = port,
         _address = address;
+}
+
+/// Returns the absolute path to the cached kernel file associated with
+/// [canonicalizedLibraryPath].
+String computeCachedDillPath(
+  final String canonicalizedLibraryPath,
+) {
+  final int lastSeparatorPosInCanonicalizedLibraryPath =
+      canonicalizedLibraryPath.lastIndexOf(Platform.pathSeparator);
+  final String dirname = canonicalizedLibraryPath.substring(
+    0,
+    lastSeparatorPosInCanonicalizedLibraryPath,
+  );
+  final String basename = canonicalizedLibraryPath.substring(
+    lastSeparatorPosInCanonicalizedLibraryPath + 1,
+  );
+
+  final String cachedKernelDirectoryPath = path.join(
+    path.join(
+      Directory.systemTemp.path,
+      'dart_resident_compiler_kernel_cache',
+    ),
+    dirname.replaceAll('/', '_').replaceAll(r'\', '_'),
+  );
+
+  try {
+    new Directory(cachedKernelDirectoryPath).createSync(recursive: true);
+  } catch (e) {
+    throw new Exception(
+      'Failed to create directory for storing cached kernel files',
+    );
+  }
+
+  return path.join(cachedKernelDirectoryPath, '$basename.dill');
 }
 
 /// Sends a compilation [request] to the resident frontend compiler associated
