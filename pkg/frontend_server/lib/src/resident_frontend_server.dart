@@ -301,6 +301,53 @@ class ResidentFrontendServer {
     return residentCompiler;
   }
 
+  static Future<String> _handleCompileRequest(
+    Map<String, dynamic> request,
+  ) async {
+    if (request[_executableString] == null || request[_outputString] == null) {
+      return _encodeErrorMessage(
+        "'$_compileString' requests must include an '$_executableString' "
+        "property and an '$_outputString' property.",
+      );
+    }
+
+    final String canonicalizedExecutablePath =
+        path.canonicalize(request[_executableString]);
+
+    late final String cachedDillPath;
+    try {
+      cachedDillPath = computeCachedDillPath(canonicalizedExecutablePath);
+    } on Exception catch (e) {
+      return _encodeErrorMessage(e.toString());
+    }
+
+    final ArgResults options = _generateCompilerOptions(
+      request: request,
+      outputDillOverride: cachedDillPath,
+    );
+    final ResidentCompiler residentCompiler = _getResidentCompilerForEntrypoint(
+      canonicalizedExecutablePath,
+      options,
+    );
+    final Map<String, dynamic> response = await residentCompiler.compile();
+
+    if (response['success'] != true) {
+      return jsonEncode(response);
+    }
+
+    final String outputDillPath = request[_outputString];
+    if (cachedDillPath != outputDillPath) {
+      try {
+        new File(cachedDillPath).copySync(outputDillPath);
+      } catch (e) {
+        return _encodeErrorMessage(
+          'Could not write output dill to ${request[_outputString]}.',
+        );
+      }
+    }
+    return jsonEncode({...response, _outputString: outputDillPath});
+  }
+
   /// Takes in JSON [input] from the socket and compiles the request,
   /// using incremental compilation if possible. Returns a JSON string to be
   /// sent back to the client socket containing either an error message or the
@@ -319,50 +366,7 @@ class ResidentFrontendServer {
 
     switch (request[_commandString]) {
       case _compileString:
-        if (request[_executableString] == null ||
-            request[_outputString] == null) {
-          return _encodeErrorMessage(
-            "'$_compileString' requests must include an '$_executableString' "
-            "property and an '$_outputString' property.",
-          );
-        }
-
-        final String canonicalizedExecutablePath =
-            path.canonicalize(request[_executableString]);
-
-        late final String cachedDillPath;
-        try {
-          cachedDillPath = computeCachedDillPath(canonicalizedExecutablePath);
-        } on Exception catch (e) {
-          return _encodeErrorMessage(e.toString());
-        }
-
-        final ArgResults options = _generateCompilerOptions(
-          request: request,
-          outputDillOverride: cachedDillPath,
-        );
-        final ResidentCompiler residentCompiler =
-            _getResidentCompilerForEntrypoint(
-          canonicalizedExecutablePath,
-          options,
-        );
-        final Map<String, dynamic> response = await residentCompiler.compile();
-
-        if (response['success'] != true) {
-          return jsonEncode(response);
-        }
-
-        final String outputDillPath = request[_outputString];
-        if (cachedDillPath != outputDillPath) {
-          try {
-            new File(cachedDillPath).copySync(outputDillPath);
-          } catch (e) {
-            return _encodeErrorMessage(
-              'Could not write output dill to ${request[_outputString]}.',
-            );
-          }
-        }
-        return jsonEncode({...response, _outputString: outputDillPath});
+        return _handleCompileRequest(request);
       case _shutdownString:
         return _shutdownJsonResponse;
       default:
