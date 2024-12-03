@@ -25,3 +25,12 @@ dev_dependencies:
   linter: any
   test_reflective_loader: any
   test: any
+
+# These dependency overrides are present in order to allow publishing this
+# package. Otherwise, `dart pub publish` complains, even though they are dev
+# dependencies.
+dependency_overrides:
+  analyzer_utilities:
+    path: ../analyzer_utilities
+  linter:
+    path: ../linter
