@@ -69,6 +69,15 @@ class A {
     ]);
   }
 
+  test_class_static_getter_setter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  static int get x => 0;
+  static set x(int value) {}
+}
+''');
+  }
+
   test_enum() async {
     await assertDiagnostics(r'''
 enum A {
