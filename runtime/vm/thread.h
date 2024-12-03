@@ -1481,7 +1481,10 @@ class Thread : public ThreadState {
   // Releases a active mutator threads from the thread registry.
   //
   // Thread needs to be at-safepoint.
-  static void FreeActiveThread(Thread* thread, bool bypass_safepoint);
+  static void FreeActiveThread(Thread* thread,
+                               Isolate* isolate,
+                               bool is_dart_mutator,
+                               bool bypass_safepoint);
 
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
