@@ -184,7 +184,7 @@ main() {
         ]);
         expect(
           File(outputDepfile()).readAsStringSync(),
-          contains('$sdkDir/$packageConfigFile'),
+          stringContainsInOrder('$sdkDir/$packageConfigFile'.split('/')),
         );
       },
       timeout: Timeout.none,

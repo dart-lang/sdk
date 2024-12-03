@@ -535,7 +535,7 @@ Future<KernelCompilationResults> compileToKernel(
     compilerResult =
         await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
   } else {
-    ProcessedOptions processedOptions = new ProcessedOptions(
+    final processedOptions = new ProcessedOptions(
       options: options,
       inputs: [args.source!, ...args.additionalSources],
     );
