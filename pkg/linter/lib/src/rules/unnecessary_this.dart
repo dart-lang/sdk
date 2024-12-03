@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     Element2? element;
     if (parent is PropertyAccess && !parent.isNullAware) {
-      element = getWriteOrReadElement2(parent.propertyName);
+      element = getWriteOrReadElement(parent.propertyName);
     } else if (parent is MethodInvocation && !parent.isNullAware) {
       element = parent.methodName.element;
     } else {

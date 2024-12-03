@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart'; // ignore: implementation_imports
 
@@ -66,6 +67,9 @@ bool argumentsMatchParameters(
 bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
     element1?.canonicalElement == element2?.canonicalElement;
 
+bool canonicalElementsAreEqual2(Element2? element1, Element2? element2) =>
+    element1?.canonicalElement2 == element2?.canonicalElement2;
+
 /// Returns whether the canonical elements from two nodes are equal.
 ///
 /// As in, [AstNodeNullableExtension.canonicalElement], the two nodes must be
@@ -100,7 +104,7 @@ bool canonicalElementsFromIdentifiersAreEqual(
 
   if (expression1 is SimpleIdentifier) {
     return expression2 is SimpleIdentifier &&
-        canonicalElementsAreEqual(getWriteOrReadElement(expression1),
+        canonicalElementsAreEqual2(getWriteOrReadElement(expression1),
             getWriteOrReadElement(expression2));
   }
 
@@ -108,7 +112,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
     return expression2 is PrefixedIdentifier &&
         canonicalElementsAreEqual(expression1.prefix.staticElement,
             expression2.prefix.staticElement) &&
-        canonicalElementsAreEqual(getWriteOrReadElement(expression1.identifier),
+        canonicalElementsAreEqual2(
+            getWriteOrReadElement(expression1.identifier),
             getWriteOrReadElement(expression2.identifier));
   }
 
@@ -116,7 +121,7 @@ bool canonicalElementsFromIdentifiersAreEqual(
     var target1 = expression1.target;
     var target2 = expression2.target;
     return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
-        canonicalElementsAreEqual(
+        canonicalElementsAreEqual2(
             getWriteOrReadElement(expression1.propertyName),
             getWriteOrReadElement(expression2.propertyName));
   }
