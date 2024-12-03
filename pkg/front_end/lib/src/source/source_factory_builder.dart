@@ -872,14 +872,16 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         (redirectionTarget.target?.isConstructor ?? false) &&
         redirectingTargetParentIsEnum)) {
       // Check whether [redirecteeType] <: [factoryType].
+      FunctionType factoryTypeWithoutTypeParameters =
+          factoryType.withoutTypeParameters;
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType,
-          factoryType.withoutTypeParameters,
+          factoryTypeWithoutTypeParameters,
           SubtypeCheckMode.withNullabilities)) {
         libraryBuilder.addProblemForRedirectingFactory(
             this,
             templateIncompatibleRedirecteeFunctionType.withArguments(
-                redirecteeType, factoryType.withoutTypeParameters),
+                redirecteeType, factoryTypeWithoutTypeParameters),
             redirectionTarget.charOffset,
             noLength,
             redirectionTarget.fileUri);

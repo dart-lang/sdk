@@ -1300,7 +1300,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       problem(
           currentParent,
           "Type parameter '$parameter' referenced from"
-          " static context, declaration is: '${parameter.declaration}'.");
+          " static context, declaration is: '${declaration}'.");
     }
     defaultDartType(node);
   }

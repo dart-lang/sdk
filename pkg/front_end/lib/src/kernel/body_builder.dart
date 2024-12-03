@@ -1887,16 +1887,15 @@ class BodyBuilder extends StackListenerImpl
             _context.memberNameOffset,
             noLength);
       }
-      if (initializers.last is SuperInitializer) {
-        SuperInitializer superInitializer =
-            initializers.last as SuperInitializer;
+      Initializer last = initializers.last;
+      if (last is SuperInitializer) {
         if (_context.isEnumClass) {
           initializers[initializers.length - 1] = buildInvalidInitializer(
               buildProblem(cfe.messageEnumConstructorSuperInitializer,
-                  superInitializer.fileOffset, noLength))
-            ..parent = superInitializer.parent;
+                  last.fileOffset, noLength))
+            ..parent = last.parent;
         } else if (libraryFeatures.superParameters.isEnabled) {
-          ArgumentsImpl arguments = superInitializer.arguments as ArgumentsImpl;
+          ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
 
           if (positionalSuperParametersAsArguments != null) {
             if (arguments.positional.isNotEmpty) {
@@ -1928,19 +1927,17 @@ class BodyBuilder extends StackListenerImpl
                 ?.insertAll(0, superParametersAsArguments);
           }
         }
-      } else if (initializers.last is RedirectingInitializer) {
-        RedirectingInitializer redirectingInitializer =
-            initializers.last as RedirectingInitializer;
+      } else if (last is RedirectingInitializer) {
         if (_context.isEnumClass && libraryFeatures.enhancedEnums.isEnabled) {
           ArgumentsImpl arguments =
-              redirectingInitializer.arguments as ArgumentsImpl;
+              last.arguments as ArgumentsImpl;
           List<Expression> enumSyntheticArguments = [
             new VariableGetImpl(function.positionalParameters[0],
                 forNullGuardedAccess: false)
-              ..parent = redirectingInitializer.arguments,
+              ..parent = last.arguments,
             new VariableGetImpl(function.positionalParameters[1],
                 forNullGuardedAccess: false)
-              ..parent = redirectingInitializer.arguments
+              ..parent = last.arguments
           ];
           arguments.positional.insertAll(0, enumSyntheticArguments);
           arguments.argumentsOriginalOrder
@@ -3288,7 +3285,7 @@ class BodyBuilder extends StackListenerImpl
       VariableBuilder variableBuilder = declaration as VariableBuilder;
       if (constantContext != ConstantContext.none &&
           !variableBuilder.isConst &&
-           !(_context.isConstructor && inFieldInitializer) &&
+          !(_context.isConstructor && inFieldInitializer) &&
           !libraryFeatures.constFunctions.isEnabled) {
         return new IncompleteErrorGenerator(
             this, nameToken, cfe.messageNotAConstantExpression);
@@ -9372,9 +9369,11 @@ class BodyBuilder extends StackListenerImpl
           NominalParameterBuilder typeParameterBuilder =
               declaration as NominalParameterBuilder;
           TypeParameter typeParameter = typeParameterBuilder.parameter;
-          if (typeParameter.declaration is Class ||
-              typeParameter.declaration is Extension ||
-              typeParameter.declaration is ExtensionTypeDeclaration) {
+          GenericDeclaration? typeParameterDeclaration =
+              typeParameter.declaration;
+          if (typeParameterDeclaration is Class ||
+              typeParameterDeclaration is Extension ||
+              typeParameterDeclaration is ExtensionTypeDeclaration) {
             if (constantContext != ConstantContext.none &&
                 (!inConstructorInitializer || !allowPotentiallyConstantType)) {
               LocatedMessage message = cfe.messageTypeVariableInConstantContext
