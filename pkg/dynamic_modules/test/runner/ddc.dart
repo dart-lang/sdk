@@ -76,7 +76,7 @@ class DdcExecutor implements TargetExecutor {
       '$ddcSdkOutline',
       // Note: this needs to change if we ever intend to support packages within
       // the dynamic loading tests themselves
-      '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
+      '--packages=$repoRoot/.dart_tool/package_config.json',
       if (!isMain) ...[
         // TODO(sigmund): consider specifying the module name directly
         '--dynamic-module',
@@ -95,7 +95,7 @@ class DdcExecutor implements TargetExecutor {
     var testDir = _tmp.uri.resolve(testName).toFilePath();
     var args = [
       '--packages=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
-      kernelWOrkerAotSnapshot.toFilePath(),
+      kernelWorkerAotSnapshot.toFilePath(),
       '--summary-only',
       '--target',
       'ddc',
@@ -103,7 +103,7 @@ class DdcExecutor implements TargetExecutor {
       '${sourceDir.resolve('../../')}',
       '--multi-root-scheme',
       rootScheme,
-      '--packages-file=${repoRoot.toFilePath()}/.dart_tool/package_config.json',
+      '--packages-file=$repoRoot/.dart_tool/package_config.json',
       '--dart-sdk-summary',
       '$ddcSdkOutline',
       '--source',
@@ -142,12 +142,13 @@ class DdcExecutor implements TargetExecutor {
     var testDir = _tmp.uri.resolve('${test.name}/');
     var bootstrapUri = testDir.resolve('bootstrap.js');
     // TODO(sigmund): remove hardwired entrypoint name
+    String toPath(Uri uri) => uri.toFilePath().replaceAll('\\', '\\\\');
     File.fromUri(bootstrapUri).writeAsStringSync('''
-      load('${ddcPreamblesJs.toFilePath()}');        // preambles/d8.js
-      load('${ddcSealNativeObjectJs.toFilePath()}'); // seal_native_object.js
-      load('${ddcModuleLoaderJs.toFilePath()}');     // ddc_module_loader.js
-      load('${ddcSdkJs.toFilePath()}');              // dart_sdk.js
-      load('main.dart.js');                          // compiled test module
+      load('${toPath(ddcPreamblesJs)}');        // preambles/d8.js
+      load('${toPath(ddcSealNativeObjectJs)}'); // seal_native_object.js
+      load('${toPath(ddcModuleLoaderJs)}');     // ddc_module_loader.js
+      load('${toPath(ddcSdkJs)}');              // dart_sdk.js
+      load('main.dart.js');                     // compiled test module
 
       self.dartMainRunner(function () {
         dart_library.configure(
