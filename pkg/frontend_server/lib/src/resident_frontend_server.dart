@@ -273,6 +273,34 @@ class ResidentFrontendServer {
       _sdkBinariesUri.resolve('vm_platform_strong.dill');
   static final Map<String, ResidentCompiler> compilers = {};
 
+  /// Returns a [ResidentCompiler] that has been configured with
+  /// [compileOptions] and prepared to compile the [canonicalizedLibraryPath]
+  /// entrypoint.
+  static ResidentCompiler _getResidentCompilerForEntrypoint(
+    String canonicalizedLibraryPath,
+    ArgResults compileOptions,
+  ) {
+    late final ResidentCompiler residentCompiler;
+    if (compilers[canonicalizedLibraryPath] == null) {
+      // Avoids using too much memory.
+      if (compilers.length >= ResidentFrontendServer._compilerLimit) {
+        compilers.remove(compilers.keys.first);
+      }
+      residentCompiler = new ResidentCompiler(
+        new File(canonicalizedLibraryPath),
+        compileOptions,
+      );
+      compilers[canonicalizedLibraryPath] = residentCompiler;
+    } else {
+      residentCompiler = compilers[canonicalizedLibraryPath]!;
+      if (residentCompiler.areOptionsOutdated(compileOptions)) {
+        residentCompiler.updateState(compileOptions);
+      }
+    }
+
+    return residentCompiler;
+  }
+
   /// Takes in JSON [input] from the socket and compiles the request,
   /// using incremental compilation if possible. Returns a JSON string to be
   /// sent back to the client socket containing either an error message or the
@@ -313,23 +341,11 @@ class ResidentFrontendServer {
           request: request,
           outputDillOverride: cachedDillPath,
         );
-
-        late final ResidentCompiler residentCompiler;
-        if (compilers[canonicalizedExecutablePath] == null) {
-          // Avoids using too much memory
-          if (compilers.length >= ResidentFrontendServer._compilerLimit) {
-            compilers.remove(compilers.keys.first);
-          }
-          residentCompiler = new ResidentCompiler(
-              new File(canonicalizedExecutablePath), options);
-          compilers[canonicalizedExecutablePath] = residentCompiler;
-        } else {
-          residentCompiler = compilers[canonicalizedExecutablePath]!;
-          if (residentCompiler.areOptionsOutdated(options)) {
-            residentCompiler.updateState(options);
-          }
-        }
-
+        final ResidentCompiler residentCompiler =
+            _getResidentCompilerForEntrypoint(
+          canonicalizedExecutablePath,
+          options,
+        );
         final Map<String, dynamic> response = await residentCompiler.compile();
 
         if (response['success'] != true) {
