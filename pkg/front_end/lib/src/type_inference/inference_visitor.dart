@@ -6824,8 +6824,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       instrumentation!.record(uriForInstrumentation, fileOffset, 'target',
           new InstrumentationValueForMember(equalsTarget.member!));
     }
-    DartType rightType =
-        operations.getNullableType(equalsTarget.getBinaryOperandType(this));
+    DartType rightType = operations
+        .makeNullableInternal(equalsTarget.getBinaryOperandType(this));
     DartType contextType =
         rightType.withDeclaredNullability(Nullability.nullable);
     rightResult = ensureAssignableResult(contextType, rightResult,

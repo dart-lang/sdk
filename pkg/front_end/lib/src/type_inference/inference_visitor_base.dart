@@ -194,12 +194,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return greatestClosure(type, topType: coreTypes.objectNullableRawType);
   }
 
-  DartType computeNullable(DartType type) {
-    if (type is NullType || type is NeverType) {
-      return const NullType();
-    }
-    return cfeOperations.getNullableType(type);
-  }
+  DartType computeNullable(DartType type) =>
+      cfeOperations.makeNullableInternal(type);
 
   // Coverage-ignore(suite): Not run.
   Expression createReachabilityError(int fileOffset, Message errorMessage) {
