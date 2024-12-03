@@ -1296,9 +1296,6 @@ class SourceExtensionTypeConstructorBuilder
   // Coverage-ignore(suite): Not run.
   Name get memberName => _memberName.name;
 
-  SourceExtensionTypeDeclarationBuilder get extensionTypeDeclarationBuilder =>
-      parent as SourceExtensionTypeDeclarationBuilder;
-
   @override
   Member get readTarget =>
       _constructorTearOff ?? // Coverage-ignore(suite): Not run.
@@ -1346,7 +1343,7 @@ class SourceExtensionTypeConstructorBuilder
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
       LookupScope typeParameterScope =
-          computeTypeParameterScope(extensionTypeDeclarationBuilder.scope);
+          computeTypeParameterScope(declarationBuilder.scope);
       _buildConstructorForOutline(beginInitializers, typeParameterScope);
       _buildBody();
     }
@@ -1405,7 +1402,7 @@ class SourceExtensionTypeConstructorBuilder
     // function is its enclosing class.
     super.buildFunction();
     ExtensionTypeDeclaration extensionTypeDeclaration =
-        extensionTypeDeclarationBuilder.extensionTypeDeclaration;
+        declarationBuilder.extensionTypeDeclaration;
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < function.typeParameters.length; i++) {
       TypeParameter typeParameter = function.typeParameters[i];
@@ -1494,13 +1491,12 @@ class SourceExtensionTypeConstructorBuilder
 
   Substitution get _substitution {
     if (typeParameters != null) {
-      assert(extensionTypeDeclarationBuilder.typeParameters!.length ==
-          typeParameters?.length);
+      assert(
+          declarationBuilder.typeParameters!.length == typeParameters?.length);
       _substitutionCache = Substitution.fromPairs(
-          extensionTypeDeclarationBuilder
-              .extensionTypeDeclaration.typeParameters,
+          declarationBuilder.extensionTypeDeclaration.typeParameters,
           new List<DartType>.generate(
-              extensionTypeDeclarationBuilder.typeParameters!.length,
+              declarationBuilder.typeParameters!.length,
               (int index) =>
                   new TypeParameterType.withDefaultNullabilityForLibrary(
                       function.typeParameters[index],
