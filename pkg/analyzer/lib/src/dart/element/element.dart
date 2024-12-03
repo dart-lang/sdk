@@ -31,6 +31,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
@@ -1584,6 +1585,17 @@ class ConstructorElementImpl2 extends ExecutableElementImpl2
   ConstructorElement2 get baseElement => this;
 
   @override
+  String get displayName {
+    var className = enclosingElement2.name3 ?? '<null>';
+    var name = name3 ?? '<null>';
+    if (name != 'new') {
+      return '$className.$name';
+    } else {
+      return className;
+    }
+  }
+
+  @override
   InterfaceElementImpl2 get enclosingElement2 =>
       firstFragment.enclosingElement3.element;
 
@@ -1866,6 +1878,9 @@ class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
     required super.relativeUri,
     required super.source,
   });
+
+  @override
+  LibraryElement2 get library2 => library;
 }
 
 class DirectiveUriWithRelativeUriImpl
@@ -2346,6 +2361,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   LibraryElement get library => compilationUnit.library;
+
+  @override
+  LibraryElement2 get library2 => compilationUnit.library;
 
   /// Get the library containing this annotation.
   @override
@@ -3320,6 +3338,13 @@ abstract class ElementImpl2 implements Element2 {
     );
     appendTo(builder);
     return builder.toString();
+  }
+
+  @override
+  String getExtendedDisplayName(String? shortName) {
+    shortName ??= displayName;
+    var source = firstFragment.libraryFragment?.source;
+    return "$shortName (${source?.fullName})";
   }
 
   @override
@@ -5549,12 +5574,34 @@ abstract class InstanceElementImpl2 extends ElementImpl2
   }
 
   @override
+  PropertyAccessorElement2? lookUpGetter2({
+    required String name,
+    required LibraryElement2 library,
+  }) {
+    return lookUpGetter(
+      name: name,
+      library: library.asElement,
+    )?.asElement2;
+  }
+
+  @override
   MethodElement? lookUpMethod({
     required String name,
     required LibraryElement library,
   }) {
     return _implementationsOfMethod(name).firstWhereOrNull(
         (MethodElement method) => method.isAccessibleIn(library));
+  }
+
+  @override
+  MethodElement2? lookUpMethod2({
+    required String name,
+    required LibraryElement2 library,
+  }) {
+    return lookUpMethod(
+      name: name,
+      library: library.asElement,
+    )?.asElement2;
   }
 
   @override
@@ -6186,6 +6233,11 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   @override
   InterfaceElementImpl get firstFragment;
 
+  InheritanceManager3 get inheritanceManager {
+    var library = library2 as LibraryElementImpl;
+    return library.session.inheritanceManager;
+  }
+
   @override
   List<InterfaceType> get mixins {
     if (firstFragment.mixinInferenceCallback case var callback?) {
@@ -6252,6 +6304,19 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
   }) =>
       firstFragment.instantiate(
           typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
+
+  @override
+  MethodElement2? lookUpInheritedMethod2(
+    String methodName,
+    LibraryElement2 library,
+  ) {
+    return inheritanceManager
+        .getInherited4(
+          this,
+          Name.forLibrary(library, methodName),
+        )
+        .ifTypeOrNull();
+  }
 }
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
@@ -6543,13 +6608,15 @@ class LibraryElementImpl extends ElementImpl
   List<Element2> get children2 {
     return [
       ...classes,
+      ...enums,
       ...extensions,
       ...extensionTypes,
-      ...topLevelFunctions,
-      ...mixins,
-      ...typeAliases,
       ...getters,
+      ...mixins,
+      ...setters,
+      ...topLevelFunctions,
       ...topLevelVariables,
+      ...typeAliases,
     ];
   }
 
@@ -6681,6 +6748,16 @@ class LibraryElementImpl extends ElementImpl
     return fragments
         .expand((fragment) => fragment.libraryImports)
         .map((import) => import.importedLibrary)
+        .nonNulls
+        .toSet()
+        .toList();
+  }
+
+  @override
+  List<LibraryElement2> get importedLibraries2 {
+    return fragments
+        .expand((fragment) => fragment.libraryImports2)
+        .map((import) => import.importedLibrary2)
         .nonNulls
         .toSet()
         .toList();
@@ -6967,6 +7044,11 @@ class LibraryExportElementImpl extends _ExistingElementImpl
   @override
   List<Element2> get children2 {
     throw StateError('Not an Element2');
+  }
+
+  @override
+  CompilationUnitElementImpl get enclosingElement3 {
+    return super.enclosingElement3 as CompilationUnitElementImpl;
   }
 
   @override
@@ -7847,6 +7929,9 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   ElementKind get kind => ElementKind.METHOD;
+
+  @override
+  LibraryElement2 get library2 => super.library2!;
 
   @override
   String? get lookupName {
@@ -10004,6 +10089,9 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
 
   @override
   ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  LibraryElement2 get library2 => super.library2!;
 
   @override
   String? get name3 => firstFragment.name;

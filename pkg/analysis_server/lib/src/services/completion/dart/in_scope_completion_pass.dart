@@ -741,7 +741,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (constructorElement == null) {
         return;
       }
-      var libraryElement = state.libraryElement.asElement as LibraryElement;
+      var libraryElement = state.libraryElement.asElement;
       declarationHelper(
         mustBeConstant: constructorElement.isConst,
       ).addPossibleRedirectionsInLibrary(constructorElement, libraryElement);

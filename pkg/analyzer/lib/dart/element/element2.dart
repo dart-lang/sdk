@@ -495,6 +495,13 @@ abstract class Element2 {
   /// be changed if doing so would improve the UX.
   String displayString2({bool multiline = false, bool preferTypeAlias = false});
 
+  /// Returns a display name for the given element that includes the path to the
+  /// compilation unit in which the type is defined. If [shortName] is `null`
+  /// then [displayName] will be used as the name of this element. Otherwise
+  /// the provided name will be used.
+  // TODO(brianwilkerson): Make the parameter optional.
+  String getExtendedDisplayName(String? shortName);
+
   /// Whether the element, assuming that it is within scope, is accessible to
   /// code in the given [library].
   ///
@@ -1165,6 +1172,28 @@ abstract class InstanceElement2
 
   /// Returns the setter from [setters2] that has the given [name].
   SetterElement? getSetter2(String name);
+
+  /// Returns the element representing the getter that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  PropertyAccessorElement2? lookUpGetter2({
+    required String name,
+    required LibraryElement2 library,
+  });
+
+  /// Returns the element representing the method that results from looking up
+  /// the given [name] in this class with respect to the given [library],
+  /// or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 17.18 Lookup.
+  MethodElement2? lookUpMethod2({
+    required String name,
+    required LibraryElement2 library,
+  });
 }
 
 /// The portion of an [InstanceElement2] contributed by a single declaration.
@@ -1279,6 +1308,25 @@ abstract class InterfaceElement2 implements InstanceElement2 {
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   });
+
+  /// Returns the element representing the method that results from looking up
+  /// the given [methodName] in the superclass of this class with respect to the
+  /// given [library], or `null` if the look up fails.
+  ///
+  /// The behavior of this method is defined by the Dart Language Specification
+  /// in section 16.15.1:
+  /// <blockquote>
+  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
+  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
+  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
+  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
+  /// result of the lookup is the result of looking up method <i>m</i> in
+  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
+  /// failed.
+  /// </blockquote>
+  // TODO(scheglov): Deprecate and remove it.
+  MethodElement2? lookUpInheritedMethod2(
+      String methodName, LibraryElement2 library);
 }
 
 /// The portion of an [InterfaceElement2] contributed by a single declaration.
@@ -1454,6 +1502,12 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   /// The identifier that uniquely identifies this element among the children
   /// of this element's parent.
   String get identifier;
+
+  /// The libraries that are imported into this library.
+  ///
+  /// This includes all of the libraries that are imported using a prefix, and
+  /// those that are imported without a prefix.
+  List<LibraryElement2> get importedLibraries2;
 
   /// Whether the library is the `dart:async` library.
   bool get isDartAsync;
@@ -1902,6 +1956,9 @@ abstract class MethodElement2 implements ExecutableElement2 {
   /// The test might be based on the name of the executable element, in which
   /// case the result will be correct when the name is legal.
   bool get isOperator;
+
+  @override
+  LibraryElement2 get library2;
 }
 
 /// The portion of a [MethodElement2] contributed by a single declaration.
@@ -2352,6 +2409,9 @@ abstract class TopLevelFunctionElement implements ExecutableElement2 {
   ///
   /// A top-level function is an entry point if it has the name `main`.
   bool get isEntryPoint;
+
+  @override
+  LibraryElement2 get library2;
 }
 
 /// The portion of a [TopLevelFunctionElement] contributed by a single

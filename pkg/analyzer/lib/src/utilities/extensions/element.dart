@@ -11,6 +11,12 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:meta/meta.dart';
 
+extension ClassElement2Extension on ClassElement2 {
+  ClassElement get asElement {
+    return firstFragment as ClassElement;
+  }
+}
+
 extension ClassElementExtension on ClassElement {
   ClassElement2 get asElement2 {
     return (this as ClassElementImpl).element;
@@ -18,6 +24,10 @@ extension ClassElementExtension on ClassElement {
 }
 
 extension CompilationUnitElementExtension on CompilationUnitElement {
+  LibraryFragment get asElement2 {
+    return this as LibraryFragment;
+  }
+
   /// Returns this library fragment, and all its enclosing fragments.
   List<CompilationUnitElement> get withEnclosing {
     var result = <CompilationUnitElement>[];
@@ -34,6 +44,12 @@ extension CompilationUnitElementExtension on CompilationUnitElement {
   }
 }
 
+extension ConstructorElement2Extension on ConstructorElement2 {
+  ConstructorElement get asElement {
+    return baseElement.firstFragment as ConstructorElement;
+  }
+}
+
 extension ConstructorElementExtension on ConstructorElement {
   ConstructorElement2 get asElement2 {
     return switch (this) {
@@ -44,10 +60,21 @@ extension ConstructorElementExtension on ConstructorElement {
   }
 }
 
+extension Element2Extension on Element2 {
+  List<ElementAnnotation> get metadata {
+    if (this case Annotatable annotatable) {
+      return annotatable.metadata2.annotations;
+    }
+    return [];
+  }
+}
+
 extension Element2OrNullExtension on Element2? {
   Element? get asElement {
     var self = this;
     switch (self) {
+      case null:
+        return null;
       case ConstructorElementImpl2():
         return self.firstFragment as Element;
       case DynamicElementImpl():
@@ -58,10 +85,12 @@ extension Element2OrNullExtension on Element2? {
         return self.firstFragment as Element;
       case FieldMember():
         return self.declaration as Element;
-      case FormalParameterElementImpl():
-        return self.firstFragment as Element;
+      case FormalParameterElement element2:
+        return element2.asElement;
       case GetterElementImpl():
         return self.firstFragment as Element;
+      case LabelElementImpl2 element2:
+        return element2.asElement;
       case LibraryElementImpl():
         return self as Element;
       case LocalFunctionElementImpl():
@@ -74,6 +103,8 @@ extension Element2OrNullExtension on Element2? {
         return element2.asElement;
       case NeverElementImpl2():
         return NeverElementImpl.instance;
+      case PrefixElement2 element2:
+        return element2.asElement;
       case SetterElementImpl():
         return self.firstFragment as Element;
       case TopLevelFunctionElementImpl():
@@ -83,7 +114,7 @@ extension Element2OrNullExtension on Element2? {
       case TypeDefiningElement2():
         return self.firstFragment as Element;
       default:
-        return null;
+        throw UnsupportedError('Unsupported type: $runtimeType');
     }
   }
 }
@@ -267,6 +298,10 @@ extension FieldElementExtension on FieldElement {
 }
 
 extension FormalParameterExtension on FormalParameterElement {
+  ParameterElement get asElement {
+    return firstFragment as ParameterElement;
+  }
+
   void appendToWithoutDelimiters(
     StringBuffer buffer, {
     @Deprecated('Only non-nullable by default mode is supported')
@@ -299,9 +334,34 @@ extension InterfaceElementExtension on InterfaceElement {
   }
 }
 
+extension InterfaceTypeExtension on InterfaceType {
+  MethodElement2? getMethod2(String name) {
+    return getMethod(name)?.asElement2;
+  }
+}
+
+extension LabelElement2Extension on LabelElement2 {
+  LabelElement get asElement {
+    return firstFragment as LabelElement;
+  }
+}
+
+extension LibraryElement2Extension on LibraryElement2 {
+  LibraryElement get asElement {
+    return this as LibraryElement;
+  }
+}
+
 extension LibraryElementExtension on LibraryElement {
   LibraryElement2 get asElement2 {
-    return this as LibraryElementImpl;
+    return this as LibraryElement2;
+  }
+}
+
+extension LibraryExportElementExtension on LibraryExportElement {
+  LibraryExport get asElement2 {
+    var index = enclosingElement3.libraryExports.indexOf(this);
+    return enclosingElement3.asElement2.libraryExports2[index];
   }
 }
 
@@ -320,6 +380,13 @@ extension LibraryFragmentExtension on LibraryFragment {
       }
     }
     return result;
+  }
+}
+
+extension LibraryImportElementExtension on LibraryImportElement {
+  LibraryImport get asElement2 {
+    var index = enclosingElement3.libraryImports.indexOf(this);
+    return enclosingElement3.asElement2.libraryImports2[index];
   }
 }
 
@@ -388,6 +455,12 @@ extension PropertyAccessorElementExtension on PropertyAccessorElement {
       PropertyAccessorMember member => member,
       _ => throw UnsupportedError('Unsupported type: $runtimeType'),
     };
+  }
+}
+
+extension TopLevelVariableElement2Extension on TopLevelVariableElement2 {
+  TopLevelVariableElement get asElement {
+    return baseElement.firstFragment as TopLevelVariableElement;
   }
 }
 

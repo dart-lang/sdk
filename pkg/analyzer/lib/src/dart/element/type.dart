@@ -17,6 +17,8 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -751,7 +753,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<MethodElement2> get methods2 =>
-      methods.map((fragment) => (fragment as MethodFragment).element).toList();
+      methods.map((e) => e.asElement2).toList();
 
   @override
   List<InterfaceType> get mixins {
@@ -953,6 +955,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  GetterElement? lookUpGetter3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpGetter2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2.ifTypeOrNull();
+  }
+
+  @override
   MethodElement? lookUpMethod2(
     String name,
     LibraryElement library, {
@@ -992,6 +1011,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  MethodElement2? lookUpMethod3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpMethod2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2;
+  }
+
+  @override
   PropertyAccessorElement? lookUpSetter2(
     String name,
     LibraryElement library, {
@@ -1028,6 +1064,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     return null;
+  }
+
+  @override
+  SetterElement? lookUpSetter3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    return lookUpSetter2(
+      name,
+      library.asElement,
+      concrete: concrete,
+      inherited: inherited,
+      recoveryStatic: recoveryStatic,
+    )?.asElement2.ifTypeOrNull();
   }
 
   @override

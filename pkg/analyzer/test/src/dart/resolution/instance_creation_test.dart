@@ -1314,7 +1314,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: prefix
-      element: <null>
+      element: <testLibraryFragment>::@prefix::prefix
       element2: <testLibraryFragment>::@prefix2::prefix
       type: InvalidType
     staticElement: <null>

@@ -304,7 +304,7 @@ Future<List<FormalParameterElement>> getHierarchyNamedParameters2(
 ) async {
   var result = await getHierarchyNamedParameters(
     searchEngine,
-    element.asElement as ParameterElement,
+    element.asElement,
   );
   return result.map((e) => e.asElement2).toList();
 }

@@ -61,7 +61,7 @@ Future<void> addLibraryImports(
 
   // TODO(brianwilkerson): Use `targetLibrary2` everywhere below and rename it
   //  to `targetLibrary`.
-  var targetLibrary = targetLibrary2.asElement as LibraryElement;
+  var targetLibrary = targetLibrary2.asElement;
   var libUtils = CorrectionUtils(resolveResult);
   var eol = libUtils.endOfLine;
   // Prepare information about existing imports.
