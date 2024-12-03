@@ -757,7 +757,10 @@ uword Thread::GetAndClearInterrupts() {
 }
 
 ErrorPtr Thread::HandleInterrupts() {
-  uword interrupt_bits = GetAndClearInterrupts();
+  return HandleInterrupts(GetAndClearInterrupts());
+}
+
+ErrorPtr Thread::HandleInterrupts(uword interrupt_bits) {
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
     if (isolate_group()->store_buffer()->Overflowed()) {

@@ -327,9 +327,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   bool ContainsOnlyOneIsolate();
 
-  void RunWithLockedGroup(std::function<void()> fun);
-
-  void ScheduleInterrupts(uword interrupt_bits);
+  Dart_Port interrupt_port() { return interrupt_port_; }
 
   ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
   SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
@@ -836,6 +834,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<MutatorThreadPool> thread_pool_;
   std::unique_ptr<SafepointRwLock> isolates_lock_;
   IntrusiveDList<Isolate> isolates_;
+  RelaxedAtomic<Dart_Port> interrupt_port_ = ILLEGAL_PORT;
   intptr_t isolate_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;

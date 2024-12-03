@@ -507,6 +507,7 @@ class Thread : public ThreadState {
 
   void ScheduleInterrupts(uword interrupt_bits);
   ErrorPtr HandleInterrupts();
+  ErrorPtr HandleInterrupts(uword interrupt_bits);
   uword GetAndClearInterrupts();
   bool HasScheduledInterrupts() const {
     return (stack_limit_.load() & kInterruptsMask) != 0;
