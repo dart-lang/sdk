@@ -902,23 +902,6 @@ dart_executable("dart") {
   }
 }
 
-# This rule is here to ensure benchmark suites do not break, it can be
-# removed once the benchmark suites are updated.
-group("dart_precompiled_runtime") {
-  deps = [
-    ":copy_dart_precompiled_runtime",
-    ":dartaotruntime",
-  ]
-}
-
-copy("copy_dart_precompiled_runtime") {
-  visibility = [ ":dart_precompiled_runtime" ]
-  deps = [ ":dartaotruntime" ]
-  src_dir = get_label_info(":dartaotruntime", "root_out_dir")
-  sources = [ "$src_dir/dartaotruntime${executable_suffix}" ]
-  outputs = [ "$root_out_dir/dart_precompiled_runtime${executable_suffix}" ]
-}
-
 dart_executable("dartaotruntime") {
   extra_configs = [
     "..:dart_aotruntime_config",
