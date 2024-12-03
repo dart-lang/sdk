@@ -6202,6 +6202,7 @@ sealed class ExpressionImpl extends AstNodeImpl
         case ForElement():
         case MapLiteralEntry():
         case SpreadElement():
+        case NullAwareElement():
         case VariableDeclaration():
           break;
         default:
