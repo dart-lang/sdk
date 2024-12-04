@@ -19,9 +19,8 @@
 library;
 
 import "package:analyzer/error/error.dart";
-import "package:analyzer/src/error/analyzer_error_code.dart";
 
-class HintCode extends AnalyzerErrorCode {
+class HintCode extends ErrorCode {
   ///  No parameters.
   ///
   ///  Note: Since this diagnostic is only produced in pre-3.0 code, we do not

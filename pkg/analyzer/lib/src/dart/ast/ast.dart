@@ -892,7 +892,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _rightHandSide.endToken;
@@ -14157,7 +14157,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => operator;
@@ -14368,7 +14368,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  MethodElement2? get element => (staticElement as MethodFragment?)?.element;
+  MethodElement2? get element => staticElement?.asElement2;
 
   @override
   Token get endToken => _operand.endToken;

@@ -957,6 +957,15 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   String get identifier => '${source.uri}';
 
   @override
+  List<LibraryElement2> get importedLibraries2 {
+    return libraryImports2
+        .map((import) => import.importedLibrary2)
+        .nonNulls
+        .toSet()
+        .toList();
+  }
+
+  @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   @override
@@ -3093,6 +3102,13 @@ abstract class ElementImpl implements Element, Element2 {
     return "$shortName (${source?.fullName})";
   }
 
+  @override
+  String getExtendedDisplayName2({String? shortName}) {
+    shortName ??= displayName;
+    var source = this.source;
+    return "$shortName (${source?.fullName})";
+  }
+
   /// Return `true` if this element has the given [modifier] associated with it.
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
@@ -3341,7 +3357,7 @@ abstract class ElementImpl2 implements Element2 {
   }
 
   @override
-  String getExtendedDisplayName(String? shortName) {
+  String getExtendedDisplayName2({String? shortName}) {
     shortName ??= displayName;
     var source = firstFragment.libraryFragment?.source;
     return "$shortName (${source?.fullName})";
@@ -6306,10 +6322,10 @@ abstract class InterfaceElementImpl2 extends InstanceElementImpl2
           typeArguments: typeArguments, nullabilitySuffix: nullabilitySuffix);
 
   @override
-  MethodElement2? lookUpInheritedMethod2(
-    String methodName,
-    LibraryElement2 library,
-  ) {
+  MethodElement2? lookUpInheritedMethod2({
+    required String methodName,
+    required LibraryElement2 library,
+  }) {
     return inheritanceManager
         .getInherited4(
           this,
@@ -6748,16 +6764,6 @@ class LibraryElementImpl extends ElementImpl
     return fragments
         .expand((fragment) => fragment.libraryImports)
         .map((import) => import.importedLibrary)
-        .nonNulls
-        .toSet()
-        .toList();
-  }
-
-  @override
-  List<LibraryElement2> get importedLibraries2 {
-    return fragments
-        .expand((fragment) => fragment.libraryImports2)
-        .map((import) => import.importedLibrary2)
         .nonNulls
         .toSet()
         .toList();

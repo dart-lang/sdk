@@ -88,4 +88,43 @@ class B extends A {
       lint(66, 7),
     ]);
   }
+
+  test_typed_fieldIsDynamic() async {
+    await assertNoDiagnostics(r'''
+class C {
+  var x;
+  C(int this.x);
+}
+''');
+  }
+
+  test_typed_sameAsField() async {
+    await assertDiagnostics(r'''
+class C {
+  int x;
+  C(int this.x);
+}
+''', [
+      lint(23, 3),
+    ]);
+  }
+
+  test_typed_subtypeOfField() async {
+    await assertNoDiagnostics(r'''
+class C {
+  num x;
+  C.i(int this.x);
+  C.d(double this.x);
+}
+''');
+  }
+
+  test_untyped() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int x;
+  C(this.x);
+}
+''');
+  }
 }

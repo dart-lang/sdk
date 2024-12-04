@@ -1,5 +1,4 @@
 lib/src/extensions.dart
-lib/src/rules/deprecated_member_use_from_same_package.dart
 lib/src/rules/invalid_runtime_check_with_js_interop_types.dart
 lib/src/rules/prefer_initializing_formals.dart
 lib/src/rules/unnecessary_overrides.dart

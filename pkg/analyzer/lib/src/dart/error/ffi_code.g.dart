@@ -19,9 +19,8 @@
 library;
 
 import "package:analyzer/error/error.dart";
-import "package:analyzer/src/error/analyzer_error_code.dart";
 
-class FfiCode extends AnalyzerErrorCode {
+class FfiCode extends ErrorCode {
   ///  No parameters.
   static const FfiCode ABI_SPECIFIC_INTEGER_INVALID = FfiCode(
     'ABI_SPECIFIC_INTEGER_INVALID',

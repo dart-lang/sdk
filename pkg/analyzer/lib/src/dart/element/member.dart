@@ -311,6 +311,7 @@ abstract class ExecutableMember extends Member
       .nonNulls
       .toList();
 
+  @override
   ExecutableElement2 get _element2 => declaration.asElement2;
 
   @override
@@ -591,6 +592,7 @@ class FieldMember extends VariableMember
   @override
   Source? get source => _declaration.source;
 
+  @override
   FieldElement2 get _element2 => declaration.asElement2;
 
   @override
@@ -881,6 +883,8 @@ abstract class Member implements Element {
   /// The substitution for type parameters referenced in the base element.
   MapSubstitution get substitution => _substitution;
 
+  Element2 get _element2;
+
   /// Append a textual representation of this element to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
@@ -902,6 +906,12 @@ abstract class Member implements Element {
   @override
   String getExtendedDisplayName(String? shortName) =>
       _declaration.getExtendedDisplayName(shortName);
+
+  String getExtendedDisplayName2({String? shortName}) {
+    return _element2.getExtendedDisplayName2(
+      shortName: shortName,
+    );
+  }
 
   @override
   bool isAccessibleIn(LibraryElement library) =>
@@ -1174,6 +1184,7 @@ class ParameterMember extends VariableMember
   @override
   List<TypeParameterElement2> get typeParameters2 => _element2.typeParameters2;
 
+  @override
   FormalParameterElement get _element2 => declaration.asElement2;
 
   @override
@@ -1539,6 +1550,9 @@ class TopLevelVariableMember extends VariableMember
 
   @override
   Source get source => _declaration.source!;
+
+  @override
+  TopLevelVariableElement2 get _element2 => declaration.asElement2;
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
