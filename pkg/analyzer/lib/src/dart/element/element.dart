@@ -8869,8 +8869,7 @@ class ParameterElementImpl extends VariableElementImpl
   set element(FormalParameterElement element) => _element = element;
 
   @override
-  ExecutableFragment? get enclosingFragment =>
-      enclosingElement3 as ExecutableFragment?;
+  Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
 
   @override
   bool get hasDefaultValue {

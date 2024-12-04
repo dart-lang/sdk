@@ -2184,9 +2184,6 @@ abstract class PromotableFragment implements VariableFragment {
   PromotableElement2 get element;
 
   @override
-  ExecutableFragment? get enclosingFragment;
-
-  @override
   PromotableFragment? get nextFragment;
 
   @override
