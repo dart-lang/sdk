@@ -710,7 +710,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   // Check whether the root library defines a main function.
   const Library& lib =
       Library::Handle(zone, IG->object_store()->root_library());
-  const String& main = String::Handle(zone, String::New("main"));
+  const String& main = Symbols::main();
   Function& func = Function::Handle(zone, lib.LookupFunctionAllowPrivate(main));
   if (func.IsNull()) {
     // Check whether main is reexported from the root library.

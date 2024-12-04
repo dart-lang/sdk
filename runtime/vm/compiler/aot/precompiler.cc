@@ -740,7 +740,7 @@ void Precompiler::AddRoots() {
     UNREACHABLE();
   }
 
-  const String& name = String::Handle(String::New("main"));
+  const String& name = Symbols::main();
   Function& main = Function::Handle(lib.LookupFunctionAllowPrivate(name));
   if (main.IsNull()) {
     const Object& obj = Object::Handle(lib.LookupReExport(name));
@@ -1383,18 +1383,8 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
   // * Native functions (for LinkNativeCall)
   // * Selector matches a symbol used in Resolver::ResolveDynamic calls
   //   in dart_entry.cc or dart_api_impl.cc.
-  // * _Closure.call (used in async stack handling)
   if (function.is_old_native()) {
     return "native function";
-  }
-
-  // Use the same check for _Closure.call as in stack_trace.{h|cc}.
-  const auto& selector = String::Handle(Z, function.name());
-  if (selector.ptr() == Symbols::call().ptr()) {
-    const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
-    if (name.Equals(Symbols::_ClosureCall())) {
-      return "_Closure.call";
-    }
   }
 
   // We have to retain functions which can be a target of a SwitchableCall

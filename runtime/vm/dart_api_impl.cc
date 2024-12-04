@@ -4200,8 +4200,10 @@ static ObjectPtr ResolveConstructor(const char* current_func,
         current_func, constr_name.ToCString(), error_message.ToCString()));
     return ApiError::New(message);
   }
-  ErrorPtr error = constructor.VerifyCallEntryPoint();
-  if (error != Error::null()) return error;
+  if (FLAG_verify_entry_points) {
+    ErrorPtr error = constructor.VerifyEntryPoint(EntryPointPragma::kCallOnly);
+    if (error != Error::null()) return error;
+  }
   return constructor.ptr();
 }
 
@@ -4264,7 +4266,9 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
 
   Instance& new_object = Instance::Handle(Z);
   if (constructor.IsGenerativeConstructor()) {
-    CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+    if (FLAG_verify_entry_points) {
+      CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+    }
 #if defined(DEBUG)
     if (!cls.is_allocated() &&
         (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
@@ -4383,7 +4387,9 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   const TypeArguments& type_arguments =
       TypeArguments::Handle(Z, type_obj.GetInstanceTypeArguments(T));
 
-  CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+  if (FLAG_verify_entry_points) {
+    CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+  }
 #if defined(DEBUG)
   if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
@@ -4413,7 +4419,9 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
     RETURN_NULL_ERROR(native_fields);
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
-  CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+  if (FLAG_verify_entry_points) {
+    CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+  }
 #if defined(DEBUG)
   if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
@@ -4505,7 +4513,10 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
   if (!constructor.IsNull() && constructor.IsGenerativeConstructor() &&
       constructor.AreValidArgumentCounts(
           kTypeArgsLen, number_of_arguments + extra_args, 0, nullptr)) {
-    CHECK_ERROR_HANDLE(constructor.VerifyCallEntryPoint());
+    if (FLAG_verify_entry_points) {
+      CHECK_ERROR_HANDLE(
+          constructor.VerifyEntryPoint(EntryPointPragma::kCallOnly));
+    }
     // Create the argument list.
     Dart_Handle result;
     Array& args = Array::Handle(Z);
@@ -4585,8 +4596,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       return result;
     }
     return Api::NewHandle(
-        T, cls.Invoke(function_name, args, arg_names, respect_reflectable,
-                      check_is_entrypoint));
+        T, cls.Invoke(function_name, args, arg_names, check_is_entrypoint,
+                      respect_reflectable));
   } else if (obj.IsNull() || obj.IsInstance()) {
     // Since we have allocated an object it would mean that the type of the
     // receiver is already resolved and finalized, hence it is not necessary
@@ -4601,8 +4612,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
     args.SetAt(0, instance);
     return Api::NewHandle(
-        T, instance.Invoke(function_name, args, arg_names, respect_reflectable,
-                           check_is_entrypoint));
+        T, instance.Invoke(function_name, args, arg_names, check_is_entrypoint,
+                           respect_reflectable));
   } else if (obj.IsLibrary()) {
     // Check whether class finalization is needed.
     const Library& lib = Library::Cast(obj);
@@ -4624,8 +4635,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
 
     return Api::NewHandle(
-        T, lib.Invoke(function_name, args, arg_names, respect_reflectable,
-                      check_is_entrypoint));
+        T, lib.Invoke(function_name, args, arg_names, check_is_entrypoint,
+                      respect_reflectable));
   } else {
     return Api::NewError(
         "%s expects argument 'target' to be an object, type, or library.",
@@ -4675,7 +4686,6 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     RETURN_TYPE_ERROR(Z, name, String);
   }
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(container));
-  const bool throw_nsm_if_absent = true;
   const bool respect_reflectable = false;
   const bool check_is_entrypoint = FLAG_verify_entry_points;
 
@@ -4690,9 +4700,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       const Library& lib = Library::Handle(Z, cls.library());
       field_name = lib.PrivateName(field_name);
     }
-    return Api::NewHandle(
-        T, cls.InvokeGetter(field_name, throw_nsm_if_absent,
-                            respect_reflectable, check_is_entrypoint));
+    return Api::NewHandle(T, cls.InvokeGetter(field_name, check_is_entrypoint,
+                                              respect_reflectable));
   } else if (obj.IsNull() || obj.IsInstance()) {
     Instance& instance = Instance::Handle(Z);
     instance ^= obj.ptr();
@@ -4702,8 +4711,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       field_name = lib.PrivateName(field_name);
     }
     return Api::NewHandle(T,
-                          instance.InvokeGetter(field_name, respect_reflectable,
-                                                check_is_entrypoint));
+                          instance.InvokeGetter(field_name, check_is_entrypoint,
+                                                respect_reflectable));
   } else if (obj.IsLibrary()) {
     const Library& lib = Library::Cast(obj);
     // Check that the library is loaded.
@@ -4715,9 +4724,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     if (Library::IsPrivate(field_name)) {
       field_name = lib.PrivateName(field_name);
     }
-    return Api::NewHandle(
-        T, lib.InvokeGetter(field_name, throw_nsm_if_absent,
-                            respect_reflectable, check_is_entrypoint));
+    return Api::NewHandle(T, lib.InvokeGetter(field_name, check_is_entrypoint,
+                                              respect_reflectable));
   } else if (obj.IsError()) {
     return container;
   } else {
@@ -4767,8 +4775,8 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       field_name = lib.PrivateName(field_name);
     }
     return Api::NewHandle(
-        T, cls.InvokeSetter(field_name, value_instance, respect_reflectable,
-                            check_is_entrypoint));
+        T, cls.InvokeSetter(field_name, value_instance, check_is_entrypoint,
+                            respect_reflectable));
   } else if (obj.IsNull() || obj.IsInstance()) {
     Instance& instance = Instance::Handle(Z);
     instance ^= obj.ptr();
@@ -4779,7 +4787,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     }
     return Api::NewHandle(
         T, instance.InvokeSetter(field_name, value_instance,
-                                 respect_reflectable, check_is_entrypoint));
+                                 check_is_entrypoint, respect_reflectable));
   } else if (obj.IsLibrary()) {
     // To access a top-level we may need to use the Field or the
     // setter Function.  The setter function may either be in the
@@ -4796,8 +4804,8 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       field_name = lib.PrivateName(field_name);
     }
     return Api::NewHandle(
-        T, lib.InvokeSetter(field_name, value_instance, respect_reflectable,
-                            check_is_entrypoint));
+        T, lib.InvokeSetter(field_name, value_instance, check_is_entrypoint,
+                            respect_reflectable));
   } else if (obj.IsError()) {
     return container;
   }
@@ -5481,7 +5489,9 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
                          cls_name.ToCString(), lib_name.ToCString());
   }
   cls.EnsureDeclarationLoaded();
-  CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+  if (FLAG_verify_entry_points) {
+    CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+  }
   return Api::NewHandle(T, cls.RareType());
 }
 
@@ -5511,7 +5521,9 @@ static Dart_Handle GetTypeCommon(Dart_Handle library,
                          name_str.ToCString(), lib_name.ToCString());
   }
   cls.EnsureDeclarationLoaded();
-  CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+  if (FLAG_verify_entry_points) {
+    CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+  }
 
   Type& type = Type::Handle();
   if (cls.NumTypeArguments() == 0) {
