@@ -343,6 +343,10 @@ abstract class MultiCorrectionProducer
   /// produced.
   LibraryElement get libraryElement => unitResult.libraryElement;
 
+  /// The library element for the library in which a correction is being
+  /// produced.
+  LibraryElement2 get libraryElement2 => unitResult.libraryElement2;
+
   @override
   ResolvedLibraryResult get libraryResult =>
       super.libraryResult as ResolvedLibraryResult;

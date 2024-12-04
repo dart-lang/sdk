@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -106,10 +107,10 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
     var name = Name(unitResult.libraryElement.source.uri, otherOperator.lexeme);
     var hasNoExtensionWithOtherDivisionOperator =
         await librariesWithExtensions(otherOperator.lexeme).where((library) {
-          return library.exportedExtensions
+          return library.asElement2.exportedExtensions
               .havingMemberWithBaseName(name)
               .applicableTo(
-                targetLibrary: libraryElement,
+                targetLibrary: libraryElement2,
                 targetType: leftType!,
               )
               .isNotEmpty;
