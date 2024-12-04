@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 // ignore: implementation_imports
@@ -45,10 +45,11 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage);
 
   @override
-  void reportError(SyntacticEntity errorEntity, Element element,
+  void reportError2(SyntacticEntity errorEntity, Element2 element,
       String displayName, String? message) {
-    var library = element is LibraryElement ? element : element.library;
-    if (library == null || !_workspacePackage.contains(library.source)) {
+    var library = element is LibraryElement2 ? element : element.library2;
+    if (library == null ||
+        !_workspacePackage.contains(library.firstFragment.source)) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
       return;
     }
@@ -106,8 +107,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitClassDeclaration(node);
@@ -118,8 +119,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitClassTypeAlias(node);
@@ -130,19 +131,19 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var library = node.declaredElement?.library;
+    var library = node.declaredFragment?.element;
     if (library == null) {
       return;
     }
-    _deprecatedVerifier.pushInDeprecatedValue(library.hasDeprecated);
+    _deprecatedVerifier.pushInDeprecatedValue(library.metadata2.hasDeprecated);
 
     super.visitCompilationUnit(node);
   }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitConstructorDeclaration(node);
@@ -159,8 +160,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitDefaultFormalParameter(node);
@@ -171,8 +172,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitEnumDeclaration(node);
@@ -189,8 +190,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitExtensionDeclaration(node);
@@ -207,8 +208,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitExtensionTypeDeclaration(node);
@@ -230,8 +231,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitFieldFormalParameter(node);
@@ -242,8 +243,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitFunctionDeclaration(node);
@@ -260,8 +261,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitFunctionTypeAlias(node);
@@ -272,8 +273,12 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    var element = node.declaredFragment?.element;
+    var hasDeprecated = (element is Annotatable)
+        ? (element! as Annotatable).metadata2.hasDeprecated
+        : false;
+
+    _deprecatedVerifier.pushInDeprecatedValue(hasDeprecated);
 
     try {
       super.visitGenericTypeAlias(node);
@@ -302,8 +307,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitMethodDeclaration(node);
@@ -320,8 +325,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitMixinDeclaration(node);
@@ -357,8 +362,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _deprecatedVerifier
-        .pushInDeprecatedValue(node.declaredElement?.hasDeprecated ?? false);
+    _deprecatedVerifier.pushInDeprecatedValue(
+        node.declaredFragment?.element.metadata2.hasDeprecated ?? false);
 
     try {
       super.visitSimpleFormalParameter(node);
