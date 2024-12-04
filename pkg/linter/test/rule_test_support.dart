@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -469,8 +468,7 @@ abstract class _ContextResolutionTest
   late ResolvedUnitResult result;
 
   /// Error codes that by default should be ignored in test expectations.
-  List<AnalyzerErrorCode> get ignoredErrorCodes =>
-      [WarningCode.UNUSED_LOCAL_VARIABLE];
+  List<ErrorCode> get ignoredErrorCodes => [WarningCode.UNUSED_LOCAL_VARIABLE];
 
   /// The path to the root of the external packages.
   @override
