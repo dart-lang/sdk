@@ -5,6 +5,9 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -13,6 +16,8 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
@@ -29,6 +34,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriver_PubPackageTest);
     defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);
+    defineReflectiveTests(AnalysisDriver_LintTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -81,6 +87,49 @@ import '$innerUri';
       result as ResolvedUnitResult;
       assertInnerUri(result);
     }
+  }
+}
+
+@reflectiveTest
+class AnalysisDriver_LintTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+
+    useEmptyByteStore();
+    Registry.ruleRegistry.registerLintRule(_AlwaysReportedLint.instance);
+    writeTestPackageAnalysisOptionsFile(analysisOptionsContent(
+      rules: [_AlwaysReportedLint.code.name],
+    ));
+  }
+
+  @override
+  Future<void> tearDown() {
+    Registry.ruleRegistry.unregisterLintRule(_AlwaysReportedLint.instance);
+    return super.tearDown();
+  }
+
+  test_getResolvedUnit_lint_existingFile() async {
+    addTestFile('');
+    await resolveTestFile();
+
+    // Existing/empty file triggers the lint.
+    _assertHasLintReported(result.errors, _AlwaysReportedLint.code.name);
+  }
+
+  test_getResolvedUnit_lint_notExistingFile() async {
+    await resolveTestFile();
+
+    // No errors for a file that doesn't exist.
+    assertErrorsInResult([]);
+  }
+
+  void _assertHasLintReported(List<AnalysisError> errors, String name) {
+    var matching = errors.where((element) {
+      var errorCode = element.errorCode;
+      return errorCode is LintCode && errorCode.name == name;
+    }).toList();
+    expect(matching, hasLength(1));
   }
 }
 
@@ -6045,6 +6094,44 @@ class DriverEventCollector {
           );
       }
     });
+  }
+}
+
+/// A lint that is always reported for all linted files.
+class _AlwaysReportedLint extends LintRule {
+  static final instance = _AlwaysReportedLint();
+
+  static const LintCode code = LintCode(
+    'always_reported_lint',
+    'This lint is reported for all files',
+  );
+
+  _AlwaysReportedLint()
+      : super(
+          name: 'always_reported_lint',
+          description: '',
+        );
+
+  @override
+  LintCode get lintCode => code;
+
+  @override
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
+    var visitor = _AlwaysReportedLintVisitor(this);
+    registry.addCompilationUnit(this, visitor);
+  }
+}
+
+/// A visitor for [_AlwaysReportedLint] that reports the lint for all files.
+class _AlwaysReportedLintVisitor extends SimpleAstVisitor<void> {
+  final LintRule rule;
+
+  _AlwaysReportedLintVisitor(this.rule);
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    rule.reportLintForOffset(0, 0);
   }
 }
 

@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -427,6 +428,32 @@ void f() {
     await expectUpdate(() => replaceFile(2, mainFileUri, 'void g() {}'));
     // Update, 0->0 diagnostics, sends no notification
     await expectNoUpdate(() => replaceFile(3, mainFileUri, 'void h() {}'));
+  }
+
+  /// Verify that computation of the QuickFix for "Create file 'Foo.dart'" does
+  /// not trigger lint warnings for that file because the CreateFile fix tries
+  /// to get a resolved unit which triggers analysis.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/5343
+  Future<void> test_exportMissingFile_noDiagnosticInMissingFile() async {
+    registerLintRules();
+    registerBuiltInProducers();
+    setSupportedCodeActionKinds([CodeActionKind.QuickFix]);
+    newFile(mainFilePath, "export 'Danny.dart';");
+    newFile('$testPackageRootPath/lib/analysis_options.yaml', '''
+linter:
+  rules:
+    - file_names
+''');
+
+    await initialize();
+    var pos = Position(line: 0, character: 0);
+    await getCodeActions(mainFileUri, position: pos);
+    await pumpEventQueue(times: 5000);
+
+    // We don't expect the lint diagnostic for the filename Danny.dart because
+    // it doesn't exist.
+    expect(diagnostics.keys, [mainFileUri]);
   }
 
   Future<void> test_fixDataFile() async {
