@@ -7,6 +7,7 @@ import 'package:reload_test/reload_test_utils.dart';
 
 // Adapted from:
 // https://github.com/dart-lang/sdk/blob/26f2ff4f11f56841fc5a250231ef7d49f01eb234/runtime/vm/isolate_reload_test.cc#L2604
+// Extended with logic to check for non-identity.
 
 class Fruit {
   final String name;
@@ -28,8 +29,5 @@ Future<void> main() async {
   await hotReload();
   Expect.equals('Pear', x.toString());
   Expect.identical(x, const Fruit('Pear'));
-  Expect.identical(x, helper());
+  Expect.notIdentical(x, helper());
 }
-/** DIFF **/
-/*
-*/
