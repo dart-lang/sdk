@@ -32,7 +32,6 @@ lib/src/services/completion/dart/declaration_helper.dart
 lib/src/services/completion/dart/identifier_helper.dart
 lib/src/services/completion/dart/in_scope_completion_pass.dart
 lib/src/services/completion/dart/visibility_tracker.dart
-lib/src/services/correction/dart/create_extension_member.dart
 lib/src/services/correction/dart/import_library.dart
 lib/src/services/correction/dart/use_different_division_operator.dart
 lib/src/services/correction/namespace.dart
