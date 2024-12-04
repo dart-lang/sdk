@@ -8,6 +8,13 @@
 
 import '../enum_shorthand_helper.dart';
 
+class NullableInteger {
+  static NullableInteger? get one => NullableInteger(1);
+  static NullableInteger? get two => NullableInteger(2);
+  final int integer;
+  NullableInteger(this.integer);
+}
+
 void main() {
   // Enum
   Color? color = .blue;
@@ -36,5 +43,10 @@ void main() {
   IntegerMixin? integerMixin = .mixinOne;
   const IntegerMixin? constIntegerMixin = .mixinConstOne;
   var integerMixinList = <IntegerMixin?>[.one, .two, .one];
+
+  // Null assertion on a nullable static member.
+  NullableInteger? nullableInteger = .one;
+  NullableInteger nullableIntegerAssert = .one!;
+  var nullableIntegerMixinList = <NullableInteger>[.one!, .two!, .one!];
 }
 
