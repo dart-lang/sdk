@@ -1324,8 +1324,10 @@ abstract class InterfaceElement2 implements InstanceElement2 {
   /// failed.
   /// </blockquote>
   // TODO(scheglov): Deprecate and remove it.
-  MethodElement2? lookUpInheritedMethod2(
-      String methodName, LibraryElement2 library);
+  MethodElement2? lookUpInheritedMethod2({
+    required String methodName,
+    required LibraryElement2 library,
+  });
 }
 
 /// The portion of an [InterfaceElement2] contributed by a single declaration.
@@ -1502,12 +1504,6 @@ abstract class LibraryElement2 implements Element2, Annotatable {
   /// of this element's parent.
   String get identifier;
 
-  /// The libraries that are imported into this library.
-  ///
-  /// This includes all of the libraries that are imported using a prefix, and
-  /// those that are imported without a prefix.
-  List<LibraryElement2> get importedLibraries2;
-
   /// Whether the library is the `dart:async` library.
   bool get isDartAsync;
 
@@ -1659,6 +1655,12 @@ abstract class LibraryFragment implements Fragment, Annotatable {
 
   /// The fragments of the top-level getters declared in this fragment.
   List<GetterFragment> get getters;
+
+  /// The libraries that are imported by this unit.
+  ///
+  /// This includes all of the libraries that are imported using a prefix, and
+  /// those that are imported without a prefix.
+  List<LibraryElement2> get importedLibraries2;
 
   /// The libraries exported by this unit.
   List<LibraryExport> get libraryExports2;
