@@ -6202,6 +6202,7 @@ sealed class ExpressionImpl extends AstNodeImpl
         case ForElement():
         case MapLiteralEntry():
         case SpreadElement():
+        case NullAwareElement():
         case VariableDeclaration():
           break;
         default:
@@ -17110,17 +17111,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType contextType) {
-    inferenceLogWriter?.enterExpression(this, contextType);
-    var previousExhaustiveness = resolver.legacySwitchExhaustiveness;
-    var staticType = resolver
-        .analyzeSwitchExpression(
-            this, expression, cases.length, SharedTypeSchemaView(contextType))
-        .type
-        .unwrapTypeView();
-    recordStaticType(staticType, resolver: resolver);
-    resolver.popRewrite();
-    resolver.legacySwitchExhaustiveness = previousExhaustiveness;
-    inferenceLogWriter?.exitExpression(this);
+    resolver.visitSwitchExpression(this, contextType: contextType);
   }
 
   @override

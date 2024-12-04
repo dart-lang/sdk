@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (methodElement == null) return;
 
     var libraryElement = methodElement.library2;
-    if (libraryElement != null && !libraryElement.isDartCore) return;
+    if (!libraryElement.isDartCore) return;
 
     var parent = node.parent;
     if (parent is! ParenthesizedExpression) return;

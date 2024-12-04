@@ -4,10 +4,12 @@
 
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 
@@ -113,7 +115,14 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void reportError(SyntacticEntity errorEntity, Element element,
-      String displayName, String? message);
+      String displayName, String? message) {
+    reportError2(errorEntity, element.asElement2!, displayName, message);
+  }
+
+  void reportError2(SyntacticEntity errorEntity, Element2 element,
+      String displayName, String? message) {
+    reportError(errorEntity, element.asElement!, displayName, message);
+  }
 
   void simpleIdentifier(SimpleIdentifier node) {
     // Don't report declared identifiers.

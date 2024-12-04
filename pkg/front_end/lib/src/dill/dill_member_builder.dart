@@ -56,7 +56,6 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override
   bool get isConstructor => member is Constructor;
 
-  @override
   ProcedureKind? get kind {
     final Member member = this.member;
     return member is Procedure
@@ -158,6 +157,10 @@ class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
   @override
   Iterable<Reference> get exportedMemberReferences =>
       [field.getterReference, if (field.hasSetter) field.setterReference!];
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
 }
 
 abstract class DillProcedureBuilder extends DillMemberBuilder
@@ -191,6 +194,10 @@ class DillGetterBuilder extends DillProcedureBuilder {
       : assert(procedure.kind == ProcedureKind.Getter);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
+
+  @override
   Member get member => procedure;
 
   @override
@@ -208,6 +215,10 @@ class DillSetterBuilder extends DillProcedureBuilder {
   DillSetterBuilder(super.procedure, super.libraryBuilder,
       [super.declarationBuilder])
       : assert(procedure.kind == ProcedureKind.Setter);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
 
   @override
   Member get member => procedure;
@@ -228,6 +239,10 @@ class DillMethodBuilder extends DillProcedureBuilder {
       : assert(procedure.kind == ProcedureKind.Method);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
+
+  @override
   Member get member => procedure;
 
   @override
@@ -244,6 +259,10 @@ class DillOperatorBuilder extends DillProcedureBuilder {
   DillOperatorBuilder(super.procedure, super.libraryBuilder,
       [super.declarationBuilder])
       : assert(procedure.kind == ProcedureKind.Operator);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   Member get member => procedure;
@@ -268,6 +287,10 @@ class DillFactoryBuilder extends DillProcedureBuilder {
       super.libraryBuilder, DillClassBuilder super.declarationBuilder);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
+
+  @override
   Member get member => procedure;
 
   @override
@@ -288,6 +311,10 @@ class DillConstructorBuilder extends DillMemberBuilder
 
   DillConstructorBuilder(this.constructor, this._constructorTearOff,
       super.libraryBuilder, ClassBuilder super.declarationBuilder);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   FunctionNode get function => constructor.function;

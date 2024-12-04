@@ -71,6 +71,9 @@ abstract class DartObject {
   /// If this object is the value of a constant variable, the variable.
   VariableElement? get variable;
 
+  /// If this object is the value of a constant variable, the variable.
+  VariableElement2? get variable2;
+
   /// Return a representation of the value of the field with the given [name].
   ///
   /// Return `null` if either the object being represented does not have a field

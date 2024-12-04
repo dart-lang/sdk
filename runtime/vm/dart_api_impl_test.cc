@@ -16,6 +16,7 @@
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/debugger_api_impl_test.h"
+#include "vm/flags.h"
 #include "vm/heap/verifier.h"
 #include "vm/lockers.h"
 #include "vm/timeline.h"
@@ -44,6 +45,7 @@ UNIT_TEST_CASE(DartAPI_DartInitializeAfterCleanup) {
   {
     TestIsolateScope scope;
     const char* kScriptChars =
+        "@pragma('vm:entry-point', 'call')\n"
         "int testMain() {\n"
         "  return 42;\n"
         "}\n";
@@ -137,6 +139,7 @@ UNIT_TEST_CASE(DartAPI_DartInitializeHeapSizes) {
 
 TEST_CASE(Dart_KillIsolate) {
   const char* kScriptChars =
+      "@pragma('vm:entry-point', 'call')\n"
       "int testMain() {\n"
       "  return 42;\n"
       "}\n";
@@ -161,6 +164,7 @@ class InfiniteLoopTask : public ThreadPool::Task {
   virtual void Run() {
     TestIsolateScope scope;
     const char* kScriptChars =
+        "@pragma('vm:entry-point', 'call')\n"
         "testMain() {\n"
         "  while(true) {};"
         "}\n";
@@ -211,6 +215,7 @@ TEST_CASE(Dart_KillIsolatePriority) {
 
 TEST_CASE(DartAPI_ErrorHandleBasics) {
   const char* kScriptChars =
+      "@pragma('vm:entry-point', 'call')\n"
       "void testMain() {\n"
       "  throw new Exception(\"bad news\");\n"
       "}\n";
@@ -233,7 +238,7 @@ TEST_CASE(DartAPI_ErrorHandleBasics) {
   EXPECT_STREQ("myerror", Dart_GetError(error));
   EXPECT_STREQ(ZONE_STR("Unhandled exception:\n"
                         "Exception: bad news\n"
-                        "#0      testMain (%s:2:3)",
+                        "#0      testMain (%s:3:3)",
                         TestCase::url()),
                Dart_GetError(exception));
 
@@ -249,6 +254,7 @@ TEST_CASE(DartAPI_StackTraceInfo) {
   const char* kScriptChars =
       "bar() => throw new Error();\n"
       "foo() => bar();\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "testMain() => foo();\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
@@ -305,7 +311,7 @@ TEST_CASE(DartAPI_StackTraceInfo) {
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_SUBSTRING("test-lib", cstr);
-  EXPECT_EQ(3, line_number);
+  EXPECT_EQ(4, line_number);
   EXPECT_EQ(15, column_number);
 
   // Out-of-bounds frames.
@@ -318,6 +324,7 @@ TEST_CASE(DartAPI_StackTraceInfo) {
 TEST_CASE(DartAPI_DeepStackTraceInfo) {
   const char* kScriptChars =
       "foo(n) => n == 1 ? throw new Error() : foo(n-1);\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "testMain() => foo(100);\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
@@ -383,7 +390,7 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_SUBSTRING("test-lib", cstr);
-  EXPECT_EQ(2, line_number);
+  EXPECT_EQ(3, line_number);
   EXPECT_EQ(15, column_number);
 
   // Out-of-bounds frames.
@@ -399,8 +406,11 @@ void VerifyStackOverflowStackTraceInfo(const char* script,
                                        int expected_line_number,
                                        int expected_column_number) {
   Dart_Handle lib = TestCase::LoadTestScript(script, nullptr);
-  Dart_Handle error = Dart_Invoke(lib, NewString(entry_func_name), 0, nullptr);
-
+  Dart_Handle error;
+  {
+    SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
+    error = Dart_Invoke(lib, NewString(entry_func_name), 0, nullptr);
+  }
   EXPECT(Dart_IsError(error));
 
   Dart_StackTrace stacktrace;
@@ -477,6 +487,7 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfoArrowFunction) {
 TEST_CASE(DartAPI_OutOfMemoryStackTraceInfo) {
   const char* kScriptChars =
       "var number_of_ints = 134000000;\n"
+      "@pragma('vm:entry-point', 'call')"
       "testMain() {\n"
       "  new List<int>(number_of_ints)\n"
       "}\n";
@@ -566,7 +577,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   EXPECT_STREQ("testMain", cstr);
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ(test_lib, cstr);
-  EXPECT_EQ(5, line_number);
+  EXPECT_EQ(6, line_number);
   EXPECT_EQ(15, column_number);
 
   // Out-of-bounds frames.
@@ -593,6 +604,7 @@ TEST_CASE(DartAPI_CurrentStackTraceInfo) {
 @pragma("vm:external-name", "CurrentStackTraceNative")
 external inspectStack();
 foo(n) => n == 1 ? inspectStack() : foo(n-1);
+@pragma("vm:entry-point", "call")
 testMain() => foo(100);
   )";
 
@@ -735,6 +747,7 @@ exitRightNow() {
 @pragma("vm:external-name", "Test_nativeFunc")
 external void nativeFunc(closure);
 
+@pragma("vm:entry-point", "call")
 void Func1() {
   nativeFunc(() => exitRightNow());
 }
@@ -765,6 +778,7 @@ sendAndExitNow() {
 @pragma("vm:external-name", "Test_nativeFunc")
 external void nativeFunc(closure);
 
+@pragma("vm:entry-point", "call")
 void Func1() {
   nativeFunc(() => sendAndExitNow());
 }
@@ -824,6 +838,7 @@ raiseCompileError() {
 @pragma("vm:external-name", "Test_nativeFunc")
 external void nativeFunc(closure);
 
+@pragma("vm:entry-point", "call")
 void Func1() {
   nativeFunc(() => raiseCompileError());
 }
@@ -867,6 +882,7 @@ void throwException() {
 @pragma("vm:external-name", "Test_nativeFunc")
 external void nativeFunc(closure);
 
+@pragma("vm:entry-point", "call")
 void Func2() {
   nativeFunc(() => throwException());
 }
@@ -1089,6 +1105,7 @@ TEST_CASE(DartAPI_InstanceGetType) {
 TEST_CASE(DartAPI_FunctionName) {
   const char* kScriptChars = "int getInt() { return 1; }\n";
   // Create a test library and Load up a test script in it.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
@@ -1109,6 +1126,7 @@ TEST_CASE(DartAPI_FunctionName) {
 TEST_CASE(DartAPI_FunctionOwner) {
   const char* kScriptChars = "int getInt() { return 1; }\n";
   // Create a test library and Load up a test script in it.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
@@ -1145,6 +1163,7 @@ TEST_CASE(DartAPI_IsTearOff) {
       "  int bar() => 24;\n"
       "}\n"
       "Baz getBaz() => Baz();\n";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
@@ -1193,6 +1212,7 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
       "int getInt() { return 1; }\n"
       "class Foo { String getString() => 'foobar'; }\n";
   // Create a test library and Load up a test script in it.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
@@ -1229,6 +1249,7 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
 TEST_CASE(DartAPI_ClosureFunction) {
   const char* kScriptChars = "int getInt() { return 1; }\n";
   // Create a test library and Load up a test script in it.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 
@@ -1259,6 +1280,7 @@ TEST_CASE(DartAPI_GetStaticMethodClosure) {
       "  }\n"
       "}\n";
   // Create a test library and Load up a test script in it.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle foo_cls = Dart_GetClass(lib, NewString("Foo"));
@@ -1379,6 +1401,7 @@ TEST_CASE(DartAPI_NumberValues) {
       "double getDouble() { return 1.0; }\n"
       "bool getBool() { return false; }\n"
       "getNull() { return null; }\n";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
@@ -1641,12 +1664,14 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
   // Strings are allowed to have individual or out of order surrogates, even
   // if that doesn't make sense as renderable characters.
   const char* kScriptChars =
+      "@pragma('vm:entry-point', 'call')"
       "String lowSurrogate() {"
       "  return '\\u{1D11E}'[1];"
       "}"
       "String highSurrogate() {"
       "  return '\\u{1D11E}'[0];"
       "}"
+      "@pragma('vm:entry-point', 'call')"
       "String reversed() => lowSurrogate() + highSurrogate();";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
@@ -1683,6 +1708,7 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
 
 TEST_CASE(DartAPI_CopyUTF8EncodingOfString) {
   const char* kScriptChars =
+      "@pragma('vm:entry-point', 'call')"
       "String lowSurrogate() {"
       "  return '\\u{1D11E}'[1];"
       "}";
@@ -1748,6 +1774,7 @@ TEST_CASE(DartAPI_ListAccess) {
       "List immutable() {"
       "  return const [0, 1, 2];"
       "}";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle result;
 
   // Create a test library and Load up a test script in it.
@@ -1888,6 +1915,7 @@ TEST_CASE(DartAPI_ListAccess) {
 TEST_CASE(DartAPI_MapAccess) {
   EXPECT(!Dart_IsMap(Dart_Null()));
   const char* kScriptChars =
+      "@pragma('vm:entry-point', 'call')"
       "Map testMain() {"
       "  return {"
       "    'a' : 1,"
@@ -1980,6 +2008,7 @@ TEST_CASE(DartAPI_MapAccess) {
 TEST_CASE(DartAPI_IsFuture) {
   const char* kScriptChars =
       "import 'dart:async';"
+      "@pragma('vm:entry-point', 'call')"
       "Future testMain() {"
       "  return new Completer().future;"
       "}";
@@ -2007,6 +2036,7 @@ TEST_CASE(DartAPI_TypedDataViewListGetAsBytes) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = new Int8List.view(a.buffer, 0, size);\n"
@@ -2039,6 +2069,7 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = new Int8List.view(a.buffer, 0, size);\n"
@@ -2062,6 +2093,7 @@ TEST_CASE(DartAPI_UnmodifiableTypedDataViewListIsTypedData) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = a.asUnmodifiableView();\n"
@@ -2338,9 +2370,11 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
   // wrapper.
   const char* kScriptChars =
       "var array;\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "extractAndSaveArray(byteData) {\n"
       "  array = byteData.buffer.asUint8List();\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "releaseArray() {\n"
       "  array = null;\n"
       "}\n";
@@ -2520,7 +2554,10 @@ static void TestDirectAccess(Dart_Handle lib,
   // Invoke the dart function that sets initial values.
   Dart_Handle dart_args[1];
   dart_args[0] = array;
-  result = Dart_Invoke(lib, NewString("setMain"), 1, dart_args);
+  {
+    SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
+    result = Dart_Invoke(lib, NewString("setMain"), 1, dart_args);
+  }
   EXPECT_VALID(result);
 
   // Now Get a direct access to this typed data object and check it's contents.
@@ -2555,7 +2592,10 @@ static void TestDirectAccess(Dart_Handle lib,
   EXPECT_VALID(result);
 
   // Invoke the dart function in order to check the modified values.
-  result = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
+  {
+    SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
+    result = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
+  }
   EXPECT_VALID(result);
 }
 
@@ -2816,12 +2856,14 @@ class Expect {
     if (!threw) throw 'did not throw';
   }
 }
+@pragma('vm:entry-point', 'call')
 testList(data) {
   for (var i = 0; i < data.length; i++) {
     Expect.equals(i, data[i]);
     Expect.throws(() => data[i] = 0);
   }
 }
+@pragma('vm:entry-point', 'call')
 testBytes(data) {
   for (var i = 0; i < data.length; i++) {
     Expect.equals(i, data.getUint8(i));
@@ -2982,6 +3024,7 @@ testBytes(data) {
 TEST_CASE(DartAPI_UnmodifiableTypedData_PassByReference) {
   const char* kScriptChars = R"(
 import 'dart:isolate';
+@pragma('vm:entry-point', 'call')
 test(original) {
   var port = new RawReceivePort();
   port.handler = (msg) {
@@ -3111,6 +3154,7 @@ TEST_CASE(DartAPI_ExternalClampedTypedDataAccess) {
 
 TEST_CASE(DartAPI_ExternalUint8ClampedArrayAccess) {
   const char* kScriptChars =
+      "@pragma('vm:entry-point', 'call')\n"
       "testClamped(List a) {\n"
       "  if (a[1] != 11) return false;\n"
       "  a[1] = 3;\n"
@@ -3246,6 +3290,7 @@ static void CheckFloat32x4Data(Dart_Handle obj) {
 TEST_CASE(DartAPI_Float32x4List) {
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "Float32x4List float32x4() {\n"
       "  return new Float32x4List(10);\n"
       "}\n";
@@ -3706,6 +3751,7 @@ TEST_CASE(DartAPI_FinalizableHandle) {
 }
 
 TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_EnterScope();
 
   // nullptr callback.
@@ -3766,6 +3812,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
 }
 
 TEST_CASE(DartAPI_FinalizableHandleErrors) {
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_EnterScope();
 
   // nullptr callback.
@@ -4900,6 +4947,7 @@ TEST_CASE(DartAPI_TypeGetNonParametricTypes) {
       "Type getMyClass0Type() { return new MyClass0().runtimeType; }\n"
       "Type getMyClass1Type() { return new MyClass1().runtimeType; }\n"
       "Type getMyClass2Type() { return new MyClass2().runtimeType; }\n";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   bool instanceOf = false;
 
@@ -5014,6 +5062,7 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
       "Type getListIntType() { return type<List<int>>(); }\n"
       "Type getListType() { return List; }\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
   EXPECT_VALID(corelib);
 
@@ -5228,6 +5277,7 @@ TEST_CASE(DartAPI_FieldAccess) {
       "}\n";
 
   // Shared setup.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("Fields"), 0, nullptr);
@@ -5391,7 +5441,9 @@ TEST_CASE(DartAPI_FieldAccess) {
 }
 
 TEST_CASE(DartAPI_SetField_FunnyValue) {
-  const char* kScriptChars = "var top;\n";
+  const char* kScriptChars =
+      "@pragma('vm:entry-point')\n"
+      "var top;\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle name = NewString("top");
@@ -5423,7 +5475,9 @@ TEST_CASE(DartAPI_SetField_FunnyValue) {
 }
 
 TEST_CASE(DartAPI_SetField_BadType) {
-  const char* kScriptChars = "late int foo;\n";
+  const char* kScriptChars =
+      "@pragma('vm:entry-point', 'set')\n"
+      "late int foo;\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle name = NewString("foo");
   Dart_Handle result = Dart_SetField(lib, name, Dart_True());
@@ -5454,6 +5508,7 @@ TEST_CASE(DartAPI_InjectNativeFields2) {
                   "  static int? fld3;\n"
                   "  static const int fld4 = 10;\n"
                   "}\n"
+                  "@pragma('vm:entry-point', 'call')\n"
                   "NativeFields testMain() {\n"
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
@@ -5486,6 +5541,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
                   "  static int? fld3;\n"
                   "  static const int fld4 = 10;\n"
                   "}\n"
+                  "@pragma('vm:entry-point', 'call')\n"
                   "NativeFields testMain() {\n"
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
@@ -5529,6 +5585,7 @@ TEST_CASE(DartAPI_InjectNativeFields4) {
                   "  static int? fld3;\n"
                   "  static const int fld4 = 10;\n"
                   "}\n"
+                  "@pragma('vm:entry-point', 'call')\n"
                   "NativeFields testMain() {\n"
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
@@ -5632,6 +5689,7 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
             @pragma('vm:external-name', 'TestNativeFieldsAccess_invalidAccess')
             external invalidAccess();
           }
+          @pragma('vm:entry-point', 'call')
           NativeFields testMain() {
             NativeFields obj = new NativeFields(10, 20);
             obj.initNativeFlds();
@@ -5661,6 +5719,7 @@ TEST_CASE(DartAPI_InjectNativeFieldsSuperClass) {
       "base class NativeFields extends NativeFieldsSuper {\n"
       "  fld() => fld1;\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "int testMain() {\n"
       "  NativeFields obj = new NativeFields();\n"
       "  return obj.fld();\n"
@@ -5681,6 +5740,7 @@ TEST_CASE(DartAPI_InjectNativeFieldsSuperClass) {
 }
 
 static void TestNativeFields(Dart_Handle retobj) {
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   // Access and set various instance fields of the object.
   Dart_Handle result = Dart_GetField(retobj, NewString("fld3"));
   EXPECT(Dart_IsError(result));
@@ -5768,6 +5828,7 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
                   "  static int? fld3;\n"
                   "  static const int fld4 = 10;\n"
                   "}\n"
+                  "@pragma('vm:entry-point', 'call')\n"
                   "NativeFields testMain() {\n"
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
@@ -5795,10 +5856,12 @@ TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
                   "  static int? fld3;\n"
                   "  static const int fld4 = 10;\n"
                   "}\n"
+                  "@pragma('vm:entry-point', 'call')\n"
                   "NativeFields testMain1() {\n"
                   "  NativeFields obj = new NativeFields(10, 20);\n"
                   "  return obj;\n"
                   "}\n"
+                  "@pragma('vm:entry-point', 'call')\n"
                   "Function testMain2() {\n"
                   "  return () {};\n"
                   "}\n";
@@ -5868,6 +5931,7 @@ TEST_CASE(DartAPI_GetStaticField_RunsInitializer) {
       "}\n";
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("TestClass"), 0, nullptr);
@@ -5911,6 +5975,7 @@ TEST_CASE(DartAPI_GetField_CheckIsolate) {
   int64_t value = 0;
 
   // Create a test library and Load up a test script in it.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("TestClass"), 0, nullptr);
@@ -5933,6 +5998,7 @@ TEST_CASE(DartAPI_SetField_CheckIsolate) {
   int64_t value = 0;
 
   // Create a test library and Load up a test script in it.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("TestClass"), 0, nullptr);
@@ -5978,6 +6044,7 @@ TEST_CASE(DartAPI_New) {
       "}\n"
       "\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("MyClass"), 0, nullptr);
@@ -6198,6 +6265,7 @@ TEST_CASE(DartAPI_New_Issue42939) {
       "}\n"
       "\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("MyClass"), 0, nullptr);
@@ -6251,6 +6319,7 @@ TEST_CASE(DartAPI_New_Issue44205) {
       "Type getIntType() { return int; }\n"
       "\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle int_wrapper_type =
@@ -6297,6 +6366,7 @@ TEST_CASE(DartAPI_InvokeConstructor_Issue44205) {
       "Type getIntType() { return int; }\n"
       "\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
   Dart_Handle int_wrapper_type =
@@ -6338,6 +6408,7 @@ TEST_CASE(DartAPI_InvokeClosure_Issue44205) {
       "  final int fld2;\n"
       "  static const int fld4 = 10;\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "Function testMain1() {\n"
       "  InvokeClosure obj = new InvokeClosure(10, 20);\n"
       "  return obj.method1(10);\n"
@@ -6371,6 +6442,7 @@ TEST_CASE(DartAPI_NewListOfType) {
       "void expectListOfDynamic(List<dynamic> _) {}\n"
       "void expectListOfVoid(List<void> _) {}\n"
       "void expectListOfNever(List<Never> _) {}\n";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
 
   Dart_Handle zxhandle_type =
@@ -6444,6 +6516,7 @@ TEST_CASE(DartAPI_NewListOfTypeFilled) {
       "  final List<ZXHandle> handles;\n"
       "  ChannelReadResult(this.handles);\n"
       "}\n";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
 
   Dart_Handle zxhandle_type =
@@ -6538,6 +6611,7 @@ TEST_CASE(DartAPI_Invoke) {
       "}\n";
 
   // Shared setup.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("Methods"), 0, nullptr);
@@ -6645,6 +6719,7 @@ TEST_CASE(DartAPI_Invoke_PrivateStatic) {
       "\n";
 
   // Shared setup.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("Methods"), 0, nullptr);
@@ -6663,9 +6738,189 @@ TEST_CASE(DartAPI_Invoke_PrivateStatic) {
   EXPECT_STREQ("hidden static !!!", str);
 }
 
+TEST_CASE(DartAPI_MissingEntryPoints) {
+  const char* kScriptChars = R"(
+class C {
+  final cx = 1;
+  int cy = 2;
+  @pragma('vm:entry-point', 'get')
+  int cz = 3;
+  @pragma('vm:entry-point', 'set')
+  int cw = 4;
+
+  void c1() {}
+
+  @pragma('vm:entry-point', 'call')
+  void c2() {}
+
+  @pragma('vm:entry-point', 'get')
+  void c3() {}
+}
+
+@pragma('vm:entry-point')
+class D {
+  static final dx = 1;
+  static int dy = 2;
+  @pragma('vm:entry-point', 'get')
+  static int dz = 3;
+  @pragma('vm:entry-point', 'set')
+  static int dw = 4;
+
+  static void d1() {}
+
+  @pragma('vm:entry-point', 'call')
+  static void d2() {}
+
+  @pragma('vm:entry-point', 'get')
+  static void d3() {
+    print('Okay to closurize.');
+  }
+}
+
+final x = 1;
+int y = 2;
+@pragma('vm:entry-point', 'get')
+int z = 3;
+@pragma('vm:entry-point', 'set')
+int w = 4;
+
+void test1() {}
+
+@pragma('vm:entry-point', 'call')
+void test2() {}
+
+@pragma('vm:entry-point', 'get')
+void test3() {}
+
+@pragma('vm:entry-point', 'call')
+C newC() => C();
+  )";
+
+  // Shared setup.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, true);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+  Dart_Handle instance = Dart_Invoke(lib, NewString("newC"), 0, nullptr);
+  EXPECT_VALID(instance);
+  Dart_Handle d_class = Dart_GetClass(lib, NewString("D"));
+  EXPECT_VALID(d_class);
+  Dart_Handle value = Dart_NewInteger(0);
+  Dart_Handle name;
+
+  // Top level method, not annotated for calling or closurization.
+  name = NewString("test1");
+  EXPECT_ERROR(Dart_Invoke(lib, name, 0, nullptr), "entry_point_pragma.md");
+  EXPECT_ERROR(Dart_GetField(lib, name), "entry_point_pragma.md");
+
+  // Top level method annotated for calling, not closurization.
+  name = NewString("test2");
+  EXPECT_VALID(Dart_Invoke(lib, name, 0, nullptr));
+  EXPECT_ERROR(Dart_GetField(lib, name), "entry_point_pragma.md");
+
+  // Top level method annotated for closurization, not calling.
+  name = NewString("test3");
+  EXPECT_ERROR(Dart_Invoke(lib, name, 0, nullptr), "entry_point_pragma.md");
+  EXPECT_VALID(Dart_GetField(lib, name));
+
+  // Final top level field, not annotated for getting.
+  name = NewString("x");
+  EXPECT_ERROR(Dart_GetField(lib, name), "entry_point_pragma.md");
+
+  // Top level field, not annotated for getting or setting.
+  name = NewString("y");
+  EXPECT_ERROR(Dart_GetField(lib, name), "entry_point_pragma.md");
+  EXPECT_ERROR(Dart_SetField(lib, name, value), "entry_point_pragma.md");
+
+  // Top level field annotated for getting, not setting.
+  name = NewString("z");
+  EXPECT_VALID(Dart_GetField(lib, name));
+  EXPECT_ERROR(Dart_SetField(lib, name, value), "entry_point_pragma.md");
+
+  // Top level field annotated for setting, not getting.
+  name = NewString("w");
+  EXPECT_ERROR(Dart_GetField(lib, name), "entry_point_pragma.md");
+  EXPECT_VALID(Dart_SetField(lib, name, value));
+
+  // Instance method, not annotated for calling or closurization.
+  name = NewString("c1");
+  EXPECT_ERROR(Dart_Invoke(instance, name, 0, nullptr),
+               "entry_point_pragma.md");
+  EXPECT_ERROR(Dart_GetField(instance, name), "entry_point_pragma.md");
+
+  // Instance method annotated for calling, not closurization.
+  name = NewString("c2");
+  EXPECT_VALID(Dart_Invoke(instance, name, 0, nullptr));
+  EXPECT_ERROR(Dart_GetField(instance, name), "entry_point_pragma.md");
+
+  // Instance method annotated for closurization, not calling.
+  name = NewString("c3");
+  EXPECT_ERROR(Dart_Invoke(instance, name, 0, nullptr),
+               "entry_point_pragma.md");
+  EXPECT_VALID(Dart_GetField(instance, name));
+
+  // Final instance field, not annotated for getting.
+  name = NewString("cx");
+  EXPECT_ERROR(Dart_GetField(instance, name), "entry_point_pragma.md");
+
+  // Instance field, not annotated for getting or setting.
+  name = NewString("cy");
+  EXPECT_ERROR(Dart_GetField(instance, name), "entry_point_pragma.md");
+  EXPECT_ERROR(Dart_SetField(instance, name, value), "entry_point_pragma.md");
+
+  // Instance field annotated for getting, not setting.
+  name = NewString("cz");
+  EXPECT_VALID(Dart_GetField(instance, name));
+  EXPECT_ERROR(Dart_SetField(instance, name, value), "entry_point_pragma.md");
+
+  // Instance field annotated for setting, not getting.
+  name = NewString("cw");
+  EXPECT_ERROR(Dart_GetField(instance, name), "entry_point_pragma.md");
+  EXPECT_VALID(Dart_SetField(instance, name, value));
+
+  // Class, not annotated for access.
+  name = NewString("C");
+  EXPECT_ERROR(Dart_GetClass(lib, name), "entry_point_pragma.md");
+
+  // Static method, not annotated for calling or closurization.
+  name = NewString("d1");
+  EXPECT_ERROR(Dart_Invoke(d_class, name, 0, nullptr), "entry_point_pragma.md");
+  EXPECT_ERROR(Dart_GetField(d_class, name), "entry_point_pragma.md");
+
+  // Instance method annotated for calling, not closurization.
+  name = NewString("d2");
+  EXPECT_VALID(Dart_Invoke(d_class, name, 0, nullptr));
+  EXPECT_ERROR(Dart_GetField(d_class, name), "entry_point_pragma.md");
+
+  // Instance method annotated for closurization, not calling.
+  name = NewString("d3");
+  EXPECT_ERROR(Dart_Invoke(d_class, name, 0, nullptr), "entry_point_pragma.md");
+  EXPECT_VALID(Dart_GetField(d_class, name));
+
+  // Final static field, getter.
+  name = NewString("dx");
+  EXPECT_ERROR(Dart_GetField(d_class, name), "entry_point_pragma.md");
+
+  // Static field, not annotated for getting or setting.
+  name = NewString("dy");
+  value = Dart_NewInteger(0);
+  EXPECT_ERROR(Dart_GetField(d_class, name), "entry_point_pragma.md");
+  EXPECT_ERROR(Dart_SetField(d_class, name, value), "entry_point_pragma.md");
+
+  // Static field annotated for getting, not setting.
+  name = NewString("dz");
+  EXPECT_VALID(Dart_GetField(d_class, name));
+  EXPECT_ERROR(Dart_SetField(d_class, name, value), "entry_point_pragma.md");
+
+  // Static field annotated for setting, not getting.
+  name = NewString("dw");
+  EXPECT_ERROR(Dart_GetField(d_class, name), "entry_point_pragma.md");
+  EXPECT_VALID(Dart_SetField(d_class, name, value));
+}
+
 TEST_CASE(DartAPI_Invoke_FunnyArgs) {
   const char* kScriptChars = "test(arg) => 'hello $arg';\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle func_name = NewString("test");
   Dart_Handle args[1];
@@ -6739,6 +6994,7 @@ TEST_CASE(DartAPI_Invoke_BadArgs) {
 #endif  // defined(PRODUCT)
 
   // Shared setup.
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("Methods"), 0, nullptr);
@@ -6793,6 +7049,7 @@ TEST_CASE(DartAPI_Invoke_BadArgs) {
 }
 
 TEST_CASE(DartAPI_Invoke_Null) {
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle result =
       Dart_Invoke(Dart_Null(), NewString("toString"), 0, nullptr);
   EXPECT_VALID(result);
@@ -6855,6 +7112,7 @@ TEST_CASE(DartAPI_InvokeNoSuchMethod) {
       "    return new TestClass();\n"
       "  }\n"
       "}\n";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle result;
   Dart_Handle instance;
   // Create a test library and Load up a test script in it.
@@ -6913,6 +7171,7 @@ TEST_CASE(DartAPI_InvokeClosure) {
   Dart_Handle result;
   CHECK_API_SCOPE(thread);
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
 
@@ -6970,9 +7229,11 @@ TEST_CASE(DartAPI_ThrowException) {
   const char* kScriptChars =
       R"(
       @pragma('vm:external-name', 'ThrowException_native')
+      @pragma('vm:entry-point', 'call')
       external int test();
     )";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle result;
   intptr_t size = thread->ZoneSizeInBytes();
   Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
@@ -7167,6 +7428,7 @@ int testMain(String extstr) {
                            obj2);
 })";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_args_lookup);
 
   const char* ascii_str = "string";
@@ -7202,6 +7464,7 @@ class MyObject {
   @pragma("vm:external-name", "Name_Does_Not_Matter")
   external int method1(int i, int j);
 }
+@pragma('vm:entry-point', 'call')
 testMain() {
   MyObject obj = new MyObject();
   return obj.method1(77, 125);
@@ -7226,6 +7489,7 @@ TEST_CASE(DartAPI_TypeToNullability) {
       "  static var name = 'Class';\n"
       "}\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
 
   const Dart_Handle name = NewString("Class");
@@ -7262,6 +7526,7 @@ TEST_CASE(DartAPI_GetNullableType) {
       "  static var name = '_Class';\n"
       "}\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
 
   // Lookup a class.
@@ -7322,6 +7587,7 @@ TEST_CASE(DartAPI_GetNonNullableType) {
       "  static var name = '_Class';\n"
       "}\n";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
 
   // Lookup a class.
@@ -7384,6 +7650,7 @@ TEST_CASE(DartAPI_InstanceOf) {
       "    return new InstanceOfTest();\n"
       "  }\n"
       "}\n";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
@@ -7612,6 +7879,7 @@ TEST_CASE(DartAPI_SetNativeResolver) {
         external static baz();
       }
   )";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
 
@@ -7961,6 +8229,7 @@ VM_UNIT_TEST_CASE(DartAPI_NewNativePort) {
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
       "import 'dart:isolate';\n"
+      "@pragma('vm:entry-point', 'call')"
       "void callPort(SendPort port) {\n"
       "  var receivePort = new RawReceivePort();\n"
       "  var replyPort = receivePort.sendPort;\n"
@@ -8035,6 +8304,7 @@ static void NewNativePort_sendInteger321(Dart_Port dest_port_id,
 TEST_CASE(DartAPI_NativePortPostInteger) {
   const char* kScriptChars =
       "import 'dart:isolate';\n"
+      "@pragma('vm:entry-point', 'call')"
       "void callPort(SendPort port) {\n"
       "  var receivePort = new RawReceivePort();\n"
       "  var replyPort = receivePort.sendPort;\n"
@@ -8112,6 +8382,7 @@ TEST_CASE(DartAPI_NativePortPostTransferrableTypedData) {
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "import 'dart:isolate';\n"
+      "@pragma('vm:entry-point', 'call')"
       "void callPort(SendPort port1, SendPort port2) {\n"
       "  final td1 ="
       "     TransferableTypedData.fromList([Uint8List(10)..[0] = 42]);\n"
@@ -8175,6 +8446,7 @@ TEST_CASE(DartAPI_NativePortPostExternalTypedData) {
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "import 'dart:isolate';\n"
+      "@pragma('vm:entry-point', 'call')"
       "void callPort(SendPort port, Uint8List data) {\n"
       "  port.send(data);\n"
       "}\n";
@@ -8216,6 +8488,7 @@ TEST_CASE(DartAPI_NativePortPostUserClass) {
   const char* kScriptChars =
       "import 'dart:isolate';\n"
       "class ABC {}\n"
+      "@pragma('vm:entry-point', 'call')"
       "void callPort(SendPort port) {\n"
       "  port.send(new ABC());\n"
       "}\n";
@@ -8266,6 +8539,7 @@ static void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
 TEST_CASE(DartAPI_NativePortReceiveNull) {
   const char* kScriptChars =
       "import 'dart:isolate';\n"
+      "@pragma('vm:entry-point', 'call')"
       "void callPort(SendPort port) {\n"
       "  var receivePort = new RawReceivePort();\n"
       "  var replyPort = receivePort.sendPort;\n"
@@ -8318,6 +8592,7 @@ static void NewNativePort_nativeReceiveInteger(Dart_Port dest_port_id,
 TEST_CASE(DartAPI_NativePortReceiveInteger) {
   const char* kScriptChars =
       "import 'dart:isolate';\n"
+      "@pragma('vm:entry-point', 'call')"
       "void callPort(SendPort port) {\n"
       "  var receivePort = new RawReceivePort();\n"
       "  var replyPort = receivePort.sendPort;\n"
@@ -8524,6 +8799,7 @@ static void IsolateShutdownRunDartCodeTestCallback(void* isolate_group_data,
     ASSERT(add_result == 0);
   }
   Dart_EnterScope();
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = Dart_RootLibrary();
   EXPECT_VALID(lib);
   Dart_Handle arg1 = Dart_NewInteger(90);
@@ -8703,6 +8979,7 @@ TEST_CASE(DartAPI_NativeFunctionClosure) {
           }
         }
       }
+      @pragma('vm:entry-point', 'call')
       int testMain() {
         Test obj = new Test();
         Expect.equals(1, obj.foo1());
@@ -8852,6 +9129,7 @@ TEST_CASE(DartAPI_NativeStaticFunctionClosure) {
           }
         }
       }
+      @pragma('vm:entry-point', 'call')
       int testMain() {
         Test obj = new Test();
         Expect.equals(0, Test.foo1());
@@ -9363,6 +9641,7 @@ TEST_CASE(DartAPI_StringFromExternalTypedData) {
       "testView16(external) {\n"
       "  return test(external.buffer.asUint16List());\n"
       "}\n";
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
 
   {
@@ -9941,6 +10220,7 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
           }
           return false;
         }
+        @pragma('vm:entry-point', 'call')
         bool validateResult(Uint8List bytes) {
           final map = json.decode(utf8.decode(bytes));
           validate(map['jsonrpc'] == '2.0');
@@ -10362,6 +10642,7 @@ TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
   const char* kScriptChars = R"(
     class Bar {}
     final list = [];
+    @pragma('vm:entry-point', 'call')
     foo() {
       for (int i = 0; i < 100000; ++i) {
         list.add(Bar());
@@ -10496,6 +10777,7 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
 
   const char* kScriptChars = R"(
     final list = [];
+    @pragma('vm:entry-point', 'call')
     foo() {
       for (int i = 0; i < 1000; ++i) {
         list.add(List.filled(100, 0));

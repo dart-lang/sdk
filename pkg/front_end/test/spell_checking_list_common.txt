@@ -12,6 +12,7 @@
 a
 abbreviations
 abi
+abiding
 ability
 able
 abort
@@ -866,6 +867,7 @@ desugars
 detached
 detail
 detailed
+detailing
 details
 detect
 detected

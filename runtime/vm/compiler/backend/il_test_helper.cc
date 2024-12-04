@@ -81,19 +81,6 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun, intptr_t index) {
   return param.ptr();
 }
 
-ObjectPtr Invoke(const Library& lib, const char* name) {
-  Thread* thread = Thread::Current();
-  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
-  Dart_Handle result;
-  {
-    TransitionVMToNative transition(thread);
-    result =
-        Dart_Invoke(api_lib, NewString(name), /*argc=*/0, /*argv=*/nullptr);
-    EXPECT_VALID(result);
-  }
-  return Api::UnwrapHandle(result);
-}
-
 InstructionsPtr BuildInstructions(
     std::function<void(compiler::Assembler* assembler)> fun) {
   auto thread = Thread::Current();
@@ -124,11 +111,8 @@ FlowGraph* TestPipeline::RunPasses(
   // avoid running ComputeSSA on it (it will just crash).
   const bool is_ssa = (flow_graph_ != nullptr);
   if (flow_graph_ == nullptr) {
-    auto pipeline = CompilationPipeline::New(zone, function_);
-
     parsed_function_ = new (zone)
         ParsedFunction(thread, Function::ZoneHandle(zone, function_.ptr()));
-    pipeline->ParseFunction(parsed_function_);
 
     // Extract type feedback before the graph is built, as the graph
     // builder uses it to attach it to nodes.
@@ -137,7 +121,7 @@ FlowGraph* TestPipeline::RunPasses(
       function_.RestoreICDataMap(ic_data_array_, /*clone_ic_data=*/false);
     }
 
-    flow_graph_ = pipeline->BuildFlowGraph(zone, parsed_function_,
+    flow_graph_ = Compiler::BuildFlowGraph(zone, parsed_function_,
                                            ic_data_array_, osr_id, optimized);
   }
 

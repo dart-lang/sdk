@@ -155,32 +155,7 @@ extension BlockExtension on Block {
   }
 }
 
-extension ClassElementExtension on ClassElement {
-  /// Get all accessors, including merged augmentations.
-  List<PropertyAccessorElement> get allAccessors => augmented.accessors;
-
-  /// Get all constructors, including merged augmentations.
-  List<ConstructorElement> get allConstructors => augmented.constructors;
-
-  /// Get all fields, including merged augmentations.
-  List<FieldElement> get allFields => augmented.fields;
-
-  /// Get all interfaces, including merged augmentations.
-  List<InterfaceType> get allInterfaces => augmented.interfaces;
-
-  /// Get all methods, including merged augmentations.
-  List<MethodElement> get allMethods => augmented.methods;
-
-  /// Get all mixins, including merged augmentations.
-  List<InterfaceType> get allMixins => augmented.mixins;
-
-  /// Returns whether this class is exactly [otherName] declared in
-  /// [otherLibrary].
-  bool isClass(String otherName, String otherLibrary) =>
-      name == otherName && library.name == otherLibrary;
-}
-
-extension ClassElementExtension2 on ClassElement2 {
+extension ClassElement2Extension on ClassElement2 {
   bool get hasImmutableAnnotation {
     var inheritedAndSelfElements = <InterfaceElement2>[
       ...allSupertypes.map((t) => t.element3),
@@ -271,6 +246,12 @@ extension ClassElementExtension2 on ClassElement2 {
   }
 
   bool isEnumLikeClass() => asEnumLikeClass() != null;
+}
+
+// TODO(pq): remove when internal migration is complete.
+extension ClassElementExtension on ClassElement {
+  /// Get all constructors, including merged augmentations.
+  List<ConstructorElement> get allConstructors => augmented.constructors;
 }
 
 extension ClassMemberListExtension on List<ClassMember> {
@@ -523,27 +504,7 @@ extension FunctionBodyExtension on FunctionBody? {
 extension InhertanceManager3Extension on InheritanceManager3 {
   /// Returns the class member that is overridden by [member], if there is one,
   /// as defined by [getInherited].
-  ExecutableElement? overriddenMember(Element? member) {
-    if (member == null) {
-      return null;
-    }
-
-    var interfaceElement = member.thisOrAncestorOfType<InterfaceElement>();
-    if (interfaceElement == null) {
-      return null;
-    }
-    var name = member.name;
-    if (name == null) {
-      return null;
-    }
-
-    var libraryUri = interfaceElement.library.source.uri;
-    return getInherited(interfaceElement.thisType, Name(libraryUri, name));
-  }
-
-  /// Returns the class member that is overridden by [member], if there is one,
-  /// as defined by [getInherited].
-  ExecutableElement2? overriddenMember2(Element2? member) {
+  ExecutableElement2? overriddenMember(Element2? member) {
     ExecutableElement2? executable;
     switch (member) {
       case FieldElement2():
@@ -647,62 +608,6 @@ extension MethodDeclarationExtension on MethodDeclaration {
       return parentElement.allSupertypes
           .any((t) => t.lookUpMethod2(name, parentLibrary) != null);
     }
-  }
-
-  PropertyAccessorElement? lookUpGetter() {
-    var declaredElement = this.declaredElement;
-    if (declaredElement == null) {
-      return null;
-    }
-    var parent = declaredElement.enclosingElement3;
-    if (parent is InterfaceElement) {
-      return parent.augmented
-          .lookUpGetter(name: name.lexeme, library: declaredElement.library);
-    }
-    if (parent is ExtensionElement) {
-      return parent.getGetter(name.lexeme);
-    }
-    return null;
-  }
-
-  PropertyAccessorElement? lookUpInheritedConcreteGetter() {
-    var declaredElement = this.declaredElement;
-    if (declaredElement == null) {
-      return null;
-    }
-    var parent = declaredElement.enclosingElement3;
-    if (parent is InterfaceElement) {
-      return parent.lookUpInheritedConcreteGetter(
-          name.lexeme, declaredElement.library);
-    }
-    // Extensions don't inherit.
-    return null;
-  }
-
-  MethodElement? lookUpInheritedConcreteMethod() {
-    var declaredElement = this.declaredElement;
-    if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement3;
-      if (parent is InterfaceElement) {
-        return parent.lookUpInheritedConcreteMethod(
-            name.lexeme, declaredElement.library);
-      }
-    }
-    // Extensions don't inherit.
-    return null;
-  }
-
-  PropertyAccessorElement? lookUpInheritedConcreteSetter() {
-    var declaredElement = this.declaredElement;
-    if (declaredElement != null) {
-      var parent = declaredElement.enclosingElement3;
-      if (parent is InterfaceElement) {
-        return parent.lookUpInheritedConcreteSetter(
-            name.lexeme, declaredElement.library);
-      }
-    }
-    // Extensions don't inherit.
-    return null;
   }
 
   MethodElement? lookUpInheritedMethod() {

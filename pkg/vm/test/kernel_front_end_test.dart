@@ -49,6 +49,7 @@ main() {
 
   String outputDill() => new File('${tempDir.path}/foo.dill').path;
   String outputManifest() => new File('${tempDir.path}/foo.manifest').path;
+  String outputDepfile() => new File('${tempDir.path}/foo.d').path;
 
   test('compile-simple', () async {
     await testCompile([
@@ -162,4 +163,31 @@ main() {
     expect(containsLibrary(component, 'src1.dart'), equals(true));
     expect(containsLibrary(component, 'src2.dart'), equals(true));
   }, timeout: Timeout.none);
+
+  for (bool packageArgument in [true, false]) {
+    final without = packageArgument ? 'with' : 'without';
+    test(
+      'depfile $without packages argument',
+      () async {
+        await testCompile([
+          '--platform',
+          platformPath(),
+          if (packageArgument) ...[
+            '--packages',
+            '$sdkDir/$packageConfigFile',
+          ],
+          '--depfile',
+          outputDepfile(),
+          '--output',
+          outputDill(),
+          '$sdkDir/$mainScript',
+        ]);
+        expect(
+          File(outputDepfile()).readAsStringSync(),
+          stringContainsInOrder('$sdkDir/$packageConfigFile'.split('/')),
+        );
+      },
+      timeout: Timeout.none,
+    );
+  }
 }

@@ -5591,6 +5591,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
       "    a();\n"  // This is line 5.
       "  }\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "test() {\n"
       "  new A().b();\n"
       "}";
@@ -5634,7 +5635,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 
 void SetBreakpoint(Dart_NativeArguments args) {
   // Refers to the DeoptimizeFramesWhenSettingBreakpoint function below.
-  const int kBreakpointLine = 9;
+  const int kBreakpointLine = 10;
 
   // This will force deoptimization of functions on stack.
   // Function on stack has to be optimized, since we want to trigger debuggers
@@ -5657,7 +5658,9 @@ static Dart_NativeFunction SetBreakpointResolver(Dart_Handle name,
 }
 
 TEST_CASE(DeoptimizeFramesWhenSettingBreakpoint) {
-  const char* kOriginalScript = "test() {}";
+  const char* kOriginalScript =
+      "@pragma('vm:entry-point', 'call')\n"
+      "test() {}";
 
   Dart_Handle lib = TestCase::LoadTestScript(kOriginalScript, nullptr);
   EXPECT_VALID(lib);
@@ -5686,6 +5689,7 @@ TEST_CASE(DeoptimizeFramesWhenSettingBreakpoint) {
       @pragma("vm:external-name", "setBreakpoint")
       external setBreakpoint();
       baz() {}
+      @pragma('vm:entry-point', 'call')
       test() {
         if (true) {
           setBreakpoint();
@@ -5770,6 +5774,7 @@ TEST_CASE(DartAPI_BreakpointLockRace) {
       "    a();\n"  // This is line 5.
       "  }\n"
       "}\n"
+      "@pragma('vm:entry-point', 'call')\n"
       "test() {\n"
       "  new A().b();\n"
       "}";
@@ -6438,6 +6443,7 @@ TEST_CASE(InstanceEquality) {
 TEST_CASE(HashCode) {
   // Ensure C++ overrides of Instance::HashCode match the Dart implementations.
   const char* kScript =
+      "@pragma('vm:entry-point', 'call')\n"
       "foo() {\n"
       "  return \"foo\".hashCode;\n"
       "}";
@@ -6470,18 +6476,21 @@ static bool HashCodeEqualsCanonicalizeHash(
     uint32_t hashcode_canonicalize_vm = kCalculateCanonicalizeHash,
     bool check_identity = true,
     bool check_hashcode = true) {
-  CStringUniquePtr kScriptChars(
-      OS::SCreate(nullptr,
-                  "%s"
-                  "\n"
-                  "valueHashCode() {\n"
-                  "  return value().hashCode;\n"
-                  "}\n"
-                  "\n"
-                  "valueIdentityHashCode() {\n"
-                  "  return identityHashCode(value());\n"
-                  "}\n",
-                  value_script));
+  CStringUniquePtr kScriptChars(OS::SCreate(nullptr,
+                                            R"(
+                  %s
+
+                  @pragma('vm:entry-point', 'call')
+                  valueHashCode() {
+                    return value().hashCode;
+                  }
+
+                  @pragma('vm:entry-point', 'call')
+                  valueIdentityHashCode() {
+                    return identityHashCode(value());
+                  }
+                  )",
+                                            value_script));
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars.get(), nullptr);
   EXPECT_VALID(lib);
@@ -6541,9 +6550,12 @@ static bool HashCodeEqualsCanonicalizeHash(
 
 TEST_CASE(HashCode_Double) {
   const char* kScript =
-      "value() {\n"
-      "  return 1.0;\n"
-      "}\n";
+      R"(
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return 1.0;
+       }
+      )";
   // Double VM CanonicalizeHash is not equal to hashCode, because doubles
   // cannot be used as keys in constant sets and maps. However, doubles
   // _can_ be used for lookups in which case they are equal to their integer
@@ -6558,83 +6570,110 @@ TEST_CASE(HashCode_Double) {
 
 TEST_CASE(HashCode_Mint) {
   const char* kScript =
-      "value() {\n"
-      "  return 0x8000000;\n"
-      "}\n";
+      R"(
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return 0x8000000;
+       }
+      )";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
 }
 
 TEST_CASE(HashCode_Null) {
   const char* kScript =
-      "value() {\n"
-      "  return null;\n"
-      "}\n";
+      R"(
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return null;
+       }
+      )";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
 }
 
 TEST_CASE(HashCode_Smi) {
   const char* kScript =
-      "value() {\n"
-      "  return 123;\n"
-      "}\n";
+      R"(
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return 123;
+       }
+      )";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
 }
 
 TEST_CASE(HashCode_String) {
-  const char* kScript =
-      "value() {\n"
-      "  return 'asdf';\n"
-      "}\n";
+  const char* kScript = R"(
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return 'asdf';
+       }
+      )";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
 }
 
 TEST_CASE(HashCode_Symbol) {
   const char* kScript =
-      "value() {\n"
-      "  return #A;\n"
-      "}\n";
+      R"(
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return #A;
+       }
+      )";
+
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
 TEST_CASE(HashCode_True) {
   const char* kScript =
-      "value() {\n"
-      "  return true;\n"
-      "}\n";
+      R"(
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return true;
+       }
+      )";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
 }
 
 TEST_CASE(HashCode_Type_Dynamic) {
   const char* kScript =
-      "const type = dynamic;\n"
-      "\n"
-      "value() {\n"
-      "  return type;\n"
-      "}\n";
+      R"(
+       const type = dynamic;
+
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return type;
+       }
+      )";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
 TEST_CASE(HashCode_Type_Int) {
   const char* kScript =
-      "const type = int;\n"
-      "\n"
-      "value() {\n"
-      "  return type;\n"
-      "}\n";
+      R"(
+       const type = int;
+
+       @pragma('vm:entry-point', 'call')
+       value() {
+         return type;
+       }
+      )";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
 TEST_CASE(Map_iteration) {
   const char* kScript =
-      "makeMap() {\n"
-      "  var map = {'x': 3, 'y': 4, 'z': 5, 'w': 6};\n"
-      "  map.remove('y');\n"
-      "  map.remove('w');\n"
-      "  return map;\n"
-      "}";
+      R"(
+       @pragma('vm:entry-point', 'call')
+       makeMap() {
+         var map = {'x': 3, 'y': 4, 'z': 5, 'w': 6};
+         map.remove('y');
+         map.remove('w');
+         return map;
+       }
+      )";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(h_lib);
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, nullptr);
@@ -6820,25 +6859,31 @@ final Map<ExperimentalFlag?, bool> expiredExperimentalFlagsNonConst = {
   ExperimentalFlag.variance: false,
 };
 
+@pragma('vm:entry-point', 'call')
 makeNonConstMap() {
   return expiredExperimentalFlagsNonConst;
 }
 
+@pragma('vm:entry-point', 'call')
 firstKey() {
   return ExperimentalFlag.alternativeInvalidationStrategy;
 }
 
+@pragma('vm:entry-point', 'call')
 firstKeyHashCode() {
   return firstKey().hashCode;
 }
 
+@pragma('vm:entry-point', 'call')
 firstKeyIdentityHashCode() {
   return identityHashCode(firstKey());
 }
 
+@pragma('vm:entry-point', 'call')
 bool lookupSpreadCollections(Map map) =>
     map[ExperimentalFlag.spreadCollections];
 
+@pragma('vm:entry-point', 'call')
 bool? lookupNull(Map map) => map[null];
 )";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
@@ -6916,15 +6961,17 @@ static void HashBaseNonConstEqualsConst(const char* script,
                                         bool check_data = true) {
   Dart_Handle lib = TestCase::LoadTestScript(script, nullptr);
   EXPECT_VALID(lib);
-  Dart_Handle init_result = Dart_Invoke(lib, NewString("init"), 0, nullptr);
-  EXPECT_VALID(init_result);
-  Dart_Handle non_const_result =
-      Dart_Invoke(lib, NewString("nonConstValue"), 0, nullptr);
-  EXPECT_VALID(non_const_result);
-  Dart_Handle const_result =
-      Dart_Invoke(lib, NewString("constValue"), 0, nullptr);
-  EXPECT_VALID(const_result);
-
+  Dart_Handle non_const_result;
+  Dart_Handle const_result;
+  {
+    SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
+    Dart_Handle init_result = Dart_Invoke(lib, NewString("init"), 0, nullptr);
+    EXPECT_VALID(init_result);
+    non_const_result = Dart_Invoke(lib, NewString("nonConstValue"), 0, nullptr);
+    EXPECT_VALID(non_const_result);
+    const_result = Dart_Invoke(lib, NewString("constValue"), 0, nullptr);
+    EXPECT_VALID(const_result);
+  }
   TransitionNativeToVM transition(Thread::Current());
   const auto& non_const_object =
       Object::Handle(Api::UnwrapHandle(non_const_result));
@@ -7114,6 +7161,7 @@ void init() {
 
 TEST_CASE(Set_iteration) {
   const char* kScript = R"(
+@pragma('vm:entry-point', 'call')
 makeSet() {
   var set = {'x', 'y', 'z', 'w'};
   set.remove('y');
@@ -7170,10 +7218,12 @@ static SetPtr ConstructImmutableSet(const Array& input_data,
 
 TEST_CASE(ConstSet_vm) {
   const char* kScript = R"(
+@pragma('vm:entry-point', 'call')
 makeNonConstSet() {
   return {1, 2, 3, 5, 8, 13};
 }
 
+@pragma('vm:entry-point', 'call')
 bool containsFive(Set set) => set.contains(5);
 )";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);

@@ -442,6 +442,9 @@ IsolateGroup::~IsolateGroup() {
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   ASSERT(isolates_lock_->IsCurrentThreadWriter());
+  if (isolates_.IsEmpty()) {
+    interrupt_port_ = isolate->main_port();
+  }
   isolates_.Append(isolate);
   isolate_count_++;
 }
@@ -454,14 +457,14 @@ bool IsolateGroup::ContainsOnlyOneIsolate() {
   return isolate_count_ == 0 || isolate_count_ == 1;
 }
 
-void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  fun();
-}
-
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   isolates_.Remove(isolate);
+  if (isolates_.IsEmpty()) {
+    interrupt_port_ = ILLEGAL_PORT;
+  } else {
+    interrupt_port_ = isolates_.First()->main_port();
+  }
 }
 
 bool IsolateGroup::UnregisterIsolateDecrementCount() {
@@ -1424,6 +1427,13 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
           }
         }
       }
+    } else if (msg.IsSmi()) {
+      uword interrupt_bits = Smi::Cast(msg).Value();
+      const Error& error =
+          Error::Handle(thread->HandleInterrupts(interrupt_bits));
+      if (!error.IsNull()) {
+        status = ProcessUnhandledException(error);
+      }
     }
   } else if (message->IsFinalizerInvocationRequest()) {
     const Object& msg_handler = Object::Handle(
@@ -1952,13 +1962,6 @@ void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
   Image image(image_buffer);
   heap()->SetupImagePage(image.object_start(), image.object_size(),
                          is_executable);
-}
-
-void IsolateGroup::ScheduleInterrupts(uword interrupt_bits) {
-  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  for (Isolate* isolate : isolates_) {
-    isolate->ScheduleInterrupts(interrupt_bits);
-  }
 }
 
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {

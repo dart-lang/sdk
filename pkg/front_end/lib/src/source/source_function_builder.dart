@@ -46,9 +46,6 @@ abstract class SourceFunctionBuilder
   List<FormalParameterBuilder>? get formals;
 
   @override
-  ProcedureKind? get kind;
-
-  @override
   bool get isAbstract;
 
   @override
@@ -171,21 +168,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   bool get isConstructor => false;
-
-  @override
-  bool get isRegularMethod => identical(ProcedureKind.Method, kind);
-
-  @override
-  bool get isGetter => identical(ProcedureKind.Getter, kind);
-
-  @override
-  bool get isSetter => identical(ProcedureKind.Setter, kind);
-
-  @override
-  bool get isOperator => identical(ProcedureKind.Operator, kind);
-
-  @override
-  bool get isFactory => identical(ProcedureKind.Factory, kind);
 
   @override
   // Coverage-ignore(suite): Not run.

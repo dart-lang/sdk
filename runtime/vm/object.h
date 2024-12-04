@@ -1878,16 +1878,16 @@ class Class : public Object {
   ObjectPtr Invoke(const String& selector,
                    const Array& arguments,
                    const Array& argument_names,
-                   bool respect_reflectable = true,
-                   bool check_is_entrypoint = false) const;
+                   bool check_is_entrypoint = true,
+                   bool respect_reflectable = true) const;
   ObjectPtr InvokeGetter(const String& selector,
-                         bool throw_nsm_if_absent,
+                         bool check_is_entrypoint = true,
                          bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool for_invocation = false) const;
   ObjectPtr InvokeSetter(const String& selector,
                          const Instance& argument,
-                         bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool check_is_entrypoint = true,
+                         bool respect_reflectable = true) const;
 
   // Evaluate the given expression as if it appeared in a static method of this
   // class and return the resulting value, or an error object if evaluating the
@@ -2973,6 +2973,14 @@ enum class FfiCallbackKind : uint8_t {
   kAsyncCallback,
 };
 
+enum class EntryPointPragma {
+  kAlways,
+  kNever,
+  kGetterOnly,
+  kSetterOnly,
+  kCallOnly
+};
+
 class Function : public Object {
  public:
   StringPtr name() const { return untag()->name(); }
@@ -3312,14 +3320,17 @@ class Function : public Object {
            IsDynamicInvocationForwarderName(name());
   }
 
-  // Performs all the checks that don't require the current thread first, to
-  // avoid retrieving it unless they all pass. If you have a handle on the
-  // current thread, call the version that takes one instead.
-  bool IsDynamicClosureCallDispatcher() const {
-    if (!IsDynamicInvokeFieldDispatcher()) return false;
-    return IsDynamicClosureCallDispatcher(Thread::Current());
-  }
-  bool IsDynamicClosureCallDispatcher(Thread* thread) const;
+  // Returns true if this function is _Closure.dyn:call, which implements
+  // dynamically checked closure calls.
+  bool IsDynamicClosureCallDispatcher() const;
+
+  // Returns true if this function is _Closure.call, which implements the
+  // Function interface for closures.
+  bool IsClosureCallDispatcher() const;
+
+  // Returns true if this function is _Closure.get:call, which returns the
+  // closure object for invocation.
+  bool IsClosureCallGetter() const;
 
   bool IsDynamicInvocationForwarder() const {
     return kind() == UntaggedFunction::kDynamicInvocationForwarder;
@@ -3993,10 +4004,7 @@ class Function : public Object {
   bool IsUnmodifiableTypedDataViewFactory() const;
 
   DART_WARN_UNUSED_RESULT
-  ErrorPtr VerifyCallEntryPoint() const;
-
-  DART_WARN_UNUSED_RESULT
-  ErrorPtr VerifyClosurizedEntryPoint() const;
+  ErrorPtr VerifyEntryPoint(EntryPointPragma pragma) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedFunction));
@@ -4363,14 +4371,6 @@ class ClosureData : public Object {
   friend class Class;
   friend class Function;
   friend class Precompiler;  // To wrap parent functions in WSRs.
-};
-
-enum class EntryPointPragma {
-  kAlways,
-  kNever,
-  kGetterOnly,
-  kSetterOnly,
-  kCallOnly
 };
 
 class FfiTrampolineData : public Object {
@@ -5129,16 +5129,16 @@ class Library : public Object {
   ObjectPtr Invoke(const String& selector,
                    const Array& arguments,
                    const Array& argument_names,
-                   bool respect_reflectable = true,
-                   bool check_is_entrypoint = false) const;
+                   bool check_is_entrypoint = true,
+                   bool respect_reflectable = true) const;
   ObjectPtr InvokeGetter(const String& selector,
-                         bool throw_nsm_if_absent,
+                         bool check_is_entrypoint = true,
                          bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool for_invocation = false) const;
   ObjectPtr InvokeSetter(const String& selector,
                          const Instance& argument,
-                         bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool check_is_entrypoint = true,
+                         bool respect_reflectable = true) const;
 
   // Evaluate the given expression as if it appeared in an top-level method of
   // this library and return the resulting value, or an error object if
@@ -8391,15 +8391,15 @@ class Instance : public Object {
   ObjectPtr Invoke(const String& selector,
                    const Array& arguments,
                    const Array& argument_names,
-                   bool respect_reflectable = true,
-                   bool check_is_entrypoint = false) const;
+                   bool check_is_entrypoint = true,
+                   bool respect_reflectable = true) const;
   ObjectPtr InvokeGetter(const String& selector,
-                         bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool check_is_entrypoint = true,
+                         bool respect_reflectable = true) const;
   ObjectPtr InvokeSetter(const String& selector,
                          const Instance& argument,
-                         bool respect_reflectable = true,
-                         bool check_is_entrypoint = false) const;
+                         bool check_is_entrypoint = true,
+                         bool respect_reflectable = true) const;
 
   ObjectPtr EvaluateCompiledExpression(
       const Class& klass,
@@ -13668,12 +13668,6 @@ EntryPointPragma FindEntryPointPragma(IsolateGroup* isolate_group,
                                       const Array& metadata,
                                       Field* reusable_field_handle,
                                       Object* reusable_object_handle);
-
-DART_WARN_UNUSED_RESULT
-ErrorPtr EntryPointFieldInvocationError(const String& getter_name);
-
-DART_WARN_UNUSED_RESULT
-ErrorPtr EntryPointMemberInvocationError(const Object& member);
 
 #undef PRECOMPILER_WSR_FIELD_DECLARATION
 

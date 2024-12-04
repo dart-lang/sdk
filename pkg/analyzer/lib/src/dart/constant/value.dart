@@ -156,6 +156,9 @@ class ConstructorInvocation {
   ConstructorInvocation(
       this.constructor, this._argumentValues, this.namedArguments);
 
+  /// The constructor that was called.
+  ConstructorElement2 get constructor2 => constructor.asElement2;
+
   /// The positional arguments passed to the constructor.
   List<DartObjectImpl> get positionalArguments {
     var result = <DartObjectImpl>[];
@@ -277,6 +280,9 @@ class DartObjectImpl implements DartObject, Constant {
 
   @visibleForTesting
   List<DartType>? get typeArguments => (state as FunctionState).typeArguments;
+
+  @override
+  VariableElement2? get variable2 => variable.asElement2 as VariableElement2?;
 
   @override
   bool operator ==(Object other) {

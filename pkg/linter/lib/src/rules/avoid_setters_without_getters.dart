@@ -4,9 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Avoid setters without getters.';
 
@@ -23,7 +23,7 @@ class AvoidSettersWithoutGetters extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context.inheritanceManager);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
     registry.addExtensionTypeDeclaration(this, visitor);
@@ -33,8 +33,9 @@ class AvoidSettersWithoutGetters extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final InheritanceManager3 inheritanceManager;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.inheritanceManager);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -53,9 +54,29 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void visitMembers(NodeList<ClassMember> members) {
     for (var member in members.whereType<MethodDeclaration>()) {
-      if (member.isSetter &&
-          member.lookUpInheritedConcreteSetter() == null &&
-          member.lookUpGetter() == null) {
+      if (!member.isSetter) continue;
+
+      var element = member.declaredFragment?.element;
+      var interface = element?.enclosingElement2;
+      if (interface is! InterfaceElement2) continue;
+
+      var name = Name.forElement(element!);
+      if (name == null) continue;
+
+      // If we're overriding a setter, don't report here.
+      var overridden = inheritanceManager.getOverridden4(interface, name);
+      if (overridden != null && overridden.isNotEmpty) continue;
+
+      var getterName = element.name3;
+      if (getterName == null) continue;
+
+      // Check for a declared (static) getter.
+      ExecutableElement2? getter = interface.getGetter2(getterName);
+      // Then look up for an inherited one.
+      getter ??= inheritanceManager.getMember4(interface, name.forGetter,
+          concrete: true);
+
+      if (getter == null) {
         rule.reportLintForToken(member.name);
       }
     }

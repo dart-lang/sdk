@@ -465,7 +465,7 @@ class DeclarationHelper {
       prefix: null,
       isNotImported: true,
     );
-    _addConstructors(library.asElement as LibraryElement, importData);
+    _addConstructors(library.asElement, importData);
   }
 
   /// Add members from all the applicable extensions that are visible in the
@@ -477,7 +477,7 @@ class DeclarationHelper {
     required bool includeMethods,
     required bool includeSetters,
   }) {
-    var libraryElement = library.asElement as LibraryElement;
+    var libraryElement = library.asElement;
     var applicableExtensions = library.exportNamespace.definedNames.values
         .whereType<ExtensionElement>()
         .applicableTo(
@@ -511,7 +511,7 @@ class DeclarationHelper {
       isNotImported: true,
     );
     _addExternalTopLevelDeclarations(
-      library: library.asElement as LibraryElement,
+      library: library.asElement,
       namespace: library.exportNamespace,
       importData: importData,
     );

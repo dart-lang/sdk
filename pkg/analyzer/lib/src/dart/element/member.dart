@@ -996,6 +996,9 @@ class MethodMember extends ExecutableMember
   MethodFragment get firstFragment => _element2.firstFragment;
 
   @override
+  LibraryElement2 get library2 => _element2.library2;
+
+  @override
   String? get lookupName => name3;
 
   @override
@@ -1517,6 +1520,9 @@ class TopLevelVariableMember extends VariableMember
 
   @override
   LibraryElement get library => _declaration.library!;
+
+  @override
+  LibraryElement2 get library2 => _declaration.library as LibraryElement2;
 
   @override
   String get name => declaration.name;

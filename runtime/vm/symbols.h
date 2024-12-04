@@ -529,6 +529,7 @@ class ObjectPointerVisitor;
   V(index_temp, ":index_temp")                                                 \
   V(isLeaf, "isLeaf")                                                          \
   V(isPaused, "isPaused")                                                      \
+  V(main, "main")                                                              \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \
   V(name, "name")                                                              \

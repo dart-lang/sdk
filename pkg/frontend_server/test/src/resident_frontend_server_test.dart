@@ -63,15 +63,15 @@ void main() async {
           equals(jsonEncode(<String, Object>{
             "success": false,
             "errorMessage":
-                "compilation requests must include an executable and an "
-                    "output-dill path."
+                "'compile' requests must include an 'executable' property and "
+                    "an 'output-dill' property."
           })));
     });
   });
 
   group('Resident Frontend Server: compile tests: ', () {
     late Directory d;
-    late File executable, package, cachedDill;
+    late File executable, package, outputDill;
 
     setUp(() async {
       d = Directory.systemTemp.createTempSync();
@@ -92,7 +92,7 @@ void main() async {
     ]
   }
   ''');
-      cachedDill = new File(path.join(d.path, 'src1.dart.dill'));
+      outputDill = new File(path.join(d.path, 'src1.dart.dill'));
     });
 
     tearDown(() async {
@@ -106,11 +106,11 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
 
       expect(compileResult['success'], true);
       expect(compileResult['errorCount'], 0);
-      expect(compileResult['output-dill'], equals(cachedDill.path));
+      expect(compileResult['output-dill'], equals(outputDill.path));
     });
 
     test('compile options', () async {
@@ -120,7 +120,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
         executable: executable.path,
         packages: package.path,
-        outputDill: cachedDill.path,
+        outputDill: outputDill.path,
         supportMirrors: true,
         enableAsserts: true,
         soundNullSafety: true,
@@ -139,7 +139,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
         executable: executable.path,
         packages: package.path,
-        outputDill: cachedDill.path,
+        outputDill: outputDill.path,
         soundNullSafety: true,
         verbosity: 'all',
         aot: true,
@@ -157,11 +157,11 @@ void main() async {
       final Map<String, dynamic> compileResult = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
-                  executable: executable.path, outputDill: cachedDill.path)));
+                  executable: executable.path, outputDill: outputDill.path)));
 
       expect(compileResult['success'], true);
       expect(compileResult['errorCount'], 0);
-      expect(compileResult['output-dill'], equals(cachedDill.path));
+      expect(compileResult['output-dill'], equals(outputDill.path));
     });
 
     test('incremental compilation', () async {
@@ -171,7 +171,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
         executable: executable.path,
         packages: package.path,
-        outputDill: cachedDill.path,
+        outputDill: outputDill.path,
       )));
       executable.writeAsStringSync(
           executable.readAsStringSync().replaceFirst('there', 'world'));
@@ -181,7 +181,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
         executable: executable.path,
         packages: package.path,
-        outputDill: cachedDill.path,
+        outputDill: outputDill.path,
       )));
 
       expect(compileResults1['success'], true);
@@ -209,13 +209,13 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
       final Map<String, dynamic> compileResults2 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
 
       expect(compileResults1['errorCount'],
           allOf(0, equals(compileResults2['errorCount'])));
@@ -235,7 +235,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
       final Map<String, dynamic> compileResults2 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
@@ -271,26 +271,26 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
 
       executable.writeAsStringSync(
           executable.readAsStringSync().replaceFirst('there', 'world'));
-      cachedDill.deleteSync();
-      expect(cachedDill.existsSync(), false);
+      outputDill.deleteSync();
+      expect(outputDill.existsSync(), false);
 
       final Map<String, dynamic> compileResults2 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
 
       expect(compileResults1['success'], true);
       expect(compileResults1['errorCount'],
           allOf(equals(compileResults2['errorCount']), 0));
       expect(compileResults2['returnedStoredKernel'], null);
       expect(compileResults2['incremental'], true);
-      expect(cachedDill.existsSync(), true);
+      expect(outputDill.existsSync(), true);
       expect(ResidentFrontendServer.compilers.length, 1);
     });
 
@@ -310,16 +310,16 @@ void main() async {
       // entrypoint should not alter tracked sources
       await ResidentFrontendServer.handleRequest(
           ResidentFrontendServer.createCompileJSON(
-              executable: executable.path, outputDill: cachedDill.path));
+              executable: executable.path, outputDill: outputDill.path));
       await ResidentFrontendServer.handleRequest(
           ResidentFrontendServer.createCompileJSON(
               executable: executable.path,
               packages: package.path,
-              outputDill: cachedDill.path));
+              outputDill: outputDill.path));
       final Map<String, dynamic> compileResult1 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
-                  executable: executable.path, outputDill: cachedDill.path)));
+                  executable: executable.path, outputDill: outputDill.path)));
 
       expect(compileResult1['success'], true);
       expect(compileResult1['returnedStoredKernel'], null);
@@ -336,12 +336,12 @@ void main() async {
       // switching entrypoints, packages, and modifying packages
       await ResidentFrontendServer.handleRequest(
           ResidentFrontendServer.createCompileJSON(
-              executable: executable2.path, outputDill: cachedDill.path));
+              executable: executable2.path, outputDill: outputDill.path));
       await ResidentFrontendServer.handleRequest(
           ResidentFrontendServer.createCompileJSON(
               executable: executable2.path,
               packages: package.path,
-              outputDill: cachedDill.path));
+              outputDill: outputDill.path));
 
       package.writeAsStringSync(package.readAsStringSync());
       // Forces package to be behind the next computed kernel by 1 second
@@ -353,7 +353,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable2.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
       expect(compileResult2['success'], true);
       expect(compileResult2['incremental'], null);
       expect(compileResult2['returnedStoredKernel'], null);
@@ -375,7 +375,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable2.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
       expect(compileResult3['success'], true);
       expect(compileResult3['incremental'], true);
       expect(
@@ -397,7 +397,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
 
       executable.writeAsStringSync(originalContent);
       final Map<String, dynamic> compileResults2 = jsonDecode(
@@ -405,7 +405,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
 
       expect(compileResults1['success'], false);
       expect(compileResults1['errorCount'], greaterThan(1));
@@ -432,14 +432,14 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
         executable: executable.path,
         packages: package.path,
-        outputDill: cachedDill.path,
+        outputDill: outputDill.path,
       )));
       final Map<String, dynamic> compileResults2 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
         executable: executable.path,
         packages: package.path,
-        outputDill: cachedDill.path,
+        outputDill: outputDill.path,
       )));
       executable.writeAsStringSync(originalContent);
       final Map<String, dynamic> compileResults3 = jsonDecode(
@@ -447,7 +447,7 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
         executable: executable.path,
         packages: package.path,
-        outputDill: cachedDill.path,
+        outputDill: outputDill.path,
       )));
 
       expect(compileResults2['returnedStoredKernel'], true);
@@ -480,25 +480,25 @@ void main() async {
               ResidentFrontendServer.createCompileJSON(
                   executable: executable.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
       final Map<String, dynamic> compileResults2 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
                   executable: executable2.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
       final Map<String, dynamic> compileResults3 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
                   executable: executable3.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
       final Map<String, dynamic> compileResults4 = jsonDecode(
           await ResidentFrontendServer.handleRequest(
               ResidentFrontendServer.createCompileJSON(
                   executable: executable4.path,
                   packages: package.path,
-                  outputDill: cachedDill.path)));
+                  outputDill: outputDill.path)));
       expect(
           compileResults1['success'],
           allOf(

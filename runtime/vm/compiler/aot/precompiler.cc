@@ -345,7 +345,7 @@ class PrecompileParsedFunctionHelper : public ValueObject {
         optimized_(optimized),
         thread_(Thread::Current()) {}
 
-  bool Compile(CompilationPipeline* pipeline);
+  bool Compile();
 
  private:
   ParsedFunction* parsed_function() const { return parsed_function_; }
@@ -740,7 +740,7 @@ void Precompiler::AddRoots() {
     UNREACHABLE();
   }
 
-  const String& name = String::Handle(String::New("main"));
+  const String& name = Symbols::main();
   Function& main = Function::Handle(lib.LookupFunctionAllowPrivate(name));
   if (main.IsNull()) {
     const Object& obj = Object::Handle(lib.LookupReExport(name));
@@ -1383,18 +1383,8 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
   // * Native functions (for LinkNativeCall)
   // * Selector matches a symbol used in Resolver::ResolveDynamic calls
   //   in dart_entry.cc or dart_api_impl.cc.
-  // * _Closure.call (used in async stack handling)
   if (function.is_old_native()) {
     return "native function";
-  }
-
-  // Use the same check for _Closure.call as in stack_trace.{h|cc}.
-  const auto& selector = String::Handle(Z, function.name());
-  if (selector.ptr() == Symbols::call().ptr()) {
-    const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
-    if (name.Equals(Symbols::_ClosureCall())) {
-      return "_Closure.call";
-    }
   }
 
   // We have to retain functions which can be a target of a SwitchableCall
@@ -3493,7 +3483,7 @@ static void GenerateNecessaryAllocationStubs(FlowGraph* flow_graph) {
 }
 
 // Return false if bailed out.
-bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
+bool PrecompileParsedFunctionHelper::Compile() {
   ASSERT(CompilerState::Current().is_aot());
   if (optimized() && !parsed_function()->function().IsOptimizable()) {
     // All functions compiled by precompiler must be optimizable.
@@ -3522,6 +3512,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
       const Function& function = parsed_function()->function();
+      ASSERT(!function.IsIrregexpFunction());
 
       CompilerState compiler_state(thread(), /*is_aot=*/true, optimized(),
                                    CompilerState::ShouldTrace(function));
@@ -3532,9 +3523,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
         COMPILER_TIMINGS_TIMER_SCOPE(thread(), BuildGraph);
-        flow_graph =
-            pipeline->BuildFlowGraph(zone, parsed_function(), ic_data_array,
-                                     Compiler::kNoOSRDeoptId, optimized());
+        kernel::FlowGraphBuilder builder(parsed_function(), ic_data_array,
+                                         /* not building var desc */ nullptr,
+                                         /* not inlining */ nullptr,
+                                         optimized(), Compiler::kNoOSRDeoptId);
+        flow_graph = builder.BuildGraph();
+        ASSERT(flow_graph != nullptr);
       }
 
       if (optimized()) {
@@ -3704,7 +3698,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 }
 
 static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
-                                         CompilationPipeline* pipeline,
                                          const Function& function,
                                          bool optimized) {
   // Check that we optimize, except if the function is not optimizable.
@@ -3729,14 +3722,10 @@ static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
                 function.ToFullyQualifiedCString(), function.token_pos().Pos(),
                 (function.end_token_pos().Pos() - function.token_pos().Pos()));
     }
-    {
-      HANDLESCOPE(thread);
-      pipeline->ParseFunction(parsed_function);
-    }
 
     PrecompileParsedFunctionHelper helper(precompiler, parsed_function,
                                           optimized);
-    const bool success = helper.Compile(pipeline);
+    const bool success = helper.Compile();
     if (!success) {
       // We got an error during compilation.
       const Error& error = Error::Handle(thread->StealStickyError());
@@ -3790,12 +3779,11 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
 
   ASSERT(CompilerState::Current().is_aot());
   const bool optimized = function.IsOptimizable();  // False for natives.
-  DartCompilationPipeline pipeline;
   if (precompiler->is_tracing()) {
     precompiler->tracer_->WriteCompileFunctionEvent(function);
   }
 
-  return PrecompileFunctionHelper(precompiler, &pipeline, function, optimized);
+  return PrecompileFunctionHelper(precompiler, function, optimized);
 }
 
 Obfuscator::Obfuscator(Thread* thread, const String& private_key)

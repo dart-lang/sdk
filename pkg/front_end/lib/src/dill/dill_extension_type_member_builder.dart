@@ -110,6 +110,10 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences =>
       [field.getterReference, if (field.hasSetter) field.setterReference!];
 }
@@ -120,6 +124,10 @@ class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder {
   DillExtensionTypeSetterBuilder(this.procedure, super.descriptor,
       super.libraryBuilder, super.declarationBuilder)
       : assert(descriptor.kind == ExtensionTypeMemberKind.Setter);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
 
   @override
   Member get member => procedure;
@@ -146,6 +154,10 @@ class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder {
       : assert(descriptor.kind == ExtensionTypeMemberKind.Getter);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
+
+  @override
   Member get member => procedure;
 
   @override
@@ -169,6 +181,10 @@ class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder {
   DillExtensionTypeOperatorBuilder(this.procedure, super.descriptor,
       super.libraryBuilder, super.declarationBuilder)
       : assert(descriptor.kind == ExtensionTypeMemberKind.Operator);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   Member get member => procedure;
@@ -198,6 +214,10 @@ class DillExtensionTypeStaticMethodBuilder
         assert(descriptor.isStatic);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
+
+  @override
   Member get member => procedure;
 
   @override
@@ -225,6 +245,10 @@ class DillExtensionTypeInstanceMethodBuilder
       super.libraryBuilder, super.declarationBuilder, this._extensionTearOff)
       : assert(descriptor.kind == ExtensionTypeMemberKind.Method),
         assert(!descriptor.isStatic);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   Member get member => procedure;
@@ -258,6 +282,10 @@ class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
       super.declarationBuilder);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
+
+  @override
   FunctionNode get function => constructor.function;
 
   @override
@@ -287,6 +315,10 @@ class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder {
 
   DillExtensionTypeFactoryBuilder(this._procedure, this._factoryTearOff,
       super.descriptor, super.libraryBuilder, super.declarationBuilder);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   @override
   Member get member => _procedure;

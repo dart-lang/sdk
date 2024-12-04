@@ -68,6 +68,10 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Iterable<Reference> get exportedMemberReferences =>
       [field.getterReference, if (field.hasSetter) field.setterReference!];
 }
@@ -78,6 +82,9 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
   DillExtensionSetterBuilder(this.procedure, super.descriptor,
       super.libraryBuilder, super.declarationBuilder)
       : assert(descriptor.kind == ExtensionMemberKind.Setter);
+
+  @override
+  bool get isProperty => true;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -106,6 +113,9 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
       : assert(descriptor.kind == ExtensionMemberKind.Getter);
 
   @override
+  bool get isProperty => true;
+
+  @override
   // Coverage-ignore(suite): Not run.
   Member get member => procedure;
 
@@ -130,6 +140,9 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
   DillExtensionOperatorBuilder(this.procedure, super.descriptor,
       super.libraryBuilder, super.declarationBuilder)
       : assert(descriptor.kind == ExtensionMemberKind.Operator);
+
+  @override
+  bool get isProperty => false;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -160,6 +173,10 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Member get member => procedure;
 
   @override
@@ -186,6 +203,9 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder {
       super.libraryBuilder, super.declarationBuilder, this._extensionTearOff)
       : assert(descriptor.kind == ExtensionMemberKind.Method),
         assert(!descriptor.isStatic);
+
+  @override
+  bool get isProperty => false;
 
   @override
   // Coverage-ignore(suite): Not run.

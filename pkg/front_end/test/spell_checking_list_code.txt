@@ -132,6 +132,7 @@ bail
 balance
 bang
 bar
+basename
 basically
 basis
 batch

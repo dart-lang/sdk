@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:dartdev/src/resident_frontend_constants.dart';
 import 'package:dartdev/src/resident_frontend_utils.dart';
 import 'package:frontend_server/resident_frontend_server_utils.dart'
-    show ResidentCompilerInfo, sendAndReceiveResponse;
+    show computeCachedDillPath, ResidentCompilerInfo, sendAndReceiveResponse;
 import 'package:kernel/binary/tag.dart' show sdkHashNull;
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
@@ -986,21 +986,22 @@ void residentRun() {
   setUp(() async {
     serverInfoDirectory = project(mainSrc: 'void main() {}');
     serverInfoFile = path.join(serverInfoDirectory.dirPath, 'info');
+
+    final cachedDillFile =
+        File(computeCachedDillPath(serverInfoDirectory.mainPath));
+    expect(cachedDillFile.existsSync(), false);
+
     final result = await serverInfoDirectory.run([
       'run',
       '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       serverInfoDirectory.relativeFilePath,
     ]);
+
     expect(result.exitCode, 0);
     expect(File(serverInfoFile).existsSync(), true);
-    expect(
-        Directory(path.join(
-          serverInfoDirectory.dirPath,
-          '.dart_tool',
-          dartdevKernelCache,
-        )).listSync(),
-        isNotEmpty);
+    expect(cachedDillFile.existsSync(), true);
+    cachedDillFile.deleteSync();
 
     // [TestProject] uses [addTearDown] to register cleanup code that will
     // delete the project, and due to ordering guarantees of callbacks
@@ -1038,13 +1039,16 @@ void residentRun() {
 
   test("'Hello World'", () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
+
+    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    expect(cachedDillFile.existsSync(), false);
+
     final result = await p.run([
       'run',
       '--resident',
       '--$residentCompilerInfoFileOption=$serverInfoFile',
       p.relativeFilePath,
     ]);
-    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
 
     expect(result.exitCode, 0);
     expect(
@@ -1055,19 +1059,50 @@ void residentRun() {
       ),
     );
     expect(result.stderr, isEmpty);
-    expect(kernelCache, isNot(null));
+    expect(cachedDillFile.existsSync(), true);
+    cachedDillFile.deleteSync();
+  });
+
+  test('standalone dart program (i.e. no pubspec.yaml)', () async {
+    p = project(mainSrc: "void main() { print('Hello World'); }");
+    p.deleteFile('.dart_tool/package_config.json');
+
+    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    expect(cachedDillFile.existsSync(), false);
+
+    final result = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(
+      result.stdout,
+      allOf(
+        contains('Hello World'),
+        isNot(contains(residentFrontendCompilerPrefix)),
+      ),
+    );
+    expect(result.stderr, isEmpty);
+    expect(cachedDillFile.existsSync(), true);
+    cachedDillFile.deleteSync();
   });
 
   test("'Hello World' with legacy --resident-server-info-file option",
       () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
+
+    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    expect(cachedDillFile.existsSync(), false);
+
     final result = await p.run([
       'run',
       '--resident',
       '--resident-server-info-file=$serverInfoFile',
       p.relativeFilePath,
     ]);
-    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
 
     expect(result.exitCode, 0);
     expect(
@@ -1078,12 +1113,17 @@ void residentRun() {
       ),
     );
     expect(result.stderr, isEmpty);
-    expect(kernelCache, isNot(null));
+    expect(cachedDillFile.existsSync(), true);
+    cachedDillFile.deleteSync();
   });
 
   test('--resident-compiler-info-file handles relative paths correctly',
       () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
+
+    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    expect(cachedDillFile.existsSync(), false);
+
     final result = await p.run([
       'run',
       '--resident',
@@ -1091,7 +1131,6 @@ void residentRun() {
       path.relative(serverInfoFile, from: p.dirPath),
       p.relativeFilePath,
     ]);
-    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
 
     expect(result.exitCode, 0);
     expect(
@@ -1102,7 +1141,8 @@ void residentRun() {
       ),
     );
     expect(result.stderr, isEmpty);
-    expect(kernelCache, isNotNull);
+    expect(cachedDillFile.existsSync(), true);
+    cachedDillFile.deleteSync();
   });
 
   test(
@@ -1202,6 +1242,10 @@ void residentRun() {
         '^3.0.0',
       ),
     );
+
+    final cachedDillFile = File(computeCachedDillPath(p.mainPath));
+    expect(cachedDillFile.existsSync(), false);
+
     final result = await p.run([
       'run',
       '--resident',
@@ -1209,7 +1253,6 @@ void residentRun() {
       '--enable-experiment=test-experiment',
       p.relativeFilePath,
     ]);
-    Directory? kernelCache = p.findDirectory('.dart_tool/kernel');
 
     expect(result.stderr, isEmpty);
     expect(
@@ -1220,8 +1263,8 @@ void residentRun() {
       ),
     );
     expect(result.exitCode, 0);
-
-    expect(kernelCache, isNot(null));
+    expect(cachedDillFile.existsSync(), true);
+    cachedDillFile.deleteSync();
   });
 
   test('same server used from different directories', () async {
@@ -1263,6 +1306,14 @@ void residentRun() {
     p.file('lib/main.dart', 'void main() {}');
     p.file('bin/main.dart', 'void main() {}');
 
+    final cachedDillForLibMain =
+        File(computeCachedDillPath(path.join(p.dirPath, 'lib/main.dart')));
+    expect(cachedDillForLibMain.existsSync(), false);
+
+    final cachedDillForBinMain =
+        File(computeCachedDillPath(path.join(p.dirPath, 'bin/main.dart')));
+    expect(cachedDillForBinMain.existsSync(), false);
+
     final runResult1 = await p.run([
       'run',
       '--resident',
@@ -1283,26 +1334,13 @@ void residentRun() {
     expect(runResult2.stdout, isEmpty);
     expect(runResult2.stderr, isEmpty);
 
-    final cache = p.findDirectory('.dart_tool/kernel');
-    expect(cache, isNot(null));
-    expect(Directory(path.join(cache!.path, 'lib')).existsSync(), true);
-    expect(Directory(path.join(cache.path, 'bin')).existsSync(), true);
-  });
+    expect(cachedDillForLibMain.existsSync(), true);
+    expect(cachedDillForLibMain.parent.path, endsWith('lib'));
+    cachedDillForLibMain.deleteSync();
 
-  test('standalone dart program', () async {
-    p = project(mainSrc: 'void main() {}');
-    p.deleteFile('.dart_tool/package_config.json');
-    final runResult = await p.run([
-      'run',
-      '--resident',
-      '--$residentCompilerInfoFileOption=$serverInfoFile',
-      p.relativeFilePath,
-    ]);
-
-    expect(runResult.stderr,
-        contains('Unable to locate .dart_tool/package_config.json'));
-    expect(runResult.exitCode, isNot(0));
-    expect(File(serverInfoFile).existsSync(), true);
+    expect(cachedDillForBinMain.existsSync(), true);
+    expect(cachedDillForBinMain.parent.path, endsWith('bin'));
+    cachedDillForBinMain.deleteSync();
   });
 
   test('directory that the server is started in is deleted', () async {

@@ -35,6 +35,8 @@ DEFINE_FLAG(bool,
 // Nothing to be done for the precompilation flag definitions.
 #define PRECOMPILE_FLAG_MACRO(name, pre_value, product_value, type,            \
                               default_value, comment)
+// Nothing to be done for the AOT flag definitions.
+#define AOT_FLAG_MACRO(name, pre_value, type, default_value, comment)
 
 #elif defined(PRODUCT)  // !PRECOMPILED
 // Nothing to be done for the product flag definitions.
@@ -42,6 +44,9 @@ DEFINE_FLAG(bool,
 // Nothing to be done for the precompilation flag definitions.
 #define PRECOMPILE_FLAG_MACRO(name, pre_value, product_value, type,            \
                               default_value, comment)
+#define AOT_FLAG_MACRO(name, pre_value, type, default_value, comment)          \
+  type FLAG_##name =                                                           \
+      Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 
 #elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
 #define RELEASE_FLAG_MACRO(name, product_value, type, default_value, comment)  \
@@ -50,6 +55,8 @@ DEFINE_FLAG(bool,
 // Nothing to be done for the precompilation flag definitions.
 #define PRECOMPILE_FLAG_MACRO(name, pre_value, product_value, type,            \
                               default_value, comment)
+// Nothing to be done for the AOT flag definitions.
+#define AOT_FLAG_MACRO(name, pre_value, type, default_value, comment)
 
 #else  // !PRODUCT && !PRECOMPILED
 #define RELEASE_FLAG_MACRO(name, product_value, type, default_value, comment)  \
@@ -59,17 +66,22 @@ DEFINE_FLAG(bool,
                               default_value, comment)                          \
   type FLAG_##name =                                                           \
       Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
+#define AOT_FLAG_MACRO(name, pre_value, type, default_value, comment)          \
+  type FLAG_##name =                                                           \
+      Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 #endif
 
 // Define all of the non-product flags here.
 FLAG_LIST(PRODUCT_FLAG_MACRO,
           RELEASE_FLAG_MACRO,
           PRECOMPILE_FLAG_MACRO,
+          AOT_FLAG_MACRO,
           DEBUG_FLAG_MACRO)
 
 #undef PRODUCT_FLAG_MACRO
 #undef RELEASE_FLAG_MACRO
 #undef PRECOMPILE_FLAG_MACRO
+#undef AOT_FLAG_MACRO
 #undef DEBUG_FLAG_MACRO
 
 #if defined(DART_PRECOMPILER)

@@ -581,7 +581,9 @@ external InspectStack();
 @pragma('vm:never-inline')
 void nop() {}
 
+@pragma('vm:entry-point', 'get')
 int prologueCount = 0;
+@pragma('vm:entry-point', 'get')
 int epilogueCount = 0;
 
 @pragma('vm:never-inline')

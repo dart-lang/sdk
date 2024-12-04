@@ -14,6 +14,7 @@ import 'dart:typed_data';
 
 // Embedder sets this to true if the --trace-loading flag was passed on the
 // command line.
+@pragma("vm:entry-point", "set")
 bool _traceLoading = false;
 
 // Before handling an embedder entrypoint we finalize the setup of the
@@ -30,7 +31,7 @@ void _print(arg) {
   _printString(arg.toString());
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 _getPrintClosure() => _print;
 
 // The current working directory when the embedder was launched.
@@ -60,7 +61,7 @@ Map<String, Uri>? _packageMap = null;
 // Special handling for Windows paths so that they are compatible with URI
 // handling.
 // Embedder sets this to true if we are running on Windows.
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "set")
 bool _isWindows = false;
 
 // Logging from builtin.dart is prefixed with a '*'.

@@ -3770,8 +3770,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant SwitchExpressionImpl node, {
     DartType contextType = UnknownInferredType.instance,
   }) {
-    analyzeExpression(node, SharedTypeSchemaView(contextType));
+    inferenceLogWriter?.enterExpression(node, contextType);
+    var previousExhaustiveness = legacySwitchExhaustiveness;
+    var staticType = analyzeSwitchExpression(node, node.expression,
+            node.cases.length, SharedTypeSchemaView(contextType))
+        .type
+        .unwrapTypeView();
+    node.recordStaticType(staticType, resolver: this);
     popRewrite();
+    legacySwitchExhaustiveness = previousExhaustiveness;
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override

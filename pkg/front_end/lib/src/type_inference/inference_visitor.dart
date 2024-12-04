@@ -1446,7 +1446,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<StructuralParameter> typedefTypeParametersCopy =
         freshTypeParameters.freshTypeParameters;
     List<DartType> asTypeArguments = freshTypeParameters.freshTypeArguments;
-    TypedefType typedefType = new TypedefType(
+    final TypedefType typedefType = new TypedefType(
         typedef, libraryBuilder.library.nonNullable, asTypeArguments);
     DartType unaliasedTypedef = typedefType.unalias;
     assert(unaliasedTypedef is InterfaceType,
@@ -1465,7 +1465,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         .toList(growable: false);
     named.sort();
     return new FunctionType(
-        positional, typedefType.unalias, libraryBuilder.library.nonNullable,
+        positional, unaliasedTypedef, libraryBuilder.library.nonNullable,
         namedParameters: named,
         typeParameters: typedefTypeParametersCopy,
         requiredParameterCount: function.requiredParameterCount);
@@ -1512,7 +1512,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<StructuralParameter> typedefTypeParametersCopy =
         freshTypeParameters.freshTypeParameters;
     List<DartType> asTypeArguments = freshTypeParameters.freshTypeArguments;
-    TypedefType typedefType = new TypedefType(
+    final TypedefType typedefType = new TypedefType(
         typedef, libraryBuilder.library.nonNullable, asTypeArguments);
     DartType unaliasedTypedef = typedefType.unalias;
     assert(unaliasedTypedef is TypeDeclarationType,
@@ -1533,7 +1533,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         .toList(growable: false);
     named.sort();
     return new FunctionType(
-        positional, typedefType.unalias, libraryBuilder.library.nonNullable,
+        positional, unaliasedTypedef, libraryBuilder.library.nonNullable,
         namedParameters: named,
         typeParameters: typedefTypeParametersCopy,
         requiredParameterCount: function.requiredParameterCount);
@@ -6824,8 +6824,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       instrumentation!.record(uriForInstrumentation, fileOffset, 'target',
           new InstrumentationValueForMember(equalsTarget.member!));
     }
-    DartType rightType =
-        operations.getNullableType(equalsTarget.getBinaryOperandType(this));
+    DartType rightType = operations
+        .makeNullableInternal(equalsTarget.getBinaryOperandType(this));
     DartType contextType =
         rightType.withDeclaredNullability(Nullability.nullable);
     rightResult = ensureAssignableResult(contextType, rightResult,

@@ -420,6 +420,24 @@ abstract class InterfaceType implements ParameterizedType {
     bool recoveryStatic = false,
   });
 
+  /// Return the getter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only getters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static getters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  GetterElement? lookUpGetter3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
+
   /// Return the method with the given [name].
   ///
   /// If [concrete] is `true`, then the concrete implementation is returned,
@@ -438,6 +456,24 @@ abstract class InterfaceType implements ParameterizedType {
     bool recoveryStatic = false,
   });
 
+  /// Return the method with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only methods from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static methods of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  MethodElement2? lookUpMethod3(
+    String name,
+    LibraryElement2 library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
+
   /// Return the setter with the given [name].
   ///
   /// If [concrete] is `true`, then the concrete implementation is returned,
@@ -451,6 +487,24 @@ abstract class InterfaceType implements ParameterizedType {
   PropertyAccessorElement? lookUpSetter2(
     String name,
     LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
+
+  /// Return the setter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only setters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static setters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  SetterElement? lookUpSetter3(
+    String name,
+    LibraryElement2 library, {
     bool concrete = false,
     bool inherited = false,
     bool recoveryStatic = false,

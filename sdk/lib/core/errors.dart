@@ -159,6 +159,7 @@ class TypeError extends Error {}
 /// so the [ArgumentError.value] constructor is the preferred constructor.
 /// Use [ArgumentError.new] only when the value cannot be provided for some
 /// reason.
+@pragma("vm:entry-point")
 class ArgumentError extends Error {
   /// Whether value was provided.
   final bool _hasValue;

@@ -236,6 +236,7 @@ TEST_CASE(JSON_JSONStream_DartString) {
       "var wrongEncoding = '\\u{1D11E}' + surrogates[0] + '\\u{1D11E}';"
       "var nullInMiddle = 'This has\\u0000 four words.';";
 
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
 

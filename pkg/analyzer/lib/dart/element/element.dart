@@ -515,6 +515,9 @@ abstract class DirectiveUri {}
 abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
   /// The library referenced by the [source].
   LibraryElement get library;
+
+  /// The library referenced by the [source].
+  LibraryElement2 get library2;
 }
 
 /// [DirectiveUriWithRelativeUriString] that can be parsed into a relative URI.
@@ -1986,6 +1989,9 @@ abstract class LibraryExportElement implements _ExistingElement {
   /// The combinators that were specified as part of the `export` directive in
   /// the order in which they were specified.
   List<NamespaceCombinator> get combinators;
+
+  @override
+  CompilationUnitElement get enclosingElement3;
 
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
   LibraryElement? get exportedLibrary;
