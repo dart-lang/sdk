@@ -81,6 +81,19 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun, intptr_t index) {
   return param.ptr();
 }
 
+ObjectPtr Invoke(const Library& lib, const char* name) {
+  Thread* thread = Thread::Current();
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
+  Dart_Handle result;
+  {
+    TransitionVMToNative transition(thread);
+    result =
+        Dart_Invoke(api_lib, NewString(name), /*argc=*/0, /*argv=*/nullptr);
+    EXPECT_VALID(result);
+  }
+  return Api::UnwrapHandle(result);
+}
+
 InstructionsPtr BuildInstructions(
     std::function<void(compiler::Assembler* assembler)> fun) {
   auto thread = Thread::Current();
