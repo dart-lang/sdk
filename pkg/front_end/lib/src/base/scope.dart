@@ -661,6 +661,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isProperty => throw new UnsupportedError("$runtimeType.isProperty");
+
+  @override
+  // Coverage-ignore(suite): Not run.
   bool get isAssignable => false;
 
   @override
@@ -696,11 +700,6 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   SourceLibraryBuilder get libraryBuilder {
     throw new UnsupportedError('$runtimeType.library');
   }
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
-  // Coverage-ignore(suite): Not run.
-  ProcedureKind? get kind => null;
 
   @override
   void buildOutlineExpressions(ClassHierarchy classHierarchy,

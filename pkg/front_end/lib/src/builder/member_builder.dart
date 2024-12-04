@@ -47,9 +47,6 @@ abstract class MemberBuilder implements Builder {
   /// the getter and setter capabilities.
   Iterable<Reference> get exportedMemberReferences;
 
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  ProcedureKind? get kind;
-
   @override
   bool get isExternal;
 
@@ -84,6 +81,10 @@ abstract class MemberBuilder implements Builder {
   /// Returns the [Annotatable] nodes that hold the annotations declared on this
   /// member.
   Iterable<Annotatable> get annotatables;
+
+  /// Returns `true` is this member is a property, i.e. a field, getter or
+  /// setter.
+  bool get isProperty;
 }
 
 abstract class MemberBuilderImpl extends BuilderImpl implements MemberBuilder {

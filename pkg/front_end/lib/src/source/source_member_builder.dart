@@ -8,7 +8,6 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/common.dart';
 import '../base/name_space.dart';
-import '../base/problems.dart' show unsupported;
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../kernel/body_builder_context.dart';
@@ -145,11 +144,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
         '$this.isConflictingAugmentationMember has already been fixed.');
     _isConflictingAugmentationMember = value;
   }
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
-  // Coverage-ignore(suite): Not run.
-  ProcedureKind? get kind => unsupported("kind", fileOffset, fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.

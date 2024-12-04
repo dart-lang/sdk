@@ -346,6 +346,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Iterable<MetadataBuilder>? get metadataForTesting => metadata;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => true;
+
+  @override
   bool get isAugmentation => modifiers.isAugment;
 
   @override

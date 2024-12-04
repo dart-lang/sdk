@@ -162,7 +162,25 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   SourceFactoryBuilder get origin => actualOrigin ?? this;
 
   @override
-  ProcedureKind get kind => ProcedureKind.Factory;
+  // Coverage-ignore(suite): Not run.
+  bool get isRegularMethod => false;
+
+  @override
+  bool get isGetter => false;
+
+  @override
+  bool get isSetter => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isOperator => false;
+
+  @override
+  bool get isFactory => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isProperty => false;
 
   Procedure get _procedure =>
       isAugmenting ? origin._procedure : _procedureInternal;
