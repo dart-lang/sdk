@@ -1816,9 +1816,6 @@ abstract class LocalVariableFragment
   @override
   LocalVariableElement2 get element;
 
-  @override
-  ExecutableFragment? get enclosingFragment;
-
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
 

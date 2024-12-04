@@ -7322,8 +7322,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   LocalVariableElement2 get element => _element2;
 
   @override
-  ExecutableFragment get enclosingFragment =>
-      enclosingElement3 as ExecutableFragment;
+  Fragment get enclosingFragment => enclosingElement3 as Fragment;
 
   @override
   String get identifier {
