@@ -1148,9 +1148,6 @@ abstract class InstanceElement2
   /// The getters declared in this element.
   List<GetterElement> get getters2;
 
-  @override
-  LibraryElement2 get library2;
-
   /// The methods declared in this element.
   List<MethodElement2> get methods2;
 
@@ -1957,9 +1954,6 @@ abstract class MethodElement2 implements ExecutableElement2 {
   /// The test might be based on the name of the executable element, in which
   /// case the result will be correct when the name is legal.
   bool get isOperator;
-
-  @override
-  LibraryElement2 get library2;
 }
 
 /// The portion of a [MethodElement2] contributed by a single declaration.
@@ -2250,6 +2244,9 @@ abstract class PropertyInducingElement2
   /// Whether any fragment of this variable has an initializer at declaration.
   bool get hasInitializer;
 
+  @override
+  LibraryElement2 get library2;
+
   /// The setter associated with this variable.
   ///
   /// Returns `null` if the variable is effectively `final` and therefore does
@@ -2410,9 +2407,6 @@ abstract class TopLevelFunctionElement implements ExecutableElement2 {
   ///
   /// A top-level function is an entry point if it has the name `main`.
   bool get isEntryPoint;
-
-  @override
-  LibraryElement2 get library2;
 }
 
 /// The portion of a [TopLevelFunctionElement] contributed by a single
@@ -2568,9 +2562,6 @@ abstract class TypeParameterElement2 implements TypeDefiningElement2 {
   @override
   TypeParameterFragment get firstFragment;
 
-  @override
-  LibraryElement2 get library2;
-
   /// Returns the [TypeParameterType] with the given [nullabilitySuffix] for
   /// this type parameter.
   TypeParameterType instantiate({
@@ -2606,6 +2597,9 @@ abstract class TypeParameterizedElement2 implements Element2, Annotatable {
   ///
   /// If the element does not define a type, returns `true`.
   bool get isSimplyBounded;
+
+  @override
+  LibraryElement2 get library2;
 
   /// The type parameters declared by this element directly.
   ///
