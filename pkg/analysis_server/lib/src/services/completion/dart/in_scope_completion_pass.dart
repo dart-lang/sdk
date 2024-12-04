@@ -2018,11 +2018,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                 if (!usedNames.contains(parameter.name)) {
                   var matcherScore = state.matcher.score(parameter.displayName);
                   if (matcherScore != -1) {
-                    var isWidget = isFlutterWidgetParameter(parameter.asElement2);
+                    var isWidget = isFlutterWidgetParameter(
+                      parameter.asElement2,
+                    );
                     collector.addSuggestion(
                       NamedArgumentSuggestion(
-                        parameter:
-                            parameter.asElement2,
+                        parameter: parameter.asElement2,
                         matcherScore: matcherScore,
                         appendColon: appendColon,
                         appendComma: false,
@@ -3313,7 +3314,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (directive is! NamespaceDirective) {
       return;
     }
-    var library = directive.referencedLibrary;
+    var library = directive.referencedLibrary?.asElement;
     if (library == null) {
       return;
     }

@@ -52,7 +52,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           return;
         }
       } else {
-        targetElement = node.enclosingInterfaceElement2;
+        targetElement = node.enclosingInterfaceElement;
         argument = nameNode;
       }
       argument = stepUpNamedExpression(argument);

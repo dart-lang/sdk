@@ -163,8 +163,8 @@ class CreateGetter extends CreateFieldOrGetter {
       }
     } else {
       targetElement =
-          nameNode.enclosingInterfaceElement2 ??
-          nameNode.enclosingExtensionElement2;
+          nameNode.enclosingInterfaceElement ??
+          nameNode.enclosingExtensionElement;
       if (targetElement == null) {
         return;
       }

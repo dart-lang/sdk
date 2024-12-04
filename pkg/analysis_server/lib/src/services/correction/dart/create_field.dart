@@ -167,7 +167,7 @@ class CreateField extends CreateFieldOrGetter {
         staticModifier = targetElement.kind == ElementKind.CLASS;
       }
     } else {
-      targetClassElement = node.enclosingInterfaceElement2;
+      targetClassElement = node.enclosingInterfaceElement;
       staticModifier = inStaticContext;
     }
 
