@@ -161,13 +161,13 @@ class AnalysisDriver {
   final DriverBasedAnalysisContext? analysisContext;
 
   /// The salt to mix into all hashes used as keys for unlinked data.
-  Uint32List _saltForUnlinked = Uint32List(0);
+  final Uint32List _saltForUnlinked;
 
   /// The salt to mix into all hashes used as keys for elements.
-  Uint32List _saltForElements = Uint32List(0);
+  final Uint32List _saltForElements;
 
   /// The salt to mix into all hashes used as keys for linked data.
-  Uint32List _saltForResolution = Uint32List(0);
+  final Uint32List _saltForResolution;
 
   /// The set of priority files, that should be analyzed sooner.
   final _priorityFiles = <String>{};
@@ -239,7 +239,7 @@ class AnalysisDriver {
   late final FileSystemState _fsState;
 
   /// The [FileTracker] used by this driver.
-  late FileTracker _fileTracker;
+  late final FileTracker _fileTracker;
 
   /// Whether resolved units should be indexed.
   final bool enableIndex;
@@ -312,17 +312,19 @@ class AnalysisDriver {
         declaredVariables = declaredVariables ?? DeclaredVariables(),
         testingData = retainDataForTesting ? TestingData() : null,
         _enableLintRuleTiming = enableLintRuleTiming,
-        // This extra work is temporary and will get simplified when the
-        // deprecated support for passing in an `analysisOptions` is removed.
-        assert(
-          analysisOptionsMap == null || analysisOptions == null,
-          'An analysisOptionsMap or analysisOptions can be specified, but not both',
-        ),
         // This '!' is temporary. The analysisOptionsMap is effectively
         // required but can't be until Google3 is updated.
         analysisOptionsMap = analysisOptions == null
             ? analysisOptionsMap!
-            : AnalysisOptionsMap.forSharedOptions(analysisOptions) {
+            : AnalysisOptionsMap.forSharedOptions(analysisOptions),
+        _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
+        _saltForElements =
+            _calculateSaltForElements(declaredVariables ?? DeclaredVariables()),
+        _saltForResolution = _calculateSaltForResolution(
+          enableIndex: enableIndex,
+          analysisContext: analysisContext,
+          declaredVariables: declaredVariables ?? DeclaredVariables(),
+        ) {
     analysisContext?.driver = this;
     testView?.driver = this;
 
@@ -1299,17 +1301,6 @@ class AnalysisDriver {
     return request.completer.future;
   }
 
-  void _addDeclaredVariablesToSignature(ApiSignature buffer) {
-    var variableNames = declaredVariables.variableNames;
-    buffer.addInt(variableNames.length);
-
-    for (var name in variableNames) {
-      var value = declaredVariables.get(name);
-      buffer.addString(name);
-      buffer.addString(value!);
-    }
-  }
-
   Future<void> _analyzeFile(String path) async {
     await scheduler.accumulatedPerformance.runAsync(
       'analyzeFile',
@@ -1593,8 +1584,6 @@ class AnalysisDriver {
   ///
   /// This is used on initial construction.
   void _createFileTracker() {
-    _fillSalt();
-
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: _resourceProvider,
@@ -1688,40 +1677,6 @@ class AnalysisDriver {
         }
       }
     }
-  }
-
-  void _fillSalt() {
-    _fillSaltForUnlinked();
-    _fillSaltForElements();
-    _fillSaltForResolution();
-  }
-
-  void _fillSaltForElements() {
-    var buffer = ApiSignature();
-    buffer.addInt(DATA_VERSION);
-    _addDeclaredVariablesToSignature(buffer);
-    _saltForElements = buffer.toUint32List();
-  }
-
-  void _fillSaltForResolution() {
-    var buffer = ApiSignature();
-    buffer.addInt(DATA_VERSION);
-    buffer.addBool(enableIndex);
-    buffer.addBool(enableDebugResolutionMarkers);
-    _addDeclaredVariablesToSignature(buffer);
-
-    var workspace = analysisContext?.contextRoot.workspace;
-    workspace?.contributeToResolutionSalt(buffer);
-
-    _saltForResolution = buffer.toUint32List();
-  }
-
-  void _fillSaltForUnlinked() {
-    var buffer = ApiSignature();
-    buffer.addInt(DATA_VERSION);
-    buffer.addBool(enableIndex);
-
-    _saltForUnlinked = buffer.toUint32List();
   }
 
   Future<void> _getErrors(String path) async {
@@ -2208,14 +2163,57 @@ class AnalysisDriver {
   /// [FileState.hasErrorOrWarning] flag.
   void _updateHasErrorOrWarningFlag(
       FileState file, List<AnalysisError> errors) {
-    for (AnalysisError error in errors) {
-      ErrorSeverity severity = error.errorCode.errorSeverity;
+    for (var error in errors) {
+      var severity = error.errorCode.errorSeverity;
       if (severity == ErrorSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
       }
     }
     file.hasErrorOrWarning = false;
+  }
+
+  static void _addDeclaredVariablesToSignature(
+      ApiSignature buffer, DeclaredVariables declaredVariables) {
+    buffer.addInt(declaredVariables.variableNames.length);
+
+    for (var name in declaredVariables.variableNames) {
+      var value = declaredVariables.get(name);
+      buffer.addString(name);
+      buffer.addString(value!);
+    }
+  }
+
+  static Uint32List _calculateSaltForElements(
+      DeclaredVariables declaredVariables) {
+    var buffer = ApiSignature()..addInt(DATA_VERSION);
+    _addDeclaredVariablesToSignature(buffer, declaredVariables);
+    return buffer.toUint32List();
+  }
+
+  static Uint32List _calculateSaltForResolution({
+    required bool enableIndex,
+    required DriverBasedAnalysisContext? analysisContext,
+    required DeclaredVariables declaredVariables,
+  }) {
+    var buffer = ApiSignature()
+      ..addInt(DATA_VERSION)
+      ..addBool(enableIndex)
+      ..addBool(enableDebugResolutionMarkers);
+    _addDeclaredVariablesToSignature(buffer, declaredVariables);
+
+    var workspace = analysisContext?.contextRoot.workspace;
+    workspace?.contributeToResolutionSalt(buffer);
+
+    return buffer.toUint32List();
+  }
+
+  static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
+    var buffer = ApiSignature()
+      ..addInt(DATA_VERSION)
+      ..addBool(enableIndex);
+
+    return buffer.toUint32List();
   }
 }
 
