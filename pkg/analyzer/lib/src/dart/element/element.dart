@@ -3093,6 +3093,13 @@ abstract class ElementImpl implements Element, Element2 {
     return "$shortName (${source?.fullName})";
   }
 
+  @override
+  String getExtendedDisplayName2({String? shortName}) {
+    shortName ??= displayName;
+    var source = this.source;
+    return "$shortName (${source?.fullName})";
+  }
+
   /// Return `true` if this element has the given [modifier] associated with it.
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
@@ -3341,7 +3348,7 @@ abstract class ElementImpl2 implements Element2 {
   }
 
   @override
-  String getExtendedDisplayName(String? shortName) {
+  String getExtendedDisplayName2({String? shortName}) {
     shortName ??= displayName;
     var source = firstFragment.libraryFragment?.source;
     return "$shortName (${source?.fullName})";

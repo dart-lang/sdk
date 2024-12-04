@@ -499,8 +499,7 @@ abstract class Element2 {
   /// compilation unit in which the type is defined. If [shortName] is `null`
   /// then [displayName] will be used as the name of this element. Otherwise
   /// the provided name will be used.
-  // TODO(brianwilkerson): Make the parameter optional.
-  String getExtendedDisplayName(String? shortName);
+  String getExtendedDisplayName2({String? shortName});
 
   /// Whether the element, assuming that it is within scope, is accessible to
   /// code in the given [library].
