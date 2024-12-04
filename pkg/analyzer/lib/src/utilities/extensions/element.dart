@@ -81,6 +81,8 @@ extension Element2OrNullExtension on Element2? {
         return self;
       case ExecutableMember():
         return self.declaration as Element;
+      case ExtensionElementImpl2():
+        return self.firstFragment as Element;
       case FieldElementImpl2():
         return self.firstFragment as Element;
       case FieldMember():

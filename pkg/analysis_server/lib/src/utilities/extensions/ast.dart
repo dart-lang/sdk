@@ -280,6 +280,7 @@ extension DirectiveExtension on Directive {
     }
   }
 
+
   /// If [referencedUri] is a [DirectiveUriWithSource], returns the [Source]
   /// from it.
   Source? get referencedSource {
