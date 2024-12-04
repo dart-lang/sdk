@@ -9,8 +9,10 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Helper for renaming one or more [Element]s.
@@ -32,6 +34,18 @@ class RenameProcessor {
     if (element != null && workspace.containsElement(element)) {
       var edit = newSourceEdit_range(range.elementName(element), newName);
       doSourceChange_addElementEdit(change, element, edit);
+    }
+  }
+
+  /// Add the edit that updates the [element] declaration.
+  void addDeclarationEdit2(Element2? element) {
+    if (element != null && workspace.containsElement2(element)) {
+      Fragment? fragment = element.firstFragment;
+      while (fragment != null) {
+        var edit = newSourceEdit_range(range.fragmentName(fragment)!, newName);
+        doSourceChange_addFragmentEdit(change, fragment, edit);
+        fragment = fragment.nextFragment;
+      }
     }
   }
 
@@ -88,7 +102,15 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
       elementKindName = element.kind.displayName,
       oldName = _getOldName(element);
 
+  RenameRefactoringImpl.c2(this.workspace, this.sessionHelper, Element2 element)
+    : searchEngine = workspace.searchEngine,
+      _element = element.asElement!,
+      elementKindName = element.kind.displayName,
+      oldName = _getOldName(element.asElement!);
+
   Element get element => _element;
+
+  Element2 get element2 => _element.asElement2!;
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {

@@ -646,15 +646,15 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       return validateCreateFunction(_searchEngine, libraryElement, name);
     }
     // method of class
-    InterfaceElement? interfaceElement;
+    InterfaceElement2? interfaceElement;
     if (parent is ClassDeclaration) {
-      interfaceElement = parent.declaredElement!;
+      interfaceElement = parent.declaredFragment?.element;
     } else if (parent is EnumDeclaration) {
-      interfaceElement = parent.declaredElement!;
+      interfaceElement = parent.declaredFragment?.element;
     } else if (parent is ExtensionTypeDeclaration) {
-      interfaceElement = parent.declaredElement!;
+      interfaceElement = parent.declaredFragment?.element;
     } else if (parent is MixinDeclaration) {
-      interfaceElement = parent.declaredElement!;
+      interfaceElement = parent.declaredFragment?.element;
     }
     if (interfaceElement != null) {
       return validateCreateMethod(

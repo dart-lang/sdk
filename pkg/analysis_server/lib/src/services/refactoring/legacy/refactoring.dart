@@ -504,8 +504,8 @@ abstract class RenameRefactoring implements Refactoring {
       return RenameClassMemberRefactoringImpl(
         workspace,
         sessionHelper,
-        enclosingElement,
-        element,
+        enclosingElement.asElement2,
+        element.asElement2!,
       );
     }
     if (enclosingElement is ExtensionElement) {

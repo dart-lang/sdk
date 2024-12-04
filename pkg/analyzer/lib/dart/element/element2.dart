@@ -838,7 +838,7 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements PromotableElement2, Annotatable {
+    implements PromotableElement2, Annotatable, LocalElement2 {
   @override
   FormalParameterElement get baseElement;
 
@@ -934,7 +934,7 @@ abstract class FormalParameterElement
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FormalParameterFragment
-    implements PromotableFragment, Annotatable {
+    implements PromotableFragment, Annotatable, LocalFragment {
   @override
   FormalParameterElement get element;
 
@@ -1073,6 +1073,8 @@ abstract class GenericFunctionTypeElement2 implements FunctionTypedElement2 {
 
 /// The portion of a [GenericFunctionTypeElement2] coming from a single
 /// declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class GenericFunctionTypeFragment implements FunctionTypedFragment {
   @override
   GenericFunctionTypeElement2 get element;
@@ -1193,6 +1195,8 @@ abstract class InstanceElement2
 }
 
 /// The portion of an [InstanceElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class InstanceFragment
     implements TypeDefiningFragment, TypeParameterizedFragment {
   @override
@@ -1328,6 +1332,8 @@ abstract class InterfaceElement2 implements InstanceElement2 {
 }
 
 /// The portion of an [InterfaceElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceFragment implements InstanceFragment {
   /// The constructors declared in this fragment.
   ///
@@ -1738,13 +1744,25 @@ abstract class LibraryImport {
   DirectiveUri get uri;
 }
 
+/// An element that can be (but is not required to be) defined within a method
+/// or function (an [ExecutableElement]).
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class LocalElement2 implements Element2 {}
+
+/// The portion of an [LocalElement2] contributed by a single declaration.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class LocalFragment implements Fragment {}
+
 /// A local function.
 ///
 /// This can be either a local function, a closure, or the initialization
 /// expression for a field or variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalFunctionElement implements ExecutableElement2 {
+abstract class LocalFunctionElement
+    implements ExecutableElement2, LocalElement2 {
   @override
   LocalFunctionFragment get firstFragment;
 }
@@ -1753,7 +1771,8 @@ abstract class LocalFunctionElement implements ExecutableElement2 {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalFunctionFragment implements ExecutableFragment {
+abstract class LocalFunctionFragment
+    implements ExecutableFragment, LocalFragment {
   // TODO(brianwilkerson): This should override `element` to be more specific,
   //  but can't because the Impl class supports both local and top-level
   //  functions.
@@ -1776,7 +1795,8 @@ abstract class LocalFunctionFragment implements ExecutableFragment {
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement2 implements PromotableElement2 {
+abstract class LocalVariableElement2
+    implements PromotableElement2, LocalElement2 {
   @override
   LocalVariableElement2 get baseElement;
 
@@ -1791,7 +1811,8 @@ abstract class LocalVariableElement2 implements PromotableElement2 {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableFragment implements PromotableFragment {
+abstract class LocalVariableFragment
+    implements PromotableFragment, LocalFragment {
   @override
   LocalVariableElement2 get element;
 

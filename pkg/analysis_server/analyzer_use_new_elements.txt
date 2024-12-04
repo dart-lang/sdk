@@ -48,7 +48,6 @@ lib/src/services/refactoring/legacy/refactoring.dart
 lib/src/services/refactoring/legacy/refactoring_internal.dart
 lib/src/services/refactoring/legacy/refactoring_manager.dart
 lib/src/services/refactoring/legacy/rename.dart
-lib/src/services/refactoring/legacy/rename_class_member.dart
 lib/src/services/refactoring/legacy/rename_constructor.dart
 lib/src/services/refactoring/legacy/rename_extension_member.dart
 lib/src/services/refactoring/legacy/rename_import.dart

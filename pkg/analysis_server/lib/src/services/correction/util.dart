@@ -109,11 +109,34 @@ String getElementKindName(Element element) {
   return element.kind.displayName;
 }
 
+/// Return the name of the kind of the [element].
+String getElementKindName2(Element2 element) {
+  return element.kind.displayName;
+}
+
 /// Returns the name to display in the UI for the given [Element].
 String getElementQualifiedName(Element element) {
   var kind = element.kind;
   if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
     return '${element.enclosingElement3!.displayName}.${element.displayName}';
+  } else if (kind == ElementKind.LIBRARY) {
+    // Libraries may not have names, so use a path relative to the context root.
+    var session = element.session!;
+    var pathContext = session.resourceProvider.pathContext;
+    var rootPath = session.analysisContext.contextRoot.root.path;
+    var library = element as LibraryElement;
+
+    return pathContext.relative(library.source.fullName, from: rootPath);
+  } else {
+    return element.displayName;
+  }
+}
+
+/// Returns the name to display in the UI for the given [element].
+String getElementQualifiedName2(Element2 element) {
+  var kind = element.kind;
+  if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
+    return '${element.enclosingElement2!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.
     var session = element.session!;

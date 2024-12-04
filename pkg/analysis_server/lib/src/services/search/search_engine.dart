@@ -88,6 +88,16 @@ abstract class SearchEngine {
     OperationPerformanceImpl performance,
   );
 
+  /// Adds all subtypes of the given [type] into [allSubtypes].
+  ///
+  /// If [allSubtypes] already contains an element it is assumed that it
+  /// contains the entire subtree and the element won't be search on further.
+  Future<void> appendAllSubtypes2(
+    InterfaceElement2 type,
+    Set<InterfaceElement2> allSubtypes,
+    OperationPerformanceImpl performance,
+  );
+
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
   /// return `null`.

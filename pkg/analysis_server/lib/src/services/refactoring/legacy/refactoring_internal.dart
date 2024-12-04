@@ -93,6 +93,9 @@ class SourceReference {
   /// Return the [LibraryElement] for the [file].
   LibraryElement get libraryElement => _match.libraryElement;
 
+  /// Return the [LibraryElement2] for the [file].
+  LibraryElement2 get libraryElement2 => _match.libraryElement2;
+
   SourceRange get range => _match.sourceRange;
 
   Source get unitSource => _match.unitSource;

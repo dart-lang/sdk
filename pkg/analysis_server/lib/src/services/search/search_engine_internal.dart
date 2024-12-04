@@ -45,6 +45,7 @@ class SearchEngineImpl implements SearchEngine {
     await addSubtypes(type);
   }
 
+  @override
   Future<void> appendAllSubtypes2(
     InterfaceElement2 type,
     Set<InterfaceElement2> allSubtypes,
