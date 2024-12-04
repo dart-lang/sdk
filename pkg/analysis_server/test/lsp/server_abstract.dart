@@ -137,7 +137,19 @@ abstract class AbstractLspAnalysisServerTest
   Future<LspChangeVerifier> executeCommandForEdits(
     Command command, {
     ProgressToken? workDoneToken,
-  }) async {
+  }) {
+    return executeForEdits(
+      () => executeCommand(command, workDoneToken: workDoneToken),
+    );
+  }
+
+  /// Executes a function which is expected to call back to the client to apply
+  /// a [WorkspaceEdit].
+  ///
+  /// Returns a [LspChangeVerifier] that can be used to verify changes.
+  Future<LspChangeVerifier> executeForEdits(
+    Future<Object?> Function() function,
+  ) async {
     ApplyWorkspaceEditParams? editParams;
 
     var commandResponse = await handleExpectedRequest<
@@ -147,7 +159,7 @@ abstract class AbstractLspAnalysisServerTest
     >(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
-      () => executeCommand(command, workDoneToken: workDoneToken),
+      function,
       handler: (edit) {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified by the caller).
