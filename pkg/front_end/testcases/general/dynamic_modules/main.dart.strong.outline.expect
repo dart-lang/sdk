@@ -1,0 +1,247 @@
+library;
+import self as self;
+import "main_lib1.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart";
+
+class D3 extends mai::C3 {
+  synthetic constructor •() → self::D3
+    ;
+}
+class D4 extends mai::C4 {
+  synthetic constructor •() → self::D4
+    ;
+  method method1() → void
+    ;
+  method method2() → void
+    ;
+  get field1() → core::int?
+    ;
+  set field1(core::int? value) → void
+    ;
+  get field2() → core::int?
+    ;
+  set field2(core::int? value) → void
+    ;
+}
+class E3 extends core::Object implements mai::C3 {
+  synthetic constructor •() → self::E3
+    ;
+}
+class E4 extends core::Object implements mai::C4 {
+  field core::int? field1;
+  field core::int? field2;
+  synthetic constructor •() → self::E4
+    ;
+  method method1() → void
+    ;
+  method method2() → void
+    ;
+}
+abstract class _F1&Object&M1 = core::Object with mai::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F1&Object&M1
+    : super core::Object::•()
+    ;
+}
+class F1 extends self::_F1&Object&M1 {
+  synthetic constructor •() → self::F1
+    ;
+}
+abstract class _F2&Object&M2 = core::Object with mai::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_F2&Object&M2
+    : super core::Object::•()
+    ;
+}
+class F2 extends self::_F2&Object&M2 {
+  synthetic constructor •() → self::F2
+    ;
+}
+class Impl1 extends mai::Base implements mai::Interface {
+  synthetic constructor •() → self::Impl1
+    ;
+}
+abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Impl2&Object&Mixin
+    : super core::Object::•()
+    ;
+  mixin-super-stub method foo() → void
+    return super.{mai::Mixin::foo}();
+}
+class Impl2 extends self::_Impl2&Object&Mixin implements mai::Interface {
+  synthetic constructor •() → self::Impl2
+    ;
+}
+class C6Ext extends mai::C6 {
+  constructor •({core::Object param = const mai::_ConstForC6::•(mai::_privateMethodForC6)}) → self::C6Ext
+    ;
+}
+class C7Ext extends mai::C7 {
+  constructor •({core::Object param = const mai::_ConstForC7::•(mai::_privateMethodForC7)}) → self::C7Ext
+    ;
+}
+static field dynamic x;
+static method test() → void
+  ;
+static method main() → void
+  ;
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::int field1;
+  static field core::int field2;
+  constructor •() → mai::C1
+    ;
+  method method1() → void
+    ;
+  get getter1() → core::int
+    ;
+  set setter1(core::int value) → void
+    ;
+  static method method2() → void
+    ;
+  static get getter2() → core::int
+    ;
+  static set setter2(core::int value) → void
+    ;
+}
+class C2 extends core::Object {
+  field core::int field1;
+  static field core::int field2;
+  constructor •() → mai::C2
+    ;
+  method method1() → void
+    ;
+  get getter1() → core::int
+    ;
+  set setter1(core::int value) → void
+    ;
+  static method method2() → void
+    ;
+  static get getter2() → core::int
+    ;
+  static set setter2(core::int value) → void
+    ;
+}
+class C3 extends core::Object {
+  synthetic constructor •() → mai::C3
+    ;
+}
+abstract class C4 extends core::Object {
+  field core::int? field1;
+  field core::int? field2;
+  synthetic constructor •() → mai::C4
+    ;
+  abstract method method1() → void;
+  abstract method method2() → void;
+}
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
+}
+class Base extends core::Object {
+  synthetic constructor •() → mai::Base
+    ;
+  method foo() → void
+    ;
+}
+abstract class Interface extends core::Object {
+  synthetic constructor •() → mai::Interface
+    ;
+  abstract method foo() → void;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  method foo() → void
+    ;
+}
+class _C5 extends core::Object /*hasConstConstructor*/  {
+  final field core::Function func;
+  const constructor •(core::Function func) → mai::_C5
+    : mai::_C5::func = func, super core::Object::•()
+    ;
+}
+class _ConstForC6 extends core::Object /*hasConstConstructor*/  {
+  final field core::Function _f;
+  const constructor •(core::Function _f) → mai::_ConstForC6
+    : mai::_ConstForC6::_f = _f, super core::Object::•()
+    ;
+}
+class C6 extends core::Object {
+  constructor •({core::Object param = const mai::_ConstForC6::•(mai::_privateMethodForC6)}) → mai::C6
+    ;
+}
+class _ConstForC7 extends core::Object /*hasConstConstructor*/  {
+  final field core::Function _f;
+  const constructor •(core::Function _f) → mai::_ConstForC7
+    : mai::_ConstForC7::_f = _f, super core::Object::•()
+    ;
+}
+class C7 extends core::Object {
+  constructor •({core::Object param = const mai::_ConstForC7::•(mai::_privateMethodForC7)}) → mai::C7
+    ;
+}
+class C8 extends core::Object {
+  constructor _() → mai::C8
+    ;
+  static factory •() → mai::C8 /* redirection-target: mai::C8::_ */
+    return new mai::C8::_();
+}
+class C9 extends core::Object {
+  constructor _() → mai::C9
+    ;
+  static factory •() → mai::C9 /* redirection-target: mai::C9::_ */
+    return new mai::C9::_();
+}
+static field core::int field1;
+static field core::int field2;
+static const field mai::_C5 const1 = const mai::_C5::•(mai::_privateMethod1);
+static const field mai::_C5 const2 = const mai::_C5::•(mai::_privateMethod2);
+static method method1() → void
+  ;
+static method method2() → void
+  ;
+static method _privateMethod1() → void
+  ;
+static method _privateMethod2() → void
+  ;
+static method _privateMethodForC6() → void
+  ;
+static method _privateMethodForC7() → void
+  ;
+
+library;
+import self as self2;
+import "main_lib3.dart" as mai2;
+additionalExports = (mai2::Lib3Class,
+  mai2::lib3Method,
+  mai2::lib3Field,
+  mai2::lib3Field)
+
+export "org-dartlang-testcase:///main_lib3.dart";
+
+
+library;
+import self as mai2;
+import "dart:core" as core;
+
+class Lib3Class extends core::Object {
+  synthetic constructor •() → mai2::Lib3Class
+    ;
+}
+static field core::int? lib3Field;
+static method lib3Method() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:57:16 -> InstanceConstant(const _ConstForC6{_ConstForC6._f: _privateMethodForC6})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:63:16 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:78:28 -> InstanceConstant(const _ConstForC6{_ConstForC6._f: _privateMethodForC6})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:89:28 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:67:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod1})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:68:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod2})
+Extra constant evaluation: evaluated: 12, effectively constant: 6

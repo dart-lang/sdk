@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_02.dart:7:7: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int x2 = 42;
+//       ^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type Foo(core::String x) {
+  abstract extension-type-member representation-field get x() → core::String;
+  static field x1 = self::Foo|x1;
+  get x2 = get self::Foo|x2;
+  set x2 = set self::Foo|x2;
+  method bar1 = self::Foo|bar1;
+  method tearoff bar1 = self::Foo|get#bar1;
+  method bar2 = self::Foo|bar2;
+  method tearoff bar2 = self::Foo|get#bar2;
+  constructor • = self::Foo|constructor#;
+  constructor tearoff • = self::Foo|constructor#_#new#tearOff;
+}
+static const field core::int Foo|x1 = 42;
+static extension-type-member method Foo|constructor#(core::String x) → self::Foo% /* erasure=core::String, declared=! */
+  ;
+static extension-type-member method Foo|constructor#_#new#tearOff(core::String x) → self::Foo% /* erasure=core::String, declared=! */
+  return self::Foo|constructor#(x);
+static abstract extension-type-member get Foo|x2() → core::int;
+static abstract extension-type-member set Foo|x2(synthesized core::int #externalFieldValue) → void;
+static extension-type-member method Foo|bar1(lowered final self::Foo% /* erasure=core::String, declared=! */ #this, {has-declared-initializer core::int baz}) → core::int
+  ;
+static extension-type-member method Foo|get#bar1(lowered final self::Foo% /* erasure=core::String, declared=! */ #this) → ({baz: core::int}) → core::int
+  return ({core::int baz}) → core::int => self::Foo|bar1(#this, baz: baz);
+static extension-type-member method Foo|bar2(lowered final self::Foo% /* erasure=core::String, declared=! */ #this, {has-declared-initializer core::int baz}) → core::int
+  ;
+static extension-type-member method Foo|get#bar2(lowered final self::Foo% /* erasure=core::String, declared=! */ #this) → ({baz: core::int}) → core::int
+  return ({core::int baz}) → core::int => self::Foo|bar2(#this, baz: baz);

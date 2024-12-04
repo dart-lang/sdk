@@ -2321,7 +2321,9 @@ a:focus, a:hover {
       </dd><dt class="field"><b>lineLength: int<span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
-          The line length to be used by the formatter.
+          The line length to be used by the formatter. This value is ignored if a
+          <tt>formatter.page_width</tt> has been configured in the relevant
+          <tt>analysis_options.yaml</tt> file.
         </p>
       </dd></dl><h4>returns:</h4><dl><dt class="field"><b>edits: List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt;</b></dt><dd>
         

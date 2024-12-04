@@ -15,8 +15,9 @@ class QualifyReference extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_qualifiedName];
@@ -57,7 +58,7 @@ class QualifyReference extends ResolvedCorrectionProducer {
       return;
     }
 
-    var containerName = enclosingElement.name;
+    var containerName = enclosingElement.name3;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.offset, '$containerName.');
     });

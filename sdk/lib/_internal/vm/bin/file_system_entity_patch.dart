@@ -16,11 +16,17 @@ class FileSystemEntity {
   @patch
   @pragma("vm:external-name", "File_GetType")
   external static _getTypeNative(
-      _Namespace namespace, Uint8List rawPath, bool followLinks);
+    _Namespace namespace,
+    Uint8List rawPath,
+    bool followLinks,
+  );
   @patch
   @pragma("vm:external-name", "File_AreIdentical")
   external static _identicalNative(
-      _Namespace namespace, String path1, String path2);
+    _Namespace namespace,
+    String path1,
+    String path2,
+  );
   @patch
   @pragma("vm:external-name", "File_ResolveSymbolicLinks")
   external static _resolveSymbolicLinks(_Namespace namespace, Uint8List path);

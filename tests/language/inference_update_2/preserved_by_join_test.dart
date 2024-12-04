@@ -8,7 +8,7 @@
 //
 // See https://github.com/dart-lang/sdk/issues/53146 for further details.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final int? _i;

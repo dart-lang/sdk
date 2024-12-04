@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A list of fixes associated with a specific error.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class AnalysisErrorFixes {
 
-  public static final AnalysisErrorFixes[] EMPTY_ARRAY = new AnalysisErrorFixes[0];
-
-  public static final List<AnalysisErrorFixes> EMPTY_LIST = Lists.newArrayList();
+  public static final List<AnalysisErrorFixes> EMPTY_LIST = List.of();
 
   /**
    * The error with which the fixes are associated.
@@ -55,11 +50,10 @@ public class AnalysisErrorFixes {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof AnalysisErrorFixes) {
-      AnalysisErrorFixes other = (AnalysisErrorFixes) obj;
+    if (obj instanceof AnalysisErrorFixes other) {
       return
-        ObjectUtilities.equals(other.error, error) &&
-        ObjectUtilities.equals(other.fixes, fixes);
+        Objects.equals(other.error, error) &&
+        Objects.equals(other.fixes, fixes);
     }
     return false;
   }
@@ -74,10 +68,9 @@ public class AnalysisErrorFixes {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<AnalysisErrorFixes> list = new ArrayList<AnalysisErrorFixes>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<AnalysisErrorFixes> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -98,10 +91,10 @@ public class AnalysisErrorFixes {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(error);
-    builder.append(fixes);
-    return builder.toHashCode();
+    return Objects.hash(
+      error,
+      fixes
+    );
   }
 
   public JsonObject toJson() {
@@ -120,9 +113,10 @@ public class AnalysisErrorFixes {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("error=");
-    builder.append(error + ", ");
+    builder.append(error);
+    builder.append(", ");
     builder.append("fixes=");
-    builder.append(StringUtils.join(fixes, ", "));
+    builder.append(fixes.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

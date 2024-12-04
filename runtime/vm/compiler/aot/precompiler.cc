@@ -47,8 +47,8 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/program_visitor.h"
-#include "vm/regexp_assembler.h"
-#include "vm/regexp_parser.h"
+#include "vm/regexp/regexp_assembler.h"
+#include "vm/regexp/regexp_parser.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_trace.h"
@@ -176,10 +176,12 @@ struct RetainReasons : public AllStatic {
       "signature of entry point function";
 };
 
-class RetainedReasonsWriter : public ValueObject {
+class RetainedReasonsWriter : public StackResource {
  public:
   explicit RetainedReasonsWriter(Zone* zone)
-      : zone_(zone), retained_reasons_map_(zone) {}
+      : StackResource(Thread::Current()),
+        zone_(zone),
+        retained_reasons_map_(zone) {}
 
   bool Init(const char* filename) {
     if (filename == nullptr) return false;
@@ -3663,7 +3665,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
         RELEASE_ASSERT(far_branch_level < 2);
-        far_branch_level++;
+        far_branch_level = far_branch_level + 1;
       } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.

@@ -24,8 +24,9 @@ class AddAsync extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_ASYNC;
@@ -39,7 +40,7 @@ class AddAsync extends ResolvedCorrectionProducer {
       switch (node) {
         case FunctionDeclaration():
           body = node.functionExpression.body;
-          if (node.declaredElement2 case var declaredElement?) {
+          if (node.declaredFragment?.element case var declaredElement?) {
             returnType = declaredElement.returnType;
           } else if (node.declaredFragment case var declaredFragment?) {
             returnType = declaredFragment.element.returnType;

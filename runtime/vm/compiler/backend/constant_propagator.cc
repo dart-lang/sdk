@@ -239,7 +239,7 @@ void ConstantPropagator::VisitIndirectGoto(IndirectGotoInstr* instr) {
 }
 
 void ConstantPropagator::VisitBranch(BranchInstr* instr) {
-  instr->comparison()->Accept(this);
+  instr->condition()->Accept(this);
 
   // The successors may be reachable, but only if this instruction is.  (We
   // might be analyzing it because the constant value of one of its inputs
@@ -250,7 +250,7 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
              (instr->constant_target() == instr->false_successor()));
       SetReachable(instr->constant_target());
     } else {
-      const Object& value = instr->comparison()->constant_value();
+      const Object& value = instr->condition()->constant_value();
       if (IsNonConstant(value)) {
         SetReachable(instr->true_successor());
         SetReachable(instr->false_successor());
@@ -557,8 +557,8 @@ void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
 }
 
 void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
-  instr->comparison()->Accept(this);
-  const Object& value = instr->comparison()->constant_value();
+  instr->condition()->Accept(this);
+  const Object& value = instr->condition()->constant_value();
   ASSERT(!value.IsNull());
   if (IsUnknown(value)) {
     return;
@@ -656,8 +656,6 @@ static bool CompareIntegers(Token::Kind kind,
   }
 }
 
-// Comparison instruction that is equivalent to the (left & right) == 0
-// comparison pattern.
 void ConstantPropagator::VisitTestInt(TestIntInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
@@ -701,7 +699,7 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   Definition* left_defn = instr->left()->definition();
   Definition* right_defn = instr->right()->definition();
 
-  if (IsIntegerClassId(instr->operation_cid())) {
+  if (!instr->IsFloatingPoint()) {
     // Fold x == x, and x != x to true/false for numbers comparisons.
     Definition* unwrapped_left_defn = UnwrapPhi(left_defn);
     Definition* unwrapped_right_defn = UnwrapPhi(right_defn);
@@ -1195,24 +1193,6 @@ void ConstantPropagator::VisitBinaryInt64Op(BinaryInt64OpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
 
-void ConstantPropagator::VisitShiftInt64Op(ShiftInt64OpInstr* instr) {
-  VisitBinaryIntegerOp(instr);
-}
-
-void ConstantPropagator::VisitSpeculativeShiftInt64Op(
-    SpeculativeShiftInt64OpInstr* instr) {
-  VisitBinaryIntegerOp(instr);
-}
-
-void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
-  VisitBinaryIntegerOp(instr);
-}
-
-void ConstantPropagator::VisitSpeculativeShiftUint32Op(
-    SpeculativeShiftUint32OpInstr* instr) {
-  VisitBinaryIntegerOp(instr);
-}
-
 void ConstantPropagator::VisitBoxInt64(BoxInt64Instr* instr) {
   VisitBox(instr);
 }
@@ -1499,9 +1479,22 @@ void ConstantPropagator::VisitCaseInsensitiveCompare(
 }
 
 void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
-  const Object& value = instr->value()->definition()->constant_value();
+  Object& value = instr->value()->definition()->constant_value();
   if (IsUnknown(value)) {
     return;
+  }
+
+  if (auto* unbox_int = instr->AsUnboxInteger()) {
+    if (!value.IsInteger()) {
+      SetValue(instr, non_constant_);
+      return;
+    }
+    if ((unbox_int->representation() == kUnboxedInt32) ||
+        (unbox_int->representation() == kUnboxedUint32)) {
+      const int64_t result_val = Evaluator::TruncateTo(
+          Integer::Cast(value).Value(), unbox_int->representation());
+      value = Integer::NewCanonical(result_val);
+    }
   }
 
   SetValue(instr, value);
@@ -1601,10 +1594,10 @@ static RedefinitionInstr* InsertRedefinition(FlowGraph* graph,
 void ConstantPropagator::InsertRedefinitionsAfterEqualityComparisons() {
   for (auto block : graph_->reverse_postorder()) {
     if (auto branch = block->last_instruction()->AsBranch()) {
-      auto comparison = branch->comparison();
-      if (comparison->IsStrictCompare() ||
-          (comparison->IsEqualityCompare() &&
-           comparison->operation_cid() != kDoubleCid)) {
+      auto comparison = branch->condition()->AsComparison();
+      if (comparison != nullptr &&
+          (comparison->IsStrictCompare() || (comparison->IsEqualityCompare() &&
+                                             !comparison->IsFloatingPoint()))) {
         Value* value;
         ConstantInstr* constant_defn;
         if (comparison->IsComparisonWithConstant(&value, &constant_defn) &&

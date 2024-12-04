@@ -51,25 +51,35 @@ class ChangeTest {
 
   void test_toJson() {
     var change = SourceChange('msg');
-    change.addFileEdit(SourceFileEdit('/a.dart', 1)
-      ..add(SourceEdit(1, 2, 'aaa'))
-      ..add(SourceEdit(10, 20, 'bbb')));
-    change.addFileEdit(SourceFileEdit('/b.dart', 2)
-      ..add(SourceEdit(21, 22, 'xxx'))
-      ..add(SourceEdit(210, 220, 'yyy')));
+    change.addFileEdit(
+      SourceFileEdit('/a.dart', 1)
+        ..add(SourceEdit(1, 2, 'aaa'))
+        ..add(SourceEdit(10, 20, 'bbb')),
+    );
+    change.addFileEdit(
+      SourceFileEdit('/b.dart', 2)
+        ..add(SourceEdit(21, 22, 'xxx'))
+        ..add(SourceEdit(210, 220, 'yyy')),
+    );
     {
       var group = LinkedEditGroup.empty();
-      change.addLinkedEditGroup(group
-        ..addPosition(Position('/ga.dart', 1), 2)
-        ..addPosition(Position('/ga.dart', 10), 2));
+      change.addLinkedEditGroup(
+        group
+          ..addPosition(Position('/ga.dart', 1), 2)
+          ..addPosition(Position('/ga.dart', 10), 2),
+      );
       group.addSuggestion(
-          LinkedEditSuggestion('AA', LinkedEditSuggestionKind.TYPE));
+        LinkedEditSuggestion('AA', LinkedEditSuggestionKind.TYPE),
+      );
       group.addSuggestion(
-          LinkedEditSuggestion('BB', LinkedEditSuggestionKind.TYPE));
+        LinkedEditSuggestion('BB', LinkedEditSuggestionKind.TYPE),
+      );
     }
-    change.addLinkedEditGroup(LinkedEditGroup.empty()
-      ..addPosition(Position('/gb.dart', 10), 5)
-      ..addPosition(Position('/gb.dart', 100), 5));
+    change.addLinkedEditGroup(
+      LinkedEditGroup.empty()
+        ..addPosition(Position('/gb.dart', 10), 5)
+        ..addPosition(Position('/gb.dart', 100), 5),
+    );
     change.selection = Position('/selection.dart', 42);
     var expectedJson = {
       'message': 'msg',
@@ -79,40 +89,40 @@ class ChangeTest {
           'fileStamp': 1,
           'edits': [
             {'offset': 10, 'length': 20, 'replacement': 'bbb'},
-            {'offset': 1, 'length': 2, 'replacement': 'aaa'}
-          ]
+            {'offset': 1, 'length': 2, 'replacement': 'aaa'},
+          ],
         },
         {
           'file': '/b.dart',
           'fileStamp': 2,
           'edits': [
             {'offset': 210, 'length': 220, 'replacement': 'yyy'},
-            {'offset': 21, 'length': 22, 'replacement': 'xxx'}
-          ]
-        }
+            {'offset': 21, 'length': 22, 'replacement': 'xxx'},
+          ],
+        },
       ],
       'linkedEditGroups': [
         {
           'length': 2,
           'positions': [
             {'file': '/ga.dart', 'offset': 1},
-            {'file': '/ga.dart', 'offset': 10}
+            {'file': '/ga.dart', 'offset': 10},
           ],
           'suggestions': [
             {'kind': 'TYPE', 'value': 'AA'},
-            {'kind': 'TYPE', 'value': 'BB'}
-          ]
+            {'kind': 'TYPE', 'value': 'BB'},
+          ],
         },
         {
           'length': 5,
           'positions': [
             {'file': '/gb.dart', 'offset': 10},
-            {'file': '/gb.dart', 'offset': 100}
+            {'file': '/gb.dart', 'offset': 100},
           ],
-          'suggestions': []
-        }
+          'suggestions': [],
+        },
       ],
-      'selection': {'file': '/selection.dart', 'offset': 42}
+      'selection': {'file': '/selection.dart', 'offset': 42},
     };
     expect(change.toJson(), expectedJson);
     // some toString()
@@ -126,7 +136,9 @@ class EditTest {
     var edit1 = SourceEdit(5, 2, 'abc');
     var edit2 = SourceEdit(1, 0, '!');
     expect(
-        SourceEdit.applySequence('0123456789', [edit1, edit2]), '0!1234abc789');
+      SourceEdit.applySequence('0123456789', [edit1, edit2]),
+      '0!1234abc789',
+    );
   }
 
   void test_editFromRange() {
@@ -152,8 +164,12 @@ class EditTest {
     expect(edit.offset, 1);
     expect(edit.length, 2);
     expect(edit.replacement, 'foo');
-    expect(edit.toJson(),
-        {'offset': 1, 'length': 2, 'replacement': 'foo', 'id': 'my-id'});
+    expect(edit.toJson(), {
+      'offset': 1,
+      'length': 2,
+      'replacement': 'foo',
+      'id': 'my-id',
+    });
   }
 
   void test_toJson() {
@@ -193,10 +209,11 @@ class FileEditTest {
     fileEdit.add(SourceEdit(1, 2, 'aaa'));
     fileEdit.add(SourceEdit(10, 20, 'bbb'));
     expect(
-        fileEdit.toString(),
-        '{"file":"/test.dart","fileStamp":100,"edits":['
-        '{"offset":10,"length":20,"replacement":"bbb"},'
-        '{"offset":1,"length":2,"replacement":"aaa"}]}');
+      fileEdit.toString(),
+      '{"file":"/test.dart","fileStamp":100,"edits":['
+      '{"offset":10,"length":20,"replacement":"bbb"},'
+      '{"offset":1,"length":2,"replacement":"aaa"}]}',
+    );
   }
 
   void test_toJson() {
@@ -209,7 +226,7 @@ class FileEditTest {
       EDITS: [
         {OFFSET: 10, LENGTH: 20, REPLACEMENT: 'bbb'},
         {OFFSET: 1, LENGTH: 2, REPLACEMENT: 'aaa'},
-      ]
+      ],
     };
     expect(fileEdit.toJson(), expectedJson);
   }
@@ -222,10 +239,11 @@ class LinkedEditGroupTest {
     group.addPosition(Position('/a.dart', 1), 2);
     group.addPosition(Position('/b.dart', 10), 2);
     expect(
-        group.toString(),
-        '{"positions":['
-        '{"file":"/a.dart","offset":1},'
-        '{"file":"/b.dart","offset":10}],"length":2,"suggestions":[]}');
+      group.toString(),
+      '{"positions":['
+      '{"file":"/a.dart","offset":1},'
+      '{"file":"/b.dart","offset":10}],"length":2,"suggestions":[]}',
+    );
   }
 
   void test_toJson() {
@@ -233,19 +251,21 @@ class LinkedEditGroupTest {
     group.addPosition(Position('/a.dart', 1), 2);
     group.addPosition(Position('/b.dart', 10), 2);
     group.addSuggestion(
-        LinkedEditSuggestion('AA', LinkedEditSuggestionKind.TYPE));
+      LinkedEditSuggestion('AA', LinkedEditSuggestionKind.TYPE),
+    );
     group.addSuggestion(
-        LinkedEditSuggestion('BB', LinkedEditSuggestionKind.TYPE));
+      LinkedEditSuggestion('BB', LinkedEditSuggestionKind.TYPE),
+    );
     expect(group.toJson(), {
       'length': 2,
       'positions': [
         {'file': '/a.dart', 'offset': 1},
-        {'file': '/b.dart', 'offset': 10}
+        {'file': '/b.dart', 'offset': 10},
       ],
       'suggestions': [
         {'kind': 'TYPE', 'value': 'AA'},
-        {'kind': 'TYPE', 'value': 'BB'}
-      ]
+        {'kind': 'TYPE', 'value': 'BB'},
+      ],
     });
   }
 }

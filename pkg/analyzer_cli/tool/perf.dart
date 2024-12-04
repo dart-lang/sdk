@@ -10,6 +10,7 @@ import 'dart:io' show exit;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' show Folder;
 import 'package:analyzer/file_system/physical_file_system.dart'
@@ -17,6 +18,7 @@ import 'package:analyzer/file_system/physical_file_system.dart'
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
@@ -25,6 +27,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, SourceFactory;
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 void main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
@@ -85,12 +88,17 @@ void collectSources(Source? start, Set<Source?> files) {
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var result = tokenize(source);
+  var languageVersion = LibraryLanguageVersion(
+    package: ExperimentStatus.currentVersion,
+    override: result.overrideVersion,
+  );
   var lineInfo = LineInfo(result.lineStarts);
   var parser = Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: FeatureSet.latestLanguageVersion(),
     lineInfo: lineInfo,
+    languageVersion: languageVersion,
   );
   return parser.parseDirectives(result.tokens);
 }
@@ -121,11 +129,16 @@ void parseFiles(Set<Source?> files) {
 /// Parse the full body of [source] and return it's compilation unit.
 CompilationUnit parseFull(Source source) {
   var result = tokenize(source);
+  var languageVersion = LibraryLanguageVersion(
+    package: ExperimentStatus.currentVersion,
+    override: result.overrideVersion,
+  );
   var lineInfo = LineInfo(result.lineStarts);
   var parser = Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: FeatureSet.latestLanguageVersion(),
+    languageVersion: languageVersion,
     lineInfo: lineInfo,
   );
   return parser.parseCompilationUnit(result.tokens);
@@ -233,12 +246,13 @@ ScannerResult tokenize(Source source) {
     ..preserveComments = false;
   var token = scanner.tokenize();
   scanTimer.stop();
-  return ScannerResult(token, scanner.lineStarts);
+  return ScannerResult(token, scanner.lineStarts, scanner.overrideVersion);
 }
 
 class ScannerResult {
   final Token tokens;
   final List<int> lineStarts;
+  final Version? overrideVersion;
 
-  ScannerResult(this.tokens, this.lineStarts);
+  ScannerResult(this.tokens, this.lineStarts, this.overrideVersion);
 }

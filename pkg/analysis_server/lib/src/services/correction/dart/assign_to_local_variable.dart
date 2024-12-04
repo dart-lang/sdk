@@ -19,8 +19,9 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
@@ -66,16 +67,22 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
     var scopedNameFinder = ScopedNameFinder(offset);
     expression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals);
-    var suggestions =
-        getVariableNameSuggestionsForExpression(type, expression, excluded);
+    var suggestions = getVariableNameSuggestionsForExpression(
+      type,
+      expression,
+      excluded,
+    );
 
     if (suggestions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
           builder.write('$_declarationKeyword ');
-          builder.addSimpleLinkedEdit('NAME', suggestions[0],
-              kind: LinkedEditSuggestionKind.VARIABLE,
-              suggestions: suggestions);
+          builder.addSimpleLinkedEdit(
+            'NAME',
+            suggestions[0],
+            kind: LinkedEditSuggestionKind.VARIABLE,
+            suggestions: suggestions,
+          );
           builder.write(' = ');
         });
       });

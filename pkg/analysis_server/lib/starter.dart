@@ -20,7 +20,8 @@ abstract class ServerStarter {
   /// Set the new builder for attachments that should be included into crash
   /// reports.
   set crashReportingAttachmentsBuilder(
-      CrashReportingAttachmentsBuilder builder);
+    CrashReportingAttachmentsBuilder builder,
+  );
 
   /// An optional manager to handle file systems which may not always be
   /// available.
@@ -31,6 +32,9 @@ abstract class ServerStarter {
   set instrumentationService(InstrumentationService service);
 
   /// Use the given command-line [arguments] to start this server.
-  void start(List<String> arguments,
-      {SendPort sendPort, bool defaultToLsp = false});
+  void start(
+    List<String> arguments, {
+    SendPort sendPort,
+    bool defaultToLsp = false,
+  });
 }

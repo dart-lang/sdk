@@ -133,13 +133,21 @@ class Constants {
 
   /// Creates a `WasmArray<T>` with the given [Constant]s
   InstanceConstant makeArrayOf(
-          InterfaceType elementType, List<Constant> entries) =>
-      InstanceConstant(translator.wasmArrayClass.reference, [
-        elementType,
-      ], {
-        translator.wasmArrayValueField.fieldReference:
-            ListConstant(elementType, entries),
-      });
+          InterfaceType elementType, List<Constant> entries,
+          {bool mutable = true}) =>
+      InstanceConstant(
+          mutable
+              ? translator.wasmArrayClass.reference
+              : translator.immutableWasmArrayClass.reference,
+          [
+            elementType,
+          ],
+          {
+            mutable
+                    ? translator.wasmArrayValueField.fieldReference
+                    : translator.immutableWasmArrayValueField.fieldReference:
+                ListConstant(elementType, entries),
+          });
 
   /// Ensure that the constant has a Wasm global assigned.
   ///
@@ -235,7 +243,8 @@ class Constants {
       ...type.named.map((named) => named.type),
     ]);
     final names = makeArrayOf(coreTypes.stringNonNullableRawType,
-        type.named.map((t) => StringConstant(t.name)).toList());
+        type.named.map((t) => StringConstant(t.name)).toList(),
+        mutable: false);
     return _makeTypeConstant(translator.recordTypeClass, type.nullability, {
       translator.recordTypeFieldTypesField.fieldReference: fieldTypes,
       translator.recordTypeNamesField.fieldReference: names,
@@ -580,7 +589,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitInstanceConstant(InstanceConstant constant) {
     Class cls = constant.classNode;
     if (cls == translator.wasmArrayClass) {
-      return _makeWasmArrayLiteral(constant);
+      return _makeWasmArrayLiteral(constant, mutable: true);
+    }
+    if (cls == translator.immutableWasmArrayClass) {
+      return _makeWasmArrayLiteral(constant, mutable: false);
     }
 
     ClassInfo info = translator.classInfo[cls]!;
@@ -630,9 +642,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     });
   }
 
-  ConstantInfo? _makeWasmArrayLiteral(InstanceConstant constant) {
-    w.ArrayType arrayType =
-        translator.arrayTypeForDartType(constant.typeArguments.single);
+  ConstantInfo? _makeWasmArrayLiteral(InstanceConstant constant,
+      {required bool mutable}) {
+    w.ArrayType arrayType = translator
+        .arrayTypeForDartType(constant.typeArguments.single, mutable: mutable);
     w.ValueType elementType = arrayType.elementType.type.unpacked;
 
     List<Constant> elements =
@@ -641,6 +654,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     bool lazy = tooLargeForArrayNewFixed;
     for (Constant element in elements) {
       lazy |= ensureConstant(element)?.isLazy ?? false;
+    }
+
+    if (tooLargeForArrayNewFixed && !mutable) {
+      throw Exception('Cannot allocate immutable wasm array of size '
+          '$tooLargeForArrayNewFixed');
     }
 
     return createConstant(constant, w.RefType.def(arrayType, nullable: false),

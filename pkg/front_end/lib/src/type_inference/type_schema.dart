@@ -61,7 +61,7 @@ class UnknownType extends AuxiliaryType
   Nullability get nullability => Nullability.undetermined;
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess {

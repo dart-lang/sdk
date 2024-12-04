@@ -33,13 +33,16 @@ void main() {
 
   dynamic test(pattern, str, expected_length) {
     var result = str.replaceAll(
-        new RegExp(pattern, caseSensitive: false, multiLine: true), '');
+      new RegExp(pattern, caseSensitive: false, multiLine: true),
+      '',
+    );
 
     if (result.length == expected_length)
       testPassed('"' + pattern + '", ' + '"' + str + '".');
     else
       testFailed(
-          '"' + pattern + '", ' + '"' + str + '". Was "' + result + '".');
+        '"' + pattern + '", ' + '"' + str + '". Was "' + result + '".',
+      );
   }
 
   test("\\s", " \t\f\v\r\n", 0); // ASCII whitespace.
@@ -53,8 +56,11 @@ void main() {
   test("\\S\\S", "уф", 0);
   test("\\S{2}", "уф", 0);
 
-  test("\\w", "Проверка",
-      8); // Alas, only ASCII characters count as word ones in JS.
+  test(
+    "\\w",
+    "Проверка",
+    8,
+  ); // Alas, only ASCII characters count as word ones in JS.
   test("\\W", "Проверка", 0);
   test("[\\w]", "Проверка", 8);
   test("[\\W]", "Проверка", 0);

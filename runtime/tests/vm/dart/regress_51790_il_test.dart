@@ -34,7 +34,7 @@ void matchIL$sumAll(FlowGraph graph) {
     match.block('Function', [
       'v2' << match.Parameter(index: 0),
       'v99' << match.LoadField('v2', slot: 'GrowableObjectArray.length'),
-      'v120' << match.UnboxInt64('v99'),
+      if (!is32BitConfiguration) 'v120' << match.UnboxInt64('v99'),
       'v114' << match.LoadField('v2', slot: 'GrowableObjectArray.data'),
       match.Goto('B16'),
     ]),
@@ -44,14 +44,11 @@ void matchIL$sumAll(FlowGraph graph) {
           'v130' << match.Phi(match.any, 'v45'),
           match.CheckStackOverflow(),
           if (is32BitConfiguration)
-            'v130_ext' <<
-                match.IntConverter('v130', from: 'int32', to: 'int64'),
-          match.Branch(
-              match.RelationalOp(
-                  is32BitConfiguration ? 'v130_ext' : 'v130', 'v120',
-                  kind: '>='),
-              ifTrue: 'B4',
-              ifFalse: 'B3'),
+            // Not moved out of the loop due to the current pass
+            // ordering (LICM is performed before RangeAnalysis).
+            'v120' << match.UnboxInt32('v99'),
+          match.Branch(match.RelationalOp('v130', 'v120', kind: '>='),
+              ifTrue: 'B4', ifFalse: 'B3'),
         ]),
     'B4' <<
         match.block('Target', [

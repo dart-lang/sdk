@@ -11,8 +11,6 @@ class C {
   }
 
   set a(int val) {
-  //  ^
-  // [cfe] Conflicts with the implicit setter of the field 'a'.
     var x = val;
   }
 
@@ -28,7 +26,6 @@ class C {
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
   // [cfe] 'a' is already declared in this scope.
-  // [cfe] Conflicts with setter 'a'.
 }
 
 class Field2Test {

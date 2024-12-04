@@ -30,7 +30,7 @@ Future<void> main(List<String> args) async {
       '--timeline_recorder=file:$timelinePath',
       '--timeline_streams=VM,Isolate,Embedder',
       Platform.script.toFilePath(),
-      '--child'
+      '--child',
     ]);
     if (p.exitCode != 0) {
       print(p.stdout);
@@ -57,8 +57,9 @@ Future<void> main(List<String> args) async {
   void report(String name, String? isolateId) {
     var filtered = events.where((event) => event['name'] == name);
     if (isolateId != null) {
-      filtered =
-          filtered.where((event) => event['args']['isolateId'] == isolateId);
+      filtered = filtered.where(
+        (event) => event['args']['isolateId'] == isolateId,
+      );
     }
     var micros;
     final durations = filtered.where((event) => event['ph'] == 'X');

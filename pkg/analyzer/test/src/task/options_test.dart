@@ -73,7 +73,6 @@ class ErrorCodeValuesTest {
 class OptionsFileValidatorTest {
   final OptionsFileValidator validator = OptionsFileValidator(
     TestSource(),
-    sdkVersionConstraint: null,
     sourceIsOptionsForContextRoot: true,
   );
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
@@ -95,7 +94,7 @@ analyzer:
   }
 
   test_analyzer_cannotIgnore_lintRule() {
-    Registry.ruleRegistry.register(TestRule());
+    Registry.ruleRegistry.registerLintRule(TestRule());
     validate('''
 analyzer:
   cannot-ignore:
@@ -244,7 +243,7 @@ analyzer:
   }
 
   test_analyzer_lint_codes_recognized() {
-    Registry.ruleRegistry.register(TestRule());
+    Registry.ruleRegistry.registerLintRule(TestRule());
     validate('''
 analyzer:
   errors:
@@ -332,8 +331,75 @@ code-style:
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
   }
 
+  test_formatter_invalid_key() {
+    validate('''
+formatter:
+  wrong: 123
+''', [
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+    ]);
+  }
+
+  test_formatter_invalid_keys() {
+    validate('''
+formatter:
+  wrong: 123
+  wrong2: 123
+''', [
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+    ]);
+  }
+
+  test_formatter_pageWidth_invalid_decimal() {
+    validate('''
+formatter:
+  page_width: 123.45
+''', [
+      AnalysisOptionsWarningCode.INVALID_OPTION,
+    ]);
+  }
+
+  test_formatter_pageWidth_invalid_negativeInteger() {
+    validate('''
+formatter:
+  page_width: -123
+''', [
+      AnalysisOptionsWarningCode.INVALID_OPTION,
+    ]);
+  }
+
+  test_formatter_pageWidth_invalid_string() {
+    validate('''
+formatter:
+  page_width: "123"
+''', [AnalysisOptionsWarningCode.INVALID_OPTION]);
+  }
+
+  test_formatter_pageWidth_invalid_zero() {
+    validate('''
+formatter:
+  page_width: 0
+''', [
+      AnalysisOptionsWarningCode.INVALID_OPTION,
+    ]);
+  }
+
+  test_formatter_pageWidth_valid_integer() {
+    validate('''
+formatter:
+  page_width: 123
+''', []);
+  }
+
+  test_formatter_valid_empty() {
+    validate('''
+formatter:
+''', []);
+  }
+
   test_linter_supported_rules() {
-    Registry.ruleRegistry.register(TestRule());
+    Registry.ruleRegistry.registerLintRule(TestRule());
     validate('''
 linter:
   rules:
@@ -346,6 +412,41 @@ linter:
 linter:
   unsupported: true
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+  }
+
+  test_plugins_each_invalid_mapKey() {
+    validate('''
+plugins:
+  one:
+    ppath: foo/bar
+''', []);
+  }
+
+  test_plugins_each_valid_mapKey() {
+    validate('''
+plugins:
+  one:
+    path: foo/bar
+''', []);
+  }
+
+  test_plugins_each_valid_scalar() {
+    validate('''
+plugins:
+  one: ^1.2.3
+''', []);
+  }
+
+  test_plugins_invalid_scalar() {
+    validate('''
+plugins: 7
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
+  test_plugins_valid_empty() {
+    validate('''
+plugins:
+''', []);
   }
 
   List<AnalysisError> validate(String source, List<ErrorCode> expected) {

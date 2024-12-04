@@ -56,7 +56,8 @@ abstract class YamlGeneratorTest with ResourceProviderMixin {
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
     var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
-    content = content.substring(0, completionOffset) +
+    content =
+        content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
     // Add the file to the file system.
     var file = newFile('/home/test/$fileName', content);

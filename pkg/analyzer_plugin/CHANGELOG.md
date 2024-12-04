@@ -1,14 +1,32 @@
-## 0.12.0-dev
+## 0.12.0
 - Breaking changes to `DartFileEditBuilder`: `convertFunctionFromSyncToAsync`
   and `replaceTypeWithFuture`.
+- Breaking changes to all classes in `lib/protocol/protocol_common.dart` and
+  `lib/protocol/protocol_generated.dart` that implement `Enum`: These classes
+  are all now proper Dart enums. Each such enum no longer has a static `VALUES`
+  field, no a public constructor. Each enum value also no longer has an
+  instance getter, `name` (though the `EnumName` extension in `dart:core`
+  provides a `name` instance getter). The instances of each enum are also now
+  considered exhaustive (which may trigger new diagnostics on existing switch
+  statements and switch expressions).
+- Support version `7.x` of the `analyzer` package.
+- Support change descriptions on SourceEdit.
+- New API in `DartFileEditBuilder`: `getIndent`, `insertCaseClauseAtEnd`,
+  `insertConstructor`, `insertField`, `insertGetter`, `insertMethod`,
+  `writeIndent`.
+- New API in `DartEditBuilder`: `writeFormalParameter` and
+  `writeFormalParameters`.
+- New experimental API in `DartEditBuilder`: `writeOverride2`,
+  `writeReference2`, `writeType2`, `writeTypeParameter2`, and
+  `writeTypeParameters2`.
 
 ## 0.11.3
 
-- Support version `6.x` of the `analyzer` package
+- Support version `6.x` of the `analyzer` package.
 
 ## 0.11.2
 
-- Support version `5.x` of the `analyzer` package
+- Support version `5.x` of the `analyzer` package.
 
 ## 0.11.1
 - Call `analyzeFiles` from `handleAffectedFiles` only for files that are
@@ -18,17 +36,17 @@
 - Using `AnalysisContextCollection` and `AnalysisContext` for analysis.
 
 ## 0.10.0
-- Support version `4.x` of the `analyzer` package
+- Support version `4.x` of the `analyzer` package.
 
 ## 0.9.0
-- Support version `3.x` of the `analyzer` package
+- Support version `3.x` of the `analyzer` package.
 
 ## 0.8.0
 - Require SDK `2.14` to use `Object.hash()`.
 - Require `yaml 3.1.0` to use `recover`.
 
 ## 0.7.0
-- Support version `2.x` of the `analyzer` package
+- Support version `2.x` of the `analyzer` package.
 
 ## 0.6.0
 - Bug fixes to the protocol.

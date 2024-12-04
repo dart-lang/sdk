@@ -41,7 +41,7 @@ class MacroIntrospection {
       _extensionTypeDeclarations = {};
   Map<macro.ExtensionTypeDeclaration, ExtensionTypeDeclarationBuilder>
       _extensionTypeBuilders = {};
-  Map<NominalVariableBuilder, macro.TypeParameterDeclarationImpl>
+  Map<NominalParameterBuilder, macro.TypeParameterDeclarationImpl>
       _typeParameters = {};
   Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
   Map<MemberBuilder, macro.Declaration> _memberDeclarations = {};
@@ -163,8 +163,8 @@ class MacroIntrospection {
         case ClassBuilder():
           return getClassDeclaration(typeDeclarationBuilder);
         case TypeAliasBuilder():
-        case NominalVariableBuilder():
-        case StructuralVariableBuilder():
+        case NominalParameterBuilder():
+        case StructuralParameterBuilder():
         case ExtensionBuilder():
         case ExtensionTypeDeclarationBuilder():
         case InvalidTypeDeclarationBuilder():
@@ -239,7 +239,7 @@ class MacroIntrospection {
             name: builder.name);
     final List<macro.TypeParameterDeclarationImpl> typeParameters =
         _nominalVariableBuildersToDeclarations(
-            builder.libraryBuilder, builder.typeVariables);
+            builder.libraryBuilder, builder.typeParameters);
     final List<macro.NamedTypeAnnotationImpl> interfaces =
         types.getNamedTypeAnnotations(
             builder.libraryBuilder, builder.interfaceBuilders);
@@ -284,7 +284,7 @@ class MacroIntrospection {
                 : null);
     _classBuilders[declaration] = builder;
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -319,7 +319,7 @@ class MacroIntrospection {
     final macro.LibraryImpl library = getLibrary(builder.libraryBuilder);
     List<macro.TypeParameterDeclarationImpl> typeParameters =
         _nominalVariableBuildersToDeclarations(
-            builder.libraryBuilder, builder.typeVariables);
+            builder.libraryBuilder, builder.typeParameters);
     macro.TypeAliasDeclaration declaration = new macro.TypeAliasDeclarationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: new TypeDeclarationBuilderIdentifier(
@@ -334,7 +334,7 @@ class MacroIntrospection {
         aliasedType:
             types.getTypeAnnotation(builder.libraryBuilder, builder.type));
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -374,7 +374,7 @@ class MacroIntrospection {
           );
           namedParameters.add(declaration);
           _declarationOffsets[declaration] =
-              new UriOffset(formal.fileUri, formal.charOffset);
+              new UriOffset(formal.fileUri, formal.fileOffset);
         } else {
           macro.FormalParameterDeclarationImpl declaration =
               new macro.FormalParameterDeclarationImpl(
@@ -390,7 +390,7 @@ class MacroIntrospection {
           );
           positionalParameters.add(declaration);
           _declarationOffsets[declaration] =
-              new UriOffset(formal.fileUri, formal.charOffset);
+              new UriOffset(formal.fileUri, formal.fileOffset);
         }
       }
       return (positionalParameters, namedParameters);
@@ -443,7 +443,7 @@ class MacroIntrospection {
     );
     if (builder.fileUri != null) {
       _declarationOffsets[declaration] =
-          new UriOffset(builder.fileUri!, builder.charOffset);
+          new UriOffset(builder.fileUri!, builder.fileOffset);
     }
     return declaration;
   }
@@ -488,7 +488,7 @@ class MacroIntrospection {
       typeParameters: const [],
     );
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -560,7 +560,7 @@ class MacroIntrospection {
           typeParameters: const []);
     }
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
@@ -616,15 +616,15 @@ class MacroIntrospection {
           type: types.getTypeAnnotation(builder.libraryBuilder, builder.type));
     }
     _declarationOffsets[declaration] =
-        new UriOffset(builder.fileUri, builder.charOffset);
+        new UriOffset(builder.fileUri, builder.fileOffset);
     return declaration;
   }
 
   /// Creates the [macro.TypeParameterDeclarationImpl] corresponding to the
-  /// nominal type variable [builder] occurring in [libraryBuilder].
+  /// nominal parameter [builder] occurring in [libraryBuilder].
   macro.TypeParameterDeclarationImpl _createTypeParameterDeclaration(
       LibraryBuilder libraryBuilder,
-      NominalVariableBuilder nominalVariableBuilder) {
+      NominalParameterBuilder nominalVariableBuilder) {
     final macro.LibraryImpl library = getLibrary(libraryBuilder);
     macro.TypeParameterDeclarationImpl declaration =
         new macro.TypeParameterDeclarationImpl(
@@ -643,16 +643,16 @@ class MacroIntrospection {
                 : null);
     if (nominalVariableBuilder.fileUri != null) {
       _declarationOffsets[declaration] = new UriOffset(
-          nominalVariableBuilder.fileUri!, nominalVariableBuilder.charOffset);
+          nominalVariableBuilder.fileUri!, nominalVariableBuilder.fileOffset);
     }
     return declaration;
   }
 
   /// Returns the [macro.TypeParameterDeclarationImpl] corresponding to the
-  /// nominal type variable [builder] occurring in [libraryBuilder].
+  /// nominal parameter [builder] occurring in [libraryBuilder].
   macro.TypeParameterDeclarationImpl _getTypeParameterDeclaration(
       LibraryBuilder libraryBuilder,
-      NominalVariableBuilder nominalVariableBuilder) {
+      NominalParameterBuilder nominalVariableBuilder) {
     return _typeParameters[nominalVariableBuilder] ??=
         _createTypeParameterDeclaration(libraryBuilder, nominalVariableBuilder);
   }
@@ -661,11 +661,11 @@ class MacroIntrospection {
   /// nominal [typeParameterBuilders] occurring in [libraryBuilder].
   List<macro.TypeParameterDeclarationImpl>
       _nominalVariableBuildersToDeclarations(LibraryBuilder libraryBuilder,
-          List<NominalVariableBuilder>? typeParameterBuilders) {
+          List<NominalParameterBuilder>? typeParameterBuilders) {
     return typeParameterBuilders == null
         ? const []
         : typeParameterBuilders
-            .map((NominalVariableBuilder typeBuilder) =>
+            .map((NominalParameterBuilder typeBuilder) =>
                 _getTypeParameterDeclaration(libraryBuilder, typeBuilder))
             .toList();
   }

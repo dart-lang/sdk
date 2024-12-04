@@ -45,8 +45,9 @@ Future<void> main() async {
   }
 
   print('Found ${closedIssues.length} closed issues:');
-  for (var tests
-      in tests.where((test) => closedIssues.contains(test.issueUri))) {
+  for (var tests in tests.where(
+    (test) => closedIssues.contains(test.issueUri),
+  )) {
     var relativePath = pathContext.relative(tests.file.path, from: packageRoot);
     print('$relativePath ${tests.testName} ${_formatUri(tests.issueUri)}');
   }
@@ -56,8 +57,10 @@ final pathContext = provider.pathContext;
 
 final provider = PhysicalResourceProvider.INSTANCE;
 
-Future<void> findFailingTestAnnotations(List<AnnotatedTest> tests,
-    {required String packagePath}) async {
+Future<void> findFailingTestAnnotations(
+  List<AnnotatedTest> tests, {
+  required String packagePath,
+}) async {
   var pkgRootPath = pathContext.normalize(packageRoot);
   var testsPath = pathContext.join(pkgRootPath, packagePath, 'test');
 
@@ -77,8 +80,12 @@ Future<void> findFailingTestAnnotations(List<AnnotatedTest> tests,
   await _findFailingTestAnnotationsIn(session, testsPath, directory, tests);
 }
 
-Future<void> _findFailingTestAnnotationsIn(AnalysisSession session,
-    String testDirPath, Folder directory, List<AnnotatedTest> tests) async {
+Future<void> _findFailingTestAnnotationsIn(
+  AnalysisSession session,
+  String testDirPath,
+  Folder directory,
+  List<AnnotatedTest> tests,
+) async {
   var children = directory.getChildren();
   children.sort((first, second) => first.shortName.compareTo(second.shortName));
   for (var child in children) {
@@ -125,16 +132,18 @@ class FailingTestAnnotationTracker extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     if (node.name.name == 'FailingTest' || node.name.name == 'SkippedTest') {
-      var issue = node.arguments?.arguments
-          .whereType<NamedExpression>()
-          .where((arg) => arg.name.label.name == 'issue')
-          .firstOrNull;
+      var issue =
+          node.arguments?.arguments
+              .whereType<NamedExpression>()
+              .where((arg) => arg.name.label.name == 'issue')
+              .firstOrNull;
       var issueUrl = (issue?.expression as SimpleStringLiteral?)?.value;
       if (issueUrl != null && issueUrl.startsWith('https://github.com/')) {
         var issueUri = Uri.parse(issueUrl);
         var apiUri = issueUri.replace(
-            host: 'api.github.com',
-            pathSegments: ['repos', ...issueUri.pathSegments]);
+          host: 'api.github.com',
+          pathSegments: ['repos', ...issueUri.pathSegments],
+        );
         var method = node.parent as MethodDeclaration;
         annotatedTests.add(AnnotatedTest(file, method.name.lexeme, apiUri));
       }

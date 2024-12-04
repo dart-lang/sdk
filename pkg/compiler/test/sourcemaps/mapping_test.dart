@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 

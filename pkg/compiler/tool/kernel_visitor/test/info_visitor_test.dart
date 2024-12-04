@@ -5,7 +5,7 @@
 import "dart:io";
 
 import "package:expect/expect.dart";
-import "package:expect/minitest.dart"; // ignore: deprecated_member_use
+import "package:expect/legacy/minitest.dart"; // ignore: deprecated_member_use
 import 'package:front_end/src/api_unstable/dart2js.dart';
 import "package:kernel/kernel.dart";
 import "package:path/path.dart" as path;
@@ -76,7 +76,7 @@ void main() async {
   var pkgDirectory =
       path.dirname(path.dirname(path.dirname(path.dirname(scriptDirectory))));
   var compilePath = path.canonicalize(
-      path.join(pkgDirectory, "front_end", "tool", "_fasta", "compile.dart"));
+      path.join(pkgDirectory, "front_end", "tool", "compile.dart"));
   var testClassesPath =
       path.canonicalize(path.join(scriptDirectory, "test_classes.dart"));
   var ddcOutlinePath = path.canonicalize(path.join(

@@ -90,18 +90,28 @@ class _KeyRangeFactoryProvider {
   static KeyRange createKeyRange_only(/*Key*/ value) =>
       _only(_class(), _translateKey(value));
 
-  static KeyRange createKeyRange_lowerBound(/*Key*/ bound,
-          [bool open = false]) =>
-      _lowerBound(_class(), _translateKey(bound), open);
+  static KeyRange createKeyRange_lowerBound(
+    /*Key*/ bound, [
+    bool open = false,
+  ]) => _lowerBound(_class(), _translateKey(bound), open);
 
-  static KeyRange createKeyRange_upperBound(/*Key*/ bound,
-          [bool open = false]) =>
-      _upperBound(_class(), _translateKey(bound), open);
+  static KeyRange createKeyRange_upperBound(
+    /*Key*/ bound, [
+    bool open = false,
+  ]) => _upperBound(_class(), _translateKey(bound), open);
 
-  static KeyRange createKeyRange_bound(/*Key*/ lower, /*Key*/ upper,
-          [bool lowerOpen = false, bool upperOpen = false]) =>
-      _bound(_class(), _translateKey(lower), _translateKey(upper), lowerOpen,
-          upperOpen);
+  static KeyRange createKeyRange_bound(
+    /*Key*/ lower,
+    /*Key*/ upper, [
+    bool lowerOpen = false,
+    bool upperOpen = false,
+  ]) => _bound(
+    _class(),
+    _translateKey(lower),
+    _translateKey(upper),
+    lowerOpen,
+    upperOpen,
+  );
 
   static var _cachedClass;
 
@@ -125,13 +135,14 @@ class _KeyRangeFactoryProvider {
       JS('KeyRange', '#.upperBound(#, #)', cls, bound, open);
 
   static KeyRange _bound(cls, lower, upper, lowerOpen, upperOpen) => JS(
-      'KeyRange',
-      '#.bound(#, #, #, #)',
-      cls,
-      lower,
-      upper,
-      lowerOpen,
-      upperOpen);
+    'KeyRange',
+    '#.bound(#, #, #, #)',
+    cls,
+    lower,
+    upper,
+    lowerOpen,
+    upperOpen,
+  );
 }
 
 // Conversions for IDBKey.
@@ -455,19 +466,25 @@ class IdbFactory extends JavaScriptObject {
    */
   static bool get supported {
     return JS(
-        'bool',
-        '!!(window.indexedDB || '
-            'window.webkitIndexedDB || '
-            'window.mozIndexedDB)');
+      'bool',
+      '!!(window.indexedDB || '
+          'window.webkitIndexedDB || '
+          'window.mozIndexedDB)',
+    );
   }
 
-  Future<Database> open(String name,
-      {int? version,
-      void onUpgradeNeeded(VersionChangeEvent event)?,
-      void onBlocked(Event event)?}) {
+  Future<Database> open(
+    String name, {
+    int? version,
+    void onUpgradeNeeded(VersionChangeEvent event)?,
+    void onBlocked(Event event)?,
+  }) {
     if ((version == null) != (onUpgradeNeeded == null)) {
-      return new Future.error(new ArgumentError(
-          'version and onUpgradeNeeded must be specified together'));
+      return new Future.error(
+        new ArgumentError(
+          'version and onUpgradeNeeded must be specified together',
+        ),
+      );
     }
     try {
       OpenDBRequest request;
@@ -588,8 +605,12 @@ class Index extends JavaScriptObject {
    *
    * * [ObjectStore.openCursor]
    */
-  Stream<CursorWithValue> openCursor(
-      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
+  Stream<CursorWithValue> openCursor({
+    key,
+    KeyRange? range,
+    String? direction,
+    bool? autoAdvance,
+  }) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -616,8 +637,12 @@ class Index extends JavaScriptObject {
    *
    * * [ObjectStore.openCursor]
    */
-  Stream<Cursor> openKeyCursor(
-      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
+  Stream<Cursor> openKeyCursor({
+    key,
+    KeyRange? range,
+    String? direction,
+    bool? autoAdvance,
+  }) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -703,10 +728,17 @@ class KeyRange extends JavaScriptObject {
   factory KeyRange.upperBound(/*Key*/ bound, [bool open = false]) =>
       _KeyRangeFactoryProvider.createKeyRange_upperBound(bound, open);
 
-  factory KeyRange.bound(/*Key*/ lower, /*Key*/ upper,
-          [bool lowerOpen = false, bool upperOpen = false]) =>
-      _KeyRangeFactoryProvider.createKeyRange_bound(
-          lower, upper, lowerOpen, upperOpen);
+  factory KeyRange.bound(
+    /*Key*/ lower,
+    /*Key*/ upper, [
+    bool lowerOpen = false,
+    bool upperOpen = false,
+  ]) => _KeyRangeFactoryProvider.createKeyRange_bound(
+    lower,
+    upper,
+    lowerOpen,
+    upperOpen,
+  );
 
   // To suppress missing implicit constructor warnings.
   factory KeyRange._() {
@@ -724,8 +756,12 @@ class KeyRange extends JavaScriptObject {
   bool? get upperOpen native;
 
   @JSName('bound')
-  static KeyRange bound_(Object lower, Object upper,
-      [bool? lowerOpen, bool? upperOpen]) native;
+  static KeyRange bound_(
+    Object lower,
+    Object upper, [
+    bool? lowerOpen,
+    bool? upperOpen,
+  ]) native;
 
   bool includes(Object key) native;
 
@@ -829,8 +865,12 @@ class ObjectStore extends JavaScriptObject {
    * must be done synchronously unless they are additional async requests to
    * the current transaction.
    */
-  Stream<CursorWithValue> openCursor(
-      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
+  Stream<CursorWithValue> openCursor({
+    key,
+    KeyRange? range,
+    String? direction,
+    bool? autoAdvance,
+  }) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -981,7 +1021,9 @@ class ObjectStore extends JavaScriptObject {
    * Helper for iterating over cursors in a request.
    */
   static Stream<T> _cursorStreamFromResult<T extends Cursor>(
-      Request request, bool? autoAdvance) {
+    Request request,
+    bool? autoAdvance,
+  ) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
@@ -1264,10 +1306,11 @@ class VersionChangeEvent extends Event {
     return VersionChangeEvent._create_2(type);
   }
   static VersionChangeEvent _create_1(type, eventInitDict) => JS(
-      'VersionChangeEvent',
-      'new IDBVersionChangeEvent(#,#)',
-      type,
-      eventInitDict);
+    'VersionChangeEvent',
+    'new IDBVersionChangeEvent(#,#)',
+    type,
+    eventInitDict,
+  );
   static VersionChangeEvent _create_2(type) =>
       JS('VersionChangeEvent', 'new IDBVersionChangeEvent(#)', type);
 

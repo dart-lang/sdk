@@ -107,11 +107,12 @@ abstract class ServerPlugin {
 
     // First analyze priority files.
     for (var path in priorityPaths) {
-      pathSet.remove(path);
-      await analyzeFile(
-        analysisContext: analysisContext,
-        path: path,
-      );
+      if (pathSet.remove(path)) {
+        await analyzeFile(
+          analysisContext: analysisContext,
+          path: path,
+        );
+      }
     }
 
     // Then analyze the remaining files.
@@ -238,9 +239,6 @@ abstract class ServerPlugin {
           break;
         case WatchEventType.REMOVE:
           // TODO(brianwilkerson): Handle the event.
-          break;
-        default:
-          // Ignore unhandled watch event types.
           break;
       }
     }

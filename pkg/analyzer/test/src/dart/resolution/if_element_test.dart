@@ -130,7 +130,7 @@ IfElement
             type: NamedType
               name: int
               element: dart:core::<fragment>::@class::int
-              element2: dart:core::<fragment>::@class::int#element
+              element2: dart:core::@class::int
               type: int
             name: a
             declaredElement: a@56
@@ -212,7 +212,7 @@ IfElement
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@42
@@ -312,7 +312,7 @@ IfElement
             type: NamedType
               name: A
               element: <testLibraryFragment>::@class::A
-              element2: <testLibraryFragment>::@class::A#element
+              element2: <testLibrary>::@class::A
               type: A
             staticElement: <testLibraryFragment>::@class::A::@constructor::new
             element: <testLibraryFragment>::@class::A::@constructor::new#element

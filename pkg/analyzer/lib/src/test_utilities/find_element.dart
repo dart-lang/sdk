@@ -248,10 +248,9 @@ class FindElement extends _FindElementBase {
 
   PrefixElement prefix(String name) {
     for (var libraryFragment in unitElement.withEnclosing) {
-      for (var import_ in libraryFragment.libraryImports) {
-        var prefix = import_.prefix?.element;
-        if (prefix != null && prefix.name == name) {
-          return prefix;
+      for (var importPrefix in libraryFragment.libraryImportPrefixes) {
+        if (importPrefix.name == name) {
+          return importPrefix;
         }
       }
     }

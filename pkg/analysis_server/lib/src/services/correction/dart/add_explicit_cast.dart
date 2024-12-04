@@ -67,8 +67,11 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
     } else {
       return;
     }
-    if (typeSystem.isAssignableTo(toType, typeSystem.promoteToNonNull(fromType),
-        strictCasts: analysisOptions.strictCasts)) {
+    if (typeSystem.isAssignableTo(
+      toType,
+      typeSystem.promoteToNonNull(fromType),
+      strictCasts: analysisOptions.strictCasts,
+    )) {
       // The only reason that `fromType` can't be assigned to `toType` is
       // because it's nullable, in which case a cast won't fix the problem.
       return;
@@ -174,8 +177,12 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
 
   /// Replace the type argument of [typeArguments] at the specified [index]
   /// with the corresponding type argument of [toType].
-  void _replaceTypeArgument(DartFileEditBuilder builder,
-      TypeArgumentList typeArguments, InterfaceType toType, int index) {
+  void _replaceTypeArgument(
+    DartFileEditBuilder builder,
+    TypeArgumentList typeArguments,
+    InterfaceType toType,
+    int index,
+  ) {
     var replacementRange = range.node(typeArguments.arguments[index]);
     builder.addReplacement(replacementRange, (builder) {
       builder.writeType(toType.typeArguments[index]);

@@ -34,22 +34,30 @@ class RequestOperation extends Operation {
     void recordResult(bool success, result) {
       var elapsed = stopwatch.elapsed;
       driver.results.record(method, elapsed, success: success);
-      driver.logger
-          .log(Level.FINE, 'Response received: $method : $elapsed\n  $result');
+      driver.logger.log(
+        Level.FINE,
+        'Response received: $method : $elapsed\n  $result',
+      );
     }
 
-    driver.send(method, converter.asMap(json['params'])).then((result) {
-      recordResult(true, result);
-      processResult(originalId, result!, stopwatch);
-    }).catchError((exception) {
-      recordResult(false, exception);
-      converter.processErrorResponse(originalId, exception);
-    });
+    driver
+        .send(method, converter.asMap(json['params']))
+        .then((result) {
+          recordResult(true, result);
+          processResult(originalId, result!, stopwatch);
+        })
+        .catchError((exception) {
+          recordResult(false, exception);
+          converter.processErrorResponse(originalId, exception);
+        });
     return null;
   }
 
   void processResult(
-      String id, Map<String, Object?> result, Stopwatch stopwatch) {
+    String id,
+    Map<String, Object?> result,
+    Stopwatch stopwatch,
+  ) {
     converter.processResponseResult(id, result);
   }
 }
@@ -109,7 +117,8 @@ class ResponseOperation extends Operation {
         return text.replaceAll('\n', '\n  ');
       }
 
-      var message = 'Request:${format(requestJson)}\n'
+      var message =
+          'Request:${format(requestJson)}\n'
           'expected result:${format(expectedResult)}\n'
           'expected error:${format(expectedError)}\n'
           'but received:${format(actualResult)}';

@@ -143,6 +143,7 @@ import 'missing_code_block_language_in_doc_comment_test.dart'
 import 'missing_whitespace_between_adjacent_strings_test.dart'
     as missing_whitespace_between_adjacent_strings;
 import 'no_adjacent_strings_in_list_test.dart' as no_adjacent_strings_in_list;
+import 'no_default_cases_test.dart' as no_default_cases;
 import 'no_duplicate_case_values_test.dart' as no_duplicate_case_values;
 import 'no_leading_underscores_for_library_prefixes_test.dart'
     as no_leading_underscores_for_library_prefixes;
@@ -162,10 +163,10 @@ import 'null_closures_test.dart' as null_closures;
 import 'omit_local_variable_types_test.dart' as omit_local_variable_types;
 import 'omit_obvious_local_variable_types_test.dart'
     as omit_obvious_local_variable_types;
+import 'omit_obvious_property_types_test.dart' as omit_obvious_property_types;
 import 'one_member_abstracts_test.dart' as one_member_abstracts;
 import 'only_throw_errors_test.dart' as only_throw_errors;
 import 'overridden_fields_test.dart' as overridden_fields;
-import 'package_api_docs_test.dart' as package_api_docs;
 import 'package_names_test.dart' as package_names;
 import 'package_prefixed_library_names_test.dart'
     as package_prefixed_library_names;
@@ -210,6 +211,8 @@ import 'prefer_int_literals_test.dart' as prefer_int_literals;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
 import 'prefer_is_empty_test.dart' as prefer_is_empty;
+import 'prefer_is_not_empty_test.dart' as prefer_is_not_empty;
+import 'prefer_is_not_operator_test.dart' as prefer_is_not_operator;
 import 'prefer_iterable_whereType_test.dart' as prefer_iterable_whereType;
 import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_null_aware_method_calls_test.dart'
@@ -236,6 +239,8 @@ import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
 import 'specify_nonobvious_local_variable_types_test.dart'
     as specify_nonobvious_local_variable_types;
+import 'specify_nonobvious_property_types_test.dart'
+    as specify_nonobvious_property_types;
 import 'test_types_in_equals_test.dart' as test_types_in_equals;
 import 'throw_in_finally_test.dart' as throw_in_finally;
 import 'tighten_type_of_initializing_formals_test.dart'
@@ -283,7 +288,7 @@ import 'unnecessary_to_list_in_spreads_test.dart'
 import 'unreachable_from_main_test.dart' as unreachable_from_main;
 import 'unrelated_type_equality_checks_test.dart'
     as unrelated_type_equality_checks;
-import 'unsafe_html_test.dart' as unsafe_html;
+import 'unsafe_variance_test.dart' as unsafe_variance;
 import 'use_build_context_synchronously_test.dart'
     as use_build_context_synchronously;
 import 'use_colored_box_test.dart' as use_colored_box;
@@ -415,6 +420,7 @@ void main() {
   missing_code_block_language_in_doc_comment.main();
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();
+  no_default_cases.main();
   no_duplicate_case_values.main();
   no_leading_underscores_for_library_prefixes.main();
   no_leading_underscores_for_local_identifiers.main();
@@ -429,10 +435,10 @@ void main() {
   null_closures.main();
   omit_local_variable_types.main();
   omit_obvious_local_variable_types.main();
+  omit_obvious_property_types.main();
   one_member_abstracts.main();
   only_throw_errors.main();
   overridden_fields.main();
-  package_api_docs.main();
   package_names.main();
   package_prefixed_library_names.main();
   parameter_assignments.main();
@@ -464,6 +470,8 @@ void main() {
   prefer_int_literals.main();
   prefer_interpolation_to_compose_strings.main();
   prefer_is_empty.main();
+  prefer_is_not_empty.main();
+  prefer_is_not_operator.main();
   prefer_iterable_whereType.main();
   prefer_mixin.main();
   prefer_null_aware_method_calls.main();
@@ -486,6 +494,7 @@ void main() {
   sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();
   specify_nonobvious_local_variable_types.main();
+  specify_nonobvious_property_types.main();
   test_types_in_equals.main();
   throw_in_finally.main();
   tighten_type_of_initializing_formals.main();
@@ -521,7 +530,7 @@ void main() {
   unnecessary_to_list_in_spreads.main();
   unreachable_from_main.main();
   unrelated_type_equality_checks.main();
-  unsafe_html.main();
+  unsafe_variance.main();
   use_build_context_synchronously.main();
   use_colored_box.main();
   use_decorated_box.main();

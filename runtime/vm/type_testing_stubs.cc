@@ -232,7 +232,7 @@ static CodePtr RetryCompilationWithFarBranches(
       const Error& error = Error::Handle(thread->StealStickyError());
       if (error.ptr() == Object::branch_offset_error().ptr()) {
         ASSERT(far_branch_level < 2);
-        far_branch_level++;
+        far_branch_level = far_branch_level + 1;
       } else if (error.ptr() == Object::out_of_memory_error().ptr()) {
         thread->set_sticky_error(error);
         return Code::null();

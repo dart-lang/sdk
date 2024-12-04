@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -280,6 +281,85 @@ workspaces
 ''');
   }
 
+  test_multiplePackageConfigWorkspace_singleAnalysisOptions_exclude() async {
+    configuration.withOptionFilesForContext = true;
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile('$testPackageLibPath/a.dart', '');
+    newAnalysisOptionsYamlFile(testPackageLibPath, r'''
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+''');
+
+    var nestedNoYamlPath = '$testPackageLibPath/nestedNoYaml';
+    newFile('$nestedNoYamlPath/a.dart', '');
+    newFile('$nestedNoYamlPath/b.g.dart', '');
+
+    var nestedPath = '$testPackageLibPath/nested';
+    newFile('$nestedPath/lib/c.dart', '');
+    newFile('$nestedPath/lib/d.g.dart', '');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: nestedPath,
+      name: 'nested',
+    );
+    newPubspecYamlFile(nestedPath, r'''
+name: nested
+''');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/nestedNoYaml/a.dart
+        uri: package:test/nestedNoYaml/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/lib/nested
+    packagesFile: /home/test/lib/nested/.dart_tool/package_config.json
+    optionsFile: /home/test/lib/analysis_options.yaml
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/lib/nested/lib/c.dart
+        uri: package:nested/c.dart
+        analysisOptions_1
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/test/lib/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test/lib/nested
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/test/lib/nested
+''');
+  }
+
   test_packageConfigWorkspace_enabledExperiment() async {
     configuration.withEnabledFeatures = true;
 
@@ -333,6 +413,7 @@ analysisOptions
       inference-update-1
       inference-update-2
       inference-update-3
+      inference-using-bounds
       inline-class
       named-arguments-anywhere
       non-nullable
@@ -346,6 +427,7 @@ analysisOptions
       triple-shift
       unnamed-libraries
       variance
+      wildcard-variables
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -408,6 +490,7 @@ analysisOptions
       inference-update-1
       inference-update-2
       inference-update-3
+      inference-using-bounds
       inline-class
       named-arguments-anywhere
       non-nullable
@@ -421,6 +504,7 @@ analysisOptions
       triple-shift
       unnamed-libraries
       variance
+      wildcard-variables
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -1119,6 +1203,9 @@ class _AnalysisContextCollectionPrinter {
     sink.writelnWithIndent(contextRoot.root.posixPath);
     sink.withIndent(() {
       _writeNamedFile('packagesFile', contextRoot.packagesFile);
+      if (configuration.withOptionFilesForContext) {
+        _writeNamedFile('optionsFile', contextRoot.optionsFile);
+      }
       sink.writelnWithIndent(
         'workspace: ${_idOfWorkspace(contextRoot.workspace)}',
       );
@@ -1265,4 +1352,5 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEmptyContextRoots = false;
   bool withEnabledFeatures = false;
   bool withLintRules = false;
+  bool withOptionFilesForContext = false;
 }

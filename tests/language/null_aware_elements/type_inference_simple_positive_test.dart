@@ -7,7 +7,7 @@
 import '../static_type_helper.dart';
 
 // This is a helper function to suggest to the type inference that the argument
-// is a map and should be disambiguated as such, whithough affecting the type
+// is a map and should be disambiguated as such, without affecting the type
 // arguments of the map argument
 acceptsMap<X, Y>(Map<X, Y> m) {}
 

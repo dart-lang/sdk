@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 /// An extension of [CompletionSuggestion] that includes additional
 /// Dart-specific fields that are not part of the JSON protocol.

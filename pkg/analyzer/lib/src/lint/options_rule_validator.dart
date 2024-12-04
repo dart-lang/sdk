@@ -14,23 +14,18 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
-/// Rule provider.
-typedef LintRuleProvider = Iterable<LintRule> Function();
-
 /// Validates `linter` rule configurations.
 class LinterRuleOptionsValidator extends OptionsValidator {
   static const linter = 'linter';
   static const rulesKey = 'rules';
 
-  final LintRuleProvider ruleProvider;
   final VersionConstraint? sdkVersionConstraint;
   final bool sourceIsOptionsForContextRoot;
 
   LinterRuleOptionsValidator({
-    LintRuleProvider? provider,
     this.sdkVersionConstraint,
     this.sourceIsOptionsForContextRoot = true,
-  }) : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
+  });
 
   bool currentSdkAllows(Version? since) {
     if (since == null) return true;
@@ -39,8 +34,8 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     return sdk.allows(since);
   }
 
-  LintRule? getRegisteredLint(Object value) =>
-      ruleProvider().firstWhereOrNull((rule) => rule.name == value);
+  LintRule? getRegisteredLint(Object value) => Registry.ruleRegistry.rules
+      .firstWhereOrNull((rule) => rule.name == value);
 
   bool isDeprecatedInCurrentSdk(DeprecatedState state) =>
       currentSdkAllows(state.since);
@@ -52,13 +47,12 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
   @override
   List<AnalysisError> validate(ErrorReporter reporter, YamlMap options) {
-    List<AnalysisError> errors = <AnalysisError>[];
     var node = options.valueAt(linter);
     if (node is YamlMap) {
       var rules = node.valueAt(rulesKey);
       _validateRules(rules, reporter);
     }
-    return errors;
+    return const [];
   }
 
   void _validateRules(YamlNode? rules, ErrorReporter reporter) {

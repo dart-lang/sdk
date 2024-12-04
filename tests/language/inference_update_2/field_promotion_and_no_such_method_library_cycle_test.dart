@@ -29,7 +29,7 @@
 // In brackets following each class name are the names of fields explicitly
 // declared in the corresponding class declaration.
 
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 import 'field_promotion_and_no_such_method_library_cycle_lib.dart';
 
@@ -78,7 +78,7 @@ class H {
 }
 
 testImplementedFieldSeenViaOtherLib(H h) {
-  // Class `G` inherits an implmentation of `_f1` from `C` (via `B` and
+  // Class `G` inherits an implementation of `_f1` from `C` (via `B` and
   // `A`). Therefore it doesn't need a noSuchMethod forwarder for `_f1`, and
   // consequently, promotion of `H._f1` works.
   if (h._f1 != null) {
@@ -86,7 +86,7 @@ testImplementedFieldSeenViaOtherLib(H h) {
   }
 }
 
-testInterfceFieldSeenViaOtherLib(H h) {
+testInterfaceFieldSeenViaOtherLib(H h) {
   // Class `G` inherits `_f2` into its interface from `F` (via `E` and `D`). But
   // it doesn't inherit an implementation of `_f2` from anywhere. Therefore it
   // needs a noSuchMethod forwarder for `_f2`, and consequently, promotion of
@@ -99,6 +99,6 @@ testInterfceFieldSeenViaOtherLib(H h) {
 main() {
   for (var h in [H(null), H(0)]) {
     testImplementedFieldSeenViaOtherLib(h);
-    testInterfceFieldSeenViaOtherLib(h);
+    testInterfaceFieldSeenViaOtherLib(h);
   }
 }

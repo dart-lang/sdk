@@ -100,20 +100,19 @@ class BlockBuilder : public ValueObject {
     return flow_graph_->GetConstant(Object::ZoneHandle());
   }
 
-  Definition* AddUnboxInstr(Representation rep, Value* value, bool is_checked) {
+  Definition* AddUnboxInstr(Representation rep,
+                            Value* value,
+                            UnboxInstr::ValueMode value_mode) {
     // Unbox floats by first unboxing a double then converting it to a float.
     auto const unbox_rep = rep == kUnboxedFloat
                                ? kUnboxedDouble
                                : Boxing::NativeRepresentation(rep);
-    Definition* unboxed_value =
-        AddDefinition(UnboxInstr::Create(unbox_rep, value, DeoptId::kNone));
-    if (rep != unbox_rep && unboxed_value->IsUnboxInteger()) {
-      ASSERT(RepresentationUtils::ValueSize(rep) <
-             RepresentationUtils::ValueSize(unbox_rep));
-      // Mark unboxing of small unboxed integer representations as truncating.
-      unboxed_value->AsUnboxInteger()->mark_truncating();
-    }
-    if (is_checked) {
+    Definition* unboxed_value = AddDefinition(
+        UnboxInstr::Create(unbox_rep, value, DeoptId::kNone, value_mode));
+    ASSERT((rep == unbox_rep) || !unboxed_value->IsUnboxInteger() ||
+           (RepresentationUtils::ValueSize(rep) <
+            RepresentationUtils::ValueSize(unbox_rep)));
+    if (value_mode == UnboxInstr::ValueMode::kHasValidType) {
       // The type of |value| has already been checked and it is safe to
       // adjust reaching type. This is done manually because there is no type
       // propagation when building intrinsics.
@@ -129,15 +128,15 @@ class BlockBuilder : public ValueObject {
 
   Definition* AddUnboxInstr(Representation rep,
                             Definition* boxed,
-                            bool is_checked) {
-    return AddUnboxInstr(rep, new Value(boxed), is_checked);
+                            UnboxInstr::ValueMode value_mode) {
+    return AddUnboxInstr(rep, new Value(boxed), value_mode);
   }
 
-  BranchInstr* AddBranch(ComparisonInstr* comp,
+  BranchInstr* AddBranch(ConditionInstr* cond,
                          TargetEntryInstr* true_successor,
                          TargetEntryInstr* false_successor) {
     auto branch =
-        new BranchInstr(comp, CompilerState::Current().GetNextDeoptId());
+        new BranchInstr(cond, CompilerState::Current().GetNextDeoptId());
     // Some graph transformations use environments from branches.
     branch->SetEnvironment(dummy_env_);
     current_->AppendInstruction(branch);

@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'catch_errors.dart';
 
 main() {

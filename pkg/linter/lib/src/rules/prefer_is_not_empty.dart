@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use `isNotEmpty` for `Iterable`s and `Map`s.';
 
@@ -58,13 +57,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Element identifier should be "isEmpty".
-    var propertyElement = isEmptyIdentifier.staticElement;
-    if (propertyElement == null || 'isEmpty' != propertyElement.name) {
+    var propertyElement = isEmptyIdentifier.element;
+    if (propertyElement == null || 'isEmpty' != propertyElement.name3) {
       return;
     }
 
     // Element should also support "isNotEmpty".
-    var propertyTarget = propertyElement.enclosingElement3;
+    var propertyTarget = propertyElement.enclosingElement2;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;

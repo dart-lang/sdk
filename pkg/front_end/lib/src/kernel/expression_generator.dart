@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A library to help generate expression.
-library fasta.expression_generator;
+library;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show lengthForToken, lengthOfSpan;
@@ -1388,13 +1388,20 @@ class StaticAccessGenerator extends Generator {
   /// The name of the original target;
   final String targetName;
 
-  /// The static [Member] used for performing a read or invocation on this
-  /// subexpression.
+  /// The static [Member] used for performing a read on this subexpression.
   ///
   /// This can be `null` if the subexpression doesn't have a readable target.
   /// For instance if the subexpression is a setter without a corresponding
   /// getter.
   final Member? readTarget;
+
+  /// The static [Member] used for performing an invocation on this
+  /// subexpression.
+  ///
+  /// This can be `null` if the subexpression doesn't have an invokable target.
+  /// For instance if the subexpression is a setter without a corresponding
+  /// getter.
+  final Member? invokeTarget;
 
   /// The static [Member] used for performing a write on this subexpression.
   ///
@@ -1408,9 +1415,10 @@ class StaticAccessGenerator extends Generator {
   final bool isNullAware;
 
   StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.targetName, this.readTarget, this.writeTarget,
+      this.targetName, this.readTarget, this.invokeTarget, this.writeTarget,
       {this.typeOffset, this.isNullAware = false})
-      : assert(readTarget != null || writeTarget != null),
+      : assert(
+            readTarget != null || invokeTarget != null || writeTarget != null),
         super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(
@@ -1427,9 +1435,15 @@ class StaticAccessGenerator extends Generator {
     assert(getterBuilder == null ||
         setterBuilder == null ||
         getterBuilder.declarationBuilder == setterBuilder.declarationBuilder);
-    return new StaticAccessGenerator(helper, token, targetName,
-        getterBuilder?.readTarget, setterBuilder?.writeTarget,
-        typeOffset: typeOffset, isNullAware: isNullAware);
+    return new StaticAccessGenerator(
+        helper,
+        token,
+        targetName,
+        getterBuilder?.readTarget,
+        getterBuilder?.invokeTarget,
+        setterBuilder?.writeTarget,
+        typeOffset: typeOffset,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -1515,20 +1529,21 @@ class StaticAccessGenerator extends Generator {
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (_helper.constantContext != ConstantContext.none &&
-        !_helper.isIdentical(readTarget) &&
+        !_helper.isIdentical(invokeTarget) &&
         !_helper.libraryFeatures.constFunctions.isEnabled) {
       return _helper.buildProblem(
           templateNotConstantExpression.withArguments('Method invocation'),
           offset,
-          readTarget?.name.text.length ?? 0);
+          invokeTarget?.name.text.length ?? 0);
     }
-    if (readTarget == null || isFieldOrGetter(readTarget!)) {
+    if (invokeTarget == null ||
+        (readTarget != null && isFieldOrGetter(readTarget!))) {
       return _helper.forest.createExpressionInvocation(
           offset + (readTarget?.name.text.length ?? 0),
           buildSimpleRead(),
           arguments);
     } else {
-      return _helper.buildStaticInvocation(readTarget as Procedure, arguments,
+      return _helper.buildStaticInvocation(invokeTarget as Procedure, arguments,
           charOffset: offset, isConstructorInvocation: false);
     }
   }
@@ -2332,7 +2347,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
         assert(getterBuilder is MemberBuilder);
       } else if (getterBuilder is MemberBuilder) {
         MemberBuilder procedureBuilder = getterBuilder;
-        readTarget = procedureBuilder.member as Procedure?;
+        readTarget = procedureBuilder.invokeTarget as Procedure?;
       } else {
         return unhandled(
             "${getterBuilder.runtimeType}",
@@ -2344,7 +2359,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     Procedure? writeTarget;
     if (setterBuilder is MemberBuilder) {
       MemberBuilder memberBuilder = setterBuilder;
-      writeTarget = memberBuilder.member as Procedure?;
+      writeTarget = memberBuilder.invokeTarget as Procedure?;
     }
     return new ExplicitExtensionIndexedAccessGenerator(
         helper,
@@ -3017,7 +3032,7 @@ class DeferredAccessGenerator extends Generator {
 }
 
 /// [TypeUseGenerator] represents the subexpression whose prefix is the name of
-/// a class, enum, type variable, typedef, mixin declaration, extension
+/// a class, enum, type parameter, typedef, mixin declaration, extension
 /// declaration or built-in type, like dynamic and void.
 ///
 /// For instance:
@@ -3078,7 +3093,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         arguments: arguments,
         fileUri: _uri,
         charOffset: fileOffset,
-        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState)
+        instanceTypeParameterAccess: _helper.instanceTypeParameterAccessState)
       ..bind(_helper.libraryBuilder, declaration);
   }
 
@@ -3163,9 +3178,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 // Coverage-ignore(suite): Not run.
                 TypeAliasBuilder() => false,
                 // Coverage-ignore(suite): Not run.
-                NominalVariableBuilder() => false,
+                NominalParameterBuilder() => false,
                 // Coverage-ignore(suite): Not run.
-                StructuralVariableBuilder() => false,
+                StructuralParameterBuilder() => false,
                 // Coverage-ignore(suite): Not run.
                 InvalidTypeDeclarationBuilder() => false,
                 // Coverage-ignore(suite): Not run.
@@ -3178,15 +3193,15 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       bool isConstructorTearOff =
           send is PropertySelector && supportsConstructorTearOff;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
-          ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
+          ?.map((unknownType) => _helper.validateTypeParameterUse(unknownType,
               allowPotentiallyConstantType: isConstructorTearOff))
           .toList();
       if (aliasedTypeArguments != null &&
-          aliasedTypeArguments.length != aliasBuilder.typeVariablesCount) {
+          aliasedTypeArguments.length != aliasBuilder.typeParametersCount) {
         // Coverage-ignore-block(suite): Not run.
         _helper.libraryBuilder.addProblem(
             templateTypeArgumentMismatch
-                .withArguments(aliasBuilder.typeVariablesCount),
+                .withArguments(aliasBuilder.typeParametersCount),
             fileOffset,
             noLength,
             _uri);
@@ -3198,8 +3213,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 arguments: aliasedTypeArguments,
                 fileUri: _uri,
                 charOffset: fileOffset,
-                instanceTypeVariableAccess:
-                    _helper.instanceTypeVariableAccessState)
+                instanceTypeParameterAccess:
+                    _helper.instanceTypeParameterAccessState)
               ..bind(_helper.libraryBuilder, aliasBuilder)
               ..build(_helper.libraryBuilder, TypeUse.instantiation);
           }
@@ -3208,19 +3223,19 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           // generic, and the aliased type arguments match type parameters of
           // the type alias.
           if (aliasedTypeArguments == null &&
-              aliasBuilder.typeVariablesCount != 0) {
+              aliasBuilder.typeParametersCount != 0) {
             isGenericTypedefTearOff = true;
             aliasedTypeArguments = <TypeBuilder>[];
-            for (NominalVariableBuilder typeVariable
-                in aliasBuilder.typeVariables!) {
+            for (NominalParameterBuilder typeParameter
+                in aliasBuilder.typeParameters!) {
               aliasedTypeArguments.add(new NamedTypeBuilderImpl(
-                  new SyntheticTypeName(typeVariable.name, fileOffset),
+                  new SyntheticTypeName(typeParameter.name, fileOffset),
                   const NullabilityBuilder.omitted(),
                   fileUri: _uri,
                   charOffset: fileOffset,
-                  instanceTypeVariableAccess:
-                      _helper.instanceTypeVariableAccessState)
-                ..bind(_helper.libraryBuilder, typeVariable));
+                  instanceTypeParameterAccess:
+                      _helper.instanceTypeParameterAccessState)
+                ..bind(_helper.libraryBuilder, typeParameter));
             }
           }
           unaliasedTypeArguments =
@@ -3285,9 +3300,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               List<DartType>? builtTypeArguments;
               if (unaliasedTypeArguments != null) {
                 if (unaliasedTypeArguments.length !=
-                    declarationBuilder.typeVariablesCount) {
+                    declarationBuilder.typeParametersCount) {
                   // The type arguments are either aren't provided or mismatch
-                  // in number with the type variables of the RHS declaration.
+                  // in number with the type parameters of the RHS declaration.
                   // We substitute them with the default types here: in the
                   // first case that would be exactly what type inference fills
                   // in for the RHS, and in the second case it's a reasonable
@@ -3397,7 +3412,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         }
       } else if (member is AmbiguousBuilder) {
         return _helper.buildProblem(
-            member.message, member.charOffset, name.text.length);
+            member.message, member.fileOffset, name.text.length);
       } else if (member.isStatic &&
           !member.isFactory &&
           typeArguments != null) {
@@ -4335,6 +4350,11 @@ class ParserErrorGenerator extends Generator {
   void printOn(StringSink sink) {}
 
   Expression buildProblem() {
+    return buildProblemExpression(_helper, message, fileOffset);
+  }
+
+  static Expression buildProblemExpression(
+      ExpressionGeneratorHelper _helper, Message message, int fileOffset) {
     return _helper.buildProblem(message, fileOffset, noLength,
         suppressMessage: true);
   }
@@ -4401,7 +4421,6 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   Expression buildSelectorAccess(
       Selector send, int operatorOffset, bool isNullAware) {
     return buildProblem();

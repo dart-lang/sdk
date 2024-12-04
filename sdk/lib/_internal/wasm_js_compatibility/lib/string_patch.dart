@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show EfficientLengthIterable, patch;
+import 'dart:_internal' show EfficientLengthIterable, patch, unsafeCast;
 import 'dart:_js_helper' as js;
 import 'dart:_js_types';
 import 'dart:_string';
@@ -13,14 +13,17 @@ import 'dart:typed_data';
 @patch
 class String {
   @patch
-  factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]) {
-    final length = charCodes.length;
-
-    RangeError.checkValueInInterval(start, 0, length);
-
+  factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]) {
+    RangeError.checkNotNegative(start, "start");
     if (end != null) {
-      RangeError.checkValueInInterval(end, start, length);
+      if (end < start) {
+        throw RangeError.range(end, start, null, "end");
+      }
+      if (end == start) return "";
     }
 
     // Skip until `start`.
@@ -32,14 +35,15 @@ class String {
     // The part of the iterable converted to string is collected in a JS typed
     // array, to be able to effciently get subarrays, to pass to
     // `String.fromCharCode.apply`.
-    final charCodesLength = (end ?? length) - start;
+    final charCodesLength = (end ?? charCodes.length) - start;
+    if (charCodesLength <= 0) return "";
     final typedArrayLength = charCodesLength * 2;
     final list = JSUint32ArrayImpl(typedArrayLength);
     int index = 0; // index in `list`.
     end ??= start + charCodesLength;
     for (int i = start; i < end; i++) {
       if (!it.moveNext()) {
-        throw RangeError.range(end, start, i);
+        break;
       }
       final charCode = it.current;
       if (charCode >= 0 && charCode <= 0xffff) {
@@ -69,12 +73,17 @@ class String {
   @patch
   factory String.fromCharCode(int charCode) => _fromCharCode(charCode);
 
-  static String _fromOneByteCharCode(int charCode) => JSStringImpl(js
-      .JS<WasmExternRef?>('c => String.fromCharCode(c)', charCode.toDouble()));
+  static String _fromOneByteCharCode(int charCode) => JSStringImpl(
+    js.JS<WasmExternRef?>('c => String.fromCharCode(c)', charCode.toDouble()),
+  );
 
-  static String _fromTwoByteCharCode(int low, int high) =>
-      JSStringImpl(js.JS<WasmExternRef?>('(l, h) => String.fromCharCode(h, l)',
-          low.toDouble(), high.toDouble()));
+  static String _fromTwoByteCharCode(int low, int high) => JSStringImpl(
+    js.JS<WasmExternRef?>(
+      '(l, h) => String.fromCharCode(h, l)',
+      low.toDouble(),
+      high.toDouble(),
+    ),
+  );
 
   static String _fromCharCode(int charCode) {
     if (0 <= charCode) {
@@ -92,11 +101,24 @@ class String {
   }
 
   static String _fromCharCodeApplySubarray(
-      JSUint32ArrayImpl charCodes, int index, int end) {
-    return JSStringImpl(js.JS<WasmExternRef?>(
+    JSUint32ArrayImpl charCodes,
+    int index,
+    int end,
+  ) {
+    return JSStringImpl(
+      js.JS<WasmExternRef?>(
         '(c, i, e) => String.fromCharCode.apply(null, new Uint32Array(c.buffer, c.byteOffset + i, e))',
         charCodes.toExternRef,
         WasmI32.fromInt(index * 4),
-        WasmI32.fromInt(end - index)));
+        WasmI32.fromInt(end - index),
+      ),
+    );
   }
+}
+
+extension _StringExt on String {
+  int firstNonWhitespace() =>
+      unsafeCast<JSStringImpl>(this).firstNonWhitespace();
+
+  int lastNonWhitespace() => unsafeCast<JSStringImpl>(this).lastNonWhitespace();
 }

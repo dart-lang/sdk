@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
@@ -16,7 +17,6 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/summary2/macro.dart';
@@ -66,6 +66,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       required DartSdk sdk,
     })? updateAnalysisOptions2,
     MacroSupportFactory? macroSupportFactory,
+    bool enableLintRuleTiming = false,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -124,6 +125,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         infoDeclarationStore: infoDeclarationStore,
         macroSupport: macroSupport,
         ownedFiles: ownedFiles,
+        enableLintRuleTiming: enableLintRuleTiming,
       );
       contexts.add(context);
     }

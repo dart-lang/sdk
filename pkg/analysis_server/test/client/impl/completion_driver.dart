@@ -9,8 +9,8 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:matcher/matcher.dart';
 import 'package:meta/meta.dart';
+import 'package:test/test.dart';
 
 import '../../analysis_server_base.dart';
 import 'expect_mixin.dart';
@@ -70,8 +70,13 @@ class CompletionDriver with ExpectMixin {
       timeout: 60 * 1000,
     ).toRequest('0', clientUriConverter: null);
     var response = await server.handleRequest(request);
-    var result = CompletionGetSuggestions2Result.fromResponse(response,
-        clientUriConverter: null);
+    if (response.error case var error?) {
+      fail('${request.method} failed: ${error.code}: ${error.message}');
+    }
+    var result = CompletionGetSuggestions2Result.fromResponse(
+      response,
+      clientUriConverter: null,
+    );
     replacementOffset = result.replacementOffset;
     replacementLength = result.replacementLength;
     return result.suggestions;
@@ -86,8 +91,10 @@ class CompletionDriver with ExpectMixin {
       );
       fileToExistingImports[params.file] = params.imports;
     } else if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification,
-          clientUriConverter: null);
+      var decoded = AnalysisErrorsParams.fromNotification(
+        notification,
+        clientUriConverter: null,
+      );
       filesErrors[decoded.file] = decoded.errors;
     } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
       // Ignored.

@@ -24,7 +24,8 @@ void expectType(Type type, Pattern text) {
   var match = text.matchAsPrefix(typeString);
   if (match != null && match.end == typeString.length) return;
   Expect.fail(
-      "$typeString was not matched by $text${match == null ? "" : ", match: ${match[0]}"}");
+    "$typeString was not matched by $text${match == null ? "" : ", match: ${match[0]}"}",
+  );
 }
 
 void expect<T>(Pattern text) {
@@ -57,7 +58,8 @@ void main() {
   expect<FutureOr<int>>("FutureOr<int>");
   expect<FutureOr<Object>>("Object");
   expect<FutureOr<FutureOr<Future<Object>>>>(
-      "FutureOr<FutureOr<Future<Object>>>");
+    "FutureOr<FutureOr<Future<Object>>>",
+  );
   expect<FutureOr<Null>>("Future<Null>?");
   // TODO: Add nullable types with NNBD.
 
@@ -102,9 +104,12 @@ void main() {
 
   // One with everything.
   expect<FutureOr<void Function([T Function<S, T>(Map<dynamic, Typedef<S>>)])>>(
-      // Format: FutureOr<([<S, T>(Map<dynamic, (S) => S>) => T]) => void>
-      re(r"FutureOr<\(\[<(\w+), (\w+)>\(Map<dynamic, "
-          r"\(\1\) => \1>\) => \2\]\) => void>$"));
+    // Format: FutureOr<([<S, T>(Map<dynamic, (S) => S>) => T]) => void>
+    re(
+      r"FutureOr<\(\[<(\w+), (\w+)>\(Map<dynamic, "
+      r"\(\1\) => \1>\) => \2\]\) => void>$",
+    ),
+  );
 }
 
 // Types to test against.

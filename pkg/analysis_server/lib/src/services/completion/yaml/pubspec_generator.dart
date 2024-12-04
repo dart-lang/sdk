@@ -16,12 +16,15 @@ class PubPackageNameProducer extends KeyValueProducer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
+    YamlCompletionRequest request,
+  ) sync* {
     var cachedPackages = request.pubPackageService?.cachedPackages;
     if (cachedPackages != null) {
       var relevance = cachedPackages.length;
-      yield* cachedPackages.map((package) =>
-          packageName('${package.packageName}: ', relevance: relevance--));
+      yield* cachedPackages.map(
+        (package) =>
+            packageName('${package.packageName}: ', relevance: relevance--),
+      );
     }
   }
 }
@@ -35,9 +38,12 @@ class PubPackageVersionProducer extends Producer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
-    var versions = request.pubPackageService
-        ?.cachedPubOutdatedVersions(request.filePath, package);
+    YamlCompletionRequest request,
+  ) sync* {
+    var versions = request.pubPackageService?.cachedPubOutdatedVersions(
+      request.filePath,
+      package,
+    );
     var resolvable = versions?.resolvableVersion;
     var latest = versions?.latestVersion;
 
@@ -86,15 +92,28 @@ class PubspecGenerator extends YamlCompletionGenerator {
     'dependency_overrides': EmptyProducer(),
     'flutter': MapProducer({
       'assets': ListProducer(FilePathProducer()),
-      'fonts': ListProducer(MapProducer({
-        'family': EmptyProducer(),
-        'fonts': ListProducer(MapProducer({
-          'asset': EmptyProducer(),
-          'style': EnumProducer(['italic', 'normal']),
-          'weight': EnumProducer(
-              ['100', '200', '300', '400', '500', '600', '700', '800', '900']),
-        })),
-      })),
+      'fonts': ListProducer(
+        MapProducer({
+          'family': EmptyProducer(),
+          'fonts': ListProducer(
+            MapProducer({
+              'asset': EmptyProducer(),
+              'style': EnumProducer(['italic', 'normal']),
+              'weight': EnumProducer([
+                '100',
+                '200',
+                '300',
+                '400',
+                '500',
+                '600',
+                '700',
+                '800',
+                '900',
+              ]),
+            }),
+          ),
+        }),
+      ),
       'generate': BooleanProducer(),
       'module': MapProducer({
         'androidX': BooleanProducer(),
@@ -107,9 +126,7 @@ class PubspecGenerator extends YamlCompletionGenerator {
             'package': EmptyProducer(),
             'pluginClass': EmptyProducer(),
           }),
-          'ios': MapProducer({
-            'pluginClass': EmptyProducer(),
-          }),
+          'ios': MapProducer({'pluginClass': EmptyProducer()}),
           'linux': MapProducer({
             'dartPluginClass': EmptyProducer(),
             'pluginClass': EmptyProducer(),
@@ -130,16 +147,17 @@ class PubspecGenerator extends YamlCompletionGenerator {
       }),
       'uses-material-design': BooleanProducer(),
     }),
-    'screenshots': ListProducer(MapProducer({
-      'description': EmptyProducer(),
-      'path': FilePathProducer(),
-    })),
+    'screenshots': ListProducer(
+      MapProducer({'description': EmptyProducer(), 'path': FilePathProducer()}),
+    ),
     'topics': EmptyProducer(),
   });
 
   /// Initialize a newly created suggestion generator for pubspec files.
   PubspecGenerator(
-      super.resourceProvider, PubPackageService super.pubPackageService);
+    super.resourceProvider,
+    PubPackageService super.pubPackageService,
+  );
 
   @override
   Producer get topLevelProducer => pubspecProducer;

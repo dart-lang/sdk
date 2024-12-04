@@ -65,7 +65,7 @@ class A {}
     required Version? override,
   }) {
     var unitImpl = result.unit as CompilationUnitImpl;
-    var languageVersion = unitImpl.languageVersion!;
+    var languageVersion = unitImpl.languageVersion;
     expect(languageVersion.package, package);
     expect(languageVersion.override, override);
   }

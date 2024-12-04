@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A directive to modify an existing file content overlay. One or more ranges of text are deleted
@@ -41,9 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ChangeContentOverlay {
 
-  public static final ChangeContentOverlay[] EMPTY_ARRAY = new ChangeContentOverlay[0];
-
-  public static final List<ChangeContentOverlay> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ChangeContentOverlay> EMPTY_LIST = List.of();
 
   private final String type;
 
@@ -62,11 +57,10 @@ public class ChangeContentOverlay {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ChangeContentOverlay) {
-      ChangeContentOverlay other = (ChangeContentOverlay) obj;
+    if (obj instanceof ChangeContentOverlay other) {
       return
-        ObjectUtilities.equals(other.type, type) &&
-        ObjectUtilities.equals(other.edits, edits);
+        Objects.equals(other.type, type) &&
+        Objects.equals(other.edits, edits);
     }
     return false;
   }
@@ -81,10 +75,9 @@ public class ChangeContentOverlay {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ChangeContentOverlay> list = new ArrayList<ChangeContentOverlay>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ChangeContentOverlay> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -102,10 +95,10 @@ public class ChangeContentOverlay {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(type);
-    builder.append(edits);
-    return builder.toHashCode();
+    return Objects.hash(
+      type,
+      edits
+    );
   }
 
   public JsonObject toJson() {
@@ -124,9 +117,10 @@ public class ChangeContentOverlay {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("type=");
-    builder.append(type + ", ");
+    builder.append(type);
+    builder.append(", ");
     builder.append("edits=");
-    builder.append(StringUtils.join(edits, ", "));
+    builder.append(edits.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

@@ -13,33 +13,39 @@ class ExecutionGetSuggestionsHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   ExecutionGetSuggestionsHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-//    var params = new ExecutionGetSuggestionsParams.fromRequest(request, clientUriConverter: server.uriConverter);
-//    var computer = new RuntimeCompletionComputer(
-//        server.resourceProvider,
-//        server.fileContentOverlay,
-//        server.getAnalysisDriver(params.contextFile),
-//        params.code,
-//        params.offset,
-//        params.contextFile,
-//        params.contextOffset,
-//        params.variables,
-//        params.expressions);
-//    RuntimeCompletionResult completionResult = await computer.compute();
-//
-//    // Send the response.
-//    var result = new ExecutionGetSuggestionsResult(
-//        suggestions: completionResult.suggestions,
-//        expressions: completionResult.expressions);
+    //    var params = new ExecutionGetSuggestionsParams.fromRequest(request, clientUriConverter: server.uriConverter);
+    //    var computer = new RuntimeCompletionComputer(
+    //        server.resourceProvider,
+    //        server.fileContentOverlay,
+    //        server.getAnalysisDriver(params.contextFile),
+    //        params.code,
+    //        params.offset,
+    //        params.contextFile,
+    //        params.contextOffset,
+    //        params.variables,
+    //        params.expressions);
+    //    RuntimeCompletionResult completionResult = await computer.compute();
+    //
+    //    // Send the response.
+    //    var result = new ExecutionGetSuggestionsResult(
+    //        suggestions: completionResult.suggestions,
+    //        expressions: completionResult.expressions);
     // TODO(brianwilkerson): Re-enable this functionality after implementing a
     // way of computing suggestions that is compatible with AnalysisSession.
     var result = ExecutionGetSuggestionsResult(
-        suggestions: <CompletionSuggestion>[],
-        expressions: <RuntimeCompletionExpression>[]);
+      suggestions: <CompletionSuggestion>[],
+      expressions: <RuntimeCompletionExpression>[],
+    );
     sendResponse(
-        result.toResponse(request.id, clientUriConverter: server.uriConverter));
+      result.toResponse(request.id, clientUriConverter: server.uriConverter),
+    );
   }
 }

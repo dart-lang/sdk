@@ -6,6 +6,7 @@
 // VMOptions=--optimization-counter-threshold=90
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class EqualsNotCalled {
   int get hashCode => throw "And don't warn!";
@@ -137,13 +138,13 @@ void test() {
 
   // Test cast, "as", operator.
   Expect.equals(null, null as Null);
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => null as Object);
   } else {
     Expect.equals(null, null as Object);
   }
   Expect.equals(null, null as Object?);
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => null as int);
   } else {
     Expect.equals(null, null as int);
@@ -155,13 +156,13 @@ void test() {
   Expect.equals(null, new Generic<int?>().cast(null));
 
   Expect.equals(null, obj as Null);
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => obj as Object);
   } else {
     Expect.equals(null, obj as Object);
   }
   Expect.equals(null, obj as Object?);
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     Expect.throwsTypeError(() => obj as int);
   } else {
     Expect.equals(null, obj as int);

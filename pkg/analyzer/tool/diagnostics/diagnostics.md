@@ -430,6 +430,9 @@ export 'b.dart' hide C;
 
 ### ambiguous_extension_member_access
 
+_A member named '{0}' is defined in '{1}' and '{2}', and neither is more
+specific._
+
 _A member named '{0}' is defined in {1}, and none are more specific._
 
 #### Description
@@ -10706,6 +10709,14 @@ abstract class C {
 
 ### invalid_null_aware_operator
 
+_The element can't be null, so the null-aware operator '?' is unnecessary._
+
+_The map entry key can't be null, so the null-aware operator '?' is
+unnecessary._
+
+_The map entry value can't be null, so the null-aware operator '?' is
+unnecessary._
+
 _The receiver can't be 'null' because of short-circuiting, so the null-aware
 operator '{0}' can't be used._
 
@@ -10765,6 +10776,14 @@ The reason `s` can't be null, despite the fact that `o` can be `null`, is
 because of the cast to `String`, which is a non-nullable type. If `o` ever
 has the value `null`, the cast will fail and the invocation of `length`
 will not happen.
+
+The following code produces this diagnostic because `s` can't be `null`:
+
+```dart
+List<String> makeSingletonList(String s) {
+  return <String>[[!?!]s];
+}
+```
 
 #### Common fixes
 
@@ -23230,8 +23249,6 @@ void f() {
 
 ### unused_element
 
-_A value for optional parameter '{0}' isn't ever given._
-
 _The declaration '{0}' isn't referenced._
 
 #### Description
@@ -23241,8 +23258,6 @@ referenced in the library that contains the declaration. The following
 kinds of declarations are analyzed:
 - Private top-level declarations and all of their members
 - Private members of public declarations
-- Optional parameters of private functions for which a value is never
-  passed
 
 Not all references to an element will mark it as "used":
 - Assigning a value to a top-level variable (with a standard `=`
@@ -23261,6 +23276,23 @@ produces this diagnostic:
 ```dart
 class [!_C!] {}
 ```
+
+#### Common fixes
+
+If the declaration isn't needed, then remove it.
+
+If the declaration is intended to be used, then add the code to use it.
+
+### unused_element_parameter
+
+_A value for optional parameter '{0}' isn't ever given._
+
+#### Description
+
+The analyzer produces this diagnostic when a value is never passed for an
+optional parameter declared within a private declaration.
+
+#### Example
 
 Assuming that no code in the library passes a value for `y` in any
 invocation of `_m`, the following code produces this diagnostic:
@@ -25961,6 +25993,77 @@ void f() {
 }
 ```
 
+### invalid_runtime_check_with_js_interop_types
+
+_Cast from '{0}' to '{1}' casts a Dart value to a JS interop type, which might
+not be platform-consistent._
+
+_Cast from '{0}' to '{1}' casts a JS interop value to a Dart type, which might
+not be platform-consistent._
+
+_Cast from '{0}' to '{1}' casts a JS interop value to an incompatible JS interop
+type, which might not be platform-consistent._
+
+_Runtime check between '{0}' and '{1}' checks whether a Dart value is a JS
+interop type, which might not be platform-consistent._
+
+_Runtime check between '{0}' and '{1}' checks whether a JS interop value is a
+Dart type, which might not be platform-consistent._
+
+_Runtime check between '{0}' and '{1}' involves a non-trivial runtime check
+between two JS interop types that might not be platform-consistent._
+
+_Runtime check between '{0}' and '{1}' involves a runtime check between a JS
+interop value and an unrelated JS interop type that will always be true and won't check the underlying type._
+
+#### Description
+
+The analyzer produces this diagnostic when an `is` test has either:
+- a JS interop type on the right-hand side, whether directly or as a type
+  argument to another type, or
+- a JS interop value on the left-hand side.
+
+#### Examples
+
+The following code produces this diagnostic because the JS interop type
+`JSBoolean` is on the right-hand side of an `is` test:
+
+```dart
+import 'dart:js_interop';
+
+bool f(Object b) => [!b is JSBoolean!];
+```
+
+The following code produces this diagnostic because the JS interop type
+`JSString` is used as a type argument on the right-hand side of an `is`
+test:
+
+```dart
+import 'dart:js_interop';
+
+bool f(List<Object> l) => [!l is List<JSString>!];
+```
+
+The following code produces this diagnostic because the JS interop value
+`a` is on the left-hand side of an `is` test:
+
+```dart
+import 'dart:js_interop';
+
+bool f(JSAny a) => [!a is String!];
+```
+
+#### Common fixes
+
+Use a JS interop helper, such as `isA`, to check the underlying type of
+JS interop values:
+
+```dart
+import 'dart:js_interop';
+
+void f(Object b) => b.jsify()?.isA<JSBoolean>();
+```
+
 ### invalid_use_of_do_not_submit_member
 
 _Uses of '{0}' should not be submitted to source control._
@@ -26012,6 +26115,43 @@ void emulateCrashWithOtherFunctionality() {
   emulateCrash();
   // do other things.
 }
+```
+
+### library_annotations
+
+_This annotation should be attached to a library directive._
+
+#### Description
+
+The analyzer produces this diagnostic when an annotation that applies to
+a whole library isn't associated with a `library` directive.
+
+#### Example
+
+The following code produces this diagnostic because the `TestOn`
+annotation, which applies to the whole library, is associated with an
+`import` directive rather than a `library` directive:
+
+```dart
+[!@TestOn('browser')!]
+
+import 'package:test/test.dart';
+
+void main() {}
+```
+
+#### Common fixes
+
+Associate the annotation with a `library` directive, adding one if
+necessary:
+
+```dart
+@TestOn('browser')
+library;
+
+import 'package:test/test.dart';
+
+void main() {}
 ```
 
 ### library_names
@@ -26401,6 +26541,7 @@ The following code produces this diagnostic because the name of the
 parameter consists of two underscores:
 
 ```dart
+// @dart = 3.6
 void f(int __) {
   print([!__!]);
 }
@@ -26410,6 +26551,7 @@ The following code produces this diagnostic because the name of the
 local variable consists of a single underscore:
 
 ```dart
+// @dart = 3.6
 void f() {
   int _ = 0;
   print([!_!]);
@@ -28217,6 +28359,59 @@ Future<void> f() async {
 Future<int> g() => Future.value(0);
 ```
 
+### unintended_html_in_doc_comment
+
+_Angle brackets will be interpreted as HTML._
+
+#### Description
+
+The analyzer produces this diagnostic when a documentation comment
+contains angle bracketed text (`<...>`) that isn't one of the allowed
+exceptions.
+
+Such text is interpreted by markdown to be an HTML tag, which is rarely
+what was intended.
+
+See the [lint rule description](https://dart.dev/tools/linter-rules/unintended_html_in_doc_comment)
+for the list of allowed exceptions.
+
+#### Example
+
+The following code produces this diagnostic because the documentation
+comment contains the text `<int>`, which isn't one of the allowed
+exceptions:
+
+```dart
+/// Converts a List[!<int>!] to a comma-separated String.
+String f(List<int> l) => '';
+```
+
+#### Common fixes
+
+If the text was intended to be part of a code span, then add backticks
+around the code:
+
+```dart
+/// Converts a `List<int>` to a comma-separated String.
+String f(List<int> l) => '';
+```
+
+If the text was intended to be part of a link, then add square brackets
+around the code:
+
+```dart
+/// Converts a [List<int>] to a comma-separated String.
+String f(List<int> l) => '';
+```
+
+If the text was intended to be printed as-is, including the angle
+brackets, then add backslash escapes before the angle brackets:
+
+```dart
+/// Converts a List\<int\> to a comma-separated String.
+String f(List<int> l) => '';
+```
+
 ### unnecessary_brace_in_string_interps
 
 _Unnecessary braces in a string interpolation._
@@ -28446,6 +28641,39 @@ class C {
   static String c = '';
 }
 ```
+
+### unnecessary_library_name
+
+_Library names are not necessary._
+
+#### Description
+
+The analyzer produces this diagnostic when a `library` directive specifies
+a name.
+
+#### Example
+
+The following code produces this diagnostic because the `library`
+directive includes a name:
+
+```dart
+library [!some.name!];
+
+class C {}
+```
+
+#### Common fixes
+
+Remove the name from the `library` directive:
+
+```dart
+library;
+
+class C {}
+```
+
+If the library has any parts, then any `part of` declarations that use
+the library name should be updated to use the URI of the library instead.
 
 ### unnecessary_new
 
@@ -28919,6 +29147,89 @@ bool f(String s) {
 }
 ```
 
+### unsafe_variance
+
+_This type is unsafe: a type parameter occurs in a non-covariant position._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance member has a result
+type which is [contravariant or invariant](https://dart.dev/resources/glossary#variance)
+in a type parameter of the enclosing declaration. The result type of a
+variable is its type, and the result type of a getter or method is its
+return type. This lint warns against such members because they are likely
+to cause a failing type check at run time, with no static warning or error
+at the call site.
+
+#### Example
+
+The following code produces this diagnostic because `X` occurs
+as a parameter type in the type of `f`, which is a
+contravariant occurrence of this type parameter:
+
+```dart
+class C<X> {
+  bool Function([!X!]) f;
+  C(this.f);
+}
+```
+
+This is unsafe: If `c` has static type `C<num>` and run-time type `C<int>`
+then `c.f` will throw. Hence, every invocation `c.f(a)` will also throw,
+even in the case where `a` has a correct type as an argument to `c.f`.
+
+#### Common fixes
+
+If the linted member is or can be private then you may be able
+to enforce that it is never accessed on any other receiver than `this`.
+This is sufficient to ensure that that the run-time type error does not
+occur. For example:
+
+```dart
+class C<X> {
+  // NB: Ensure manually that `_f` is only accessed on `this`.
+  // ignore: unsafe_variance
+  bool Function(X) _f;
+
+  C(this._f);
+
+  // We can write a forwarding method to allow clients to call `_f`.
+  bool f(X x) => _f(x);
+}
+```
+
+You can eliminate the unsafe variance by using a more general type for
+the linted member. In this case you may need to check the run-time type
+and perform a downcast at call sites.
+
+```dart
+class C<X> {
+  bool Function(Never) f;
+  C(this.f);
+}
+```
+
+If `c` has static type `C<num>` then you may test the type. For example,
+`c.f is bool Function(num)`. You may safely call it with an argument of
+type `num` if it has that type.
+
+You can also eliminate the unsafe variance by using a much more general
+type like `Function`, which is essentially the type `dynamic` for
+functions.
+
+```dart
+class C<X> {
+  Function f;
+  C(this.f);
+}
+```
+
+This will make `c.f(a)` dynamically safe: It will throw if and only if the
+argument `a` does not have the type required by the function. This is
+better than the original version because it will not throw because of a
+mismatched static type. It only throws when it _must_ throw for soundness
+reasons.
+
 ### use_build_context_synchronously
 
 _Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted'
@@ -28932,7 +29243,7 @@ The analyzer produces this diagnostic when a `BuildContext` is referenced
 by a `StatefulWidget` after an asynchronous gap without first checking the
 `mounted` property.
 
-Storing a `BuildContext` for later use can lead to difficult to diagnose
+Storing a `BuildContext` for later use can lead to difficult-to-diagnose
 crashes. Asynchronous gaps implicitly store a `BuildContext`, making them
 easy to overlook for diagnosis.
 
@@ -29486,6 +29797,35 @@ class A {
 class B extends A {
   B({super.x, super.y});
 }
+```
+
+### use_truncating_division
+
+_Use truncating division._
+
+#### Description
+
+The analyzer produces this diagnostic when the result of dividing two
+numbers is converted to an integer using `toInt`.
+
+Dart has a built-in integer division operator that is both more efficient
+and more concise.
+
+#### Example
+
+The following code produces this diagnostic because the result of dividing
+`x` and `y` is converted to an integer using `toInt`:
+
+```dart
+int divide(int x, int y) => [!(x / y).toInt()!];
+```
+
+#### Common fixes
+
+Use the integer division operator (`~/`):
+
+```dart
+int divide(int x, int y) => x ~/ y;
 ```
 
 ### valid_regexps

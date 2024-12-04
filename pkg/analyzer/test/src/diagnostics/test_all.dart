@@ -451,6 +451,8 @@ import 'invalid_modifier_on_constructor_test.dart'
 import 'invalid_modifier_on_setter_test.dart' as invalid_modifier_on_setter;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
+import 'invalid_null_aware_elements_error_test.dart'
+    as invalid_null_aware_elements_error;
 import 'invalid_null_aware_operator_test.dart' as invalid_null_aware_operator;
 import 'invalid_override_of_non_virtual_member_test.dart'
     as invalid_override_of_non_virtual_member;
@@ -664,6 +666,8 @@ import 'not_map_spread_test.dart' as not_map_spread;
 import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
 import 'null_argument_to_non_null_type_test.dart'
     as null_argument_to_non_null_type;
+import 'null_aware_elements_const_literals_error_test.dart'
+    as null_aware_elements_const_literals_error;
 import 'null_check_always_fails_test.dart' as null_check_always_fails;
 import 'null_safety_read_write_test.dart' as null_safety_read_write;
 import 'nullable_type_in_catch_clause_test.dart'
@@ -1213,6 +1217,7 @@ main() {
     invalid_modifier_on_constructor.main();
     invalid_modifier_on_setter.main();
     invalid_non_virtual_annotation.main();
+    invalid_null_aware_elements_error.main();
     invalid_null_aware_operator.main();
     invalid_override_of_non_virtual_member.main();
     invalid_override.main();
@@ -1351,6 +1356,7 @@ main() {
     not_map_spread.main();
     not_null_aware_null_spread.main();
     null_argument_to_non_null_type.main();
+    null_aware_elements_const_literals_error.main();
     null_check_always_fails.main();
     null_safety_read_write.main();
     nullable_type_in_catch_clause.main();

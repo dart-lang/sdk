@@ -7,6 +7,7 @@ import 'dart:collection' show UnmodifiableMapView;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
+import '../tracer.dart';
 import 'nodes.dart';
 import 'optimize.dart' show OptimizationPhase, SsaOptimizerTask;
 
@@ -720,6 +721,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
   /// save them here in order to remove them once the phase is done.
   final List<HRangeConversion> conversions = [];
 
+  /// List of [HBoundsCheck] instructions collected during visit.
+  final List<HBoundsCheck> boundsChecks = [];
+
   /// Value ranges for integer instructions. This map gets populated by
   /// the dominator tree visit.
   final Map<HInstruction, Range> ranges = {};
@@ -727,10 +731,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
   final JClosedWorld closedWorld;
   final ValueRangeInfo info = ValueRangeInfo();
   final SsaOptimizerTask optimizer;
+  final Tracer tracer;
 
   late HGraph graph;
 
-  SsaValueRangeAnalyzer(this.closedWorld, this.optimizer);
+  SsaValueRangeAnalyzer(this.closedWorld, this.optimizer, this.tracer);
 
   @override
   void visitGraph(HGraph graph) {
@@ -740,10 +745,16 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
 
     this.graph = graph;
     visitDominatorTree(graph);
+
+    tracer.traceGraph(name + '.analysis', graph);
+
+    optimizeBoundsChecks();
+
     // We remove the range conversions after visiting the graph so
     // that the graph does not get polluted with these instructions
     // only necessary for this phase.
     removeRangeConversion();
+
     // TODO(herhut): Find a cleaner way to pass around ranges.
     optimizer.ranges = ranges;
   }
@@ -751,12 +762,22 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
   @override
   bool validPostcondition(HGraph graph) => true;
 
+  void optimizeBoundsChecks() {
+    for (final check in boundsChecks) {
+      if (check.staticChecks == StaticBoundsChecks.alwaysTrue) {
+        final block = check.block!;
+        block.rewrite(check, check.index);
+        block.remove(check);
+      }
+    }
+  }
+
   void removeRangeConversion() {
-    conversions.forEach((HRangeConversion instruction) {
+    for (final instruction in conversions) {
       final block = instruction.block!;
       block.rewrite(instruction, instruction.inputs[0]);
       block.remove(instruction);
-    });
+    }
   }
 
   @override
@@ -867,6 +888,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
 
   @override
   Range visitBoundsCheck(HBoundsCheck check) {
+    boundsChecks.add(check);
     // Save the next instruction, in case the check gets removed.
     final next = check.next;
     Range? indexRange = ranges[check.index];
@@ -899,9 +921,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
         (indexRange.upper != lengthRange.lower &&
             indexRange.upper.min(lengthRange.lower) == indexRange.upper);
     if (indexRange.isPositive && belowLength) {
-      final checkBlock = check.block!;
-      checkBlock.rewrite(check, check.index);
-      checkBlock.remove(check);
+      check.staticChecks = StaticBoundsChecks.alwaysTrue;
     } else if (indexRange.isNegative || lengthRange < indexRange) {
       check.staticChecks = StaticBoundsChecks.alwaysFalse;
       // The check is always false, and whatever instruction it
@@ -917,7 +937,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
       // If the test passes, we know the lower bound of the length is
       // greater or equal than the lower bound of the index.
       Value low = lengthRange.lower.max(indexRange.lower);
-      if (low != info.unknownValue) {
+      if (low != info.unknownValue && check.length is! HConstant) {
         HInstruction instruction = createRangeConversion(next!, check.length);
         ranges[instruction] = info.newNormalizedRange(low, lengthRange.upper);
       }

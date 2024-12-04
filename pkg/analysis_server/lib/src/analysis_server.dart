@@ -10,7 +10,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
@@ -23,7 +22,8 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
-import 'package:analysis_server/src/protocol_server.dart' as legacy
+import 'package:analysis_server/src/protocol_server.dart'
+    as legacy
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -65,6 +65,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -78,7 +79,6 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
@@ -95,8 +95,12 @@ import 'package:watcher/watcher.dart';
 typedef OpenUriNotificationSender = Future<void> Function(Uri uri);
 
 /// The function for sending prompts to the user and collecting button presses.
-typedef UserPromptSender = Future<String?> Function(
-    MessageType type, String message, List<String> actionLabels);
+typedef UserPromptSender =
+    Future<String?> Function(
+      MessageType type,
+      String message,
+      List<String> actionLabels,
+    );
 
 /// Implementations of [AnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -165,8 +169,6 @@ abstract class AnalysisServer {
 
   late StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
 
-  DeclarationsTracker? declarationsTracker;
-
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
   /// server.
@@ -215,8 +217,9 @@ abstract class AnalysisServer {
 
   /// The [ClientUriConverter] to use to convert between URIs/Paths when
   /// communicating with the client.
-  late ClientUriConverter _uriConverter =
-      ClientUriConverter.noop(resourceProvider.pathContext);
+  late ClientUriConverter _uriConverter = ClientUriConverter.noop(
+    resourceProvider.pathContext,
+  );
 
   /// The next modification stamp for a changed file in the [resourceProvider].
   ///
@@ -240,8 +243,10 @@ abstract class AnalysisServer {
   Completer<void> analysisContextRebuildCompleter = Completer()..complete();
 
   /// The workspace for rename refactorings.
-  late final refactoringWorkspace =
-      RefactoringWorkspace(driverMap.values, searchEngine);
+  late final refactoringWorkspace = RefactoringWorkspace(
+    driverMap.values,
+    searchEngine,
+  );
 
   /// The paths of files for which [ResolvedUnitResult] was produced since
   /// the last idle state.
@@ -277,11 +282,17 @@ abstract class AnalysisServer {
     DartFixPromptManager? dartFixPromptManager,
     this.providedByteStore,
     PluginManager? pluginManager,
-  })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
-        pubApi = PubApi(instrumentationService, httpClient,
-            Platform.environment['PUB_HOSTED_URL']),
-        producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
-        messageScheduler = MessageScheduler() {
+    bool retainDataForTesting = false,
+  }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+       pubApi = PubApi(
+         instrumentationService,
+         httpClient,
+         Platform.environment['PUB_HOSTED_URL'],
+       ),
+       producerGeneratorsForLintRules = AssistProcessor.computeLintRuleMap(),
+       messageScheduler = MessageScheduler(
+            testView:
+                retainDataForTesting ? MessageSchedulerTestView() : null) {
     messageScheduler.setServer(this);
     // Set the default URI converter. This uses the resource providers path
     // context (unlike the initialized value) which allows tests to override it.
@@ -294,25 +305,36 @@ abstract class AnalysisServer {
     if (baseResourceProvider is PhysicalResourceProvider) {
       processRunner ??= ProcessRunner();
     }
-    var pubCommand = processRunner != null &&
-            Platform.environment[PubCommand.disablePubCommandEnvironmentKey] ==
-                null
-        ? PubCommand(
-            instrumentationService, resourceProvider.pathContext, processRunner)
-        : null;
+    var pubCommand =
+        processRunner != null &&
+                Platform.environment[PubCommand
+                        .disablePubCommandEnvironmentKey] ==
+                    null
+            ? PubCommand(
+              instrumentationService,
+              resourceProvider.pathContext,
+              processRunner,
+            )
+            : null;
 
     pubPackageService = PubPackageService(
-        instrumentationService, baseResourceProvider, pubApi, pubCommand);
+      instrumentationService,
+      baseResourceProvider,
+      pubApi,
+      pubCommand,
+    );
     performance = performanceDuringStartup;
 
     PluginWatcher? pluginWatcher;
     if (supportsPlugins) {
-      this.pluginManager = pluginManager ??= PluginManager(
-          resourceProvider,
-          _getByteStorePath(),
-          sdkManager.defaultSdkDirectory,
-          notificationManager,
-          instrumentationService);
+      this.pluginManager =
+          pluginManager ??= PluginManager(
+            resourceProvider,
+            _getByteStorePath(),
+            sdkManager.defaultSdkDirectory,
+            notificationManager,
+            instrumentationService,
+          );
 
       pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
     }
@@ -338,19 +360,9 @@ abstract class AnalysisServer {
     fileContentCache = FileContentCache(resourceProvider);
 
     analysisDriverScheduler = analysis.AnalysisDriverScheduler(
-        analysisPerformanceLogger,
-        driverWatcher: pluginWatcher);
-
-    if (options.featureSet.completion) {
-      // TODO(brianwilkerson): The DeclarationsTracker is used to find Dartdoc
-      //  templates for substitution in doc comments, and probably shouldn't be
-      //  gated on completion support being enabled, especially given that it
-      //  will no longer used for available suggestions.
-      var tracker = declarationsTracker =
-          DeclarationsTracker(byteStore, resourceProvider);
-      analysisDriverScheduler.outOfBandWorker =
-          CompletionLibrariesWorker(tracker);
-    }
+      analysisPerformanceLogger,
+      driverWatcher: pluginWatcher,
+    );
 
     contextManager = ContextManagerImpl(
       resourceProvider,
@@ -371,8 +383,10 @@ abstract class AnalysisServer {
     if (dartFixPromptManager != null) {
       _dartFixPrompt = dartFixPromptManager;
     } else {
-      var promptPreferences =
-          UserPromptPreferences(resourceProvider, instrumentationService);
+      var promptPreferences = UserPromptPreferences(
+        resourceProvider,
+        instrumentationService,
+      );
       _dartFixPrompt = DartFixPromptManager(this, promptPreferences);
     }
   }
@@ -452,8 +466,9 @@ abstract class AnalysisServer {
 
   /// Return the total time the server's been alive.
   Duration get uptime {
-    var start =
-        DateTime.fromMillisecondsSinceEpoch(performanceDuringStartup.startTime);
+    var start = DateTime.fromMillisecondsSinceEpoch(
+      performanceDuringStartup.startTime,
+    );
     return DateTime.now().difference(start);
   }
 
@@ -474,22 +489,12 @@ abstract class AnalysisServer {
   UserPromptSender? get userPromptSender =>
       supportsShowMessageRequest ? showUserPrompt : null;
 
-  void addContextsToDeclarationsTracker() {
-    declarationsTracker?.discardContexts();
-    for (var driver in driverMap.values) {
-      declarationsTracker?.addContext(driver.analysisContext!);
-    }
-  }
-
   void afterContextsCreated() {
     _timingByteStore?.newTimings('after contexts created');
     isFirstAnalysisSinceContextsBuilt = true;
-    addContextsToDeclarationsTracker();
   }
 
-  void afterContextsDestroyed() {
-    declarationsTracker?.discardContexts();
-  }
+  void afterContextsDestroyed() {}
 
   /// Broadcast a request built from the given [params] to all of the plugins
   /// that are currently associated with the context root from the given
@@ -497,8 +502,9 @@ abstract class AnalysisServer {
   /// the plugins have sent a response, or an empty list if no [driver] is
   /// provided.
   Map<PluginInfo, Future<Response>> broadcastRequestToPlugins(
-      analyzer_plugin.RequestParams requestParams,
-      analysis.AnalysisDriver? driver) {
+    analyzer_plugin.RequestParams requestParams,
+    analysis.AnalysisDriver? driver,
+  ) {
     if (driver == null || !AnalysisServer.supportsPlugins) {
       return <PluginInfo, Future<Response>>{};
     }
@@ -528,7 +534,10 @@ abstract class AnalysisServer {
   ///
   /// If there is already an active connection to DTD or there is an error
   /// connecting, returns an error, otherwise returns `null`.
-  Future<lsp.ErrorOr<Null>> connectToDtd(Uri dtdUri) async {
+  Future<lsp.ErrorOr<Null>> connectToDtd(
+    Uri dtdUri, {
+    bool registerExperimentalHandlers = false,
+  }) async {
     switch (dtd?.state) {
       case DtdConnectionState.Connecting || DtdConnectionState.Connected:
         return lsp.error(
@@ -536,7 +545,11 @@ abstract class AnalysisServer {
           'Server is already connected to DTD',
         );
       case DtdConnectionState.Disconnected || DtdConnectionState.Error || null:
-        var connectResult = await DtdServices.connect(this, dtdUri);
+        var connectResult = await DtdServices.connect(
+          this,
+          dtdUri,
+          registerExperimentalHandlers: registerExperimentalHandlers,
+        );
         return connectResult.mapResultSync((dtd) {
           this.dtd = dtd;
           return lsp.success(null);
@@ -562,8 +575,10 @@ abstract class AnalysisServer {
     if (resourceProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        var timingByteStore = _timingByteStore =
-            TimingByteStore(EvictingFileByteStore(stateLocation.path, G));
+        var timingByteStore =
+            _timingByteStore = TimingByteStore(
+              EvictingFileByteStore(stateLocation.path, G),
+            );
         return MemoryCachingByteStore(timingByteStore, memoryCacheSize);
       }
     }
@@ -575,8 +590,11 @@ abstract class AnalysisServer {
     // TODO(dantup): This is currently gated on an LSP flag and should just
     //  be inlined into the constructor once we're happy for it to show up
     //  without a flag and for both protocols.
-    surveyManager =
-        SurveyManager(this, instrumentationService, analyticsManager.analytics);
+    surveyManager = SurveyManager(
+      this,
+      instrumentationService,
+      analyticsManager.analytics,
+    );
   }
 
   /// Return an analysis driver to which the file with the given [path] is
@@ -593,9 +611,11 @@ abstract class AnalysisServer {
         return secondRoot.length - firstRoot.length;
       });
       var driver = drivers.firstWhereOrNull(
-          (driver) => driver.analysisContext!.contextRoot.isAnalyzed(path));
+        (driver) => driver.analysisContext!.contextRoot.isAnalyzed(path),
+      );
       driver ??= drivers.firstWhereOrNull(
-          (driver) => driver.fsState.getExistingFromPath(path) != null);
+        (driver) => driver.fsState.getExistingFromPath(path) != null,
+      );
       driver ??= drivers.first;
       return driver;
     }
@@ -621,10 +641,9 @@ abstract class AnalysisServer {
   DartdocDirectiveInfo getDartdocDirectiveInfoForSession(
     AnalysisSession session,
   ) {
-    return declarationsTracker
-            ?.getContext(session.analysisContext)
-            ?.dartdocDirectiveInfo ??
-        DartdocDirectiveInfo();
+    var analysisContext = session.analysisContext;
+    analysisContext as DriverBasedAnalysisContext;
+    return analysisContext.driver.dartdocDirectiveInfo;
   }
 
   /// Gets the current version number of a document (if known).
@@ -747,7 +766,7 @@ abstract class AnalysisServer {
       return null;
     }
     try {
-      return driver.currentSession.getResolvedContainingLibrary(path);
+      return await driver.currentSession.getResolvedContainingLibrary(path);
     } on InconsistentAnalysisException {
       return null;
     } catch (exception, stackTrace) {
@@ -759,8 +778,10 @@ abstract class AnalysisServer {
   /// Return the resolved unit for the file with the given [path]. The file is
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.
-  Future<ResolvedUnitResult?>? getResolvedUnit(String path,
-      {bool sendCachedToStream = false}) {
+  Future<ResolvedUnitResult?>? getResolvedUnit(
+    String path, {
+    bool sendCachedToStream = false,
+  }) {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
@@ -774,19 +795,21 @@ abstract class AnalysisServer {
         .getResolvedUnit(path, sendCachedToStream: sendCachedToStream)
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((Object e, StackTrace st) {
-      instrumentationService.logException(e, st);
-      return null;
-    });
+          instrumentationService.logException(e, st);
+          return null;
+        });
   }
 
   /// Gets the version of a document known to the server, returning a
   /// [lsp.OptionalVersionedTextDocumentIdentifier] with a version of `null` if the
   /// document version is not known.
   lsp.OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
-      String path) {
+    String path,
+  ) {
     return lsp.OptionalVersionedTextDocumentIdentifier(
-        uri: resourceProvider.pathContext.toUri(path),
-        version: getDocumentVersion(path));
+      uri: resourceProvider.pathContext.toUri(path),
+      version: getDocumentVersion(path),
+    );
   }
 
   @mustCallSuper
@@ -822,12 +845,16 @@ abstract class AnalysisServer {
     // This is FutureOr<> because for the legacy server it's never a future, so
     // we can skip the await.
     var initializedLspHandler = lspInitialized;
-    var handler = initializedLspHandler is lsp.InitializedStateMessageHandler
-        ? initializedLspHandler
-        : await initializedLspHandler;
+    var handler =
+        initializedLspHandler is lsp.InitializedStateMessageHandler
+            ? initializedLspHandler
+            : await initializedLspHandler;
 
-    return handler.handleMessage(message, messageInfo,
-        cancellationToken: cancellationToken);
+    return handler.handleMessage(
+      message,
+      messageInfo,
+      cancellationToken: cancellationToken,
+    );
   }
 
   /// Return `true` if the file or directory with the given [path] will be
@@ -842,8 +869,9 @@ abstract class AnalysisServer {
       message += ' context: ${result.contextKey}';
     }
 
-    var attachments =
-        crashReportingAttachmentsBuilder.forExceptionResult(result);
+    var attachments = crashReportingAttachmentsBuilder.forExceptionResult(
+      result,
+    );
 
     // TODO(39284): should this exception be silent?
     instrumentationService.logException(
@@ -856,7 +884,6 @@ abstract class AnalysisServer {
   /// Notify the declarations tracker that the file with the given [path] was
   /// changed - added, updated, or removed.  Schedule processing of the file.
   void notifyDeclarationsTracker(String path) {
-    declarationsTracker?.changeFile(path);
     analysisDriverScheduler.notify();
   }
 
@@ -1139,8 +1166,10 @@ abstract class CommonServerContextManagerCallbacks
 
   @override
   void pubspecChanged(String path) {
-    analysisServer.pubPackageService
-        .fetchPackageVersionsViaPubOutdated(path, pubspecWasModified: true);
+    analysisServer.pubPackageService.fetchPackageVersionsViaPubOutdated(
+      path,
+      pubspecWasModified: true,
+    );
   }
 
   @override
@@ -1152,8 +1181,11 @@ abstract class CommonServerContextManagerCallbacks
   @mustCallSuper
   void recordAnalysisErrors(String path, List<server.AnalysisError> errors) {
     filesToFlush.add(path);
-    analysisServer.notificationManager
-        .recordAnalysisErrors(NotificationManager.serverId, path, errors);
+    analysisServer.notificationManager.recordAnalysisErrors(
+      NotificationManager.serverId,
+      path,
+      errors,
+    );
   }
 }
 
@@ -1187,11 +1219,13 @@ class ServerRecentPerformance {
 
   /// A [RecentBuffer] for performance information about the most recent
   /// requests.
-  final RecentBuffer<RequestPerformance> requests =
-      RecentBuffer(performanceListMaxLength);
+  final RecentBuffer<RequestPerformance> requests = RecentBuffer(
+    performanceListMaxLength,
+  );
 
   /// A [RecentBuffer] for performance information about the most recent
   /// slow requests.
-  final RecentBuffer<RequestPerformance> slowRequests =
-      RecentBuffer(slowRequestsListMaxLength);
+  final RecentBuffer<RequestPerformance> slowRequests = RecentBuffer(
+    slowRequestsListMaxLength,
+  );
 }

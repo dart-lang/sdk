@@ -22,7 +22,7 @@ class ClientConfigurationTest with ResourceProviderMixin {
     config.replace(
       {'lineLength': 100},
       {
-        folder: {'lineLength': 200}
+        folder: {'lineLength': 200},
       },
     );
     expect(config.forResource(file).lineLength, equals(200));

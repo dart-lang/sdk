@@ -372,8 +372,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
     variable.initializer = result.nullAwareAction..parent = variable;
 
-    DartType inferredType =
-        inferDeclarationType(result.inferredType, forSyntheticVariable: true);
+    DartType inferredType = inferDeclarationType(result.nullAwareActionType,
+        forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
         new InstrumentationValueForType(inferredType));
     variable.type = inferredType;
@@ -1655,7 +1655,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferExpression(iterable, context, isVoidAllowed: false);
     DartType iterableType = iterableResult.inferredType;
     iterable = iterableResult.expression;
-    DartType inferredExpressionType = iterableType.nonTypeVariableBound;
+    DartType inferredExpressionType = iterableType.nonTypeParameterBound;
     iterable = ensureAssignable(
         wrapType(const DynamicType(), iterableClass, Nullability.nonNullable),
         inferredExpressionType,
@@ -1690,6 +1690,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new SuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is StaticSet) {
       return new StaticForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is ExtensionSet) {
+      return new ExtensionSetForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
     } else {
@@ -2029,7 +2031,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // This ends any shorting in `node.left`.
     Expression left = lhsResult.expression;
 
-    flowAnalysis.ifNullExpression_rightBegin(node.left, new SharedTypeView(t1));
+    flowAnalysis.ifNullExpression_rightBegin(left, new SharedTypeView(t1));
 
     // - Let `T2` be the type of `e2` inferred with context type `J`, where:
     //   - If `K` is `_` or `dynamic`, `J = T1`.
@@ -2324,7 +2326,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadType = spreadResult.inferredType;
     inferredSpreadTypes[element.expression] = spreadType;
     Expression replacement = element;
-    DartType spreadTypeBound = spreadType.nonTypeVariableBound;
+    DartType spreadTypeBound = spreadType.nonTypeParameterBound;
     DartType? spreadElementType =
         getSpreadElementType(spreadType, spreadTypeBound, element.isNullAware);
     if (spreadElementType == null) {
@@ -2658,7 +2660,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ExpressionInferenceResult conditionResult = inferExpression(
           element.condition!, coreTypes.boolRawType(Nullability.nonNullable),
           isVoidAllowed: false);
-      element.condition = conditionResult.expression..parent = element;
+      Expression assignableCondition = ensureAssignable(
+          coreTypes.boolRawType(Nullability.nonNullable),
+          conditionResult.inferredType,
+          conditionResult.expression);
+      element.condition = assignableCondition..parent = element;
       inferredConditionTypes[element.condition!] = conditionResult.inferredType;
     }
     flowAnalysis.for_bodyBegin(null, element.condition);
@@ -2816,28 +2822,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           checkElement(otherwise, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-      case ForElement(:Expression? condition, :Expression body):
-        if (condition != null) {
-          DartType conditionType = inferredConditionTypes[condition]!;
-          Expression assignableCondition = ensureAssignable(
-              coreTypes.boolRawType(Nullability.nonNullable),
-              conditionType,
-              condition);
-          item.condition = assignableCondition..parent = item;
-        }
+      case ForElement(:Expression body):
         if (body is ControlFlowElement) {
           checkElement(body, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
         }
-      case PatternForElement(:Expression? condition, :Expression body):
-        if (condition != null) {
-          DartType conditionType = inferredConditionTypes[condition]!;
-          Expression assignableCondition = ensureAssignable(
-              coreTypes.boolRawType(Nullability.nonNullable),
-              conditionType,
-              condition);
-          item.condition = assignableCondition..parent = item;
-        }
+      case PatternForElement(:Expression body):
         if (body is ControlFlowElement) {
           checkElement(body, item, typeArgument, inferredSpreadTypes,
               inferredConditionTypes);
@@ -2876,6 +2866,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           listType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting
               // Coverage-ignore(suite): Not run.
@@ -3861,6 +3853,38 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       desugaredStatement = _createBlock([keyTemp, ifKeyNotNullStatement])
         ..fileOffset = entry.fileOffset;
+    } else if (entry.isValueNullAware) {
+      assert(!entry.isKeyNullAware);
+      // The key is non null-aware, but the value is null-aware. In this case,
+      // we need to hoist the key expression to preserve the evaluation order.
+      // Consider the following example:
+      //
+      //   <String, int>{keyExpression(): ?valueExpression()}
+      //
+      // Without hoisting the key expression, the map literal will be desugared
+      // as follows:
+      //
+      //   int? #valueTemp = valueExpression();
+      //   if (#valueTemp != null) {
+      //     #t[keyExpression()] = #valueTemp{int};
+      //   }
+      //
+      // In that desugaring, `valueExpression` is executed before
+      // `keyExpression`, which doesn't match the expected evaluation order.
+      // With the hoisting of the key, the desugared expression will look as
+      // follows:
+      //
+      //   String #keyTemp = keyExpression();
+      //   int? #valueTemp = valueExpression();
+      //   if (#valueTemp != null) {
+      //     #t[#keyTemp] = #valueTemp{int};
+      //   }
+
+      VariableDeclaration keyTemp = _createVariable(keyExpression, keyType);
+      keyExpression = _createVariableGet(keyTemp);
+
+      desugaredStatement.statements.insert(0, keyTemp);
+      keyTemp.parent = desugaredStatement;
     }
 
     // Since either the key or the value is null-aware, [desugaredStatement]
@@ -4364,7 +4388,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   // is a function type, the original values in output are preserved.
   void storeSpreadMapEntryElementTypes(DartType spreadMapEntryType,
       bool isNullAware, List<DartType?> output, int offset) {
-    DartType typeBound = spreadMapEntryType.nonTypeVariableBound;
+    DartType typeBound = spreadMapEntryType.nonTypeParameterBound;
     if (coreTypes.isNull(typeBound)) {
       if (isNullAware) {
         output[offset] = output[offset + 1] = const NeverType.nonNullable();
@@ -4409,7 +4433,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         spreadType, entry.isNullAware, actualTypes, length);
     DartType? actualKeyType = actualTypes[length];
     DartType? actualValueType = actualTypes[length + 1];
-    DartType spreadTypeBound = spreadType.nonTypeVariableBound;
+    DartType spreadTypeBound = spreadType.nonTypeParameterBound;
     DartType? actualElementType =
         getSpreadElementType(spreadType, spreadTypeBound, entry.isNullAware);
 
@@ -4619,8 +4643,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         .expression;
     entry.value = value..parent = entry;
 
-    actualTypes.add(computeNonNull(keyInferenceResult.inferredType));
-    actualTypes.add(computeNonNull(valueInferenceResult.inferredType));
+    actualTypes.add(entry.isKeyNullAware
+        ? computeNonNull(keyInferenceResult.inferredType)
+        : keyInferenceResult.inferredType);
+    actualTypes.add(entry.isValueNullAware
+        ? computeNonNull(valueInferenceResult.inferredType)
+        : valueInferenceResult.inferredType);
     actualTypesForSet.add(const DynamicType());
 
     offsets.mapEntryOffset = entry.fileOffset;
@@ -4954,8 +4982,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ExpressionInferenceResult conditionResult = inferExpression(
           entry.condition!, coreTypes.boolRawType(Nullability.nonNullable),
           isVoidAllowed: false);
-      entry.condition = conditionResult.expression..parent = entry;
-      // TODO(johnniwinther): Ensure assignability of condition?
+      Expression condition = ensureAssignable(
+          coreTypes.boolRawType(Nullability.nonNullable),
+          conditionResult.inferredType,
+          conditionResult.expression);
+      entry.condition = condition..parent = entry;
       inferredConditionTypes[entry.condition!] = conditionResult.inferredType;
     }
     flowAnalysis.for_bodyBegin(null, entry.condition);
@@ -5210,26 +5241,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             entry.otherwise = otherwise..parent = entry;
           }
         case ForMapEntry():
-          if (entry.condition != null) {
-            DartType conditionType = inferredConditionTypes[entry.condition]!;
-            Expression condition = ensureAssignable(
-                coreTypes.boolRawType(Nullability.nonNullable),
-                conditionType,
-                entry.condition!);
-            entry.condition = condition..parent = entry;
-          }
           MapLiteralEntry body = checkMapEntry(entry.body, keyType, valueType,
               inferredSpreadTypes, inferredConditionTypes, offsets);
           entry.body = body..parent = entry;
         case PatternForMapEntry():
-          if (entry.condition != null) {
-            DartType conditionType = inferredConditionTypes[entry.condition]!;
-            Expression condition = ensureAssignable(
-                coreTypes.boolRawType(Nullability.nonNullable),
-                conditionType,
-                entry.condition!);
-            entry.condition = condition..parent = entry;
-          }
           MapLiteralEntry body = checkMapEntry(entry.body, keyType, valueType,
               inferredSpreadTypes, inferredConditionTypes, offsets);
           entry.body = body..parent = entry;
@@ -5315,6 +5330,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           mapType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting
               // Coverage-ignore(suite): Not run.
@@ -5397,6 +5414,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             typeSchemaEnvironment.setupGenericTypeInference(
                 setType, typeParametersToInfer, typeContext,
                 isConst: node.isConst,
+                inferenceUsingBoundsIsEnabled:
+                    libraryFeatures.inferenceUsingBounds.isEnabled,
                 typeOperations: operations,
                 inferenceResultForTesting: dataForTesting
                     // Coverage-ignore(suite): Not run.
@@ -5985,6 +6004,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = new Let(readVariable, conditional)
         ..fileOffset = node.fileOffset;
     }
+
+    // Forward the expression in cases where flow analysis needs to use the
+    // expression information. For example, for keeping the promotion in the
+    // following if statement in `if ((x ??= 2) == null) { ... }`.
+    flowAnalysis.forwardExpression(replacement, writeResult.expression);
+
     return createNullAwareExpressionInferenceResult(
         inferredType, replacement, nullAwareGuards);
   }
@@ -6759,7 +6784,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       int fileOffset, Expression left, DartType leftType, Expression right,
       {required bool isNot}) {
     ExpressionInfo<SharedTypeView<DartType>>? equalityInfo =
-        flowAnalysis.equalityOperand_end(left, new SharedTypeView(leftType));
+        flowAnalysis.equalityOperand_end(left);
 
     Expression? equals;
     ExpressionInferenceResult rightResult =
@@ -6777,8 +6802,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.equalityOperation_end(
           equals,
           equalityInfo,
-          flowAnalysis.equalityOperand_end(rightResult.expression,
-              new SharedTypeView(rightResult.inferredType)),
+          new SharedTypeView(leftType),
+          flowAnalysis.equalityOperand_end(rightResult.expression),
+          new SharedTypeView(rightResult.inferredType),
           notEqual: isNot);
       return new ExpressionInferenceResult(
           coreTypes.boolRawType(Nullability.nonNullable), equals);
@@ -6826,8 +6852,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.equalityOperation_end(
         equals,
         equalityInfo,
-        flowAnalysis.equalityOperand_end(
-            right, new SharedTypeView(rightResult.inferredType)),
+        new SharedTypeView(leftType),
+        flowAnalysis.equalityOperand_end(right),
+        new SharedTypeView(rightResult.inferredType),
         notEqual: isNot);
     return new ExpressionInferenceResult(
         equalsTarget.isNever
@@ -8691,6 +8718,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
           setType, typeParametersToInfer, typeContext,
           isConst: node.isConst,
+          inferenceUsingBoundsIsEnabled:
+              libraryFeatures.inferenceUsingBounds.isEnabled,
           typeOperations: operations,
           inferenceResultForTesting: dataForTesting
               // Coverage-ignore(suite): Not run.
@@ -11069,40 +11098,46 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget lengthTarget = findInterfaceMember(
         lookupType, lengthName, node.fileOffset,
         includeExtensionMethods: true, isSetter: false);
-    assert(lengthTarget.isInstanceMember);
+    DartType lengthType;
+    if (lengthTarget.isNever) {
+      lengthType = const NeverType.nonNullable();
+      node.isNeverPattern = true;
+    } else {
+      assert(lengthTarget.isInstanceMember);
 
-    DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
-    node.lengthTarget = lengthTarget.classMember!;
+      lengthType = node.lengthType = lengthTarget.getGetterType(this);
+      node.lengthTarget = lengthTarget.classMember!;
 
-    ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
-        lookupType, sublistName, node.fileOffset,
-        includeExtensionMethods: true, isSetter: false);
-    assert(sublistInvokeTarget.isInstanceMember);
+      ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
+          lookupType, sublistName, node.fileOffset,
+          includeExtensionMethods: true, isSetter: false);
+      assert(sublistInvokeTarget.isInstanceMember);
 
-    node.sublistTarget = sublistInvokeTarget.classMember as Procedure;
-    node.sublistType =
-        sublistInvokeTarget.getFunctionType(this).sublistFunctionType;
+      node.sublistTarget = sublistInvokeTarget.classMember as Procedure;
+      node.sublistType =
+          sublistInvokeTarget.getFunctionType(this).sublistFunctionType;
 
-    ObjectAccessTarget minusTarget = findInterfaceMember(
-        lengthType, minusName, node.fileOffset,
-        includeExtensionMethods: true, isSetter: false);
-    assert(minusTarget.isInstanceMember);
-    assert(minusTarget.isSpecialCasedBinaryOperator(this));
+      ObjectAccessTarget minusTarget = findInterfaceMember(
+          lengthType, minusName, node.fileOffset,
+          includeExtensionMethods: true, isSetter: false);
+      assert(minusTarget.isInstanceMember);
+      assert(minusTarget.isSpecialCasedBinaryOperator(this));
 
-    node.minusTarget = minusTarget.classMember as Procedure;
-    node.minusType = replaceReturnType(
-        minusTarget.getFunctionType(this).minusFunctionType,
-        typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
-            lengthType, coreTypes.intNonNullableRawType));
+      node.minusTarget = minusTarget.classMember as Procedure;
+      node.minusType = replaceReturnType(
+          minusTarget.getFunctionType(this).minusFunctionType,
+          typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
+              lengthType, coreTypes.intNonNullableRawType));
 
-    ObjectAccessTarget indexGetTarget = findInterfaceMember(
-        lookupType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true, isSetter: false);
-    assert(indexGetTarget.isInstanceMember);
+      ObjectAccessTarget indexGetTarget = findInterfaceMember(
+          lookupType, indexGetName, node.fileOffset,
+          includeExtensionMethods: true, isSetter: false);
+      assert(indexGetTarget.isInstanceMember);
 
-    node.indexGetTarget = indexGetTarget.classMember as Procedure;
-    node.indexGetType =
-        indexGetTarget.getFunctionType(this).indexGetFunctionType;
+      node.indexGetTarget = indexGetTarget.classMember as Procedure;
+      node.indexGetType =
+          indexGetTarget.getFunctionType(this).indexGetFunctionType;
+    }
 
     for (Pattern pattern in node.patterns) {
       if (pattern is RestPattern) {
@@ -11111,41 +11146,39 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    if (node.hasRestPattern) {
-      ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
-          lengthType, greaterThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true, isSetter: false);
-      assert(greaterThanOrEqualTarget.isInstanceMember);
+    if (!node.isNeverPattern) {
+      if (node.hasRestPattern) {
+        ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
+            lengthType, greaterThanOrEqualsName, node.fileOffset,
+            includeExtensionMethods: true, isSetter: false);
+        assert(greaterThanOrEqualTarget.isInstanceMember);
 
-      node.lengthCheckTarget =
-          greaterThanOrEqualTarget.classMember as Procedure;
-      node.lengthCheckType = greaterThanOrEqualTarget
-          .getFunctionType(this)
-          .greaterThanOrEqualsFunctionType;
-    } else if (node.patterns.isEmpty) {
-      ObjectAccessTarget lessThanOrEqualsInvokeTarget = findInterfaceMember(
-          lengthType, lessThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true, isSetter: false);
-      assert(lessThanOrEqualsInvokeTarget.isInstanceMember ||
-          // Coverage-ignore(suite): Not run.
-          lessThanOrEqualsInvokeTarget.isObjectMember);
+        node.lengthCheckTarget =
+            greaterThanOrEqualTarget.classMember as Procedure;
+        node.lengthCheckType = greaterThanOrEqualTarget
+            .getFunctionType(this)
+            .greaterThanOrEqualsFunctionType;
+      } else if (node.patterns.isEmpty) {
+        ObjectAccessTarget lessThanOrEqualsInvokeTarget = findInterfaceMember(
+            lengthType, lessThanOrEqualsName, node.fileOffset,
+            includeExtensionMethods: true, isSetter: false);
+        assert(lessThanOrEqualsInvokeTarget.isInstanceMember);
 
-      node.lengthCheckTarget =
-          lessThanOrEqualsInvokeTarget.classMember as Procedure;
-      node.lengthCheckType = lessThanOrEqualsInvokeTarget
-          .getFunctionType(this)
-          .lessThanOrEqualsFunctionType;
-    } else {
-      ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
-          lengthType, equalsName, node.fileOffset,
-          includeExtensionMethods: true, isSetter: false);
-      assert(equalsInvokeTarget.isInstanceMember ||
-          // Coverage-ignore(suite): Not run.
-          equalsInvokeTarget.isObjectMember);
+        node.lengthCheckTarget =
+            lessThanOrEqualsInvokeTarget.classMember as Procedure;
+        node.lengthCheckType = lessThanOrEqualsInvokeTarget
+            .getFunctionType(this)
+            .lessThanOrEqualsFunctionType;
+      } else {
+        ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
+            lengthType, equalsName, node.fileOffset,
+            includeExtensionMethods: true, isSetter: false);
+        assert(equalsInvokeTarget.isInstanceMember);
 
-      node.lengthCheckTarget = equalsInvokeTarget.classMember as Procedure;
-      node.lengthCheckType =
-          equalsInvokeTarget.getFunctionType(this).equalsFunctionType;
+        node.lengthCheckTarget = equalsInvokeTarget.classMember as Procedure;
+        node.lengthCheckType =
+            equalsInvokeTarget.getFunctionType(this).equalsFunctionType;
+      }
     }
 
     pushRewrite(replacement ?? node);
@@ -11249,12 +11282,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           break;
         case ObjectAccessTargetKind.recordNamed:
           field.recordType =
-              node.requiredType.nonTypeVariableBound as RecordType;
+              node.requiredType.nonTypeParameterBound as RecordType;
           field.accessKind = ObjectAccessKind.RecordNamed;
           break;
         case ObjectAccessTargetKind.recordIndexed:
           field.recordType =
-              node.requiredType.nonTypeVariableBound as RecordType;
+              node.requiredType.nonTypeParameterBound as RecordType;
           field.accessKind = ObjectAccessKind.RecordIndexed;
           field.recordFieldIndex = fieldTarget.recordFieldIndex!;
           break;
@@ -11553,20 +11586,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget containsKeyTarget = findInterfaceMember(
         lookupType, containsKeyName, node.fileOffset,
         includeExtensionMethods: true, isSetter: false);
-    assert(containsKeyTarget.isInstanceMember);
+    if (containsKeyTarget.isNever) {
+      node.isNeverPattern = true;
+    } else {
+      assert(containsKeyTarget.isInstanceMember);
 
-    node.containsKeyTarget = containsKeyTarget.classMember as Procedure;
-    node.containsKeyType =
-        containsKeyTarget.getFunctionType(this).containsKeyFunctionType;
+      node.containsKeyTarget = containsKeyTarget.classMember as Procedure;
+      node.containsKeyType =
+          containsKeyTarget.getFunctionType(this).containsKeyFunctionType;
 
-    ObjectAccessTarget indexGetTarget = findInterfaceMember(
-        lookupType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true, isSetter: false);
-    assert(indexGetTarget.isInstanceMember);
+      ObjectAccessTarget indexGetTarget = findInterfaceMember(
+          lookupType, indexGetName, node.fileOffset,
+          includeExtensionMethods: true, isSetter: false);
+      assert(indexGetTarget.isInstanceMember);
 
-    node.indexGetTarget = indexGetTarget.classMember as Procedure;
-    node.indexGetType =
-        indexGetTarget.getFunctionType(this).indexGetFunctionType;
+      node.indexGetTarget = indexGetTarget.classMember as Procedure;
+      node.indexGetType =
+          indexGetTarget.getFunctionType(this).indexGetFunctionType;
+    }
 
     assert(checkStack(node, stackBase, [
       /* entries = */ ...repeatedKind(
@@ -11662,7 +11699,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.needsCheck) {
       node.lookupType = requiredType;
     } else {
-      DartType resolvedType = matchedValueType.nonTypeVariableBound;
+      DartType resolvedType = matchedValueType.nonTypeParameterBound;
       if (resolvedType is RecordType) {
         node.lookupType = resolvedType;
       } else {
@@ -11817,6 +11854,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeConstraintGatherer gatherer =
         typeSchemaEnvironment.setupGenericTypeInference(
             declaredType, typeParametersToInfer, contextType,
+            inferenceUsingBoundsIsEnabled:
+                libraryFeatures.inferenceUsingBounds.isEnabled,
             typeOperations: operations,
             inferenceResultForTesting: dataForTesting
                 // Coverage-ignore(suite): Not run.

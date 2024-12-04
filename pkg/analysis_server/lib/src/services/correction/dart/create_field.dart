@@ -21,8 +21,9 @@ class CreateField extends CreateFieldOrGetter {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_fieldName];
@@ -75,8 +76,9 @@ class CreateField extends CreateFieldOrGetter {
     }
     // Prepare target `ClassDeclaration`.
     var targetFragment = targetElement.firstFragment;
-    var targetDeclarationResult =
-        await sessionHelper.getElementDeclaration2(targetFragment);
+    var targetDeclarationResult = await sessionHelper.getElementDeclaration2(
+      targetFragment,
+    );
     if (targetDeclarationResult == null) {
       return;
     }
@@ -107,7 +109,9 @@ class CreateField extends CreateFieldOrGetter {
   }
 
   Future<void> _proposeFromFieldFormalParameter(
-      ChangeBuilder builder, FieldFormalParameter parameter) async {
+    ChangeBuilder builder,
+    FieldFormalParameter parameter,
+  ) async {
     var constructor = parameter.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructor == null) {
       return;

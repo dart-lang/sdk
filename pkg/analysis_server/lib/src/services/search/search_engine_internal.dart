@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A [SearchEngine] implementation.
 class SearchEngineImpl implements SearchEngine {
@@ -20,16 +22,18 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<void> appendAllSubtypes(
-      InterfaceElement type,
-      Set<InterfaceElement> allSubtypes,
-      OperationPerformanceImpl performance) async {
+    InterfaceElement type,
+    Set<InterfaceElement> allSubtypes,
+    OperationPerformanceImpl performance,
+  ) async {
     var searchEngineCache = SearchEngineCache();
 
     Future<void> addSubtypes(InterfaceElement type) async {
       var directResults = await performance.runAsync(
-          '_searchDirectSubtypes',
-          (performance) =>
-              _searchDirectSubtypes(type, searchEngineCache, performance));
+        '_searchDirectSubtypes',
+        (performance) =>
+            _searchDirectSubtypes(type, searchEngineCache, performance),
+      );
       for (var directResult in directResults) {
         var directSubtype = directResult.enclosingElement as InterfaceElement;
         if (allSubtypes.add(directSubtype)) {
@@ -39,6 +43,16 @@ class SearchEngineImpl implements SearchEngine {
     }
 
     await addSubtypes(type);
+  }
+
+  Future<void> appendAllSubtypes2(
+    InterfaceElement2 type,
+    Set<InterfaceElement2> allSubtypes,
+    OperationPerformanceImpl performance,
+  ) async {
+    var subtypes = <InterfaceElement>{};
+    await appendAllSubtypes(type.asElement, subtypes, performance);
+    allSubtypes.addAll(subtypes.map((e) => e.asElement2));
   }
 
   @override
@@ -52,29 +66,40 @@ class SearchEngineImpl implements SearchEngine {
     var members = <String>{};
 
     Future<void> addMembers(
-        InterfaceElement? type, SubtypeResult? subtype) async {
+      InterfaceElement? type,
+      SubtypeResult? subtype,
+    ) async {
       if (subtype != null && !visitedIds.add(subtype.id)) {
         return;
       }
       for (var driver in drivers) {
-        var subtypes = await driver.search
-            .subtypes(searchedFiles, type: type, subtype: subtype);
+        var subtypes = await driver.search.subtypes(
+          searchedFiles,
+          type: type,
+          subtype: subtype,
+        );
         for (var subtype in subtypes) {
           hasSubtypes = true;
-          members.addAll(subtype.libraryUri == libraryUriStr
-              ? subtype.members
-              : subtype.members.where((name) => !name.startsWith('_')));
+          members.addAll(
+            subtype.libraryUri == libraryUriStr
+                ? subtype.members
+                : subtype.members.where((name) => !name.startsWith('_')),
+          );
           await addMembers(null, subtype);
         }
       }
     }
 
-    await addMembers(type.augmented.declaration, null);
+    await addMembers(type.augmented.firstFragment, null);
 
     if (!hasSubtypes) {
       return null;
     }
     return members;
+  }
+
+  Future<Set<String>?> membersOfSubtypes2(InterfaceElement2 type) async {
+    return await membersOfSubtypes(type.asElement);
   }
 
   @override
@@ -95,8 +120,10 @@ class SearchEngineImpl implements SearchEngine {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
     for (var driver in drivers) {
-      var results =
-          await driver.search.unresolvedMemberReferences(name, searchedFiles);
+      var results = await driver.search.unresolvedMemberReferences(
+        name,
+        searchedFiles,
+      );
       allResults.addAll(results);
     }
     return allResults.map(SearchMatchImpl.forSearchResult).toList();
@@ -104,7 +131,9 @@ class SearchEngineImpl implements SearchEngine {
 
   @override
   Future<Set<String>> searchPrefixesUsedInLibrary(
-      covariant LibraryElementImpl library, Element element) async {
+    covariant LibraryElementImpl library,
+    Element element,
+  ) async {
     var driver =
         (library.session.analysisContext as DriverBasedAnalysisContext).driver;
     return await driver.search.prefixesUsedInLibrary(library, element);
@@ -123,13 +152,36 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
+  Future<List<SearchMatch>> searchReferences2(Element2 element) async {
+    return await searchReferences(element.asElement!);
+  }
+
+  @override
   Future<List<SearchMatch>> searchSubtypes(
-      InterfaceElement type, SearchEngineCache searchEngineCache,
-      {OperationPerformanceImpl? performance}) async {
+    InterfaceElement type,
+    SearchEngineCache searchEngineCache, {
+    OperationPerformanceImpl? performance,
+  }) async {
     performance ??= OperationPerformanceImpl('<root>');
-    var results =
-        await _searchDirectSubtypes(type, searchEngineCache, performance);
+    var results = await _searchDirectSubtypes(
+      type,
+      searchEngineCache,
+      performance,
+    );
     return results.map(SearchMatchImpl.forSearchResult).toList();
+  }
+
+  @override
+  Future<List<SearchMatch>> searchSubtypes2(
+    InterfaceElement2 type,
+    SearchEngineCache searchEngineCache, {
+    OperationPerformanceImpl? performance,
+  }) async {
+    return await searchSubtypes(
+      type.asElement,
+      searchEngineCache,
+      performance: performance,
+    );
   }
 
   @override
@@ -155,9 +207,10 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(
-      InterfaceElement type,
-      SearchEngineCache searchEngineCache,
-      OperationPerformanceImpl performance) async {
+    InterfaceElement type,
+    SearchEngineCache searchEngineCache,
+    OperationPerformanceImpl performance,
+  ) async {
     var allResults = <SearchResult>[];
 
     // Fill out cache if needed.
@@ -170,7 +223,9 @@ class SearchEngineImpl implements SearchEngine {
       for (var driver in drivers) {
         var assignedFilesForDrive = assignedFiles[driver] = [];
         await performance.runAsync(
-            'discoverAvailableFiles', (_) => driver.discoverAvailableFiles());
+          'discoverAvailableFiles',
+          (_) => driver.discoverAvailableFiles(),
+        );
         for (var file in driver.fsState.knownFiles) {
           if (searchedFiles.add(file.path, driver.search)) {
             assignedFilesForDrive.add(file);
@@ -181,9 +236,13 @@ class SearchEngineImpl implements SearchEngine {
 
     for (var driver in drivers) {
       var results = await performance.runAsync(
-          'subTypes',
-          (_) => driver.search.subTypes(type, searchedFiles,
-              filesToCheck: assignedFiles![driver]));
+        'subTypes',
+        (_) => driver.search.subTypes(
+          type,
+          searchedFiles,
+          filesToCheck: assignedFiles![driver],
+        ),
+      );
       allResults.addAll(results);
     }
     return allResults;
@@ -219,15 +278,22 @@ class SearchMatchImpl implements SearchMatch {
   final SourceRange sourceRange;
 
   SearchMatchImpl(
-      this.file,
-      this.librarySource,
-      this.unitSource,
-      this.libraryElement,
-      this.element,
-      this.isResolved,
-      this.isQualified,
-      this.kind,
-      this.sourceRange);
+    this.file,
+    this.librarySource,
+    this.unitSource,
+    this.libraryElement,
+    this.element,
+    this.isResolved,
+    this.isQualified,
+    this.kind,
+    this.sourceRange,
+  );
+
+  @override
+  Element2 get element2 => element.asElement2!;
+
+  @override
+  LibraryElement2 get libraryElement2 => libraryElement.asElement2;
 
   @override
   String toString() {
@@ -250,29 +316,31 @@ class SearchMatchImpl implements SearchMatch {
 
   static SearchMatchImpl forElement(Element element) {
     return SearchMatchImpl(
-        element.source!.fullName,
-        element.librarySource!,
-        element.source!,
-        element.library!,
-        element,
-        true,
-        true,
-        MatchKind.DECLARATION,
-        SourceRange(element.nameOffset, element.nameLength));
+      element.source!.fullName,
+      element.librarySource!,
+      element.source!,
+      element.library!,
+      element,
+      true,
+      true,
+      MatchKind.DECLARATION,
+      SourceRange(element.nameOffset, element.nameLength),
+    );
   }
 
   static SearchMatchImpl forSearchResult(SearchResult result) {
     var enclosingElement = result.enclosingElement;
     return SearchMatchImpl(
-        enclosingElement.source!.fullName,
-        enclosingElement.librarySource!,
-        enclosingElement.source!,
-        enclosingElement.library!,
-        enclosingElement,
-        result.isResolved,
-        result.isQualified,
-        toMatchKind(result.kind),
-        SourceRange(result.offset, result.length));
+      enclosingElement.source!.fullName,
+      enclosingElement.librarySource!,
+      enclosingElement.source!,
+      enclosingElement.library!,
+      enclosingElement,
+      result.isResolved,
+      result.isQualified,
+      toMatchKind(result.kind),
+      SourceRange(result.offset, result.length),
+    );
   }
 
   static MatchKind toMatchKind(SearchResultKind kind) {

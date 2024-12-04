@@ -11,7 +11,7 @@ import 'dart:async' show Completer;
 import 'dart:convert' show LineSplitter, utf8;
 import 'dart:io' show Directory, File, Platform, Process;
 
-import 'package:async_helper/async_helper.dart' show asyncTest;
+import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -69,9 +69,10 @@ abstract class TestCase {
     await rebuild(compiler, outputUri); // this is a full compile.
   }
 
-  Future<void> tearDown() async {
+  Future<void> tearDown() {
     outDir.deleteSync(recursive: true);
     lines = const [];
+    return new Future.value();
   }
 
   Future<int> computeVmPort() async {

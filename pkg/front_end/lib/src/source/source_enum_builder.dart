@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.enum_builder;
-
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
@@ -14,7 +12,7 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart';
-import '../base/modifier.dart' show constMask, hasInitializerMask, staticMask;
+import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -60,8 +58,8 @@ import 'source_procedure_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 class SourceEnumBuilder extends SourceClassBuilder {
-  final int startCharOffset;
-  final int charEndOffset;
+  final int startOffset;
+  final int endOffset;
 
   final List<EnumConstantInfo?>? enumConstantInfos;
 
@@ -85,77 +83,76 @@ class SourceEnumBuilder extends SourceClassBuilder {
       new Set<SourceFieldBuilder>.identity();
 
   SourceEnumBuilder.internal(
-      List<MetadataBuilder>? metadata,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      this._underscoreEnumTypeBuilder,
-      TypeBuilder supertypeBuilder,
-      List<TypeBuilder>? interfaceBuilders,
-      LookupScope typeParameterScope,
-      DeclarationNameSpaceBuilder nameSpaceBuilder,
-      this.enumConstantInfos,
-      SourceLibraryBuilder parent,
-      List<ConstructorReferenceBuilder> constructorReferences,
-      Uri fileUri,
-      this.startCharOffset,
-      int charOffset,
-      this.charEndOffset,
-      IndexedClass? referencesFromIndexed)
-      : super(
-            metadata,
-            0,
-            name,
-            typeVariables,
-            supertypeBuilder,
-            interfaceBuilders,
-            /* onTypes = */ null,
-            typeParameterScope,
-            nameSpaceBuilder,
-            parent,
-            constructorReferences,
-            fileUri,
-            startCharOffset,
-            charOffset,
-            charEndOffset,
-            referencesFromIndexed);
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required List<NominalParameterBuilder>? typeParameters,
+      required TypeBuilder underscoreEnumTypeBuilder,
+      required TypeBuilder supertypeBuilder,
+      required List<TypeBuilder>? interfaceBuilders,
+      required LookupScope typeParameterScope,
+      required DeclarationNameSpaceBuilder nameSpaceBuilder,
+      required this.enumConstantInfos,
+      required SourceLibraryBuilder libraryBuilder,
+      required List<ConstructorReferenceBuilder> constructorReferences,
+      required Uri fileUri,
+      required this.startOffset,
+      required int nameOffset,
+      required this.endOffset,
+      required IndexedClass? indexedClass})
+      : _underscoreEnumTypeBuilder = underscoreEnumTypeBuilder,
+        super(
+            metadata: metadata,
+            modifiers: Modifiers.empty,
+            name: name,
+            typeParameters: typeParameters,
+            supertypeBuilder: supertypeBuilder,
+            interfaceBuilders: interfaceBuilders,
+            onTypes: null,
+            typeParameterScope: typeParameterScope,
+            nameSpaceBuilder: nameSpaceBuilder,
+            libraryBuilder: libraryBuilder,
+            constructorReferences: constructorReferences,
+            fileUri: fileUri,
+            startOffset: startOffset,
+            nameOffset: nameOffset,
+            endOffset: endOffset,
+            indexedClass: indexedClass);
 
   factory SourceEnumBuilder(
-      List<MetadataBuilder>? metadata,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      TypeBuilder underscoreEnumTypeBuilder,
-      TypeBuilder? supertypeBuilder,
-      List<TypeBuilder>? interfaceBuilders,
-      List<EnumConstantInfo?>? enumConstantInfos,
-      SourceLibraryBuilder libraryBuilder,
-      List<ConstructorReferenceBuilder> constructorReferences,
-      Uri fileUri,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset,
-      IndexedClass? referencesFromIndexed,
-      LookupScope typeParameterScope,
-      DeclarationNameSpaceBuilder nameSpaceBuilder) {
-    final int startCharOffsetComputed =
-        metadata == null ? startCharOffset : metadata.first.charOffset;
+      {required List<MetadataBuilder>? metadata,
+      required String name,
+      required List<NominalParameterBuilder>? typeParameters,
+      required TypeBuilder underscoreEnumTypeBuilder,
+      required TypeBuilder? supertypeBuilder,
+      required List<TypeBuilder>? interfaceBuilders,
+      required List<EnumConstantInfo?>? enumConstantInfos,
+      required SourceLibraryBuilder libraryBuilder,
+      required List<ConstructorReferenceBuilder> constructorReferences,
+      required Uri fileUri,
+      required int startOffset,
+      required int nameOffset,
+      required int endOffset,
+      required IndexedClass? indexedClass,
+      required LookupScope typeParameterScope,
+      required DeclarationNameSpaceBuilder nameSpaceBuilder}) {
     supertypeBuilder ??= underscoreEnumTypeBuilder;
     SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
-        metadata,
-        name,
-        typeVariables,
-        underscoreEnumTypeBuilder,
-        supertypeBuilder,
-        interfaceBuilders,
-        typeParameterScope,
-        nameSpaceBuilder,
-        enumConstantInfos,
-        libraryBuilder,
-        constructorReferences,
-        fileUri,
-        startCharOffsetComputed,
-        charOffset,
-        charEndOffset,
-        referencesFromIndexed);
+        metadata: metadata,
+        name: name,
+        typeParameters: typeParameters,
+        underscoreEnumTypeBuilder: underscoreEnumTypeBuilder,
+        supertypeBuilder: supertypeBuilder,
+        interfaceBuilders: interfaceBuilders,
+        typeParameterScope: typeParameterScope,
+        nameSpaceBuilder: nameSpaceBuilder,
+        enumConstantInfos: enumConstantInfos,
+        libraryBuilder: libraryBuilder,
+        constructorReferences: constructorReferences,
+        fileUri: fileUri,
+        startOffset: startOffset,
+        nameOffset: nameOffset,
+        endOffset: endOffset,
+        indexedClass: indexedClass);
     return enumBuilder;
   }
 
@@ -164,9 +161,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
     super.buildScopes(coreLibrary);
     _createSynthesizedMembers(coreLibrary);
 
+    // Include duplicates to install the formals on all constructors to avoid a
+    // crash later.
     Iterator<MemberBuilder> iterator =
         nameSpace.filteredConstructorNameIterator(
-            includeDuplicates: false, includeAugmentations: true);
+            includeDuplicates: true, includeAugmentations: true);
     while (iterator.moveNext()) {
       MemberBuilder member = iterator.current;
       if (member is DeclaredSourceConstructorBuilder) {
@@ -174,17 +173,15 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
         FormalParameterBuilder nameFormalParameterBuilder =
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                /* modifiers = */ 0, stringType, "#name", charOffset,
+                Modifiers.empty, stringType, "#name", fileOffset,
                 fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
         member.formals!.insert(0, nameFormalParameterBuilder);
-        nameFormalParameterBuilder.parent = member;
 
         FormalParameterBuilder indexFormalParameterBuilder =
             new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-                /* modifiers = */ 0, intType, "#index", charOffset,
+                Modifiers.empty, intType, "#index", fileOffset,
                 fileUri: fileUri, hasImmediatelyDeclaredInitializer: false);
         member.formals!.insert(0, indexFormalParameterBuilder);
-        indexFormalParameterBuilder.parent = member;
       }
     }
 
@@ -195,7 +192,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       MemberBuilder constructorBuilder = constructorIterator.current;
       if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
         libraryBuilder.addProblem(messageEnumNonConstConstructor,
-            constructorBuilder.charOffset, noLength, fileUri);
+            constructorBuilder.fileOffset, noLength, fileUri);
       }
     }
   }
@@ -207,32 +204,36 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // directly from dart:core.
     intType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("int"), const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess:
-            // If "int" resolves to an instance type variable then that we would
-            // allowed (the types that we are adding are in instance context
-            // after all) but it would be unexpected and we would like an
-            // assertion failure, since "int" was meant to be `int` from
+        instanceTypeParameterAccess:
+            // If "int" resolves to an instance type parameter then that we
+            // would allowed (the types that we are adding are in instance
+            // context after all) but it would be unexpected and we would like
+            // an assertion failure, since "int" was meant to be `int` from
             // `dart:core`.
             // TODO(johnniwinther): Add a more robust way of creating named
             // typed builders for dart:core types. This might be needed for the
             // enhanced enums feature where enums can actually declare type
             // variables.
-            InstanceTypeVariableAccessState.Unexpected);
+            InstanceTypeParameterAccessState.Unexpected);
     stringType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("String"), const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected);
     objectType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    selfType = new NamedTypeBuilderImpl(new SyntheticTypeName(name, charOffset),
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected);
+    selfType = new NamedTypeBuilderImpl(new SyntheticTypeName(name, fileOffset),
         const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected,
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected,
         fileUri: fileUri,
-        charOffset: charOffset);
+        charOffset: fileOffset);
     listType = new NamedTypeBuilderImpl(
         const PredefinedTypeName("List"), const NullabilityBuilder.omitted(),
         arguments: <TypeBuilder>[selfType],
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+        instanceTypeParameterAccess:
+            InstanceTypeParameterAccessState.Unexpected);
 
     // metadata class E extends _Enum {
     //   const E(int index, String name) : super(index, name);
@@ -283,7 +284,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
       libraryBuilder.addProblem(
           messageEnumContainsValuesDeclaration,
-          customValuesDeclaration!.charOffset,
+          customValuesDeclaration!.fileOffset,
           customValuesDeclaration.fullNameForErrors.length,
           fileUri);
     }
@@ -305,38 +306,38 @@ class SourceEnumBuilder extends SourceClassBuilder {
         libraryBuilder.addProblem(
             templateEnumContainsRestrictedInstanceDeclaration
                 .withArguments(restrictedInstanceMemberName),
-            customIndexDeclaration!.charOffset,
+            customIndexDeclaration!.fileOffset,
             customIndexDeclaration.fullNameForErrors.length,
             fileUri);
       }
     }
 
     SourceFieldBuilder valuesBuilder = new SourceFieldBuilder(
-        /* metadata = */ null,
-        listType,
-        "values",
-        constMask | staticMask | hasInitializerMask,
-        /* isTopLevel = */ false,
-        libraryBuilder,
-        this,
-        fileUri,
-        charOffset,
-        charOffset,
-        staticFieldNameScheme,
+        metadata: null,
+        type: listType,
+        name: "values",
+        modifiers:
+            Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
+        isTopLevel: false,
+        isPrimaryConstructorField: false,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: this,
+        fileUri: fileUri,
+        nameOffset: fileOffset,
+        endOffset: fileOffset,
+        nameScheme: staticFieldNameScheme,
         fieldReference: valuesFieldReference,
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference,
         isSynthesized: true);
     if (customValuesDeclaration != null) {
       customValuesDeclaration.next = valuesBuilder;
-      nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+      nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
-      valuesBuilder.parent = this;
     } else {
       nameSpace.addLocalMember("values", valuesBuilder, setter: false);
-      nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+      nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
           valuesBuilder.name, valuesBuilder, valuesBuilder.fileUri);
-      valuesBuilder.parent = this;
     }
 
     // The default constructor is added if no generative or unnamed factory
@@ -353,23 +354,23 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (needsSynthesizedDefaultConstructor) {
       synthesizedDefaultConstructorBuilder =
           new DeclaredSourceConstructorBuilder(
-              /* metadata = */ null,
-              constMask,
-              /* returnType = */ libraryBuilder.loader.inferableTypes
-                  .addInferableType(),
-              /* name = */ "",
-              /* typeParameters = */ null,
-              /* formals = */ [],
-              libraryBuilder,
-              this,
-              fileUri,
-              charOffset,
-              charOffset,
-              charOffset,
-              charEndOffset,
-              constructorReference,
-              tearOffReference,
-              new NameScheme(
+              metadata: null,
+              modifiers: Modifiers.Const,
+              returnType:
+                  libraryBuilder.loader.inferableTypes.addInferableType(),
+              name: "",
+              typeParameters: null,
+              formals: [],
+              libraryBuilder: libraryBuilder,
+              declarationBuilder: this,
+              fileUri: fileUri,
+              startOffset: fileOffset,
+              fileOffset: fileOffset,
+              formalsOffset: fileOffset,
+              endOffset: endOffset,
+              constructorReference: constructorReference,
+              tearOffReference: tearOffReference,
+              nameScheme: new NameScheme(
                   isInstanceMember: false,
                   containerName: new ClassName(name),
                   containerType: ContainerType.Class,
@@ -383,40 +384,39 @@ class SourceEnumBuilder extends SourceClassBuilder {
       synthesizedDefaultConstructorBuilder!
           .registerInitializedField(valuesBuilder);
       nameSpace.addConstructor("", synthesizedDefaultConstructorBuilder!);
-      nameSpaceBuilder.checkTypeVariableConflict(
+      nameSpaceBuilder.checkTypeParameterConflict(
           libraryBuilder,
           synthesizedDefaultConstructorBuilder!.name,
           synthesizedDefaultConstructorBuilder!,
           synthesizedDefaultConstructorBuilder!.fileUri);
-      synthesizedDefaultConstructorBuilder!.parent = this;
     }
 
     ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
-        /* metadata = */ null,
-        0,
-        stringType,
-        "_enumToString",
-        /* typeVariables = */ null,
-        /* formals = */ null,
-        ProcedureKind.Method,
-        libraryBuilder,
-        this,
-        fileUri,
-        charOffset,
-        charOffset,
-        charOffset,
-        charEndOffset,
-        toStringReference,
-        /* tearOffReference = */ null,
-        AsyncMarker.Sync,
-        new NameScheme(
+        metadata: null,
+        modifiers: Modifiers.empty,
+        returnType: stringType,
+        name: "_enumToString",
+        typeParameters: null,
+        formals: null,
+        kind: ProcedureKind.Method,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: this,
+        fileUri: fileUri,
+        startOffset: fileOffset,
+        nameOffset: fileOffset,
+        formalsOffset: fileOffset,
+        endOffset: endOffset,
+        procedureReference: toStringReference,
+        tearOffReference: null,
+        asyncModifier: AsyncMarker.Sync,
+        nameScheme: new NameScheme(
             isInstanceMember: true,
             containerName: new ClassName(name),
             containerType: ContainerType.Class,
             libraryName: new LibraryName(coreLibrary.library.reference)),
         isSynthetic: true);
     nameSpace.addLocalMember("_enumToString", toStringBuilder, setter: false);
-    nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+    nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
         toStringBuilder.name, toStringBuilder, toStringBuilder.fileUri!);
 
     String className = name;
@@ -431,17 +431,17 @@ class SourceEnumBuilder extends SourceClassBuilder {
         if (existing != null) {
           // The existing declaration is synthetic if it has the same
           // charOffset as the enclosing enum.
-          bool isSynthetic = existing.charOffset == charOffset;
+          bool isSynthetic = existing.fileOffset == fileOffset;
 
           // Report the error on the member that occurs later in the code.
           int existingOffset;
           int duplicateOffset;
-          if (existing.charOffset < enumConstantInfo.charOffset) {
-            existingOffset = existing.charOffset;
-            duplicateOffset = enumConstantInfo.charOffset;
+          if (existing.fileOffset < enumConstantInfo.nameOffset) {
+            existingOffset = existing.fileOffset;
+            duplicateOffset = enumConstantInfo.nameOffset;
           } else {
-            existingOffset = enumConstantInfo.charOffset;
-            duplicateOffset = existing.charOffset;
+            existingOffset = enumConstantInfo.nameOffset;
+            duplicateOffset = existing.fileOffset;
           }
 
           List<LocatedMessage> context = isSynthetic
@@ -449,7 +449,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   templateDuplicatedDeclarationSyntheticCause
                       .withArguments(name)
                       .withLocation(
-                          libraryBuilder.fileUri, charOffset, className.length)
+                          libraryBuilder.fileUri, fileOffset, className.length)
                 ]
               : <LocatedMessage>[
                   templateDuplicatedDeclarationCause
@@ -467,7 +467,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         } else if (name == className) {
           libraryBuilder.addProblem(
               templateEnumConstantSameNameAsEnclosing.withArguments(name),
-              enumConstantInfo.charOffset,
+              enumConstantInfo.nameOffset,
               name.length,
               libraryBuilder.fileUri);
         }
@@ -481,17 +481,19 @@ class SourceEnumBuilder extends SourceClassBuilder {
           setterReference = indexedClass!.lookupSetterReference(nameName);
         }
         SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-            metadata,
-            libraryBuilder.loader.inferableTypes.addInferableType(),
-            name,
-            constMask | staticMask | hasInitializerMask,
-            /* isTopLevel = */ false,
-            libraryBuilder,
-            this,
-            fileUri,
-            enumConstantInfo.charOffset,
-            enumConstantInfo.charOffset,
-            staticFieldNameScheme,
+            metadata: metadata,
+            type: libraryBuilder.loader.inferableTypes.addInferableType(),
+            name: name,
+            modifiers:
+                Modifiers.Const | Modifiers.Static | Modifiers.HasInitializer,
+            isTopLevel: false,
+            isPrimaryConstructorField: false,
+            libraryBuilder: libraryBuilder,
+            declarationBuilder: this,
+            fileUri: fileUri,
+            nameOffset: enumConstantInfo.nameOffset,
+            endOffset: enumConstantInfo.nameOffset,
+            nameScheme: staticFieldNameScheme,
             fieldReference: fieldReference,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference,
@@ -499,9 +501,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             isEnumElement: true);
         nameSpace.addLocalMember(name, fieldBuilder..next = existing,
             setter: false);
-        nameSpaceBuilder.checkTypeVariableConflict(libraryBuilder,
+        nameSpaceBuilder.checkTypeParameterConflict(libraryBuilder,
             fieldBuilder.name, fieldBuilder, fieldBuilder.fileUri);
-        fieldBuilder.parent = this;
         elementBuilders.add(fieldBuilder);
       }
     }
@@ -510,7 +511,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     if (name == "values") {
       libraryBuilder.addProblem(
-          messageEnumWithNameValues, this.charOffset, name.length, fileUri);
+          messageEnumWithNameValues, this.fileOffset, name.length, fileUri);
     }
   }
 
@@ -522,12 +523,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   @override
   Class build(LibraryBuilder coreLibrary) {
-    intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    intType.resolveIn(coreLibrary.scope, fileOffset, fileUri, libraryBuilder);
     stringType.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+        coreLibrary.scope, fileOffset, fileUri, libraryBuilder);
     objectType.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
-    listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+        coreLibrary.scope, fileOffset, fileUri, libraryBuilder);
+    listType.resolveIn(coreLibrary.scope, fileOffset, fileUri, libraryBuilder);
 
     Class cls = super.build(coreLibrary);
     cls.isEnum = true;
@@ -546,7 +547,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         ClassBuilder enumClass =
             _underscoreEnumTypeBuilder.declaration as ClassBuilder;
         MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
-            "", charOffset, fileUri, libraryBuilder);
+            "", fileOffset, fileUri, libraryBuilder);
         if (superConstructor == null || !superConstructor.isConstructor) {
           // Coverage-ignore-block(suite): Not run.
           // TODO(ahe): Ideally, we would also want to check that [Object]'s
@@ -557,12 +558,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // Object here.)
           libraryBuilder.addProblem(
               messageNoUnnamedConstructorInObject,
-              objectClass.charOffset,
+              objectClass.fileOffset,
               objectClass.name.length,
               objectClass.fileUri);
         } else {
           constructor.initializers.add(new SuperInitializer(
-              superConstructor.member as Constructor,
+              superConstructor.invokeTarget as Constructor,
               new Arguments.forwarded(
                   constructor.function, libraryBuilder.library))
             ..parent = constructor);
@@ -575,14 +576,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new EnumBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new EnumBodyBuilderContext(this);
   }
 
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
@@ -615,10 +610,15 @@ class SourceEnumBuilder extends SourceClassBuilder {
     String fullConstructorNameForErrors =
         enumConstantInfo.constructorReferenceBuilder?.fullNameForErrors ?? name;
     int fileOffset = enumConstantInfo.constructorReferenceBuilder?.charOffset ??
-        enumConstantInfo.charOffset;
+        enumConstantInfo.nameOffset;
     constructorName = constructorName == "new" ? "" : constructorName;
     MemberBuilder? constructorBuilder =
         nameSpace.lookupConstructor(constructorName);
+    // TODO(CFE Team): Should there be a conversion to an invalid expression
+    // instead? That's what happens on classes.
+    while (constructorBuilder?.next != null) {
+      constructorBuilder = constructorBuilder?.next as MemberBuilder;
+    }
 
     ArgumentsImpl arguments;
     List<Expression> enumSyntheticArguments = <Expression>[
@@ -644,13 +644,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       // be built via a body builder to detect potential errors.
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: false,
-                  inConstFields: false),
-              scope,
-              fileUri);
+              libraryBuilder, createBodyBuilderContext(), scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
 
       if (enumConstantInfo.argumentsBeginToken != null) {
@@ -689,7 +683,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         Expression initializer = bodyBuilder.buildStaticInvocation(
             constructorBuilder.invokeTarget, arguments,
             constness: Constness.explicitConst,
-            charOffset: fieldBuilder.charOffset,
+            charOffset: fieldBuilder.fileOffset,
             isConstructorInvocation: true);
         ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
             .inferFieldInitializer(
@@ -717,14 +711,14 @@ class SourceEnumBuilder extends SourceClassBuilder {
                 Severity.error)
             .plain;
         if (!fieldBuilder.hasBodyBeenBuilt) {
-          fieldBuilder.buildBody(
-              coreTypes, new InvalidExpression(text)..fileOffset = charOffset);
+          fieldBuilder.buildBody(coreTypes,
+              new InvalidExpression(text)..fileOffset = this.fileOffset);
         }
       } else {
         Expression initializer = new ConstructorInvocation(
             constructorBuilder.invokeTarget as Constructor, arguments,
             isConst: true)
-          ..fileOffset = fieldBuilder.charOffset;
+          ..fileOffset = fieldBuilder.fileOffset;
         if (!fieldBuilder.hasBodyBeenBuilt) {
           fieldBuilder.buildBody(coreTypes, initializer);
         }
@@ -779,7 +773,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     if (toStringSuperTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      toStringBuilder.member.transformerFlags |= TransformerFlag.superCalls;
+      toStringBuilder.invokeTarget!.transformerFlags |=
+          TransformerFlag.superCalls;
       toStringBuilder.body = new ReturnStatement(new SuperMethodInvocation(
           toStringName, new Arguments([]), toStringSuperTarget));
     } else {
@@ -788,7 +783,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       MemberBuilder? nameFieldBuilder =
           enumClass.lookupLocalMember("_name") as MemberBuilder?;
       assert(nameFieldBuilder != null);
-      Field nameField = nameFieldBuilder!.member as Field;
+      Field nameField = nameFieldBuilder!.readTarget as Field;
 
       toStringBuilder.body = new ReturnStatement(new StringConcatenation([
         new StringLiteral("${cls.demangledName}."),
@@ -806,9 +801,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
 class EnumConstantInfo {
   final List<MetadataBuilder>? metadata;
   final String name;
-  final int charOffset;
+  final int nameOffset;
   ConstructorReferenceBuilder? constructorReferenceBuilder;
   Token? argumentsBeginToken;
 
-  EnumConstantInfo(this.metadata, this.name, this.charOffset);
+  EnumConstantInfo(this.metadata, this.name, this.nameOffset);
 }

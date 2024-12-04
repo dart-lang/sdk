@@ -13,6 +13,8 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 class MockSdkElements {
   final LibraryElementImpl coreLibrary;
@@ -25,6 +27,8 @@ class MockSdkElements {
     var builder = _MockSdkElementsBuilder(analysisContext, analysisSession);
     var coreLibrary = builder._buildCore();
     var asyncLibrary = builder._buildAsync();
+    builder._populateCore();
+    builder._populateAsync();
     return MockSdkElements._(coreLibrary, asyncLibrary);
   }
 
@@ -69,6 +73,10 @@ class _MockSdkElementsBuilder {
   InterfaceType? _stringType;
   InterfaceType? _typeType;
 
+  late CompilationUnitElementImpl _asyncUnit;
+
+  late CompilationUnitElementImpl _coreUnit;
+
   _MockSdkElementsBuilder(
     this.analysisContext,
     this.analysisSession,
@@ -78,7 +86,7 @@ class _MockSdkElementsBuilder {
     var boolElement = _boolElement;
     if (boolElement != null) return boolElement;
 
-    _boolElement = boolElement = _class(name: 'bool');
+    _boolElement = boolElement = _class(name: 'bool', unit: _coreUnit);
     boolElement.supertype = objectType;
 
     boolElement.constructors = [
@@ -93,6 +101,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(boolElement);
     return boolElement;
   }
 
@@ -109,9 +118,11 @@ class _MockSdkElementsBuilder {
       name: 'Comparable',
       isAbstract: true,
       typeParameters: [tElement],
+      unit: _coreUnit,
     );
     comparableElement.supertype = objectType;
 
+    _buildClassElement(comparableElement);
     return comparableElement;
   }
 
@@ -124,9 +135,11 @@ class _MockSdkElementsBuilder {
       name: 'Completer',
       isAbstract: true,
       typeParameters: [tElement],
+      unit: _asyncUnit,
     );
     completerElement.supertype = objectType;
 
+    _buildClassElement(completerElement);
     return completerElement;
   }
 
@@ -134,7 +147,8 @@ class _MockSdkElementsBuilder {
     var deprecatedElement = _deprecatedElement;
     if (deprecatedElement != null) return deprecatedElement;
 
-    _deprecatedElement = deprecatedElement = _class(name: 'Deprecated');
+    _deprecatedElement =
+        deprecatedElement = _class(name: 'Deprecated', unit: _coreUnit);
     deprecatedElement.supertype = objectType;
 
     deprecatedElement.fields = [
@@ -153,6 +167,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(deprecatedElement);
     return deprecatedElement;
   }
 
@@ -163,6 +178,7 @@ class _MockSdkElementsBuilder {
     _doubleElement = doubleElement = _class(
       name: 'double',
       isAbstract: true,
+      unit: _coreUnit,
     );
     doubleElement.supertype = numType;
 
@@ -214,6 +230,7 @@ class _MockSdkElementsBuilder {
       _method('truncate', doubleType),
     ];
 
+    _buildClassElement(doubleElement);
     return doubleElement;
   }
 
@@ -230,9 +247,11 @@ class _MockSdkElementsBuilder {
     _functionElement = functionElement = _class(
       name: 'Function',
       isAbstract: true,
+      unit: _coreUnit,
     );
     functionElement.supertype = objectType;
 
+    _buildClassElement(functionElement);
     return functionElement;
   }
 
@@ -251,6 +270,7 @@ class _MockSdkElementsBuilder {
       name: 'Future',
       isAbstract: true,
       typeParameters: [tElement],
+      unit: _asyncUnit,
     );
     futureElement.supertype = objectType;
 
@@ -286,6 +306,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(futureElement);
     return futureElement;
   }
 
@@ -297,9 +318,11 @@ class _MockSdkElementsBuilder {
     _futureOrElement = futureOrElement = _class(
       name: 'FutureOr',
       typeParameters: [tElement],
+      unit: _asyncUnit,
     );
     futureOrElement.supertype = objectType;
 
+    _buildClassElement(futureOrElement);
     return futureOrElement;
   }
 
@@ -307,7 +330,8 @@ class _MockSdkElementsBuilder {
     var intElement = _intElement;
     if (intElement != null) return intElement;
 
-    _intElement = intElement = _class(name: 'int', isAbstract: true);
+    _intElement =
+        intElement = _class(name: 'int', isAbstract: true, unit: _coreUnit);
     intElement.supertype = numType;
 
     intElement.constructors = [
@@ -348,6 +372,7 @@ class _MockSdkElementsBuilder {
       _method('toString', stringType),
     ];
 
+    _buildClassElement(intElement);
     return intElement;
   }
 
@@ -366,6 +391,7 @@ class _MockSdkElementsBuilder {
       name: 'Iterable',
       isAbstract: true,
       typeParameters: [eElement],
+      unit: _coreUnit,
     );
     iterableElement.supertype = objectType;
 
@@ -378,6 +404,7 @@ class _MockSdkElementsBuilder {
       _getter('last', eType),
     ]);
 
+    _buildClassElement(iterableElement);
     return iterableElement;
   }
 
@@ -392,6 +419,7 @@ class _MockSdkElementsBuilder {
       name: 'Iterator',
       isAbstract: true,
       typeParameters: [eElement],
+      unit: _coreUnit,
     );
     iteratorElement.supertype = objectType;
 
@@ -399,6 +427,7 @@ class _MockSdkElementsBuilder {
       _getter('current', eType),
     ]);
 
+    _buildClassElement(iteratorElement);
     return iteratorElement;
   }
 
@@ -413,6 +442,7 @@ class _MockSdkElementsBuilder {
       name: 'List',
       isAbstract: true,
       typeParameters: [eElement],
+      unit: _coreUnit,
     );
     listElement.supertype = objectType;
     listElement.interfaces = [
@@ -442,6 +472,7 @@ class _MockSdkElementsBuilder {
       ]),
     ];
 
+    _buildClassElement(listElement);
     return listElement;
   }
 
@@ -458,6 +489,7 @@ class _MockSdkElementsBuilder {
       name: 'Map',
       isAbstract: true,
       typeParameters: [kElement, vElement],
+      unit: _coreUnit,
     );
     mapElement.supertype = objectType;
 
@@ -475,6 +507,7 @@ class _MockSdkElementsBuilder {
       ]),
     ];
 
+    _buildClassElement(mapElement);
     return mapElement;
   }
 
@@ -482,7 +515,7 @@ class _MockSdkElementsBuilder {
     var nullElement = _nullElement;
     if (nullElement != null) return nullElement;
 
-    _nullElement = nullElement = _class(name: 'Null');
+    _nullElement = nullElement = _class(name: 'Null', unit: _coreUnit);
     nullElement.supertype = objectType;
 
     nullElement.constructors = [
@@ -492,6 +525,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(nullElement);
     return nullElement;
   }
 
@@ -499,7 +533,8 @@ class _MockSdkElementsBuilder {
     var numElement = _numElement;
     if (numElement != null) return numElement;
 
-    _numElement = numElement = _class(name: 'num', isAbstract: true);
+    _numElement =
+        numElement = _class(name: 'num', isAbstract: true, unit: _coreUnit);
     numElement.supertype = objectType;
     numElement.interfaces = [
       _interfaceType(
@@ -572,6 +607,7 @@ class _MockSdkElementsBuilder {
       _getter('isNegative', boolType),
     ]);
 
+    _buildClassElement(numElement);
     return numElement;
   }
 
@@ -584,6 +620,7 @@ class _MockSdkElementsBuilder {
     if (objectElement != null) return objectElement;
 
     _objectElement = objectElement = ElementFactory.object;
+    _coreUnit.encloseElement(objectElement);
     objectElement.interfaces = const <InterfaceType>[];
     objectElement.mixins = const <InterfaceType>[];
     objectElement.typeParameters = const <TypeParameterElement>[];
@@ -606,6 +643,7 @@ class _MockSdkElementsBuilder {
       _getter('runtimeType', typeType),
     ]);
 
+    _buildClassElement(objectElement);
     return objectElement;
   }
 
@@ -617,13 +655,15 @@ class _MockSdkElementsBuilder {
     var overrideElement = _overrideElement;
     if (overrideElement != null) return overrideElement;
 
-    _overrideElement = overrideElement = _class(name: '_Override');
+    _overrideElement =
+        overrideElement = _class(name: '_Override', unit: _coreUnit);
     overrideElement.supertype = objectType;
 
     overrideElement.constructors = [
       _constructor(isConst: true),
     ];
 
+    _buildClassElement(overrideElement);
     return overrideElement;
   }
 
@@ -634,9 +674,11 @@ class _MockSdkElementsBuilder {
     _recordElement = recordElement = _class(
       name: 'Record',
       isAbstract: true,
+      unit: _coreUnit,
     );
     recordElement.supertype = objectType;
 
+    _buildClassElement(recordElement);
     return recordElement;
   }
 
@@ -655,12 +697,14 @@ class _MockSdkElementsBuilder {
       name: 'Set',
       isAbstract: true,
       typeParameters: [eElement],
+      unit: _coreUnit,
     );
     setElement.supertype = objectType;
     setElement.interfaces = [
       iterableType(eType),
     ];
 
+    _buildClassElement(setElement);
     return setElement;
   }
 
@@ -671,9 +715,11 @@ class _MockSdkElementsBuilder {
     _stackTraceElement = stackTraceElement = _class(
       name: 'StackTrace',
       isAbstract: true,
+      unit: _coreUnit,
     );
     stackTraceElement.supertype = objectType;
 
+    _buildClassElement(stackTraceElement);
     return stackTraceElement;
   }
 
@@ -688,6 +734,7 @@ class _MockSdkElementsBuilder {
       name: 'Stream',
       isAbstract: true,
       typeParameters: [tElement],
+      unit: _asyncUnit,
     );
     streamElement.isAbstract = true;
     streamElement.supertype = objectType;
@@ -718,6 +765,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(streamElement);
     return streamElement;
   }
 
@@ -730,9 +778,11 @@ class _MockSdkElementsBuilder {
       name: 'StreamSubscription',
       isAbstract: true,
       typeParameters: [tElement],
+      unit: _asyncUnit,
     );
     streamSubscriptionElement.supertype = objectType;
 
+    _buildClassElement(streamSubscriptionElement);
     return streamSubscriptionElement;
   }
 
@@ -743,6 +793,7 @@ class _MockSdkElementsBuilder {
     _stringElement = stringElement = _class(
       name: 'String',
       isAbstract: true,
+      unit: _coreUnit,
     );
     stringElement.supertype = objectType;
 
@@ -772,6 +823,7 @@ class _MockSdkElementsBuilder {
       _method('toUpperCase', stringType),
     ];
 
+    _buildClassElement(stringElement);
     return stringElement;
   }
 
@@ -786,6 +838,7 @@ class _MockSdkElementsBuilder {
     _symbolElement = symbolElement = _class(
       name: 'Symbol',
       isAbstract: true,
+      unit: _coreUnit,
     );
     symbolElement.supertype = objectType;
 
@@ -799,6 +852,7 @@ class _MockSdkElementsBuilder {
       ),
     ];
 
+    _buildClassElement(symbolElement);
     return symbolElement;
   }
 
@@ -809,9 +863,11 @@ class _MockSdkElementsBuilder {
     _typeElement = typeElement = _class(
       name: 'Type',
       isAbstract: true,
+      unit: _coreUnit,
     );
     typeElement.supertype = objectType;
 
+    _buildClassElement(typeElement);
     return typeElement;
   }
 
@@ -874,22 +930,24 @@ class _MockSdkElementsBuilder {
       FeatureSet.latestLanguageVersion(),
     );
 
-    var asyncUnit = CompilationUnitElementImpl(
+    _asyncUnit = CompilationUnitElementImpl(
       library: asyncLibrary,
       source: asyncSource,
       lineInfo: LineInfo([0]),
     );
 
-    asyncUnit.classes = <ClassElementImpl>[
-      completerElement,
-      futureElement,
-      futureOrElement,
-      streamElement,
-      streamSubscriptionElement
-    ];
-
-    asyncLibrary.definingCompilationUnit = asyncUnit;
+    asyncLibrary.definingCompilationUnit = _asyncUnit;
     return asyncLibrary;
+  }
+
+  void _buildClassElement(ClassElementImpl fragment) {
+    var element = ClassElementImpl2(Reference.root(), fragment);
+    element.mixins = fragment.mixins;
+    element.interfaces = fragment.interfaces;
+    element.fields = fragment.fields;
+    element.constructors = fragment.constructors;
+    element.accessors = fragment.accessors;
+    element.methods = fragment.methods;
   }
 
   LibraryElementImpl _buildCore() {
@@ -903,65 +961,13 @@ class _MockSdkElementsBuilder {
       FeatureSet.latestLanguageVersion(),
     );
 
-    var coreUnit = CompilationUnitElementImpl(
+    _coreUnit = CompilationUnitElementImpl(
       library: coreLibrary,
       source: coreSource,
       lineInfo: LineInfo([0]),
     );
 
-    coreUnit.classes = <ClassElementImpl>[
-      boolElement,
-      comparableElement,
-      deprecatedElement,
-      doubleElement,
-      functionElement,
-      intElement,
-      iterableElement,
-      iteratorElement,
-      listElement,
-      mapElement,
-      nullElement,
-      numElement,
-      objectElement,
-      overrideElement,
-      recordElement,
-      setElement,
-      stackTraceElement,
-      stringElement,
-      symbolElement,
-      typeElement,
-    ];
-
-    coreUnit.functions = <FunctionElementImpl>[
-      _function('identical', boolType, parameters: [
-        _requiredParameter('a', objectType),
-        _requiredParameter('b', objectType),
-      ]),
-      _function('print', voidType, parameters: [
-        _requiredParameter('object', objectType),
-      ]),
-    ];
-
-    var deprecatedVariable = _topLevelVariableConst(
-      'deprecated',
-      _interfaceType(deprecatedElement),
-    );
-
-    var overrideVariable = _topLevelVariableConst(
-      'override',
-      _interfaceType(overrideElement),
-    );
-
-    coreUnit.accessors = <PropertyAccessorElementImpl>[
-      deprecatedVariable.getter!,
-      overrideVariable.getter!,
-    ];
-    coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
-      deprecatedVariable,
-      overrideVariable,
-    ];
-
-    coreLibrary.definingCompilationUnit = coreUnit;
+    coreLibrary.definingCompilationUnit = _coreUnit;
     return coreLibrary;
   }
 
@@ -969,12 +975,14 @@ class _MockSdkElementsBuilder {
     required String name,
     bool isAbstract = false,
     List<TypeParameterElement> typeParameters = const [],
+    required CompilationUnitElementImpl unit,
   }) {
     var element = ClassElementImpl(name, 0);
     element.typeParameters = typeParameters;
     element.constructors = <ConstructorElementImpl>[
       _constructor(),
     ];
+    unit.encloseElement(element);
     return element;
   }
 
@@ -985,6 +993,7 @@ class _MockSdkElementsBuilder {
     List<ParameterElement> parameters = const [],
   }) {
     var element = ConstructorElementImpl(name, 0);
+    element.name2 = name.ifNotEmptyOrElse('new');
     element.isFactory = isFactory;
     element.isConst = isConst;
     element.parameters = parameters;
@@ -1080,6 +1089,70 @@ class _MockSdkElementsBuilder {
     parameter.type = type;
     parameter.defaultValueCode = initializerCode;
     return parameter;
+  }
+
+  void _populateAsync() {
+    _asyncUnit.classes = <ClassElementImpl>[
+      completerElement,
+      futureElement,
+      futureOrElement,
+      streamElement,
+      streamSubscriptionElement
+    ];
+  }
+
+  void _populateCore() {
+    _coreUnit.classes = <ClassElementImpl>[
+      boolElement,
+      comparableElement,
+      deprecatedElement,
+      doubleElement,
+      functionElement,
+      intElement,
+      iterableElement,
+      iteratorElement,
+      listElement,
+      mapElement,
+      nullElement,
+      numElement,
+      objectElement,
+      overrideElement,
+      recordElement,
+      setElement,
+      stackTraceElement,
+      stringElement,
+      symbolElement,
+      typeElement,
+    ];
+
+    _coreUnit.functions = <FunctionElementImpl>[
+      _function('identical', boolType, parameters: [
+        _requiredParameter('a', objectType),
+        _requiredParameter('b', objectType),
+      ]),
+      _function('print', voidType, parameters: [
+        _requiredParameter('object', objectType),
+      ]),
+    ];
+
+    var deprecatedVariable = _topLevelVariableConst(
+      'deprecated',
+      _interfaceType(deprecatedElement),
+    );
+
+    var overrideVariable = _topLevelVariableConst(
+      'override',
+      _interfaceType(overrideElement),
+    );
+
+    _coreUnit.accessors = <PropertyAccessorElementImpl>[
+      deprecatedVariable.getter!,
+      overrideVariable.getter!,
+    ];
+    _coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
+      deprecatedVariable,
+      overrideVariable,
+    ];
   }
 
   ParameterElement _positionalParameter(String name, DartType type) {

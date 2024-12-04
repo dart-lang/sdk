@@ -12,11 +12,16 @@ import 'translator.dart';
 class Globals {
   final Translator translator;
 
+  /// Maps a static field to its global holding the field value.
   final Map<Field, w.GlobalBuilder> _globals = {};
+
+  /// When a global is read from a module other than the module defining it,
+  /// this maps the global to the getter function defined and exported in
+  /// the defining module.
   final Map<w.Global, w.BaseFunction> _globalGetters = {};
-  final Map<w.Global, w.BaseFunction> _globalSetters = {};
-  final Map<Field, w.BaseFunction> _globalInitializers = {};
+
   final Map<Field, w.Global> _globalInitializedFlag = {};
+
   late final WasmGlobalImporter _globalsModuleMap =
       WasmGlobalImporter(translator, 'global');
 
@@ -63,76 +68,48 @@ class Globals {
     return global.type.type;
   }
 
-  /// Sets the value of [w.Global] in [b].
-  ///
-  /// Takes into account the calling module and the module the global belongs
-  /// to. If they are not the same then sets the global indirectly, either
-  /// through an import or a setter call.
-  void updateGlobal(w.InstructionsBuilder b,
-      void Function(w.InstructionsBuilder b) pushValue, w.Global global) {
-    final owningModule = global.enclosingModule;
-    final callingModule = b.module;
-    if (owningModule == callingModule) {
-      pushValue(b);
-      b.global_set(global);
-    } else if (translator.isMainModule(owningModule)) {
-      final importedGlobal = _globalsModuleMap.get(global, callingModule);
-      pushValue(b);
-      b.global_set(importedGlobal);
-    } else {
-      final setter = _globalSetters.putIfAbsent(global, () {
-        final setterType =
-            owningModule.types.defineFunction([global.type.type], const []);
-        final setterFunction = owningModule.functions.define(setterType);
-        final setterBody = setterFunction.body;
-        setterBody.local_get(setterBody.locals.single);
-        setterBody.global_set(global);
-        setterBody.end();
-        return setterFunction;
-      });
-
-      pushValue(b);
-      translator.callFunction(setter, b);
-    }
-  }
-
   /// Return (and if needed create) the Wasm global corresponding to a static
   /// field.
   w.Global getGlobalForStaticField(Field field) {
     assert(!field.isLate);
     return _globals.putIfAbsent(field, () {
       final Constant? init = _getConstantInitializer(field);
-      w.ValueType type = translator.translateTypeOfField(field);
+      w.ValueType fieldType = translator.translateTypeOfField(field);
       final module = translator.moduleForReference(field.fieldReference);
+      final memberName = field.toString();
       if (init != null &&
           !(translator.constants.ensureConstant(init)?.isLazy ?? false)) {
         // Initialized to a constant
-        final global =
-            module.globals.define(w.GlobalType(type, mutable: !field.isFinal));
+        final global = module.globals.define(
+            w.GlobalType(fieldType, mutable: !field.isFinal), memberName);
         translator.constants
-            .instantiateConstant(global.initializer, init, type);
+            .instantiateConstant(global.initializer, init, fieldType);
         global.initializer.end();
         return global;
       } else {
-        if (type is w.RefType && !type.nullable) {
+        final w.ValueType globalType;
+        if (fieldType is w.RefType && !fieldType.nullable) {
           // Null signals uninitialized
-          type = type.withNullability(true);
+          globalType = fieldType.withNullability(true);
         } else {
           // Explicit initialization flag
-          final flag = module.globals.define(w.GlobalType(w.NumType.i32));
+          globalType = fieldType;
+          final flag = module.globals
+              .define(w.GlobalType(w.NumType.i32), "$memberName initialized");
           flag.initializer.i32_const(0);
           flag.initializer.end();
           _globalInitializedFlag[field] = flag;
         }
 
-        final global = module.globals.define(w.GlobalType(type));
+        final global =
+            module.globals.define(w.GlobalType(globalType), memberName);
         translator
             .getDummyValuesCollectorForModule(module)
-            .instantiateDummyValue(global.initializer, type);
+            .instantiateDummyValue(global.initializer, globalType);
         global.initializer.end();
 
-        _globalInitializers[field] =
-            translator.functions.getFunction(field.fieldReference);
+        // Add initializer function to the compilation queue.
+        translator.functions.getFunction(field.fieldReference);
         return global;
       }
     });
@@ -142,7 +119,6 @@ class Globals {
   /// field has been initialized, if such a flag global is needed.
   ///
   /// Note that [getGlobalForStaticField] must have been called for the field beforehand.
-  w.Global? getGlobalInitializedFlag(Field variable) {
-    return _globalInitializedFlag[variable];
-  }
+  w.Global? getGlobalInitializedFlag(Field variable) =>
+      _globalInitializedFlag[variable];
 }

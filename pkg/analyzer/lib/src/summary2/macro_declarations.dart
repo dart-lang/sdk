@@ -1384,7 +1384,7 @@ class DeclarationBuilderFromNode {
   ) {
     var element = node.declaredElement!;
 
-    var declarationElement = element.augmented.declaration;
+    var declarationElement = element.augmented.firstFragment;
     var declarationNode = builder.nodeOfElement(declarationElement)
         as ast.ExtensionDeclarationImpl;
 
@@ -1696,23 +1696,23 @@ class DeclarationBuilderFromNode {
     switch (parentNode) {
       case ast.ClassDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmented.declaration;
+        var typeElement = parentElement.augmented.firstFragment;
         return _declaredIdentifier(parentNode.name, typeElement);
       case ast.EnumDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmented.declaration;
+        var typeElement = parentElement.augmented.firstFragment;
         return _declaredIdentifier(parentNode.name, typeElement);
       case ast.ExtensionDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmented.declaration;
+        var typeElement = parentElement.augmented.firstFragment;
         return _declaredIdentifier2(parentNode.name?.lexeme ?? '', typeElement);
       case ast.ExtensionTypeDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmented.declaration;
+        var typeElement = parentElement.augmented.firstFragment;
         return _declaredIdentifier(parentNode.name, typeElement);
       case ast.MixinDeclaration():
         var parentElement = parentNode.declaredElement!;
-        var typeElement = parentElement.augmented.declaration;
+        var typeElement = parentElement.augmented.firstFragment;
         return _declaredIdentifier(parentNode.name, typeElement);
       default:
         // TODO(scheglov): other parents
@@ -2515,7 +2515,7 @@ extension on Element {
   /// the augmentation chain.
   InstanceElement get enclosingInstanceElement {
     var enclosing = enclosingElement3 as InstanceElement;
-    return enclosing.augmented.declaration;
+    return enclosing.augmented.firstFragment;
   }
 }
 

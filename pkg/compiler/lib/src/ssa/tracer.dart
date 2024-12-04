@@ -242,7 +242,8 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitBoundsCheck(HBoundsCheck node) {
     String lengthId = temporaryId(node.length);
     String indexId = temporaryId(node.index);
-    return "BoundsCheck: length = $lengthId, index = $indexId";
+    return 'BoundsCheck: length = $lengthId, index = $indexId'
+        ', ${node.staticChecks.name}';
   }
 
   @override
@@ -713,7 +714,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitRangeConversion(HRangeConversion node) {
-    return "RangeConversion: ${node.checkedInput}";
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return 'RangeConversion: $inputs';
   }
 
   @override

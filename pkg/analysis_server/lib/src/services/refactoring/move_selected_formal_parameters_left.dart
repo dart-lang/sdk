@@ -43,9 +43,7 @@ class MoveSelectedFormalParametersLeft extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    var selection = await analyzeSelection(
-      available: availability,
-    );
+    var selection = await analyzeSelection(available: availability);
 
     // This should not happen, `isAvailable()` returns `false`.
     if (selection is! ValidSelectionState) {
@@ -76,14 +74,13 @@ class MoveSelectedFormalParametersLeft extends RefactoringProducer {
       ...afterPrevious.whereNot(selected.contains),
     ];
 
-    var formalParameterUpdates = reordered.map(
-      (formalParameter) {
-        return FormalParameterUpdate(
-          id: formalParameter.id,
-          kind: formalParameter.kind,
-        );
-      },
-    ).toList();
+    var formalParameterUpdates =
+        reordered.map((formalParameter) {
+          return FormalParameterUpdate(
+            id: formalParameter.id,
+            kind: formalParameter.kind,
+          );
+        }).toList();
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: formalParameterUpdates,
@@ -99,9 +96,7 @@ class MoveSelectedFormalParametersLeft extends RefactoringProducer {
 
     switch (status) {
       case ChangeStatusFailure():
-        return ComputeStatusFailure(
-          reason: 'Failed to compute the change.',
-        );
+        return ComputeStatusFailure(reason: 'Failed to compute the change.');
       case ChangeStatusSuccess():
         return ComputeStatusSuccess();
     }

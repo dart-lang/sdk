@@ -10,15 +10,19 @@ part of dart._js_helper;
 /// Returns a string for a RegExp pattern that matches [string]. This is done by
 /// escaping all RegExp metacharacters.
 String quoteStringForRegExp(String string) =>
-    // This method is optimized to test before replacement, which should be
-    // much faster. This might be worth measuring in real world use cases
-    // though.
-    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(r"""s => {
+// This method is optimized to test before replacement, which should be
+// much faster. This might be worth measuring in real world use cases
+// though.
+jsStringToDartString(
+  JSStringImpl(
+    JS<WasmExternRef>(r"""s => {
       if (/[[\]{}()*+?.\\^$|]/.test(s)) {
           s = s.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
       }
       return s;
-    }""", jsStringFromDartString(string).toExternRef)));
+    }""", jsStringFromDartString(string).toExternRef),
+  ),
+);
 
 // TODO(srujzs): Add this to `JSObject`.
 @js.JS('Object.keys')
@@ -50,19 +54,32 @@ class JSSyntaxRegExp implements RegExp {
 
   String toString() => 'RegExp/$pattern/' + _nativeRegExp.flags.toDart;
 
-  JSSyntaxRegExp(String source,
-      {bool multiLine = false,
-      bool caseSensitive = true,
-      bool unicode = false,
-      bool dotAll = false})
-      : this.pattern = source,
-        this._nativeRegExp = makeNative(
-            source, multiLine, caseSensitive, unicode, dotAll, false);
+  JSSyntaxRegExp(
+    String source, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool unicode = false,
+    bool dotAll = false,
+  }) : this.pattern = source,
+       this._nativeRegExp = makeNative(
+         source,
+         multiLine,
+         caseSensitive,
+         unicode,
+         dotAll,
+         false,
+       );
 
   JSNativeRegExp get _nativeGlobalVersion {
     if (_nativeGlobalRegExp != null) return _nativeGlobalRegExp!;
     return _nativeGlobalRegExp = makeNative(
-        pattern, isMultiLine, isCaseSensitive, isUnicode, isDotAll, true);
+      pattern,
+      isMultiLine,
+      isCaseSensitive,
+      isUnicode,
+      isDotAll,
+      true,
+    );
   }
 
   JSNativeRegExp get _nativeAnchoredVersion {
@@ -73,7 +90,13 @@ class JSSyntaxRegExp implements RegExp {
     // was the added zero-width match that matched, by looking at the last
     // capture. If it is a String, the match participated, otherwise it didn't.
     return _nativeAnchoredRegExp = makeNative(
-        '$pattern|()', isMultiLine, isCaseSensitive, isUnicode, isDotAll, true);
+      '$pattern|()',
+      isMultiLine,
+      isCaseSensitive,
+      isUnicode,
+      isDotAll,
+      true,
+    );
   }
 
   bool get isMultiLine => _nativeRegExp.multiline.toDart;
@@ -81,8 +104,14 @@ class JSSyntaxRegExp implements RegExp {
   bool get isUnicode => _nativeRegExp.unicode.toDart;
   bool get isDotAll => _nativeRegExp.dotAll.toDart;
 
-  static JSNativeRegExp makeNative(String source, bool multiLine,
-      bool caseSensitive, bool unicode, bool dotAll, bool global) {
+  static JSNativeRegExp makeNative(
+    String source,
+    bool multiLine,
+    bool caseSensitive,
+    bool unicode,
+    bool dotAll,
+    bool global,
+  ) {
     String m = multiLine == true ? 'm' : '';
     String i = caseSensitive == true ? '' : 'i';
     String u = unicode ? 'u' : '';
@@ -91,13 +120,17 @@ class JSSyntaxRegExp implements RegExp {
     String modifiers = '$m$i$u$s$g';
     // The call to create the regexp is wrapped in a try catch so we can
     // reformat the exception if need be.
-    final result = JS<WasmExternRef?>("""(s, m) => {
+    final result = JS<WasmExternRef?>(
+      """(s, m) => {
           try {
             return new RegExp(s, m);
           } catch (e) {
             return String(e);
           }
-        }""", source.toExternRef, modifiers.toExternRef);
+        }""",
+      source.toExternRef,
+      modifiers.toExternRef,
+    );
     if (isJSRegExp(result)) return JSValue(result!) as JSNativeRegExp;
     // The returned value is the stringified JavaScript exception. Turn it into
     // a Dart exception.
@@ -292,8 +325,10 @@ JSNativeRegExp regExpGetGlobalNative(JSSyntaxRegExp regexp) {
 }
 
 RegExpMatch? regExpExecGlobal(
-        JSSyntaxRegExp regexp, JSString str, int startIndex) =>
-    regexp._execGlobal(str, startIndex);
+  JSSyntaxRegExp regexp,
+  JSString str,
+  int startIndex,
+) => regexp._execGlobal(str, startIndex);
 
 JSNativeRegExp regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
 
@@ -316,6 +351,9 @@ int regExpCaptureCount(JSSyntaxRegExp regexp) {
 
 /// Find the first match of [regExp] in [string] at or after [start].
 RegExpMatch? firstMatchAfter(
-    JSSyntaxRegExp regExp, JSString string, int start) {
+  JSSyntaxRegExp regExp,
+  JSString string,
+  int start,
+) {
   return regExp._execGlobal(string, start);
 }

@@ -22,7 +22,7 @@ import "dart:async" show FutureOr;
 import "package:expect/expect.dart";
 
 void main() {
-  // Generally assumes that `Type.toString()` mathches the canonical
+  // Generally assumes that `Type.toString()` matches the canonical
   // format of the type, as used in the language specification,
   // with a leading name, `<...>` around type arguments,
   // and trailing `?` for the nullable union types,

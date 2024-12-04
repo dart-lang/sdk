@@ -31,10 +31,10 @@ class MyFuture<T extends core::Object? = dynamic> extends core::Object implement
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#C10: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T%>;
 }
 static field asy::Future<dynamic> f = throw "";
-static field asy::Future<core::int> t1 = self::f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> => asy::Future::value<core::int>(invalid-expression "pkg/front_end/testcases/inference/future_union_downwards_3.dart:21:44: Error: The argument type 'String' can't be assigned to the parameter type 'FutureOr<int>?'.
+static field asy::Future<core::int> t1 = self::f.{asy::Future::then}<core::int>((dynamic _#wc0#formal) → asy::Future<core::int> => asy::Future::value<core::int>(invalid-expression "pkg/front_end/testcases/inference/future_union_downwards_3.dart:21:44: Error: The argument type 'String' can't be assigned to the parameter type 'FutureOr<int>?'.
         new /*@typeArgs=int*/ Future.value('hi'));
                                            ^" in "hi" as{TypeError} FutureOr<core::int>?)){((dynamic) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-static field asy::Future<core::List<core::int>> t2 = self::f.{asy::Future::then}<core::List<core::int>>((dynamic _) → core::List<core::int> => <core::int>[3]){((dynamic) → FutureOr<core::List<core::int>>, {onError: core::Function?}) → asy::Future<core::List<core::int>>};
+static field asy::Future<core::List<core::int>> t2 = self::f.{asy::Future::then}<core::List<core::int>>((dynamic _#wc0#formal) → core::List<core::int> => <core::int>[3]){((dynamic) → FutureOr<core::List<core::int>>, {onError: core::Function?}) → asy::Future<core::List<core::int>>};
 static method g2() → asy::Future<core::List<core::int>> async /* emittedValueType= core::List<core::int> */ {
   return <core::int>[3];
 }

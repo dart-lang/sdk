@@ -4,7 +4,7 @@
 
 import 'dart:isolate';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import '../use_flag_test_helper.dart';

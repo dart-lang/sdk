@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Unnecessary `await` keyword in return.';
 
@@ -65,9 +64,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     DartType? returnType;
     if (parent is FunctionExpression) {
-      returnType = parent.declaredElement?.returnType;
+      returnType = parent.declaredFragment?.element.returnType;
     } else if (parent is MethodDeclaration) {
-      returnType = parent.declaredElement?.returnType;
+      returnType = parent.declaredFragment?.element.returnType;
     } else if (parent is Block) {
       // removing await in try block changes the behaviour
       return;

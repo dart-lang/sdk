@@ -17,8 +17,9 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
@@ -91,8 +92,10 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
         code += ' = ${utils.getNodeText(expression)}';
       }
       code += ';';
-      var replacementRange =
-          range.startEnd(returnType ?? propertyKeywordGet, getter);
+      var replacementRange = range.startEnd(
+        returnType ?? propertyKeywordGet,
+        getter,
+      );
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(replacementRange, code);
       });

@@ -28,16 +28,17 @@ class Utf8Encode extends BenchmarkBase {
 
   static String _makeName(String language, int size) {
     String name = 'Utf8Encode.$language.';
-    name += size >= 1000000
-        ? '${size ~/ 1000000}M'
-        : size >= 1000
+    name +=
+        size >= 1000000
+            ? '${size ~/ 1000000}M'
+            : size >= 1000
             ? '${size ~/ 1000}k'
             : '$size';
     return name;
   }
 
   Utf8Encode(this.language, this.originalText, this.size)
-      : super(_makeName(language, size));
+    : super(_makeName(language, size));
 
   @override
   void setup() {
@@ -48,8 +49,9 @@ class Utf8Encode extends BenchmarkBase {
     benchmarkTextChunks = List<String>.filled(nChunks, null);
     for (int i = 0; i < nChunks; i++) {
       final offset = i * size;
-      benchmarkTextChunks[i] =
-          String.fromCharCodes(runes.sublist(offset, offset + size));
+      benchmarkTextChunks[i] = String.fromCharCodes(
+        runes.sublist(offset, offset + size),
+      );
     }
   }
 
@@ -84,18 +86,11 @@ class Utf8Encode extends BenchmarkBase {
 }
 
 void main(List<String> args) {
-  const texts = {
-    'en': en,
-    'da': da,
-    'sk': sk,
-    'ru': ru,
-    'ne': ne,
-    'zh': zh,
-  };
+  const texts = {'en': en, 'da': da, 'sk': sk, 'ru': ru, 'ne': ne, 'zh': zh};
   final benchmarks = [
     for (int size in [10, 10000, 10000000])
       for (String language in texts.keys)
-        () => Utf8Encode(language, texts[language], size)
+        () => Utf8Encode(language, texts[language], size),
   ];
 
   for (var bm in benchmarks) {

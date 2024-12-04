@@ -21,8 +21,8 @@ void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new Context();
+    Chain suite, Map<String, String> environment) {
+  return new Future.value(new Context());
 }
 
 class Context extends ChainContext {

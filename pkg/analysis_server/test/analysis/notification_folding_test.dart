@@ -29,7 +29,7 @@ main async() {}
   static final expectedResults = [
     // We don't include the first "import" in the region because
     // we want that to remain visible (not collapse).
-    FoldingRegion(FoldingKind.DIRECTIVES, 6, 34)
+    FoldingRegion(FoldingKind.DIRECTIVES, 6, 34),
   ];
 
   List<FoldingRegion>? lastRegions;
@@ -39,15 +39,19 @@ main async() {}
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_FOLDING) {
-      var params = AnalysisFoldingParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisFoldingParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       if (params.file == testFile.path) {
         lastRegions = params.regions;
         _regionsReceived.complete();
       }
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
-      var params = ServerErrorParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = ServerErrorParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       throw '${params.message}\n${params.stackTrace}';
     }
   }

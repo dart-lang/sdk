@@ -11,7 +11,10 @@ class _StdIOUtils {
     final type = _getStdioHandleType(fd);
     if (type is OSError) {
       throw FileSystemException(
-          "Failed to get type of stdio handle (fd $fd)", "", type);
+        "Failed to get type of stdio handle (fd $fd)",
+        "",
+        type,
+      );
     }
     switch (type) {
       case _stdioHandleTypeTerminal:
@@ -30,7 +33,10 @@ class _StdIOUtils {
     final type = _getStdioHandleType(fd);
     if (type is OSError) {
       throw FileSystemException(
-          "Failed to get type of stdio handle (fd $fd)", "", type);
+        "Failed to get type of stdio handle (fd $fd)",
+        "",
+        type,
+      );
     }
     return new Stdout._(new IOSink(new _StdConsumer(fd)), fd);
   }
@@ -78,7 +84,8 @@ class Stdin {
   void set echoMode(bool enabled) {
     if (!_EmbedderConfig._maySetEchoMode) {
       throw new UnsupportedError(
-          "This embedder disallows setting Stdin.echoMode");
+        "This embedder disallows setting Stdin.echoMode",
+      );
     }
     var result = _setEchoMode(_fd, enabled);
     if (result is OSError) {
@@ -91,7 +98,9 @@ class Stdin {
     var result = _echoNewlineMode(_fd);
     if (result is OSError) {
       throw new StdinException(
-          "Error getting terminal echo newline mode", result);
+        "Error getting terminal echo newline mode",
+        result,
+      );
     }
     return result;
   }
@@ -100,12 +109,15 @@ class Stdin {
   void set echoNewlineMode(bool enabled) {
     if (!_EmbedderConfig._maySetEchoNewlineMode) {
       throw new UnsupportedError(
-          "This embedder disallows setting Stdin.echoNewlineMode");
+        "This embedder disallows setting Stdin.echoNewlineMode",
+      );
     }
     var result = _setEchoNewlineMode(_fd, enabled);
     if (result is OSError) {
       throw new StdinException(
-          "Error setting terminal echo newline mode", result);
+        "Error setting terminal echo newline mode",
+        result,
+      );
     }
   }
 
@@ -122,7 +134,8 @@ class Stdin {
   void set lineMode(bool enabled) {
     if (!_EmbedderConfig._maySetLineMode) {
       throw new UnsupportedError(
-          "This embedder disallows setting Stdin.lineMode");
+        "This embedder disallows setting Stdin.lineMode",
+      );
     }
     var result = _setLineMode(_fd, enabled);
     if (result is OSError) {

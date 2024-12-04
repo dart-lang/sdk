@@ -81,7 +81,7 @@ mkdir flutter_patched_sdk
 
 $checkout/tools/sdks/dart-sdk/bin/dart \
     --packages=$checkout/.dart_tool/package_config.json \
-    $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
+    $checkout/pkg/front_end/tool/compile_platform.dart \
     dart:core \
     -Ddart.vm.product=false \
     -Ddart.isVM=true \
@@ -95,7 +95,7 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
 
 $checkout/tools/sdks/dart-sdk/bin/dart \
     --packages=$checkout/.dart_tool/package_config.json \
-    $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
+    $checkout/pkg/front_end/tool/compile_platform.dart \
     --nnbd-strong \
     --target=flutter \
     dart:core \

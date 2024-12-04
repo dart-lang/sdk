@@ -21,10 +21,11 @@ class UpdateSdkConstraintsTest extends FixProcessorTest {
 
   /// Asserts that a library with [content] can be updated from the [from]
   /// constraints to the [to] constraints.
-  Future<void> assertUpdate(
-      {required String content,
-      String from = '^2.0.0',
-      required String to}) async {
+  Future<void> assertUpdate({
+    required String content,
+    String from = '^2.0.0',
+    required String to,
+  }) async {
     updateTestPubspecFile('''
 environment:
   sdk: $from
@@ -38,13 +39,19 @@ environment:
 
   /// Asserts that a library with `>>>` can be updated from the [from]
   /// constraints to the [to] constraints.
-  Future<void> assertUpdateWithGtGtGt(
-      {required String from, required String to}) async {
-    await assertUpdate(content: r'''
+  Future<void> assertUpdateWithGtGtGt({
+    required String from,
+    required String to,
+  }) async {
+    await assertUpdate(
+      content: r'''
 class C {
   C operator >>>(C other) => this;
 }
-''', from: from, to: to);
+''',
+      from: from,
+      to: to,
+    );
   }
 
   Future<void> test_any() async {
@@ -57,7 +64,9 @@ class C {
 
   Future<void> test_compound() async {
     await assertUpdateWithGtGtGt(
-        from: "'>=2.12.0 <3.0.0'", to: "'>=2.14.0 <3.0.0'");
+      from: "'>=2.12.0 <3.0.0'",
+      to: "'>=2.14.0 <3.0.0'",
+    );
   }
 
   Future<void> test_gt() async {
@@ -69,10 +78,13 @@ class C {
   }
 
   Future<void> test_gtGtGtOperator() async {
-    await assertUpdate(content: '''
+    await assertUpdate(
+      content: '''
 class C {
   C operator >>>(C other) => this;
 }
-''', to: '^2.14.0');
+''',
+      to: '^2.14.0',
+    );
   }
 }

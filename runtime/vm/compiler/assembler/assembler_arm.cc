@@ -3107,6 +3107,19 @@ void Assembler::OrImmediate(Register rd,
   }
 }
 
+void Assembler::XorImmediate(Register rd,
+                             Register rs,
+                             int32_t imm,
+                             Condition cond) {
+  Operand o;
+  if (Operand::CanHold(imm, &o)) {
+    eor(rd, rs, Operand(o), cond);
+  } else {
+    LoadImmediate(TMP, imm, cond);
+    eor(rd, rs, Operand(TMP), cond);
+  }
+}
+
 void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
@@ -3615,7 +3628,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
 
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp_reg, tags);
-    str(temp_reg, FieldAddress(instance_reg, target::Object::tags_offset()));
+    InitializeHeader(temp_reg, instance_reg);
   } else {
     b(failure);
   }
@@ -3658,8 +3671,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // instance: new object start as a tagged pointer.
     const uword tags = target::MakeTagWordForNewSpaceObject(cid, instance_size);
     LoadImmediate(temp2, tags);
-    str(temp2,
-        FieldAddress(instance, target::Object::tags_offset()));  // Store tags.
+    InitializeHeader(temp2, instance);
   } else {
     b(failure);
   }

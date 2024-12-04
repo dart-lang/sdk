@@ -18,12 +18,13 @@ void g() {
 
 runtimeFalse() => int.parse('1') == 0;
 
-// `expectedFrames` is (String, line, column) of the frames we check.
+// `expectedFrames` is (file, line, column, name) of the frames we check.
 //
 // Information we don't check are "null": we don't want to check line/column
 // of standard library functions to avoid breaking the test with unrelated
 // changes to the standard library.
-void testMain(String testName, List<(String?, int?, int?)?> expectedFrames) {
+void testMain(
+    String testName, List<(String?, int?, int?, String?)?> expectedFrames) {
   // Use `f` and `g` in a few places to make sure wasm-opt won't inline them
   // in the test.
   final fTearOff = f;
@@ -69,7 +70,8 @@ void testMain(String testName, List<(String?, int?, int?)?> expectedFrames) {
     }
     if ((expected.$1 != null && actual.$1 != expected.$1) ||
         (expected.$2 != null && actual.$2 != expected.$2) ||
-        (expected.$3 != null && actual.$3 != expected.$3)) {
+        (expected.$3 != null && actual.$3 != expected.$3) ||
+        (expected.$4 != null && actual.$4 != expected.$4)) {
       throw 'Mismatch:\n  Expected: $expected\n  Actual: $actual';
     }
   }
@@ -112,9 +114,9 @@ Mapping getSourceMapping(String testName) {
   return allMappings;
 }
 
-List<(String?, int?, int?)?> parseStack(
+List<(String?, int?, int?, String?)?> parseStack(
     String testName, Mapping mapping, String stackTraceString) {
-  final parsed = <(String?, int?, int?)?>[];
+  final parsed = <(String?, int?, int?, String?)?>[];
   for (final line in stackTraceString.split('\n')) {
     if (line.contains('.mjs') || line.contains('.js')) {
       parsed.add(null);
@@ -145,7 +147,8 @@ List<(String?, int?, int?)?> parseStack(
     final filename = span.sourceUrl!.pathSegments.last;
     final lineNumber = span.start.line;
     final columnNumber = span.start.column;
-    parsed.add((filename, 1 + lineNumber, 1 + columnNumber));
+    final symbolName = span.text;
+    parsed.add((filename, 1 + lineNumber, 1 + columnNumber, symbolName));
   }
   return parsed;
 }

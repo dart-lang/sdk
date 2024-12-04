@@ -103,7 +103,7 @@ class _IoFileSystemEntity implements FileSystemEntity {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Future<List<int>> readAsBytesAsyncIfPossible() async {
+  Future<Uint8List> readAsBytesAsyncIfPossible() async {
     try {
       FileSystemDependencyTracker.recordDependency(tracker, uri);
       return await new io.File.fromUri(uri).readAsBytes();
@@ -168,7 +168,7 @@ class DataFileSystemEntity implements FileSystemEntity {
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+  Future<Uint8List> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<String> readAsString() {

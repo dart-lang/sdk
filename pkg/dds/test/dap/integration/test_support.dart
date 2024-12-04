@@ -306,12 +306,17 @@ environment:
   static Future<DapTestSession> setUp({
     List<String>? additionalArgs,
     bool forceVerboseLogging = false,
+    String? logPrefix = '',
   }) async {
+    final logger = forceVerboseLogging || verboseLogging
+        ? (s) => print('$logPrefix$s')
+        : null;
+
     final server = await startServer(additionalArgs: additionalArgs);
     final client = await DapTestClient.connect(
       server,
       captureVmServiceTraffic: forceVerboseLogging || verboseLogging,
-      logger: forceVerboseLogging || verboseLogging ? print : null,
+      logger: logger,
     );
     return DapTestSession._(server, client);
   }
@@ -359,4 +364,29 @@ void testWithUriConfigurations(
       return testFunc();
     });
   }
+}
+
+/// Sets the casing of a drive letter according to [casing].
+String setDriveLetterCasing(String path, DriveLetterCasing? casing) {
+  if (!Platform.isWindows || path.isEmpty) {
+    return path;
+  }
+  var (driveLetter, rest) = (path.substring(0, 1), path.substring(1));
+  return switch (casing) {
+    DriveLetterCasing.uppercase => driveLetter.toUpperCase() + rest,
+    DriveLetterCasing.lowercase => driveLetter.toLowerCase() + rest,
+    null => path,
+  };
+}
+
+/// Normalizes a a path to have an uppercase drive letter. All paths verified
+/// that come out of the adapter are normalized this way so test expectations
+/// should be normalized the same way before comparing.
+String uppercaseDriveLetter(String path) {
+  return setDriveLetterCasing(path, DriveLetterCasing.uppercase);
+}
+
+enum DriveLetterCasing {
+  uppercase,
+  lowercase,
 }

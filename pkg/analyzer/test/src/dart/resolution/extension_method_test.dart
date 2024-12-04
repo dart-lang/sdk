@@ -440,7 +440,7 @@ NamedType
         type: S
     rightBracket: >
   element: <testLibraryFragment>::@class::C
-  element2: <testLibraryFragment>::@class::C#element
+  element2: <testLibrary>::@class::C
   type: C<S>
 ''');
   }
@@ -454,7 +454,7 @@ extension E on dynamic {}
 NamedType
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }
@@ -469,7 +469,7 @@ extension E on A {}
 NamedType
   name: A
   element: <testLibraryFragment>::@enum::A
-  element2: <testLibraryFragment>::@enum::A#element
+  element2: <testLibrary>::@enum::A
   type: A
 ''');
   }
@@ -484,7 +484,7 @@ GenericFunctionType
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
@@ -493,7 +493,7 @@ GenericFunctionType
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       declaredElement: @-1
         type: int
@@ -519,7 +519,7 @@ extension E on C {}
 NamedType
   name: C
   element: <testLibraryFragment>::@class::C
-  element2: <testLibraryFragment>::@class::C#element
+  element2: <testLibrary>::@class::C
   type: C
 ''');
   }
@@ -535,7 +535,7 @@ extension E on M {}
 NamedType
   name: M
   element: <testLibraryFragment>::@mixin::M
-  element2: <testLibraryFragment>::@mixin::M#element
+  element2: <testLibrary>::@mixin::M
   type: M
 ''');
   }
@@ -559,7 +559,7 @@ NamedType
         type: S
     rightBracket: >
   element: <testLibraryFragment>::@class::C
-  element2: <testLibraryFragment>::@class::C#element
+  element2: <testLibrary>::@class::C
   type: C<S>
 ''');
   }
@@ -573,7 +573,7 @@ extension on dynamic {}
 NamedType
   name: dynamic
   element: dynamic@-1
-  element2: dynamic@-1
+  element2: dynamic
   type: dynamic
 ''');
   }
@@ -588,7 +588,7 @@ extension on A {}
 NamedType
   name: A
   element: <testLibraryFragment>::@enum::A
-  element2: <testLibraryFragment>::@enum::A#element
+  element2: <testLibrary>::@enum::A
   type: A
 ''');
   }
@@ -603,7 +603,7 @@ GenericFunctionType
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
@@ -612,7 +612,7 @@ GenericFunctionType
       type: NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
       declaredElement: @-1
         type: String
@@ -638,7 +638,7 @@ extension on C {}
 NamedType
   name: C
   element: <testLibraryFragment>::@class::C
-  element2: <testLibraryFragment>::@class::C#element
+  element2: <testLibrary>::@class::C
   type: C
 ''');
   }
@@ -654,7 +654,7 @@ extension on M {}
 NamedType
   name: M
   element: <testLibraryFragment>::@mixin::M
-  element2: <testLibraryFragment>::@mixin::M#element
+  element2: <testLibrary>::@mixin::M
   type: M
 ''');
   }
@@ -2831,10 +2831,10 @@ PropertyAccess
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
-      element: package:test/lib.dart::<fragment>::@extension::E#element
+      element: package:test/lib.dart::@extension::E
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
-    element: package:test/lib.dart::<fragment>::@extension::E#element
+    element: package:test/lib.dart::@extension::E
     staticType: null
   operator: .
   propertyName: SimpleIdentifier
@@ -2864,7 +2864,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -2906,10 +2906,10 @@ PropertyAccess
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
-      element: package:test/lib.dart::<fragment>::@extension::E#element
+      element: package:test/lib.dart::@extension::E
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
-    element: package:test/lib.dart::<fragment>::@extension::E#element
+    element: package:test/lib.dart::@extension::E
     staticType: null
   operator: .
   propertyName: SimpleIdentifier
@@ -2939,7 +2939,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -2981,10 +2981,10 @@ MethodInvocation
     identifier: SimpleIdentifier
       token: E
       staticElement: package:test/lib.dart::<fragment>::@extension::E
-      element: package:test/lib.dart::<fragment>::@extension::E#element
+      element: package:test/lib.dart::@extension::E
       staticType: null
     staticElement: package:test/lib.dart::<fragment>::@extension::E
-    element: package:test/lib.dart::<fragment>::@extension::E#element
+    element: package:test/lib.dart::@extension::E
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3018,7 +3018,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3063,10 +3063,10 @@ AssignmentExpression
       identifier: SimpleIdentifier
         token: E
         staticElement: package:test/lib.dart::<fragment>::@extension::E
-        element: package:test/lib.dart::<fragment>::@extension::E#element
+        element: package:test/lib.dart::@extension::E
         staticType: null
       staticElement: package:test/lib.dart::<fragment>::@extension::E
-      element: package:test/lib.dart::<fragment>::@extension::E#element
+      element: package:test/lib.dart::@extension::E
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -3111,7 +3111,7 @@ AssignmentExpression
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@extension::E
-      element: <testLibraryFragment>::@extension::E#element
+      element: <testLibrary>::@extension::E
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3155,7 +3155,7 @@ PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     staticElement: <testLibraryFragment>::@extension::E
-    element: <testLibraryFragment>::@extension::E#element
+    element: <testLibrary>::@extension::E
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -4112,7 +4112,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::a
-    element: <testLibraryFragment>::@function::a#element
+    element: <testLibrary>::@function::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4142,7 +4142,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: a
     staticElement: <testLibraryFragment>::@function::a
-    element: <testLibraryFragment>::@function::a#element
+    element: <testLibrary>::@function::a
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (

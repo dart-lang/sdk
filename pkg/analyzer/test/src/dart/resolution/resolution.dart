@@ -13,12 +13,13 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
@@ -46,6 +47,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   late ResolvedUnitResult result;
   late FindNode findNode;
   late FindElement findElement;
+  late FindElement2 findElement2;
 
   final DartObjectPrinterConfiguration dartObjectPrinterConfiguration =
       DartObjectPrinterConfiguration();
@@ -63,6 +65,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get futureElement => typeProvider.futureElement;
 
+  InheritanceManager3 get inheritanceManager {
+    var library = result.libraryElement2 as LibraryElementImpl;
+    return library.session.inheritanceManager;
+  }
+
   ClassElement get intElement => typeProvider.intElement;
 
   InterfaceType get intType => typeProvider.intType;
@@ -79,8 +86,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       typeProvider.objectType.element as ClassElement;
 
   bool get strictCasts {
-    var analysisOptions = result.session.analysisContext
-        .getAnalysisOptionsForFile(result.file) as AnalysisOptionsImpl;
+    var analysisOptions =
+        result.session.analysisContext.getAnalysisOptionsForFile(result.file);
     return analysisOptions.strictCasts;
   }
 
@@ -474,6 +481,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
+    findElement2 = FindElement2(result.unit);
   }
 
   /// Create a new file with the [path] and [content], resolve it into [result].
@@ -585,6 +593,10 @@ class _MultiplyDefinedElementMatcher extends Matcher {
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
   FindElement get findElement {
     return FindElement(unit);
+  }
+
+  FindElement2 get findElement2 {
+    return FindElement2(unit);
   }
 
   FindNode get findNode {

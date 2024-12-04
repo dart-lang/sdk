@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.declaration;
-
 import '../base/problems.dart' show unsupported;
 
 abstract class Builder {
@@ -16,7 +14,7 @@ abstract class Builder {
 
   Uri? get fileUri;
 
-  int get charOffset;
+  int get fileOffset;
 
   Builder get origin;
 
@@ -31,8 +29,6 @@ abstract class Builder {
   bool get isFactory;
 
   bool get isField;
-
-  bool get isFinal;
 
   bool get isGetter;
 
@@ -251,7 +247,7 @@ abstract class Builder {
 
   bool get isTypeDeclaration;
 
-  bool get isTypeVariable;
+  bool get isTypeParameter;
 
   /// Applies [augmentation] to this declaration.
   void applyAugmentation(Builder augmentation);
@@ -286,10 +282,6 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isField => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => false;
 
   @override
   bool get isGetter => false;
@@ -332,7 +324,6 @@ abstract class BuilderImpl implements Builder {
   bool get isAugmenting => this != origin;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isAugment => false;
 
   @override
@@ -363,12 +354,12 @@ abstract class BuilderImpl implements Builder {
   bool get isTypeDeclaration => false;
 
   @override
-  bool get isTypeVariable => false;
+  bool get isTypeParameter => false;
 
   @override
   // Coverage-ignore(suite): Not run.
   void applyAugmentation(Builder augmentation) {
-    unsupported("${runtimeType}.applyAugmentation", charOffset, fileUri);
+    unsupported("${runtimeType}.applyAugmentation", fileOffset, fileUri);
   }
 
   @override

@@ -19,8 +19,9 @@ class CreateSetter extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_setterName];
@@ -82,8 +83,9 @@ class CreateSetter extends ResolvedCorrectionProducer {
       return;
     }
     // prepare target declaration
-    var targetDeclarationResult =
-        await sessionHelper.getElementDeclaration2(targetFragment);
+    var targetDeclarationResult = await sessionHelper.getElementDeclaration2(
+      targetFragment,
+    );
     if (targetDeclarationResult == null) {
       return;
     }
@@ -102,18 +104,17 @@ class CreateSetter extends ResolvedCorrectionProducer {
     var targetFile = targetSource.fullName;
     _setterName = nameNode.name;
     await builder.addDartFileEdit(targetFile, (builder) {
-      builder.insertGetter(
-        targetNode,
-        (builder) {
-          var parameterTypeNode = climbPropertyAccess(nameNode);
-          var parameterType = inferUndefinedExpressionType(parameterTypeNode);
-          builder.writeSetterDeclaration(_setterName,
-              isStatic: staticModifier,
-              nameGroupName: 'NAME',
-              parameterType: parameterType,
-              parameterTypeGroupName: 'TYPE');
-        },
-      );
+      builder.insertGetter(targetNode, (builder) {
+        var parameterTypeNode = climbPropertyAccess(nameNode);
+        var parameterType = inferUndefinedExpressionType(parameterTypeNode);
+        builder.writeSetterDeclaration(
+          _setterName,
+          isStatic: staticModifier,
+          nameGroupName: 'NAME',
+          parameterType: parameterType,
+          parameterTypeGroupName: 'TYPE',
+        );
+      });
     });
   }
 }

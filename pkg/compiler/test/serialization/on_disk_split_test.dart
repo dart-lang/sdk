@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart';
 import 'package:compiler/src/util/memory_compiler.dart';

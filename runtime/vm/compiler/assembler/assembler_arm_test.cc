@@ -762,7 +762,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ Bind(&retry);
   __ ldrex(R0, SP);
   __ strex(IP, R1, SP);  // IP == 0, success
-  __ tst(IP, Operand(0));
+  __ cmp(IP, Operand(0));
   __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
   __ Pop(R0);        // 42
   __ Ret();

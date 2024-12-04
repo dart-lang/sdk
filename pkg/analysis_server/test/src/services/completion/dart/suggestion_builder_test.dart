@@ -12,14 +12,16 @@ import '../../../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ContextTypeTest);
+    defineReflectiveTests(SuggestionBuilderTest);
   });
 }
 
 @reflectiveTest
-class ContextTypeTest extends AbstractSingleUnitTest {
-  void assertSuggestion(CompletionSuggestion suggestion,
-      {String? expectedDefaultArgumentList}) {
+class SuggestionBuilderTest extends AbstractSingleUnitTest {
+  void assertSuggestion(
+    CompletionSuggestion suggestion, {
+    String? expectedDefaultArgumentList,
+  }) {
     if (expectedDefaultArgumentList != null) {
       var defaultArgumentList = suggestion.defaultArgumentListString!;
       expect(defaultArgumentList, expectedDefaultArgumentList);
@@ -32,14 +34,14 @@ class ContextTypeTest extends AbstractSingleUnitTest {
       offset: 0,
     );
     var builder = SuggestionBuilder(request, useFilter: false);
-    builder.suggestTopLevelFunction(findElement.topFunction('f'));
+    builder.suggestTopLevelFunction(findElement2.topFunction('f'));
     var suggestions = builder.suggestions.map((e) => e.build()).toList();
     expect(suggestions, hasLength(1));
     return suggestions[0];
   }
 
   Future<void>
-      test_topLevelFunction_functionTypedArgument_noParameterName() async {
+  test_topLevelFunction_functionTypedArgument_noParameterName() async {
     await resolveTestCode('''
 void f(void Function(int) closure) {}
 ''');
@@ -48,7 +50,7 @@ void f(void Function(int) closure) {}
   }
 
   Future<void>
-      test_topLevelFunction_functionTypedArgument_potentialDuplication() async {
+  test_topLevelFunction_functionTypedArgument_potentialDuplication() async {
     await resolveTestCode('''
 void f(void Function(int, int p0) closure) {}
 ''');

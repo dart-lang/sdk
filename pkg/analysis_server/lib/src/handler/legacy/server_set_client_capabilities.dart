@@ -13,14 +13,19 @@ class ServerSetClientCapabilitiesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   ServerSetClientCapabilitiesHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     try {
       server.clientCapabilities = ServerSetClientCapabilitiesParams.fromRequest(
-          request,
-          clientUriConverter: server.uriConverter);
+        request,
+        clientUriConverter: server.uriConverter,
+      );
     } on RequestFailure catch (exception) {
       sendResponse(exception.response);
       return;

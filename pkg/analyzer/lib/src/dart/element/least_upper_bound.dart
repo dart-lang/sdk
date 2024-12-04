@@ -196,11 +196,11 @@ class InterfaceLeastUpperBoundHelper {
     return NullabilitySuffix.none;
   }
 
-  /// Return the length of the longest inheritance path from a subtype of the
-  /// given [element] to Object, where the given [depth] is the length of the
-  /// longest path from the subtype to this type. The set of [visitedElements]
-  /// is used to prevent infinite recursion in the case of a cyclic type
-  /// structure.
+  /// Returns the length of the longest inheritance path from a subtype of the
+  /// given [type] to `Object`.
+  ///
+  /// The set of [visitedElements] is used to prevent infinite recursion in the
+  /// case of a cyclic type structure.
   static int _computeLongestInheritancePathToObject(
       InterfaceType type, Set<InterfaceElement> visitedElements) {
     var element = type.element;

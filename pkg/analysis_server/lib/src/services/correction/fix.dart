@@ -417,6 +417,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Convert the quotes and remove escapes everywhere in file',
   );
+  static const CONVERT_RELATED_TO_CASCADE = FixKind(
+    'dart.fix.convert.relatedToCascade',
+    DartFixKindPriority.standard + 1,
+    'Convert this and related to cascade notation',
+  );
   static const CONVERT_TO_BOOL_EXPRESSION = FixKind(
     'dart.fix.convert.toBoolExpression',
     DartFixKindPriority.standard,
@@ -819,6 +824,11 @@ abstract final class DartFixKind {
     49,
     "Import 'dart:async'",
   );
+  static const IMPORT_LIBRARY_COMBINATOR = FixKind(
+    'dart.fix.import.libraryCombinator',
+    DartFixKindPriority.standard + 5,
+    "Update library '{0}' import",
+  );
   static const IMPORT_LIBRARY_PREFIX = FixKind(
     'dart.fix.import.libraryPrefix',
     DartFixKindPriority.standard + 5,
@@ -829,25 +839,80 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 3,
     "Import library '{0}'",
   );
+  static const IMPORT_LIBRARY_PROJECT1_PREFIXED = FixKind(
+    'dart.fix.import.libraryProject1Prefixed',
+    DartFixKindPriority.standard + 3,
+    "Import library '{0}' with prefix '{1}'",
+  );
+  static const IMPORT_LIBRARY_PROJECT1_PREFIXED_SHOW = FixKind(
+    'dart.fix.import.libraryProject1PrefixedShow',
+    DartFixKindPriority.standard + 3,
+    "Import library '{0}' with prefix '{1}' and 'show'",
+  );
+  static const IMPORT_LIBRARY_PROJECT1_SHOW = FixKind(
+    'dart.fix.import.libraryProject1Show',
+    DartFixKindPriority.standard + 3,
+    "Import library '{0}' with 'show'",
+  );
   static const IMPORT_LIBRARY_PROJECT2 = FixKind(
     'dart.fix.import.libraryProject2',
     DartFixKindPriority.standard + 2,
     "Import library '{0}'",
+  );
+  static const IMPORT_LIBRARY_PROJECT2_PREFIXED = FixKind(
+    'dart.fix.import.libraryProject2Prefixed',
+    DartFixKindPriority.standard + 2,
+    "Import library '{0}' with prefix '{1}'",
+  );
+  static const IMPORT_LIBRARY_PROJECT2_PREFIXED_SHOW = FixKind(
+    'dart.fix.import.libraryProject2PrefixedShow',
+    DartFixKindPriority.standard + 2,
+    "Import library '{0}' with prefix '{1}' and 'show'",
+  );
+  static const IMPORT_LIBRARY_PROJECT2_SHOW = FixKind(
+    'dart.fix.import.libraryProject2Show',
+    DartFixKindPriority.standard + 2,
+    "Import library '{0}' with 'show'",
   );
   static const IMPORT_LIBRARY_PROJECT3 = FixKind(
     'dart.fix.import.libraryProject3',
     DartFixKindPriority.standard + 1,
     "Import library '{0}'",
   );
+  static const IMPORT_LIBRARY_PROJECT3_PREFIXED = FixKind(
+    'dart.fix.import.libraryProject3Prefixed',
+    DartFixKindPriority.standard + 1,
+    "Import library '{0}' with prefix '{1}'",
+  );
+  static const IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW = FixKind(
+    'dart.fix.import.libraryProject3PrefixedShow',
+    DartFixKindPriority.standard + 1,
+    "Import library '{0}' with prefix '{1}' and 'show'",
+  );
+  static const IMPORT_LIBRARY_PROJECT3_SHOW = FixKind(
+    'dart.fix.import.libraryProject3Show',
+    DartFixKindPriority.standard + 1,
+    "Import library '{0}' with 'show'",
+  );
   static const IMPORT_LIBRARY_SDK = FixKind(
     'dart.fix.import.librarySdk',
     DartFixKindPriority.standard + 4,
     "Import library '{0}'",
   );
-  static const IMPORT_LIBRARY_SHOW = FixKind(
-    'dart.fix.import.libraryShow',
-    DartFixKindPriority.standard + 5,
-    "Update library '{0}' import",
+  static const IMPORT_LIBRARY_SDK_PREFIXED = FixKind(
+    'dart.fix.import.librarySdkPrefixed',
+    DartFixKindPriority.standard + 4,
+    "Import library '{0}' with prefix '{1}'",
+  );
+  static const IMPORT_LIBRARY_SDK_PREFIXED_SHOW = FixKind(
+    'dart.fix.import.librarySdkPrefixedShow',
+    DartFixKindPriority.standard + 4,
+    "Import library '{0}' with prefix '{1}' and 'show'",
+  );
+  static const IMPORT_LIBRARY_SDK_SHOW = FixKind(
+    'dart.fix.import.librarySdkShow',
+    DartFixKindPriority.standard + 4,
+    "Import library '{0}' with 'show'",
   );
   static const INLINE_INVOCATION = FixKind(
     'dart.fix.inlineInvocation',
@@ -874,15 +939,26 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Insert body',
   );
+  static const INSERT_ON_KEYWORD = FixKind(
+    'dart.fix.insertOnKeyword',
+    DartFixKindPriority.standard,
+    "Insert 'on' keyword",
+  );
+  static const INSERT_ON_KEYWORD_MULTI = FixKind(
+    'dart.fix.insertOnKeyword.multi',
+    DartFixKindPriority.inFile,
+    "Insert 'on' keyword in file",
+  );
   static const INSERT_SEMICOLON = FixKind(
     'dart.fix.insertSemicolon',
     DartFixKindPriority.standard,
     "Insert ';'",
   );
   static const INSERT_SEMICOLON_MULTI = FixKind(
-      'dart.fix.insertSemicolon.multi',
-      DartFixKindPriority.inFile,
-      "Insert ';' everywhere in file");
+    'dart.fix.insertSemicolon.multi',
+    DartFixKindPriority.inFile,
+    "Insert ';' everywhere in file",
+  );
   static const MAKE_CLASS_ABSTRACT = FixKind(
     'dart.fix.makeClassAbstract',
     DartFixKindPriority.standard,
@@ -1969,6 +2045,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Update the SDK constraints',
   );
+  static const USE_DIVISION = FixKind(
+    'dart.fix.use.division',
+    DartFixKindPriority.standard,
+    'Use / instead of undefined ~/',
+  );
   static const USE_EFFECTIVE_INTEGER_DIVISION = FixKind(
     'dart.fix.use.effectiveIntegerDivision',
     DartFixKindPriority.standard,
@@ -1999,8 +2080,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Use x.isNotEmpty instead of '!x.isEmpty' everywhere in file",
   );
-  static const USE_NAMED_CONSTANTS = FixKind('dart.fix.use.namedConstants',
-      DartFixKindPriority.standard, 'Replace with a predefined named constant');
+  static const USE_NAMED_CONSTANTS = FixKind(
+    'dart.fix.use.namedConstants',
+    DartFixKindPriority.standard,
+    'Replace with a predefined named constant',
+  );
   static const USE_NOT_EQ_NULL = FixKind(
     'dart.fix.use.notEqNull',
     DartFixKindPriority.standard,

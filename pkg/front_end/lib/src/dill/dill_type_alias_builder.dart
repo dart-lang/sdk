@@ -2,48 +2,52 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.dill_typedef_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/problems.dart' show unimplemented;
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
-import 'dill_class_builder.dart' show computeTypeVariableBuilders;
+import 'dill_class_builder.dart' show computeTypeParameterBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
+  @override
+  final DillLibraryBuilder parent;
+
   @override
   final Typedef typedef;
 
   @override
   final Map<Name, Procedure>? tearOffs;
 
-  List<NominalVariableBuilder>? _typeVariables;
+  List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _type;
 
   @override
   DartType? thisType;
 
-  DillTypeAliasBuilder(this.typedef, this.tearOffs, DillLibraryBuilder parent)
-      : super(null, typedef.name, parent, typedef.fileUri, typedef.fileOffset);
+  DillTypeAliasBuilder(this.typedef, this.tearOffs, this.parent);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  List<MetadataBuilder> get metadata {
-    return unimplemented("metadata", -1, null);
-  }
+  int get fileOffset => typedef.fileOffset;
 
   @override
-  List<NominalVariableBuilder>? get typeVariables {
-    if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
-      _typeVariables = computeTypeVariableBuilders(
+  String get name => typedef.name;
+
+  @override
+  Uri get fileUri => typedef.fileUri;
+
+  @override
+  Reference get reference => typedef.reference;
+
+  @override
+  List<NominalParameterBuilder>? get typeParameters {
+    if (_typeParameters == null && typedef.typeParameters.isNotEmpty) {
+      _typeParameters = computeTypeParameterBuilders(
           typedef.typeParameters, libraryBuilder.loader);
     }
-    return _typeVariables;
+    return _typeParameters;
   }
 
   @override
@@ -51,7 +55,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   bool get fromDill => true;
 
   @override
-  int get typeVariablesCount => typedef.typeParameters.length;
+  int get typeParametersCount => typedef.typeParameters.length;
 
   @override
   TypeBuilder get type {
@@ -66,7 +70,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    // For performance reasons, [typeVariables] aren't restored from [target].
+    // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {

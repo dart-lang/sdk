@@ -214,9 +214,7 @@ void FlowGraphCompiler::InitCompiler() {
       zone(), &code_source_map_builder_->inline_id_to_function());
   exception_handlers_list_ =
       new (zone()) ExceptionHandlerList(parsed_function().function());
-#if defined(DART_PRECOMPILER)
   catch_entry_moves_maps_builder_ = new (zone()) CatchEntryMovesMapBuilder();
-#endif
   block_info_.Clear();
   // Initialize block info and search optimized (non-OSR) code for calls
   // indicating a non-leaf routine and calls without IC data indicating
@@ -229,7 +227,7 @@ void FlowGraphCompiler::InitCompiler() {
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
         if (auto* branch = current->AsBranch()) {
-          current = branch->comparison();
+          current = branch->condition();
         }
         if (auto* instance_call = current->AsInstanceCall()) {
           const ICData* ic_data = instance_call->ic_data();
@@ -352,7 +350,6 @@ void FlowGraphCompiler::CompactBlocks() {
   block_info->set_next_nonempty_label(nonempty_label);
 }
 
-#if defined(DART_PRECOMPILER)
 static intptr_t LocationToStackIndex(const Location& src) {
   ASSERT(src.HasStackIndex());
   return -compiler::target::frame_layout.VariableIndexForFrameSlot(
@@ -422,10 +419,8 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
   return CatchEntryMove::FromSlot(src_kind, LocationToStackIndex(src),
                                   dst_index);
 }
-#endif
 
 void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
-#if defined(DART_PRECOMPILER)
   const intptr_t try_index = CurrentTryIndex();
   if (is_optimizing() && env != nullptr && (try_index != kInvalidTryIndex)) {
     env = env->Outermost();
@@ -463,7 +458,6 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env) {
 
     catch_entry_moves_maps_builder_->EndMapping();
   }
-#endif  // defined(DART_PRECOMPILER)
 }
 
 void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
@@ -1363,15 +1357,9 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 }
 
 void FlowGraphCompiler::FinalizeCatchEntryMovesMap(const Code& code) {
-#if defined(DART_PRECOMPILER)
-  if (FLAG_precompiled_mode) {
-    TypedData& maps = TypedData::Handle(
-        catch_entry_moves_maps_builder_->FinalizeCatchEntryMovesMap());
-    code.set_catch_entry_moves_maps(maps);
-    return;
-  }
-#endif
-  code.set_num_variables(flow_graph().variable_count());
+  TypedData& maps = TypedData::Handle(
+      catch_entry_moves_maps_builder_->FinalizeCatchEntryMovesMap());
+  code.set_catch_entry_moves_maps(maps);
 }
 
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
@@ -1794,8 +1782,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       switch (instr->RequiredInputRepresentation(i)) {
         case kUnboxedDouble:
           ASSERT(fpu_reg != kNoFpuRegister);
-          ASSERT(instr->SpeculativeModeOfInput(i) ==
-                 Instruction::kNotSpeculative);
           assembler()->LoadUnboxedDouble(
               fpu_reg, reg,
               compiler::target::Double::value_offset() - kHeapObjectTag);
@@ -1803,8 +1789,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         case kUnboxedFloat32x4:
         case kUnboxedFloat64x2:
           ASSERT(fpu_reg != kNoFpuRegister);
-          ASSERT(instr->SpeculativeModeOfInput(i) ==
-                 Instruction::kNotSpeculative);
           assembler()->LoadUnboxedSimd128(
               fpu_reg, reg,
               compiler::target::Float32x4::value_offset() - kHeapObjectTag);
@@ -1850,6 +1834,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         break;
       case Location::kSameAsFirstInput:
       case Location::kSameAsFirstOrSecondInput:
+      case Location::kMayBeSameAsFirstInput:
         result_location = locs->in(0);
         break;
       case Location::kRequiresFpuRegister:
@@ -3135,18 +3120,18 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
       (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
         compiler->SlowPathEnvironmentFor(instruction(), num_args);
-    // TODO(47044): Should be able to say `FLAG_precompiled_mode` instead.
-    if (CompilerState::Current().is_aot()) {
-      compiler->RecordCatchEntryMoves(env);
-    } else if (compiler->is_optimizing()) {
-      ASSERT(env != nullptr);
-      compiler->AddSlowPathDeoptInfo(deopt_id, env);
-    } else {
-      ASSERT(env == nullptr);
-      const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-      // Add deoptimization continuation point.
-      compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt,
-                                     deopt_id_after, instruction()->source());
+    compiler->RecordCatchEntryMoves(env);
+    if (!CompilerState::Current().is_aot()) {
+      if (compiler->is_optimizing()) {
+        ASSERT(env != nullptr);
+        compiler->AddSlowPathDeoptInfo(deopt_id, env);
+      } else {
+        ASSERT(env == nullptr);
+        const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+        // Add deoptimization continuation point.
+        compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt,
+                                       deopt_id_after, instruction()->source());
+      }
     }
   }
   if (!use_shared_stub) {

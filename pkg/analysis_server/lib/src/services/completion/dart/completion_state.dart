@@ -8,7 +8,7 @@ import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/completion_matcher.dart';
 
@@ -31,7 +31,7 @@ class CompletionState {
 
   /// Initialize a newly created completion state.
   CompletionState(this.request, this.selection, this.budget, this.matcher)
-      : assert(selection.length == 0);
+    : assert(selection.length == 0);
 
   /// The type of value required by the context in which completion was
   /// requested.
@@ -58,11 +58,15 @@ class CompletionState {
   }
 
   /// The element of the library containing the completion location.
-  LibraryElement get libraryElement => request.libraryElement;
+  LibraryElement2 get libraryElement => request.libraryElement2;
 
   /// The type of quotes preferred for [String]s as specified in [CodeStyleOptions].
-  String get preferredQuoteForStrings => request
-      .fileState.analysisOptions.codeStyleOptions.preferredQuoteForStrings;
+  String get preferredQuoteForStrings =>
+      request
+          .fileState
+          .analysisOptions
+          .codeStyleOptions
+          .preferredQuoteForStrings;
 
   /// The type of `this` at the completion location, or `null` if the completion
   /// location doesn't allow `this` to be used.
@@ -71,19 +75,19 @@ class CompletionState {
     while (node != null) {
       switch (node) {
         case ClassDeclaration():
-          var element = node.declaredElement;
+          var element = node.declaredFragment?.element;
           if (element != null) {
             return element.thisType;
           }
         case EnumDeclaration():
-          var element = node.declaredElement;
+          var element = node.declaredFragment?.element;
           if (element != null) {
             return element.thisType;
           }
         case ExtensionDeclaration():
           return node.onClause?.extendedType.type;
         case MixinDeclaration():
-          var element = node.declaredElement;
+          var element = node.declaredFragment?.element;
           if (element != null) {
             return element.thisType;
           }

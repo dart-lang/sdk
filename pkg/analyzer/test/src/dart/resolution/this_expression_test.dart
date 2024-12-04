@@ -41,7 +41,7 @@ ThisExpression
   thisKeyword: this
   staticType: A
     element: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
 ''');
   }
 
@@ -73,7 +73,7 @@ ThisExpression
   thisKeyword: this
   staticType: M
     element: <testLibraryFragment>::@mixin::M
-    element: <testLibraryFragment>::@mixin::M#element
+    element: <testLibrary>::@mixin::M
 ''');
   }
 }

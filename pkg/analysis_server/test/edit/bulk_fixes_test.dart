@@ -150,8 +150,10 @@ class B extends A {
 
     var result = await _getBulkFixes();
     expect(result.details, isEmpty);
-    expect(result.message,
-        "The diagnostic 'foo_bar' is not defined by the analyzer.");
+    expect(
+      result.message,
+      "The diagnostic 'foo_bar' is not defined by the analyzer.",
+    );
   }
 
   Future<void> test_undefinedDiagnostic_multiple() async {
@@ -164,8 +166,10 @@ class B extends A {
 
     var result = await _getBulkFixes();
     expect(result.details, isEmpty);
-    expect(result.message,
-        "The diagnostics 'foo', 'bar', and 'baz' are not defined by the analyzer.");
+    expect(
+      result.message,
+      "The diagnostics 'foo', 'bar', and 'baz' are not defined by the analyzer.",
+    );
   }
 }
 
@@ -284,12 +288,24 @@ A f() => new A();
 
     var details = await _getBulkFixDetails();
     expect(details, hasLength(2));
-    assertContains(details,
-        path: a.path, code: LintNames.unnecessary_new, count: 2);
-    assertContains(details,
-        path: a.path, code: LintNames.annotate_overrides, count: 1);
-    assertContains(details,
-        path: testFile.path, code: LintNames.unnecessary_new, count: 1);
+    assertContains(
+      details,
+      path: a.path,
+      code: LintNames.unnecessary_new,
+      count: 2,
+    );
+    assertContains(
+      details,
+      path: a.path,
+      code: LintNames.annotate_overrides,
+      count: 1,
+    );
+    assertContains(
+      details,
+      path: testFile.path,
+      code: LintNames.unnecessary_new,
+      count: 1,
+    );
   }
 
   Future<void> test_unnecessaryNew() async {
@@ -388,8 +404,12 @@ abstract class BulkFixesTest extends PubPackageAnalysisServerTest {
     codes!.add(code);
   }
 
-  void assertContains(List<BulkFix> details,
-      {required String path, required String code, required int count}) {
+  void assertContains(
+    List<BulkFix> details, {
+    required String path,
+    required String code,
+    required int count,
+  }) {
     for (var detail in details) {
       if (detail.path == path) {
         for (var fix in detail.fixes) {
@@ -407,8 +427,10 @@ abstract class BulkFixesTest extends PubPackageAnalysisServerTest {
     await waitForTasksFinished();
     var edits = await _getBulkEdits();
     expect(edits, hasLength(1));
-    var editedSource =
-        SourceEdit.applySequence(file.readAsStringSync(), edits[0].edits);
+    var editedSource = SourceEdit.applySequence(
+      file.readAsStringSync(),
+      edits[0].edits,
+    );
     expect(editedSource, expectedSource);
   }
 
@@ -439,11 +461,13 @@ abstract class BulkFixesTest extends PubPackageAnalysisServerTest {
   Future<EditBulkFixesResult> _getBulkFixes() async {
     var request = _getRequest();
     var response = await handleSuccessfulRequest(request);
-    return EditBulkFixesResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    return EditBulkFixesResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
   }
 
-  Request _getRequest() =>
-      EditBulkFixesParams([workspaceRoot.path], codes: codes)
-          .toRequest('0', clientUriConverter: server.uriConverter);
+  Request _getRequest() => EditBulkFixesParams([
+    workspaceRoot.path,
+  ], codes: codes).toRequest('0', clientUriConverter: server.uriConverter);
 }

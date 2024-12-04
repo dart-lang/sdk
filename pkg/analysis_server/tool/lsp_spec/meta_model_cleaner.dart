@@ -21,15 +21,17 @@ class LspMetaModelCleaner {
   /// A pattern to match newlines in source comments that are likely for
   /// wrapping and not formatting. This allows us to rewrap based on our indent
   /// level/line length without potentially introducing very short lines.
-  final _sourceCommentWrappingNewlinesPattern =
-      RegExp(r'\w[`\]\)\}.]*\n[`\[\{\(]*\w');
+  final _sourceCommentWrappingNewlinesPattern = RegExp(
+    r'\w[`\]\)\}.]*\n[`\[\{\(]*\w',
+  );
 
   /// A pattern matching the spec's older HTML links that we can extract type
   /// references from.
   ///
   ///     A description of [SomeType[]] (#SomeType).
-  final _sourceCommentDocumentLinksPattern =
-      RegExp(r'\[`?([\w \-.]+)(?:\[\])?`?\]\s?\((#[^)]+)\)');
+  final _sourceCommentDocumentLinksPattern = RegExp(
+    r'\[`?([\w \-.]+)(?:\[\])?`?\]\s?\((#[^)]+)\)',
+  );
 
   /// A pattern matching references in the LSP meta model comments that
   /// reference other types.
@@ -40,13 +42,15 @@ class LspMetaModelCleaner {
   /// as
   ///
   ///     {@link TypeName[] description}
-  final _sourceCommentReferencesPattern =
-      RegExp(r'{@link\s+([\w.]+)[\[\]]*(?:\s+[\w`. ]+[\[\]]*)?}');
+  final _sourceCommentReferencesPattern = RegExp(
+    r'{@link\s+([\w.]+)[\[\]]*(?:\s+[\w`. ]+[\[\]]*)?}',
+  );
 
   /// A pattern that matches references in the LSP meta model comments to the
   /// Thenable or Promise types.
-  final _sourceCommentThenablePromisePattern =
-      RegExp(r'\b(?:Thenable|Promise)\b');
+  final _sourceCommentThenablePromisePattern = RegExp(
+    r'\b(?:Thenable|Promise)\b',
+  );
 
   /// Whether to include proposed types and fields in generated code.
   ///
@@ -160,13 +164,15 @@ class LspMetaModelCleaner {
       name: interface.name,
       comment: _cleanComment(interface.comment),
       isProposed: interface.isProposed,
-      baseTypes: interface.baseTypes
-          .where((type) => _includeTypeInOutput(type.name))
-          .toList(),
-      members: interface.members
-          .where(_includeEntityInOutput)
-          .map((member) => _cleanMember(interface.name, member))
-          .toList(),
+      baseTypes:
+          interface.baseTypes
+              .where((type) => _includeTypeInOutput(type.name))
+              .toList(),
+      members:
+          interface.members
+              .where(_includeEntityInOutput)
+              .map((member) => _cleanMember(interface.name, member))
+              .toList(),
     );
   }
 
@@ -186,10 +192,11 @@ class LspMetaModelCleaner {
       comment: _cleanComment(namespace.comment),
       isProposed: namespace.isProposed,
       typeOfValues: namespace.typeOfValues,
-      members: namespace.members
-          .where(_includeEntityInOutput)
-          .map((member) => _cleanMember(namespace.name, member))
-          .toList(),
+      members:
+          namespace.members
+              .where(_includeEntityInOutput)
+              .map((member) => _cleanMember(namespace.name, member))
+              .toList(),
     );
   }
 
@@ -208,7 +215,7 @@ class LspMetaModelCleaner {
       name: typeAlias.name,
       comment: _cleanComment(typeAlias.comment),
       baseType: _cleanType(typeAlias.baseType),
-      isRename: typeAlias.isRename,
+      renameReferences: typeAlias.renameReferences,
     );
   }
 
@@ -220,11 +227,12 @@ class LspMetaModelCleaner {
   /// Key on `dartType` to ensure we combine different types that will map down
   /// to the same type.
   TypeBase _cleanUnionType(UnionType type) {
-    var uniqueTypes = Map.fromEntries(
-      type.types
-          .where(_allowTypeInUnions)
-          .map((t) => MapEntry(t.uniqueTypeIdentifier, t)),
-    ).values.toList();
+    var uniqueTypes =
+        Map.fromEntries(
+          type.types
+              .where(_allowTypeInUnions)
+              .map((t) => MapEntry(t.uniqueTypeIdentifier, t)),
+        ).values.toList();
 
     // If our list includes something that maps to Object? as well as other
     // types, we should just treat the whole thing as Object? as we get no value
@@ -248,9 +256,10 @@ class LspMetaModelCleaner {
       return LiteralUnionType(uniqueTypes.cast<LiteralType>());
     } else if (uniqueTypes.any(isNullType)) {
       var remainingTypes = uniqueTypes.whereNot(isNullType).toList();
-      var nonNullType = remainingTypes.length == 1
-          ? remainingTypes.single
-          : UnionType(remainingTypes);
+      var nonNullType =
+          remainingTypes.length == 1
+              ? remainingTypes.single
+              : UnionType(remainingTypes);
       return NullableType(nonNullType);
     } else {
       return UnionType(uniqueTypes);
@@ -266,21 +275,11 @@ class LspMetaModelCleaner {
   ///   of wrapping in `EitherX<Y,Z>.tX()`.
   TypeBase? _getImprovedType(String interfaceName, String? fieldName) {
     const improvedTypeMappings = <String, Map<String, String>>{
-      'Diagnostic': {
-        'code': 'String',
-      },
-      'CompletionItem': {
-        'data': 'CompletionItemResolutionInfo',
-      },
-      'ParameterInformation': {
-        'label': 'String',
-      },
-      'TextDocumentEdit': {
-        'edits': 'TextDocumentEditEdits',
-      },
-      'TypeHierarchyItem': {
-        'data': 'TypeHierarchyItemInfo',
-      },
+      'Diagnostic': {'code': 'String'},
+      'CompletionItem': {'data': 'CompletionItemResolutionInfo'},
+      'ParameterInformation': {'label': 'String'},
+      'TextDocumentEdit': {'edits': 'TextDocumentEditEdits'},
+      'TypeHierarchyItem': {'data': 'TypeHierarchyItemInfo'},
     };
 
     var interface = improvedTypeMappings[interfaceName];
@@ -289,12 +288,18 @@ class LspMetaModelCleaner {
 
     return improvedTypeName != null
         ? improvedTypeName.endsWith('[]')
-            ? ArrayType(TypeReference(
-                improvedTypeName.substring(0, improvedTypeName.length - 2)))
+            ? ArrayType(
+              TypeReference(
+                improvedTypeName.substring(0, improvedTypeName.length - 2),
+              ),
+            )
             : improvedTypeName.endsWith('?')
-                ? NullableType(TypeReference(
-                    improvedTypeName.substring(0, improvedTypeName.length - 1)))
-                : TypeReference(improvedTypeName)
+            ? NullableType(
+              TypeReference(
+                improvedTypeName.substring(0, improvedTypeName.length - 1),
+              ),
+            )
+            : TypeReference(improvedTypeName)
         : null;
   }
 
@@ -366,9 +371,10 @@ class LspMetaModelCleaner {
     const ignoredPrefixes = {
       // We don't emit MarkedString because it gets mapped to a simple String
       // when getting the .dartType for it.
-      'MarkedString'
+      'MarkedString',
     };
-    var shouldIgnore = ignoredTypes.contains(name) ||
+    var shouldIgnore =
+        ignoredTypes.contains(name) ||
         ignoredPrefixes.any((ignore) => name.startsWith(ignore));
     return !shouldIgnore;
   }
@@ -399,9 +405,7 @@ class LspMetaModelCleaner {
   }
 
   List<LspEntity> _mergeTypes(List<LspEntity> types) {
-    var typesByName = {
-      for (final type in types) type.name: type,
-    };
+    var typesByName = {for (final type in types) type.name: type};
     assert(types.length == typesByName.length);
     var typeNames = typesByName.keys.toList();
     for (var typeName in typeNames) {
@@ -419,22 +423,69 @@ class LspMetaModelCleaner {
   /// Renames types that may have been generated with bad (or long) names.
   Iterable<LspEntity> _renameTypes(List<LspEntity> types) sync* {
     const renames = <String, String>{
-      'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
-          'CodeActionLiteralSupportCodeActionKind',
       'CompletionClientCapabilitiesCompletionItemInsertTextModeSupport':
           'CompletionItemInsertTextModeSupport',
       'CompletionClientCapabilitiesCompletionItemTagSupport':
           'CompletionItemTagSupport',
       'CompletionClientCapabilitiesCompletionItemResolveSupport':
           'CompletionItemResolveSupport',
-      'CompletionListItemDefaultsEditRange': 'CompletionItemEditRange',
       'SignatureHelpClientCapabilitiesSignatureInformationParameterInformation':
           'SignatureInformationParameterInformation',
-      'TextDocumentFilter2': 'TextDocumentFilterWithScheme',
-      'PrepareRenameResult1': 'PlaceholderAndRange',
       'Pattern': 'LspPattern',
       'URI': 'LSPUri',
+
+      // In LSP 3.18, many types that were previously inline and got generated
+      // names have been extracted to their own definitions with hand-written
+      // names.
+      // To reduce the size of the upcoming diff when this happens, these
+      // renames change our 3.17 generated names to those that will be used
+      // for 3.18.
+      // TODO(dantup): Remove these once LSP 3.18 release and we regenerate
+      // using it.
+      'TextDocumentFilter2': 'TextDocumentFilterScheme',
+      'PrepareRenameResult1': 'PrepareRenamePlaceholder',
+      'TextDocumentContentChangeEvent1': 'TextDocumentContentChangePartial',
+      'TextDocumentContentChangeEvent2':
+          'TextDocumentContentChangeWholeDocument',
+      'CompletionListItemDefaults': 'CompletionItemDefaults',
+      'InitializeParamsClientInfo': 'ClientInfo',
+      'SemanticTokensClientCapabilitiesRequests':
+          'ClientSemanticTokensRequestOptions',
+      'TraceValues': 'TraceValue',
+      'SemanticTokensOptionsFull': 'SemanticTokensFullDelta',
+      'CompletionListItemDefaultsEditRange': 'EditRangeWithInsertReplace',
+      'ServerCapabilitiesWorkspace': 'WorkspaceOptions',
+      'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind':
+          'ClientCodeActionKindOptions',
+      'CompletionClientCapabilitiesCompletionItemKind':
+          'ClientCompletionItemOptionsKind',
+      'CompletionOptionsCompletionItem': 'ServerCompletionItemOptions',
+      'InitializeResultServerInfo': 'ServerInfo',
+      // End of temporary renames
     };
+
+    // Temporary aliases for old names used in g3
+    // TODO(dantup): Remove these once the internal code has been updated.
+    var typeNames = types.map((type) => type.name).toSet();
+    if (typeNames.contains('TextDocumentContentChangeEvent2')) {
+      yield TypeAlias(
+        name: 'TextDocumentContentChangeEvent2',
+        baseType: TypeReference('TextDocumentContentChangeWholeDocument'),
+        renameReferences: true,
+        generateTypeDef: true,
+      );
+    }
+    if (typeNames.contains(
+      'CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind',
+    )) {
+      yield TypeAlias(
+        name: 'CodeActionLiteralSupportCodeActionKind',
+        baseType: TypeReference('ClientCodeActionKindOptions'),
+        renameReferences: true,
+        generateTypeDef: true,
+      );
+    }
+    // End temporary aliases
 
     for (var type in types) {
       var newName = renames[type.name];
@@ -449,7 +500,7 @@ class LspMetaModelCleaner {
         comment: type.comment,
         isProposed: type.isProposed,
         baseType: TypeReference(newName),
-        isRename: true,
+        renameReferences: true,
       );
 
       // Replace the type with an equivalent with the same name.
@@ -467,7 +518,15 @@ class LspMetaModelCleaner {
           comment: type.comment,
           isProposed: type.isProposed,
           baseType: type.baseType,
-          isRename: type.isRename,
+          renameReferences: type.renameReferences,
+        );
+      } else if (type is LspEnum) {
+        yield LspEnum(
+          name: newName,
+          comment: type.comment,
+          isProposed: type.isProposed,
+          typeOfValues: type.typeOfValues,
+          members: type.members,
         );
       } else {
         throw 'Renaming ${type.runtimeType} is not implemented';

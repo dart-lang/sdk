@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Put required named parameters first.';
 
@@ -39,7 +38,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var nonRequiredSeen = false;
     for (var param in node.parameters.where((p) => p.isNamed)) {
       var element = param.declaredFragment?.element;
-      if (element != null && (element.hasRequired || element.isRequiredNamed)) {
+      if (element != null &&
+          (element.metadata2.hasRequired || element.isRequiredNamed)) {
         if (nonRequiredSeen) {
           var name = param.name;
           if (name != null) {

@@ -39,8 +39,11 @@ class SendReceiveHelper {
     final port = ReceivePort();
     inbox = StreamIterator<dynamic>(port);
     workerExitedPort = ReceivePort();
-    await Isolate.spawn(isolate, port.sendPort,
-        onExit: workerExitedPort.sendPort);
+    await Isolate.spawn(
+      isolate,
+      port.sendPort,
+      onExit: workerExitedPort.sendPort,
+    );
     await inbox.moveNext();
     outbox = inbox.current;
   }
@@ -88,7 +91,8 @@ Future<void> isolate(SendPort sendPort) async {
 
 Future<void> main() async {
   await SendReceiveRegExp('IsolateRegExp.MatchFast', RegExp('h?h')).report();
-  await SendReceiveRegExp('IsolateRegExp.MatchSlow',
-          RegExp(r'(?<=\W|\b|^)(a.? b c.?) ?(\(.*\))?$'))
-      .report();
+  await SendReceiveRegExp(
+    'IsolateRegExp.MatchSlow',
+    RegExp(r'(?<=\W|\b|^)(a.? b c.?) ?(\(.*\))?$'),
+  ).report();
 }

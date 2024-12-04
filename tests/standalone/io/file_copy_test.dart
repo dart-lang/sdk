@@ -6,8 +6,8 @@
 
 import 'dart:io';
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 const FILE_CONTENT1 = 'some string';
 const FILE_CONTENT2 = 'some other string';

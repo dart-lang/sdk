@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid slow asynchronous `dart:io` methods.';
 
@@ -87,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.target;
     if (target is Identifier) {
       var element = target.element;
-      if (element is ClassElement2 && element.name == 'FileSystemEntity') {
+      if (element is ClassElement2 && element.name3 == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
           rule.reportLint(node);
         }

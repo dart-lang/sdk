@@ -17,8 +17,9 @@ class ShadowField extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.SHADOW_FIELD;
@@ -32,6 +33,11 @@ class ShadowField extends ResolvedCorrectionProducer {
 
     var accessor = node.writeOrReadElement2;
     if (accessor is! GetterElement) {
+      return;
+    }
+
+    var fieldName = accessor.name3;
+    if (fieldName == null) {
       return;
     }
 
@@ -64,7 +70,6 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var fieldName = accessor.name;
     var offset = statement.offset;
     var prefix = utils.getLinePrefix(offset);
     //

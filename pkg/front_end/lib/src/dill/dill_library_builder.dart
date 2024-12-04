@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.dill_library_builder;
-
 import 'dart:convert' show jsonDecode;
 
 import 'package:kernel/ast.dart';
@@ -24,7 +22,6 @@ import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../codes/cfe_codes.dart'
     show LocatedMessage, Message, Severity, noLength, templateUnspecified;
-import '../fragment/fragment.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
@@ -221,10 +218,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   Uri get fileUri => library.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  String? get name => library.name;
-
-  @override
   LibraryBuilder get nameOriginBuilder => this;
 
   @override
@@ -404,14 +397,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
     Map<Reference, Builder>? sourceBuildersMap =
         loader.currentSourceLoader?.buildersCreatedWithReferences;
-    Map<Reference, Fragment>? fragmentMap =
-        loader.currentSourceLoader?.fragmentsCreatedWithReferences;
     for (Reference reference in library.additionalExports) {
       NamedNode node = reference.node as NamedNode;
-      Builder? declaration = sourceBuildersMap?[reference] ??
-          fragmentMap?[reference]
-              // Coverage-ignore(suite): Not run.
-              ?.builder;
+      Builder? declaration = sourceBuildersMap?[reference];
       String name;
       if (declaration != null) {
         // Coverage-ignore-block(suite): Not run.
@@ -480,10 +468,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       assert(
           (declaration is ClassBuilder && node == declaration.cls) ||
               (declaration is TypeAliasBuilder &&
-                  node == declaration.typedef) ||
-              (declaration is MemberBuilder && node == declaration.member) ||
+                  reference == declaration.reference) ||
+              (declaration is MemberBuilder &&
+                  (node == declaration.readTarget ||
+                      node == declaration.invokeTarget ||
+                      node == declaration.writeTarget)) ||
               (declaration is ExtensionBuilder &&
-                  node == declaration.extension) ||
+                  reference == declaration.reference) ||
               (declaration is ExtensionTypeDeclarationBuilder &&
                   node == declaration.extensionTypeDeclaration),
           "Unexpected declaration ${declaration} (${declaration.runtimeType}) "

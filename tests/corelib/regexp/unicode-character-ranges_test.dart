@@ -78,8 +78,11 @@ void main() {
 
   execs(["\udc02\udc03A"], r"\W\WA", "\ud801\udc01A\udc02\udc03A");
   execs(["\ud801\ud802"], r"\ud801.", "\ud801\udc01\ud801\ud802");
-  execs(["\udc02\udc03A"], r"[\ud800-\udfff][\ud800-\udfff]A",
-      "\ud801\udc01A\udc02\udc03A");
+  execs(
+    ["\udc02\udc03A"],
+    r"[\ud800-\udfff][\ud800-\udfff]A",
+    "\ud801\udc01A\udc02\udc03A",
+  );
 
   // Character classes
   execs(null, r"\w", "\ud801\udc01");
@@ -100,20 +103,41 @@ void main() {
   execs(null, r"[\u{0}-\u{1F444}]", "\ud83d\udfff");
 
   // Backward matches of lone surrogates.
-  execs(["B", "\ud803A"], r"(?<=([\ud800-\ud900]A))B",
-      "\ud801\udc00AB\udc00AB\ud802\ud803AB");
-  execs(["B", "\udc00A"], r"(?<=([\ud800-\u{10300}]A))B",
-      "\ud801\udc00AB\udc00AB\ud802\ud803AB");
-  execs(["B", "\udc11A"], r"(?<=([\udc00-\udd00]A))B",
-      "\ud801\udc00AB\udc11AB\ud802\ud803AB");
-  execs(["X", "\ud800C"], r"(?<=(\ud800\w))X",
-      "\ud800\udc00AX\udc11BX\ud800\ud800CX");
-  execs(["C", "\ud800\ud800"], r"(?<=(\ud800.))\w",
-      "\ud800\udc00AX\udc11BX\ud800\ud800CX");
-  execs(["X", "\udc01C"], r"(?<=(\udc01\w))X",
-      "\ud800\udc01AX\udc11BX\udc01\udc01CX");
-  execs(["C", "\udc01\udc01"], r"(?<=(\udc01.)).",
-      "\ud800\udc01AX\udc11BX\udc01\udc01CX");
+  execs(
+    ["B", "\ud803A"],
+    r"(?<=([\ud800-\ud900]A))B",
+    "\ud801\udc00AB\udc00AB\ud802\ud803AB",
+  );
+  execs(
+    ["B", "\udc00A"],
+    r"(?<=([\ud800-\u{10300}]A))B",
+    "\ud801\udc00AB\udc00AB\ud802\ud803AB",
+  );
+  execs(
+    ["B", "\udc11A"],
+    r"(?<=([\udc00-\udd00]A))B",
+    "\ud801\udc00AB\udc11AB\ud802\ud803AB",
+  );
+  execs(
+    ["X", "\ud800C"],
+    r"(?<=(\ud800\w))X",
+    "\ud800\udc00AX\udc11BX\ud800\ud800CX",
+  );
+  execs(
+    ["C", "\ud800\ud800"],
+    r"(?<=(\ud800.))\w",
+    "\ud800\udc00AX\udc11BX\ud800\ud800CX",
+  );
+  execs(
+    ["X", "\udc01C"],
+    r"(?<=(\udc01\w))X",
+    "\ud800\udc01AX\udc11BX\udc01\udc01CX",
+  );
+  execs(
+    ["C", "\udc01\udc01"],
+    r"(?<=(\udc01.)).",
+    "\ud800\udc01AX\udc11BX\udc01\udc01CX",
+  );
 
   const L = "\ud800";
   const T = "\udc00";

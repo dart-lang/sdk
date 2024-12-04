@@ -1,0 +1,6 @@
+extension type DuplicateName._(int _x) {
+  DuplicateName(this._x) {}
+  int get bar => 42;
+}
+
+int DuplicateName = 42;

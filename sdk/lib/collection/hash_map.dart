@@ -171,10 +171,11 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   /// and `isValidKey` is omitted, the resulting map is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [HashMap.identity].
-  external factory HashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey});
+  external factory HashMap({
+    bool Function(K, K)? equals,
+    int Function(K)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   /// Creates an unordered identity-based map.
   ///
@@ -231,8 +232,11 @@ abstract final class HashMap<K, V> implements Map<K, V> {
   ///     key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
-  factory HashMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
+  factory HashMap.fromIterable(
+    Iterable iterable, {
+    K Function(dynamic element)? key,
+    V Function(dynamic element)? value,
+  }) {
     HashMap<K, V> map = HashMap<K, V>();
     MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;

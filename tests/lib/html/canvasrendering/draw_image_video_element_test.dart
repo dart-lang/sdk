@@ -9,7 +9,7 @@ import 'dart:html';
 import 'dart:math';
 
 import 'canvas_rendering_util.dart';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 
 // These videos and base64 strings are the same video, representing 2
 // frames of 8x8 red pixels.

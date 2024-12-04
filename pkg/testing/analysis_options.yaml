@@ -14,5 +14,4 @@ linter:
     - always_declare_return_types
     - avoid_void_async
     - lines_longer_than_80_chars
-    - package_api_docs
     - unawaited_futures

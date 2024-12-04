@@ -15,8 +15,8 @@ import 'package:kernel/src/equivalence.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
-import 'fasta/suite_utils.dart';
-import 'fasta/testing/environment_keys.dart';
+import 'utils/suite_utils.dart';
+import 'testing/environment_keys.dart';
 import 'incremental_suite.dart' as helper;
 import 'testing_utils.dart' show checkEnvironment;
 import 'utils/kernel_chain.dart' show MatchContext;
@@ -39,8 +39,7 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     displayName: "outline extractor suite",
     configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
     EnvironmentKeys.updateExpectations,
   };
@@ -49,7 +48,7 @@ Future<Context> createContext(
   bool updateExpectations =
       environment[EnvironmentKeys.updateExpectations] == "true";
 
-  return new Context(suite.name, updateExpectations);
+  return new Future.value(new Context(suite.name, updateExpectations));
 }
 
 class Context extends ChainContext with MatchContext {

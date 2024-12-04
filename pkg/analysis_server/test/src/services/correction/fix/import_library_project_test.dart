@@ -12,10 +12,285 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ImportLibraryProject1PrefixedTest);
+    defineReflectiveTests(ImportLibraryProject1PrefixedWithShowTest);
     defineReflectiveTests(ImportLibraryProject1Test);
+    defineReflectiveTests(ImportLibraryProject1WithShowTest);
+    defineReflectiveTests(ImportLibraryProject2PrefixedTest);
+    defineReflectiveTests(ImportLibraryProject2PrefixedWithShowTest);
     defineReflectiveTests(ImportLibraryProject2Test);
+    defineReflectiveTests(ImportLibraryProject2WithShowTest);
+    defineReflectiveTests(ImportLibraryProject3PrefixedTest);
+    defineReflectiveTests(ImportLibraryProject3PrefixedWithShowTest);
     defineReflectiveTests(ImportLibraryProject3Test);
+    defineReflectiveTests(ImportLibraryProject3WithShowTest);
   });
+}
+
+@reflectiveTest
+class ImportLibraryProject1PrefixedTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED;
+
+  Future<void> test_prefixed_class() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await resolveTestCode('''
+void f() {
+  prefix.A? a;
+  print('\$a');
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix;
+
+void f() {
+  prefix.A? a;
+  print('\$a');
+}
+''');
+  }
+
+  Future<void> test_prefixed_constant() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+const value = 0;
+''');
+    await resolveTestCode('''
+void f() {
+  lib.value;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib;
+
+void f() {
+  lib.value;
+}
+''');
+  }
+
+  Future<void> test_prefixed_extension_constructor() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension A on int {}
+''');
+    await resolveTestCode('''
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type A(int _) {}
+''');
+    await resolveTestCode('''
+void f(a.A a) {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as a;
+
+void f(a.A a) {
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType_constructor() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type A(int _) {}
+''');
+    await resolveTestCode('''
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_function() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+void foo() {}
+''');
+    await resolveTestCode('''
+void f() {
+  prefix.foo();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix;
+
+void f() {
+  prefix.foo();
+}
+''');
+  }
+
+  Future<void> test_withEnum_value() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+library lib;
+enum E { one, two }
+''');
+    await resolveTestCode('''
+void f() {
+  lib.E.one;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib;
+
+void f() {
+  lib.E.one;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject1PrefixedWithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED_SHOW;
+
+  Future<void> test_prefixed_class() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await resolveTestCode('''
+void f() {
+  prefix.A? a;
+  print('\$a');
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix show A;
+
+void f() {
+  prefix.A? a;
+  print('\$a');
+}
+''');
+  }
+
+  Future<void> test_prefixed_constant() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+const value = 0;
+''');
+    await resolveTestCode('''
+void f() {
+  lib.value;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib show value;
+
+void f() {
+  lib.value;
+}
+''');
+  }
+
+  Future<void> test_prefixed_extension_constructor() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension A on int {}
+''');
+    await resolveTestCode('''
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix show A;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type A(int _) {}
+''');
+    await resolveTestCode('''
+void f(a.A a) {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as a show A;
+
+void f(a.A a) {
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType_constructor() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type A(int _) {}
+''');
+    await resolveTestCode('''
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix show A;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_function() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+void foo() {}
+''');
+    await resolveTestCode('''
+void f() {
+  prefix.foo();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix show foo;
+
+void f() {
+  prefix.foo();
+}
+''');
+  }
+
+  Future<void> test_withEnum_value() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+library lib;
+enum E { one, two }
+''');
+    await resolveTestCode('''
+void f() {
+  lib.E.one;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib show E;
+
+void f() {
+  lib.E.one;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -255,7 +530,7 @@ class D extends C {
   }
 
   Future<void>
-      test_extension_notImported_method_onThisType_fromExtension() async {
+  test_extension_notImported_method_onThisType_fromExtension() async {
     newFile('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
 
@@ -341,8 +616,8 @@ extension IntExtension on int {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: pkgRootPath),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: pkgRootPath),
     );
 
     updateTestPubspecFile('''
@@ -412,7 +687,8 @@ void f() {
   Test();
 }
 ''');
-    await assertHasFix(r'''
+    await assertHasFix(
+      r'''
 import 'package:test/lib.dart';
 
 import 'package:$foo/foo.dart';
@@ -421,8 +697,9 @@ void f() {
   Test();
 }
 ''',
-        errorFilter: (e) =>
-            e.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION);
+      errorFilter:
+          (e) => e.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION,
+    );
   }
 
   Future<void> test_lib() async {
@@ -431,8 +708,9 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -465,8 +743,9 @@ extension E on int {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -495,8 +774,9 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -532,41 +812,45 @@ class Foo {}
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'a.dart'");
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessage: "Import library 'a.dart'",
+    );
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Import library 'package:test/a.dart'",
-          "Import library 'a.dart'",
-        ]);
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Import library 'package:test/a.dart'",
+        "Import library 'a.dart'",
+      ],
+    );
   }
 
   Future<void> test_relativeDirective_alwaysUsePackageImports() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.always_use_package_imports,
-    ]);
+    createAnalysisOptionsFile(lints: [LintNames.always_use_package_imports]);
     newFile('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:test/a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 1,
-        matchFixMessage: "Import library 'package:test/a.dart'");
+      expectedNumberOfFixesForKind: 1,
+      matchFixMessage: "Import library 'package:test/a.dart'",
+    );
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 1,
-        matchFixMessages: ["Import library 'package:test/a.dart'"]);
+      expectedNumberOfFixesForKind: 1,
+      matchFixMessages: ["Import library 'package:test/a.dart'"],
+    );
   }
 
   Future<void> test_relativeDirective_downOneDirectory() async {
@@ -576,13 +860,15 @@ class Foo {}
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'dir/a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'dir/a.dart'");
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessage: "Import library 'dir/a.dart'",
+    );
   }
 
   Future<void> test_relativeDirective_noLint() async {
@@ -592,41 +878,45 @@ class Foo {}
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:test/a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'package:test/a.dart'");
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessage: "Import library 'package:test/a.dart'",
+    );
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessages: [
-          "Import library 'package:test/a.dart'",
-          "Import library 'a.dart'",
-        ]);
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessages: [
+        "Import library 'package:test/a.dart'",
+        "Import library 'a.dart'",
+      ],
+    );
   }
 
   Future<void> test_relativeDirective_preferRelativeImports() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.prefer_relative_imports,
-    ]);
+    createAnalysisOptionsFile(lints: [LintNames.prefer_relative_imports]);
     newFile('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 1,
-        matchFixMessage: "Import library 'a.dart'");
+      expectedNumberOfFixesForKind: 1,
+      matchFixMessage: "Import library 'a.dart'",
+    );
     await assertHasFixesWithoutApplying(
-        expectedNumberOfFixesForKind: 1,
-        matchFixMessages: ["Import library 'a.dart'"]);
+      expectedNumberOfFixesForKind: 1,
+      matchFixMessages: ["Import library 'a.dart'"],
+    );
   }
 
   Future<void> test_relativeDirective_upOneDirectory() async {
@@ -637,13 +927,15 @@ class Foo {}
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import '../a.dart';
 
 void f() { new Foo(); }
 ''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library '../a.dart'");
+      expectedNumberOfFixesForKind: 2,
+      matchFixMessage: "Import library '../a.dart'",
+    );
   }
 
   Future<void> test_withClass_annotation() async {
@@ -921,8 +1213,8 @@ dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await resolveTestCode('''
@@ -949,8 +1241,8 @@ dev_dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await resolveTestCode('''
@@ -971,8 +1263,8 @@ name: test
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await resolveTestCode('''
@@ -996,8 +1288,8 @@ dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     var b = newFile('$testPackageTestPath/b.dart', r'''
@@ -1026,8 +1318,8 @@ dev_dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     var b = newFile('$testPackageTestPath/b.dart', r'''
@@ -1471,6 +1763,403 @@ void f() {
 }
 
 @reflectiveTest
+class ImportLibraryProject1WithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1_SHOW;
+
+  Future<void> test_prefixed_class() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await resolveTestCode('''
+void f() {
+  A? a;
+  print('\$a');
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show A;
+
+void f() {
+  A? a;
+  print('\$a');
+}
+''');
+  }
+
+  Future<void> test_prefixed_constant() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+const value = 0;
+''');
+    await resolveTestCode('''
+void f() {
+  value;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show value;
+
+void f() {
+  value;
+}
+''');
+  }
+
+  Future<void> test_prefixed_extension_constructor() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension A on int {}
+''');
+    await resolveTestCode('''
+void f(int i) {
+  A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show A;
+
+void f(int i) {
+  A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type A(int _) {}
+''');
+    await resolveTestCode('''
+void f(A a) {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show A;
+
+void f(A a) {
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType_constructor() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type A(int _) {}
+''');
+    await resolveTestCode('''
+void f(int i) {
+  A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show A;
+
+void f(int i) {
+  A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_function() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+void foo() {}
+''');
+    await resolveTestCode('''
+void f() {
+  foo();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show foo;
+
+void f() {
+  foo();
+}
+''');
+  }
+
+  Future<void> test_withEnum_value() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+library lib;
+enum E { one, two }
+''');
+    await resolveTestCode('''
+void f() {
+  E.one;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' show E;
+
+void f() {
+  E.one;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject2PrefixedTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED;
+
+  Future<void> test_prefixed_class() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  prefix.A? a;
+  print('\$a');
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as prefix;
+
+void f() {
+  prefix.A? a;
+  print('\$a');
+}
+''');
+  }
+
+  Future<void> test_prefixed_constant() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+const value = 0;
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  lib.value;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as lib;
+
+void f() {
+  lib.value;
+}
+''');
+  }
+
+  Future<void> test_prefixed_extension_constructor() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension A on int {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as prefix;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension type A(int _) {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(a.A a) {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as a;
+
+void f(a.A a) {
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType_constructor() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension type A(int _) {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as prefix;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_function() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+void foo() {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  prefix.foo();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as prefix;
+
+void f() {
+  prefix.foo();
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject2PrefixedWithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED_SHOW;
+
+  Future<void> test_prefixed_class() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  prefix.A? a;
+  print('\$a');
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as prefix show A;
+
+void f() {
+  prefix.A? a;
+  print('\$a');
+}
+''');
+  }
+
+  Future<void> test_prefixed_constant() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+const value = 0;
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  lib.value;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as lib show value;
+
+void f() {
+  lib.value;
+}
+''');
+  }
+
+  Future<void> test_prefixed_extension_constructor() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension A on int {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as prefix show A;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension type A(int _) {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(a.A a) {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as a show A;
+
+void f(a.A a) {
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType_constructor() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension type A(int _) {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as prefix show A;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_function() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+void foo() {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  prefix.foo();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' as prefix show foo;
+
+void f() {
+  prefix.foo();
+}
+''');
+  }
+}
+
+@reflectiveTest
 class ImportLibraryProject2Test extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
@@ -1484,8 +2173,9 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -1517,8 +2207,9 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -1552,8 +2243,9 @@ extension E on int {
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -1572,6 +2264,274 @@ f() {
   print(E.m());
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject2WithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2_SHOW;
+
+  Future<void> test_prefixed_class() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  A? a;
+  print('\$a');
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' show A;
+
+void f() {
+  A? a;
+  print('\$a');
+}
+''');
+  }
+
+  Future<void> test_prefixed_constant() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+const value = 0;
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  value;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' show value;
+
+void f() {
+  value;
+}
+''');
+  }
+
+  Future<void> test_prefixed_extension_constructor() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension A on int {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(int i) {
+  A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' show A;
+
+void f(int i) {
+  A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension type A(int _) {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(A a) {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' show A;
+
+void f(A a) {
+}
+''');
+  }
+
+  Future<void> test_prefixed_extensionType_constructor() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension type A(int _) {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f(int i) {
+  A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' show A;
+
+void f(int i) {
+  A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_function() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+void foo() {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'package:test/lib1.dart';
+''');
+    await resolveTestCode('''
+void f() {
+  foo();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib2.dart' show foo;
+
+void f() {
+  foo();
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject3PrefixedTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED;
+
+  Future<void> test_inLibSrc_thisContextRoot_extension() async {
+    newFile('$testPackageLibPath/src/lib.dart', '''
+extension E on int {
+  static String m() => '';
+}
+''');
+    await resolveTestCode('''
+f() {
+  print(lib.E.m());
+}
+''');
+    await assertHasFix('''
+import 'package:test/src/lib.dart' as lib;
+
+f() {
+  print(lib.E.m());
+}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inLib_includesThisSrc() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/src/a.dart', r'''
+class Test {}
+''');
+
+    await resolveTestCode('''
+void f(lib.Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:test/src/a.dart' as lib;
+
+void f(lib.Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inTest_includesThisSrc() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/src/a.dart', r'''
+class Test {}
+''');
+
+    var b = newFile('$testPackageTestPath/b.dart', r'''
+void f(lib.Test t) {}
+''');
+
+    await getResolvedUnit(b);
+
+    await assertHasFix('''
+import 'package:test/src/a.dart' as lib;
+
+void f(lib.Test t) {}
+''', target: b.path);
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject3PrefixedWithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW;
+
+  Future<void> test_inLibSrc_thisContextRoot_extension() async {
+    newFile('$testPackageLibPath/src/lib.dart', '''
+extension E on int {
+  static String m() => '';
+}
+''');
+    await resolveTestCode('''
+f() {
+  print(lib.E.m());
+}
+''');
+    await assertHasFix('''
+import 'package:test/src/lib.dart' as lib show E;
+
+f() {
+  print(lib.E.m());
+}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inLib_includesThisSrc() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/src/a.dart', r'''
+class Test {}
+''');
+
+    await resolveTestCode('''
+void f(lib.Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:test/src/a.dart' as lib show Test;
+
+void f(lib.Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inTest_includesThisSrc() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/src/a.dart', r'''
+class Test {}
+''');
+
+    var b = newFile('$testPackageTestPath/b.dart', r'''
+void f(lib.Test t) {}
+''');
+
+    await getResolvedUnit(b);
+
+    await assertHasFix('''
+import 'package:test/src/a.dart' as lib show Test;
+
+void f(lib.Test t) {}
+''', target: b.path);
   }
 }
 
@@ -1637,6 +2597,74 @@ void f(Test t) {}
 
     await assertHasFix('''
 import 'package:test/src/a.dart';
+
+void f(Test t) {}
+''', target: b.path);
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject3WithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3_SHOW;
+
+  Future<void> test_inLibSrc_thisContextRoot_extension() async {
+    newFile('$testPackageLibPath/src/lib.dart', '''
+extension E on int {
+  static String m() => '';
+}
+''');
+    await resolveTestCode('''
+f() {
+  print(E.m());
+}
+''');
+    await assertHasFix('''
+import 'package:test/src/lib.dart' show E;
+
+f() {
+  print(E.m());
+}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inLib_includesThisSrc() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/src/a.dart', r'''
+class Test {}
+''');
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:test/src/a.dart' show Test;
+
+void f(Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inTest_includesThisSrc() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/src/a.dart', r'''
+class Test {}
+''');
+
+    var b = newFile('$testPackageTestPath/b.dart', r'''
+void f(Test t) {}
+''');
+
+    await getResolvedUnit(b);
+
+    await assertHasFix('''
+import 'package:test/src/a.dart' show Test;
 
 void f(Test t) {}
 ''', target: b.path);

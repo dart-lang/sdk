@@ -15,11 +15,11 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
       Iterable<MacroExecutionResult> macroResults,
       TypeDeclaration Function(Identifier) resolveDeclaration,
       ResolvedIdentifier Function(Identifier) resolveIdentifier,
-      TypeAnnotation? Function(OmittedTypeAnnotation) typeInferrer,
+      TypeAnnotation? Function(OmittedTypeAnnotation) inferOmittedType,
       {Map<OmittedTypeAnnotation, String>? omittedTypes,
       List<Span>? spans}) {
     return _Builder(augmentedLibraryUri, resolveDeclaration, resolveIdentifier,
-            typeInferrer, omittedTypes)
+            inferOmittedType, omittedTypes)
         .build(macroResults, spans: spans);
   }
 }

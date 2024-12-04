@@ -13,18 +13,22 @@ void main() {
 
   testNum(new UnmodifiableMapView({1: 37}), "unmod");
   testNum(new UnmodifiableMapView<num, num>(<num, num>{1: 37}), "unmod.cast");
-  testNum(new UnmodifiableMapView<num, num>(<num, num>{1: 37}).cast<int, int>(),
-      "unmodView<num>(num).cast<int>");
-  testNum(new UnmodifiableMapView<num, num>(<int, int>{1: 37}).cast<int, int>(),
-      "unmodView<num>(int).cast<int>");
   testNum(
-      new UnmodifiableMapView<Object, Object>(<num, num>{1: 37})
-          .cast<int, int>(),
-      "unmodView<Object>(num).cast<int>");
+    new UnmodifiableMapView<num, num>(<num, num>{1: 37}).cast<int, int>(),
+    "unmodView<num>(num).cast<int>",
+  );
   testNum(
-      new UnmodifiableMapView<Object, Object>(<int, int>{1: 37})
-          .cast<num, num>(),
-      "unmodView<Object>(int).cast<num>");
+    new UnmodifiableMapView<num, num>(<int, int>{1: 37}).cast<int, int>(),
+    "unmodView<num>(int).cast<int>",
+  );
+  testNum(
+    new UnmodifiableMapView<Object, Object>(<num, num>{1: 37}).cast<int, int>(),
+    "unmodView<Object>(num).cast<int>",
+  );
+  testNum(
+    new UnmodifiableMapView<Object, Object>(<int, int>{1: 37}).cast<num, num>(),
+    "unmodView<Object>(int).cast<num>",
+  );
 
   var m2 = new Map<num, num>.unmodifiable({1: 37});
   testNum(m2, "Map<num>.unmod");
@@ -32,16 +36,26 @@ void main() {
 
   Map<Symbol, dynamic> nsm = new NsmMap().foo(a: 0);
   test<Symbol, dynamic>(nsm, #a, 0, "nsm", noSuchMethodMap: true);
-  test<Object, int>(nsm.cast<Object, int>(), #a, 0, "nsm.cast",
-      noSuchMethodMap: true);
+  test<Object, int>(
+    nsm.cast<Object, int>(),
+    #a,
+    0,
+    "nsm.cast",
+    noSuchMethodMap: true,
+  );
 }
 
 void testNum(Map<Object, Object> map, String name) {
   test<int, int>(map, 1, 37, name);
 }
 
-void test<K, V>(map, firstKey, firstValue, String name,
-    {bool noSuchMethodMap = false}) {
+void test<K, V>(
+  map,
+  firstKey,
+  firstValue,
+  String name, {
+  bool noSuchMethodMap = false,
+}) {
   if (!noSuchMethodMap) {
     Expect.isTrue(map.containsKey(firstKey), "$name.containsKey");
     Expect.equals(1, map.length, "$name.length");

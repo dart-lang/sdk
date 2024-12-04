@@ -39,7 +39,9 @@ class RemoveAssignment extends ResolvedCorrectionProducer {
       sourceRange = utils.getLinesRange(range.node(parent));
     } else {
       sourceRange = range.endEnd(
-          expression.leftHandSide.endToken, expression.rightHandSide.endToken);
+        expression.leftHandSide.endToken,
+        expression.rightHandSide.endToken,
+      );
     }
 
     await builder.addDartFileEdit(file, (builder) {

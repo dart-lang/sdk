@@ -27,16 +27,33 @@ import 'package:expect/expect.dart';
 
 void main() {
   description(
-      "This test checks the case-insensitive matching of character literals.");
+    "This test checks the case-insensitive matching of character literals.",
+  );
 
-  shouldBeTrue(new RegExp(r"\u00E5", caseSensitive: false)
-      .hasMatch('new RegExp(r"\u00E5")'));
-  shouldBeTrue(new RegExp(r"\u00E5", caseSensitive: false)
-      .hasMatch('new RegExp(r"\u00C5")'));
-  shouldBeTrue(new RegExp(r"\u00C5", caseSensitive: false)
-      .hasMatch('new RegExp(r"\u00E5")'));
-  shouldBeTrue(new RegExp(r"\u00C5", caseSensitive: false)
-      .hasMatch('new RegExp(r"\u00C5")'));
+  shouldBeTrue(
+    new RegExp(
+      r"\u00E5",
+      caseSensitive: false,
+    ).hasMatch('new RegExp(r"\u00E5")'),
+  );
+  shouldBeTrue(
+    new RegExp(
+      r"\u00E5",
+      caseSensitive: false,
+    ).hasMatch('new RegExp(r"\u00C5")'),
+  );
+  shouldBeTrue(
+    new RegExp(
+      r"\u00C5",
+      caseSensitive: false,
+    ).hasMatch('new RegExp(r"\u00E5")'),
+  );
+  shouldBeTrue(
+    new RegExp(
+      r"\u00C5",
+      caseSensitive: false,
+    ).hasMatch('new RegExp(r"\u00C5")'),
+  );
 
   shouldBeFalse(new RegExp(r"\u00E5", caseSensitive: false).hasMatch('P'));
   shouldBeFalse(new RegExp(r"\u00E5", caseSensitive: false).hasMatch('PASS'));
@@ -47,22 +64,28 @@ void main() {
   shouldBeNull(firstMatch('PASS', new RegExp(r"\u00C5", caseSensitive: false)));
 
   assertEquals(
-      'PAS\u00E5'.replaceAll(new RegExp(r"\u00E5", caseSensitive: false), 'S'),
-      'PASS');
+    'PAS\u00E5'.replaceAll(new RegExp(r"\u00E5", caseSensitive: false), 'S'),
+    'PASS',
+  );
   assertEquals(
-      'PAS\u00E5'.replaceAll(new RegExp(r"\u00C5", caseSensitive: false), 'S'),
-      'PASS');
+    'PAS\u00E5'.replaceAll(new RegExp(r"\u00C5", caseSensitive: false), 'S'),
+    'PASS',
+  );
   assertEquals(
-      'PAS\u00C5'.replaceAll(new RegExp(r"\u00E5", caseSensitive: false), 'S'),
-      'PASS');
+    'PAS\u00C5'.replaceAll(new RegExp(r"\u00E5", caseSensitive: false), 'S'),
+    'PASS',
+  );
   assertEquals(
-      'PAS\u00C5'.replaceAll(new RegExp(r"\u00C5", caseSensitive: false), 'S'),
-      'PASS');
+    'PAS\u00C5'.replaceAll(new RegExp(r"\u00C5", caseSensitive: false), 'S'),
+    'PASS',
+  );
 
   assertEquals(
-      'PASS'.replaceAll(new RegExp(r"\u00E5", caseSensitive: false), '%C3%A5'),
-      'PASS');
+    'PASS'.replaceAll(new RegExp(r"\u00E5", caseSensitive: false), '%C3%A5'),
+    'PASS',
+  );
   assertEquals(
-      'PASS'.replaceAll(new RegExp(r"\u00C5", caseSensitive: false), '%C3%A5'),
-      'PASS');
+    'PASS'.replaceAll(new RegExp(r"\u00C5", caseSensitive: false), '%C3%A5'),
+    'PASS',
+  );
 }

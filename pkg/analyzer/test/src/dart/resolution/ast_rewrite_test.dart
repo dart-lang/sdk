@@ -179,7 +179,7 @@ ImplicitCallReference
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   staticElement: <testLibraryFragment>::@class::C::@method::call
@@ -719,8 +719,21 @@ f(A a) {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo();');
-    assertElement(invocation, findElement.method('foo'));
+    var node = findNode.methodInvocation('foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
   }
 
   test_targetNull_class() async {
@@ -746,16 +759,16 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<int, String>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::new
@@ -798,7 +811,7 @@ ExtensionOverride
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -812,7 +825,7 @@ ExtensionOverride
         staticType: A
     rightParenthesis: )
   element: <testLibraryFragment>::@extension::E
-  element2: <testLibraryFragment>::@extension::E#element
+  element2: <testLibrary>::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -835,7 +848,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@function::A
-    element: <testLibraryFragment>::@function::A#element
+    element: <testLibrary>::@function::A
     staticType: void Function<T, U>(int)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -843,12 +856,12 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -894,16 +907,16 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::X
-      element2: <testLibraryFragment>::@typeAlias::X#element
+      element2: <testLibrary>::@typeAlias::X
       type: A<int, String>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::A::@constructor::new
@@ -965,7 +978,7 @@ InstanceCreationExpression
         element2: <testLibraryFragment>::@prefix2::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1029,11 +1042,11 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1097,11 +1110,11 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1212,7 +1225,7 @@ InstanceCreationExpression
         element2: <testLibraryFragment>::@prefix2::prefix
       name: X
       element: package:test/a.dart::<fragment>::@typeAlias::X
-      element2: package:test/a.dart::<fragment>::@typeAlias::X#element
+      element2: package:test/a.dart::@typeAlias::X
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1258,7 +1271,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1309,7 +1322,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1329,12 +1342,12 @@ InstanceCreationExpression
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1374,7 +1387,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1394,12 +1407,12 @@ InstanceCreationExpression
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1427,8 +1440,31 @@ f() {
 }
 ''');
 
-    var invocation = findNode.methodInvocation('foo(0);');
-    assertElement(invocation, findElement.method('foo'));
+    var node = findNode.methodInvocation('foo(0);');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    staticElement: <testLibraryFragment>::@class::A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <testLibraryFragment>::@class::A::@method::foo
+    element: <testLibraryFragment>::@class::A::@method::foo#element
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
   }
 
   test_targetSimpleIdentifier_prefix_class() async {
@@ -1463,16 +1499,16 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A<int, String>
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::A::@constructor::new
@@ -1524,7 +1560,7 @@ ExtensionOverride
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -1538,7 +1574,7 @@ ExtensionOverride
         staticType: A
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@extension::E
-  element2: package:test/a.dart::<fragment>::@extension::E#element
+  element2: package:test/a.dart::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -1571,7 +1607,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: A
     staticElement: package:test/a.dart::<fragment>::@function::A
-    element: package:test/a.dart::<fragment>::@function::A#element
+    element: package:test/a.dart::@function::A
     staticType: void Function<T, U>(int)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1579,12 +1615,12 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1625,7 +1661,7 @@ InstanceCreationExpression
     type: NamedType
       name: X
       element: <testLibraryFragment>::@typeAlias::X
-      element2: <testLibraryFragment>::@typeAlias::X#element
+      element2: <testLibrary>::@typeAlias::X
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1686,8 +1722,26 @@ void g() {
 }
 ''');
 
-    var identifier = findNode.constructorReference('C.new');
-    assertElement(identifier, findElement.unnamedConstructor('C'));
+    var node = findNode.constructorReference('C.new');
+    assertResolvedNodeText(node, r'''
+ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibraryFragment>::@class::C
+      element2: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      staticElement: <testLibraryFragment>::@class::C::@constructor::new
+      element: <testLibraryFragment>::@class::C::@constructor::new#element
+      staticType: null
+    staticElement: <testLibraryFragment>::@class::C::@constructor::new
+    element: <testLibraryFragment>::@class::C::@constructor::new#element
+  parameter: <testLibraryFragment>::@setter::f::@parameter::_f
+  staticType: C Function()
+''');
   }
 
   // TODO(srawlins): Complete tests of all cases of rewriting (or not) a

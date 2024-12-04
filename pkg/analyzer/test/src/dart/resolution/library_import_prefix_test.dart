@@ -96,7 +96,7 @@ InstanceCreationExpression
     type: NamedType
       name: C
       element: <testLibraryFragment>::@class::C
-      element2: <testLibraryFragment>::@class::C#element
+      element2: <testLibrary>::@class::C
       type: C<dynamic>
     staticElement: ConstructorMember
       base: <testLibraryFragment>::@class::C::@constructor::new
@@ -127,9 +127,14 @@ main() {
 }
 ''');
 
-    var pRef = findNode.simple('p.max');
-    assertElement(pRef, findElement.prefix('p'));
-    assertTypeNull(pRef);
+    var node = findNode.simple('p.max');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: p
+  staticElement: <testLibraryFragment>::@prefix::p
+  element: <testLibraryFragment>::@prefix2::p
+  staticType: null
+''');
   }
 
   test_asPrefix_prefixedIdentifier() async {
@@ -141,9 +146,14 @@ main() {
 }
 ''');
 
-    var pRef = findNode.simple('p.Future');
-    assertElement(pRef, findElement.prefix('p'));
-    assertTypeNull(pRef);
+    var node = findNode.simple('p.Future');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: p
+  staticElement: <testLibraryFragment>::@prefix::p
+  element: <testLibraryFragment>::@prefix2::p
+  staticType: null
+''');
   }
 
   test_wildcardResolution() async {

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -35,10 +36,6 @@ class ExtensionMemberResolver {
 
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
-
-  bool get _inferenceUsingBoundsIsEnabled =>
-      _resolver.definingLibrary.featureSet
-          .isEnabled(Feature.inference_using_bounds);
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
@@ -82,11 +79,12 @@ class ExtensionMemberResolver {
   /// Returns the most specific accessible extension, applicable to [type],
   /// that defines the member with the given [name].
   ///
-  /// If no applicable extensions are found, returns [ResolutionResult.none].
+  /// If no applicable extensions are found, returns
+  /// [ExtensionResolutionResult.none].
   ///
   /// If the match is ambiguous, reports an error on the [nameEntity], and
-  /// returns [ResolutionResult.ambiguous].
-  ResolutionResult findExtension(
+  /// returns [ExtensionResolutionResult.ambiguous].
+  ExtensionResolutionResult findExtension(
       DartType type, SyntacticEntity nameEntity, Name name) {
     var extensions = _resolver.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
@@ -96,7 +94,7 @@ class ExtensionMemberResolver {
         );
 
     if (extensions.isEmpty) {
-      return ResolutionResult.none;
+      return ExtensionResolutionError.none;
     }
 
     if (extensions.length == 1) {
@@ -117,29 +115,42 @@ class ExtensionMemberResolver {
     }
 
     // The most specific extension is ambiguous.
-    _errorReporter.atEntity(
-      nameEntity,
-      CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
-      arguments: [
-        name.name,
-        mostSpecific.map((e) {
-          var name = e.extension.name;
-          if (name != null) {
-            return "extension '$name'";
-          }
-          var type = e.extension.extendedType.getDisplayString();
-          return "unnamed extension on '$type'";
-        }).commaSeparatedWithAnd,
-      ],
-    );
-    return ResolutionResult.ambiguous;
+    if (mostSpecific.length == 2) {
+      _errorReporter.atEntity(
+        nameEntity,
+        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+        arguments: [
+          name.name,
+          mostSpecific[0].extension,
+          mostSpecific[1].extension,
+        ],
+      );
+    } else {
+      _errorReporter.atEntity(
+        nameEntity,
+        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
+        arguments: [
+          name.name,
+          mostSpecific.map((e) {
+            var name = e.extension.name;
+            if (name != null) {
+              return "extension '$name'";
+            }
+            var type = e.extension.extendedType.getDisplayString();
+            return "unnamed extension on '$type'";
+          }).commaSeparatedWithAnd,
+        ],
+      );
+    }
+    return ExtensionResolutionError.ambiguous;
   }
 
   /// Resolve the [name] (without `=`) to the corresponding getter and setter
   /// members of the extension [node].
   ///
   /// The [node] is fully resolved, and its type arguments are set.
-  ResolutionResult getOverrideMember(ExtensionOverride node, String name) {
+  ExtensionResolutionResult getOverrideMember(
+      ExtensionOverride node, String name) {
     var element = node.element;
 
     ExecutableElement? getter;
@@ -153,7 +164,7 @@ class ExtensionMemberResolver {
     }
 
     if (getter == null && setter == null) {
-      return ResolutionResult.none;
+      return ExtensionResolutionError.none;
     }
 
     var substitution = Substitution.fromPairs(
@@ -166,12 +177,13 @@ class ExtensionMemberResolver {
     var setterMember =
         setter != null ? ExecutableMember.from2(setter, substitution) : null;
 
-    return ResolutionResult(getter: getterMember, setter: setterMember);
+    return SingleExtensionResolutionResult(
+        getter: getterMember, setter: setterMember);
   }
 
   /// Perform upward inference for the override.
-  void resolveOverride(
-      ExtensionOverride node, List<WhyNotPromotedGetter> whyNotPromotedList) {
+  void resolveOverride(ExtensionOverride node,
+      List<WhyNotPromotedGetter> whyNotPromotedArguments) {
     var nodeImpl = node as ExtensionOverrideImpl;
     var element = node.element;
     var typeParameters = element.typeParameters;
@@ -232,7 +244,7 @@ class ExtensionMemberResolver {
     } else if (!_typeSystem.isAssignableTo(receiverType, extendedType,
         strictCasts: _resolver.analysisOptions.strictCasts)) {
       var whyNotPromoted =
-          whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
+          whyNotPromotedArguments.isEmpty ? null : whyNotPromotedArguments[0];
       _errorReporter.atNode(
         receiverExpression,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
@@ -353,7 +365,7 @@ class ExtensionMemberResolver {
         errorReporter: _errorReporter,
         errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
+        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
         strictInference: _resolver.analysisOptions.strictInference,
         typeSystemOperations: _resolver.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
@@ -441,4 +453,39 @@ class ExtensionMemberResolver {
         parent is PrefixExpression ||
         parent is PropertyAccess && parent.target == node;
   }
+}
+
+/// The result of a failed attempt to resolve an identifier to elements, where
+/// the result is expected to come from an extension.
+enum ExtensionResolutionError implements ExtensionResolutionResult {
+  /// Resolution failed because no elements were found.
+  none,
+
+  /// Resolution failed because multiple elements were found.
+  ambiguous;
+
+  @override
+  ExecutableElement? get getter => null;
+
+  @override
+  ExecutableElement2? get getter2 => null;
+
+  @override
+  ExecutableElement? get setter => null;
+
+  @override
+  ExecutableElement2? get setter2 => null;
+}
+
+/// The result of attempting to resolve an identifier to elements, where the
+/// result (if any) is known to come from an extension.
+sealed class ExtensionResolutionResult implements SimpleResolutionResult {}
+
+/// The result of a successful attempt to resolve an identifier to elements,
+/// where the result (if any) is known to come from an extension.
+class SingleExtensionResolutionResult extends SimpleResolutionResult
+    implements ExtensionResolutionResult {
+  SingleExtensionResolutionResult(
+      {required super.getter, required super.setter})
+      : assert(getter != null || setter != null);
 }

@@ -75,7 +75,7 @@ FunctionTypedFormalParameter
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: a
       declaredElement: <testLibraryFragment>::@function::f::@parameter::p::@parameter::a

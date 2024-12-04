@@ -13,7 +13,9 @@ import 'dart:typed_data' show Uint8List, Uint16List;
 
 @patch
 dynamic _parseJson(
-    String source, Object? Function(Object? key, Object? value)? reviver) {
+  String source,
+  Object? Function(Object? key, Object? value)? reviver,
+) {
   _JsonListener listener = new _JsonListener(reviver);
   var parser = new _JsonStringParser(listener);
   parser.chunk = source;
@@ -169,7 +171,7 @@ class _NumberBuffer {
   Uint8List list;
   int length = 0;
   _NumberBuffer(int initialCapacity)
-      : list = new Uint8List(_initialCapacity(initialCapacity));
+    : list = new Uint8List(_initialCapacity(initialCapacity));
 
   int get capacity => list.length;
 
@@ -1004,7 +1006,8 @@ abstract class _ChunkedJsonParser<T> {
    * Returns [chunkEnd] so it can be used as part of a return statement.
    */
   int chunkStringEscapeU(int count, int value) {
-    partialState = PARTIAL_STRING |
+    partialState =
+        PARTIAL_STRING |
         STR_U |
         (count << STR_U_COUNT_SHIFT) |
         (value << STR_U_VALUE_SHIFT);
@@ -1264,7 +1267,7 @@ abstract class _ChunkedJsonParser<T> {
       char = getChar(position);
       int expSign = 1;
       int exponent = 0;
-      if (((char + 1) | 2) == 0x2e /*+ or -*/) {
+      if (((char + 1) | 2) == 0x2e /*+ or -*/ ) {
         expSign = 0x2C - char; // -1 for MINUS, +1 for PLUS
         position++;
         if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
@@ -1288,7 +1291,8 @@ abstract class _ChunkedJsonParser<T> {
           listener.handleNumber(sign < 0 ? -0.0 : 0.0);
         } else {
           listener.handleNumber(
-              sign < 0 ? double.negativeInfinity : double.infinity);
+            sign < 0 ? double.negativeInfinity : double.infinity,
+          );
         }
         return position;
       }
@@ -1426,7 +1430,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   int chunkEnd = 0;
 
   _JsonUtf8Parser(_JsonListener listener, this.allowMalformed)
-      : super(listener) {
+    : super(listener) {
     // Starts out checking for an optional BOM (KWD_BOM, count = 0).
     partialState =
         _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
@@ -1451,8 +1455,9 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
 
   void addSliceToString(int start, int end) {
     final StringBuffer buffer = this.buffer;
-    buffer
-        .write(_Utf8Decoder(allowMalformed).convertChunked(chunk, start, end));
+    buffer.write(
+      _Utf8Decoder(allowMalformed).convertChunked(chunk, start, end),
+    );
   }
 
   void addCharToString(int charCode) {
@@ -1489,8 +1494,12 @@ class _Utf8Decoder {
     if (start == end) return "";
 
     if (codeUnits is JSUint8ArrayImpl) {
-      JSStringImpl? decoded =
-          decodeUtf8JS(codeUnits, start, end, allowMalformed);
+      JSStringImpl? decoded = decodeUtf8JS(
+        codeUnits,
+        start,
+        end,
+        allowMalformed,
+      );
       if (decoded != null) return decoded;
     }
 

@@ -7,8 +7,8 @@ library illegal_msg_mirror_test;
 import "dart:isolate";
 import "dart:mirrors";
 
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 class Class {
   method() {}

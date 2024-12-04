@@ -309,7 +309,7 @@ augment num foo = augmented;
 AugmentedExpression
   augmentedKeyword: augmented
   element: package:test/a.dart::<fragment>::@topLevelVariable::foo
-  element2: package:test/a.dart::<fragment>::@topLevelVariable::foo#element
+  element2: package:test/a.dart::@topLevelVariable::foo
   staticType: int
 ''');
   }

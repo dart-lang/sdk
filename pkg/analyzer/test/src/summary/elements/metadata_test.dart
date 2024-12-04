@@ -44,7 +44,7 @@ library
               name: SimpleIdentifier
                 token: A @1
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @2
@@ -94,28 +94,33 @@ library
       classes
         class C @20
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
         class A @31
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            const new @43
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 43
               formalParameters
                 o @45
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::o#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -151,7 +156,7 @@ library
               name: SimpleIdentifier
                 token: A @1
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @2
@@ -190,28 +195,33 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
         class A @33
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            const new @45
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 45
               formalParameters
                 o @47
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::o#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -236,13 +246,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as a @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    a @19
-      reference: <testLibraryFragment>::@prefix::a
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -271,10 +274,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @25
                   staticElement: package:test/a.dart::<fragment>::@class::A
-                  element: package:test/a.dart::<fragment>::@class::A#element
+                  element: package:test/a.dart::@class::A
                   staticType: null
                 staticElement: package:test/a.dart::<fragment>::@class::A
-                element: package:test/a.dart::<fragment>::@class::A#element
+                element: package:test/a.dart::@class::A
                 staticType: null
               period: . @26
               constructorName: SimpleIdentifier
@@ -302,13 +305,15 @@ library
       classes
         class C @39
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -330,9 +335,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -351,7 +353,7 @@ library
                 prefix: SimpleIdentifier
                   token: A @18
                   staticElement: package:test/a.dart::<fragment>::@class::A
-                  element: package:test/a.dart::<fragment>::@class::A#element
+                  element: package:test/a.dart::@class::A
                   staticType: null
                 period: . @19
                 identifier: SimpleIdentifier
@@ -379,13 +381,15 @@ library
       classes
         class C @32
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -473,42 +477,44 @@ library
       classes
         class C @19
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
-            x @34
+            hasInitializer x @34
               reference: <testLibraryFragment>::@class::C::@field::x
               element: <testLibraryFragment>::@class::C::@field::x#element
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           getters
-            get x @-1
+            synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
               element: <testLibraryFragment>::@class::C::@getter::x#element
           setters
-            set x= @-1
+            synthetic set x
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                _x @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
-        x
+        hasInitializer x
           firstFragment: <testLibraryFragment>::@class::C::@field::x
           type: int
           getter: <testLibraryFragment>::@class::C::@getter::x#element
@@ -520,13 +526,14 @@ library
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
       setters
-        synthetic set x=
+        synthetic set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
             requiredPositional _x
               type: int
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -639,7 +646,7 @@ library
       classes
         class C @27
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @34
               element: <not-implemented>
@@ -654,16 +661,17 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           fields
-            foo @54
+            hasInitializer foo @54
               reference: <testLibraryFragment>::@class::C::@field::foo
               element: <testLibraryFragment>::@class::C::@field::foo#element
               getter2: <testLibraryFragment>::@class::C::@getter::foo
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           getters
-            get foo @-1
+            synthetic get foo
               reference: <testLibraryFragment>::@class::C::@getter::foo
               element: <testLibraryFragment>::@class::C::@getter::foo#element
           methods
@@ -681,16 +689,17 @@ library
                   element: <testLibraryFragment>::@class::C::@getter::foo
                   element2: <testLibraryFragment>::@class::C::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -705,7 +714,7 @@ library
               element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       fields
-        static const foo
+        static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@class::C::@field::foo
           type: int
           getter: <testLibraryFragment>::@class::C::@getter::foo#element
@@ -717,6 +726,7 @@ library
           firstFragment: <testLibraryFragment>::@class::C::@getter::foo
       methods
         bar
+          reference: <testLibrary>::@class::C::@method::bar
           firstFragment: <testLibraryFragment>::@class::C::@method::bar
           metadata
             Annotation
@@ -729,7 +739,8 @@ library
               element: <testLibraryFragment>::@class::C::@getter::foo
               element2: <testLibraryFragment>::@class::C::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -817,39 +828,43 @@ library
       classes
         class C @44
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        const b @22
+        hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b @-1
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
-    const b
+    const hasInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
@@ -939,11 +954,12 @@ library
       classes
         class C @25
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -955,47 +971,55 @@ library
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @45
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
         class E @56
           reference: <testLibraryFragment>::@class::E
-          element: <testLibraryFragment>::@class::E#element
+          element: <testLibrary>::@class::E
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::E::@constructor::new
               element: <testLibraryFragment>::@class::E::@constructor::new#element
+              typeName: E
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class alias C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       supertype: D
+      mixins
+        E
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
     class E
+      reference: <testLibrary>::@class::E
       firstFragment: <testLibraryFragment>::@class::E
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::E::@constructor::new
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -1043,7 +1067,7 @@ library
                 prefix: SimpleIdentifier
                   token: A @37
                   staticElement: <testLibraryFragment>::@class::A
-                  element: <testLibraryFragment>::@class::A#element
+                  element: <testLibrary>::@class::A
                   staticType: null
                 period: . @38
                 identifier: SimpleIdentifier
@@ -1076,25 +1100,28 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             const named @20
               reference: <testLibraryFragment>::@class::A::@constructor::named
               element: <testLibraryFragment>::@class::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 18
               periodOffset: 19
-              nameEnd: 25
               formalParameters
                 _ @30
                   element: <testLibraryFragment>::@class::A::@constructor::named::@parameter::_#element
         class C @54
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const named
@@ -1103,6 +1130,7 @@ library
             requiredPositional _
               type: int
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1152,7 +1180,7 @@ library
                 prefix: SimpleIdentifier
                   token: A @39
                   staticElement: <testLibraryFragment>::@class::A
-                  element: <testLibraryFragment>::@class::A#element
+                  element: <testLibrary>::@class::A
                   staticType: null
                 period: . @40
                 identifier: SimpleIdentifier
@@ -1191,7 +1219,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -1199,20 +1227,23 @@ library
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
               element: <testLibraryFragment>::@class::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 21
               periodOffset: 22
-              nameEnd: 28
               formalParameters
                 _ @31
                   element: <testLibraryFragment>::@class::A::@constructor::named::@parameter::_#element
         class C @56
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -1223,6 +1254,7 @@ library
             requiredPositional _
               type: T
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1268,7 +1300,7 @@ library
               name: SimpleIdentifier
                 token: A @36
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @37
@@ -1276,7 +1308,7 @@ library
                   NamedType
                     name: int @38
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @41
               period: . @42
@@ -1307,7 +1339,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -1315,17 +1347,20 @@ library
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
               element: <testLibraryFragment>::@class::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 21
               periodOffset: 22
-              nameEnd: 28
         class C @57
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -1333,6 +1368,7 @@ library
         const named
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1378,7 +1414,7 @@ library
               name: SimpleIdentifier
                 token: A @36
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @37
@@ -1386,7 +1422,7 @@ library
                   NamedType
                     name: int @38
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @41
               period: . @42
@@ -1417,7 +1453,7 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
@@ -1425,17 +1461,20 @@ library
             const named @23
               reference: <testLibraryFragment>::@class::A::@constructor::named
               element: <testLibraryFragment>::@class::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 21
               periodOffset: 22
-              nameEnd: 28
         class C @57
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -1443,6 +1482,7 @@ library
         const named
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1464,13 +1504,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1499,10 +1532,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::<fragment>::@class::A#element
+                  element: package:test/foo.dart::@class::A
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::<fragment>::@class::A#element
+                element: package:test/foo.dart::@class::A
                 staticType: null
               period: . @32
               constructorName: SimpleIdentifier
@@ -1537,13 +1570,15 @@ library
       classes
         class C @48
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1565,13 +1600,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1600,10 +1628,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::<fragment>::@class::A#element
+                  element: package:test/foo.dart::@class::A
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::<fragment>::@class::A#element
+                element: package:test/foo.dart::@class::A
                 staticType: null
               period: . @32
               constructorName: SimpleIdentifier
@@ -1642,13 +1670,15 @@ library
       classes
         class C @48
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1670,13 +1700,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -1705,10 +1728,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::<fragment>::@class::A#element
+                  element: package:test/foo.dart::@class::A
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::<fragment>::@class::A#element
+                element: package:test/foo.dart::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @32
@@ -1716,7 +1739,7 @@ library
                   NamedType
                     name: int @33
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @36
               period: . @37
@@ -1752,13 +1775,15 @@ library
       classes
         class C @52
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -1834,7 +1859,7 @@ library
                 prefix: SimpleIdentifier
                   token: C @69
                   staticElement: <testLibraryFragment>::@class::C
-                  element: <testLibraryFragment>::@class::C#element
+                  element: <testLibrary>::@class::C
                   staticType: null
                 period: . @70
                 identifier: SimpleIdentifier
@@ -1875,23 +1900,25 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
             const named @20
               reference: <testLibraryFragment>::@class::A::@constructor::named
               element: <testLibraryFragment>::@class::A::@constructor::named#element
+              typeName: A
+              typeNameOffset: 18
               periodOffset: 19
-              nameEnd: 25
         class C @50
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @52
               element: <not-implemented>
           constructors
-            synthetic const named @-1
+            synthetic const named
               reference: <testLibraryFragment>::@class::C::@constructor::named
               element: <testLibraryFragment>::@class::C::@constructor::named#element
+              typeName: C
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -1909,37 +1936,44 @@ library
               superConstructor: <testLibraryFragment>::@class::A::@constructor::named
         class D @85
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
       mixins
         mixin B @38
           reference: <testLibraryFragment>::@mixin::B
-          element: <testLibraryFragment>::@mixin::B#element
+          element: <testLibrary>::@mixin::B
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const named
           firstFragment: <testLibraryFragment>::@class::A::@constructor::named
     class alias C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
       supertype: A
+      mixins
+        B
       constructors
         synthetic const named
           firstFragment: <testLibraryFragment>::@class::C::@constructor::named
           superConstructor: <testLibraryFragment>::@class::A::@constructor::named#element
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
   mixins
     mixin B
+      reference: <testLibrary>::@mixin::B
       firstFragment: <testLibraryFragment>::@mixin::B
       superclassConstraints
         Object
@@ -1981,7 +2015,7 @@ library
               name: SimpleIdentifier
                 token: A @31
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @32
@@ -2005,23 +2039,27 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            const new @18
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 18
               formalParameters
                 _ @24
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
         class C @42
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -2030,6 +2068,7 @@ library
             requiredPositional _
               type: int
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2076,7 +2115,7 @@ library
               name: SimpleIdentifier
                 token: A @33
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @34
@@ -2102,26 +2141,30 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
           constructors
-            const new @21
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
               formalParameters
                 _ @25
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
         class C @44
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -2132,6 +2175,7 @@ library
             requiredPositional _
               type: T
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2175,7 +2219,7 @@ library
               name: SimpleIdentifier
                 token: A @30
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @31
@@ -2183,7 +2227,7 @@ library
                   NamedType
                     name: int @32
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @35
               arguments: ArgumentList
@@ -2206,23 +2250,27 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
           constructors
-            const new @21
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 21
         class C @45
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -2230,6 +2278,7 @@ library
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2244,13 +2293,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2279,10 +2321,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::<fragment>::@class::A#element
+                  element: package:test/foo.dart::@class::A
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::<fragment>::@class::A#element
+                element: package:test/foo.dart::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @32
@@ -2311,13 +2353,15 @@ library
       classes
         class C @42
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2339,13 +2383,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2374,10 +2411,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::<fragment>::@class::A#element
+                  element: package:test/foo.dart::@class::A
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::<fragment>::@class::A#element
+                element: package:test/foo.dart::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @32
@@ -2408,13 +2445,15 @@ library
       classes
         class C @42
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2436,13 +2475,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -2471,10 +2503,10 @@ library
                 identifier: SimpleIdentifier
                   token: A @31
                   staticElement: package:test/foo.dart::<fragment>::@class::A
-                  element: package:test/foo.dart::<fragment>::@class::A#element
+                  element: package:test/foo.dart::@class::A
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@class::A
-                element: package:test/foo.dart::<fragment>::@class::A#element
+                element: package:test/foo.dart::@class::A
                 staticType: null
               typeArguments: TypeArgumentList
                 leftBracket: < @32
@@ -2482,7 +2514,7 @@ library
                   NamedType
                     name: int @33
                     element: dart:core::<fragment>::@class::int
-                    element2: dart:core::<fragment>::@class::int#element
+                    element2: dart:core::@class::int
                     type: int
                 rightBracket: > @36
               arguments: ArgumentList
@@ -2510,13 +2542,15 @@ library
       classes
         class C @46
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2583,7 +2617,7 @@ library
               name: SimpleIdentifier
                 token: C @63
                 staticElement: <testLibraryFragment>::@class::C
-                element: <testLibraryFragment>::@class::C#element
+                element: <testLibrary>::@class::C
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @64
@@ -2611,21 +2645,24 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            const new @18
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 18
         class C @44
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @46
               element: <not-implemented>
           constructors
-            synthetic const new @-1
+            synthetic const new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -2637,37 +2674,44 @@ library
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
         class D @73
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
       mixins
         mixin B @32
           reference: <testLibraryFragment>::@mixin::B
-          element: <testLibraryFragment>::@mixin::B#element
+          element: <testLibrary>::@mixin::B
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class alias C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
       supertype: A
+      mixins
+        B
       constructors
         synthetic const new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
   mixins
     mixin B
+      reference: <testLibrary>::@mixin::B
       firstFragment: <testLibraryFragment>::@mixin::B
       superclassConstraints
         Object
@@ -2704,7 +2748,7 @@ library
               name: SimpleIdentifier
                 token: A @25
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @26
@@ -2728,23 +2772,27 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            const new @16
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 16
               formalParameters
                 x @18
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
         class C @39
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -2753,6 +2801,7 @@ library
             requiredPositional x
               type: dynamic
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -2814,7 +2863,7 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
             named @31
               reference: <testLibraryFragment>::@class::C::@constructor::named
@@ -2829,19 +2878,21 @@ library
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
+              typeName: C
+              typeNameOffset: 29
               periodOffset: 30
-              nameEnd: 36
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         named
@@ -2857,7 +2908,8 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -2918,9 +2970,9 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            new @29
+            new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
               metadata
@@ -2933,17 +2985,20 @@ library
                     staticType: null
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
+              typeName: C
+              typeNameOffset: 29
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         new
@@ -2959,7 +3014,8 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -2985,19 +3041,6 @@ library
         staticType: null
       element: <testLibraryFragment>::@getter::a
       element2: <testLibraryFragment>::@getter::a#element
-  libraryExports
-    package:test/foo.dart
-      enclosingElement3: <testLibraryFragment>
-      metadata
-        Annotation
-          atSign: @ @0
-          name: SimpleIdentifier
-            token: a @1
-            staticElement: <testLibraryFragment>::@getter::a
-            element: <testLibraryFragment>::@getter::a#element
-            staticType: null
-          element: <testLibraryFragment>::@getter::a
-          element2: <testLibraryFragment>::@getter::a#element
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -3047,16 +3090,17 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @28
+        hasInitializer a @28
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -3134,7 +3178,7 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             x @33
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -3142,31 +3186,33 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           getters
-            get x @-1
+            synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
               element: <testLibraryFragment>::@class::C::@getter::x#element
           setters
-            set x= @-1
+            synthetic set x
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                _x @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         x
@@ -3181,13 +3227,14 @@ library
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
       setters
-        synthetic set x=
+        synthetic set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
             requiredPositional _x
               type: int
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -3275,7 +3322,7 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             x @32
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -3283,9 +3330,11 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
-            new @37
+            new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+              typeNameOffset: 37
               formalParameters
                 this.x @47
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
@@ -3300,27 +3349,28 @@ library
                       element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
           getters
-            get x @-1
+            synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
               element: <testLibraryFragment>::@class::C::@getter::x#element
           setters
-            set x= @-1
+            synthetic set x
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                _x @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         x
@@ -3348,13 +3398,14 @@ library
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
       setters
-        synthetic set x=
+        synthetic set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
             requiredPositional _x
               type: dynamic
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -3441,7 +3492,7 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
             x @30
               reference: <testLibraryFragment>::@class::C::@field::x
@@ -3449,9 +3500,11 @@ library
               getter2: <testLibraryFragment>::@class::C::@getter::x
               setter2: <testLibraryFragment>::@class::C::@setter::x
           constructors
-            new @33
+            new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
+              typeNameOffset: 33
               formalParameters
                 default this.x @44
                   element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
@@ -3466,27 +3519,28 @@ library
                       element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
           getters
-            get x @-1
+            synthetic get x
               reference: <testLibraryFragment>::@class::C::@getter::x
               element: <testLibraryFragment>::@class::C::@getter::x#element
           setters
-            set x= @-1
+            synthetic set x
               reference: <testLibraryFragment>::@class::C::@setter::x
               element: <testLibraryFragment>::@class::C::@setter::x#element
               formalParameters
-                _x @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::C::@setter::x::@parameter::_x#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         x
@@ -3514,13 +3568,14 @@ library
         synthetic get x
           firstFragment: <testLibraryFragment>::@class::C::@getter::x
       setters
-        synthetic set x=
+        synthetic set x
           firstFragment: <testLibraryFragment>::@class::C::@setter::x
           formalParameters
             requiredPositional _x
               type: dynamic
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -3580,18 +3635,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       functions
         f @19
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           metadata
             Annotation
               atSign: @ @16
@@ -3603,7 +3658,8 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -3612,6 +3668,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       metadata
         Annotation
@@ -3676,16 +3733,16 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        synthetic f @-1
+        synthetic f
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           getter2: <testLibraryFragment>::@getter::f
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
         get f @23
@@ -3702,11 +3759,13 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     synthetic f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic
       getter: <testLibraryFragment>::@getter::f#element
@@ -3780,20 +3839,20 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        synthetic f @-1
+        synthetic f
           reference: <testLibraryFragment>::@topLevelVariable::f
-          element: <testLibraryFragment>::@topLevelVariable::f#element
+          element: <testLibrary>::@topLevelVariable::f
           setter2: <testLibraryFragment>::@setter::f
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       setters
-        set f= @23
+        set f @23
           reference: <testLibraryFragment>::@setter::f
           element: <testLibraryFragment>::@setter::f#element
           metadata
@@ -3810,11 +3869,13 @@ library
             value @25
               element: <testLibraryFragment>::@setter::f::@parameter::value#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     synthetic f
+      reference: <testLibrary>::@topLevelVariable::f
       firstFragment: <testLibraryFragment>::@topLevelVariable::f
       type: dynamic
       setter: <testLibraryFragment>::@setter::f#element
@@ -3822,7 +3883,7 @@ library
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
   setters
-    static set f=
+    static set f
       firstFragment: <testLibraryFragment>::@setter::f
       metadata
         Annotation
@@ -3889,7 +3950,7 @@ library
       typeAliases
         F @27
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           metadata
             Annotation
               atSign: @ @16
@@ -3901,12 +3962,12 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   typeAliases
@@ -3924,7 +3985,8 @@ library
           element2: <testLibraryFragment>::@getter::a#element
       aliasedType: dynamic Function()
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -3983,18 +4045,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             g @21
               element: <testLibraryFragment>::@function::f::@parameter::g#element
@@ -4009,7 +4071,8 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -4018,6 +4081,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional g
@@ -4089,18 +4153,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             default g @22
               element: <testLibraryFragment>::@function::f::@parameter::g#element
@@ -4115,7 +4179,8 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -4124,6 +4189,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         optionalPositional g
@@ -4218,7 +4284,7 @@ library
       typeAliases
         F @46
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           metadata
             Annotation
               atSign: @ @32
@@ -4239,19 +4305,19 @@ library
               element: <testLibraryFragment>::@getter::b
               element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        const b @22
+        hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b @-1
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
   typeAliases
@@ -4278,11 +4344,13 @@ library
           element2: <testLibraryFragment>::@getter::b#element
       aliasedType: void Function()
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
-    const b
+    const hasInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
@@ -4349,14 +4417,14 @@ library
       typeAliases
         F @22
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   typeAliases
@@ -4364,7 +4432,8 @@ library
       firstFragment: <testLibraryFragment>::@typeAlias::F
       aliasedType: void Function(int)
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -4432,14 +4501,14 @@ library
       typeAliases
         F @22
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   typeAliases
@@ -4447,7 +4516,8 @@ library
       firstFragment: <testLibraryFragment>::@typeAlias::F
       aliasedType: void Function(int Function(int))
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -4514,14 +4584,14 @@ library
       typeAliases
         F @22
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   typeAliases
@@ -4529,7 +4599,8 @@ library
       firstFragment: <testLibraryFragment>::@typeAlias::F
       aliasedType: void Function<T>(int)
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
@@ -4558,7 +4629,7 @@ library
               name: SimpleIdentifier
                 token: f @9
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @10
@@ -4568,7 +4639,7 @@ library
                     staticType: int
                 rightParenthesis: ) @13
               element: <testLibraryFragment>::@function::f
-              element2: <testLibraryFragment>::@function::f#element
+              element2: <testLibrary>::@function::f
           constructors
             synthetic @-1
               reference: <testLibraryFragment>::@class::C::@constructor::new
@@ -4590,26 +4661,29 @@ library
       classes
         class C @21
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       functions
         f @0
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             _ @2
               element: <testLibraryFragment>::@function::f::@parameter::_#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional _
@@ -4630,8 +4704,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -4661,6 +4733,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
 ''');
   }
@@ -4675,8 +4748,6 @@ part 'dart:math';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -4757,16 +4828,17 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @20
+        hasInitializer a @20
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -4838,16 +4910,17 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
-            m @-1
+            synthetic m
               reference: <testLibraryFragment>::@class::C::@field::m
               element: <testLibraryFragment>::@class::C::@field::m#element
               getter2: <testLibraryFragment>::@class::C::@getter::m
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           getters
             get m @33
               reference: <testLibraryFragment>::@class::C::@getter::m
@@ -4863,16 +4936,17 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         synthetic m
@@ -4896,7 +4970,8 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -4992,11 +5067,12 @@ library
       classes
         class C @38
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             m @54
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -5021,29 +5097,31 @@ library
                   element: <testLibraryFragment>::@getter::b
                   element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        const b @22
+        hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b @-1
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           metadata
             Annotation
@@ -5065,11 +5143,13 @@ library
               element: <testLibraryFragment>::@getter::b
               element2: <testLibraryFragment>::@getter::b#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
-    const b
+    const hasInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
@@ -5165,7 +5245,7 @@ library
       mixins
         mixin M @38
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
           methods
             m @54
               reference: <testLibraryFragment>::@mixin::M::@method::m
@@ -5190,28 +5270,30 @@ library
                   element: <testLibraryFragment>::@getter::b
                   element2: <testLibraryFragment>::@getter::b#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        const b @22
+        hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b @-1
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
       methods
         m
+          reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: <testLibraryFragment>::@mixin::M::@method::m
           metadata
             Annotation
@@ -5233,11 +5315,13 @@ library
               element: <testLibraryFragment>::@getter::b
               element2: <testLibraryFragment>::@getter::b#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
-    const b
+    const hasInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
@@ -5319,18 +5403,19 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           fields
-            m @-1
+            synthetic m
               reference: <testLibraryFragment>::@class::C::@field::m
               element: <testLibraryFragment>::@class::C::@field::m#element
               setter2: <testLibraryFragment>::@class::C::@setter::m
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           setters
-            set m= @37
+            set m @37
               reference: <testLibraryFragment>::@class::C::@setter::m
               element: <testLibraryFragment>::@class::C::@setter::m#element
               metadata
@@ -5347,16 +5432,17 @@ library
                 value @39
                   element: <testLibraryFragment>::@class::C::@setter::m::@parameter::value#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       fields
         synthetic m
@@ -5367,7 +5453,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       setters
-        set m=
+        set m
           firstFragment: <testLibraryFragment>::@class::C::@setter::m
           metadata
             Annotation
@@ -5383,7 +5469,8 @@ library
             requiredPositional value
               type: dynamic
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -5494,7 +5581,7 @@ library
       mixins
         mixin M @27
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
           typeParameters
             T @34
               element: <not-implemented>
@@ -5509,12 +5596,12 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           fields
-            foo @54
+            hasInitializer foo @54
               reference: <testLibraryFragment>::@mixin::M::@field::foo
               element: <testLibraryFragment>::@mixin::M::@field::foo#element
               getter2: <testLibraryFragment>::@mixin::M::@getter::foo
           getters
-            get foo @-1
+            synthetic get foo
               reference: <testLibraryFragment>::@mixin::M::@getter::foo
               element: <testLibraryFragment>::@mixin::M::@getter::foo#element
           methods
@@ -5532,16 +5619,17 @@ library
                   element: <testLibraryFragment>::@mixin::M::@getter::foo
                   element2: <testLibraryFragment>::@mixin::M::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       typeParameters
         T
@@ -5558,7 +5646,7 @@ library
       superclassConstraints
         Object
       fields
-        static const foo
+        static const hasInitializer foo
           firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
           type: int
           getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
@@ -5567,6 +5655,7 @@ library
           firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
       methods
         bar
+          reference: <testLibrary>::@mixin::M::@method::bar
           firstFragment: <testLibraryFragment>::@mixin::M::@method::bar
           metadata
             Annotation
@@ -5579,7 +5668,8 @@ library
               element: <testLibraryFragment>::@mixin::M::@getter::foo
               element2: <testLibraryFragment>::@mixin::M::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -5665,34 +5755,37 @@ library
       mixins
         mixin M @44
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        const b @22
+        hasInitializer b @22
           reference: <testLibraryFragment>::@topLevelVariable::b
-          element: <testLibraryFragment>::@topLevelVariable::b#element
+          element: <testLibrary>::@topLevelVariable::b
           getter2: <testLibraryFragment>::@getter::b
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get b @-1
+        synthetic get b
           reference: <testLibraryFragment>::@getter::b
           element: <testLibraryFragment>::@getter::b#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
-    const b
+    const hasInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
       firstFragment: <testLibraryFragment>::@topLevelVariable::b
       type: dynamic
       getter: <testLibraryFragment>::@getter::b#element
@@ -5773,7 +5866,7 @@ library
       classes
         class A @27
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @34
               element: <not-implemented>
@@ -5788,20 +5881,22 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -5819,7 +5914,8 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -5900,9 +5996,9 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            new @35
+            new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
               metadata
@@ -5915,6 +6011,8 @@ library
                     staticType: null
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
+              typeName: A
+              typeNameOffset: 35
               formalParameters
                 a @46
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
@@ -5929,16 +6027,17 @@ library
                       element: <testLibraryFragment>::@getter::foo
                       element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
@@ -5967,7 +6066,8 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -6045,16 +6145,17 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
-            getter @-1
+            synthetic getter
               reference: <testLibraryFragment>::@class::A::@field::getter
               element: <testLibraryFragment>::@class::A::@field::getter#element
               getter2: <testLibraryFragment>::@class::A::@getter::getter
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           getters
             get getter @43
               reference: <testLibraryFragment>::@class::A::@getter::getter
@@ -6070,16 +6171,17 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic getter
@@ -6103,7 +6205,8 @@ library
               element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -6202,11 +6305,12 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           methods
             method @40
               reference: <testLibraryFragment>::@class::A::@method::method
@@ -6248,22 +6352,24 @@ library
                       element: <testLibraryFragment>::@getter::foo
                       element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         method
+          reference: <testLibrary>::@class::A::@method::method
           firstFragment: <testLibraryFragment>::@class::A::@method::method
           metadata
             Annotation
@@ -6301,7 +6407,8 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -6392,18 +6499,19 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
-            setter @-1
+            synthetic setter
               reference: <testLibraryFragment>::@class::A::@field::setter
               element: <testLibraryFragment>::@class::A::@field::setter#element
               setter2: <testLibraryFragment>::@class::A::@setter::setter
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           setters
-            set setter= @39
+            set setter @39
               reference: <testLibraryFragment>::@class::A::@setter::setter
               element: <testLibraryFragment>::@class::A::@setter::setter#element
               metadata
@@ -6430,16 +6538,17 @@ library
                       element: <testLibraryFragment>::@getter::foo
                       element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         synthetic setter
@@ -6450,7 +6559,7 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       setters
-        set setter=
+        set setter
           firstFragment: <testLibraryFragment>::@class::A::@setter::setter
           metadata
             Annotation
@@ -6476,7 +6585,8 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -6583,14 +6693,15 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
         class B @50
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           typeParameters
             T @57
               element: <not-implemented>
@@ -6605,9 +6716,10 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -6620,23 +6732,25 @@ library
       mixins
         mixin M @33
           reference: <testLibraryFragment>::@mixin::M
-          element: <testLibraryFragment>::@mixin::M#element
+          element: <testLibrary>::@mixin::M
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
     class alias B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       typeParameters
         T
@@ -6651,17 +6765,21 @@ library
               element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
       supertype: A
+      mixins
+        M
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::B::@constructor::new
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   mixins
     mixin M
+      reference: <testLibrary>::@mixin::M
       firstFragment: <testLibraryFragment>::@mixin::M
       superclassConstraints
         Object
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -6726,7 +6844,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -6745,7 +6863,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -6774,7 +6892,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -6852,64 +6970,66 @@ library
       enums
         enum E @26
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
-            enumConstant e1 @37
+            hasInitializer e1 @37
               reference: <testLibraryFragment>::@enum::E::@field::e1
               element: <testLibraryFragment>::@enum::E::@field::e1#element
               getter2: <testLibraryFragment>::@enum::E::@getter::e1
-            enumConstant e2 @43
+            hasInitializer e2 @43
               reference: <testLibraryFragment>::@enum::E::@field::e2
               element: <testLibraryFragment>::@enum::E::@field::e2#element
               getter2: <testLibraryFragment>::@enum::E::@getter::e2
-            enumConstant e3 @54
+            hasInitializer e3 @54
               reference: <testLibraryFragment>::@enum::E::@field::e3
               element: <testLibraryFragment>::@enum::E::@field::e3#element
               getter2: <testLibraryFragment>::@enum::E::@getter::e3
-            values @-1
+            synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
-            synthetic const new @-1
+            synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              typeName: E
           getters
-            get e1 @-1
+            synthetic get e1
               reference: <testLibraryFragment>::@enum::E::@getter::e1
               element: <testLibraryFragment>::@enum::E::@getter::e1#element
-            get e2 @-1
+            synthetic get e2
               reference: <testLibraryFragment>::@enum::E::@getter::e2
               element: <testLibraryFragment>::@enum::E::@getter::e2#element
-            get e3 @-1
+            synthetic get e3
               reference: <testLibraryFragment>::@enum::E::@getter::e3
               element: <testLibraryFragment>::@enum::E::@getter::e3#element
-            get values @-1
+            synthetic get values
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const e1
+        static const enumConstant hasInitializer e1
           firstFragment: <testLibraryFragment>::@enum::E::@field::e1
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::e1#element
-        static const e2
+        static const enumConstant hasInitializer e2
           firstFragment: <testLibraryFragment>::@enum::E::@field::e2
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::e2#element
-        static const e3
+        static const enumConstant hasInitializer e3
           firstFragment: <testLibraryFragment>::@enum::E::@field::e3
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::e3#element
@@ -6930,7 +7050,8 @@ library
         synthetic static get values
           firstFragment: <testLibraryFragment>::@enum::E::@getter::values
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -7006,7 +7127,7 @@ library
       extensions
         extension E @31
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           typeParameters
             T @38
               element: <not-implemented>
@@ -7021,16 +7142,17 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       typeParameters
         T
@@ -7045,7 +7167,8 @@ library
               element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -7186,72 +7309,74 @@ library
       classes
         class A @22
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
-            isStatic @42
+            hasInitializer isStatic @42
               reference: <testLibraryFragment>::@class::A::@field::isStatic
               element: <testLibraryFragment>::@class::A::@field::isStatic#element
               getter2: <testLibraryFragment>::@class::A::@getter::isStatic
               setter2: <testLibraryFragment>::@class::A::@setter::isStatic
-            isStaticConst @79
+            hasInitializer isStaticConst @79
               reference: <testLibraryFragment>::@class::A::@field::isStaticConst
               element: <testLibraryFragment>::@class::A::@field::isStaticConst#element
               getter2: <testLibraryFragment>::@class::A::@getter::isStaticConst
-            isInstance @112
+            hasInitializer isInstance @112
               reference: <testLibraryFragment>::@class::A::@field::isInstance
               element: <testLibraryFragment>::@class::A::@field::isInstance#element
               getter2: <testLibraryFragment>::@class::A::@getter::isInstance
               setter2: <testLibraryFragment>::@class::A::@setter::isInstance
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           getters
-            get isStatic @-1
+            synthetic get isStatic
               reference: <testLibraryFragment>::@class::A::@getter::isStatic
               element: <testLibraryFragment>::@class::A::@getter::isStatic#element
-            get isStaticConst @-1
+            synthetic get isStaticConst
               reference: <testLibraryFragment>::@class::A::@getter::isStaticConst
               element: <testLibraryFragment>::@class::A::@getter::isStaticConst#element
-            get isInstance @-1
+            synthetic get isInstance
               reference: <testLibraryFragment>::@class::A::@getter::isInstance
               element: <testLibraryFragment>::@class::A::@getter::isInstance#element
           setters
-            set isStatic= @-1
+            synthetic set isStatic
               reference: <testLibraryFragment>::@class::A::@setter::isStatic
               element: <testLibraryFragment>::@class::A::@setter::isStatic#element
               formalParameters
-                _isStatic @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::A::@setter::isStatic::@parameter::_isStatic#element
-            set isInstance= @-1
+            synthetic set isInstance
               reference: <testLibraryFragment>::@class::A::@setter::isInstance
               element: <testLibraryFragment>::@class::A::@setter::isInstance#element
               formalParameters
-                _isInstance @-1
+                <null-name>
                   element: <testLibraryFragment>::@class::A::@setter::isInstance::@parameter::_isInstance#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        static isStatic
+        static hasInitializer isStatic
           firstFragment: <testLibraryFragment>::@class::A::@field::isStatic
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::isStatic#element
           setter: <testLibraryFragment>::@class::A::@setter::isStatic#element
-        static const isStaticConst
+        static const hasInitializer isStaticConst
           firstFragment: <testLibraryFragment>::@class::A::@field::isStaticConst
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::isStaticConst#element
-        isInstance
+        hasInitializer isInstance
           firstFragment: <testLibraryFragment>::@class::A::@field::isInstance
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::isInstance#element
@@ -7267,18 +7392,19 @@ library
         synthetic get isInstance
           firstFragment: <testLibraryFragment>::@class::A::@getter::isInstance
       setters
-        synthetic static set isStatic=
+        synthetic static set isStatic
           firstFragment: <testLibraryFragment>::@class::A::@setter::isStatic
           formalParameters
             requiredPositional _isStatic
               type: int
-        synthetic set isInstance=
+        synthetic set isInstance
           firstFragment: <testLibraryFragment>::@class::A::@setter::isInstance
           formalParameters
             requiredPositional _isInstance
               type: int
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -7350,16 +7476,17 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const foo @52
+        hasInitializer foo @52
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -7436,7 +7563,7 @@ library
       mixins
         mixin A @27
           reference: <testLibraryFragment>::@mixin::A
-          element: <testLibraryFragment>::@mixin::A#element
+          element: <testLibrary>::@mixin::A
           typeParameters
             T @34
               element: <not-implemented>
@@ -7451,16 +7578,17 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   mixins
     mixin A
+      reference: <testLibrary>::@mixin::A
       firstFragment: <testLibraryFragment>::@mixin::A
       typeParameters
         T
@@ -7477,7 +7605,8 @@ library
       superclassConstraints
         Object
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -7567,7 +7696,7 @@ library
       typeAliases
         F @34
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           metadata
             Annotation
               atSign: @ @16
@@ -7592,12 +7721,12 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   typeAliases
@@ -7627,7 +7756,8 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
       aliasedType: void Function(int)
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -7729,7 +7859,7 @@ library
       typeAliases
         A @29
           reference: <testLibraryFragment>::@typeAlias::A
-          element: <testLibraryFragment>::@typeAlias::A#element
+          element: <testLibrary>::@typeAlias::A
           metadata
             Annotation
               atSign: @ @16
@@ -7754,12 +7884,12 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
   typeAliases
@@ -7789,7 +7919,8 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
       aliasedType: void Function<U>(int)
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -7825,9 +7956,6 @@ library
   nameOffset: 8
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
-    part_1
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -7888,23 +8016,26 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        const foo @65
+        hasInitializer foo @65
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibrary>::@fragment::package:test/a.dart
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -7996,18 +8127,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       functions
         f @26
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           metadata
             Annotation
               atSign: @ @16
@@ -8046,7 +8177,8 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
@@ -8055,6 +8187,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::foo
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       metadata
         Annotation
@@ -8150,16 +8283,16 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
-        synthetic getter @-1
+        synthetic getter
           reference: <testLibraryFragment>::@topLevelVariable::getter
-          element: <testLibraryFragment>::@topLevelVariable::getter#element
+          element: <testLibrary>::@topLevelVariable::getter
           getter2: <testLibraryFragment>::@getter::getter
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
         get getter @29
@@ -8176,11 +8309,13 @@ library
               element: <testLibraryFragment>::@getter::foo
               element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
     synthetic getter
+      reference: <testLibrary>::@topLevelVariable::getter
       firstFragment: <testLibraryFragment>::@topLevelVariable::getter
       type: int
       getter: <testLibraryFragment>::@getter::getter#element
@@ -8269,20 +8404,20 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
-        synthetic setter @-1
+        synthetic setter
           reference: <testLibraryFragment>::@topLevelVariable::setter
-          element: <testLibraryFragment>::@topLevelVariable::setter#element
+          element: <testLibrary>::@topLevelVariable::setter
           setter2: <testLibraryFragment>::@setter::setter
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
       setters
-        set setter= @25
+        set setter @25
           reference: <testLibraryFragment>::@setter::setter
           element: <testLibraryFragment>::@setter::setter#element
           metadata
@@ -8309,11 +8444,13 @@ library
                   element: <testLibraryFragment>::@getter::foo
                   element2: <testLibraryFragment>::@getter::foo#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
     synthetic setter
+      reference: <testLibrary>::@topLevelVariable::setter
       firstFragment: <testLibraryFragment>::@topLevelVariable::setter
       type: int
       setter: <testLibraryFragment>::@setter::setter#element
@@ -8321,7 +8458,7 @@ library
     synthetic static get foo
       firstFragment: <testLibraryFragment>::@getter::foo
   setters
-    static set setter=
+    static set setter
       firstFragment: <testLibraryFragment>::@setter::setter
       metadata
         Annotation
@@ -8437,13 +8574,13 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const foo @6
+        hasInitializer foo @6
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           getter2: <testLibraryFragment>::@getter::foo
-        isNotConst @25
+        hasInitializer isNotConst @25
           reference: <testLibraryFragment>::@topLevelVariable::isNotConst
-          element: <testLibraryFragment>::@topLevelVariable::isNotConst#element
+          element: <testLibrary>::@topLevelVariable::isNotConst
           metadata
             Annotation
               atSign: @ @16
@@ -8456,9 +8593,9 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
           getter2: <testLibraryFragment>::@getter::isNotConst
           setter2: <testLibraryFragment>::@setter::isNotConst
-        const isConst @53
+        hasInitializer isConst @53
           reference: <testLibraryFragment>::@topLevelVariable::isConst
-          element: <testLibraryFragment>::@topLevelVariable::isConst#element
+          element: <testLibrary>::@topLevelVariable::isConst
           metadata
             Annotation
               atSign: @ @42
@@ -8471,34 +8608,57 @@ library
               element2: <testLibraryFragment>::@getter::foo#element
           getter2: <testLibraryFragment>::@getter::isConst
       getters
-        get foo @-1
+        synthetic get foo
           reference: <testLibraryFragment>::@getter::foo
           element: <testLibraryFragment>::@getter::foo#element
-        get isNotConst @-1
+        synthetic get isNotConst
           reference: <testLibraryFragment>::@getter::isNotConst
           element: <testLibraryFragment>::@getter::isNotConst#element
-        get isConst @-1
+        synthetic get isConst
           reference: <testLibraryFragment>::@getter::isConst
           element: <testLibraryFragment>::@getter::isConst#element
       setters
-        set isNotConst= @-1
+        synthetic set isNotConst
           reference: <testLibraryFragment>::@setter::isNotConst
           element: <testLibraryFragment>::@setter::isNotConst#element
           formalParameters
-            _isNotConst @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::isNotConst::@parameter::_isNotConst#element
   topLevelVariables
-    const foo
+    const hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       getter: <testLibraryFragment>::@getter::foo#element
-    isNotConst
+    hasInitializer isNotConst
+      reference: <testLibrary>::@topLevelVariable::isNotConst
       firstFragment: <testLibraryFragment>::@topLevelVariable::isNotConst
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: foo @17
+            staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
+            staticType: null
+          element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
       type: int
       getter: <testLibraryFragment>::@getter::isNotConst#element
       setter: <testLibraryFragment>::@setter::isNotConst#element
-    const isConst
+    const hasInitializer isConst
+      reference: <testLibrary>::@topLevelVariable::isConst
       firstFragment: <testLibraryFragment>::@topLevelVariable::isConst
+      metadata
+        Annotation
+          atSign: @ @42
+          name: SimpleIdentifier
+            token: foo @43
+            staticElement: <testLibraryFragment>::@getter::foo
+            element: <testLibraryFragment>::@getter::foo#element
+            staticType: null
+          element: <testLibraryFragment>::@getter::foo
+          element2: <testLibraryFragment>::@getter::foo#element
       type: int
       getter: <testLibraryFragment>::@getter::isConst#element
   getters
@@ -8509,7 +8669,7 @@ library
     synthetic static get isConst
       firstFragment: <testLibraryFragment>::@getter::isConst
   setters
-    synthetic static set isNotConst=
+    synthetic static set isNotConst
       firstFragment: <testLibraryFragment>::@setter::isNotConst
       formalParameters
         requiredPositional _isNotConst
@@ -8530,8 +8690,6 @@ library
   nameOffset: 8
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8576,19 +8734,21 @@ library
       element: <testLibrary>
       nextFragment: <testLibrary>::@fragment::package:test/foo.dart
       topLevelVariables
-        const a @37
+        hasInitializer a @37
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
     <testLibrary>::@fragment::package:test/foo.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -8628,8 +8788,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8667,17 +8825,20 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       classes
         class A @39
           reference: <testLibrary>::@fragment::package:test/a.dart::@class::A
-          element: <testLibrary>::@fragment::package:test/a.dart::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new
               element: <testLibrary>::@fragment::package:test/a.dart::@class::A::@constructor::new#element
+              typeName: A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::A
       constructors
         synthetic new
@@ -8698,8 +8859,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8732,6 +8891,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
 ''');
   }
@@ -8749,8 +8909,6 @@ part 'a.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8783,6 +8941,7 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       libraryImports
         dart:math
@@ -8818,8 +8977,6 @@ part 'b.dart';
 library
   reference: <testLibrary>
   definingUnit: <testLibraryFragment>
-  parts
-    part_0
   units
     <testLibraryFragment>
       enclosingElement3: <null>
@@ -8856,10 +9013,12 @@ library
       nextFragment: <testLibrary>::@fragment::package:test/b.dart
     <testLibrary>::@fragment::package:test/b.dart
       element: <testLibrary>
+      enclosingFragment: <testLibraryFragment>
       previousFragment: <testLibraryFragment>
       nextFragment: <testLibrary>::@fragment::package:test/a.dart
     <testLibrary>::@fragment::package:test/a.dart
       element: <testLibrary>
+      enclosingFragment: <testLibrary>::@fragment::package:test/b.dart
       previousFragment: <testLibrary>::@fragment::package:test/b.dart
 ''');
   }
@@ -8870,13 +9029,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart as a @19
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    a @19
-      reference: <testLibraryFragment>::@prefix::a
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -8930,13 +9082,15 @@ library
       classes
         class C @33
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -8993,18 +9147,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             x @21
               element: <testLibraryFragment>::@function::f::@parameter::x#element
@@ -9019,7 +9173,8 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -9028,6 +9183,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional x
@@ -9111,11 +9267,12 @@ library
       classes
         class C @23
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
           methods
             m @29
               reference: <testLibraryFragment>::@class::C::@method::m
@@ -9134,22 +9291,24 @@ library
                       element: <testLibraryFragment>::@getter::a
                       element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
       methods
         m
+          reference: <testLibrary>::@class::C::@method::m
           firstFragment: <testLibraryFragment>::@class::C::@method::m
           formalParameters
             requiredPositional x
@@ -9165,7 +9324,8 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -9231,20 +9391,20 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        synthetic foo @-1
+        synthetic foo
           reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibraryFragment>::@topLevelVariable::foo#element
+          element: <testLibrary>::@topLevelVariable::foo
           setter2: <testLibraryFragment>::@setter::foo
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       setters
-        set foo= @21
+        set foo @21
           reference: <testLibraryFragment>::@setter::foo
           element: <testLibraryFragment>::@setter::foo#element
           formalParameters
@@ -9261,11 +9421,13 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     synthetic foo
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: <testLibraryFragment>::@topLevelVariable::foo
       type: int
       setter: <testLibraryFragment>::@setter::foo#element
@@ -9273,7 +9435,7 @@ library
     synthetic static get a
       firstFragment: <testLibraryFragment>::@getter::a
   setters
-    static set foo=
+    static set foo
       firstFragment: <testLibraryFragment>::@setter::foo
       formalParameters
         requiredPositional x
@@ -9344,18 +9506,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             default x @22
               element: <testLibraryFragment>::@function::f::@parameter::x#element
@@ -9370,7 +9532,8 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -9379,6 +9542,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         optionalPositional x
@@ -9474,21 +9638,25 @@ library
       classes
         class A @23
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            new @29
+            new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 29
               formalParameters
                 x @35
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
         class B @48
           reference: <testLibraryFragment>::@class::B
-          element: <testLibraryFragment>::@class::B#element
+          element: <testLibrary>::@class::B
           constructors
-            new @64
+            new
               reference: <testLibraryFragment>::@class::B::@constructor::new
               element: <testLibraryFragment>::@class::B::@constructor::new#element
+              typeName: B
+              typeNameOffset: 64
               formalParameters
                 super.x @75
                   element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::x#element
@@ -9504,16 +9672,17 @@ library
                       element2: <testLibraryFragment>::@getter::a#element
               superConstructor: <testLibraryFragment>::@class::A::@constructor::new
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         new
@@ -9522,6 +9691,7 @@ library
             requiredPositional x
               type: int
     class B
+      reference: <testLibrary>::@class::B
       firstFragment: <testLibraryFragment>::@class::B
       supertype: A
       constructors
@@ -9542,7 +9712,8 @@ library
                   element2: <testLibraryFragment>::@getter::a#element
           superConstructor: <testLibraryFragment>::@class::A::@constructor::new#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -9608,13 +9779,13 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
         v @23
           reference: <testLibraryFragment>::@topLevelVariable::v
-          element: <testLibraryFragment>::@topLevelVariable::v#element
+          element: <testLibrary>::@topLevelVariable::v
           metadata
             Annotation
               atSign: @ @16
@@ -9628,26 +9799,38 @@ library
           getter2: <testLibraryFragment>::@getter::v
           setter2: <testLibraryFragment>::@setter::v
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get v @-1
+        synthetic get v
           reference: <testLibraryFragment>::@getter::v
           element: <testLibraryFragment>::@getter::v#element
       setters
-        set v= @-1
+        synthetic set v
           reference: <testLibraryFragment>::@setter::v
           element: <testLibraryFragment>::@setter::v#element
           formalParameters
-            _v @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::v::@parameter::_v#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
     v
+      reference: <testLibrary>::@topLevelVariable::v
       firstFragment: <testLibraryFragment>::@topLevelVariable::v
+      metadata
+        Annotation
+          atSign: @ @16
+          name: SimpleIdentifier
+            token: a @17
+            staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
+            staticType: null
+          element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
       type: int
       getter: <testLibraryFragment>::@getter::v#element
       setter: <testLibraryFragment>::@setter::v#element
@@ -9657,7 +9840,7 @@ library
     synthetic static get v
       firstFragment: <testLibraryFragment>::@getter::v
   setters
-    synthetic static set v=
+    synthetic static set v
       firstFragment: <testLibraryFragment>::@setter::v
       formalParameters
         requiredPositional _v
@@ -9719,7 +9902,7 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @27
               element: <not-implemented>
@@ -9734,20 +9917,22 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -9765,7 +9950,8 @@ library
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -9859,7 +10045,7 @@ library
       classes
         class C @22
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           typeParameters
             T @27
               element: <not-implemented>
@@ -9874,9 +10060,10 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
               constantInitializers
                 SuperConstructorInvocation
                   superKeyword: super @0
@@ -9888,29 +10075,32 @@ library
               superConstructor: <testLibraryFragment>::@class::D::@constructor::new
         class D @48
           reference: <testLibraryFragment>::@class::D
-          element: <testLibraryFragment>::@class::D#element
+          element: <testLibrary>::@class::D
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::D::@constructor::new
               element: <testLibraryFragment>::@class::D::@constructor::new#element
+              typeName: D
         class E @59
           reference: <testLibraryFragment>::@class::E
-          element: <testLibraryFragment>::@class::E#element
+          element: <testLibrary>::@class::E
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::E::@constructor::new
               element: <testLibraryFragment>::@class::E::@constructor::new#element
+              typeName: E
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   classes
     class alias C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       typeParameters
         T
@@ -9925,22 +10115,27 @@ library
               element: <testLibraryFragment>::@getter::a
               element2: <testLibraryFragment>::@getter::a#element
       supertype: D
+      mixins
+        E
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
           superConstructor: <testLibraryFragment>::@class::D::@constructor::new#element
     class D
+      reference: <testLibrary>::@class::D
       firstFragment: <testLibraryFragment>::@class::D
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::D::@constructor::new
     class E
+      reference: <testLibrary>::@class::E
       firstFragment: <testLibraryFragment>::@class::E
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::E::@constructor::new
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -9999,18 +10194,18 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
       functions
         f @16
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @21
               element: <not-implemented>
@@ -10025,7 +10220,8 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -10034,6 +10230,7 @@ library
       firstFragment: <testLibraryFragment>::@getter::a
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -10103,7 +10300,7 @@ library
       typeAliases
         F @24
           reference: <testLibraryFragment>::@typeAlias::F
-          element: <testLibraryFragment>::@typeAlias::F#element
+          element: <testLibrary>::@typeAlias::F
           typeParameters
             T @29
               element: <not-implemented>
@@ -10118,12 +10315,12 @@ library
                   element: <testLibraryFragment>::@getter::a
                   element2: <testLibraryFragment>::@getter::a#element
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
   typeAliases
@@ -10143,7 +10340,8 @@ library
               element2: <testLibraryFragment>::@getter::a#element
       aliasedType: dynamic Function()
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: dynamic
       getter: <testLibraryFragment>::@getter::a#element
@@ -10219,13 +10417,13 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const a @6
+        hasInitializer a @6
           reference: <testLibraryFragment>::@topLevelVariable::a
-          element: <testLibraryFragment>::@topLevelVariable::a#element
+          element: <testLibrary>::@topLevelVariable::a
           getter2: <testLibraryFragment>::@getter::a
-        x @20
+        hasInitializer x @20
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           metadata
             Annotation
               atSign: @ @13
@@ -10239,26 +10437,38 @@ library
           getter2: <testLibraryFragment>::@getter::x
           setter2: <testLibraryFragment>::@setter::x
       getters
-        get a @-1
+        synthetic get a
           reference: <testLibraryFragment>::@getter::a
           element: <testLibraryFragment>::@getter::a#element
-        get x @-1
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
       setters
-        set x= @-1
+        synthetic set x
           reference: <testLibraryFragment>::@setter::x
           element: <testLibraryFragment>::@setter::x#element
           formalParameters
-            _x @-1
+            <null-name>
               element: <testLibraryFragment>::@setter::x::@parameter::_x#element
   topLevelVariables
-    const a
+    const hasInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
       firstFragment: <testLibraryFragment>::@topLevelVariable::a
       type: int
       getter: <testLibraryFragment>::@getter::a#element
-    x
+    hasInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
+      metadata
+        Annotation
+          atSign: @ @13
+          name: SimpleIdentifier
+            token: a @14
+            staticElement: <testLibraryFragment>::@getter::a
+            element: <testLibraryFragment>::@getter::a#element
+            staticType: null
+          element: <testLibraryFragment>::@getter::a
+          element2: <testLibraryFragment>::@getter::a#element
       type: int
       getter: <testLibraryFragment>::@getter::x#element
       setter: <testLibraryFragment>::@setter::x#element
@@ -10268,7 +10478,7 @@ library
     synthetic static get x
       firstFragment: <testLibraryFragment>::@getter::x
   setters
-    synthetic static set x=
+    synthetic static set x
       firstFragment: <testLibraryFragment>::@setter::x
       formalParameters
         requiredPositional _x
@@ -10324,7 +10534,7 @@ library
                 prefix: SimpleIdentifier
                   token: A @35
                   staticElement: <testLibraryFragment>::@class::A
-                  element: <testLibraryFragment>::@class::A#element
+                  element: <testLibrary>::@class::A
                   staticType: null
                 period: . @36
                 identifier: SimpleIdentifier
@@ -10350,32 +10560,35 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
-            x @25
+            hasInitializer x @25
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           getters
-            get x @-1
+            synthetic get x
               reference: <testLibraryFragment>::@class::A::@getter::x
               element: <testLibraryFragment>::@class::A::@getter::x#element
         class C @45
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        static const x
+        static const hasInitializer x
           firstFragment: <testLibraryFragment>::@class::A::@field::x
           type: int
           getter: <testLibraryFragment>::@class::A::@getter::x#element
@@ -10386,6 +10599,7 @@ library
         synthetic static get x
           firstFragment: <testLibraryFragment>::@class::A::@getter::x
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -10417,7 +10631,7 @@ library
                 prefix: SimpleIdentifier
                   token: E @18
                   staticElement: <testLibraryFragment>::@enum::E
-                  element: <testLibraryFragment>::@enum::E#element
+                  element: <testLibrary>::@enum::E
                   staticType: null
                 period: . @19
                 identifier: SimpleIdentifier
@@ -10451,7 +10665,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -10470,7 +10684,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -10489,7 +10703,7 @@ library
                     type: NamedType
                       name: E @-1
                       element: <testLibraryFragment>::@enum::E
-                      element2: <testLibraryFragment>::@enum::E#element
+                      element2: <testLibrary>::@enum::E
                       type: E
                     staticElement: <testLibraryFragment>::@enum::E::@constructor::new
                     element: <testLibraryFragment>::@enum::E::@constructor::new#element
@@ -10552,69 +10766,73 @@ library
       classes
         class C @28
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       enums
         enum E @5
           reference: <testLibraryFragment>::@enum::E
-          element: <testLibraryFragment>::@enum::E#element
+          element: <testLibrary>::@enum::E
           fields
-            enumConstant a @8
+            hasInitializer a @8
               reference: <testLibraryFragment>::@enum::E::@field::a
               element: <testLibraryFragment>::@enum::E::@field::a#element
               getter2: <testLibraryFragment>::@enum::E::@getter::a
-            enumConstant b @11
+            hasInitializer b @11
               reference: <testLibraryFragment>::@enum::E::@field::b
               element: <testLibraryFragment>::@enum::E::@field::b#element
               getter2: <testLibraryFragment>::@enum::E::@getter::b
-            enumConstant c @14
+            hasInitializer c @14
               reference: <testLibraryFragment>::@enum::E::@field::c
               element: <testLibraryFragment>::@enum::E::@field::c#element
               getter2: <testLibraryFragment>::@enum::E::@getter::c
-            values @-1
+            synthetic values
               reference: <testLibraryFragment>::@enum::E::@field::values
               element: <testLibraryFragment>::@enum::E::@field::values#element
               getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
-            synthetic const new @-1
+            synthetic const new
               reference: <testLibraryFragment>::@enum::E::@constructor::new
               element: <testLibraryFragment>::@enum::E::@constructor::new#element
+              typeName: E
           getters
-            get a @-1
+            synthetic get a
               reference: <testLibraryFragment>::@enum::E::@getter::a
               element: <testLibraryFragment>::@enum::E::@getter::a#element
-            get b @-1
+            synthetic get b
               reference: <testLibraryFragment>::@enum::E::@getter::b
               element: <testLibraryFragment>::@enum::E::@getter::b#element
-            get c @-1
+            synthetic get c
               reference: <testLibraryFragment>::@enum::E::@getter::c
               element: <testLibraryFragment>::@enum::E::@getter::c#element
-            get values @-1
+            synthetic get values
               reference: <testLibraryFragment>::@enum::E::@getter::values
               element: <testLibraryFragment>::@enum::E::@getter::values#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   enums
     enum E
+      reference: <testLibrary>::@enum::E
       firstFragment: <testLibraryFragment>::@enum::E
       supertype: Enum
       fields
-        static const a
+        static const enumConstant hasInitializer a
           firstFragment: <testLibraryFragment>::@enum::E::@field::a
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::a#element
-        static const b
+        static const enumConstant hasInitializer b
           firstFragment: <testLibraryFragment>::@enum::E::@field::b
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::b#element
-        static const c
+        static const enumConstant hasInitializer c
           firstFragment: <testLibraryFragment>::@enum::E::@field::c
           type: E
           getter: <testLibraryFragment>::@enum::E::@getter::c#element
@@ -10663,7 +10881,7 @@ library
                 prefix: SimpleIdentifier
                   token: E @46
                   staticElement: <testLibraryFragment>::@extension::E
-                  element: <testLibraryFragment>::@extension::E#element
+                  element: <testLibrary>::@extension::E
                   staticType: null
                 period: . @47
                 identifier: SimpleIdentifier
@@ -10709,35 +10927,38 @@ library
       classes
         class C @56
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
       extensions
         extension E @10
           reference: <testLibraryFragment>::@extension::E
-          element: <testLibraryFragment>::@extension::E#element
+          element: <testLibrary>::@extension::E
           fields
-            x @36
+            hasInitializer x @36
               reference: <testLibraryFragment>::@extension::E::@field::x
               element: <testLibraryFragment>::@extension::E::@field::x#element
               getter2: <testLibraryFragment>::@extension::E::@getter::x
           getters
-            get x @-1
+            synthetic get x
               reference: <testLibraryFragment>::@extension::E::@getter::x
               element: <testLibraryFragment>::@extension::E::@getter::x#element
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::C::@constructor::new
   extensions
     extension E
+      reference: <testLibrary>::@extension::E
       firstFragment: <testLibraryFragment>::@extension::E
       fields
-        static const x
+        static const hasInitializer x
           firstFragment: <testLibraryFragment>::@extension::E::@field::x
           type: int
           getter: <testLibraryFragment>::@extension::E::@getter::x#element
@@ -10761,13 +10982,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/foo.dart as foo @21
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @21
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -10796,10 +11010,10 @@ library
                 identifier: SimpleIdentifier
                   token: E @31
                   staticElement: package:test/foo.dart::<fragment>::@extension::E
-                  element: package:test/foo.dart::<fragment>::@extension::E#element
+                  element: package:test/foo.dart::@extension::E
                   staticType: null
                 staticElement: package:test/foo.dart::<fragment>::@extension::E
-                element: package:test/foo.dart::<fragment>::@extension::E#element
+                element: package:test/foo.dart::@extension::E
                 staticType: null
               period: . @32
               constructorName: SimpleIdentifier
@@ -10827,13 +11041,15 @@ library
       classes
         class C @41
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -10877,7 +11093,7 @@ library
               name: SimpleIdentifier
                 token: A @28
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @29
@@ -10901,23 +11117,27 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            const new @18
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 18
               formalParameters
                 _ @20
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
         class C @43
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -10926,6 +11146,7 @@ library
             requiredPositional _
               type: dynamic
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -10969,7 +11190,7 @@ library
               name: SimpleIdentifier
                 token: A @28
                 staticElement: <testLibraryFragment>::@class::A
-                element: <testLibraryFragment>::@class::A#element
+                element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @29
@@ -10993,23 +11214,27 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            const new @18
+            const new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
+              typeNameOffset: 18
               formalParameters
                 _ @20
                   element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::_#element
         class C @42
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         const new
@@ -11018,6 +11243,7 @@ library
             requiredPositional _
               type: dynamic
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11074,13 +11300,15 @@ library
       classes
         class C @17
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11108,7 +11336,7 @@ library
                 prefix: SimpleIdentifier
                   token: String @1
                   staticElement: dart:core::<fragment>::@class::String
-                  element: dart:core::<fragment>::@class::String#element
+                  element: dart:core::@class::String
                   staticType: null
                 period: . @7
                 identifier: SimpleIdentifier
@@ -11137,13 +11365,15 @@ library
       classes
         class C @20
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11197,13 +11427,15 @@ library
       classes
         class C @15
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11217,13 +11449,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as foo @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @23
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11277,13 +11502,15 @@ library
       classes
         class C @43
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11346,13 +11573,15 @@ library
       classes
         class C @21
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11366,13 +11595,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as foo @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @23
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11435,13 +11657,15 @@ library
       classes
         class C @49
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11455,13 +11679,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as foo @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @23
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11490,10 +11707,10 @@ library
                 identifier: SimpleIdentifier
                   token: Future @33
                   staticElement: dart:async::<fragment>::@class::Future
-                  element: dart:async::<fragment>::@class::Future#element
+                  element: dart:async::@class::Future
                   staticType: null
                 staticElement: dart:async::<fragment>::@class::Future
-                element: dart:async::<fragment>::@class::Future#element
+                element: dart:async::@class::Future
                 staticType: null
               period: . @39
               constructorName: SimpleIdentifier
@@ -11524,13 +11741,15 @@ library
       classes
         class C @52
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11587,13 +11806,15 @@ library
       classes
         class C @17
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11607,13 +11828,6 @@ library
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    dart:async as foo @23
-      enclosingElement3: <testLibraryFragment>
-  prefixes
-    foo @23
-      reference: <testLibraryFragment>::@prefix::foo
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11670,13 +11884,15 @@ library
       classes
         class C @45
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11720,13 +11936,15 @@ library
       classes
         class C @11
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11747,11 +11965,6 @@ class C {}
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  libraryImports
-    package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-    package:test/b.dart
-      enclosingElement3: <testLibraryFragment>
   definingUnit: <testLibraryFragment>
   units
     <testLibraryFragment>
@@ -11791,13 +12004,15 @@ library
       classes
         class C @44
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new
@@ -11844,13 +12059,15 @@ library
       classes
         class C @13
           reference: <testLibraryFragment>::@class::C
-          element: <testLibraryFragment>::@class::C#element
+          element: <testLibrary>::@class::C
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::C::@constructor::new
               element: <testLibraryFragment>::@class::C::@constructor::new#element
+              typeName: C
   classes
     class C
+      reference: <testLibrary>::@class::C
       firstFragment: <testLibraryFragment>::@class::C
       constructors
         synthetic new

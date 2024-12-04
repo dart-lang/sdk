@@ -134,7 +134,7 @@ class BinaryBuilder {
   final List< /* TypeParameter | StructuralParameter */ Object>
       typeParameterStack = <Object>[];
   final String? filename;
-  final List<int> _bytes;
+  final Uint8List _bytes;
   int _byteOffset = 0;
   List<String> _stringTable = const [];
   late Map<int, Name?> _nameCache;
@@ -3116,8 +3116,6 @@ class BinaryBuilder {
     DartType? requiredType = readDartTypeOption();
     DartType? matchedValueType = readDartTypeOption();
     int flags = readByte();
-    bool needsCheck = flags & 0x1 != 0;
-    bool hasRestPattern = flags & 0x2 != 0;
     DartType? lookupType = readDartTypeOption();
     Reference? lengthTargetReference = readNullableMemberReference();
     DartType? lengthType = readDartTypeOption();
@@ -3132,9 +3130,8 @@ class BinaryBuilder {
     return new ListPattern(typeArgument, patterns)
       ..requiredType = requiredType
       ..matchedValueType = matchedValueType
-      ..needsCheck = needsCheck
+      ..flags = flags
       ..lookupType = lookupType
-      ..hasRestPattern = hasRestPattern
       ..lengthTargetReference = lengthTargetReference
       ..lengthType = lengthType
       ..lengthCheckTargetReference = lengthCheckTargetReference
@@ -3156,7 +3153,6 @@ class BinaryBuilder {
     DartType? requiredType = readDartTypeOption();
     DartType? matchedValueType = readDartTypeOption();
     int flags = readByte();
-    bool needsCheck = flags & 0x1 != 0;
     DartType? lookupType = readDartTypeOption();
     Reference? containsKeyTargetReference = readNullableMemberReference();
     FunctionType? containsKeyType = readDartTypeOption() as FunctionType?;
@@ -3165,7 +3161,7 @@ class BinaryBuilder {
     return new MapPattern(keyType, valueType, entries)
       ..requiredType = requiredType
       ..matchedValueType = matchedValueType
-      ..needsCheck = needsCheck
+      ..flags = flags
       ..lookupType = lookupType
       ..containsKeyTargetReference = containsKeyTargetReference
       ..containsKeyType = containsKeyType
@@ -4162,8 +4158,10 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   /// List of metadata subsections that have corresponding [MetadataRepository]
   /// and are awaiting to be parsed and attached to nodes.
   List<_MetadataSubsection>? _subsections;
+  List<int>? _allKnownMetadataKeys;
+  int? _previousMetadataLookupKey;
 
-  BinaryBuilderWithMetadata(List<int> bytes,
+  BinaryBuilderWithMetadata(Uint8List bytes,
       {String? filename,
       bool disableLazyReading = false,
       bool disableLazyClassReading = false,
@@ -4177,6 +4175,11 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   @override
   void _readMetadataMappings(
       Component component, int binaryOffsetForMetadataPayloads) {
+    // If reading a component with several sub-components there's no reason to
+    // lookup in old ones.
+    _subsections = null;
+    _allKnownMetadataKeys = null;
+
     // At the beginning of this function _byteOffset points right past
     // metadataMappings to string table.
 
@@ -4200,11 +4203,13 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
         // Read nodeOffsetToMetadataOffset mapping.
         final Map<int, int> mapping = <int, int>{};
         _byteOffset = mappingStart;
+        List<int> allKnownMetadataKeys = _allKnownMetadataKeys ??= [];
         for (int j = 0; j < mappingLength; j++) {
           final int nodeOffset = _componentStartOffset + readUint32();
           final int metadataOffset =
               binaryOffsetForMetadataPayloads + readUint32();
           mapping[nodeOffset] = metadataOffset;
+          allKnownMetadataKeys.add(nodeOffset);
         }
 
         (_subsections ??= <_MetadataSubsection>[])
@@ -4214,6 +4219,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
       // Start of the subsection and the end of the previous one.
       endOffset = mappingStart - 4;
     }
+    _allKnownMetadataKeys?.sort();
   }
 
   Object _readMetadata(Node node, MetadataRepository repository, int offset) {
@@ -4226,12 +4232,47 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
     return metadata;
   }
 
+  bool _hasMetadata(int nodeOffset) {
+    List<int>? allKnownMetadataKeys = _allKnownMetadataKeys;
+    if (allKnownMetadataKeys == null) return false;
+    if (allKnownMetadataKeys.isEmpty) return false;
+
+    int? prevIndex = _previousMetadataLookupKey;
+    if (prevIndex != null) {
+      if (prevIndex >= 0 && prevIndex < allKnownMetadataKeys.length - 1) {
+        int prevOffset = allKnownMetadataKeys[prevIndex];
+        int nextOffset = allKnownMetadataKeys[prevIndex + 1];
+        if (prevOffset < nodeOffset && nextOffset > nodeOffset) {
+          // Common case: This is between the previously found metadata
+          // and the next metadata (and doesn't itself have metadata).
+          return false;
+        }
+      }
+    }
+
+    _previousMetadataLookupKey = null;
+    int low = 0, high = allKnownMetadataKeys.length - 1;
+    while (low < high) {
+      int mid = high - ((high - low) >> 1); // Get middle, rounding up.
+      int pivot = allKnownMetadataKeys[mid];
+      if (pivot <= nodeOffset) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    this._previousMetadataLookupKey = low;
+    if (allKnownMetadataKeys[low] == nodeOffset) {
+      return true;
+    }
+    return false;
+  }
+
   @override
   T _associateMetadata<T extends Node>(T node, int nodeOffset) {
     if (_subsections == null) {
       return node;
     }
-
     for (_MetadataSubsection subsection in _subsections!) {
       // First check if there is any metadata associated with this node.
       final int? metadataOffset = subsection.mapping[nodeOffset];
@@ -4247,137 +4288,156 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   @override
   DartType readDartType({bool forSupertype = false}) {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final DartType result = super.readDartType(forSupertype: forSupertype);
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Library readLibrary(Component component, int endOffset) {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Library result = super.readLibrary(component, endOffset);
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Typedef readTypedef() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Typedef result = super.readTypedef();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Class readClass(int endOffset) {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Class result = super.readClass(endOffset);
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Extension readExtension() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Extension result = super.readExtension();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   ExtensionTypeDeclaration readExtensionTypeDeclaration() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final ExtensionTypeDeclaration result =
         super.readExtensionTypeDeclaration();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Field readField() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Field result = super.readField();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Constructor readConstructor() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Constructor result = super.readConstructor();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Procedure readProcedure(int endOffset) {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Procedure result = super.readProcedure(endOffset);
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Initializer readInitializer() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Initializer result = super.readInitializer();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   FunctionNode readFunctionNode(
       {bool lazyLoadBody = false, int outerEndOffset = -1}) {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final FunctionNode result = super.readFunctionNode(
         lazyLoadBody: lazyLoadBody, outerEndOffset: outerEndOffset);
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Expression readExpression() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Expression result = super.readExpression();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Arguments readArguments() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Arguments result = super.readArguments();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   NamedExpression readNamedExpression() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final NamedExpression result = super.readNamedExpression();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   VariableDeclaration readVariableDeclaration() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final VariableDeclaration result = super.readVariableDeclaration();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Statement readStatement() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Statement result = super.readStatement();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Combinator readCombinator() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Combinator result = super.readCombinator();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   LibraryDependency readLibraryDependency() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final LibraryDependency result = super.readLibraryDependency();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   LibraryPart readLibraryPart() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final LibraryPart result = super.readLibraryPart();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
@@ -4395,18 +4455,20 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   @override
   Supertype readSupertype() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     InterfaceType type =
         super.readDartType(forSupertype: true) as InterfaceType;
-    return _associateMetadata(
-        new Supertype.byReference(type.classReference, type.typeArguments),
-        nodeOffset);
+    Supertype result =
+        new Supertype.byReference(type.classReference, type.typeArguments);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 
   @override
   Name readName() {
     final int nodeOffset = _byteOffset;
+    final bool hasMetadata = _hasMetadata(_byteOffset);
     final Name result = super.readName();
-    return _associateMetadata(result, nodeOffset);
+    return hasMetadata ? _associateMetadata(result, nodeOffset) : result;
   }
 }
 

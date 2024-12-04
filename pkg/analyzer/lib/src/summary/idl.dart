@@ -266,166 +266,23 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   List<int> get usedNames;
 }
 
-/// Information about a single declaration.
-abstract class AvailableDeclaration extends base.SummaryClass {
-  @Id(0)
-  List<AvailableDeclaration> get children;
-
-  @Id(1)
-  int get codeLength;
-
-  @Id(2)
-  int get codeOffset;
-
-  @Id(3)
-  String get defaultArgumentListString;
-
-  @Id(4)
-  List<int> get defaultArgumentListTextRanges;
-
-  @Id(5)
-  String get docComplete;
-
-  @Id(6)
-  String get docSummary;
-
-  @Id(7)
-  int get fieldMask;
-
-  @Id(8)
-  bool get isAbstract;
-
-  @Id(9)
-  bool get isConst;
-
-  @Id(10)
-  bool get isDeprecated;
-
-  @Id(11)
-  bool get isFinal;
-
-  @Id(12)
-  bool get isStatic;
-
-  /// The kind of the declaration.
-  @Id(13)
-  AvailableDeclarationKind get kind;
-
-  @Id(14)
-  int get locationOffset;
-
-  @Id(15)
-  int get locationStartColumn;
-
-  @Id(16)
-  int get locationStartLine;
-
-  /// The first part of the declaration name, usually the only one, for example
-  /// the name of a class like `MyClass`, or a function like `myFunction`.
-  @Id(17)
-  String get name;
-
-  @Id(18)
-  List<String> get parameterNames;
-
-  @Id(19)
-  String get parameters;
-
-  @Id(20)
-  List<String> get parameterTypes;
-
-  /// The partial list of relevance tags.  Not every declaration has one (for
-  /// example, function do not currently), and not every declaration has to
-  /// store one (for classes it can be computed when we know the library that
-  /// includes this file).
-  @Id(21)
-  List<String> get relevanceTags;
-
-  @Id(22)
-  int get requiredParameterCount;
-
-  @Id(23)
-  String get returnType;
-
-  @Id(24)
-  String get typeParameters;
-}
-
-/// Enum of declaration kinds in available files.
-enum AvailableDeclarationKind {
-  CLASS,
-  CLASS_TYPE_ALIAS,
-  CONSTRUCTOR,
-  ENUM,
-  ENUM_CONSTANT,
-  EXTENSION,
-  FIELD,
-  FUNCTION,
-  FUNCTION_TYPE_ALIAS,
-  GETTER,
-  METHOD,
-  MIXIN,
-  SETTER,
-  TYPE_ALIAS,
-  VARIABLE
-}
-
 /// Information about an available, even if not yet imported file.
 @TopLevel('UICF')
 abstract class AvailableFile extends base.SummaryClass {
   factory AvailableFile.fromBuffer(List<int> buffer) =>
       generated.readAvailableFile(buffer);
 
-  /// Declarations of the file.
-  @Id(0)
-  List<AvailableDeclaration> get declarations;
-
   /// The Dartdoc directives in the file.
-  @Id(1)
+  @Id(0)
   DirectiveInfo? get directiveInfo;
 
   /// Exports directives of the file.
-  @Id(2)
-  List<AvailableFileExport> get exports;
-
-  /// Is `true` if this file is a library.
-  @Id(3)
-  bool get isLibrary;
-
-  /// Is `true` if this file is a library, and it is deprecated.
-  @Id(4)
-  bool get isLibraryDeprecated;
-
-  /// Offsets of the first character of each line in the source code.
-  @informative
-  @Id(5)
-  List<int> get lineStarts;
+  @Id(1)
+  List<String> get exports;
 
   /// URIs of `part` directives.
-  @Id(6)
+  @Id(2)
   List<String> get parts;
-}
-
-/// Information about an export directive.
-abstract class AvailableFileExport extends base.SummaryClass {
-  /// Combinators contained in this export directive.
-  @Id(1)
-  List<AvailableFileExportCombinator> get combinators;
-
-  /// URI of the exported library.
-  @Id(0)
-  String get uri;
-}
-
-/// Information about a `show` or `hide` combinator in an export directive.
-abstract class AvailableFileExportCombinator extends base.SummaryClass {
-  /// List of names which are hidden.  Empty if this is a `show` combinator.
-  @Id(1)
-  List<String> get hides;
-
-  /// List of names which are shown.  Empty if this is a `hide` combinator.
-  @Id(0)
-  List<String> get shows;
 }
 
 /// Errors for a single unit.

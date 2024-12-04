@@ -9,7 +9,7 @@ import "package:testing/src/suite.dart";
 import "package:testing/testing.dart";
 import 'package:testing/src/log.dart' show Logger, StdoutLogger;
 
-import "fasta/strong_suite.dart" as strong;
+import "strong_suite.dart" as strong;
 
 const bool doPrint = false;
 
@@ -56,8 +56,8 @@ Future<void> entry(List<int> args) async {
   await runMe(
     ["-DskipVm=true", "-DsemiFuzz=false"],
     strong.createContext,
-    me: Platform.script.resolve("fasta/strong_suite.dart"),
-    configurationPath: "../../testing.json",
+    me: Platform.script.resolve("strong_suite.dart"),
+    configurationPath: "../testing.json",
     shards: args[0],
     shard: args[1],
     logger: doPrint ? const StdoutLogger() : const DevNullLogger(),

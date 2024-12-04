@@ -26,13 +26,13 @@ class A extends core::Object {
     ;
 }
 class C extends self::A {
-  constructor •(core::int _) → self::C
-    : super self::A::•(_)
+  constructor •(wildcard core::int _#wc0#formal) → self::C
+    : super self::A::•(_#wc0#formal)
     ;
-  constructor r(core::int _) → self::C
+  constructor r(wildcard core::int _#wc1#formal) → self::C
     : this self::C::•(0)
     ;
-  static factory r2(dynamic _) → self::C
+  static factory r2(wildcard dynamic _#wc2#formal) → self::C
     return invalid-expression "pkg/front_end/testcases/general/super_initializing_parameters_in_redirecting_generative_constructors.dart:13:27: Error: The constructor function type 'C Function(int)' isn't a subtype of 'C Function(dynamic)'.
  - 'C' is from 'pkg/front_end/testcases/general/super_initializing_parameters_in_redirecting_generative_constructors.dart'.
   factory C.r2(super._) = C; // Error.

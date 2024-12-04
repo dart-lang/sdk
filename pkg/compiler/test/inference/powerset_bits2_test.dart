@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/inferrer/powersets/powersets.dart';
 import 'package:compiler/src/inferrer/powersets/powerset_bits.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 

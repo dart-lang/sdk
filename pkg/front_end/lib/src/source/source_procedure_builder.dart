@@ -6,6 +6,8 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/modifiers.dart';
+import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -19,6 +21,7 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
+import '../kernel/type_algorithms.dart';
 import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_class_builder.dart';
@@ -34,7 +37,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   final SourceLibraryBuilder libraryBuilder;
 
-  final int charOpenParenOffset;
+  @override
+  final DeclarationBuilder? declarationBuilder;
+
+  final int formalsOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
@@ -79,42 +85,40 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   final MemberName _memberName;
 
+  final int nameOffset;
+
+  @override
+  final Uri fileUri;
+
   SourceProcedureBuilder(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      this.returnType,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
-      this.kind,
-      this.libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      Uri fileUri,
-      int startCharOffset,
-      int charOffset,
-      this.charOpenParenOffset,
-      int charEndOffset,
-      Reference? procedureReference,
-      this._tearOffReference,
-      AsyncMarker asyncModifier,
-      NameScheme nameScheme,
-      {String? nativeMethodName,
+      {required List<MetadataBuilder>? metadata,
+      required Modifiers modifiers,
+      required this.returnType,
+      required String name,
+      required List<NominalParameterBuilder>? typeParameters,
+      required List<FormalParameterBuilder>? formals,
+      required this.kind,
+      required this.libraryBuilder,
+      required this.declarationBuilder,
+      required this.fileUri,
+      required int startOffset,
+      required this.nameOffset,
+      required this.formalsOffset,
+      required int endOffset,
+      required Reference? procedureReference,
+      required Reference? tearOffReference,
+      required AsyncMarker asyncModifier,
+      required NameScheme nameScheme,
+      String? nativeMethodName,
       bool isSynthetic = false})
       : assert(kind != ProcedureKind.Factory),
+        _tearOffReference = tearOffReference,
         this.isExtensionInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionMember,
         this.isExtensionTypeInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
         _memberName = nameScheme.getDeclaredName(name),
-        super(
-            metadata,
-            modifiers,
-            name,
-            typeVariables,
-            formals,
-            declarationBuilder ?? libraryBuilder,
-            fileUri,
-            charOffset,
+        super(metadata, modifiers, name, typeParameters, formals,
             nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
@@ -125,9 +129,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         fileUri: fileUri,
         reference: procedureReference,
         isSynthetic: isSynthetic)
-      ..fileStartOffset = startCharOffset
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileStartOffset = startOffset
+      ..fileOffset = nameOffset
+      ..fileEndOffset = endOffset;
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
     if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
@@ -138,12 +142,19 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           isExtensionMember: isExtensionInstanceMember,
           isExtensionTypeMember: isExtensionTypeInstanceMember,
           reference: _tearOffReference,
-          fileUri: fileUri);
+          fileUri: fileUri)
+        ..fileOffset = nameOffset;
       nameScheme
           .getProcedureMemberName(ProcedureKind.Getter, name)
           .attachMember(_extensionTearOff!);
     }
   }
+
+  @override
+  int get fileOffset => nameOffset;
+
+  @override
+  Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
   Name get memberName => _memberName.name;
@@ -175,9 +186,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   bool get isExtensionTypeMethod {
     return parent is SourceExtensionTypeDeclarationBuilder;
   }
-
-  @override
-  Member get member => procedure;
 
   @override
   SourceProcedureBuilder get origin => _origin ?? this;
@@ -248,10 +256,12 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     switch (kind) {
       case ProcedureKind.Setter:
         return procedure;
-      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Method:
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Getter:
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Operator:
+      // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
         return null;
     }
@@ -271,7 +281,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  Iterable<Member> get exportedMembers => [procedure];
+  Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
@@ -330,13 +340,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           break;
       }
     } else {
-      f(member: member, kind: BuiltMemberKind.Method);
+      f(member: _procedure, kind: BuiltMemberKind.Method);
     }
   }
 
   void _build() {
     buildFunction();
-    _procedure.function.fileOffset = charOpenParenOffset;
+    _procedure.function.fileOffset = formalsOffset;
     _procedure.function.fileEndOffset = _procedure.fileEndOffset;
     _procedure.isAbstract = isAbstract;
     _procedure.isExternal = isExternal;
@@ -663,26 +673,50 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
-    library.checkTypesInFunctionBuilder(this, typeEnvironment);
+  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
+    List<TypeParameterBuilder>? typeParameters = this.typeParameters;
+    if (typeParameters != null && typeParameters.isNotEmpty) {
+      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+    }
+    libraryBuilder.checkTypesInFunctionBuilder(this, typeEnvironment);
     List<SourceProcedureBuilder>? augmentations = _augmentations;
     if (augmentations != null) {
       for (SourceProcedureBuilder augmentation in augmentations) {
-        augmentation.checkTypes(library, typeEnvironment);
+        augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+      }
+    }
+    if (isGetter) {
+      if (!isClassMember) {
+        // Getter/setter type conflict for class members is handled in the class
+        // hierarchy builder.
+        Builder? setterDeclaration =
+            nameSpace.lookupLocalMember(name, setter: true);
+        if (setterDeclaration != null) {
+          libraryBuilder.checkGetterSetterTypes(
+              this, setterDeclaration as ProcedureBuilder, typeEnvironment);
+        }
       }
     }
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ProcedureBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    bool hasErrors =
+        context.reportSimplicityIssuesForTypeParameters(typeParameters);
+    context.reportGenericFunctionTypesForFormals(formals);
+    if (returnType is! OmittedTypeBuilder) {
+      hasErrors |= context.reportInboundReferenceIssuesForType(returnType);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(returnType);
+    }
+    return context.computeDefaultTypesForVariables(typeParameters,
+        inErrorRecovery: hasErrors);
+  }
+
+  @override
+  BodyBuilderContext createBodyBuilderContext() {
+    return new ProcedureBodyBuilderContext(this, procedure);
   }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
@@ -726,7 +760,7 @@ class SourceProcedureMember extends BuilderClassMember {
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
     memberBuilder._ensureTypes(membersBuilder);
-    return memberBuilder.member;
+    return memberBuilder._procedure;
   }
 
   @override

@@ -30,7 +30,7 @@ testWithConstMap() {
       cnt += b;
     });
     return cnt;
-  };
+  }
 
   Expect.equals(42 + 43, count(map));
   Expect.equals(count(map), count(otherMap));

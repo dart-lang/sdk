@@ -26,8 +26,13 @@ extension JSObjectUnsafeUtilExtension on JSObject {
 
   @patch
   @pragma('dart2js:prefer-inline')
-  JSAny? _callMethod(JSAny method,
-      [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) {
+  JSAny? _callMethod(
+    JSAny method, [
+    JSAny? arg1,
+    JSAny? arg2,
+    JSAny? arg3,
+    JSAny? arg4,
+  ]) {
     if (arg1 == null) {
       return JS<dynamic>('Object|Null', '#[#]()', this, method);
     } else if (arg2 == null) {
@@ -36,10 +41,25 @@ extension JSObjectUnsafeUtilExtension on JSObject {
       return JS<dynamic>('Object|Null', '#[#](#, #)', this, method, arg1, arg2);
     } else if (arg4 == null) {
       return JS<dynamic>(
-          'Object|Null', '#[#](#, #, #)', this, method, arg1, arg2, arg3);
+        'Object|Null',
+        '#[#](#, #, #)',
+        this,
+        method,
+        arg1,
+        arg2,
+        arg3,
+      );
     } else {
-      return JS<dynamic>('Object|Null', '#[#](#, #, #, #)', this, method, arg1,
-          arg2, arg3, arg4);
+      return JS<dynamic>(
+        'Object|Null',
+        '#[#](#, #, #, #)',
+        this,
+        method,
+        arg1,
+        arg2,
+        arg3,
+        arg4,
+      );
     }
   }
 
@@ -47,7 +67,13 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   @pragma('dart2js:prefer-inline')
   JSAny? _callMethodVarArgs(JSAny method, [List<JSAny?>? arguments]) =>
       JS<dynamic>(
-          'Object|Null', '#[#].apply(#, #)', this, method, this, arguments);
+        'Object|Null',
+        '#[#].apply(#, #)',
+        this,
+        method,
+        this,
+        arguments,
+      );
 
   @patch
   @pragma('dart2js:prefer-inline')
@@ -60,18 +86,22 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
   // TODO(joshualitt): Specialize `callAsConstructor`.
   @patch
   @pragma('dart2js:prefer-inline')
-  JSObject _callAsConstructor(
-          [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>
-      js_util.callConstructor<JSObject>(
-          this,
-          arg1 == null
-              ? null
-              : [
-                  arg1,
-                  if (arg2 != null) arg2,
-                  if (arg3 != null) arg3,
-                  if (arg4 != null) arg4,
-                ]);
+  JSObject _callAsConstructor([
+    JSAny? arg1,
+    JSAny? arg2,
+    JSAny? arg3,
+    JSAny? arg4,
+  ]) => js_util.callConstructor<JSObject>(
+    this,
+    arg1 == null
+        ? null
+        : [
+          arg1,
+          if (arg2 != null) arg2,
+          if (arg3 != null) arg3,
+          if (arg4 != null) arg4,
+        ],
+  );
 
   @patch
   @pragma('dart2js:prefer-inline')

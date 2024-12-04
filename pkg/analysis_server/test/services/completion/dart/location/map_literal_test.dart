@@ -108,4 +108,23 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void> test_inside_value_keyword() async {
+    await computeSuggestions('''
+void f() => <String, int>{"": ^};
+''');
+    assertResponse(r'''
+suggestions
+  null
+    kind: keyword
+  false
+    kind: keyword
+  true
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
 }

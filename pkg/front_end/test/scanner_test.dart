@@ -106,7 +106,7 @@ abstract class ScannerTestBase {
     var greaterThan = identifier.next!;
     expect(greaterThan.next!.type, TokenType.EOF);
     // Analyzer's token streams don't consider "<" to be an opener
-    // but fasta does.
+    // but the scanner does.
     if (lessThan is BeginToken) {
       expect(lessThan.endToken, greaterThan);
     }
@@ -413,7 +413,7 @@ abstract class ScannerTestBase {
     var expectedErrors = [
       new TestError(9, ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null),
     ];
-    // fasta inserts synthetic closers
+    // The scanner inserts synthetic closers
     expectedTokens.addAll([
       new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, 10),
       new SyntheticStringToken(TokenType.STRING, "\"", 10, 0),
@@ -803,9 +803,9 @@ abstract class ScannerTestBase {
 
   void test_mismatched_closer() {
     // Normally when openers and closers are mismatched
-    // fasta favors considering the opener to be mismatched,
+    // the scanner favors considering the opener to be mismatched,
     // and inserts synthetic closers as needed.
-    // In this particular case, fasta cannot find an opener for ']'
+    // In this particular case, the scanner cannot find an opener for ']'
     // and thus marks ']' as an error and moves on.
     ErrorListener listener = new ErrorListener();
     BeginToken openParen = scanWithListener('(])', listener) as BeginToken;
@@ -855,7 +855,7 @@ abstract class ScannerTestBase {
     BeginToken openParen = scanWithListener('([)', listener) as BeginToken;
     BeginToken openBracket = openParen.next as BeginToken;
     // When openers and closers are mismatched,
-    // fasta favors considering the opener to be mismatched
+    // the scanner favors considering the opener to be mismatched
     // and inserts synthetic closers as needed.
     // `([)` is scanned as `([])` where `]` is synthetic.
     var closeBracket = openBracket.next!;

@@ -7,7 +7,7 @@ import 'dart:io' show File;
 import 'binary_md_dill_reader.dart' show BinaryMdDillReader;
 import 'utils/io_utils.dart' show computeRepoDir;
 
-Future<void> main() async {
+void main() {
   File binaryMd = new File("$repoDir/pkg/kernel/binary.md");
   String binaryMdContent = binaryMd.readAsStringSync();
 

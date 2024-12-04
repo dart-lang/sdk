@@ -31,22 +31,28 @@ class SemanticTokenLegendLookup {
   SemanticTokenLegendLookup() {
     // Build lists of all tokens and modifiers that exist in our mappings or that
     // we have added as custom types. These will be used to determine the indexes used for communication.
-    _usedTokenTypes = Set.of(highlightRegionTokenTypes.values
-            .followedBy(CustomSemanticTokenTypes.values))
-        .toList();
-    _usedTokenModifiers = Set.of(highlightRegionTokenModifiers
-            .values.flattenedToList
-            .followedBy(CustomSemanticTokenModifiers.values))
-        .toList();
+    _usedTokenTypes =
+        Set.of(
+          highlightRegionTokenTypes.values.followedBy(
+            CustomSemanticTokenTypes.values,
+          ),
+        ).toList();
+    _usedTokenModifiers =
+        Set.of(
+          highlightRegionTokenModifiers.values.flattenedToList.followedBy(
+            CustomSemanticTokenModifiers.values,
+          ),
+        ).toList();
 
     // Build the LSP Legend which tells the client all of the tokens and modifiers
     // we will use in the order they should be accessed by index/bit.
     lspLegend = SemanticTokensLegend(
       tokenTypes:
           _usedTokenTypes.map((tokenType) => tokenType.toString()).toList(),
-      tokenModifiers: _usedTokenModifiers
-          .map((tokenModifier) => tokenModifier.toString())
-          .toList(),
+      tokenModifiers:
+          _usedTokenModifiers
+              .map((tokenModifier) => tokenModifier.toString())
+              .toList(),
     );
   }
 

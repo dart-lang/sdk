@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // This test checks that local boolean variables cannot be used to perform type
 // promotion in the presence of compound assignments.

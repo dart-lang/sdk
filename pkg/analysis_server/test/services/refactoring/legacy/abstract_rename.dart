@@ -51,12 +51,12 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Creates a new [RenameRefactoring] in [refactoring] for [element].
   /// Fails if no [RenameRefactoring] can be created.
   void createRenameRefactoringForElement(Element? element) {
-    var workspace = RefactoringWorkspace(
-      [driverFor(testFile)],
-      searchEngine,
+    var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
+    var refactoring = RenameRefactoring.create(
+      workspace,
+      testAnalysisResult,
+      element,
     );
-    var refactoring =
-        RenameRefactoring.create(workspace, testAnalysisResult, element);
     if (refactoring == null) {
       fail("No refactoring for '$element'.");
     }

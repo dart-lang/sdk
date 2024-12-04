@@ -8,39 +8,6 @@
 // or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.
 
 
-/// Enum of declaration kinds in available files.
-enum AvailableDeclarationKind : byte {
-  CLASS,
-
-  CLASS_TYPE_ALIAS,
-
-  CONSTRUCTOR,
-
-  ENUM,
-
-  ENUM_CONSTANT,
-
-  EXTENSION,
-
-  FIELD,
-
-  FUNCTION,
-
-  FUNCTION_TYPE_ALIAS,
-
-  GETTER,
-
-  METHOD,
-
-  MIXIN,
-
-  SETTER,
-
-  TYPE_ALIAS,
-
-  VARIABLE
-}
-
 /// Enum used to indicate the kind of an index relation.
 enum IndexRelationKind : byte {
   /// Left: class.
@@ -308,106 +275,16 @@ table AnalysisDriverUnitIndex {
   usedNames:[uint] (id: 14);
 }
 
-/// Information about a single declaration.
-table AvailableDeclaration {
-  children:[AvailableDeclaration] (id: 0);
-
-  codeLength:uint (id: 1);
-
-  codeOffset:uint (id: 2);
-
-  defaultArgumentListString:string (id: 3);
-
-  defaultArgumentListTextRanges:[uint] (id: 4);
-
-  docComplete:string (id: 5);
-
-  docSummary:string (id: 6);
-
-  fieldMask:uint (id: 7);
-
-  isAbstract:bool (id: 8);
-
-  isConst:bool (id: 9);
-
-  isDeprecated:bool (id: 10);
-
-  isFinal:bool (id: 11);
-
-  isStatic:bool (id: 12);
-
-  /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 13);
-
-  locationOffset:uint (id: 14);
-
-  locationStartColumn:uint (id: 15);
-
-  locationStartLine:uint (id: 16);
-
-  /// The first part of the declaration name, usually the only one, for example
-  /// the name of a class like `MyClass`, or a function like `myFunction`.
-  name:string (id: 17);
-
-  parameterNames:[string] (id: 18);
-
-  parameters:string (id: 19);
-
-  parameterTypes:[string] (id: 20);
-
-  /// The partial list of relevance tags.  Not every declaration has one (for
-  /// example, function do not currently), and not every declaration has to
-  /// store one (for classes it can be computed when we know the library that
-  /// includes this file).
-  relevanceTags:[string] (id: 21);
-
-  requiredParameterCount:uint (id: 22);
-
-  returnType:string (id: 23);
-
-  typeParameters:string (id: 24);
-}
-
 /// Information about an available, even if not yet imported file.
 table AvailableFile {
-  /// Declarations of the file.
-  declarations:[AvailableDeclaration] (id: 0);
-
   /// The Dartdoc directives in the file.
-  directiveInfo:DirectiveInfo (id: 1);
+  directiveInfo:DirectiveInfo (id: 0);
 
   /// Exports directives of the file.
-  exports:[AvailableFileExport] (id: 2);
-
-  /// Is `true` if this file is a library.
-  isLibrary:bool (id: 3);
-
-  /// Is `true` if this file is a library, and it is deprecated.
-  isLibraryDeprecated:bool (id: 4);
-
-  /// Offsets of the first character of each line in the source code.
-  lineStarts:[uint] (id: 5);
+  exports:[string] (id: 1);
 
   /// URIs of `part` directives.
-  parts:[string] (id: 6);
-}
-
-/// Information about an export directive.
-table AvailableFileExport {
-  /// Combinators contained in this export directive.
-  combinators:[AvailableFileExportCombinator] (id: 1);
-
-  /// URI of the exported library.
-  uri:string (id: 0);
-}
-
-/// Information about a `show` or `hide` combinator in an export directive.
-table AvailableFileExportCombinator {
-  /// List of names which are hidden.  Empty if this is a `show` combinator.
-  hides:[string] (id: 1);
-
-  /// List of names which are shown.  Empty if this is a `hide` combinator.
-  shows:[string] (id: 0);
+  parts:[string] (id: 2);
 }
 
 /// Errors for a single unit.

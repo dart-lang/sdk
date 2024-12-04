@@ -33,7 +33,7 @@ const dartCompletionTriggerCharacters = [
   "'",
   '{',
   '/',
-  ':'
+  ':',
 ];
 
 /// Characters that refresh signature help only if it's already open on the client.
@@ -45,9 +45,12 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];
 
-/// A [TextDocumentFilterWithScheme] for Analysis Options files.
-final analysisOptionsFile = TextDocumentFilterWithScheme(
-    language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
+/// A [TextDocumentFilterScheme] for Analysis Options files.
+final analysisOptionsFile = TextDocumentFilterScheme(
+  language: 'yaml',
+  scheme: 'file',
+  pattern: '**/analysis_options.yaml',
+);
 
 /// A [ProgressToken] used for reporting progress while the server is analyzing.
 final analyzingProgressToken = ProgressToken.t2('ANALYZING');
@@ -69,19 +72,23 @@ final fileOperationRegistrationOptions = FileOperationRegistrationOptions(
         glob: '**/',
         matches: FileOperationPatternKind.folder,
       ),
-    )
+    ),
   ],
 );
 
-/// A [TextDocumentFilterWithScheme] for Fix Data files.
-final fixDataFile = TextDocumentFilterWithScheme(
-    language: 'yaml',
-    scheme: 'file',
-    pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}');
+/// A [TextDocumentFilterScheme] for Fix Data files.
+final fixDataFile = TextDocumentFilterScheme(
+  language: 'yaml',
+  scheme: 'file',
+  pattern: '**/lib/{fix_data.yaml,fix_data/**.yaml}',
+);
 
-/// A [TextDocumentFilterWithScheme] for Pubspec files.
-final pubspecFile = TextDocumentFilterWithScheme(
-    language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
+/// A [TextDocumentFilterScheme] for Pubspec files.
+final pubspecFile = TextDocumentFilterScheme(
+  language: 'yaml',
+  scheme: 'file',
+  pattern: '**/pubspec.yaml',
+);
 
 /// IDs of client-provided commands that the server knows about.
 ///
@@ -133,26 +140,41 @@ abstract final class CustomMethods {
   static const diagnosticServer = Method('dart/diagnosticServer');
   static const reanalyze = Method('dart/reanalyze');
   static const openUri = Method('dart/openUri');
-  static const publishClosingLabels =
-      Method('dart/textDocument/publishClosingLabels');
+  static const publishClosingLabels = Method(
+    'dart/textDocument/publishClosingLabels',
+  );
   static const publishOutline = Method('dart/textDocument/publishOutline');
-  static const publishFlutterOutline =
-      Method('dart/textDocument/publishFlutterOutline');
+  static const publishFlutterOutline = Method(
+    'dart/textDocument/publishFlutterOutline',
+  );
   static const super_ = Method('dart/textDocument/super');
+  static const imports = Method('dart/textDocument/imports');
   static const dartTextDocumentContent = Method('dart/textDocumentContent');
-  static const dartTextDocumentContentDidChange =
-      Method('dart/textDocumentContentDidChange');
+  static const dartTextDocumentContentDidChange = Method(
+    'dart/textDocumentContentDidChange',
+  );
+
+  /// Method for requesting the set of editable arguments at a location in a
+  /// document.
+  static const dartTextDocumentEditableArguments = Method(
+    'experimental/dart/textDocument/editableArguments',
+  );
 
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
-  // should be relying on it as we now support proper $/progress events.
+  //  should be relying on it as we now support proper $/progress events.
   static const analyzerStatus = Method(r'$/analyzerStatus');
 
   /// Semantic tokens are dynamically registered using a single string
   /// "textDocument/semanticTokens" instead of for each individual method
   /// (full, range, full/delta) so the built-in Method class does not contain
   /// the required constant.
-  static const semanticTokenDynamicRegistration =
-      Method('textDocument/semanticTokens');
+  static const semanticTokenDynamicRegistration = Method(
+    'textDocument/semanticTokens',
+  );
+
+  /// An experimental 'echo' handler that can used by tests to verify
+  /// experimental handlers only show up when requested.
+  static const experimentalEcho = Method('experimental/echo');
 }
 
 abstract final class CustomSemanticTokenModifiers {

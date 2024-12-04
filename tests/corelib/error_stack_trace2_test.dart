@@ -36,8 +36,10 @@ main() {
   } catch (e2) {
     var e = e2;
     hasThrown = true;
-    Expect.isTrue(isOverflowError(e.runtimeType),
-        "Got '$e' instead of StackOverflowError");
+    Expect.isTrue(
+      isOverflowError(e.runtimeType),
+      "Got '$e' instead of StackOverflowError",
+    );
   }
   Expect.isTrue(hasThrown);
 }

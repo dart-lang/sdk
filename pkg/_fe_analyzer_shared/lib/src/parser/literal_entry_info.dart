@@ -6,12 +6,11 @@ import '../scanner/token.dart';
 import 'identifier_context.dart';
 import 'literal_entry_info_impl.dart';
 import 'parser_impl.dart';
-import 'util.dart';
 
 /// [simpleEntry] is the first step for parsing a literal entry
 /// without any control flow or spread collection operator.
 const LiteralEntryInfo simpleEntry =
-    const LiteralEntryInfo(/* hasEntry = */ true, /* ifConditionDelta = */ 0);
+    const LiteralEntryInfo(hasEntry: true, ifConditionDelta: 0);
 
 /// [LiteralEntryInfo] represents steps for processing an entry
 /// in a literal list, map, or set. These steps will handle parsing
@@ -40,7 +39,8 @@ class LiteralEntryInfo {
   /// +1 for an `if` condition and -1 for `else`.
   final int ifConditionDelta;
 
-  const LiteralEntryInfo(this.hasEntry, this.ifConditionDelta);
+  const LiteralEntryInfo(
+      {required this.hasEntry, required this.ifConditionDelta});
 
   /// Parse the control flow and spread collection aspects of this entry.
   Token parse(Token token, Parser parser) {
@@ -56,15 +56,15 @@ class LiteralEntryInfo {
 /// Compute the [LiteralEntryInfo] for the literal list, map, or set entry.
 LiteralEntryInfo computeLiteralEntry(Token token) {
   Token next = token.next!;
-  if (optional2(Keyword.IF, next)) {
+  if (next.isA(Keyword.IF)) {
     return ifCondition;
-  } else if (optional2(Keyword.FOR, next) ||
-      (optional2(Keyword.AWAIT, next) && optional2(Keyword.FOR, next.next!))) {
+  } else if (next.isA(Keyword.FOR) ||
+      (next.isA(Keyword.AWAIT) && next.next!.isA(Keyword.FOR))) {
     return new ForCondition();
-  } else if (optional2(TokenType.PERIOD_PERIOD_PERIOD, next) ||
-      optional2(TokenType.PERIOD_PERIOD_PERIOD_QUESTION, next)) {
+  } else if (next.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+      next.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION)) {
     return spreadOperator;
-  } else if (optional2(TokenType.QUESTION, next)) {
+  } else if (next.isA(TokenType.QUESTION)) {
     return nullAwareEntry;
   }
   return simpleEntry;
@@ -72,10 +72,11 @@ LiteralEntryInfo computeLiteralEntry(Token token) {
 
 /// Return `true` if the given [token] should be treated like the start of
 /// a literal entry in a list, set, or map for the purposes of recovery.
-bool looksLikeLiteralEntry(Token token) =>
-    looksLikeExpressionStart(token) ||
-    optional('...', token) ||
-    optional('...?', token) ||
-    optional('if', token) ||
-    optional('for', token) ||
-    (optional('await', token) && optional('for', token.next!));
+bool looksLikeLiteralEntry(Token token) {
+  return looksLikeExpressionStart(token) ||
+      token.isA(TokenType.PERIOD_PERIOD_PERIOD) ||
+      token.isA(TokenType.PERIOD_PERIOD_PERIOD_QUESTION) ||
+      token.isA(Keyword.IF) ||
+      token.isA(Keyword.FOR) ||
+      (token.isA(Keyword.AWAIT) && token.next!.isA(Keyword.FOR));
+}

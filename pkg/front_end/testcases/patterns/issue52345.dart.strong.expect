@@ -6,7 +6,7 @@ static method main() → void {
   final core::List<core::String> works = <core::String>["b", "l"];
   final core::List<core::String> fails = <core::String>["c"];
   for (final core::List<core::String> test in <core::List<core::String>>[works, fails]) {
-    final void _ = block {
+    {
       void #t1;
       final synthesized core::List<core::String> #0#0 = test;
       synthesized core::int #0#1;
@@ -44,7 +44,7 @@ static method main() → void {
           }
         }
       }
-    } =>#t1;
+    }
   }
 }
 

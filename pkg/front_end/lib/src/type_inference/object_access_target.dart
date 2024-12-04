@@ -313,7 +313,7 @@ class InvocationTargetInvalidType extends InvocationTargetNonFunctionType {
 
 /// Target type of the `Never` type.
 ///
-/// For example: `(throw 0)(1, 2, 3)`, `X()`, where `X` is a type variable
+/// For example: `(throw 0)(1, 2, 3)`, `X()`, where `X` is a type parameter
 /// defined as `X extends Never`.
 class InvocationTargetNeverType extends InvocationTargetNonFunctionType {
   const InvocationTargetNeverType();
@@ -541,7 +541,7 @@ abstract class ObjectAccessTarget {
 
   InvocationTargetType _getFunctionType(
       InferenceVisitorBase base, DartType calleeType) {
-    calleeType = calleeType.nonTypeVariableBound;
+    calleeType = calleeType.nonTypeParameterBound;
     if (calleeType is FunctionType) {
       return new InvocationTargetFunctionType(calleeType);
     } else if (calleeType == base.coreTypes.functionNonNullableRawType ||

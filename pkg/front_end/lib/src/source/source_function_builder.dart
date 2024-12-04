@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.procedure_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
@@ -17,7 +15,7 @@ import '../base/messages.dart'
         messagePatchNonExternal,
         noLength,
         templateRequiredNamedParameterHasDefaultValueError;
-import '../base/modifier.dart';
+import '../base/modifiers.dart';
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -43,7 +41,7 @@ abstract class SourceFunctionBuilder
 
   TypeBuilder get returnType;
 
-  List<NominalVariableBuilder>? get typeVariables;
+  List<NominalParameterBuilder>? get typeParameters;
 
   List<FormalParameterBuilder>? get formals;
 
@@ -76,11 +74,6 @@ abstract class SourceFunctionBuilder
   LocalScope computeFormalParameterScope(LookupScope parent);
 
   LocalScope computeFormalParameterInitializerScope(LocalScope parent);
-
-  /// This scope doesn't correspond to any scope specified in the Dart
-  /// Programming Language Specification, 4th ed. It's an unspecified extension
-  /// to support generic methods.
-  LookupScope computeTypeParameterScope(LookupScope parent);
 
   FormalParameterBuilder? getFormal(Identifier identifier);
 
@@ -126,14 +119,13 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   final List<MetadataBuilder>? metadata;
 
-  @override
-  final int modifiers;
+  final Modifiers modifiers;
 
   @override
   final String name;
 
   @override
-  final List<NominalVariableBuilder>? typeVariables;
+  final List<NominalParameterBuilder>? typeParameters;
 
   @override
   final List<FormalParameterBuilder>? formals;
@@ -148,35 +140,37 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   /// from the extension/extension type declaration.
   List<TypeParameter>? _thisTypeParameters;
 
-  SourceFunctionBuilderImpl(
-      this.metadata,
-      this.modifiers,
-      this.name,
-      this.typeVariables,
-      this.formals,
-      Builder parent,
-      Uri fileUri,
-      int charOffset,
-      this.nativeMethodName)
-      : super(parent, fileUri, charOffset) {
+  SourceFunctionBuilderImpl(this.metadata, this.modifiers, this.name,
+      this.typeParameters, this.formals, this.nativeMethodName) {
     returnType.registerInferredTypeListener(this);
-    if (formals != null) {
-      for (int i = 0; i < formals!.length; i++) {
-        formals![i].parent = this;
-      }
-    }
   }
 
   @override
-  String get debugName => "${runtimeType}";
+  // Coverage-ignore(suite): Not run.
+  Iterable<MetadataBuilder>? get metadataForTesting => metadata;
 
   AsyncMarker get asyncModifier;
 
   @override
-  bool get isConstructor => false;
+  bool get isAugmentation => modifiers.isAugment;
 
   @override
-  bool get isAbstract => (modifiers & abstractMask) != 0;
+  bool get isExternal => modifiers.isExternal;
+
+  @override
+  bool get isAbstract => modifiers.isAbstract;
+
+  @override
+  bool get isConst => modifiers.isConst;
+
+  @override
+  bool get isStatic => modifiers.isStatic;
+
+  @override
+  bool get isAugment => modifiers.isAugment;
+
+  @override
+  bool get isConstructor => false;
 
   @override
   bool get isRegularMethod => identical(ProcedureKind.Method, kind);
@@ -192,9 +186,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   bool get isFactory => identical(ProcedureKind.Factory, kind);
-
-  @override
-  bool get isExternal => (modifiers & externalMask) != 0;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -252,11 +243,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         local: local);
   }
 
-  @override
+  // TODO(johnniwinther): Remove this.
   LookupScope computeTypeParameterScope(LookupScope parent) {
-    if (typeVariables == null) return parent;
+    if (typeParameters == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
-    for (NominalVariableBuilder variable in typeVariables!) {
+    for (NominalParameterBuilder variable in typeParameters!) {
       if (variable.isWildcard) continue;
       local[variable.name] = variable;
     }
@@ -269,11 +260,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       for (FormalParameterBuilder formal in formals!) {
         if (formal.isWildcard &&
             identifier.name == '_' &&
-            formal.charOffset == identifier.nameOffset) {
+            formal.fileOffset == identifier.nameOffset) {
           return formal;
         }
         if (formal.name == identifier.name &&
-            formal.charOffset == identifier.nameOffset) {
+            formal.fileOffset == identifier.nameOffset) {
           return formal;
         }
       }
@@ -316,6 +307,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   bool get isNative => nativeMethodName != null;
 
+  bool get supportsTypeParameters => true;
+
   void buildFunction() {
     function.asyncMarker = asyncModifier;
     function.body = body;
@@ -331,10 +324,12 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
             initialVariance: Variance.contravariant);
       }
     }
-    if (typeVariables != null) {
-      for (NominalVariableBuilder t in typeVariables!) {
+    if (typeParameters != null) {
+      for (NominalParameterBuilder t in typeParameters!) {
         TypeParameter parameter = t.parameter;
-        function.typeParameters.add(parameter);
+        if (supportsTypeParameters) {
+          function.typeParameters.add(parameter);
+        }
         if (needsCheckVisitor != null) {
           if (parameter.bound.accept(needsCheckVisitor)) {
             parameter.isCovariantByClass = true;
@@ -366,7 +361,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           libraryBuilder.addProblem(
               templateRequiredNamedParameterHasDefaultValueError
                   .withArguments(formal.name),
-              formal.charOffset,
+              formal.fileOffset,
               formal.name.length,
               formal.fileUri);
         }
@@ -384,6 +379,20 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       parameter.parent = function;
       function.namedParameters.clear();
       function.requiredParameterCount = 1;
+    } else if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
+        isSetter &&
+        (formals?.length != 2 || formals![1].isOptionalPositional)) {
+      // Replace illegal parameters by single dummy parameter (after #this).
+      // Do this after building the parameters, since the diet listener
+      // assumes that parameters are built, even if illegal in number.
+      VariableDeclaration thisParameter = function.positionalParameters[0];
+      VariableDeclaration parameter = new VariableDeclarationImpl("#synthetic");
+      function.positionalParameters.clear();
+      function.positionalParameters.add(thisParameter);
+      function.positionalParameters.add(parameter);
+      parameter.parent = function;
+      function.namedParameters.clear();
+      function.requiredParameterCount = 2;
     }
     if (returnType is! InferableTypeBuilder) {
       function.returnType =
@@ -418,7 +427,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
                 extensionTypeDeclarationBuilder.extensionTypeDeclaration,
                 Nullability.nonNullable,
                 typeArguments))
-          ..fileOffset = charOffset
+          ..fileOffset = fileOffset
           ..isLowered = true;
       } else {
         _thisVariable = function.positionalParameters.first;
@@ -478,26 +487,15 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       LookupScope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
-        MetadataBuilder.buildAnnotations(
-            annotatable,
-            metadata,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
-            libraryBuilder,
-            fileUri,
-            parentScope,
+        MetadataBuilder.buildAnnotations(annotatable, metadata,
+            createBodyBuilderContext(), libraryBuilder, fileUri, parentScope,
             createFileUriExpression: isAugmented);
       }
-      if (typeVariables != null) {
-        for (int i = 0; i < typeVariables!.length; i++) {
-          typeVariables![i].buildOutlineExpressions(
+      if (typeParameters != null) {
+        for (int i = 0; i < typeParameters!.length; i++) {
+          typeParameters![i].buildOutlineExpressions(
               libraryBuilder,
-              createBodyBuilderContext(
-                  inOutlineBuildingPhase: true,
-                  inMetadata: true,
-                  inConstFields: false),
+              createBodyBuilderContext(),
               classHierarchy,
               computeTypeParameterScope(parentScope));
         }
@@ -509,7 +507,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
         for (FormalParameterBuilder formal in formals!) {
-          formal.buildOutlineExpressions(libraryBuilder);
+          formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
+              buildDefaultValue: FormalParameterBuilder
+                  .needsDefaultValuesBuiltAsOutlineExpressions(this));
         }
       }
       hasBuiltOutlineExpressions = true;
@@ -519,20 +519,23 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   void becomeNative(SourceLoader loader) {
     MemberBuilder constructor = loader.getNativeAnnotation();
-    Arguments arguments =
-        new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);
-    Expression annotation;
-    if (constructor.isConstructor) {
-      annotation = new ConstructorInvocation(
-          constructor.member as Constructor, arguments)
-        ..isConst = true;
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      annotation =
-          new StaticInvocation(constructor.member as Procedure, arguments)
-            ..isConst = true;
+    for (Annotatable annotatable in annotatables) {
+      Arguments arguments =
+          new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);
+      Expression annotation;
+      if (constructor.isConstructor) {
+        annotation = new ConstructorInvocation(
+            constructor.invokeTarget as Constructor, arguments)
+          ..isConst = true;
+      } else {
+        // Coverage-ignore-block(suite): Not run.
+        annotation = new StaticInvocation(
+            constructor.invokeTarget as Procedure, arguments)
+          ..isConst = true;
+      }
+
+      annotatable.addAnnotation(annotation);
     }
-    member.addAnnotation(annotation);
   }
 
   @override
@@ -540,9 +543,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     if (!isExternal && !augmentation.libraryBuilder.isAugmentationLibrary) {
       // Coverage-ignore-block(suite): Not run.
       augmentation.libraryBuilder.addProblem(messagePatchNonExternal,
-          augmentation.charOffset, noLength, augmentation.fileUri!, context: [
+          augmentation.fileOffset, noLength, augmentation.fileUri!, context: [
         messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength)
+            fileUri, fileOffset, noLength)
       ]);
       return false;
     }
@@ -553,8 +556,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   void reportAugmentationMismatch(Builder augmentation) {
     libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-        augmentation.charOffset, noLength, augmentation.fileUri!, context: [
-      messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
+        augmentation.fileOffset, noLength, augmentation.fileUri!, context: [
+      messagePatchDeclarationOrigin.withLocation(fileUri, fileOffset, noLength)
     ]);
   }
 }

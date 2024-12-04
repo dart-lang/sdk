@@ -7,14 +7,17 @@ import 'package:kernel/ast.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
-import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
 import 'dill_builder_mixins.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
+import 'dill_library_builder.dart';
 
 class DillExtensionBuilder extends ExtensionBuilderImpl
     with DillDeclarationBuilderMixin {
+  @override
+  final DillLibraryBuilder libraryBuilder;
+
   @override
   final Extension extension;
 
@@ -24,13 +27,11 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
 
   late final ConstructorScope _constructorScope;
 
-  List<NominalVariableBuilder>? _typeParameters;
+  List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
-  DillExtensionBuilder(this.extension, LibraryBuilder parent)
-      : _nameSpace = new DeclarationNameSpaceImpl(),
-        super(/* metadata = */ null, 0, extension.name, parent,
-            extension.fileUri, extension.fileOffset) {
+  DillExtensionBuilder(this.extension, this.libraryBuilder)
+      : _nameSpace = new DeclarationNameSpaceImpl() {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "extension ${extension.name}",
         parent: parent.scope);
@@ -45,7 +46,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionStaticMethodBuilder(
-                    procedure, descriptor, this),
+                    procedure, descriptor, libraryBuilder, this),
                 setter: false);
           } else {
             Procedure procedure = descriptor.memberReference.asProcedure;
@@ -54,37 +55,60 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
             nameSpace.addLocalMember(
                 name.text,
                 new DillExtensionInstanceMethodBuilder(
-                    procedure, descriptor, this, tearOff!),
+                    procedure, descriptor, libraryBuilder, this, tearOff!),
                 setter: false);
           }
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionGetterBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionGetterBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: false);
           break;
         case ExtensionMemberKind.Field:
           Field field = descriptor.memberReference.asField;
           nameSpace.addLocalMember(
-              name.text, new DillExtensionFieldBuilder(field, descriptor, this),
+              name.text,
+              new DillExtensionFieldBuilder(
+                  field, descriptor, libraryBuilder, this),
               setter: false);
           break;
         case ExtensionMemberKind.Setter:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionSetterBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionSetterBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: true);
           break;
         case ExtensionMemberKind.Operator:
           Procedure procedure = descriptor.memberReference.asProcedure;
-          nameSpace.addLocalMember(name.text,
-              new DillExtensionOperatorBuilder(procedure, descriptor, this),
+          nameSpace.addLocalMember(
+              name.text,
+              new DillExtensionOperatorBuilder(
+                  procedure, descriptor, libraryBuilder, this),
               setter: false);
           break;
       }
     }
   }
+
+  @override
+  DillLibraryBuilder get parent => libraryBuilder;
+
+  @override
+  Reference get reference => extension.reference;
+
+  @override
+  int get fileOffset => extension.fileOffset;
+
+  @override
+  String get name => extension.name;
+
+  @override
+  Uri get fileUri => extension.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -98,9 +122,9 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   ConstructorScope get constructorScope => _constructorScope;
 
   @override
-  List<NominalVariableBuilder>? get typeParameters {
+  List<NominalParameterBuilder>? get typeParameters {
     if (_typeParameters == null && extension.typeParameters.isNotEmpty) {
-      _typeParameters = computeTypeVariableBuilders(
+      _typeParameters = computeTypeParameterBuilders(
           extension.typeParameters, libraryBuilder.loader);
     }
     return _typeParameters;

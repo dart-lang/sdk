@@ -24,8 +24,10 @@ class MapUriTest extends AbstractAnalysisServerIntegrationTest {
     var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;
 
     {
-      var result =
-          await sendExecutionMapUri(contextId, uri: 'package:test/main.dart');
+      var result = await sendExecutionMapUri(
+        contextId,
+        uri: 'package:test/main.dart',
+      );
       expect(result.file, pathname);
     }
 

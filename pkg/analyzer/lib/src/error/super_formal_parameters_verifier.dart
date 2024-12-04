@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 VerifySuperFormalParametersResult verifySuperFormalParameters({
@@ -16,11 +15,13 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
   var result = VerifySuperFormalParametersResult();
   for (var parameter in constructor.parameters.parameters) {
     parameter = parameter.notDefault;
-    if (parameter is SuperFormalParameter) {
-      var parameterElement =
-          parameter.declaredElement as SuperFormalParameterElementImpl;
+    if (parameter is SuperFormalParameterImpl) {
+      var declaredFragment = parameter.declaredFragment!;
       if (parameter.isNamed) {
-        result.namedArgumentNames.add(parameterElement.name);
+        var name = declaredFragment.name2;
+        if (name != null) {
+          result.namedArgumentNames.add(name);
+        }
       } else {
         result.positionalArgumentCount++;
         if (hasExplicitPositionalArguments) {

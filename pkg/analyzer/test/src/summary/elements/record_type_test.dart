@@ -56,22 +56,24 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
             x @32
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           getters
-            get x @-1
+            synthetic get x
               reference: <testLibraryFragment>::@class::A::@getter::x
               element: <testLibraryFragment>::@class::A::@getter::x#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
         final x
@@ -128,25 +130,27 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           fields
-            x @18
+            hasInitializer x @18
               reference: <testLibraryFragment>::@class::A::@field::x
               element: <testLibraryFragment>::@class::A::@field::x#element
               getter2: <testLibraryFragment>::@class::A::@getter::x
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           getters
-            get x @-1
+            synthetic get x
               reference: <testLibraryFragment>::@class::A::@getter::x
               element: <testLibraryFragment>::@class::A::@getter::x#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       fields
-        final x
+        final hasInitializer x
           firstFragment: <testLibraryFragment>::@class::A::@field::x
           type: (int, bool)
           getter: <testLibraryFragment>::@class::A::@getter::x#element
@@ -197,11 +201,12 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           methods
             foo @17
               reference: <testLibraryFragment>::@class::A::@method::foo
@@ -211,12 +216,14 @@ library
                   element: <testLibraryFragment>::@class::A::@method::foo::@parameter::a#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
           formalParameters
             requiredPositional a
@@ -259,23 +266,26 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
           methods
             foo @26
               reference: <testLibraryFragment>::@class::A::@method::foo
               element: <testLibraryFragment>::@class::A::@method::foo#element
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       constructors
         synthetic new
           firstFragment: <testLibraryFragment>::@class::A::@constructor::new
       methods
         foo
+          reference: <testLibrary>::@class::A::@method::foo
           firstFragment: <testLibraryFragment>::@class::A::@method::foo
 ''');
   }
@@ -312,16 +322,18 @@ library
       classes
         class A @6
           reference: <testLibraryFragment>::@class::A
-          element: <testLibraryFragment>::@class::A#element
+          element: <testLibrary>::@class::A
           typeParameters
             T @8
               element: <not-implemented>
           constructors
-            synthetic new @-1
+            synthetic new
               reference: <testLibraryFragment>::@class::A::@constructor::new
               element: <testLibraryFragment>::@class::A::@constructor::new#element
+              typeName: A
   classes
     class A
+      reference: <testLibrary>::@class::A
       firstFragment: <testLibraryFragment>::@class::A
       typeParameters
         T
@@ -357,9 +369,10 @@ library
       extensions
         extension IntStringExtension @10
           reference: <testLibraryFragment>::@extension::IntStringExtension
-          element: <testLibraryFragment>::@extension::IntStringExtension#element
+          element: <testLibrary>::@extension::IntStringExtension
   extensions
     extension IntStringExtension
+      reference: <testLibrary>::@extension::IntStringExtension
       firstFragment: <testLibraryFragment>::@extension::IntStringExtension
 ''');
   }
@@ -392,12 +405,13 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             b @38
               element: <testLibraryFragment>::@function::f::@parameter::b#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional b
@@ -434,12 +448,13 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @32
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -476,12 +491,13 @@ library
       functions
         f @5
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           formalParameters
             a @21
               element: <testLibraryFragment>::@function::f::@parameter::a#element
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       formalParameters
         requiredPositional a
@@ -515,9 +531,10 @@ library
       functions
         f @3
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: ()
 ''');
@@ -551,12 +568,13 @@ library
       functions
         f @9
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           typeParameters
             T @11
               element: <not-implemented>
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       typeParameters
         T
@@ -589,9 +607,10 @@ library
       functions
         f @24
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: (int, String, {bool c})
 ''');
@@ -622,9 +641,10 @@ library
       functions
         f @20
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: ({int a, String b})
 ''');
@@ -655,9 +675,10 @@ library
       functions
         f @32
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: ((int, String), (bool, double))
 ''');
@@ -688,9 +709,10 @@ library
       functions
         f @15
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: (int, String)?
 ''');
@@ -721,9 +743,10 @@ library
       functions
         f @14
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: (int, String)
 ''');
@@ -754,9 +777,10 @@ library
       functions
         f @7
           reference: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
   functions
     f
+      reference: <testLibrary>::@function::f
       firstFragment: <testLibraryFragment>::@function::f
       returnType: (int,)
 ''');
@@ -790,16 +814,17 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final x @20
+        x @20
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x @-1
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
     final x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: (int, String)
       getter: <testLibraryFragment>::@getter::x#element
@@ -838,16 +863,17 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        final x @6
+        hasInitializer x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x @-1
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
-    final x
+    final hasInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: (int, bool)
       getter: <testLibraryFragment>::@getter::x#element
@@ -890,14 +916,14 @@ library
                             type: NamedType
                               name: int @17
                               element: dart:core::<fragment>::@class::int
-                              element2: dart:core::<fragment>::@class::int#element
+                              element2: dart:core::@class::int
                               type: int
                             name: f1 @21
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: String @25
                               element: dart:core::<fragment>::@class::String
-                              element2: dart:core::<fragment>::@class::String#element
+                              element2: dart:core::@class::String
                               type: String
                             name: f2 @32
                         rightBracket: } @34
@@ -905,7 +931,7 @@ library
                       type: ({int f1, String f2})
                   rightBracket: > @36
                 element: dart:core::<fragment>::@class::List
-                element2: dart:core::<fragment>::@class::List#element
+                element2: dart:core::@class::List
                 type: List<({int f1, String f2})>
               staticType: Type
       accessors
@@ -920,16 +946,17 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const x @6
+        hasInitializer x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x @-1
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
-    const x
+    const hasInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Type
       getter: <testLibraryFragment>::@getter::x#element
@@ -970,20 +997,20 @@ library
                           type: NamedType
                             name: int @16
                             element: dart:core::<fragment>::@class::int
-                            element2: dart:core::<fragment>::@class::int#element
+                            element2: dart:core::@class::int
                             type: int
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: String @21
                             element: dart:core::<fragment>::@class::String
-                            element2: dart:core::<fragment>::@class::String#element
+                            element2: dart:core::@class::String
                             type: String
                           name: f2 @28
                       rightParenthesis: ) @30
                       type: (int, String)
                   rightBracket: > @31
                 element: dart:core::<fragment>::@class::List
-                element2: dart:core::<fragment>::@class::List#element
+                element2: dart:core::@class::List
                 type: List<(int, String)>
               staticType: Type
       accessors
@@ -998,16 +1025,17 @@ library
     <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        const x @6
+        hasInitializer x @6
           reference: <testLibraryFragment>::@topLevelVariable::x
-          element: <testLibraryFragment>::@topLevelVariable::x#element
+          element: <testLibrary>::@topLevelVariable::x
           getter2: <testLibraryFragment>::@getter::x
       getters
-        get x @-1
+        synthetic get x
           reference: <testLibraryFragment>::@getter::x
           element: <testLibraryFragment>::@getter::x#element
   topLevelVariables
-    const x
+    const hasInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
       firstFragment: <testLibraryFragment>::@topLevelVariable::x
       type: Type
       getter: <testLibraryFragment>::@getter::x#element

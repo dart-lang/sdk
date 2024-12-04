@@ -20,6 +20,7 @@ import 'token.dart'
         LanguageVersionToken,
         SyntheticToken,
         Token,
+        TokenIsAExtension,
         TokenType;
 
 import 'token.dart' as analyzer show StringToken;
@@ -2023,7 +2024,7 @@ abstract class AbstractScanner implements Scanner {
     if (errorToken is NonAsciiIdentifierToken) {
       int charOffset;
       List<int> codeUnits = <int>[];
-      if (tail.type == TokenType.IDENTIFIER && tail.charEnd == tokenStart) {
+      if (tail.isA(TokenType.IDENTIFIER) && tail.charEnd == tokenStart) {
         charOffset = tail.charOffset;
         codeUnits.addAll(tail.lexeme.codeUnits);
         tail = tail.previous!;

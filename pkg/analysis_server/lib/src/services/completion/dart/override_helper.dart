@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 
@@ -26,17 +26,19 @@ class OverrideHelper {
 
   /// Initialize a newly created helper to add suggestions to the [collector].
   OverrideHelper({required this.state, required this.collector})
-      : inheritanceManager = state.request.inheritanceManager;
+    : inheritanceManager = state.request.inheritanceManager;
 
   void computeOverridesFor({
-    required InterfaceElement interfaceElement,
+    required InterfaceElement2 interfaceElement,
     required SourceRange replacementRange,
     required bool skipAt,
   }) {
-    var interface = inheritanceManager.getInterface(interfaceElement);
-    var interfaceMap = interface.map;
-    var namesToOverride =
-        _namesToOverride(interfaceElement.librarySource.uri, interface);
+    var interface = inheritanceManager.getInterface2(interfaceElement);
+    var interfaceMap = interface.map2;
+    var namesToOverride = _namesToOverride(
+      interfaceElement.library2.uri,
+      interface,
+    );
 
     // Build suggestions
     for (var name in namesToOverride) {
@@ -49,9 +51,12 @@ class OverrideHelper {
 
         var invokeSuper = interface.isSuperImplemented(name);
         var matcherScore = math.max(
-            math.max(state.matcher.score('override'),
-                state.matcher.score('operator')),
-            state.matcher.score(element.displayName));
+          math.max(
+            state.matcher.score('override'),
+            state.matcher.score('operator'),
+          ),
+          state.matcher.score(element.displayName),
+        );
         if (matcherScore != -1) {
           collector.addSuggestion(
             OverrideSuggestion(
@@ -68,21 +73,21 @@ class OverrideHelper {
   }
 
   /// Checks if the [element] has the `@nonVirtual` annotation.
-  bool _hasNonVirtualAnnotation(ExecutableElement element) {
-    if (element is PropertyAccessorElement && element.isSynthetic) {
-      var variable = element.variable2;
-      if (variable != null && variable.hasNonVirtual) {
+  bool _hasNonVirtualAnnotation(ExecutableElement2 element) {
+    if (element is GetterElement && element.isSynthetic) {
+      var variable = element.variable3;
+      if (variable != null && variable.metadata2.hasNonVirtual) {
         return true;
       }
     }
-    return element.hasNonVirtual;
+    return element.metadata2.hasNonVirtual;
   }
 
   /// Return the list of names that belong to the [interface] of a class, but
   /// are not yet declared in the class.
   List<Name> _namesToOverride(Uri libraryUri, Interface interface) {
     var namesToOverride = <Name>[];
-    for (var name in interface.map.keys) {
+    for (var name in interface.map2.keys) {
       if (name.isAccessibleFor(libraryUri)) {
         // TODO(brianwilkerson): When the user is typing the name of an
         //  inherited member, the map will contain a key matching the current
@@ -90,7 +95,7 @@ class OverrideHelper {
         //  declaration consists of a single identifier), and that identifier
         //  matches the name of an overridden member, then the override should
         //  still be suggested.
-        if (!interface.declared.containsKey(name)) {
+        if (!interface.declared2.containsKey(name)) {
           namesToOverride.add(name);
         }
       }

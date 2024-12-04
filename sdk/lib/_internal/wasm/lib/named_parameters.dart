@@ -9,7 +9,9 @@ part of "core_patch.dart";
 /// Returns `null` if the name is not in the list.
 @pragma("wasm:entry-point")
 int? _getNamedParameterIndex(
-    WasmArray<Object?> namedArguments, Symbol paramName) {
+  WasmArray<Object?> namedArguments,
+  Symbol paramName,
+) {
   for (int i = 0; i < namedArguments.length; i += 2) {
     if (identical(namedArguments[i], paramName)) {
       return i + 1;
@@ -57,15 +59,17 @@ Map<Symbol, Object?> _namedParametersToMap(WasmArray<Object?> namedArguments) {
 /// This is the opposite of [_namedParameterListToMap].
 @pragma("wasm:entry-point")
 WasmArray<Object?> _namedParameterMapToArray(
-    Map<Symbol, Object?>? namedArguments) {
+  Map<Symbol, Object?>? namedArguments,
+) {
   if (namedArguments == null || namedArguments.isEmpty) {
     return const WasmArray.literal([]);
   }
 
-  final List<MapEntry<Symbol, Object?>> entries = namedArguments.entries
-      .toList()
-    ..sort((entry1, entry2) =>
-        _symbolToString(entry1.key).compareTo(_symbolToString(entry2.key)));
+  final List<MapEntry<Symbol, Object?>> entries =
+      namedArguments.entries.toList()..sort(
+        (entry1, entry2) =>
+            _symbolToString(entry1.key).compareTo(_symbolToString(entry2.key)),
+      );
 
   final WasmArray<Object?> result = WasmArray<Object?>(2 * entries.length);
 

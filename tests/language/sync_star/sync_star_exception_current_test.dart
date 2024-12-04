@@ -47,7 +47,7 @@ main() {
   Expect.throws(() => i2.moveNext());
   Expect.isFalse(i2.moveNext());
 
-  // Slighly surprising consequence of the specified behavior.
+  // Slightly surprising consequence of the specified behavior.
   Expect.throws(() => f1().length);
   Expect.throws(() => f2().length);
 }

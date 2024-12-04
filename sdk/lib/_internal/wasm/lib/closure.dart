@@ -66,7 +66,9 @@ final class _Closure implements Function {
 
     if (_isInstanceTearOff) {
       return Object.hash(
-          _instanceTearOffReceiver, _getClosureRuntimeType(this));
+        _instanceTearOffReceiver,
+        _getClosureRuntimeType(this),
+      );
     }
 
     return Object._objectHashCode(this); // identity hash

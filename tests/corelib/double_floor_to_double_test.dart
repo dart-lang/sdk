@@ -45,7 +45,9 @@ main() {
 
   Expect.equals(double.infinity, double.infinity.floorToDouble());
   Expect.equals(
-      double.negativeInfinity, double.negativeInfinity.floorToDouble());
+    double.negativeInfinity,
+    double.negativeInfinity.floorToDouble(),
+  );
   Expect.isTrue(double.nan.floorToDouble().isNaN);
 
   Expect.isTrue(0.0.floorToDouble() is double);

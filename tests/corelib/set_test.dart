@@ -281,8 +281,13 @@ void testTypeAnnotations(Set<int> set) {
 }
 
 void testRetainWhere(
-    Set<CE> create(
-        [CEEq? equals, CEHash? hashCode, ValidKey? validKey, CECompare? compare])) {
+  Set<CE> create([
+    CEEq? equals,
+    CEHash? hashCode,
+    ValidKey? validKey,
+    CECompare? compare,
+  ]),
+) {
   // The retainWhere method must not collapse the argument Iterable
   // in a way that doesn't match the equality of the set.
   // It must not throw away equal elements that are different in the
@@ -451,7 +456,7 @@ void testCESetFrom(setFrom) {
     new CE(5),
     new CE(7),
     new CE(11),
-    new CE(13)
+    new CE(13),
   ];
 
   Set<CE> set1 = setFrom(ceList);
@@ -549,14 +554,20 @@ main() {
   testMain(() => new LinkedHashSet.identity());
   testMain(() => new HashSet(equals: identical));
   testMain(() => new LinkedHashSet(equals: identical));
-  testMain(() => new HashSet(
+  testMain(
+    () => new HashSet(
       equals: (a, b) => a == b,
       hashCode: (a) => -a.hashCode,
-      isValidKey: (a) => true));
-  testMain(() => new LinkedHashSet(
+      isValidKey: (a) => true,
+    ),
+  );
+  testMain(
+    () => new LinkedHashSet(
       equals: (a, b) => a == b,
       hashCode: (a) => -a.hashCode,
-      isValidKey: (a) => true));
+      isValidKey: (a) => true,
+    ),
+  );
   testMain(() => new SplayTreeSet());
 
   testIdentity(() => new HashSet.identity());
@@ -569,31 +580,53 @@ main() {
   testTypeAnnotations(new LinkedHashSet<int>());
   testTypeAnnotations(new HashSet<int>(equals: identical));
   testTypeAnnotations(new LinkedHashSet<int>(equals: identical));
-  testTypeAnnotations(new HashSet<int>(
+  testTypeAnnotations(
+    new HashSet<int>(
       equals: (int a, int b) => a == b,
       hashCode: (int a) => a.hashCode,
-      isValidKey: (a) => a is int));
-  testTypeAnnotations(new LinkedHashSet<int>(
+      isValidKey: (a) => a is int,
+    ),
+  );
+  testTypeAnnotations(
+    new LinkedHashSet<int>(
       equals: (int a, int b) => a == b,
       hashCode: (int a) => a.hashCode,
-      isValidKey: (a) => a is int));
+      isValidKey: (a) => a is int,
+    ),
+  );
   testTypeAnnotations(new SplayTreeSet<int>());
 
-  testRetainWhere(([equals, hashCode, validKey, comparator]) =>
-      new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey));
-  testRetainWhere(([equals, hashCode, validKey, comparator]) =>
-      new LinkedHashSet(
-          equals: equals, hashCode: hashCode, isValidKey: validKey));
-  testRetainWhere(([equals, hashCode, validKey, comparator]) =>
-      new SplayTreeSet(comparator, validKey));
+  testRetainWhere(
+    ([equals, hashCode, validKey, comparator]) =>
+        new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey),
+  );
+  testRetainWhere(
+    ([equals, hashCode, validKey, comparator]) => new LinkedHashSet(
+      equals: equals,
+      hashCode: hashCode,
+      isValidKey: validKey,
+    ),
+  );
+  testRetainWhere(
+    ([equals, hashCode, validKey, comparator]) =>
+        new SplayTreeSet(comparator, validKey),
+  );
 
-  testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
-      new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey));
-  testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
-      new LinkedHashSet(
-          equals: equals, hashCode: hashCode, isValidKey: validKey));
-  testDifferenceIntersection(([equals, hashCode, validKey, comparator]) =>
-      new SplayTreeSet(comparator, validKey));
+  testDifferenceIntersection(
+    ([equals, hashCode, validKey, comparator]) =>
+        new HashSet(equals: equals, hashCode: hashCode, isValidKey: validKey),
+  );
+  testDifferenceIntersection(
+    ([equals, hashCode, validKey, comparator]) => new LinkedHashSet(
+      equals: equals,
+      hashCode: hashCode,
+      isValidKey: validKey,
+    ),
+  );
+  testDifferenceIntersection(
+    ([equals, hashCode, validKey, comparator]) =>
+        new SplayTreeSet(comparator, validKey),
+  );
 
   testIntSetFrom((x) => new Set<int>.from(x));
   testIntSetFrom((x) => new HashSet<int>.from(x));
@@ -606,7 +639,8 @@ main() {
   testCESetFrom((x) => new SplayTreeSet<CE>.from(x));
 
   testCESetFrom(
-      (x) => new SplayTreeSet<CE>.from(x, customCompare(20), validKey));
+    (x) => new SplayTreeSet<CE>.from(x, customCompare(20), validKey),
+  );
   testCESetFrom((x) => new SplayTreeSet<CE>.from(x, identityCompare));
 
   testASetFrom((x) => new Set<A>.from(x));

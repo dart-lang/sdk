@@ -46,18 +46,6 @@ abstract class TypeSystem {
     required NullabilitySuffix nullabilitySuffix,
   });
 
-  /// Instantiate the given generic element using the type arguments that
-  /// correspond to the bounds of its type parameters.
-  ///
-  /// One and only one of [classElement] or [typeAliasElement] must
-  /// be provided.
-  @Deprecated('Use instantiateInterface/TypeAliasToBounds() instead')
-  DartType instantiateToBounds2({
-    ClassElement? classElement,
-    TypeAliasElement? typeAliasElement,
-    required NullabilitySuffix nullabilitySuffix,
-  });
-
   /// Instantiate the given [element] with default type arguments.
   DartType instantiateTypeAliasToBounds({
     required TypeAliasElement element,

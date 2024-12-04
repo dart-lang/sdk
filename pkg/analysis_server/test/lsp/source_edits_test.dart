@@ -21,6 +21,52 @@ void main() {
 
 @reflectiveTest
 class SourceEditsTest extends AbstractSingleUnitTest with LspEditHelpersMixin {
+  Future<void> test_format_version_defaultsToLatest() async {
+    // Latest version should parse and format records.
+    const startContent = '''
+var    a = (1, 2);
+''';
+    const endContent = '''
+var a = (1, 2);
+''';
+    const expectedEdits = r'''
+Delete 1:5-1:8
+''';
+
+    await _assertFormatEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_format_version_languageVersionToken() async {
+    // 2.19 will not parse/format records.
+    const content = '''
+// @dart = 2.19
+var    a = (1, 2);
+''';
+
+    await _assertNoFormatEdits(content);
+  }
+
+  Future<void> test_format_version_packageConfig() async {
+    // 2.19 will not parse/format records.
+    writeTestPackageConfig(languageVersion: '2.19');
+    const content = '''
+var    a = (1, 2);
+''';
+
+    await _assertNoFormatEdits(content);
+  }
+
+  Future<void> test_format_version_versionToken_overridesPackageConfig() async {
+    // 2.19 will not parse/format records.
+    writeTestPackageConfig(languageVersion: '3.0');
+    const content = '''
+// @dart = 2.19
+var    a = (1, 2);
+''';
+
+    await _assertNoFormatEdits(content);
+  }
+
   Future<void> test_minimalEdits_comma_delete() async {
     const startContent = '''
 void f(int a,) {}
@@ -92,7 +138,7 @@ Delete 1:27-1:29
   }
 
   Future<void>
-      test_minimalEdits_comma_delete_betweenBlockComments_withWrapping() async {
+  test_minimalEdits_comma_delete_betweenBlockComments_withWrapping() async {
     const startContent = '''
 void f(veryLongArgument, argument /* before */ , /* after */ argument);
 ''';
@@ -189,7 +235,7 @@ Insert "," at 1:14
   }
 
   Future<void>
-      test_minimalEdits_comma_insertWithLeadingAndTrailingWhitespace() async {
+  test_minimalEdits_comma_insertWithLeadingAndTrailingWhitespace() async {
     const startContent = '''
 void f(int a) {}
 ''';
@@ -299,11 +345,7 @@ int? a;
 Replace 2:33-3:34 with "\n * line with trailing whitespace"
 ''';
 
-    await _assertMinimalEdits(
-      startContent,
-      endContent,
-      expectedEdits,
-    );
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
   /// The formatter removes trailing whitespace from comments which results in
@@ -323,11 +365,7 @@ Replace 2:33-3:34 with "\n * line with trailing whitespace"
 Delete 1:18-1:19
 ''';
 
-    await _assertMinimalEdits(
-      startContent,
-      endContent,
-      expectedEdits,
-    );
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
   /// Empty collections that are unwrapped produce different tokens. This should
@@ -349,11 +387,7 @@ var b = '';
 Delete 1:18-2:1
 ''';
 
-    await _assertMinimalEdits(
-      startContent,
-      endContent,
-      expectedEdits,
-    );
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
   Future<void> test_minimalEdits_formatting_shortStyle() async {
@@ -572,6 +606,26 @@ void g() {
     );
   }
 
+  /// Assert that generating edits to format [start] match those described
+  /// in [expected] and when applied, result in [end].
+  ///
+  /// Edits will be automatically applied and verified. [expected] is to ensure
+  /// the edits are minimal and we didn't accidentally produces a single edit
+  /// replacing the entire file.
+  Future<void> _assertFormatEdits(
+    String start,
+    String end,
+    String expected, {
+    String? expectedFormatResult,
+    Range? range,
+  }) async {
+    await parseTestCode(start);
+    var edits =
+        generateEditsForFormatting(testParsedResult, range: range).result!;
+    expect(edits.toText().trim(), expected.trim());
+    expect(applyTextEdits(start, edits), expectedFormatResult ?? end);
+  }
+
   /// Assert that computing minimal edits to convert [start] to [end] produces
   /// the set of edits described in [expected].
   ///
@@ -595,6 +649,13 @@ void g() {
     expect(edits.toText().trim(), expected);
     expect(applyTextEdits(start, edits.result), expectedFormatResult ?? end);
   }
+
+  /// Assert that formatting [content] produces no edits.
+  Future<void> _assertNoFormatEdits(String content) async {
+    await parseTestCode(content);
+    var edits = generateEditsForFormatting(testParsedResult).result;
+    expect(edits, isNull);
+  }
 }
 
 /// Helpers for building simple text representations of edits to verify that
@@ -616,8 +677,8 @@ extension on TextEdit {
     return range.start == range.end
         ? 'Insert ${jsonEncode(newText)} at ${range.start.toText()}'
         : newText.isEmpty
-            ? 'Delete ${range.toText()}'
-            : 'Replace ${range.toText()} with ${jsonEncode(newText)}';
+        ? 'Delete ${range.toText()}'
+        : 'Replace ${range.toText()} with ${jsonEncode(newText)}';
   }
 }
 
@@ -639,8 +700,6 @@ extension on Position {
 /// Does not include actual content - resulting content should be verified
 /// separately.
 extension on ErrorOr<List<TextEdit>> {
-  String toText() => map(
-        (error) => 'Error: ${error.message}',
-        (result) => result.toText(),
-      );
+  String toText() =>
+      map((error) => 'Error: ${error.message}', (result) => result.toText());
 }

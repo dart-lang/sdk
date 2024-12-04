@@ -1138,6 +1138,14 @@ abstract class HInstruction implements SpannableWithEntity {
   // devirtualized.
   final List<HInstruction> inputs;
 
+  // Instructions that uses this instruction. A user is [usedBy] once per input
+  // that is this instruction.
+  //
+  //     y = [x, x + 1, x];
+  //
+  // The [usedBy] for the instruction `x` has three elements, one for the
+  // addition instruction and two for the list literal instruction, in no
+  // particilar order.
   final List<HInstruction> usedBy = [];
 
   HBasicBlock? block;
@@ -1503,19 +1511,63 @@ class DominatedUses {
   bool get isNotEmpty => !isEmpty;
   int get length => _instructions.length;
 
-  /// Changes all the uses in the set to [newInstruction].
-  void replaceWith(HInstruction newInstruction) {
-    assert(!identical(newInstruction, _source));
+  /// Changes all the uses in the set to [replacement].
+  void replaceWith(HInstruction replacement) {
+    assert(replacement.isInBasicBlock());
+    assert(!identical(replacement, _source));
     if (isEmpty) return;
+
     for (int i = 0; i < _instructions.length; i++) {
       HInstruction user = _instructions[i];
       int index = _indexes[i];
-      HInstruction oldInstruction = user.inputs[index];
       assert(
-          identical(oldInstruction, _source),
+          identical(user.inputs[index], _source),
           'Input ${index} of ${user} changed.'
-          '\n  Found: ${oldInstruction}\n  Expected: ${_source}');
-      user.replaceInput(index, newInstruction);
+          '\n  Found: ${user.inputs[index]}\n  Expected: ${_source}');
+      user.inputs[index] = replacement;
+      replacement.usedBy.add(user);
+    }
+
+    // The following loop is a more efficient implementation of:
+    //
+    //     for (final user in _instructions) {
+    //       _source.usedBy.remove(user);
+    //     }
+    //
+    // `List.remove` searches the list to find the key, and then scans the rest
+    // of the list to move the elements up one position.  Repeating this is
+    // quadratic.
+    //
+    // The code below combines searching for the next element with move-up
+    // scanning for the previous element(s) to remove several elements in one
+    // pass, provided elements of `_instructions` are in the same order as in
+    // `usedBy`. This is usually the case since the DominatedUses set is
+    // constructed from `_source.usedBy`.
+
+    final usedBy = _source.usedBy;
+    int instructionsIndex = 0;
+    while (instructionsIndex < _instructions.length) {
+      HInstruction nextToRemove = _instructions[instructionsIndex];
+      int readIndex = 0, writeIndex = 0;
+      while (readIndex < usedBy.length) {
+        final user = usedBy[readIndex++];
+        if (identical(user, nextToRemove)) {
+          instructionsIndex++;
+          if (instructionsIndex < _instructions.length) {
+            nextToRemove = _instructions[instructionsIndex];
+          } else {
+            // Copy rest of the list elements up as-is.
+            while (readIndex < usedBy.length) {
+              usedBy[writeIndex++] = usedBy[readIndex++];
+            }
+            break;
+          }
+        } else {
+          usedBy[writeIndex++] = user;
+        }
+      }
+      assert(writeIndex < readIndex, 'Should remove at least one per pass');
+      usedBy.length = writeIndex;
     }
   }
 
@@ -1532,11 +1584,13 @@ class DominatedUses {
 
   void _compute(HInstruction source, HInstruction dominator,
       bool excludeDominator, bool excludePhiOutEdges) {
+    assert(dominator is! HPhi);
+
     // Keep track of all instructions that we have to deal with later and count
-    // the number of them that are in the current block.
+    // the number of them that are in the dominator's block.
     Set<HInstruction> users = Setlet();
     Set<HInstruction> seen = Setlet();
-    int usersInCurrentBlock = 0;
+    int usersInDominatorBlock = 0;
 
     HBasicBlock dominatorBlock = dominator.block!;
 
@@ -1547,9 +1601,15 @@ class DominatedUses {
     for (HInstruction current in source.usedBy) {
       if (!seen.add(current)) continue;
       HBasicBlock currentBlock = current.block!;
-      if (dominatorBlock.dominates(currentBlock)) {
+      if (identical(currentBlock, dominatorBlock)) {
+        // Ignore phi nodes of the dominator instruction block, they come before
+        // the dominator instruction.
+        if (current is! HPhi) {
+          users.add(current);
+          usersInDominatorBlock++;
+        }
+      } else if (dominatorBlock.dominates(currentBlock)) {
         users.add(current);
-        if (identical(currentBlock, dominatorBlock)) usersInCurrentBlock++;
       } else if (!excludePhiOutEdges && current is HPhi) {
         // A non-dominated HPhi.
         // See if there a dominated edge into the phi. The input must be
@@ -1565,25 +1625,14 @@ class DominatedUses {
       }
     }
 
-    // Run through all the phis in the same block as [dominator] and remove them
-    // from the users set. These come before [dominator].
-    // TODO(sra): Could we simply not add them in the first place?
-    if (usersInCurrentBlock > 0) {
-      for (var phi = dominatorBlock.phis.first; phi != null; phi = phi.next) {
-        if (users.remove(phi)) {
-          if (--usersInCurrentBlock == 0) break;
-        }
-      }
-    }
-
     // Run through all the instructions before [dominator] and remove them from
     // the users set.
-    if (usersInCurrentBlock > 0) {
+    if (usersInDominatorBlock > 0) {
       for (var current = dominatorBlock.first;
           !identical(current, dominator);
           current = current!.next) {
         if (users.remove(current)) {
-          if (--usersInCurrentBlock == 0) break;
+          if (--usersInDominatorBlock == 0) break;
         }
       }
       if (excludeDominator) {

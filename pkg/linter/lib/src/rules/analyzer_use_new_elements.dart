@@ -4,39 +4,71 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type_visitor.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Use new element model in opted-in files.';
 
 bool _isOldModelElement(Element2? element) {
-  var firstFragment = element?.firstFragment;
-  if (firstFragment != null) {
-    var libraryFragment = firstFragment.libraryFragment;
-    var uriStr = libraryFragment.source.uri.toString();
+  if (element == null) {
+    return false;
+  }
+
+  var firstFragment = element.firstFragment;
+  var libraryFragment = firstFragment.libraryFragment;
+  if (libraryFragment == null) {
+    return false;
+  }
+
+  var uriStr = libraryFragment.source.uri.toString();
+
+  if (element is InstanceElement2) {
     if (uriStr == 'package:analyzer/dart/element/element.dart') {
       // Skip classes that don't required migration.
       if (const {
         'DirectiveUri',
+        'DirectiveUriWithLibrary',
         'DirectiveUriWithRelativeUri',
+        'DirectiveUriWithRelativeUriString',
+        'DirectiveUriWithSource',
+        'DirectiveUriWithUnit',
         'ElementAnnotation',
         'ElementKind',
-      }.contains(firstFragment.name)) {
+        'ElementLocation',
+        'HideElementCombinator',
+        'LibraryLanguageVersion',
+        'NamespaceCombinator',
+        'ShowElementCombinator',
+      }.contains(firstFragment.name2)) {
         return false;
       }
       return true;
+    }
+  }
+
+  if (element is GetterElement) {
+    if (uriStr == 'package:analyzer/src/dart/ast/ast.dart') {
+      return element.name3 == 'declaredElement';
     }
   }
   return false;
 }
 
 bool _isOldModelType(DartType? type) {
+  if (type is InterfaceType) {
+    if (type.element3.isExactly(
+        'FlowAnalysis',
+        Uri.parse(
+            'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'))) {
+      return false;
+    }
+  }
+
   var visitor = _TypeVisitor();
   type?.accept(visitor);
   return visitor.result;
@@ -112,25 +144,25 @@ class _FilesRegistry {
   static final Map<Folder, _FilesRegistry?> _registry = {};
 
   final Folder rootFolder;
-  final List<String> prefixes;
-  final Map<File, bool> _fileResults = {};
+  final List<String> relativePaths;
 
   _FilesRegistry({
     required this.rootFolder,
-    required this.prefixes,
+    required this.relativePaths,
   });
 
-  bool isEnabled(File file) => _fileResults[file] ??= _computeEnabled(file);
+  bool isEnabled(File file) {
+    if (!file.path.endsWith('.dart')) {
+      return false;
+    }
 
-  bool _computeEnabled(File file) {
     var rootPath = rootFolder.path;
     if (!file.path.startsWith(rootPath)) {
       return false;
     }
 
     var relativePath = file.path.substring(rootPath.length + 1);
-    return _fileResults[file] ??=
-        prefixes.any((prefix) => relativePath.startsWith(prefix));
+    return !relativePaths.contains(relativePath);
   }
 
   /// Note, we cache statically, to reload restart the server.
@@ -143,7 +175,6 @@ class _FilesRegistry {
     }
 
     try {
-      // TODO(scheglov): include this file into the results signature.
       var lines = rootFolder
           .getChildAssumingFile('analyzer_use_new_elements.txt')
           .readAsStringSync()
@@ -155,7 +186,7 @@ class _FilesRegistry {
           .toList();
       var result = _FilesRegistry(
         rootFolder: rootFolder,
-        prefixes: lines,
+        relativePaths: lines,
       );
       return _registry[rootFolder] = result;
     } on FileSystemException {
@@ -201,20 +232,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
+    if (_isOldModelElement(node.element)) {
+      rule.reportLint(node);
+    }
+
     if (_isOldModelType(node.staticType)) {
       rule.reportLint(node);
     }
-  }
-}
-
-extension on Element2 {
-  Fragment? get firstFragment {
-    switch (this) {
-      case FragmentedElementMixin fragmented:
-        return fragmented.firstFragment;
-      case AugmentedInstanceElement fragmented:
-        return fragmented.declaration as Fragment;
-    }
-    return null;
   }
 }

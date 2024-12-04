@@ -282,6 +282,42 @@ void f(HighlightRegionType type, int offset, int length) {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
+  Future<void> test_nullAwareElement_inList() async {
+    var content = '''
+void myMethod() {
+  return /*1*/new Wrapper(
+    Widget.createWidget(/*2*/<Widget>[
+      1,
+      ?null,
+      2
+    ]/*2:<Widget>[]*/)
+  )/*1:Wrapper*/;
+}
+''';
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 2);
+  }
+
+  Future<void> test_nullAwareElement_inList_containingList() async {
+    var content = '''
+void myMethod() {
+  return /*1*/new Wrapper(
+    Widget.createWidget(/*2*/<Widget>[
+      1,
+      ?Widget.createWidget(/*3*/<Widget>[
+        3
+      ]/*3:<Widget>[]*/),
+      2
+    ]/*2:<Widget>[]*/)
+  )/*1:Wrapper*/;
+}
+''';
+
+    var labels = await _computeElements(content);
+    _compareLabels(labels, content, expectedLabelCount: 3);
+  }
+
   Future<void> test_prefixedConstConstructor() async {
     var content = """
 import 'dart:async' as a;
@@ -363,8 +399,11 @@ void myMethod() {
 
   /// Compares provided closing labels with expected
   /// labels extracted from the comments in the provided content.
-  void _compareLabels(List<ClosingLabel> labels, String content,
-      {int? expectedLabelCount}) {
+  void _compareLabels(
+    List<ClosingLabel> labels,
+    String content, {
+    int? expectedLabelCount,
+  }) {
     // Require the test pass us the expected count to guard
     // against expected annotations being mistyped and not
     // extracted by the regex.
@@ -389,8 +428,10 @@ void myMethod() {
       var expectedLength = endMatch.start - expectedStart;
       var expectedLabel = endMatch.group(1)!;
 
-      expect(labels,
-          contains(ClosingLabel(expectedStart, expectedLength, expectedLabel)));
+      expect(
+        labels,
+        contains(ClosingLabel(expectedStart, expectedLength, expectedLabel)),
+      );
     }
   }
 

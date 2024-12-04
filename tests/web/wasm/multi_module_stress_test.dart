@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2wasmOptions=--extra-compiler-option=--enable-multi-module-stress-test-mode
+// dart2wasmOptions=--extra-compiler-option=--enable-multi-module-stress-test-mode --extra-compiler-option=--no-js-compatibility
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/util/memory_compiler.dart' as dart2js;

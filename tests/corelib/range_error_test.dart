@@ -48,9 +48,14 @@ void testToString() {
       for (var re in [
         new ArgumentError.value(value, name, message),
         new RangeError.value(value, name, message),
-        new IndexError.withLength(value, 0,
-            indexable: [], name: name, message: message),
-        new RangeError.range(value, 0, 24, name, message)
+        new IndexError.withLength(
+          value,
+          0,
+          indexable: [],
+          name: name,
+          message: message,
+        ),
+        new RangeError.range(value, 0, 24, name, message),
       ]) {
         var str = re.toString();
         if (name != null) Expect.isTrue(str.contains(name), "$name in $str");

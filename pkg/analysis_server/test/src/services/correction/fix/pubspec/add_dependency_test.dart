@@ -24,13 +24,17 @@ class AddDependencyTest extends PubspecFixTest {
   FixKind get kind => PubspecFixKind.addDependency;
 
   Future<void> test_addMissingDependency() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
   path: any
-''', {'matcher', 'path'}, {});
+''',
+      {'matcher', 'path'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -42,11 +46,15 @@ dependencies:
   }
 
   Future<void> test_addMissingDependency_when_noDeps() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
-''', {'matcher'}, {});
+''',
+      {'matcher'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -57,7 +65,8 @@ dependencies:
   }
 
   Future<void> test_addMissingDevDependency() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -65,7 +74,10 @@ dependencies:
   path: any
 dev_dependencies:
   checks: any
-''', {'path'}, {'matcher', 'checks'});
+''',
+      {'path'},
+      {'matcher', 'checks'},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -79,11 +91,15 @@ dev_dependencies:
   }
 
   Future<void> test_addMissingDevDependency_when_no_deps() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
-''', {}, {'matcher'});
+''',
+      {},
+      {'matcher'},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -94,13 +110,17 @@ dev_dependencies:
   }
 
   Future<void> test_addMissingDevDependency_when_no_dev_deps() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
   path: any
-''', {'path'}, {'matcher'});
+''',
+      {'path'},
+      {'matcher'},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -113,7 +133,8 @@ dev_dependencies:
   }
 
   Future<void> test_addRemoveDevDependency() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -121,7 +142,10 @@ dependencies:
   path: any
 dev_dependencies:
   matcher: any
-''', {'path', 'matcher'}, {});
+''',
+      {'path', 'matcher'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -133,7 +157,8 @@ dependencies:
   }
 
   Future<void> test_addRemoveMissingDependency() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -142,7 +167,10 @@ dependencies:
 dev_dependencies:
   matcher: any
   test: any
-''', {'path', 'matcher'}, {});
+''',
+      {'path', 'matcher'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -156,7 +184,8 @@ dev_dependencies:
   }
 
   Future<void> test_addRemoveMissingDependency_in_the_end() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -165,7 +194,10 @@ dependencies:
 dev_dependencies:
   test: any
   matcher: any
-''', {'path', 'matcher'}, {});
+''',
+      {'path', 'matcher'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -179,7 +211,8 @@ dev_dependencies:
   }
 
   Future<void> test_addRemoveMissingDependency_multiple() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: tests
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -190,7 +223,10 @@ dev_dependencies:
   checks: any
   test: any
   lints: any
-''', {'path', 'matcher', 'test', 'lints'}, {});
+''',
+      {'path', 'matcher', 'test', 'lints'},
+      {},
+    );
     await assertHasFix('''
 name: tests
 environment:
@@ -206,7 +242,8 @@ dev_dependencies:
   }
 
   Future<void> test_addRemoveMissingDependency_not_in_the_end() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -214,7 +251,10 @@ dev_dependencies:
   matcher: any
 dependencies:
   path: any
-''', {'path', 'matcher'}, {});
+''',
+      {'path', 'matcher'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -226,7 +266,8 @@ dependencies:
   }
 
   Future<void> test_addRemoveMissingDependency_two() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -236,7 +277,10 @@ dev_dependencies:
   matcher: any
   test: any
   checks: any
-''', {'path', 'matcher', 'checks'}, {});
+''',
+      {'path', 'matcher', 'checks'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -251,7 +295,8 @@ dev_dependencies:
   }
 
   Future<void> test_addRemoveMissingDependency_two_at_end() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -261,7 +306,10 @@ dev_dependencies:
   test: any
   matcher: any
   checks: any
-''', {'path', 'matcher', 'checks'}, {});
+''',
+      {'path', 'matcher', 'checks'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -276,7 +324,8 @@ dev_dependencies:
   }
 
   Future<void> test_addRemoveMissingDependency_two_at_start() async {
-    _runValidator('''
+    _runValidator(
+      '''
 name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -286,7 +335,10 @@ dev_dependencies:
   matcher: any
   checks: any
   test: any
-''', {'path', 'matcher', 'checks'}, {});
+''',
+      {'path', 'matcher', 'checks'},
+      {},
+    );
     await assertHasFix('''
 name: test
 environment:
@@ -301,14 +353,20 @@ dev_dependencies:
   }
 
   void _runValidator(
-      String content, Set<String> usedDeps, Set<String> usedDevDeps) {
+    String content,
+    Set<String> usedDeps,
+    Set<String> usedDevDeps,
+  ) {
     this.content = content;
     node = loadYamlNode(this.content);
     var file = newFile('/home/test/pubspec.yaml', content);
     var source = FileSource(file);
 
-    var errors = MissingDependencyValidator(node, source, resourceProvider)
-        .validate(usedDeps, usedDevDeps);
+    var errors = MissingDependencyValidator(
+      node,
+      source,
+      resourceProvider,
+    ).validate(usedDeps, usedDevDeps);
     expect(errors.length, 1);
     error = errors[0];
   }

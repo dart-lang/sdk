@@ -100,6 +100,24 @@ extension type E(C c) implements C {
 ''');
   }
 
+  test_method_redeclared_private() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  void _foo() {}
+}
+
+extension type E(A it) implements A {
+  @redeclare
+  void _foo() {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 51, 4),
+      error(WarningCode.UNUSED_ELEMENT, 122, 4),
+    ]);
+  }
+
   test_method_static() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

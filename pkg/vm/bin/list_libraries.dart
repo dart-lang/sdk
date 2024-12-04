@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
@@ -22,7 +23,7 @@ main(List<String> arguments) async {
 
   final component = new Component();
 
-  final List<int> bytes = new File(input).readAsBytesSync();
+  final Uint8List bytes = new File(input).readAsBytesSync();
   new BinaryBuilder(bytes).readComponent(component);
 
   for (final lib in component.libraries) {

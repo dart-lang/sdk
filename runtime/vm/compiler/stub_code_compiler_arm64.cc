@@ -28,6 +28,10 @@
 #define __ assembler->
 
 namespace dart {
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+DECLARE_FLAG(bool, generate_probe_points);
+#endif
+
 namespace compiler {
 
 // Ensures that [R0] is a new object, if not it will be added to the remembered
@@ -1303,6 +1307,46 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
   GenerateNoSuchMethodDispatcherBody(assembler);
 }
 
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+void StubCodeCompiler::GenerateAllocationProbePointStub() {
+  if (!FLAG_generate_probe_points) {
+    __ Stop("unexpected invocation of an allocation probe");
+    return;
+  }
+
+  // Create a frame on the stack so that we could properly unwind.
+  // Our .eh_frame is very simple and specifies
+  //       CFA := FP+16; FP := *(FP+0); LR := *(FP+1);
+  // for the whole .text section.
+  __ EnterStubFrame();
+  // Restore native stack pointer (CSP). Dart SP is currently not
+  // the same because we do not follow ABI which requires native SP
+  // to be 16 bytes aligned. Restoring CSP is important for simpleperf
+  // to be able to unwind the stack - as it copies stack range starting
+  // at CSP before unwinding. If CSP is not restored we copy wrong part
+  // of the stack (CSP is bumped almost to the end of the thread stack).
+  __ andi(CSP, SP, Immediate(~15));
+  // Probe will be placed here by `runtime/tools/profiling/bin/set_uprobe.dart`.
+  const intptr_t probe_offset = __ CodeSize();
+  __ SetupCSPFromThread(THR);
+  __ LeaveStubFrame();
+  __ Ret();
+  // This dummy instruction is encoding offset to the probe point. It will be
+  // used by set_uprobe.dart script.
+  __ TestImmediate(R0, probe_offset);
+}
+#endif
+
+static void InvokeAllocationProbePoint(Assembler* assembler) {
+#ifdef DART_TARGET_SUPPORTS_PROBE_POINTS
+  if (FLAG_precompiled_mode && FLAG_generate_probe_points) {
+    __ EnterStubFrame();
+    __ Call(StubCode::AllocationProbePoint());
+    __ LeaveStubFrame();
+  }
+#endif
+}
+
 // Called for inline allocation of arrays.
 // Input registers (preserved):
 //   LR: return address.
@@ -1400,8 +1444,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
 
     __ LoadImmediate(TMP, tags);
     __ orr(R3, R3, Operand(TMP));
-    __ StoreFieldToOffset(R3, AllocateArrayABI::kResultReg,
-                          target::Array::tags_offset());
+    __ InitializeHeader(R3, AllocateArrayABI::kResultReg);
 
     // Store the type argument field.
     __ StoreCompressedIntoObjectOffsetNoBarrier(
@@ -1442,6 +1485,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
     // AllocateArrayABI::kLengthReg: array length as Smi (preserved).
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1478,6 +1522,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    InvokeAllocationProbePoint(assembler);
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1496,6 +1541,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
+    InvokeAllocationProbePoint(assembler);
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1866,7 +1912,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 
   __ LoadImmediate(TMP, tags);
   __ orr(R2, R2, Operand(TMP));
-  __ StoreFieldToOffset(R2, R0, target::Object::tags_offset());
+  __ InitializeHeader(R2, R0);
 
   // Setup up number of context variables field.
   // R0: new object.
@@ -1923,6 +1969,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 
     // Done allocating and initializing the context.
     // R0: new object.
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -1999,6 +2046,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
 
     // Done allocating and initializing the context.
     // R0: new object.
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -2193,14 +2241,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ ret();
   }
   if (cards) {
-    Label remember_card_slow, retry;
+    Label retry;
 
     // Get card table.
     __ Bind(&remember_card);
     __ AndImmediate(TMP, R1, target::kPageMask);  // Page.
     __ ldr(TMP2,
            Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ cbz(&remember_card_slow, TMP2);
 
     // Atomically dirty the card.
     __ sub(R25, R25, Operand(TMP));  // Offset in page.
@@ -2220,18 +2267,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
       __ stxr(R0, R25, TMP2);
       __ cbnz(&retry, R0);
       __ PopRegister(R0);
-    }
-    __ ret();
-
-    // Card table not yet allocated.
-    __ Bind(&remember_card_slow);
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/0,
-                          /*preserve_registers=*/true);
-      __ mov(R0, R1);   // Arg0 = Object
-      __ mov(R1, R25);  // Arg1 = Slot
-      rt.Call(kRememberCardRuntimeEntry, /*argument_count=*/2);
     }
     __ ret();
   }
@@ -2288,8 +2323,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
     }  // kInstanceSizeReg = R4, kEndReg = R5
 
     // Tags.
-    __ str(kTagsReg, Address(AllocateObjectABI::kResultReg,
-                             target::Object::tags_offset()));
+    __ InitializeHeaderUntagged(kTagsReg, AllocateObjectABI::kResultReg);
 
     // Initialize the remaining words of the object.
     {
@@ -2345,6 +2379,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ Bind(&not_parameterized_case);
     }  // kClsIdReg = R4, kTypeOffsetReg = R5
 
+    InvokeAllocationProbePoint(assembler);
     __ ret();
 
     __ Bind(&slow_case);
@@ -3916,7 +3951,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
           target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
       __ LoadImmediate(TMP, tags);
       __ orr(R2, R2, Operand(TMP));
-      __ str(R2, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+      __ InitializeHeader(R2, R0);
     }
     /* Set the length field. */
     /* R0: new object start as a tagged pointer. */
@@ -3940,6 +3975,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ b(&loop, UNSIGNED_LESS);
     __ WriteAllocationCanary(R1);  // Fix overshoot.
 
+    InvokeAllocationProbePoint(assembler);
     __ Ret();
 
     __ Bind(&call_runtime);

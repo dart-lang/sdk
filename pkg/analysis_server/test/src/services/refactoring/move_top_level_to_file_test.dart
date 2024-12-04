@@ -5,8 +5,10 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../lsp/request_helpers_mixin.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -16,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class MoveTopLevelToFileTest extends RefactoringTest {
+class MoveTopLevelToFileTest extends RefactoringTest
+    with LspProgressNotificationsMixin {
   /// Simple file content with a single class named 'A'.
   static const simpleClassContent = '''
 class ^A {}
@@ -256,11 +259,12 @@ class A {}
 ''';
 
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: declarationName,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   Future<void> test_imports_extensionOperator() async {
@@ -299,11 +303,12 @@ class A {}
 ''';
 
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: declarationName,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   /// Test that if the destination file gets both relative and package imports,
@@ -510,11 +515,12 @@ void moving() {
 }
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: movingDeclarationName,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: movingDeclarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   Future<void> test_imports_prefix_extension_operator() async {
@@ -552,11 +558,12 @@ void moving() {
 }
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: movingDeclarationName,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: movingDeclarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   Future<void> test_imports_prefix_extensionOverride() async {
@@ -971,8 +978,11 @@ class A {}
     var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
     var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
     var destinationFileName = 'moving.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(libFilePath, 'export "src/a.dart";');
     newFile(srcFilePath, 'class A {}');
     newFile(destinationFilePath, '''
@@ -1009,8 +1019,11 @@ A? moving;
     var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
     var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
     var destinationFileName = 'moving.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(libFilePath, 'export "src/a.dart";');
     newFile(srcFilePath, 'class A {}');
     newFile(destinationFilePath, '''
@@ -1282,15 +1295,81 @@ import 'package:test/setter.dart';
     );
   }
 
+  Future<void> test_progress_clientProvided() async {
+    var originalSource = 'class A^ {}';
+    var declarationName = 'A';
+
+    var expected = '''
+>>>>>>>>>> lib/a.dart created
+class A {}<<<<<<<<<<
+>>>>>>>>>> lib/main.dart empty
+''';
+
+    // Expect begin/end progress updates without a create, since the
+    // token was supplied by us (the client).
+    expect(progressUpdates, emitsInOrder(['BEGIN', 'END']));
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      commandWorkDoneToken: clientProvidedTestWorkDoneToken,
+    );
+  }
+
+  Future<void> test_progress_notSupported() async {
+    var originalSource = 'class A^ {}';
+    var declarationName = 'A';
+
+    var expected = '''
+>>>>>>>>>> lib/a.dart created
+class A {}<<<<<<<<<<
+>>>>>>>>>> lib/main.dart empty
+''';
+
+    var didGetProgressNotifications = false;
+    progressUpdates.listen((_) => didGetProgressNotifications = true);
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+
+    expect(didGetProgressNotifications, isFalse);
+  }
+
+  Future<void> test_progress_serverGenerated() async {
+    var originalSource = 'class A^ {}';
+    var declarationName = 'A';
+
+    var expected = '''
+>>>>>>>>>> lib/a.dart created
+class A {}<<<<<<<<<<
+>>>>>>>>>> lib/main.dart empty
+''';
+
+    // Expect create/begin/end progress updates, because in this case the server
+    // generates the token.
+    expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
+
+    setWorkDoneProgressSupport();
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
   Future<void>
-      test_protocol_available_withClientCommandParameterSupport() async {
+  test_protocol_available_withClientCommandParameterSupport() async {
     addTestSource(simpleClassContent);
     await initializeServer();
     await expectCodeAction(simpleClassRefactorTitle);
   }
 
   Future<void>
-      test_protocol_available_withoutClientCommandParameterSupport() async {
+  test_protocol_available_withoutClientCommandParameterSupport() async {
     addTestSource(simpleClassContent);
     await initializeServer();
     // This refactor is available without command parameter support because
@@ -1374,7 +1453,7 @@ class Right extends Either {}
   }
 
   Future<void>
-      test_sealedClass_extends_superclass_withDirectSubclassInOtherPart() async {
+  test_sealedClass_extends_superclass_withDirectSubclassInOtherPart() async {
     addTestSource('''
 part 'part2.dart';
 
@@ -1394,7 +1473,7 @@ class Left extends Either {}
   }
 
   Future<void>
-      test_sealedClass_extends_superclass_withIndirectSubclass() async {
+  test_sealedClass_extends_superclass_withIndirectSubclass() async {
     var originalSource = '''
 sealed class [!Either!] {}
 
@@ -1673,8 +1752,11 @@ class Clas^sToMove {}
 ''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(destinationFilePath, '''
 part of 'main.dart';
 ''');
@@ -1703,8 +1785,11 @@ class Clas^sToMove {}
 ''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(destinationFilePath, '''
 part 'main.dart';
 ''');
@@ -1733,13 +1818,19 @@ class Clas^sToMove {}
 ''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
-    var destinationFilePath =
-        join(projectFolderPath, 'lib', destinationFileName);
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
     newFile(destinationFilePath, '''
 part of 'containing_library.dart';
 ''');
-    var containingLibraryFilePath =
-        join(projectFolderPath, 'lib', 'containing_library.dart');
+    var containingLibraryFilePath = join(
+      projectFolderPath,
+      'lib',
+      'containing_library.dart',
+    );
     var containingLibraryFileContent = '''
 part 'main.dart';
 part 'class_to_move.dart';
@@ -1754,11 +1845,12 @@ class ClassToMove {}
 part of 'containing_library.dart';
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        expected: expected,
-        declarationName: declarationName,
-        otherFilePath: containingLibraryFilePath,
-        otherFileContent: containingLibraryFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: containingLibraryFilePath,
+      otherFileContent: containingLibraryFileContent,
+    );
   }
 
   Future<void> test_single_typedef() async {
@@ -1858,10 +1950,11 @@ class B {}
     required String expected,
     String? otherFilePath,
     String? otherFileContent,
+    ProgressToken? commandWorkDoneToken,
   }) async {
     if (originalSource.contains('>>>>') ||
         (otherFileContent?.contains('>>>>>') ?? false)) {
-      throw '>>>>>';
+      throw 'File content must not include >>>>>';
     }
     addTestSource(originalSource);
     if (otherFilePath != null) {
@@ -1870,7 +1963,11 @@ class B {}
 
     await initializeServer();
     var action = await expectCodeAction(actionTitle);
-    await verifyCommandEdits(action.command!, expected);
+    await verifyCommandEdits(
+      action.command!,
+      expected,
+      workDoneToken: commandWorkDoneToken,
+    );
   }
 
   Future<void> _singleDeclaration({
@@ -1879,6 +1976,7 @@ class B {}
     required String expected,
     String? otherFilePath,
     String? otherFileContent,
+    ProgressToken? commandWorkDoneToken,
   }) async {
     await _refactor(
       originalSource: originalSource,
@@ -1886,6 +1984,7 @@ class B {}
       actionTitle: "Move '$declarationName' to file",
       otherFilePath: otherFilePath,
       otherFileContent: otherFileContent,
+      commandWorkDoneToken: commandWorkDoneToken,
     );
   }
 

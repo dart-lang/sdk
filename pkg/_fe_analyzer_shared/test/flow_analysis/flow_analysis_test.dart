@@ -293,6 +293,37 @@ main() {
       ]);
     });
 
+    test('equalityOp(x == null) when x is an assignment expression', () {
+      // int? x;
+      // if ((x = <int?>) == null) {
+      //   return;
+      // }
+      // x is promoted to `int`.
+
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'int?'),
+        if_(x.write(expr('int?')).eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+      ]);
+    });
+
+    test(
+        'equalityOp(x == null) when x is an assignment expression'
+        'and inference-update-4 is disabled', () {
+      var x = Var('x');
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, type: 'int?'),
+        if_(x.write(expr('int?')).eq(nullLiteral), [
+          return_(),
+        ]),
+        checkNotPromoted(x),
+      ]);
+    });
+
     test('equalityOp(x == null) when x is non-nullable', () {
       var x = Var('x');
       h.run([
@@ -608,7 +639,8 @@ main() {
           FlowAnalysis<Node, Statement, Expression, Var, SharedTypeView<Type>>(
               h.typeOperations, AssignedVariables<Node, Var>(),
               respectImplicitlyTypedVarInitializers: true,
-              fieldPromotionEnabled: true);
+              fieldPromotionEnabled: true,
+              inferenceUpdate4Enabled: true);
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
@@ -983,6 +1015,99 @@ main() {
         x.write(expr('int?')),
         // x is unpromoted now.
         checkNotPromoted(x), checkPromoted(y, 'int'),
+      ]);
+    });
+
+    test(
+        'functionExpression_begin() cancels promotions of final vars'
+        ' with inference-update-4 disabled', () {
+      // See test for "functionExpression_begin() preserves promotions of final
+      // variables" for enabled behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, type: 'num'),
+        if_(expr('bool'), [
+          x.write(expr('int')),
+        ], [
+          x.write(expr('double')),
+        ]),
+        if_(x.is_('int'), [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ], [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ]),
+      ]);
+    });
+
+    test('functionExpression_begin() cancels promotions of non-final vars', () {
+      // num x;
+      // if (<bool>) {
+      //   x = <int>;
+      // } else {
+      //   x = <double>;
+      // }
+      // if (x is int) {
+      //   () => x is not promoted
+      // } else {
+      //   () => x is not promoted
+      // }
+
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'num'),
+        if_(expr('bool'), [
+          x.write(expr('int')),
+        ], [
+          x.write(expr('double')),
+        ]),
+        if_(x.is_('int'), [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ], [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ]),
+      ]);
+    });
+
+    test('functionExpression_begin() preserves promotions of final variables',
+        () {
+      // final num x;
+      // if (<bool>) {
+      //   x = <int>;
+      // } else {
+      //   x = <double>;
+      // }
+      // if (x is int) {
+      //   () => x is promoted to int
+      // } else {
+      //   () => x is not promoted
+      // }
+
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, type: 'num'),
+        if_(expr('bool'), [
+          x.write(expr('int')),
+        ], [
+          x.write(expr('double')),
+        ]),
+        if_(x.is_('int'), [
+          localFunction([
+            checkPromoted(x, 'int'),
+          ]),
+        ], [
+          localFunction([
+            checkNotPromoted(x),
+          ]),
+        ]),
       ]);
     });
 
@@ -1633,6 +1758,39 @@ main() {
         ]);
       });
 
+      test(
+          'isExpression_end() variables in assignment expressions are promoted',
+          () {
+        // num x;
+        // if ((x = <int>) is int) {
+        //   x is promoted to `int`.
+        // }
+        // x is not promoted
+
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num'),
+          if_(x.write(expr('int')).is_('int'), [
+            checkPromoted(x, 'int'),
+          ]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test(
+          'isExpression_end() variables in assignment expressions are not'
+          ' promoted when inference-update-4 is disabled', () {
+        var x = Var('x');
+        h.disableInferenceUpdate4();
+        h.run([
+          declare(x, type: 'num'),
+          if_(x.write(expr('int')).is_('int'), [
+            checkNotPromoted(x),
+          ]),
+          checkNotPromoted(x),
+        ]);
+      });
+
       test('on an arbitrary expression', () {
         h.addMember('C', 'f', 'Object?');
         h.run([
@@ -1993,6 +2151,27 @@ main() {
       h.run([
         checkNotPromoted(x),
         declare(x, type: 'int', initializer: expr('int')),
+      ]);
+    });
+
+    test('postIncDec() does not store expressionInfo in the write', () {
+      // num x;
+      // if (x++ is int) {
+      //   x is not promoted.
+      // }
+
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'num'),
+        if_(
+            x
+                .postIncDec()
+                .is_('int')
+                .getExpressionInfo((info) => expect(info, isNull)),
+            [
+              checkNotPromoted(x),
+            ]),
+        checkNotPromoted(x),
       ]);
     });
 
@@ -4667,24 +4846,24 @@ main() {
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'bool']);
-      expect(PromotionModel.joinTested(s1, s2, h.typeOperations), expected);
-      expect(PromotionModel.joinTested(s2, s1, h.typeOperations), expected);
+      expect(PromotionModel.joinTested(s1, s2), expected);
+      expect(PromotionModel.joinTested(s2, s1), expected);
     });
 
     test('common prefix', () {
       var s1 = _makeTypes(['double', 'int', 'String']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'String', 'bool']);
-      expect(PromotionModel.joinTested(s1, s2, h.typeOperations), expected);
-      expect(PromotionModel.joinTested(s2, s1, h.typeOperations), expected);
+      expect(PromotionModel.joinTested(s1, s2), expected);
+      expect(PromotionModel.joinTested(s2, s1), expected);
     });
 
     test('order mismatch', () {
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['int', 'double']);
       var expected = _matchOfInterestSet(['double', 'int']);
-      expect(PromotionModel.joinTested(s1, s2, h.typeOperations), expected);
-      expect(PromotionModel.joinTested(s2, s1, h.typeOperations), expected);
+      expect(PromotionModel.joinTested(s1, s2), expected);
+      expect(PromotionModel.joinTested(s2, s1), expected);
     });
 
     test('small common prefix', () {
@@ -4692,8 +4871,8 @@ main() {
       var s2 = _makeTypes(['int', 'List', 'bool', 'Future']);
       var expected = _matchOfInterestSet(
           ['int', 'double', 'String', 'bool', 'List', 'Future']);
-      expect(PromotionModel.joinTested(s1, s2, h.typeOperations), expected);
-      expect(PromotionModel.joinTested(s2, s1, h.typeOperations), expected);
+      expect(PromotionModel.joinTested(s1, s2), expected);
+      expect(PromotionModel.joinTested(s2, s1), expected);
     });
   });
 
@@ -7245,6 +7424,42 @@ main() {
                 as PropertyNotPromotedForNonInherentReason;
             expect(nonPromotionReason.fieldPromotionEnabled, true);
           }),
+        ]);
+      });
+    });
+
+    group('and equality:', () {
+      test('promoted type accounted for on LHS', () {
+        // Flow analysis understands when an `if` test is guaranteed to succeed
+        // (or fail) based on the static types of the LHS and RHS. Make sure
+        // this works when the LHS or RHS is a property reference.
+        h.addMember('C', 'f', 'Object?', promotable: true);
+        h.thisType = 'C';
+        h.run([
+          if_(thisProperty('f').isNot('Null'), [return_()]),
+          checkPromoted(thisProperty('f'), 'Null'),
+          if_(thisProperty('f').eq(nullLiteral), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
+        ]);
+      });
+
+      test('promoted type accounted for on RHS', () {
+        // Flow analysis understands when an `if` test is guaranteed to succeed
+        // (or fail) based on the static types of the LHS and RHS. Make sure
+        // this works when the LHS or RHS is a property reference.
+        h.addMember('C', 'f', 'Object?', promotable: true);
+        h.thisType = 'C';
+        h.run([
+          if_(thisProperty('f').isNot('Null'), [return_()]),
+          checkPromoted(thisProperty('f'), 'Null'),
+          if_(nullLiteral.eq(thisProperty('f')), [
+            checkReachable(true),
+          ], [
+            checkReachable(false),
+          ]),
         ]);
       });
     });

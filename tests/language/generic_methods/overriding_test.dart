@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Test that generic methods can be overloaded (a) with widened type bounds, and
 // (b) using the bound as the type of the parameter in the overloaded method.
 

@@ -60,7 +60,9 @@ class _TypeError extends _Error implements TypeError {
   _TypeError(String message) : super(message);
 
   factory _TypeError.fromMessageAndStackTrace(
-      String message, StackTrace stackTrace) {
+    String message,
+    StackTrace stackTrace,
+  ) {
     final typeError = _TypeError(message);
     typeError._stackTrace = stackTrace;
     return typeError;
@@ -69,7 +71,9 @@ class _TypeError extends _Error implements TypeError {
   @pragma("wasm:entry-point")
   static Never _throwNullCheckError(StackTrace stackTrace) {
     final typeError = _TypeError.fromMessageAndStackTrace(
-        "Null check operator used on a null value", stackTrace);
+      "Null check operator used on a null value",
+      stackTrace,
+    );
     return Error._throw(typeError, stackTrace);
   }
 
@@ -77,35 +81,48 @@ class _TypeError extends _Error implements TypeError {
   static Never _throwAsCheckError(Object? operand, Type? type) {
     final stackTrace = StackTrace.current;
     final typeError = _TypeError.fromMessageAndStackTrace(
-        "Type '${operand.runtimeType}' is not a subtype of type '$type'"
-        " in type cast",
-        stackTrace);
+      "Type '${operand.runtimeType}' is not a subtype of type '$type'"
+      " in type cast",
+      stackTrace,
+    );
     return Error._throw(typeError, stackTrace);
   }
 
   @pragma("wasm:entry-point")
   static Never _throwWasmRefError(String expected, StackTrace stackTrace) {
     final typeError = _TypeError.fromMessageAndStackTrace(
-        "The Wasm reference is not $expected", stackTrace);
+      "The Wasm reference is not $expected",
+      stackTrace,
+    );
     return Error._throw(typeError, stackTrace);
   }
 
   @pragma("wasm:entry-point")
   static Never _throwArgumentTypeCheckError(
-      Object? arg, _Type param, String paramName, StackTrace stackTrace) {
+    Object? arg,
+    _Type param,
+    String paramName,
+    StackTrace stackTrace,
+  ) {
     final typeError = _TypeError.fromMessageAndStackTrace(
-        "type '${arg.runtimeType}' is not a subtype of "
-        "type '$param' of '$paramName'",
-        stackTrace);
+      "type '${arg.runtimeType}' is not a subtype of "
+      "type '$param' of '$paramName'",
+      stackTrace,
+    );
     return Error._throw(typeError, stackTrace);
   }
 
   @pragma("wasm:entry-point")
   static Never _throwTypeArgumentBoundCheckError(
-      _Type param, _Type bound, String paramName, StackTrace stackTrace) {
+    _Type param,
+    _Type bound,
+    String paramName,
+    StackTrace stackTrace,
+  ) {
     final typeError = _TypeError.fromMessageAndStackTrace(
-        "type '$param' is not a subtype of type '$bound' of '$paramName'",
-        stackTrace);
+      "type '$param' is not a subtype of type '$bound' of '$paramName'",
+      stackTrace,
+    );
     return Error._throw(typeError, stackTrace);
   }
 }
@@ -120,18 +137,26 @@ class NoSuchMethodError {
 
   @patch
   factory NoSuchMethodError.withInvocation(
-          Object? receiver, Invocation invocation) =>
-      NoSuchMethodError(receiver, invocation.memberName,
-          invocation.positionalArguments, invocation.namedArguments);
+    Object? receiver,
+    Invocation invocation,
+  ) => NoSuchMethodError(
+    receiver,
+    invocation.memberName,
+    invocation.positionalArguments,
+    invocation.namedArguments,
+  );
 
-  NoSuchMethodError(Object? receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
-      [List? existingArgumentNames = null])
-      : _receiver = receiver,
-        _memberName = memberName,
-        _arguments = positionalArguments,
-        _namedArguments = namedArguments,
-        _existingArgumentNames = existingArgumentNames;
+  NoSuchMethodError(
+    Object? receiver,
+    Symbol memberName,
+    List? positionalArguments,
+    Map<Symbol, dynamic>? namedArguments, [
+    List? existingArgumentNames = null,
+  ]) : _receiver = receiver,
+       _memberName = memberName,
+       _arguments = positionalArguments,
+       _namedArguments = namedArguments,
+       _existingArgumentNames = existingArgumentNames;
 
   @pragma("wasm:entry-point")
   static Never _throwWithInvocation(Object? receiver, Invocation invocation) {
@@ -140,7 +165,9 @@ class NoSuchMethodError {
 
   @pragma("wasm:entry-point")
   static Never _throwUnimplementedExternalMemberError(
-      Object? receiver, Symbol memberName) {
+    Object? receiver,
+    Symbol memberName,
+  ) {
     throw NoSuchMethodError(receiver, memberName, null, null);
   }
 
@@ -186,9 +213,13 @@ class NoSuchMethodError {
 }
 
 class _AssertionErrorImpl extends AssertionError {
-  _AssertionErrorImpl(Object? message, this._fileUri, this._line, this._column,
-      this._conditionSource)
-      : super(message);
+  _AssertionErrorImpl(
+    Object? message,
+    this._fileUri,
+    this._line,
+    this._column,
+    this._conditionSource,
+  ) : super(message);
 
   final String? _fileUri;
   final int _line;
@@ -217,13 +248,7 @@ class AssertionError {
     int column,
     String? conditionSource,
   ) {
-    throw _AssertionErrorImpl(
-      message,
-      fileUri,
-      line,
-      column,
-      conditionSource,
-    );
+    throw _AssertionErrorImpl(message, fileUri, line, column, conditionSource);
   }
 }
 

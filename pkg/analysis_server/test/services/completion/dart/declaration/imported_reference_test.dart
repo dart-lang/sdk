@@ -121,7 +121,7 @@ suggestions
   }
 
   Future<void>
-      test_argumentList_instanceCreationExpression_functionalArg() async {
+  test_argumentList_instanceCreationExpression_functionalArg() async {
     newFile('$testPackageLibPath/a.dart', '''
 library A0;
 class A0 {
@@ -1930,7 +1930,7 @@ class X {}
     assertResponse(r'''
 suggestions
 ''');
-//    assertNoSuggestions();
+    //    assertNoSuggestions();
   }
 
   Future<void> test_conditionalExpression_elseExpression() async {
@@ -3720,7 +3720,7 @@ suggestions
   }
 
   Future<void>
-      test_instanceCreationExpression_abstractClass_implicitConstructor() async {
+  test_instanceCreationExpression_abstractClass_implicitConstructor() async {
     newFile('$testPackageLibPath/a.dart', '''
 abstract class A0 {}
 ''');

@@ -9,6 +9,9 @@ import 'package:analyzer/src/lint/linter.dart';
 abstract class PluginRegistry {
   void registerFixForRule(LintCode code, ProducerGenerator generator);
 
-  /// Register this [lint] with the analyzer's rule registry.
-  void registerRule(LintRule lint);
+  /// Register this [rule] with the analyzer's rule registry.
+  void registerLintRule(AnalysisRule rule);
+
+  /// Register this [rule] with the analyzer's rule registry.
+  void registerWarningRule(AnalysisRule rule);
 }

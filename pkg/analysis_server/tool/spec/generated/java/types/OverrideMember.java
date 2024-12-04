@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a member that overrides an inherited member.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class OverrideMember {
 
-  public static final OverrideMember[] EMPTY_ARRAY = new OverrideMember[0];
-
-  public static final List<OverrideMember> EMPTY_LIST = Lists.newArrayList();
+  public static final List<OverrideMember> EMPTY_LIST = List.of();
 
   /**
    * The offset of the name of the overriding member.
@@ -70,13 +65,12 @@ public class OverrideMember {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof OverrideMember) {
-      OverrideMember other = (OverrideMember) obj;
+    if (obj instanceof OverrideMember other) {
       return
         other.offset == offset &&
         other.length == length &&
-        ObjectUtilities.equals(other.superclassMember, superclassMember) &&
-        ObjectUtilities.equals(other.interfaceMembers, interfaceMembers);
+        Objects.equals(other.superclassMember, superclassMember) &&
+        Objects.equals(other.interfaceMembers, interfaceMembers);
     }
     return false;
   }
@@ -93,10 +87,9 @@ public class OverrideMember {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<OverrideMember> list = new ArrayList<OverrideMember>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<OverrideMember> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -134,12 +127,12 @@ public class OverrideMember {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    builder.append(superclassMember);
-    builder.append(interfaceMembers);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length,
+      superclassMember,
+      interfaceMembers
+    );
   }
 
   public JsonObject toJson() {
@@ -164,13 +157,16 @@ public class OverrideMember {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("superclassMember=");
-    builder.append(superclassMember + ", ");
+    builder.append(superclassMember);
+    builder.append(", ");
     builder.append("interfaceMembers=");
-    builder.append(StringUtils.join(interfaceMembers, ", "));
+    builder.append(interfaceMembers == null ? "null" : interfaceMembers.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

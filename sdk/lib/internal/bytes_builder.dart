@@ -139,7 +139,8 @@ class _CopyingBytesBuilder implements BytesBuilder {
   Uint8List toBytes() {
     if (_length == 0) return _emptyList;
     return Uint8List.fromList(
-        Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length));
+      Uint8List.view(_buffer.buffer, _buffer.offsetInBytes, _length),
+    );
   }
 
   int get length => _length;

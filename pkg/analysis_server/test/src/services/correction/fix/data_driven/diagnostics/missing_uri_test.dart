@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class MissingUriTest extends AbstractTransformSetParserTest {
   void test_element_empty() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -26,13 +27,14 @@ transforms:
     method: 'm'
     inClass: 'C'
   changes: []
-''', [
-      error(TransformSetErrorCode.missingUri, 75, 2),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingUri, 75, 2)],
+    );
   }
 
   void test_element_nonEmpty() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -42,13 +44,14 @@ transforms:
     method: 'm'
     inClass: 'C'
   changes: []
-''', [
-      error(TransformSetErrorCode.invalidValue, 76, 1),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 76, 1)],
+    );
   }
 
   void test_import_empty() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -68,13 +71,14 @@ transforms:
             kind: 'import'
             uris: []
             name: 'String'
-''', [
-      error(TransformSetErrorCode.missingUri, 307, 2),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingUri, 307, 2)],
+    );
   }
 
   void test_import_nonEmpty() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -94,8 +98,8 @@ transforms:
             kind: 'import'
             uris: [3]
             name: 'String'
-''', [
-      error(TransformSetErrorCode.invalidValue, 308, 1),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidValue, 308, 1)],
+    );
   }
 }

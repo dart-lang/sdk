@@ -14,8 +14,9 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.MAKE_RETURN_TYPE_NULLABLE;
@@ -62,8 +63,10 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
 
     if (node is! NullLiteral &&
         !typeSystem.isAssignableTo(
-            returnType.typeOrThrow, typeSystem.promoteToNonNull(type),
-            strictCasts: analysisOptions.strictCasts)) {
+          returnType.typeOrThrow,
+          typeSystem.promoteToNonNull(type),
+          strictCasts: analysisOptions.strictCasts,
+        )) {
       return;
     }
 

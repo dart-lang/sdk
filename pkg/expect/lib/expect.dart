@@ -13,17 +13,16 @@
 /// Error reporting as allowed to use more features, under the assumption
 /// that it will either work as desired, or break in some other way.
 /// As long as the *success path* is simple, a successful test can be trusted.
-///
-/// NOTICE: This library is written to be usable by pre-2.12 language versions,
-/// so it can be used to test non-sound-nullsafety implementations.
 library expect;
 
 /// Whether the program is running without sound null safety.
 // TODO(54798): migrate uses to directly import variations.dart
+@Deprecated('Use unsoundNullSafety from variations.dart instead')
 bool get hasUnsoundNullSafety => const <Null>[] is List<Object>;
 
 /// Whether the program is running with sound null safety.
 // TODO(54798): migrate uses to directly import variations.dart
+@Deprecated('Use !unsoundNullSafety from variations.dart instead')
 bool get hasSoundNullSafety => !hasUnsoundNullSafety;
 
 /// Expect is used for tests that do not want to make use of the
@@ -849,8 +848,8 @@ class Expect {
   /// This is more of an assertion than a test.
   // TODO(lrn): Remove this method, or make it only do runtime checks.
   // It doesn't fit the `Expect` class.
-  // Make `static_type_helper.dart` or a `Chk` class a member of the `expect`
-  // package for use in checking *static* type properties.
+  // Use `static_type_helper.dart` or make a `Chk` class a member of the
+  // `expect` package for use in checking *static* type properties.
   static void subtype<Sub extends Super, Super>() {
     if ((<Sub>[] as dynamic) is List<Super>) return;
     _fail("Expect.subtype<$Sub, $Super>: $Sub is not a subtype of $Super");
@@ -892,7 +891,7 @@ class ExpectException {
   /// Call this to provide a function that associates a test name with this
   /// failure.
   ///
-  /// Used by async_helper/async_minitest.dart to inject logic to bind the
+  /// Used by legacy/async_minitest.dart to inject logic to bind the
   /// `group()` and `test()` name strings to a test failure.
   static void setTestNameCallback(String Function() getName) {
     _getTestName = getName;
@@ -914,12 +913,3 @@ class ExpectException {
   /// Initial value for _getTestName.
   static String _kEmptyString() => "";
 }
-
-/// Is true iff `assert` statements are enabled.
-// Deprecated. Use variations.dart#asserts instead.
-// Will be removed when Flutter engine has been migrated.
-final bool assertStatementsEnabled = (() {
-  bool result = false;
-  assert(result = true);
-  return result;
-})();

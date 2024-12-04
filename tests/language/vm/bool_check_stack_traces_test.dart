@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class Test1 {
   void bar(dynamic condition) {
@@ -81,7 +85,7 @@ void testStackTrace(void testCase(dynamic condition), List<int> lineNumbers) {
     print(stacktrace);
     print('-----------------------------');
 
-    if (hasSoundNullSafety) {
+    if (!unsoundNullSafety) {
       Expect.isTrue(e is TypeError);
       Expect.equals(
           "type 'Null' is not a subtype of type 'bool'", e.toString());
@@ -101,9 +105,9 @@ void testStackTrace(void testCase(dynamic condition), List<int> lineNumbers) {
 }
 
 main() {
-  testStackTrace(test1, [9, 18]);
-  testStackTrace(test2, [26, 35]);
-  testStackTrace(test3, [45, 54]);
-  testStackTrace(test4, [60]); //# 01: ok
-  testStackTrace(test5, [67]); //# 02: ok
+  testStackTrace(test1, [13, 22]);
+  testStackTrace(test2, [30, 39]);
+  testStackTrace(test3, [49, 58]);
+  testStackTrace(test4, [64]); //# 01: ok
+  testStackTrace(test5, [71]); //# 02: ok
 }

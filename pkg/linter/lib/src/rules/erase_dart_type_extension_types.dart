@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 // TODO(nshahan): update description as scope increases.
 const _desc = r"Don't do 'is' checks on DartTypes.";

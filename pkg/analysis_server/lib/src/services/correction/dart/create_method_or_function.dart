@@ -7,11 +7,11 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -25,8 +25,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_functionName];
@@ -58,17 +59,42 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       // should be argument of some invocation
       // or child of an expression that is one
       var parameterElement = argument.correspondingParameter;
+      int? recordFieldIndex;
       if (argument.parent case ConditionalExpression parent) {
         if (argument == parent.condition) {
           return;
         }
         parameterElement = parent.correspondingParameter;
+      } else if (argument.parent case RecordLiteral record) {
+        parameterElement = record.correspondingParameter;
+        for (var (index, field)
+            in record.fields.whereNotType<NamedExpression>().indexed) {
+          if (field == argument) {
+            recordFieldIndex = index;
+            break;
+          }
+        }
       }
       if (parameterElement == null) {
         return;
       }
       // should be parameter of function type
       var parameterType = parameterElement.type;
+      if (parameterType is RecordType) {
+        // Finds the corresponding field for argument
+        if (argument is NamedExpression) {
+          var fieldName = argument.name.label.name;
+          for (var field in parameterType.namedFields) {
+            if (field.name == fieldName) {
+              parameterType = field.type;
+              break;
+            }
+          }
+        } else if (recordFieldIndex != null) {
+          var field = parameterType.positionalFields[recordFieldIndex];
+          parameterType = field.type;
+        }
+      }
       if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
         parameterType = FunctionTypeImpl(
           typeFormals: const [],
@@ -112,8 +138,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           builder.write('static ');
         }
         // append return type
-        if (builder.writeType(functionType.returnType,
-            groupName: 'RETURN_TYPE')) {
+        if (builder.writeType(
+          functionType.returnType,
+          groupName: 'RETURN_TYPE',
+        )) {
           builder.write(' ');
         }
         // append name
@@ -133,9 +161,11 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   }
 
   /// Adds proposal for creating method corresponding to the given
-  /// [FunctionType] in the given [ClassElement].
+  /// [FunctionType] inside the target element.
   Future<void> _createFunction(
-      ChangeBuilder builder, FunctionType functionType) async {
+    ChangeBuilder builder,
+    FunctionType functionType,
+  ) async {
     var name = (node as SimpleIdentifier).name;
     // prepare environment
     var insertOffset = unit.end;
@@ -159,7 +189,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   }
 
   /// Adds proposal for creating method corresponding to the given
-  /// [FunctionType] in the given [ClassElement].
+  /// [FunctionType] inside the target element.
   Future<void> _createMethod(
     ChangeBuilder builder,
     InterfaceElement2 targetClassElement,

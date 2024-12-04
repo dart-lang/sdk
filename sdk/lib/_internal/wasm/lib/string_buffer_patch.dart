@@ -180,9 +180,10 @@ class StringBuffer {
 
     // Possibly grow the backing array.
     if (localParts.length <= _partsWriteIndex) {
-      localParts =
-          WasmArray<String>.filled(2 * localParts.length, localParts[0])
-            ..copy(0, localParts, 0, _partsWriteIndex);
+      localParts = WasmArray<String>.filled(
+        2 * localParts.length,
+        localParts[0],
+      )..copy(0, localParts, 0, _partsWriteIndex);
       _parts = localParts;
     }
 
@@ -201,10 +202,10 @@ class StringBuffer {
     final localParts = _parts!;
     if (_partsCodeUnitsSinceCompaction < _PARTS_TO_COMPACT_SIZE_LIMIT) {
       String compacted = StringBase.concatRange(
-          localParts,
-          _partsCompactionIndex, // Start
-          _partsCompactionIndex + _PARTS_TO_COMPACT // End
-          );
+        localParts,
+        _partsCompactionIndex, // Start
+        _partsCompactionIndex + _PARTS_TO_COMPACT, // End
+      );
       _partsWriteIndex = _partsWriteIndex - _PARTS_TO_COMPACT;
       localParts[_partsWriteIndex++] = compacted;
     }

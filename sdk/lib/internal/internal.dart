@@ -238,7 +238,15 @@ abstract final class SystemHash {
   }
 
   static int hash7(
-      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int seed) {
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -250,8 +258,17 @@ abstract final class SystemHash {
     return finish(hash);
   }
 
-  static int hash8(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int seed) {
+  static int hash8(
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -264,8 +281,18 @@ abstract final class SystemHash {
     return finish(hash);
   }
 
-  static int hash9(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int seed) {
+  static int hash9(
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -279,8 +306,19 @@ abstract final class SystemHash {
     return finish(hash);
   }
 
-  static int hash10(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int seed) {
+  static int hash10(
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -295,8 +333,20 @@ abstract final class SystemHash {
     return finish(hash);
   }
 
-  static int hash11(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11, int seed) {
+  static int hash11(
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -312,8 +362,21 @@ abstract final class SystemHash {
     return finish(hash);
   }
 
-  static int hash12(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11, int v12, int seed) {
+  static int hash12(
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -330,8 +393,22 @@ abstract final class SystemHash {
     return finish(hash);
   }
 
-  static int hash13(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11, int v12, int v13, int seed) {
+  static int hash13(
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -349,8 +426,23 @@ abstract final class SystemHash {
     return finish(hash);
   }
 
-  static int hash14(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11, int v12, int v13, int v14, int seed) {
+  static int hash14(
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int v14,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -370,22 +462,23 @@ abstract final class SystemHash {
   }
 
   static int hash15(
-      int v1,
-      int v2,
-      int v3,
-      int v4,
-      int v5,
-      int v6,
-      int v7,
-      int v8,
-      int v9,
-      int v10,
-      int v11,
-      int v12,
-      int v13,
-      int v14,
-      int v15,
-      int seed) {
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int v14,
+    int v15,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -406,23 +499,24 @@ abstract final class SystemHash {
   }
 
   static int hash16(
-      int v1,
-      int v2,
-      int v3,
-      int v4,
-      int v5,
-      int v6,
-      int v7,
-      int v8,
-      int v9,
-      int v10,
-      int v11,
-      int v12,
-      int v13,
-      int v14,
-      int v15,
-      int v16,
-      int seed) {
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int v14,
+    int v15,
+    int v16,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -444,24 +538,25 @@ abstract final class SystemHash {
   }
 
   static int hash17(
-      int v1,
-      int v2,
-      int v3,
-      int v4,
-      int v5,
-      int v6,
-      int v7,
-      int v8,
-      int v9,
-      int v10,
-      int v11,
-      int v12,
-      int v13,
-      int v14,
-      int v15,
-      int v16,
-      int v17,
-      int seed) {
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int v14,
+    int v15,
+    int v16,
+    int v17,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -484,25 +579,26 @@ abstract final class SystemHash {
   }
 
   static int hash18(
-      int v1,
-      int v2,
-      int v3,
-      int v4,
-      int v5,
-      int v6,
-      int v7,
-      int v8,
-      int v9,
-      int v10,
-      int v11,
-      int v12,
-      int v13,
-      int v14,
-      int v15,
-      int v16,
-      int v17,
-      int v18,
-      int seed) {
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int v14,
+    int v15,
+    int v16,
+    int v17,
+    int v18,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -526,26 +622,27 @@ abstract final class SystemHash {
   }
 
   static int hash19(
-      int v1,
-      int v2,
-      int v3,
-      int v4,
-      int v5,
-      int v6,
-      int v7,
-      int v8,
-      int v9,
-      int v10,
-      int v11,
-      int v12,
-      int v13,
-      int v14,
-      int v15,
-      int v16,
-      int v17,
-      int v18,
-      int v19,
-      int seed) {
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int v14,
+    int v15,
+    int v16,
+    int v17,
+    int v18,
+    int v19,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -570,27 +667,28 @@ abstract final class SystemHash {
   }
 
   static int hash20(
-      int v1,
-      int v2,
-      int v3,
-      int v4,
-      int v5,
-      int v6,
-      int v7,
-      int v8,
-      int v9,
-      int v10,
-      int v11,
-      int v12,
-      int v13,
-      int v14,
-      int v15,
-      int v16,
-      int v17,
-      int v18,
-      int v19,
-      int v20,
-      int seed) {
+    int v1,
+    int v2,
+    int v3,
+    int v4,
+    int v5,
+    int v6,
+    int v7,
+    int v8,
+    int v9,
+    int v10,
+    int v11,
+    int v12,
+    int v13,
+    int v14,
+    int v15,
+    int v16,
+    int v17,
+    int v18,
+    int v19,
+    int v20,
+    int seed,
+  ) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -991,7 +1089,9 @@ class DoubleLinkedQueueEntry<E> {
   DoubleLinkedQueueEntry(this.element);
 
   void _link(
-      DoubleLinkedQueueEntry<E>? previous, DoubleLinkedQueueEntry<E>? next) {
+    DoubleLinkedQueueEntry<E>? previous,
+    DoubleLinkedQueueEntry<E>? next,
+  ) {
     _nextLink = next;
     _previousLink = previous;
     previous?._nextLink = this;

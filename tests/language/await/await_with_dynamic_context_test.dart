@@ -33,7 +33,7 @@
 //   `Future.value(C())` to `B`.
 // - So the static type of `Future.value(C())` is `Future<B>`.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class B {}
 

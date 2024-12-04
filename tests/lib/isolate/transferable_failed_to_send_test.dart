@@ -28,8 +28,8 @@ void main() async {
     // Once TransferableTypedData was sent even if attempt failed, it can't be
     // materialized.
     // This need to be changed so that on failed send we should not detach the
-    // buffer form the transferrable. The order should not matter (i.e. if the
-    // error happens before or after the serializer hits a transferrable object)
+    // buffer form the transferable. The order should not matter (i.e. if the
+    // error happens before or after the serializer hits a transferable object)
 
     final data1 = transferableFirst.materialize().asUint8List();
     Expect.equals(x.lengthInBytes, data1.length);
@@ -44,8 +44,8 @@ void main() async {
     // Once TransferableTypedData was sent even if attempt failed, it can't be
     // materialized.
     // This need to be changed so that on failed send we should not detach the
-    // buffer form the transferrable. The order should not matter (i.e. if the
-    // error happens before or after the serializer hits a transferrable object)
+    // buffer form the transferable. The order should not matter (i.e. if the
+    // error happens before or after the serializer hits a transferable object)
 
     final data1 = transferableFirst.materialize().asUint8List();
     Expect.equals(x.lengthInBytes, data1.length);

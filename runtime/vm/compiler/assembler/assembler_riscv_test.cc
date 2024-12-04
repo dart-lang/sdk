@@ -129,6 +129,16 @@ static double CallD(intx_t entry, intx_t arg0) {
   return reinterpret_cast<F>(entry)(arg0);
 #endif
 }
+#if XLEN == 32
+static double CallD(intx_t entry, int64_t arg0) {
+#if defined(USING_SIMULATOR)
+  return Simulator::Current()->CallD(entry, arg0);
+#else
+  typedef double (*F)(int64_t);
+  return reinterpret_cast<F>(entry)(arg0);
+#endif
+}
+#endif
 static double CallD(intx_t entry, intx_t arg0, double arg1) {
 #if defined(USING_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0, arg1);
@@ -185,9 +195,18 @@ static intx_t CallI(intx_t entry, double arg0, double arg1) {
   return reinterpret_cast<F>(entry)(arg0, arg1);
 #endif
 }
+#if XLEN == 32
+static int64_t CallI64(intx_t entry, double arg0, double arg1 = 0.0) {
+#if defined(USING_SIMULATOR)
+  return Simulator::Current()->CallI64(entry, arg0, arg1);
+#else
+  typedef int64_t (*F)(double, double);
+  return reinterpret_cast<F>(entry)(arg0, arg1);
+#endif
+}
+#endif
 
 ASSEMBLER_TEST_GENERATE(LoadUpperImmediate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   __ lui(A0, 42 << 16);
@@ -201,7 +220,6 @@ ASSEMBLER_TEST_RUN(LoadUpperImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddUpperImmediatePC, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   __ auipc(A0, 0);
@@ -215,7 +233,6 @@ ASSEMBLER_TEST_RUN(AddUpperImmediatePC, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(JumpAndLink, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label1, label2;
@@ -252,7 +269,6 @@ ASSEMBLER_TEST_RUN(JumpAndLink, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label1, label2;
@@ -281,7 +297,6 @@ ASSEMBLER_TEST_RUN(Jump, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(JumpAndLinkRegister, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   /* 00 */ __ jalr(T4, A1, 28);  // Forward.
@@ -315,7 +330,6 @@ ASSEMBLER_TEST_RUN(JumpAndLinkRegister, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(JumpRegister, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   /* 00 */ __ jr(A1, 20);  // Forward.
@@ -341,7 +355,6 @@ ASSEMBLER_TEST_RUN(JumpRegister, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchEqualForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -371,7 +384,6 @@ ASSEMBLER_TEST_RUN(BranchEqualForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchEqualForwardFar, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -399,7 +411,6 @@ ASSEMBLER_TEST_RUN(BranchEqualForwardFar, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchNotEqualForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -429,7 +440,6 @@ ASSEMBLER_TEST_RUN(BranchNotEqualForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchNotEqualForwardFar, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -457,7 +467,6 @@ ASSEMBLER_TEST_RUN(BranchNotEqualForwardFar, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessThanForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -487,7 +496,6 @@ ASSEMBLER_TEST_RUN(BranchLessThanForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessThanForwardFar, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -515,7 +523,6 @@ ASSEMBLER_TEST_RUN(BranchLessThanForwardFar, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessOrEqualForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -545,7 +552,6 @@ ASSEMBLER_TEST_RUN(BranchLessOrEqualForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessOrEqualForwardFar, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -573,7 +579,6 @@ ASSEMBLER_TEST_RUN(BranchLessOrEqualForwardFar, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterThanForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -603,7 +608,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterThanForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterOrEqualForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -633,7 +637,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterOrEqualForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessThanUnsignedForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -663,7 +666,6 @@ ASSEMBLER_TEST_RUN(BranchLessThanUnsignedForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessOrEqualUnsignedForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -693,7 +695,6 @@ ASSEMBLER_TEST_RUN(BranchLessOrEqualUnsignedForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterThanUnsignedForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -723,7 +724,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterThanUnsignedForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterOrEqualUnsignedForward, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
 
   Label label;
@@ -753,7 +753,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterOrEqualUnsignedForward, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByte_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lb(A0, Address(A0, 0));
   __ ret();
@@ -772,7 +771,6 @@ ASSEMBLER_TEST_RUN(LoadByte_0, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByte_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lb(A0, Address(A0, 1));
   __ ret();
@@ -792,7 +790,6 @@ ASSEMBLER_TEST_RUN(LoadByte_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByte_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lb(A0, Address(A0, -1));
   __ ret();
@@ -812,7 +809,6 @@ ASSEMBLER_TEST_RUN(LoadByte_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByteUnsigned_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lbu(A0, Address(A0, 0));
   __ ret();
@@ -832,7 +828,6 @@ ASSEMBLER_TEST_RUN(LoadByteUnsigned_0, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByteUnsigned_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lbu(A0, Address(A0, 1));
   __ ret();
@@ -852,7 +847,6 @@ ASSEMBLER_TEST_RUN(LoadByteUnsigned_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadByteUnsigned_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lbu(A0, Address(A0, -1));
   __ ret();
@@ -871,7 +865,6 @@ ASSEMBLER_TEST_RUN(LoadByteUnsigned_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfword_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lh(A0, Address(A0, 0));
   __ ret();
@@ -889,7 +882,6 @@ ASSEMBLER_TEST_RUN(LoadHalfword_0, test) {
   EXPECT_EQ(-13054, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadHalfword_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lh(A0, Address(A0, 2));
   __ ret();
@@ -907,7 +899,6 @@ ASSEMBLER_TEST_RUN(LoadHalfword_Pos, test) {
   EXPECT_EQ(-4349, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadHalfword_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lh(A0, Address(A0, -2));
   __ ret();
@@ -926,7 +917,6 @@ ASSEMBLER_TEST_RUN(LoadHalfword_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfwordUnsigned_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lhu(A0, Address(A0, 0));
   __ ret();
@@ -945,7 +935,6 @@ ASSEMBLER_TEST_RUN(LoadHalfwordUnsigned_0, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfwordUnsigned_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lhu(A0, Address(A0, 2));
   __ ret();
@@ -963,7 +952,6 @@ ASSEMBLER_TEST_RUN(LoadHalfwordUnsigned_Pos, test) {
   EXPECT_EQ(0xEF03, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadHalfwordUnsigned_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lhu(A0, Address(A0, -2));
   __ ret();
@@ -982,7 +970,6 @@ ASSEMBLER_TEST_RUN(LoadHalfwordUnsigned_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadWord_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lw(A0, Address(A0, 0));
   __ ret();
@@ -1001,7 +988,6 @@ ASSEMBLER_TEST_RUN(LoadWord_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lw(A0, Address(A0, 4));
   __ ret();
@@ -1020,7 +1006,6 @@ ASSEMBLER_TEST_RUN(LoadWord_Pos, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadWord_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lw(A0, Address(A0, -4));
   __ ret();
@@ -1040,7 +1025,6 @@ ASSEMBLER_TEST_RUN(LoadWord_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreWord_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sw(A1, Address(A0, 0));
   __ ret();
@@ -1061,7 +1045,6 @@ ASSEMBLER_TEST_RUN(StoreWord_0, test) {
   EXPECT_EQ(0u, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(StoreWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sw(A1, Address(A0, 4));
   __ ret();
@@ -1082,7 +1065,6 @@ ASSEMBLER_TEST_RUN(StoreWord_Pos, test) {
   EXPECT_EQ(0xEF030607, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(StoreWord_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sw(A1, Address(A0, -4));
   __ ret();
@@ -1105,7 +1087,6 @@ ASSEMBLER_TEST_RUN(StoreWord_Neg, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(LoadWordUnsigned_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lwu(A0, Address(A0, 0));
   __ ret();
@@ -1124,7 +1105,6 @@ ASSEMBLER_TEST_RUN(LoadWordUnsigned_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadWordUnsigned_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lwu(A0, Address(A0, 4));
   __ ret();
@@ -1143,7 +1123,6 @@ ASSEMBLER_TEST_RUN(LoadWordUnsigned_Pos, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadWordUnsigned_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ lwu(A0, Address(A0, -4));
   __ ret();
@@ -1163,7 +1142,6 @@ ASSEMBLER_TEST_RUN(LoadWordUnsigned_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadDoubleWord_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ld(A0, Address(A0, 0));
   __ ret();
@@ -1182,7 +1160,6 @@ ASSEMBLER_TEST_RUN(LoadDoubleWord_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadDoubleWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ld(A0, Address(A0, 8));
   __ ret();
@@ -1201,7 +1178,6 @@ ASSEMBLER_TEST_RUN(LoadDoubleWord_Pos, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(LoadDoubleWord_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ld(A0, Address(A0, -8));
   __ ret();
@@ -1221,7 +1197,6 @@ ASSEMBLER_TEST_RUN(LoadDoubleWord_Neg, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreDoubleWord_0, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sd(A1, Address(A0, 0));
   __ ret();
@@ -1242,7 +1217,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleWord_0, test) {
   EXPECT_EQ(0u, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(StoreDoubleWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sd(A1, Address(A0, 8));
   __ ret();
@@ -1263,7 +1237,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleWord_Pos, test) {
   EXPECT_EQ(0xEF03060708090A0B, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(StoreDoubleWord_Neg, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sd(A1, Address(A0, -8));
   __ ret();
@@ -1286,7 +1259,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleWord_Neg, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(AddImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addi(A0, A0, 42);
   __ ret();
@@ -1301,7 +1273,6 @@ ASSEMBLER_TEST_RUN(AddImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addi(A0, A0, -42);
   __ ret();
@@ -1316,7 +1287,6 @@ ASSEMBLER_TEST_RUN(AddImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slti(A0, A0, 7);
   __ ret();
@@ -1334,7 +1304,6 @@ ASSEMBLER_TEST_RUN(SetLessThanImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slti(A0, A0, -7);
   __ ret();
@@ -1352,7 +1321,6 @@ ASSEMBLER_TEST_RUN(SetLessThanImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanImmediateUnsigned1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sltiu(A0, A0, 7);
   __ ret();
@@ -1370,7 +1338,6 @@ ASSEMBLER_TEST_RUN(SetLessThanImmediateUnsigned1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanImmediateUnsigned2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sltiu(A0, A0, -7);
   __ ret();
@@ -1388,7 +1355,6 @@ ASSEMBLER_TEST_RUN(SetLessThanImmediateUnsigned2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(XorImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ xori(A0, A0, 42);
   __ ret();
@@ -1405,7 +1371,6 @@ ASSEMBLER_TEST_RUN(XorImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(XorImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ xori(A0, A0, -42);
   __ ret();
@@ -1422,7 +1387,6 @@ ASSEMBLER_TEST_RUN(XorImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(OrImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ori(A0, A0, -6);
   __ ret();
@@ -1439,7 +1403,6 @@ ASSEMBLER_TEST_RUN(OrImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(OrImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ori(A0, A0, 6);
   __ ret();
@@ -1456,7 +1419,6 @@ ASSEMBLER_TEST_RUN(OrImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AndImmediate1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ andi(A0, A0, -6);
   __ ret();
@@ -1473,7 +1435,6 @@ ASSEMBLER_TEST_RUN(AndImmediate1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AndImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ andi(A0, A0, 6);
   __ ret();
@@ -1490,7 +1451,6 @@ ASSEMBLER_TEST_RUN(AndImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalImmediate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slli(A0, A0, 2);
   __ ret();
@@ -1507,7 +1467,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogicalImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slli(A0, A0, XLEN - 1);
   __ ret();
@@ -1530,7 +1489,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogicalImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogicalImmediate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srli(A0, A0, 2);
   __ ret();
@@ -1549,7 +1507,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogicalImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogicalImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srli(A0, A0, XLEN - 1);
   __ ret();
@@ -1572,7 +1529,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogicalImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmeticImmediate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srai(A0, A0, 2);
   __ ret();
@@ -1589,7 +1545,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmeticImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmeticImmediate2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srai(A0, A0, XLEN - 1);
   __ ret();
@@ -1612,7 +1567,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmeticImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Add, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ add(A0, A0, A1);
   __ ret();
@@ -1632,7 +1586,6 @@ ASSEMBLER_TEST_RUN(Add, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Subtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sub(A0, A0, A1);
   __ ret();
@@ -1652,7 +1605,6 @@ ASSEMBLER_TEST_RUN(Subtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogical, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sll(A0, A0, A1);
   __ ret();
@@ -1670,7 +1622,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogical, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThan, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slt(A0, A0, A1);
   __ ret();
@@ -1692,7 +1643,6 @@ ASSEMBLER_TEST_RUN(SetLessThan, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sltu(A0, A0, A1);
   __ ret();
@@ -1714,7 +1664,6 @@ ASSEMBLER_TEST_RUN(SetLessThanUnsigned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Xor, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ xor_(A0, A0, A1);
   __ ret();
@@ -1734,7 +1683,6 @@ ASSEMBLER_TEST_RUN(Xor, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogical, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srl(A0, A0, A1);
   __ ret();
@@ -1754,7 +1702,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogical, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmetic, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sra(A0, A0, A1);
   __ ret();
@@ -1772,7 +1719,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmetic, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Or, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ or_(A0, A0, A1);
   __ ret();
@@ -1792,7 +1738,6 @@ ASSEMBLER_TEST_RUN(Or, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(And, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ and_(A0, A0, A1);
   __ ret();
@@ -1812,7 +1757,6 @@ ASSEMBLER_TEST_RUN(And, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Fence, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fence();
   __ fence(kRead, kWrite);
@@ -1833,7 +1777,6 @@ ASSEMBLER_TEST_RUN(Fence, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(InstructionFence, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fencei();
   __ ret();
@@ -1846,7 +1789,6 @@ ASSEMBLER_TEST_RUN(InstructionFence, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(EnvironmentCall, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ecall();
   __ ret();
@@ -1860,7 +1802,6 @@ ASSEMBLER_TEST_RUN(EnvironmentCall, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(EnvironmentBreak, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ebreak();
   __ ret();
@@ -1874,7 +1815,6 @@ ASSEMBLER_TEST_RUN(EnvironmentBreak, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ControlStatusRegisters, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ csrrw(T0, 0x123, S1);
   __ csrrs(T1, 0x123, S2);
@@ -1912,7 +1852,6 @@ ASSEMBLER_TEST_RUN(ControlStatusRegisters, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Nop, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ nop();
   __ ret();
@@ -1925,7 +1864,6 @@ ASSEMBLER_TEST_RUN(Nop, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Move, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mv(A0, A1);
   __ ret();
@@ -1938,7 +1876,6 @@ ASSEMBLER_TEST_RUN(Move, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Not, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ not_(A0, A0);
   __ ret();
@@ -1952,7 +1889,6 @@ ASSEMBLER_TEST_RUN(Not, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Negate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ neg(A0, A0);
   __ ret();
@@ -1966,7 +1902,6 @@ ASSEMBLER_TEST_RUN(Negate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetNotEqualToZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ snez(A0, A0);
   __ ret();
@@ -1981,7 +1916,6 @@ ASSEMBLER_TEST_RUN(SetNotEqualToZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetEqualToZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ seqz(A0, A0);
   __ ret();
@@ -1996,7 +1930,6 @@ ASSEMBLER_TEST_RUN(SetEqualToZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetLessThanZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sltz(A0, A0);
   __ ret();
@@ -2011,7 +1944,6 @@ ASSEMBLER_TEST_RUN(SetLessThanZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SetGreaterThanZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sgtz(A0, A0);
   __ ret();
@@ -2026,7 +1958,6 @@ ASSEMBLER_TEST_RUN(SetGreaterThanZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchEqualZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ beqz(A0, &label);
@@ -2049,7 +1980,6 @@ ASSEMBLER_TEST_RUN(BranchEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchNotEqualZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ bnez(A0, &label);
@@ -2072,7 +2002,6 @@ ASSEMBLER_TEST_RUN(BranchNotEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessOrEqualZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ blez(A0, &label);
@@ -2095,7 +2024,6 @@ ASSEMBLER_TEST_RUN(BranchLessOrEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterOrEqualZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ bgez(A0, &label);
@@ -2118,7 +2046,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterOrEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchLessThanZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ bltz(A0, &label);
@@ -2141,7 +2068,6 @@ ASSEMBLER_TEST_RUN(BranchLessThanZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BranchGreaterThanZero, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label label;
   __ bgtz(A0, &label);
@@ -2165,7 +2091,6 @@ ASSEMBLER_TEST_RUN(BranchGreaterThanZero, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(AddImmediateWord1, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addiw(A0, A0, 42);
   __ ret();
@@ -2180,7 +2105,6 @@ ASSEMBLER_TEST_RUN(AddImmediateWord1, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediateWord2, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addiw(A0, A0, -42);
   __ ret();
@@ -2195,7 +2119,6 @@ ASSEMBLER_TEST_RUN(AddImmediateWord2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalImmediateWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ slliw(A0, A0, 2);
   __ ret();
@@ -2212,7 +2135,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogicalImmediateWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogicalImmediateWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srliw(A0, A0, 2);
   __ ret();
@@ -2231,7 +2153,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogicalImmediateWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmeticImmediateWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sraiw(A0, A0, 2);
   __ ret();
@@ -2248,7 +2169,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmeticImmediateWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ addw(A0, A0, A1);
   __ ret();
@@ -2269,7 +2189,6 @@ ASSEMBLER_TEST_RUN(AddWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SubtractWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ subw(A0, A0, A1);
   __ ret();
@@ -2290,7 +2209,6 @@ ASSEMBLER_TEST_RUN(SubtractWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftLeftLogicalWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sllw(A0, A0, A1);
   __ ret();
@@ -2309,7 +2227,6 @@ ASSEMBLER_TEST_RUN(ShiftLeftLogicalWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightLogicalWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ srlw(A0, A0, A1);
   __ ret();
@@ -2329,7 +2246,6 @@ ASSEMBLER_TEST_RUN(ShiftRightLogicalWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ShiftRightArithmeticWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sraw(A0, A0, A1);
   __ ret();
@@ -2347,7 +2263,6 @@ ASSEMBLER_TEST_RUN(ShiftRightArithmeticWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(NegateWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ negw(A0, A0);
   __ ret();
@@ -2363,7 +2278,6 @@ ASSEMBLER_TEST_RUN(NegateWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SignExtendWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ sextw(A0, A0);
   __ ret();
@@ -2380,7 +2294,6 @@ ASSEMBLER_TEST_RUN(SignExtendWord, test) {
 #endif  // XLEN >= 64
 
 ASSEMBLER_TEST_GENERATE(Multiply, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mul(A0, A0, A1);
   __ ret();
@@ -2400,7 +2313,6 @@ ASSEMBLER_TEST_RUN(Multiply, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyHigh, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mulh(A0, A0, A1);
   __ ret();
@@ -2420,7 +2332,6 @@ ASSEMBLER_TEST_RUN(MultiplyHigh, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyHighSignedUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mulhsu(A0, A0, A1);
   __ ret();
@@ -2440,7 +2351,6 @@ ASSEMBLER_TEST_RUN(MultiplyHighSignedUnsigned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyHighUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mulhu(A0, A0, A1);
   __ ret();
@@ -2460,7 +2370,6 @@ ASSEMBLER_TEST_RUN(MultiplyHighUnsigned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Divide, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ div(A0, A0, A1);
   __ ret();
@@ -2480,7 +2389,6 @@ ASSEMBLER_TEST_RUN(Divide, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DivideUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ divu(A0, A0, A1);
   __ ret();
@@ -2508,7 +2416,6 @@ ASSEMBLER_TEST_RUN(DivideUnsigned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Remainder, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ rem(A0, A0, A1);
   __ ret();
@@ -2528,7 +2435,6 @@ ASSEMBLER_TEST_RUN(Remainder, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(RemainderUnsigned, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ remu(A0, A0, A1);
   __ ret();
@@ -2549,7 +2455,6 @@ ASSEMBLER_TEST_RUN(RemainderUnsigned, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(MultiplyWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ mulw(A0, A0, A1);
   __ ret();
@@ -2569,7 +2474,6 @@ ASSEMBLER_TEST_RUN(MultiplyWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DivideWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ divw(A0, A0, A1);
   __ ret();
@@ -2589,7 +2493,6 @@ ASSEMBLER_TEST_RUN(DivideWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DivideUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ divuw(A0, A0, A1);
   __ ret();
@@ -2609,7 +2512,6 @@ ASSEMBLER_TEST_RUN(DivideUnsignedWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(RemainderWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ remw(A0, A0, A1);
   __ ret();
@@ -2629,7 +2531,6 @@ ASSEMBLER_TEST_RUN(RemainderWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(RemainderUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ remuw(A0, A0, A1);
   __ ret();
@@ -2650,18 +2551,24 @@ ASSEMBLER_TEST_RUN(RemainderUnsignedWord, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalWord_Success, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
+
+  Label retry;
+  __ Bind(&retry);
   __ lrw(T0, Address(A0));
   __ addi(T0, T0, 1);
-  __ scw(A0, T0, Address(A0));
+  __ scw(A1, T0, Address(A0));
+  __ bnez(A1, &retry);
+  __ mv(A0, A1);
   __ ret();
 }
 ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalWord_Success, test) {
   EXPECT_DISASSEMBLY(
       "100522af lr.w t0, (a0)\n"
       "00128293 addi t0, t0, 1\n"
-      "1855252f sc.w a0, t0, (a0)\n"
+      "185525af sc.w a1, t0, (a0)\n"
+      "fe059ae3 bnez a1, -12\n"
+      "00058513 mv a0, a1\n"
       "00008067 ret\n");
 
   int32_t* value = reinterpret_cast<int32_t*>(malloc(sizeof(int32_t)));
@@ -2671,7 +2578,6 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalWord_Success, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalWord_Failure, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ li(T0, 42);
   __ scw(A0, T0, Address(A0));
@@ -2690,7 +2596,6 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalWord_Failure, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoSwapWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoswapw(A0, A1, Address(A0));
   __ ret();
@@ -2708,7 +2613,6 @@ ASSEMBLER_TEST_RUN(AmoSwapWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoAddWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoaddw(A0, A1, Address(A0));
   __ ret();
@@ -2725,7 +2629,6 @@ ASSEMBLER_TEST_RUN(AmoAddWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoXorWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoxorw(A0, A1, Address(A0));
   __ ret();
@@ -2743,7 +2646,6 @@ ASSEMBLER_TEST_RUN(AmoXorWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoAndWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoandw(A0, A1, Address(A0));
   __ ret();
@@ -2761,7 +2663,6 @@ ASSEMBLER_TEST_RUN(AmoAndWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoOrWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoorw(A0, A1, Address(A0));
   __ ret();
@@ -2779,7 +2680,6 @@ ASSEMBLER_TEST_RUN(AmoOrWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMinWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amominw(A0, A1, Address(A0));
   __ ret();
@@ -2800,7 +2700,6 @@ ASSEMBLER_TEST_RUN(AmoMinWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMaxWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomaxw(A0, A1, Address(A0));
   __ ret();
@@ -2821,7 +2720,6 @@ ASSEMBLER_TEST_RUN(AmoMaxWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMinUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amominuw(A0, A1, Address(A0));
   __ ret();
@@ -2845,7 +2743,6 @@ ASSEMBLER_TEST_RUN(AmoMinUnsignedWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMaxUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomaxuw(A0, A1, Address(A0));
   __ ret();
@@ -2871,18 +2768,24 @@ ASSEMBLER_TEST_RUN(AmoMaxUnsignedWord, test) {
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalDoubleWord_Success,
                         assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
+
+  Label retry;
+  __ Bind(&retry);
   __ lrd(T0, Address(A0));
   __ addi(T0, T0, 1);
-  __ scd(A0, T0, Address(A0));
+  __ scd(A1, T0, Address(A0));
+  __ bnez(A1, &retry);
+  __ mv(A0, A1);
   __ ret();
 }
 ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalDoubleWord_Success, test) {
   EXPECT_DISASSEMBLY(
       "100532af lr.d t0, (a0)\n"
       "00128293 addi t0, t0, 1\n"
-      "1855352f sc.d a0, t0, (a0)\n"
+      "185535af sc.d a1, t0, (a0)\n"
+      "fe059ae3 bnez a1, -12\n"
+      "00058513 mv a0, a1\n"
       "00008067 ret\n");
 
   int64_t* value = reinterpret_cast<int64_t*>(malloc(sizeof(int64_t)));
@@ -2893,7 +2796,6 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalDoubleWord_Success, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadReserveStoreConditionalDoubleWord_Failure,
                         assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ li(T0, 42);
   __ scd(A0, T0, Address(A0));
@@ -2912,7 +2814,6 @@ ASSEMBLER_TEST_RUN(LoadReserveStoreConditionalDoubleWord_Failure, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoSwapDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoswapd(A0, A1, Address(A0));
   __ ret();
@@ -2930,7 +2831,6 @@ ASSEMBLER_TEST_RUN(AmoSwapDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoAddDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoaddd(A0, A1, Address(A0));
   __ ret();
@@ -2947,7 +2847,6 @@ ASSEMBLER_TEST_RUN(AmoAddDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoXorDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoxord(A0, A1, Address(A0));
   __ ret();
@@ -2965,7 +2864,6 @@ ASSEMBLER_TEST_RUN(AmoXorDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoAndDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoandd(A0, A1, Address(A0));
   __ ret();
@@ -2983,7 +2881,6 @@ ASSEMBLER_TEST_RUN(AmoAndDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoOrDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amoord(A0, A1, Address(A0));
   __ ret();
@@ -3001,7 +2898,6 @@ ASSEMBLER_TEST_RUN(AmoOrDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMinDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomind(A0, A1, Address(A0));
   __ ret();
@@ -3022,7 +2918,6 @@ ASSEMBLER_TEST_RUN(AmoMinDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMaxDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomaxd(A0, A1, Address(A0));
   __ ret();
@@ -3043,7 +2938,6 @@ ASSEMBLER_TEST_RUN(AmoMaxDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMinUnsignedDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amominud(A0, A1, Address(A0));
   __ ret();
@@ -3064,7 +2958,6 @@ ASSEMBLER_TEST_RUN(AmoMinUnsignedDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AmoMaxUnsignedDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ amomaxud(A0, A1, Address(A0));
   __ ret();
@@ -3086,7 +2979,6 @@ ASSEMBLER_TEST_RUN(AmoMaxUnsignedDoubleWord, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(LoadSingleFloat, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ flw(FA0, Address(A0, 1 * sizeof(float)));
   __ ret();
@@ -3104,7 +2996,6 @@ ASSEMBLER_TEST_RUN(LoadSingleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreSingleFloat, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsw(FA0, Address(A0, 1 * sizeof(float)));
   __ ret();
@@ -3123,7 +3014,6 @@ ASSEMBLER_TEST_RUN(StoreSingleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMultiplyAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmadds(FA0, FA0, FA1, FA2);
   __ ret();
@@ -3144,7 +3034,6 @@ ASSEMBLER_TEST_RUN(SingleMultiplyAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMultiplySubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmsubs(FA0, FA0, FA1, FA2);
   __ ret();
@@ -3165,7 +3054,6 @@ ASSEMBLER_TEST_RUN(SingleMultiplySubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleNegateMultiplySubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnmsubs(FA0, FA0, FA1, FA2);
   __ ret();
@@ -3186,7 +3074,6 @@ ASSEMBLER_TEST_RUN(SingleNegateMultiplySubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleNegateMultiplyAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnmadds(FA0, FA0, FA1, FA2);
   __ ret();
@@ -3207,7 +3094,6 @@ ASSEMBLER_TEST_RUN(SingleNegateMultiplyAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fadds(FA0, FA0, FA1);
   __ ret();
@@ -3228,7 +3114,6 @@ ASSEMBLER_TEST_RUN(SingleAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleSubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsubs(FA0, FA0, FA1);
   __ ret();
@@ -3249,7 +3134,6 @@ ASSEMBLER_TEST_RUN(SingleSubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMultiply, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmuls(FA0, FA0, FA1);
   __ ret();
@@ -3270,7 +3154,6 @@ ASSEMBLER_TEST_RUN(SingleMultiply, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleDivide, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fdivs(FA0, FA0, FA1);
   __ ret();
@@ -3286,7 +3169,6 @@ ASSEMBLER_TEST_RUN(SingleDivide, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleSquareRoot, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsqrts(FA0, FA0);
   __ ret();
@@ -3302,7 +3184,6 @@ ASSEMBLER_TEST_RUN(SingleSquareRoot, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjs(FA0, FA0, FA1);
   __ ret();
@@ -3318,7 +3199,6 @@ ASSEMBLER_TEST_RUN(SingleSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleNegatedSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjns(FA0, FA0, FA1);
   __ ret();
@@ -3334,7 +3214,6 @@ ASSEMBLER_TEST_RUN(SingleNegatedSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleXorSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjxs(FA0, FA0, FA1);
   __ ret();
@@ -3350,7 +3229,6 @@ ASSEMBLER_TEST_RUN(SingleXorSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMin, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmins(FA0, FA0, FA1);
   __ ret();
@@ -3400,7 +3278,6 @@ ASSEMBLER_TEST_RUN(SingleMin, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMax, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmaxs(FA0, FA0, FA1);
   __ ret();
@@ -3450,7 +3327,6 @@ ASSEMBLER_TEST_RUN(SingleMax, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleEqual, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ feqs(A0, FA0, FA1);
   __ ret();
@@ -3480,7 +3356,6 @@ ASSEMBLER_TEST_RUN(SingleEqual, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleLessThan, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ flts(A0, FA0, FA1);
   __ ret();
@@ -3510,7 +3385,6 @@ ASSEMBLER_TEST_RUN(SingleLessThan, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleLessOrEqual, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fles(A0, FA0, FA1);
   __ ret();
@@ -3540,7 +3414,6 @@ ASSEMBLER_TEST_RUN(SingleLessOrEqual, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleClassify, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fclasss(A0, FA0);
   __ ret();
@@ -3578,7 +3451,6 @@ ASSEMBLER_TEST_RUN(SingleClassify, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0);
   __ ret();
@@ -3611,7 +3483,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RNE, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RNE);
   __ ret();
@@ -3641,7 +3512,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RNE, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RTZ, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RTZ);
   __ ret();
@@ -3671,7 +3541,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RTZ, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RDN, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RDN);
   __ ret();
@@ -3701,7 +3570,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RDN, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RUP, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RUP);
   __ ret();
@@ -3731,7 +3599,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RUP, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToWord_RMM, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtws(A0, FA0, RMM);
   __ ret();
@@ -3761,7 +3628,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToWord_RMM, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtwus(A0, FA0);
   __ ret();
@@ -3794,7 +3660,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToUnsignedWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertWordToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtsw(FA0, A0);
   __ ret();
@@ -3814,7 +3679,6 @@ ASSEMBLER_TEST_RUN(ConvertWordToSingle, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertUnsignedWordToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtswu(FA0, A0);
   __ ret();
@@ -3837,7 +3701,6 @@ ASSEMBLER_TEST_RUN(ConvertUnsignedWordToSingle, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMove, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvs(FA0, FA1);
   __ ret();
@@ -3853,7 +3716,6 @@ ASSEMBLER_TEST_RUN(SingleMove, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleAbsoluteValue, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fabss(FA0, FA0);
   __ ret();
@@ -3873,7 +3735,6 @@ ASSEMBLER_TEST_RUN(SingleAbsoluteValue, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleNegate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnegs(FA0, FA0);
   __ ret();
@@ -3893,7 +3754,6 @@ ASSEMBLER_TEST_RUN(SingleNegate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitCastSingleToInteger, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvxw(A0, FA0);
   __ ret();
@@ -3917,7 +3777,6 @@ ASSEMBLER_TEST_RUN(BitCastSingleToInteger, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitCastIntegerToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvwx(FA0, A0);
   __ ret();
@@ -3949,7 +3808,6 @@ ASSEMBLER_TEST_RUN(BitCastIntegerToSingle, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(ConvertSingleToDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtls(A0, FA0);
   __ ret();
@@ -3980,7 +3838,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertSingleToUnsignedDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtlus(A0, FA0);
   __ ret();
@@ -4013,7 +3870,6 @@ ASSEMBLER_TEST_RUN(ConvertSingleToUnsignedDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleWordToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtsl(FA0, A0);
   __ ret();
@@ -4040,7 +3896,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleWordToSingle, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertUnsignedDoubleWordToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtslu(FA0, A0);
   __ ret();
@@ -4069,7 +3924,6 @@ ASSEMBLER_TEST_RUN(ConvertUnsignedDoubleWordToSingle, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(LoadDoubleFloat, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fld(FA0, Address(A0, 1 * sizeof(double)));
   __ ret();
@@ -4087,7 +3941,6 @@ ASSEMBLER_TEST_RUN(LoadDoubleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreDoubleFloat, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsd(FA0, Address(A0, 1 * sizeof(double)));
   __ ret();
@@ -4106,7 +3959,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMultiplyAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmaddd(FA0, FA0, FA1, FA2);
   __ ret();
@@ -4127,7 +3979,6 @@ ASSEMBLER_TEST_RUN(DoubleMultiplyAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMultiplySubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmsubd(FA0, FA0, FA1, FA2);
   __ ret();
@@ -4148,7 +3999,6 @@ ASSEMBLER_TEST_RUN(DoubleMultiplySubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegateMultiplySubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnmsubd(FA0, FA0, FA1, FA2);
   __ ret();
@@ -4169,7 +4019,6 @@ ASSEMBLER_TEST_RUN(DoubleNegateMultiplySubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegateMultiplyAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnmaddd(FA0, FA0, FA1, FA2);
   __ ret();
@@ -4190,7 +4039,6 @@ ASSEMBLER_TEST_RUN(DoubleNegateMultiplyAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleAdd, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ faddd(FA0, FA0, FA1);
   __ ret();
@@ -4211,7 +4059,6 @@ ASSEMBLER_TEST_RUN(DoubleAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleSubtract, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsubd(FA0, FA0, FA1);
   __ ret();
@@ -4232,7 +4079,6 @@ ASSEMBLER_TEST_RUN(DoubleSubtract, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMultiply, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmuld(FA0, FA0, FA1);
   __ ret();
@@ -4253,7 +4099,6 @@ ASSEMBLER_TEST_RUN(DoubleMultiply, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleDivide, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fdivd(FA0, FA0, FA1);
   __ ret();
@@ -4269,7 +4114,6 @@ ASSEMBLER_TEST_RUN(DoubleDivide, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleSquareRoot, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsqrtd(FA0, FA0);
   __ ret();
@@ -4285,7 +4129,6 @@ ASSEMBLER_TEST_RUN(DoubleSquareRoot, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjd(FA0, FA0, FA1);
   __ ret();
@@ -4301,7 +4144,6 @@ ASSEMBLER_TEST_RUN(DoubleSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegatedSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjnd(FA0, FA0, FA1);
   __ ret();
@@ -4317,7 +4159,6 @@ ASSEMBLER_TEST_RUN(DoubleNegatedSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleXorSignInject, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fsgnjxd(FA0, FA0, FA1);
   __ ret();
@@ -4333,7 +4174,6 @@ ASSEMBLER_TEST_RUN(DoubleXorSignInject, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMin, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmind(FA0, FA0, FA1);
   __ ret();
@@ -4383,7 +4223,6 @@ ASSEMBLER_TEST_RUN(DoubleMin, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMax, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmaxd(FA0, FA0, FA1);
   __ ret();
@@ -4433,7 +4272,6 @@ ASSEMBLER_TEST_RUN(DoubleMax, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToSingle, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtsd(FA0, FA0);
   __ ret();
@@ -4456,7 +4294,6 @@ ASSEMBLER_TEST_RUN(DoubleToSingle, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SingleToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtds(FA0, FA0);
   __ ret();
@@ -4479,7 +4316,6 @@ ASSEMBLER_TEST_RUN(SingleToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(NaNBoxing, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ ret();
 }
@@ -4489,7 +4325,6 @@ ASSEMBLER_TEST_RUN(NaNBoxing, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleEqual, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ feqd(A0, FA0, FA1);
   __ ret();
@@ -4519,7 +4354,6 @@ ASSEMBLER_TEST_RUN(DoubleEqual, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleLessThan, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fltd(A0, FA0, FA1);
   __ ret();
@@ -4549,7 +4383,6 @@ ASSEMBLER_TEST_RUN(DoubleLessThan, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleLessOrEqual, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fled(A0, FA0, FA1);
   __ ret();
@@ -4579,7 +4412,6 @@ ASSEMBLER_TEST_RUN(DoubleLessOrEqual, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleClassify, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fclassd(A0, FA0);
   __ ret();
@@ -4617,7 +4449,6 @@ ASSEMBLER_TEST_RUN(DoubleClassify, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtwd(A0, FA0);
   __ ret();
@@ -4650,7 +4481,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToUnsignedWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtwud(A0, FA0);
   __ ret();
@@ -4683,7 +4513,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToUnsignedWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertWordToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtdw(FA0, A0);
   __ ret();
@@ -4703,7 +4532,6 @@ ASSEMBLER_TEST_RUN(ConvertWordToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertUnsignedWordToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtdwu(FA0, A0);
   __ ret();
@@ -4726,7 +4554,6 @@ ASSEMBLER_TEST_RUN(ConvertUnsignedWordToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMove, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvd(FA0, FA1);
   __ ret();
@@ -4742,7 +4569,6 @@ ASSEMBLER_TEST_RUN(DoubleMove, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleAbsoluteValue, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fabsd(FA0, FA0);
   __ ret();
@@ -4762,7 +4588,6 @@ ASSEMBLER_TEST_RUN(DoubleAbsoluteValue, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleNegate, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fnegd(FA0, FA0);
   __ ret();
@@ -4783,7 +4608,6 @@ ASSEMBLER_TEST_RUN(DoubleNegate, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0);
   __ ret();
@@ -4813,7 +4637,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RNE, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RNE);
   __ ret();
@@ -4843,7 +4666,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RNE, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RTZ, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RTZ);
   __ ret();
@@ -4873,7 +4695,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RTZ, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RDN, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RDN);
   __ ret();
@@ -4903,7 +4724,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RDN, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RUP, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RUP);
   __ ret();
@@ -4933,7 +4753,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RUP, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToDoubleWord_RMM, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtld(A0, FA0, RMM);
   __ ret();
@@ -4963,7 +4782,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToDoubleWord_RMM, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleToUnsignedDoubleWord, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtlud(A0, FA0);
   __ ret();
@@ -4996,7 +4814,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleToUnsignedDoubleWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitCastDoubleToInteger, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvxd(A0, FA0);
   __ ret();
@@ -5020,7 +4837,6 @@ ASSEMBLER_TEST_RUN(BitCastDoubleToInteger, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertDoubleWordToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtdl(FA0, A0);
   __ ret();
@@ -5047,7 +4863,6 @@ ASSEMBLER_TEST_RUN(ConvertDoubleWordToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(ConvertUnsignedDoubleWordToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fcvtdlu(FA0, A0);
   __ ret();
@@ -5075,7 +4890,6 @@ ASSEMBLER_TEST_RUN(ConvertUnsignedDoubleWordToDouble, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitCastIntegerToDouble, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   __ fmvdx(FA0, A0);
   __ ret();
@@ -5105,7 +4919,6 @@ ASSEMBLER_TEST_RUN(BitCastIntegerToDouble, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(Fibonacci, assembler) {
-  FLAG_use_compressed_instructions = false;
   __ SetExtensions(RV_G);
   Label fib, base, done;
   __ Bind(&fib);
@@ -5187,7 +5000,6 @@ ASSEMBLER_TEST_RUN(Fibonacci, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreWordSP_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   __ subi(SP, SP, 256);
@@ -5209,7 +5021,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreWordSP_0, test) {
   EXPECT_EQ(sign_extend(0xEF030607), Call(test->entry(), 0, 0xEF030607));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreWordSP_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   __ subi(SP, SP, 256);
@@ -5233,7 +5044,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreWordSP_Pos, test) {
 
 #if XLEN == 32
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreSingleFloatSP_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ fsw(FA1, Address(SP, 0));
@@ -5255,7 +5065,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreSingleFloatSP_0, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreSingleFloatSP_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ fsw(FA1, Address(SP, 4));
@@ -5278,7 +5087,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreSingleFloatSP_Pos, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreDoubleFloatSP_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ fsd(FA1, Address(SP, 0));
@@ -5299,7 +5107,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreDoubleFloatSP_0, test) {
   EXPECT_EQ(3.9, CallD(test->entry(), 0.0, 3.9));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreDoubleFloatSP_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ fsd(FA1, Address(SP, 8));
@@ -5322,7 +5129,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreDoubleFloatSP_Pos, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreDoubleWordSP_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ sd(A1, Address(SP, 0));
@@ -5346,7 +5152,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreDoubleWordSP_0, test) {
             Call(test->entry(), 0, 0xEF03060708090A0B));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadStoreDoubleWordSP_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subi(SP, SP, 256);
   __ sd(A1, Address(SP, 8));
@@ -5372,7 +5177,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadStoreDoubleWordSP_Pos, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadWord_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ lw(A0, Address(A0, 0));
   __ ret();
@@ -5391,7 +5195,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadWord_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ lw(A0, Address(A0, 4));
   __ ret();
@@ -5411,7 +5214,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadWord_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedStoreWord_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sw(A1, Address(A0, 0));
   __ ret();
@@ -5432,7 +5234,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreWord_0, test) {
   EXPECT_EQ(0u, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(CompressedStoreWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sw(A1, Address(A0, 4));
   __ ret();
@@ -5455,7 +5256,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreWord_Pos, test) {
 
 #if XLEN == 32
 ASSEMBLER_TEST_GENERATE(CompressedLoadSingleFloat, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ flw(FA0, Address(A0, 1 * sizeof(float)));
   __ ret();
@@ -5473,7 +5273,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadSingleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedStoreSingleFloat, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ fsw(FA0, Address(A0, 1 * sizeof(float)));
   __ ret();
@@ -5494,7 +5293,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreSingleFloat, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(CompressedLoadDoubleWord_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ ld(A0, Address(A0, 0));
   __ ret();
@@ -5513,7 +5311,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadDoubleWord_0, test) {
             Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
 }
 ASSEMBLER_TEST_GENERATE(CompressedLoadDoubleWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ ld(A0, Address(A0, 8));
   __ ret();
@@ -5533,7 +5330,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadDoubleWord_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedStoreDoubleWord_0, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sd(A1, Address(A0, 0));
   __ ret();
@@ -5554,7 +5350,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreDoubleWord_0, test) {
   EXPECT_EQ(0u, values[2]);
 }
 ASSEMBLER_TEST_GENERATE(CompressedStoreDoubleWord_Pos, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sd(A1, Address(A0, 8));
   __ ret();
@@ -5576,7 +5371,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreDoubleWord_Pos, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadDoubleFloat, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ fld(FA0, Address(A0, 1 * sizeof(double)));
   __ ret();
@@ -5595,7 +5389,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadDoubleFloat, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedStoreDoubleFloat, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ fsd(FA0, Address(A0, 1 * sizeof(double)));
   __ ret();
@@ -5616,7 +5409,6 @@ ASSEMBLER_TEST_RUN(CompressedStoreDoubleFloat, test) {
 
 #if XLEN == 32
 ASSEMBLER_TEST_GENERATE(CompressedJumpAndLink, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label label1, label2;
@@ -5664,7 +5456,6 @@ ASSEMBLER_TEST_RUN(CompressedJumpAndLink, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedJump, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label1, label2;
   __ j(&label1, Assembler::kNearJump);  // Forward.
@@ -5694,7 +5485,6 @@ ASSEMBLER_TEST_RUN(CompressedJump, test) {
 static int CompressedJumpAndLinkRegister_label1 = 0;
 static int CompressedJumpAndLinkRegister_label2 = 0;
 ASSEMBLER_TEST_GENERATE(CompressedJumpAndLinkRegister, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label1, label2;
   __ mv(T3, RA);
@@ -5745,7 +5535,6 @@ ASSEMBLER_TEST_RUN(CompressedJumpAndLinkRegister, test) {
 
 static int CompressedJumpRegister_label = 0;
 ASSEMBLER_TEST_GENERATE(CompressedJumpRegister, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label;
   __ jr(A1);
@@ -5767,7 +5556,6 @@ ASSEMBLER_TEST_RUN(CompressedJumpRegister, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedBranchEqualZero, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label;
   __ beqz(A0, &label, Assembler::kNearJump);
@@ -5790,7 +5578,6 @@ ASSEMBLER_TEST_RUN(CompressedBranchEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedBranchNotEqualZero, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label label;
   __ bnez(A0, &label, Assembler::kNearJump);
@@ -5813,7 +5600,6 @@ ASSEMBLER_TEST_RUN(CompressedBranchNotEqualZero, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ li(A0, -7);
   __ ret();
@@ -5826,7 +5612,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedLoadUpperImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ lui(A0, 7 << 12);
   __ ret();
@@ -5839,7 +5624,6 @@ ASSEMBLER_TEST_RUN(CompressedLoadUpperImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAddImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addi(A0, A0, 19);
   __ ret();
@@ -5853,7 +5637,6 @@ ASSEMBLER_TEST_RUN(CompressedAddImmediate, test) {
 
 #if XLEN == 64
 ASSEMBLER_TEST_GENERATE(CompressedAddImmediateWord, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addiw(A0, A0, 19);
   __ ret();
@@ -5868,7 +5651,6 @@ ASSEMBLER_TEST_RUN(CompressedAddImmediateWord, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedAddImmediateSP16, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addi(SP, SP, -128);
   __ addi(SP, SP, +128);
@@ -5883,7 +5665,6 @@ ASSEMBLER_TEST_RUN(CompressedAddImmediateSP16, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAddImmediateSP4N, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addi(A1, SP, 36);
   __ sub(A0, A1, SP);
@@ -5898,14 +5679,13 @@ ASSEMBLER_TEST_RUN(CompressedAddImmediateSP4N, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedShiftLeftLogicalImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ slli(A0, A0, 3);
   __ ret();
 }
 ASSEMBLER_TEST_RUN(CompressedShiftLeftLogicalImmediate, test) {
   EXPECT_DISASSEMBLY(
-      "    050e slli a0, a0, 3\n"
+      "    050e slli a0, a0, 0x3\n"
       "    8082 ret\n");
   EXPECT_EQ(0, Call(test->entry(), 0));
   EXPECT_EQ(336, Call(test->entry(), 42));
@@ -5914,15 +5694,37 @@ ASSEMBLER_TEST_RUN(CompressedShiftLeftLogicalImmediate, test) {
   EXPECT_EQ(-15872, Call(test->entry(), -1984));
 }
 
+ASSEMBLER_TEST_GENERATE(CompressedShiftLeftLogicalImmediate_Max, assembler) {
+  __ SetExtensions(RV_GC);
+  __ slli(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedShiftLeftLogicalImmediate_Max, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "    057e slli a0, a0, 0x1f\n"
+      "    8082 ret\n");
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(static_cast<intx_t>(0x80000000), Call(test->entry(), 1));
+  EXPECT_EQ(static_cast<intx_t>(0x80000000), Call(test->entry(), -1));
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "    157e slli a0, a0, 0x3f\n"
+      "    8082 ret\n");
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(static_cast<intx_t>(0x8000000000000000), Call(test->entry(), 1));
+  EXPECT_EQ(static_cast<intx_t>(0x8000000000000000), Call(test->entry(), -1));
+#endif
+}
+
 ASSEMBLER_TEST_GENERATE(CompressedShiftRightLogicalImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ srli(A0, A0, 3);
   __ ret();
 }
 ASSEMBLER_TEST_RUN(CompressedShiftRightLogicalImmediate, test) {
   EXPECT_DISASSEMBLY(
-      "    810d srli a0, a0, 3\n"
+      "    810d srli a0, a0, 0x3\n"
       "    8082 ret\n");
   EXPECT_EQ(0, Call(test->entry(), 0));
   EXPECT_EQ(5, Call(test->entry(), 42));
@@ -5933,15 +5735,34 @@ ASSEMBLER_TEST_RUN(CompressedShiftRightLogicalImmediate, test) {
             Call(test->entry(), -1984));
 }
 
+ASSEMBLER_TEST_GENERATE(CompressedShiftRightLogicalImmediate_Max, assembler) {
+  __ SetExtensions(RV_GC);
+  __ srli(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedShiftRightLogicalImmediate_Max, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "    817d srli a0, a0, 0x1f\n"
+      "    8082 ret\n");
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "    917d srli a0, a0, 0x3f\n"
+      "    8082 ret\n");
+#endif
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0, Call(test->entry(), 1));
+  EXPECT_EQ(1, Call(test->entry(), -1));
+}
+
 ASSEMBLER_TEST_GENERATE(CompressedShiftRightArithmeticImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ srai(A0, A0, 3);
   __ ret();
 }
 ASSEMBLER_TEST_RUN(CompressedShiftRightArithmeticImmediate, test) {
   EXPECT_DISASSEMBLY(
-      "    850d srai a0, a0, 3\n"
+      "    850d srai a0, a0, 0x3\n"
       "    8082 ret\n");
   EXPECT_EQ(0, Call(test->entry(), 0));
   EXPECT_EQ(5, Call(test->entry(), 42));
@@ -5950,8 +5771,28 @@ ASSEMBLER_TEST_RUN(CompressedShiftRightArithmeticImmediate, test) {
   EXPECT_EQ(-248, Call(test->entry(), -1984));
 }
 
+ASSEMBLER_TEST_GENERATE(CompressedShiftRightArithmeticImmediate_Max,
+                        assembler) {
+  __ SetExtensions(RV_GC);
+  __ srai(A0, A0, XLEN - 1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedShiftRightArithmeticImmediate_Max, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "    857d srai a0, a0, 0x1f\n"
+      "    8082 ret\n");
+#elif XLEN == 64
+  EXPECT_DISASSEMBLY(
+      "    957d srai a0, a0, 0x3f\n"
+      "    8082 ret\n");
+#endif
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0, Call(test->entry(), 1));
+  EXPECT_EQ(-1, Call(test->entry(), -1));
+}
+
 ASSEMBLER_TEST_GENERATE(CompressedAndImmediate, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ andi(A0, A0, 6);
   __ ret();
@@ -5968,7 +5809,6 @@ ASSEMBLER_TEST_RUN(CompressedAndImmediate, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAndImmediate2, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ andi(A0, A0, -6);
   __ ret();
@@ -5985,7 +5825,6 @@ ASSEMBLER_TEST_RUN(CompressedAndImmediate2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedMove, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ mv(A0, A1);
   __ ret();
@@ -5998,7 +5837,6 @@ ASSEMBLER_TEST_RUN(CompressedMove, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAdd, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ add(A0, A0, A1);
   __ ret();
@@ -6018,7 +5856,6 @@ ASSEMBLER_TEST_RUN(CompressedAdd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedAnd, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ and_(A0, A0, A1);
   __ ret();
@@ -6038,7 +5875,6 @@ ASSEMBLER_TEST_RUN(CompressedAnd, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedOr, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ or_(A0, A0, A1);
   __ ret();
@@ -6058,7 +5894,6 @@ ASSEMBLER_TEST_RUN(CompressedOr, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedXor, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ xor_(A0, A0, A1);
   __ ret();
@@ -6078,7 +5913,6 @@ ASSEMBLER_TEST_RUN(CompressedXor, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedSubtract, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ sub(A0, A0, A1);
   __ ret();
@@ -6099,7 +5933,6 @@ ASSEMBLER_TEST_RUN(CompressedSubtract, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(CompressedAddWord, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ addw(A0, A0, A1);
   __ ret();
@@ -6120,7 +5953,6 @@ ASSEMBLER_TEST_RUN(CompressedAddWord, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedSubtractWord, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ subw(A0, A0, A1);
   __ ret();
@@ -6142,7 +5974,6 @@ ASSEMBLER_TEST_RUN(CompressedSubtractWord, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(CompressedNop, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ nop();
   __ ret();
@@ -6155,7 +5986,6 @@ ASSEMBLER_TEST_RUN(CompressedNop, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedEnvironmentBreak, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ ebreak();
   __ ret();
@@ -7114,6 +6944,1541 @@ ASSEMBLER_TEST_RUN(BitSetImmediate2, test) {
   EXPECT_EQ(-1, Call(test->entry(), -1));
 }
 
+ASSEMBLER_TEST_GENERATE(ConditionalZeroIfEqualsZero, assembler) {
+  __ SetExtensions(RV_GC | RV_Zicond);
+  __ czeroeqz(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ConditionalZeroIfEqualsZero, test) {
+  EXPECT_DISASSEMBLY(
+      "0eb55533 czero.eqz a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 42, 0));
+  EXPECT_EQ(42, Call(test->entry(), 42, 1));
+  EXPECT_EQ(42, Call(test->entry(), 42, -1));
+}
+
+ASSEMBLER_TEST_GENERATE(ConditionalZeroIfNotEqualsZero, assembler) {
+  __ SetExtensions(RV_GC | RV_Zicond);
+  __ czeronez(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ConditionalZeroIfNotEqualsZero, test) {
+  EXPECT_DISASSEMBLY(
+      "0eb57533 czero.nez a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(42, Call(test->entry(), 42, 0));
+  EXPECT_EQ(0, Call(test->entry(), 42, 1));
+  EXPECT_EQ(0, Call(test->entry(), 42, -1));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadByteUnsigned_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lbu(A0, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadByteUnsigned_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    8108 lbu a0, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint8_t values[3];
+  values[0] = 0xAB;
+  values[1] = 0xCD;
+  values[2] = 0xEF;
+
+  EXPECT_EQ(0xCD, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadByteUnsigned_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lbu(A0, Address(A0, 1));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadByteUnsigned_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    8148 lbu a0, 1(a0)\n"
+      "    8082 ret\n");
+
+  uint8_t values[3];
+  values[0] = 0xAB;
+  values[1] = 0xCD;
+  values[2] = 0xEF;
+
+  EXPECT_EQ(0xEF, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadHalfword_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lh(A0, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadHalfword_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    8548 lh a0, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0xAB01;
+  values[1] = 0xCD02;
+  values[2] = 0xEF03;
+
+  EXPECT_EQ(-13054, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadHalfword_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lh(A0, Address(A0, 2));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadHalfword_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    8568 lh a0, 2(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0xAB01;
+  values[1] = 0xCD02;
+  values[2] = 0xEF03;
+
+  EXPECT_EQ(-4349, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadHalfwordUnsigned_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lhu(A0, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadHalfwordUnsigned_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    8508 lhu a0, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0xAB01;
+  values[1] = 0xCD02;
+  values[2] = 0xEF03;
+
+  EXPECT_EQ(0xCD02, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedLoadHalfwordUnsigned_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ lhu(A0, Address(A0, 2));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedLoadHalfwordUnsigned_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    8528 lhu a0, 2(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0xAB01;
+  values[1] = 0xCD02;
+  values[2] = 0xEF03;
+
+  EXPECT_EQ(0xEF03, Call(test->entry(), reinterpret_cast<intx_t>(&values[1])));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedStoreByte_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ sb(A1, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedStoreByte_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    890c sb a1, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint8_t values[3];
+  values[0] = 0;
+  values[1] = 0;
+  values[2] = 0;
+
+  Call(test->entry(), reinterpret_cast<intx_t>(&values[1]), 0xCD);
+  EXPECT_EQ(0, values[0]);
+  EXPECT_EQ(0xCD, values[1]);
+  EXPECT_EQ(0, values[2]);
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedStoreByte_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ sb(A1, Address(A0, 1));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedStoreByte_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    894c sb a1, 1(a0)\n"
+      "    8082 ret\n");
+
+  uint8_t values[3];
+  values[0] = 0;
+  values[1] = 0;
+  values[2] = 0;
+
+  Call(test->entry(), reinterpret_cast<intx_t>(&values[1]), 0xEF);
+  EXPECT_EQ(0, values[0]);
+  EXPECT_EQ(0, values[1]);
+  EXPECT_EQ(0xEF, values[2]);
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedStoreHalfword_0, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ sh(A1, Address(A0, 0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedStoreHalfword_0, test) {
+  EXPECT_DISASSEMBLY(
+      "    8d0c sh a1, 0(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0;
+  values[1] = 0;
+  values[2] = 0;
+
+  Call(test->entry(), reinterpret_cast<intx_t>(&values[1]), 0xCD02);
+  EXPECT_EQ(0, values[0]);
+  EXPECT_EQ(0xCD02, values[1]);
+  EXPECT_EQ(0, values[2]);
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedStoreHalfword_Pos, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcb);
+  __ sh(A1, Address(A0, 2));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedStoreHalfword_Pos, test) {
+  EXPECT_DISASSEMBLY(
+      "    8d2c sh a1, 2(a0)\n"
+      "    8082 ret\n");
+
+  uint16_t values[3];
+  values[0] = 0;
+  values[1] = 0;
+  values[2] = 0;
+
+  Call(test->entry(), reinterpret_cast<intx_t>(&values[1]), 0xEF03);
+  EXPECT_EQ(0, values[0]);
+  EXPECT_EQ(0, values[1]);
+  EXPECT_EQ(0xEF03, values[2]);
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedSignExtendByte, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ sextb(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedSignExtendByte, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d65 sext.b a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(127, Call(test->entry(), 127));
+  EXPECT_EQ(-128, Call(test->entry(), 128));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedZeroExtendByte, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ zextb(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedZeroExtendByte, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d61 zext.b a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(0xCD, Call(test->entry(), 0x1234ABCD));
+  EXPECT_EQ(0xFF, Call(test->entry(), 0xFF));
+  EXPECT_EQ(0xFF, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedSignExtendHalfword, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ sexth(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedSignExtendHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d6d sext.h a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(1, Call(test->entry(), 1));
+  EXPECT_EQ(0x7BCD, Call(test->entry(), 0x12347BCD));
+  EXPECT_EQ(-1, Call(test->entry(), 0xFFFF));
+  EXPECT_EQ(-1, Call(test->entry(), -1));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedZeroExtendHalfword, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ zexth(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedZeroExtendHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d69 zext.h a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0xABCD, Call(test->entry(), 0x1234ABCD));
+  EXPECT_EQ(0xFFFF, Call(test->entry(), 0xFFFF));
+  EXPECT_EQ(0xFFFF, Call(test->entry(), -1));
+}
+
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(CompressedZeroExtendWord, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ zextw(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedZeroExtendWord, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d71 zext.w a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 0));
+  EXPECT_EQ(0x1234ABCD, Call(test->entry(), 0x11234ABCD));
+  EXPECT_EQ(0xFFFFFFFF, Call(test->entry(), 0xFFFFFFFF));
+  EXPECT_EQ(0xFFFFFFFF, Call(test->entry(), -1));
+}
+#endif  // XLEN >= 64
+
+ASSEMBLER_TEST_GENERATE(CompressedNot, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ not_(A0, A0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedNot, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d75 not a0, a0\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(~42, Call(test->entry(), 42));
+  EXPECT_EQ(~-42, Call(test->entry(), -42));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedMultiply, assembler) {
+  __ SetExtensions(RV_GCB | RV_Zcb);
+  __ mul(A0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedMultiply, test) {
+  EXPECT_DISASSEMBLY(
+      "    9d4d mul a0, a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(68, Call(test->entry(), 4, 17));
+  EXPECT_EQ(-68, Call(test->entry(), -4, 17));
+  EXPECT_EQ(-68, Call(test->entry(), 4, -17));
+  EXPECT_EQ(68, Call(test->entry(), -4, -17));
+  EXPECT_EQ(68, Call(test->entry(), 17, 4));
+  EXPECT_EQ(-68, Call(test->entry(), -17, 4));
+  EXPECT_EQ(-68, Call(test->entry(), 17, -4));
+  EXPECT_EQ(68, Call(test->entry(), -17, -4));
+}
+
+ASSEMBLER_TEST_GENERATE(AmoSwapByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoswapb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoSwapByte, test) {
+  EXPECT_DISASSEMBLY(
+      "08b5052f amoswap.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1010, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoAddByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoaddb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoAddByte, test) {
+  EXPECT_DISASSEMBLY(
+      "00b5052f amoadd.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 42;
+
+  EXPECT_EQ(42, Call(test->entry(), reinterpret_cast<intx_t>(&value), 10));
+  EXPECT_EQ(52, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoXorByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoxorb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoXorByte, test) {
+  EXPECT_DISASSEMBLY(
+      "20b5052f amoxor.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b0110, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoAndByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoandb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoAndByte, test) {
+  EXPECT_DISASSEMBLY(
+      "60b5052f amoand.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1000, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoOrByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoorb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoOrByte, test) {
+  EXPECT_DISASSEMBLY(
+      "40b5052f amoor.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1110, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMinByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amominb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMinByte, test) {
+  EXPECT_DISASSEMBLY(
+      "80b5052f amomin.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-11, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMaxByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amomaxb(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMaxByte, test) {
+  EXPECT_DISASSEMBLY(
+      "a0b5052f amomax.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-4, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMinUnsignedByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amominub(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMinUnsignedByte, test) {
+  EXPECT_DISASSEMBLY(
+      "c0b5052f amominu.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-11, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMaxUnsignedByte, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amomaxub(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMaxUnsignedByte, test) {
+  EXPECT_DISASSEMBLY(
+      "e0b5052f amomaxu.b a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int8_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-4, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoSwapHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoswaph(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoSwapHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "08b5152f amoswap.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1010, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoAddHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoaddh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoAddHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "00b5152f amoadd.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 42;
+
+  EXPECT_EQ(42, Call(test->entry(), reinterpret_cast<intx_t>(&value), 10));
+  EXPECT_EQ(52, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoXorHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoxorh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoXorHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "20b5152f amoxor.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b0110, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoAndHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoandh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoAndHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "60b5152f amoand.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1000, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoOrHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amoorh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoOrHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "40b5152f amoor.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = 0b1100;
+
+  EXPECT_EQ(0b1100,
+            Call(test->entry(), reinterpret_cast<intx_t>(&value), 0b1010));
+  EXPECT_EQ(0b1110, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMinHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amominh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMinHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "80b5152f amomin.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-11, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMaxHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amomaxh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMaxHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "a0b5152f amomax.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-4, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMinUnsignedHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amominuh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMinUnsignedHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "c0b5152f amominu.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-11, value);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoMaxUnsignedHalfword, assembler) {
+  __ SetExtensions(RV_G | RV_Zabha);
+  __ amomaxuh(A0, A1, Address(A0));
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoMaxUnsignedHalfword, test) {
+  EXPECT_DISASSEMBLY(
+      "e0b5152f amomaxu.h a0, a1, (a0)\n"
+      "00008067 ret\n");
+
+  int16_t value = -7;
+
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -11));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -7));
+  EXPECT_EQ(-7, value);
+  EXPECT_EQ(-7, Call(test->entry(), reinterpret_cast<intx_t>(&value), -4));
+  EXPECT_EQ(-4, value);
+}
+
+ASSEMBLER_TEST_GENERATE(FloatLoadImmediateSingle, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  for (intptr_t i = 0; i < 32; i++) {
+    __ flis(FRegister(i), i);
+  }
+}
+ASSEMBLER_TEST_RUN(FloatLoadImmediateSingle, test) {
+  EXPECT_DISASSEMBLY(
+      "f0100053 flis ft0, -1.000000\n"
+      "f01080d3 flis ft1, min\n"
+      "f0110153 flis ft2, 0.000015\n"
+      "f01181d3 flis ft3, 0.000031\n"
+      "f0120253 flis ft4, 0.003906\n"
+      "f01282d3 flis ft5, 0.007812\n"
+      "f0130353 flis ft6, 0.062500\n"
+      "f01383d3 flis ft7, 0.125000\n"
+      "f0140453 flis fs0, 0.250000\n"
+      "f01484d3 flis fs1, 0.312500\n"
+      "f0150553 flis fa0, 0.375000\n"
+      "f01585d3 flis fa1, 0.437500\n"
+      "f0160653 flis fa2, 0.500000\n"
+      "f01686d3 flis fa3, 0.625000\n"
+      "f0170753 flis fa4, 0.750000\n"
+      "f01787d3 flis fa5, 0.875000\n"
+      "f0180853 flis fa6, 1.000000\n"
+      "f01888d3 flis fa7, 1.250000\n"
+      "f0190953 flis fs2, 1.500000\n"
+      "f01989d3 flis fs3, 1.750000\n"
+      "f01a0a53 flis fs4, 2.000000\n"
+      "f01a8ad3 flis fs5, 2.500000\n"
+      "f01b0b53 flis fs6, 3.000000\n"
+      "f01b8bd3 flis fs7, 4.000000\n"
+      "f01c0c53 flis fs8, 8.000000\n"
+      "f01c8cd3 flis fs9, 16.000000\n"
+      "f01d0d53 flis fs10, 128.000000\n"
+      "f01d8dd3 flis fs11, 256.000000\n"
+      "f01e0e53 flis ft8, 32768.000000\n"
+      "f01e8ed3 flis ft9, 65536.000000\n"
+      "f01f0f53 flis ft10, inf\n"
+      "f01f8fd3 flis ft11, nan\n");
+}
+
+ASSEMBLER_TEST_GENERATE(FloatLoadImmediateDouble, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  for (intptr_t i = 0; i < 32; i++) {
+    __ flid(FRegister(i), i);
+  }
+}
+ASSEMBLER_TEST_RUN(FloatLoadImmediateDouble, test) {
+  EXPECT_DISASSEMBLY(
+      "f2100053 flid ft0, -1.000000\n"
+      "f21080d3 flid ft1, min\n"
+      "f2110153 flid ft2, 0.000015\n"
+      "f21181d3 flid ft3, 0.000031\n"
+      "f2120253 flid ft4, 0.003906\n"
+      "f21282d3 flid ft5, 0.007812\n"
+      "f2130353 flid ft6, 0.062500\n"
+      "f21383d3 flid ft7, 0.125000\n"
+      "f2140453 flid fs0, 0.250000\n"
+      "f21484d3 flid fs1, 0.312500\n"
+      "f2150553 flid fa0, 0.375000\n"
+      "f21585d3 flid fa1, 0.437500\n"
+      "f2160653 flid fa2, 0.500000\n"
+      "f21686d3 flid fa3, 0.625000\n"
+      "f2170753 flid fa4, 0.750000\n"
+      "f21787d3 flid fa5, 0.875000\n"
+      "f2180853 flid fa6, 1.000000\n"
+      "f21888d3 flid fa7, 1.250000\n"
+      "f2190953 flid fs2, 1.500000\n"
+      "f21989d3 flid fs3, 1.750000\n"
+      "f21a0a53 flid fs4, 2.000000\n"
+      "f21a8ad3 flid fs5, 2.500000\n"
+      "f21b0b53 flid fs6, 3.000000\n"
+      "f21b8bd3 flid fs7, 4.000000\n"
+      "f21c0c53 flid fs8, 8.000000\n"
+      "f21c8cd3 flid fs9, 16.000000\n"
+      "f21d0d53 flid fs10, 128.000000\n"
+      "f21d8dd3 flid fs11, 256.000000\n"
+      "f21e0e53 flid ft8, 32768.000000\n"
+      "f21e8ed3 flid ft9, 65536.000000\n"
+      "f21f0f53 flid ft10, inf\n"
+      "f21f8fd3 flid ft11, nan\n");
+}
+
+ASSEMBLER_TEST_GENERATE(SingleMinM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fminms(FA0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SingleMinM, test) {
+  EXPECT_DISASSEMBLY(
+      "28b52553 fminm.s fa0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(1.0f, CallF(test->entry(), 3.0f, 1.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, 3.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, 5.0f));
+  EXPECT_EQ(-1.0f, CallF(test->entry(), 3.0f, -1.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), 3.0f, -3.0f));
+  EXPECT_EQ(-5.0f, CallF(test->entry(), 3.0f, -5.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, 1.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, 3.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, 5.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -1.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -3.0f));
+  EXPECT_EQ(-5.0f, CallF(test->entry(), -3.0f, -5.0f));
+
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), 0.0f, -0.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f, 0.0f));
+
+  float qNAN = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), 3.0f, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, 3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), -3.0f, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, -3.0f));
+
+  float sNAN = std::numeric_limits<float>::signaling_NaN();
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), 3.0f, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, 3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), -3.0f, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, -3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, qNAN));
+}
+
+ASSEMBLER_TEST_GENERATE(SingleMaxM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fmaxms(FA0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SingleMaxM, test) {
+  EXPECT_DISASSEMBLY(
+      "28b53553 fmaxm.s fa0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, 1.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, 3.0f));
+  EXPECT_EQ(5.0f, CallF(test->entry(), 3.0f, 5.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, -1.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, -3.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, -5.0f));
+  EXPECT_EQ(1.0f, CallF(test->entry(), -3.0f, 1.0f));
+  EXPECT_EQ(3.0f, CallF(test->entry(), -3.0f, 3.0f));
+  EXPECT_EQ(5.0f, CallF(test->entry(), -3.0f, 5.0f));
+  EXPECT_EQ(-1.0f, CallF(test->entry(), -3.0f, -1.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -3.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -5.0f));
+
+  EXPECT_BITEQ(0.0f, CallF(test->entry(), 0.0f, -0.0f));
+  EXPECT_BITEQ(0.0f, CallF(test->entry(), -0.0f, 0.0f));
+
+  float qNAN = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), 3.0f, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, 3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), -3.0f, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, -3.0f));
+
+  float sNAN = std::numeric_limits<float>::signaling_NaN();
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), 3.0f, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, 3.0f));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), -3.0f, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, -3.0f));
+
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, qNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), qNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallF(test->entry(), sNAN, qNAN));
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleMinM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fminmd(FA0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(DoubleMinM, test) {
+  EXPECT_DISASSEMBLY(
+      "2ab52553 fminm.d fa0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(1.0, CallD(test->entry(), 3.0, 1.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, 3.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, 5.0));
+  EXPECT_EQ(-1.0, CallD(test->entry(), 3.0, -1.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), 3.0, -3.0));
+  EXPECT_EQ(-5.0, CallD(test->entry(), 3.0, -5.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, 1.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, 3.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, 5.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -1.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -3.0));
+  EXPECT_EQ(-5.0, CallD(test->entry(), -3.0, -5.0));
+
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), 0.0, -0.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0, 0.0));
+
+  double qNAN = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), 3.0, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, 3.0));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), -3.0, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, -3.0));
+
+  double sNAN = std::numeric_limits<double>::signaling_NaN();
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), 3.0, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, 3.0));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), -3.0, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, -3.0));
+
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, qNAN));
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleMaxM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fmaxmd(FA0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(DoubleMaxM, test) {
+  EXPECT_DISASSEMBLY(
+      "2ab53553 fmaxm.d fa0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, 1.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, 3.0));
+  EXPECT_EQ(5.0, CallD(test->entry(), 3.0, 5.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, -1.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, -3.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, -5.0));
+  EXPECT_EQ(1.0, CallD(test->entry(), -3.0, 1.0));
+  EXPECT_EQ(3.0, CallD(test->entry(), -3.0, 3.0));
+  EXPECT_EQ(5.0, CallD(test->entry(), -3.0, 5.0));
+  EXPECT_EQ(-1.0, CallD(test->entry(), -3.0, -1.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -3.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -5.0));
+
+  EXPECT_BITEQ(0.0, CallD(test->entry(), 0.0, -0.0));
+  EXPECT_BITEQ(0.0, CallD(test->entry(), -0.0, 0.0));
+
+  double qNAN = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), 3.0, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, 3.0));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), -3.0, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, -3.0));
+
+  double sNAN = std::numeric_limits<double>::signaling_NaN();
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), 3.0, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, 3.0));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), -3.0, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, -3.0));
+
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, qNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), qNAN, sNAN));
+  EXPECT_BITEQ(qNAN, CallD(test->entry(), sNAN, qNAN));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle, test) {
+  EXPECT_DISASSEMBLY(
+      "40450553 fround.s fa0, fa0\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle_RTZ, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0, RTZ);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle_RTZ, test) {
+  EXPECT_DISASSEMBLY(
+      "40451553 fround.s fa0, fa0, rtz\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle_RDN, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0, RDN);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle_RDN, test) {
+  EXPECT_DISASSEMBLY(
+      "40452553 fround.s fa0, fa0, rdn\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle_RUP, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0, RUP);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle_RUP, test) {
+  EXPECT_DISASSEMBLY(
+      "40453553 fround.s fa0, fa0, rup\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundSingle_RMM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ frounds(FA0, FA0, RMM);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundSingle_RMM, test) {
+  EXPECT_DISASSEMBLY(
+      "40454553 fround.s fa0, fa0, rmm\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.6f));
+  EXPECT_EQ(-44.0f, CallF(test->entry(), -43.5f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.4f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -43.0f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.6f));
+  EXPECT_EQ(-43.0f, CallF(test->entry(), -42.5f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.4f));
+  EXPECT_EQ(-42.0f, CallF(test->entry(), -42.0f));
+  EXPECT_BITEQ(-0.0f, CallF(test->entry(), -0.0f));
+  EXPECT_BITEQ(+0.0f, CallF(test->entry(), +0.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.0f));
+  EXPECT_EQ(42.0f, CallF(test->entry(), 42.4f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.5f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 42.6f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.0f));
+  EXPECT_EQ(43.0f, CallF(test->entry(), 43.4f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.5f));
+  EXPECT_EQ(44.0f, CallF(test->entry(), 43.6f));
+
+  EXPECT_EQ(-std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), -std::numeric_limits<float>::infinity()));
+  EXPECT_EQ(std::numeric_limits<float>::infinity(),
+            CallF(test->entry(), std::numeric_limits<float>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<float>::quiet_NaN(),
+               CallF(test->entry(), std::numeric_limits<float>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<float>::quiet_NaN(),
+      CallF(test->entry(), std::numeric_limits<float>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble, test) {
+  EXPECT_DISASSEMBLY(
+      "42450553 fround.d fa0, fa0\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble_RTZ, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0, RTZ);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble_RTZ, test) {
+  EXPECT_DISASSEMBLY(
+      "42451553 fround.d fa0, fa0, rtz\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble_RDN, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0, RDN);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble_RDN, test) {
+  EXPECT_DISASSEMBLY(
+      "42452553 fround.d fa0, fa0, rdn\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble_RUP, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0, RUP);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble_RUP, test) {
+  EXPECT_DISASSEMBLY(
+      "42453553 fround.d fa0, fa0, rup\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(RoundDouble_RMM, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ froundd(FA0, FA0, RMM);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(RoundDouble_RMM, test) {
+  EXPECT_DISASSEMBLY(
+      "42454553 fround.d fa0, fa0, rmm\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.6));
+  EXPECT_EQ(-44.0, CallD(test->entry(), -43.5));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.4));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -43.0));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.6));
+  EXPECT_EQ(-43.0, CallD(test->entry(), -42.5));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.4));
+  EXPECT_EQ(-42.0, CallD(test->entry(), -42.0));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), -0.0));
+  EXPECT_BITEQ(+0.0, CallD(test->entry(), +0.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.0));
+  EXPECT_EQ(42.0, CallD(test->entry(), 42.4));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.5));
+  EXPECT_EQ(43.0, CallD(test->entry(), 42.6));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.0));
+  EXPECT_EQ(43.0, CallD(test->entry(), 43.4));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.5));
+  EXPECT_EQ(44.0, CallD(test->entry(), 43.6));
+
+  EXPECT_EQ(-std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(std::numeric_limits<double>::infinity(),
+            CallD(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_BITEQ(std::numeric_limits<double>::quiet_NaN(),
+               CallD(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+ASSEMBLER_TEST_GENERATE(ModularConvertDoubleToWord, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fcvtmodwd(A0, FA0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ModularConvertDoubleToWord, test) {
+  EXPECT_DISASSEMBLY(
+      "c2851553 fcvtmod.w.d a0, fa0, rtz\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(-42, CallI(test->entry(), -42.0));
+  EXPECT_EQ(0, CallI(test->entry(), 0.0));
+  EXPECT_EQ(42, CallI(test->entry(), 42.0));
+  EXPECT_EQ(sign_extend(kMinInt32),
+            CallI(test->entry(), static_cast<double>(kMinInt32)));
+  EXPECT_EQ(sign_extend(kMaxInt32),
+            CallI(test->entry(), static_cast<double>(kMaxInt32)));
+  EXPECT_EQ(-1, CallI(test->entry(), static_cast<double>(kMaxUint32)));
+  EXPECT_EQ(0, CallI(test->entry(), static_cast<double>(kMinInt64)));
+  EXPECT_EQ(0, CallI(test->entry(), static_cast<double>(kMaxInt64)));
+  EXPECT_EQ(0, CallI(test->entry(), static_cast<double>(kMaxUint64)));
+  EXPECT_EQ(0,
+            CallI(test->entry(), -std::numeric_limits<double>::denorm_min()));
+  EXPECT_EQ(0, CallI(test->entry(), std::numeric_limits<double>::denorm_min()));
+  EXPECT_EQ(0, CallI(test->entry(), -std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(0, CallI(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(0,
+            CallI(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+}
+
+#if XLEN == 32
+ASSEMBLER_TEST_GENERATE(BitCastDoubleToIntegerHigh, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fmvxw(A0, FA0);
+  __ fmvhxd(A1, FA0);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitCastDoubleToIntegerHigh, test) {
+  EXPECT_DISASSEMBLY(
+      "e0050553 fmv.x.w a0, fa0\n"
+      "e21505d3 fmvh.x.d a1, fa0\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(bit_cast<int64_t>(0.0), CallI64(test->entry(), 0.0));
+  EXPECT_EQ(bit_cast<int64_t>(-0.0), CallI64(test->entry(), -0.0));
+  EXPECT_EQ(bit_cast<int64_t>(42.0), CallI64(test->entry(), 42.0));
+  EXPECT_EQ(bit_cast<int64_t>(-42.0), CallI64(test->entry(), -42.0));
+  EXPECT_EQ(bit_cast<int64_t>(std::numeric_limits<double>::quiet_NaN()),
+            CallI64(test->entry(), std::numeric_limits<double>::quiet_NaN()));
+  EXPECT_EQ(
+      bit_cast<int64_t>(std::numeric_limits<double>::signaling_NaN()),
+      CallI64(test->entry(), std::numeric_limits<double>::signaling_NaN()));
+  EXPECT_EQ(bit_cast<int64_t>(std::numeric_limits<double>::infinity()),
+            CallI64(test->entry(), std::numeric_limits<double>::infinity()));
+  EXPECT_EQ(bit_cast<int64_t>(-std::numeric_limits<double>::infinity()),
+            CallI64(test->entry(), -std::numeric_limits<double>::infinity()));
+}
+
+ASSEMBLER_TEST_GENERATE(BitCastIntegerPairToDouble, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fmvpdx(FA0, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitCastIntegerPairToDouble, test) {
+  EXPECT_DISASSEMBLY(
+      "b2b50553 fmvp.d.x fa0, a0, a1\n"
+      "00008067 ret\n");
+
+  EXPECT_BITEQ(0.0, CallD(test->entry(), bit_cast<int64_t>(0.0)));
+  EXPECT_BITEQ(-0.0, CallD(test->entry(), bit_cast<int64_t>(-0.0)));
+  EXPECT_EQ(42.0, CallD(test->entry(), bit_cast<int64_t>(42.0)));
+  EXPECT_EQ(-42.0, CallD(test->entry(), bit_cast<int64_t>(-42.0)));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::quiet_NaN(),
+      CallD(test->entry(),
+            bit_cast<int64_t>(std::numeric_limits<double>::quiet_NaN())));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::signaling_NaN(),
+      CallD(test->entry(),
+            bit_cast<int64_t>(std::numeric_limits<double>::signaling_NaN())));
+  EXPECT_BITEQ(
+      std::numeric_limits<double>::infinity(),
+      CallD(test->entry(),
+            bit_cast<int64_t>(std::numeric_limits<double>::infinity())));
+  EXPECT_BITEQ(
+      -std::numeric_limits<double>::infinity(),
+      CallD(test->entry(),
+            bit_cast<int64_t>(-std::numeric_limits<double>::infinity())));
+}
+#endif  // XLEN == 32
+
+ASSEMBLER_TEST_GENERATE(SingleLessThanQuiet, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fltqs(A0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SingleLessThanQuiet, test) {
+  EXPECT_DISASSEMBLY(
+      "a0b55553 fltq.s a0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, 1.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, 3.0f));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0f, 5.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -1.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -5.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 1.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 3.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 5.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, -1.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, -3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, -5.0f));
+
+  float qNAN = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, 3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0f));
+}
+
+ASSEMBLER_TEST_GENERATE(SingleLessOrEqualQuiet, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fleqs(A0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(SingleLessOrEqualQuiet, test) {
+  EXPECT_DISASSEMBLY(
+      "a0b54553 fleq.s a0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, 1.0f));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0f, 3.0f));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0f, 5.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -1.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, -5.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 1.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 3.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, 5.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, -1.0f));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0f, -3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, -5.0f));
+
+  float qNAN = std::numeric_limits<float>::quiet_NaN();
+  EXPECT_EQ(0, CallI(test->entry(), 3.0f, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, 3.0f));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0f, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0f));
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleLessThanQuiet, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fltqd(A0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(DoubleLessThanQuiet, test) {
+  EXPECT_DISASSEMBLY(
+      "a2b55553 fltq.d a0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, 1.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, 3.0));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0, 5.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -1.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -3.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -5.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 1.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 3.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 5.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, -1.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, -3.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, -5.0));
+
+  double qNAN = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, 3.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0));
+}
+
+ASSEMBLER_TEST_GENERATE(DoubleLessOrEqualQuiet, assembler) {
+  __ SetExtensions(RV_G | RV_Zfa);
+  __ fleqd(A0, FA0, FA1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(DoubleLessOrEqualQuiet, test) {
+  EXPECT_DISASSEMBLY(
+      "a2b54553 fleq.d a0, fa0, fa1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, 1.0));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0, 3.0));
+  EXPECT_EQ(1, CallI(test->entry(), 3.0, 5.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -1.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -3.0));
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, -5.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 1.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 3.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, 5.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, -1.0));
+  EXPECT_EQ(1, CallI(test->entry(), -3.0, -3.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, -5.0));
+
+  double qNAN = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_EQ(0, CallI(test->entry(), 3.0, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, 3.0));
+  EXPECT_EQ(0, CallI(test->entry(), -3.0, qNAN));
+  EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0));
+}
+
 ASSEMBLER_TEST_GENERATE(LoadByteAcquire, assembler) {
   __ SetExtensions(RV_GC | RV_Zalasr);
   __ lb(A0, Address(A1), std::memory_order_acquire);
@@ -7233,7 +8598,6 @@ ASSEMBLER_TEST_RUN(StoreDoubleWordRelease, test) {
 #endif  // XLEN >= 64
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MaxInt32, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, kMaxInt32);
   __ ret();
@@ -7254,7 +8618,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_MaxInt32, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MinInt32, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, kMinInt32);
   __ ret();
@@ -7268,7 +8631,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_MinInt32, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MinInt64, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, kMinInt64);
   __ ret();
@@ -7276,13 +8638,12 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_MinInt64, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediate_MinInt64, test) {
   EXPECT_DISASSEMBLY(
       "    557d li a0, -1\n"
-      "03f51513 slli a0, a0, 0x3f\n"
+      "    157e slli a0, a0, 0x3f\n"
       "    8082 ret\n");
   EXPECT_EQ(kMinInt64, Call(test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_Full, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xABCDABCDABCDABCD);
   __ ret();
@@ -7291,18 +8652,17 @@ ASSEMBLER_TEST_RUN(LoadImmediate_Full, test) {
   EXPECT_DISASSEMBLY(
       "feaf3537 lui a0, -22073344\n"
       "6af5051b addiw a0, a0, 1711\n"
-      "    0532 slli a0, a0, 12\n"
+      "    0532 slli a0, a0, 0xc\n"
       "36b50513 addi a0, a0, 875\n"
-      "    053a slli a0, a0, 14\n"
+      "    053a slli a0, a0, 0xe\n"
       "cdb50513 addi a0, a0, -805\n"
-      "    0532 slli a0, a0, 12\n"
+      "    0532 slli a0, a0, 0xc\n"
       "bcd50513 addi a0, a0, -1075\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xABCDABCDABCDABCD), Call(test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiAddiwSlli, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0x7BCDABCD00000);
   __ ret();
@@ -7311,13 +8671,12 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LuiAddiwSlli, test) {
   EXPECT_DISASSEMBLY(
       "7bcdb537 lui a0, 2077077504\n"
       "bcd5051b addiw a0, a0, -1075\n"
-      "    0552 slli a0, a0, 20\n"
+      "    0552 slli a0, a0, 0x14\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0x7BCDABCD00000), Call(test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiSlli, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xABCDE00000000000);
   __ ret();
@@ -7325,13 +8684,12 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiSlli, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediate_LuiSlli, test) {
   EXPECT_DISASSEMBLY(
       "d5e6f537 lui a0, -706285568\n"
-      "02151513 slli a0, a0, 0x21\n"
+      "    1506 slli a0, a0, 0x21\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xABCDE00000000000), Call(test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlli, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xABC00000000000);
   __ ret();
@@ -7339,13 +8697,12 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlli, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediate_LiSlli, test) {
   EXPECT_DISASSEMBLY(
       "2af00513 li a0, 687\n"
-      "02e51513 slli a0, a0, 0x2e\n"
+      "    153a slli a0, a0, 0x2e\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xABC00000000000), Call(test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlliAddi, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xFF000000000000FF);
   __ ret();
@@ -7353,7 +8710,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlliAddi, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
   EXPECT_DISASSEMBLY(
       "    557d li a0, -1\n"
-      "03851513 slli a0, a0, 0x38\n"
+      "    1562 slli a0, a0, 0x38\n"
       "0ff50513 addi a0, a0, 255\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xFF000000000000FF), Call(test->entry()));
@@ -7361,7 +8718,6 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
 #endif
 
 ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GC, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ AndImmediate(A0, A1, ~0x10000000);
   __ OrImmediate(A0, A1, 0x10000000);
@@ -7393,7 +8749,6 @@ ASSEMBLER_TEST_RUN(BitwiseImmediates_GC, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GCB, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GCB);
   __ AndImmediate(A0, A1, ~0x10000000);
   __ OrImmediate(A0, A1, 0x10000000);
@@ -7409,7 +8764,6 @@ ASSEMBLER_TEST_RUN(BitwiseImmediates_GCB, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediateBranchOverflow, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7434,7 +8788,6 @@ ASSEMBLER_TEST_RUN(AddImmediateBranchOverflow, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddBranchOverflow_NonDestructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7463,7 +8816,6 @@ ASSEMBLER_TEST_RUN(AddBranchOverflow_NonDestructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(AddBranchOverflow_Destructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7492,7 +8844,6 @@ ASSEMBLER_TEST_RUN(AddBranchOverflow_Destructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SubtractImmediateBranchOverflow, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7517,7 +8868,6 @@ ASSEMBLER_TEST_RUN(SubtractImmediateBranchOverflow, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SubtractBranchOverflow_NonDestructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label overflow;
@@ -7546,7 +8896,6 @@ ASSEMBLER_TEST_RUN(SubtractBranchOverflow_NonDestructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(SubtractBranchOverflow_Destructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label overflow;
@@ -7575,7 +8924,6 @@ ASSEMBLER_TEST_RUN(SubtractBranchOverflow_Destructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyImmediateBranchOverflow, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   Label overflow;
 
@@ -7616,7 +8964,6 @@ ASSEMBLER_TEST_RUN(MultiplyImmediateBranchOverflow, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyBranchOverflow_NonDestructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label overflow;
@@ -7660,7 +9007,6 @@ ASSEMBLER_TEST_RUN(MultiplyBranchOverflow_NonDestructive, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(MultiplyBranchOverflow_Destructive, assembler) {
-  FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
 
   Label overflow;
@@ -7749,6 +9095,8 @@ TEST_ENCODING(intptr_t, CSPLoad4Imm)
 TEST_ENCODING(intptr_t, CSPLoad8Imm)
 TEST_ENCODING(intptr_t, CSPStore4Imm)
 TEST_ENCODING(intptr_t, CSPStore8Imm)
+TEST_ENCODING(intptr_t, CMem1Imm)
+TEST_ENCODING(intptr_t, CMem2Imm)
 TEST_ENCODING(intptr_t, CMem4Imm)
 TEST_ENCODING(intptr_t, CMem8Imm)
 TEST_ENCODING(intptr_t, CJImm)
@@ -7757,6 +9105,7 @@ TEST_ENCODING(intptr_t, CIImm)
 TEST_ENCODING(intptr_t, CUImm)
 TEST_ENCODING(intptr_t, CI16Imm)
 TEST_ENCODING(intptr_t, CI4SPNImm)
+TEST_ENCODING(intptr_t, CShamt)
 
 #undef TEST_ENCODING
 

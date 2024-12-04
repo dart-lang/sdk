@@ -12,7 +12,7 @@
 
 import 'dart:io';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
@@ -45,13 +45,14 @@ Future<void> testRedirectingFactorySerialized() async {
 
 // regression test: redirecting factories from patch files don't have the
 // redirecting-factory flag stored in kernel.
-Future<void> testRedirectingFactoryPatchFile() async {
+Future<void> testRedirectingFactoryPatchFile() {
   var componentUri =
       computePlatformBinariesLocation().resolve('dart2js_platform.dill');
   var component = new ir.Component();
   new BinaryBuilder(new File.fromUri(componentUri).readAsBytesSync())
       .readComponent(component);
   checkIsRedirectingFactory(component, 'collection', 'HashMap', 'identity');
+  return new Future.value();
 }
 
 void checkIsRedirectingFactory(ir.Component component, String uriPath,

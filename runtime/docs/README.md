@@ -68,7 +68,7 @@ However the main difference between these lies in when and how VM converts Dart 
 
 Any Dart code within the VM is running within some _isolate_, which can be best described as an isolated Dart universe with its own global state and _usually_ with its own thread of control (*mutator thread*). Isolates are grouped together into _isolate groups_. Isolate within the group share the same garbage collector managed *heap*, used as a storage for objects allocated by an isolate. Heap sharing between isolates in the same group is an implementation detail which is not observable from the Dart code. Even isolates within the same group can not share any mutable state directly and can only communicate by message passing through *ports* (not to be confused with network ports!).
 
-Isolates within a group share the same Dart program. [`Isolate.spawn`](https://api.dart.dev/stable/dart-isolate/Isolate/spawn.html) spawns an isolate within the same group, while [`Isolate.spawnUri`](https://api.dart.dev/stable/dart-isolate/Isolate/spawnUri.html) starts a new group.
+Isolates within a group share the same Dart program. [`Isolate.spawn`](https://api.dart.dev/dart-isolate/Isolate/spawn.html) spawns an isolate within the same group, while [`Isolate.spawnUri`](https://api.dart.dev/dart-isolate/Isolate/spawnUri.html) starts a new group.
 
 The relationship between OS threads and isolates is a bit blurry and highly dependent on how VM is embedded into an application. Only the following is guaranteed:
 
@@ -235,10 +235,10 @@ At this point enough information is loaded from Kernel binary for runtime to suc
 >     $ dart pkg/vm/bin/dump_kernel.dart hello.dill hello.kernel.txt
 >     ```
 >
-> When you try using `gen_kernel.dart` you will notice that it requires something called *platform*, a Kernel binary containing AST for all core libraries (`dart:core`, `dart:async`, etc). If you have Dart SDK build configured then you can just use platform file from the `out` directory, e.g. `out/ReleaseX64/vm_platform_strong.dill`. Alternatively you can use [`pkg/front_end/tool/_fasta/compile_platform.dart`][] to generate the platform:
+> When you try using `gen_kernel.dart` you will notice that it requires something called *platform*, a Kernel binary containing AST for all core libraries (`dart:core`, `dart:async`, etc). If you have Dart SDK build configured then you can just use platform file from the `out` directory, e.g. `out/ReleaseX64/vm_platform_strong.dill`. Alternatively you can use [`pkg/front_end/tool/compile_platform.dart`][] to generate the platform:
 >
 > ```console
-> $ dart pkg/front_end/tool/_fasta/compile_platform.dart \
+> $ dart pkg/front_end/tool/compile_platform.dart \
 >        dart:core                                       \
 >        sdk/lib/libraries.json                          \
 >        vm_outline.dill vm_platform.dill vm_outline.dill
@@ -945,7 +945,7 @@ See [Glossary](glossary.md)
 [`dart::JitCallSpecializer`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/runtime/vm/compiler/jit/jit_call_specializer.h#L16
 [`pkg/vm/bin/gen_kernel.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/vm/bin/gen_kernel.dart
 [`pkg/vm/bin/dump_kernel.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/vm/bin/dump_kernel.dart
-[`pkg/front_end/tool/_fasta/compile_platform.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/front_end/tool/_fasta/compile_platform.dart
+[`pkg/front_end/tool/compile_platform.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/front_end/tool/_fasta/compile_platform.dart
 [`package:kernel/ast.dart`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/kernel/lib/ast.dart
 [`package:front_end`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/pkg/front_end/lib
 [`dart::kernel::KernelLoader::LoadEntireProgram`]: https://github.com/dart-lang/sdk/blob/2ed6ea29003476e2a28fb5f4683a656427eb41ff/runtime/vm/kernel_loader.cc#L236

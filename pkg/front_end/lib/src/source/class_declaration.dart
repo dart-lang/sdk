@@ -104,7 +104,7 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
         MemberBuilder declaration = iterator.current;
         if (declaration.declarationBuilder?.origin != origin) {
           unexpected("$fileUri", "${declaration.declarationBuilder!.fileUri}",
-              charOffset, fileUri);
+              fileOffset, fileUri);
         }
         if (declaration is RedirectingFactoryBuilder) {
           // Compute the immediate redirection target, not the effective.
@@ -148,9 +148,9 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
           Builder? targetBuilder = redirectionTarget.target;
           Member? targetNode;
           if (targetBuilder is FunctionBuilder) {
-            targetNode = targetBuilder.member;
+            targetNode = targetBuilder.invokeTarget!;
           } else if (targetBuilder is DillMemberBuilder) {
-            targetNode = targetBuilder.member;
+            targetNode = targetBuilder.invokeTarget!;
           } else if (targetBuilder is AmbiguousBuilder) {
             libraryBuilder.addProblemForRedirectingFactory(
                 declaration,
@@ -200,7 +200,7 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
                     extensionTypeDeclarationBuilder =
                     targetBuilder.parent as ExtensionTypeDeclarationBuilder;
                 typeArgumentCount =
-                    extensionTypeDeclarationBuilder.typeVariablesCount;
+                    extensionTypeDeclarationBuilder.typeParametersCount;
               } else {
                 typeArgumentCount =
                     targetNode.enclosingClass!.typeParameters.length;

@@ -52,10 +52,12 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
     await super.setUp();
     oldSourceDirectory = sourceDirectory;
 
-    tmpPath = Directory(Directory.systemTemp
-            .createTempSync('analysisServer')
-            .resolveSymbolicLinksSync())
-        .path;
+    tmpPath =
+        Directory(
+          Directory.systemTemp
+              .createTempSync('analysisServer')
+              .resolveSymbolicLinksSync(),
+        ).path;
     workspacePath = inTmpDir('workspace_root');
     writeFile(inWorkspace(file_paths.blazeWorkspaceMarker), '');
 
@@ -119,8 +121,10 @@ void f() { my_fun(); }
 
     await processedNotification.future;
     expect(errors, isNotEmpty);
-    var error = errors.singleWhere((e) => e.code == 'uri_does_not_exist',
-        orElse: () => throw "'uri_does_not_exist' error was not found");
+    var error = errors.singleWhere(
+      (e) => e.code == 'uri_does_not_exist',
+      orElse: () => throw "'uri_does_not_exist' error was not found",
+    );
     expect(error.message, contains('generated.dart'));
 
     // This seems to be necessary (at least when running the test from source),
@@ -129,7 +133,8 @@ void f() { my_fun(); }
 
     await resetCompleterAndErrors();
     var generatedFilePath = inWorkspace(
-        '$blazeGenfilesPath/third_party/dart/project/lib/generated.dart');
+      '$blazeGenfilesPath/third_party/dart/project/lib/generated.dart',
+    );
     writeFile(generatedFilePath, 'my_fun() {}');
     _createSymlinks(prefix);
     writeFile(commandLogPath, 'Build completed successfully');

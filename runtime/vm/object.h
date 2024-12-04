@@ -6956,10 +6956,8 @@ class Code : public Object {
   void set_num_variables(intptr_t num_variables) const;
 #endif
 
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   TypedDataPtr catch_entry_moves_maps() const;
   void set_catch_entry_moves_maps(const TypedData& maps) const;
-#endif
 
   CompressedStackMapsPtr compressed_stackmaps() const {
     return untag()->compressed_stackmaps();

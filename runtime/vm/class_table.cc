@@ -85,6 +85,10 @@ void ClassTable::Register(const Class& cls) {
         classes_.GetColumn<kClassIndex>());
     UpdateCachedAllocationTracingStateTablePointer();
   } else {
+    // GCC warns that TSAN doesn't understand thread fences.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
     std::atomic_thread_fence(std::memory_order_release);
   }
 }

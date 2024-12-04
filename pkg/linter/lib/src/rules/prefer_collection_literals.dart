@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use collection literals when possible.';
 

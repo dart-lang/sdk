@@ -17,10 +17,12 @@ class MyMap<K, V> with MapMixin<K, V> {
 
 int method(Map<int, String?> m) {}
 
-test(Map<int, String> map,
-    {required int expectedValue,
-    required int expectedContainsKeyCount,
-    required int expectedIndexGetCount}) {}
+test(
+  Map<int, String> map, {
+  required int expectedValue,
+  required int expectedContainsKeyCount,
+  required int expectedIndexGetCount,
+}) {}
 
 main() {}
 

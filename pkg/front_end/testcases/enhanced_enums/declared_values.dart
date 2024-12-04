@@ -36,7 +36,7 @@ enum E5 {
 enum E6 {
   element;
 
-  static void set values(Never x) {} // Error in E6.
+  static void set values(Never x) {}
 }
 
 enum E7 {

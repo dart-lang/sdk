@@ -19,13 +19,17 @@ void main() async {
     var stream = new Stream<Object>.fromIterable([1, 2, 3]);
     var errors = [];
     var done = new Completer();
-    var subscription = stream.cast<String>().listen((value) {
-      Expect.fail("Unexpected value: $value");
-    }, onError: (e, s) {
-      errors.add(e);
-    }, onDone: () {
-      done.complete(null);
-    });
+    var subscription = stream.cast<String>().listen(
+      (value) {
+        Expect.fail("Unexpected value: $value");
+      },
+      onError: (e, s) {
+        errors.add(e);
+      },
+      onDone: () {
+        done.complete(null);
+      },
+    );
     await done.future;
     Expect.equals(3, errors.length);
   }

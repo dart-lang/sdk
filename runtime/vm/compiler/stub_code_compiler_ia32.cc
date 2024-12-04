@@ -960,9 +960,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
       // Get the class index and insert it into the tags.
       uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orl(EDI, Immediate(tags));
-      __ movl(FieldAddress(AllocateArrayABI::kResultReg,
-                           target::Object::tags_offset()),
-              EDI);  // Tags.
+      __ InitializeHeader(EDI, AllocateArrayABI::kResultReg);
     }
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
     // EBX: allocation size.
@@ -1363,7 +1361,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     // EBX: size and bit tags.
     uword tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
     __ orl(EBX, Immediate(tags));
-    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
+    __ InitializeHeader(EBX, EAX);
   }
 
   // Setup up number of context variables field.
@@ -1675,14 +1673,10 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ ret();
   }
   if (cards) {
-    Label remember_card_slow;
-
     // Get card table.
     __ Bind(&remember_card);
     __ movl(EAX, EDX);                           // Object.
     __ andl(EAX, Immediate(target::kPageMask));  // Page.
-    __ cmpl(Address(EAX, target::Page::card_table_offset()), Immediate(0));
-    __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
     // Atomically dirty the card.
     __ pushl(EBX);
@@ -1699,21 +1693,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ lock();
     __ orl(Address(EAX, EDI, TIMES_4, 0), EBX);
     __ popl(EBX);
-    __ popl(ECX);
-    __ popl(EAX);
-    __ ret();
-
-    // Card table not yet allocated.
-    __ Bind(&remember_card_slow);
-
-    {
-      LeafRuntimeScope rt(assembler,
-                          /*frame_size=*/2 * target::kWordSize,
-                          /*preserve_registers=*/true);
-      __ movl(Address(ESP, 0 * target::kWordSize), EDX);  // Object
-      __ movl(Address(ESP, 1 * target::kWordSize), EDI);  // Slot
-      rt.Call(kRememberCardRuntimeEntry, 2);
-    }
     __ popl(ECX);
     __ popl(EAX);
     __ ret();

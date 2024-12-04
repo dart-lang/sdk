@@ -30,9 +30,9 @@ import 'records.dart';
 ///   Record_2_a(this.$1, this.$2, this.a);
 ///
 ///   @pragma('wasm:entry-point')
-///   bool _checkRecordType(WasmArray<_Type> types, WasmArray<String> names) {
+///   bool _checkRecordType(WasmArray<_Type> types, ImmutableWasmArray<String> names) {
 ///     if (types.length != 3) return false;
-///     if (!identical(names, const WasmArray(["a"]))) return false;
+///     if (!identical(names, const ImmutableWasmArray(["a"]))) return false;
 ///
 ///     if (!_isSubtype($1, types[0])) return false;
 ///     if (!_isSubtype($2, types[1])) return false;
@@ -44,7 +44,7 @@ import 'records.dart';
 ///   @pragma('wasm:entry-point')
 ///   _Type get _masqueradedRecordRuntimeType =>
 ///     _RecordType(
-///       const WasmArray(["a"]),
+///       const ImmutableWasmArray(["a"]),
 ///       WasmArray.literal([
 ///         _getMasqueradedRuntimeTypeNullable($1),
 ///         _getMasqueradedRuntimeTypeNullable($2),
@@ -54,7 +54,7 @@ import 'records.dart';
 ///   @pragma('wasm:entry-point')
 ///   _Type get _recordRuntimeType =>
 ///     _RecordType(
-///       const WasmArray(["a"]),
+///       const ImmutableWasmArray(["a"]),
 ///       WasmArray.literal([
 ///         _getActualRuntimeTypeNullable($1),
 ///         _getActualRuntimeTypeNullable($2),
@@ -126,6 +126,9 @@ class _RecordClassGenerator {
   late final Class wasmArrayClass =
       coreTypes.index.getClass('dart:_wasm', 'WasmArray');
 
+  late final Class immutableWasmArrayClass =
+      coreTypes.index.getClass('dart:_wasm', 'ImmutableWasmArray');
+
   late final Procedure wasmArrayRefLength =
       coreTypes.index.getProcedure('dart:_wasm', 'WasmArrayRef', 'get:length');
 
@@ -144,11 +147,16 @@ class _RecordClassGenerator {
   late final Field wasmArrayValueField =
       coreTypes.index.getField("dart:_wasm", "WasmArray", "_value");
 
+  late final Field immutableWasmArrayValueField =
+      coreTypes.index.getField("dart:_wasm", "ImmutableWasmArray", "_value");
+
   late final InterfaceType wasmArrayOfType = InterfaceType(
       wasmArrayClass, Nullability.nonNullable, [nonNullableTypeType]);
 
-  late final InterfaceType wasmArrayOfString = InterfaceType(
-      wasmArrayClass, Nullability.nonNullable, [nonNullableStringType]);
+  late final InterfaceType immutableWasmArrayOfString = InterfaceType(
+      immutableWasmArrayClass,
+      Nullability.nonNullable,
+      [nonNullableStringType]);
 
   late final InterfaceType runtimeTypeType =
       InterfaceType(typeRuntimetypeTypeClass, Nullability.nonNullable);
@@ -414,7 +422,7 @@ class _RecordClassGenerator {
   Procedure _generateCheckRecordType(RecordShape shape, List<Field> fields) {
     final typesParameter = VariableDeclaration('types', type: wasmArrayOfType);
     final namesParameter =
-        VariableDeclaration('names', type: wasmArrayOfString);
+        VariableDeclaration('names', type: immutableWasmArrayOfString);
 
     final List<Statement> statements = [];
 
@@ -502,7 +510,7 @@ class _RecordClassGenerator {
       String name, Procedure target, RecordShape shape, List<Field> fields) {
     final List<Statement> statements = [];
 
-    // const WasmArray(["name1", "name2", ...])
+    // const ImmutableWasmArray(["name1", "name2", ...])
     final fieldNamesList = ConstantExpression(_fieldNamesConstant(shape));
 
     Expression fieldRuntimeTypeExpr(Field field) => StaticInvocation(
@@ -548,10 +556,11 @@ class _RecordClassGenerator {
   }
 
   Constant _fieldNamesConstant(RecordShape shape) {
-    return InstanceConstant(wasmArrayClass.reference, [
+    return InstanceConstant(immutableWasmArrayClass.reference, [
       nonNullableStringType
     ], {
-      wasmArrayValueField.fieldReference: ListConstant(nonNullableStringType,
+      immutableWasmArrayValueField.fieldReference: ListConstant(
+          nonNullableStringType,
           shape.names.map((name) => StringConstant(name)).toList())
     });
   }

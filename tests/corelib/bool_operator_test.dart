@@ -8,13 +8,30 @@ main() {
   void test(bool b1, bool b2) {
     var and1 = b1 && b2;
     var and2 = b1 & b2;
-    var and3 = b1 ? b2 ? true : false : false;
+    var and3 =
+        b1
+            ? b2
+                ? true
+                : false
+            : false;
     var or1 = b1 || b2;
     var or2 = b1 | b2;
-    var or3 = b1 ? true : b2 ? true : false;
+    var or3 =
+        b1
+            ? true
+            : b2
+            ? true
+            : false;
     var xor1 = b1 != b2;
     var xor2 = b1 ^ b2;
-    var xor3 = b1 ? b2 ? false : true : b2 ? true : false;
+    var xor3 =
+        b1
+            ? b2
+                ? false
+                : true
+            : b2
+            ? true
+            : false;
     var nb1 = !b1;
     var nb2 = !b2;
     Expect.equals(and3, and1);

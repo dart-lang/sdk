@@ -10,9 +10,7 @@ abstract class ITypeDeclarationBuilder implements Builder {
 
   bool get isNamedMixinApplication;
 
-  List<MetadataBuilder>? get metadata;
-
-  int get typeVariablesCount => 0;
+  int get typeParametersCount => 0;
 
   @override
   TypeDeclarationBuilder get origin;
@@ -53,33 +51,15 @@ abstract class ITypeDeclarationBuilder implements Builder {
   /// Computes the nullability of this type declaration when instantiated with
   /// [typeArguments].
   ///
-  /// [typeVariablesTraversalState] is passed to handle cyclic dependencies
-  /// between type variables,
+  /// [typeParametersTraversalState] is passed to handle cyclic dependencies
+  /// between type parameters,
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState});
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState});
 }
 
-abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
+abstract class TypeDeclarationBuilderImpl extends BuilderImpl
     implements ITypeDeclarationBuilder {
-  @override
-  final Builder? parent;
-
-  @override
-  final int charOffset;
-
-  @override
-  final List<MetadataBuilder>? metadata;
-
-  @override
-  final int modifiers;
-
-  @override
-  final String name;
-
-  TypeDeclarationBuilderImpl(
-      this.metadata, this.modifiers, this.name, this.parent, this.charOffset);
-
   @override
   TypeDeclarationBuilder get origin => this as TypeDeclarationBuilder;
 
@@ -97,5 +77,10 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
   String get fullNameForErrors => name;
 
   @override
-  int get typeVariablesCount => 0;
+  int get typeParametersCount => 0;
+
+  @override
+  String toString() {
+    return '$runtimeType(${isAugmenting ? 'augmentation ' : ''}$name)';
+  }
 }

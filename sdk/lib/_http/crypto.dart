@@ -41,9 +41,9 @@ abstract class _HashBase {
   bool _digestCalled = false;
 
   _HashBase(this._chunkSizeInWords, int digestSizeInWords, this._bigEndianWords)
-      : _pendingData = [],
-        _currentChunk = Uint32List(_chunkSizeInWords),
-        _h = Uint32List(digestSizeInWords);
+    : _pendingData = [],
+      _currentChunk = Uint32List(_chunkSizeInWords),
+      _h = Uint32List(digestSizeInWords);
 
   // Update the hasher with more data.
   void add(List<int> data) {
@@ -181,14 +181,14 @@ class _MD5 extends _HashBase {
     0xd4ef3085, 0x04881d05, 0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665, //
     0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039, 0x655b59c3, 0x8f0ccc92, //
     0xffeff47d, 0x85845dd1, 0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1, //
-    0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
+    0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391,
   ];
 
   static const _r = [
     7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, //
     20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, //
     16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, //
-    10, 15, 21, 6, 10, 15, 21
+    10, 15, 21, 6, 10, 15, 21,
   ];
 
   // Compute one iteration of the MD5 algorithm with a chunk of
@@ -223,7 +223,9 @@ class _MD5 extends _HashBase {
       d = c;
       c = b;
       b = _add32(
-          b, _rotl32(_add32(_add32(a, t0), _add32(_k[i], m[t1])), _r[i]));
+        b,
+        _rotl32(_add32(_add32(a, t0), _add32(_k[i], m[t1])), _r[i]),
+      );
       a = temp;
     }
 
@@ -239,9 +241,7 @@ class _SHA1 extends _HashBase {
   final List<int> _w;
 
   // Construct a SHA1 hasher object.
-  _SHA1()
-      : _w = List<int>.filled(80, 0),
-        super(16, 5, true) {
+  _SHA1() : _w = List<int>.filled(80, 0), super(16, 5, true) {
     _h[0] = 0x67452301;
     _h[1] = 0xEFCDAB89;
     _h[2] = 0x98BADCFE;

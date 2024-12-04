@@ -36,8 +36,9 @@ FutureOr f;
     // expect a suggestion to add the dart:async import
     expect(fix.fixes, isNotEmpty);
 
-    var change = fix.fixes.singleWhere(
-        (SourceChange change) => change.message.startsWith('Import '));
+    var change = fix.fixes.firstWhere(
+      (SourceChange change) => change.message.startsWith('Import '),
+    );
     expect(change.edits, hasLength(1));
     expect(change.edits.first.edits, hasLength(1));
   }

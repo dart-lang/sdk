@@ -47,7 +47,9 @@ void testDowncastNoDirectAccess() {
 void testDowncastUntouchableElements() {
   // Iterable that definitely won't survive accessing element 3.
   var iterable = new Iterable<C?>.generate(
-      elements.length, (n) => n == 3 ? throw "untouchable" : elements[n]);
+    elements.length,
+    (n) => n == 3 ? throw "untouchable" : elements[n],
+  );
   var dIterable = Iterable.castFrom<C?, D?>(iterable);
 
   Expect.throws(() => dIterable.first);

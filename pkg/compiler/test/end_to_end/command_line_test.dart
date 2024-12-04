@@ -6,7 +6,7 @@
 
 import 'dart:async';
 
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler_api.dart' as api;

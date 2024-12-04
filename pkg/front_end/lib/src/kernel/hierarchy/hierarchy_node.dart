@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.class_hierarchy_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
@@ -57,15 +55,15 @@ abstract class HierarchyNodeBuilder {
 
   List<Supertype> _substSupertypes(
       TypeDeclarationType supertype, List<Supertype> supertypes) {
-    List<TypeParameter> typeVariables =
+    List<TypeParameter> typeParameters =
         supertype.typeDeclaration.typeParameters;
-    if (typeVariables.isEmpty) {
+    if (typeParameters.isEmpty) {
       return supertypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
     List<DartType> arguments = supertype.typeArguments;
-    for (int i = 0; i < typeVariables.length; i++) {
-      map[typeVariables[i]] = arguments[i];
+    for (int i = 0; i < typeParameters.length; i++) {
+      map[typeParameters[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
     List<Supertype>? result;
@@ -116,7 +114,7 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   String get _name => _classBuilder.name;
 
   @override
-  int get _fileOffset => _classBuilder.charOffset;
+  int get _fileOffset => _classBuilder.fileOffset;
 
   @override
   Uri get _fileUri => _classBuilder.fileUri;
@@ -402,7 +400,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   String get _name => _extensionTypeBuilder.name;
 
   @override
-  int get _fileOffset => _extensionTypeBuilder.charOffset;
+  int get _fileOffset => _extensionTypeBuilder.fileOffset;
 
   @override
   Uri get _fileUri => _extensionTypeBuilder.fileUri;
@@ -528,15 +526,15 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   List<ExtensionType> _substSuperExtensionTypes(
       ExtensionType superExtensionType,
       List<ExtensionType> superExtensionTypes) {
-    List<TypeParameter> typeVariables =
+    List<TypeParameter> typeParameters =
         superExtensionType.extensionTypeDeclaration.typeParameters;
-    if (typeVariables.isEmpty) {
+    if (typeParameters.isEmpty) {
       return superExtensionTypes;
     }
     Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
     List<DartType> arguments = superExtensionType.typeArguments;
-    for (int i = 0; i < typeVariables.length; i++) {
-      map[typeVariables[i]] = arguments[i];
+    for (int i = 0; i < typeParameters.length; i++) {
+      map[typeParameters[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
     List<ExtensionType>? result;

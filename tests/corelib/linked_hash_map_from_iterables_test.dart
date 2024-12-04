@@ -61,7 +61,9 @@ void equalElementsTest() {
 
 void genericTypeTest() {
   var map = new LinkedHashMap<int, String>.fromIterables(
-      [1, 2, 3], ["one", "two", "three"]);
+    [1, 2, 3],
+    ["one", "two", "three"],
+  );
   Expect.isTrue(map is Map<int, String>);
   Expect.isTrue(map is LinkedHashMap<int, String>);
 

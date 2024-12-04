@@ -20,7 +20,7 @@
 /// compilers differ.
 ///
 /// If your change causes an expectation to fail you should decide if the
-/// new result is desireable and update the expectation accordingly.
+/// new result is desirable and update the expectation accordingly.
 
 import 'package:expect/expect.dart';
 

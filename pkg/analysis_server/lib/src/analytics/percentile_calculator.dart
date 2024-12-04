@@ -40,8 +40,9 @@ class PercentileCalculator {
       return 0;
     }
     var targetIndex = _valueCount * percentile / 100;
-    var entries = _counts.entries.toList()
-      ..sort((first, second) => first.key.compareTo(second.key));
+    var entries =
+        _counts.entries.toList()
+          ..sort((first, second) => first.key.compareTo(second.key));
     // The number of values represented by walking the counts.
     var accumulation = 0;
     for (var i = 0; i < entries.length; i++) {

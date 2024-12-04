@@ -243,13 +243,15 @@ abstract final class SecurityContext {
         expectedLength += length;
       } else {
         throw new ArgumentError(
-            'Length of protocol must be between 1 and 255 (was: $length).');
+          'Length of protocol must be between 1 and 255 (was: $length).',
+        );
       }
     }
 
     if (expectedLength >= (1 << 13)) {
       throw new ArgumentError(
-          'The maximum message length supported is 2^13-1.');
+        'The maximum message length supported is 2^13-1.',
+      );
     }
 
     // Try encoding the `List<String> protocols` array using fast ASCII path.
@@ -278,14 +280,16 @@ abstract final class SecurityContext {
   }
 
   static Uint8List _protocolsToLengthEncodingNonAsciiBailout(
-      List<String> protocols) {
+    List<String> protocols,
+  ) {
     void addProtocol(List<int> outBytes, String protocol) {
       var protocolBytes = utf8.encode(protocol);
       var len = protocolBytes.length;
 
       if (len > 255) {
         throw new ArgumentError(
-            'Length of protocol must be between 1 and 255 (was: $len)');
+          'Length of protocol must be between 1 and 255 (was: $len)',
+        );
       }
       // Add length byte.
       outBytes.add(len);
@@ -301,7 +305,8 @@ abstract final class SecurityContext {
 
     if (bytes.length >= (1 << 13)) {
       throw new ArgumentError(
-          'The maximum message length supported is 2^13-1.');
+        'The maximum message length supported is 2^13-1.',
+      );
     }
 
     return new Uint8List.fromList(bytes);

@@ -9,11 +9,17 @@ import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 /// analysis options.
 void main() {
   var bulkFixCodes = registeredFixGenerators.lintProducers.entries
-      .where((e) => e.value
-          .where((generator) =>
-              generator(context: StubCorrectionProducerContext.instance)
-                  .canBeAppliedAcrossFiles)
-          .isNotEmpty)
+      .where(
+        (e) =>
+            e.value
+                .where(
+                  (generator) =>
+                      generator(
+                        context: StubCorrectionProducerContext.instance,
+                      ).canBeAppliedAcrossFiles,
+                )
+                .isNotEmpty,
+      )
       .map((e) => e.key);
   print('    # bulk-fixable lints');
   for (var lintName in bulkFixCodes) {

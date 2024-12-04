@@ -19,7 +19,7 @@ class MockCat extends core::Object implements self::Cat {
 class MockCat2 extends self::MockCat {
   synthetic constructor •() → self::MockCat2
     ;
-  abstract method noSuchMethod(core::Invocation _) → dynamic;
+  abstract method noSuchMethod(wildcard core::Invocation _#wc0#formal) → dynamic;
 }
 class MockCat3 extends self::MockCat2 implements self::Cat {
   synthetic constructor •() → self::MockCat3

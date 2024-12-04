@@ -281,8 +281,12 @@ abstract mixin class SetBase<E> implements Set<E> {
       if (skipCount == 0) return iterator.current;
       skipCount--;
     }
-    throw IndexError.withLength(index, index - skipCount,
-        indexable: this, name: "index");
+    throw IndexError.withLength(
+      index,
+      index - skipCount,
+      indexable: this,
+      name: "index",
+    );
   }
 
   /// Converts a [Set] to a [String].

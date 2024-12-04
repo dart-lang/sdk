@@ -647,7 +647,7 @@ abstract class CombinedMemberSignatureBase {
       type = member.type;
     } else {
       unhandled("${member.runtimeType}", "$member",
-          declarationBuilder.charOffset, declarationBuilder.fileUri);
+          declarationBuilder.fileOffset, declarationBuilder.fileUri);
     }
     if (member.enclosingTypeDeclaration!.typeParameters.isEmpty) {
       return type;

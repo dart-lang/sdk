@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "package:expect/expect.dart";
 
 class C {

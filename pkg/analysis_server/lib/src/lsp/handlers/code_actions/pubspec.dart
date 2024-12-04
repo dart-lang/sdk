@@ -61,8 +61,12 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
 
     var codeActions = <CodeActionWithPriority>[];
     for (var error in errors) {
-      var generator =
-          PubspecFixGenerator(resourceProvider, error, content, node);
+      var generator = PubspecFixGenerator(
+        resourceProvider,
+        error,
+        content,
+        node,
+      );
       var fixes = await generator.computeFixes();
       if (fixes.isEmpty) {
         continue;

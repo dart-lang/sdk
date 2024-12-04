@@ -48,10 +48,7 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     // Only assigned variable patterns can be safely converted to wildcards.
     if (references.any((r) => r is! AssignedVariablePattern)) return;
 
-    var sourceRanges = {
-      range.token(nameToken),
-      ...references.map(range.node),
-    };
+    var sourceRanges = {range.token(nameToken), ...references.map(range.node)};
     await builder.addDartFileEdit(file, (builder) {
       for (var sourceRange in sourceRanges) {
         builder.addSimpleReplacement(sourceRange, '_');

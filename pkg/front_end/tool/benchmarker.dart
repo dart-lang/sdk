@@ -100,12 +100,12 @@ void _help() {
   print("");
   print(r"out/ReleaseX64/dart-sdk/bin/dart \");
   print(r"  compile aot-snapshot \");
-  print(r"  pkg/front_end/tool/_fasta/compile.dart");
+  print(r"  pkg/front_end/tool/compile.dart");
   print("");
   print("then moving with e.g.");
   print("");
-  print(r"mv pkg/front_end/tool/_fasta/compile.aot \");
-  print(r"  pkg/front_end/tool/_fasta/compile.aot.1");
+  print(r"mv pkg/front_end/tool/compile.aot \");
+  print(r"  pkg/front_end/tool/compile.aot.1");
   print("");
   print("Then applying your code-change and compiling again,");
   print("this time moving to somewhere else (e.g. .2)");
@@ -114,9 +114,9 @@ void _help() {
   print("");
   print(r"out/ReleaseX64/dart pkg/front_end/tool/benchmarker.dart \");
   print(r"  --iterations=3 \");
-  print(r"  --snapshot=pkg/front_end/tool/_fasta/compile.aot.1 \");
-  print(r"  --snapshot=pkg/front_end/tool/_fasta/compile.aot.2 \");
-  print(r"  --arguments=pkg/front_end/tool/_fasta/compile.dart");
+  print(r"  --snapshot=pkg/front_end/tool/compile.aot.1 \");
+  print(r"  --snapshot=pkg/front_end/tool/compile.aot.2 \");
+  print(r"  --arguments=pkg/front_end/tool/compile.dart");
   print("");
   print("This will run the 2 snapshots 3 times each, each time asking it");
   print("to compile compile.dart, then do statistics on the data returned");

@@ -41,12 +41,13 @@ void checkMap(Map<String, dynamic> map) {
   map.addEntries(<MapEntry<String, dynamic>>[
     new MapEntry("y", 11),
     new MapEntry("v", 3),
-    new MapEntry("w", 4)
+    new MapEntry("w", 4),
   ]);
   checkEntries({"v": 3, "w": 4, "x": 0, "y": 11, "z": 2}, map);
 
-  var valueMap =
-      map.map<int, String>((key, value) => new MapEntry(value as int, key));
+  var valueMap = map.map<int, String>(
+    (key, value) => new MapEntry(value as int, key),
+  );
   checkEntries({0: "x", 2: "z", 3: "v", 4: "w", 11: "y"}, valueMap);
 }
 

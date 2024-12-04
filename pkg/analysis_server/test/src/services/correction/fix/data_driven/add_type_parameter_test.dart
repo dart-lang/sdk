@@ -477,25 +477,28 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
   /// Return the kind of element whose parameters are being modified.
   String get _kind;
 
-  Transform _add(int index,
-          {List<String>? components,
-          String? extendedType,
-          bool isStatic = false}) =>
-      Transform(
-          title: 'title',
-          date: DateTime.now(),
-          element: ElementDescriptor(
-              libraryUris: [Uri.parse(importUri)],
-              kind: ElementKindUtilities.fromName(_kind)!,
-              isStatic: isStatic,
-              components: components ?? ['m', 'C']),
-          bulkApply: false,
-          changesSelector: UnconditionalChangesSelector([
-            AddTypeParameter(
-                index: index,
-                name: 'T',
-                extendedType:
-                    extendedType == null ? null : codeTemplate(extendedType),
-                argumentValue: codeTemplate('String')),
-          ]));
+  Transform _add(
+    int index, {
+    List<String>? components,
+    String? extendedType,
+    bool isStatic = false,
+  }) => Transform(
+    title: 'title',
+    date: DateTime.now(),
+    element: ElementDescriptor(
+      libraryUris: [Uri.parse(importUri)],
+      kind: ElementKindUtilities.fromName(_kind)!,
+      isStatic: isStatic,
+      components: components ?? ['m', 'C'],
+    ),
+    bulkApply: false,
+    changesSelector: UnconditionalChangesSelector([
+      AddTypeParameter(
+        index: index,
+        name: 'T',
+        extendedType: extendedType == null ? null : codeTemplate(extendedType),
+        argumentValue: codeTemplate('String'),
+      ),
+    ]),
+  );
 }

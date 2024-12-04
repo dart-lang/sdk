@@ -15,8 +15,9 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_CASCADE;
@@ -84,7 +85,7 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
 }
 
 class _TargetAndOperator {
-  AstNode? target;
-  Token? operator;
+  final AstNode? target;
+  final Token? operator;
   _TargetAndOperator(this.target, this.operator);
 }

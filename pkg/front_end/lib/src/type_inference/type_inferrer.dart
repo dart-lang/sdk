@@ -91,7 +91,9 @@ class TypeInferrerImpl implements TypeInferrer {
           respectImplicitlyTypedVarInitializers:
               libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
           fieldPromotionEnabled:
-              libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled);
+              libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled,
+          inferenceUpdate4Enabled:
+              libraryBuilder.libraryFeatures.inferenceUpdate4.isEnabled);
 
   @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;

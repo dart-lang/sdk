@@ -32,11 +32,8 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(46, 9),
     ]);
   }
@@ -52,11 +49,8 @@ part of 'a.dart';
 void f(dynamic o) { }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(26, 9),
     ]);
   }
@@ -77,11 +71,8 @@ augment void f(int i) {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(54, 9),
     ]);
   }
@@ -103,13 +94,10 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(35, 9),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction() async {
@@ -125,13 +113,10 @@ part of 'a.dart';
 augment void f(dynamic o) { }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(23, 9),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction_multiple() async {
@@ -148,13 +133,10 @@ augment void f(dynamic o) { }
 augment void f(dynamic o) { }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(23, 9),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   // TODO(srawlins): Test parameter of function-typed typedef (both old and

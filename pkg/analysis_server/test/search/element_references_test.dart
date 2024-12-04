@@ -34,7 +34,8 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     expect(
       resultKinds,
       hasLength(code.ranges.length),
-      reason: "'resultsKinds' should have the same number of items as there "
+      reason:
+          "'resultsKinds' should have the same number of items as there "
           "are ranges in 'content'",
     );
 
@@ -42,25 +43,29 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     await findElementReferences(offset: code.position.offset, false);
 
     expect(searchElement!.kind, kind);
-    var expected = resultKinds.entries.map((entry) {
-      var index = entry.key;
-      var kind = entry.value;
-      var range = code.ranges[index].sourceRange;
-      return {
-        'kind': kind,
-        'path': testFile.path,
-        'range': range.offset,
-        'length': range.length,
-      };
-    }).toSet();
-    var actual = results
-        .map((result) => {
-              'kind': result.kind,
-              'path': result.location.file,
-              'range': result.location.offset,
-              'length': result.location.length,
-            })
-        .toSet();
+    var expected =
+        resultKinds.entries.map((entry) {
+          var index = entry.key;
+          var kind = entry.value;
+          var range = code.ranges[index].sourceRange;
+          return {
+            'kind': kind,
+            'path': testFile.path,
+            'range': range.offset,
+            'length': range.length,
+          };
+        }).toSet();
+    var actual =
+        results
+            .map(
+              (result) => {
+                'kind': result.kind,
+                'path': result.location.file,
+                'range': result.location.offset,
+                'length': result.location.length,
+              },
+            )
+            .toSet();
     expect(actual, equals(expected));
   }
 
@@ -75,11 +80,15 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     offset ??= findOffset(search!);
     await waitForTasksFinished();
     var request = SearchFindElementReferencesParams(
-            testFile.path, offset, includePotential)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+      testFile.path,
+      offset,
+      includePotential,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = SearchFindElementReferencesResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = SearchFindElementReferencesResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     searchId = result.id;
     searchElement = result.element;
     if (searchId != null) {
@@ -1075,10 +1084,7 @@ LIBRARY my_lib''');
   Future<void> test_pattern_assignment() async {
     await assertReferences(
       kind: ElementKind.PARAMETER,
-      resultKinds: {
-        0: SearchResultKind.WRITE,
-        1: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.WRITE, 1: SearchResultKind.READ},
       '''
 void f(String ^a, String b) {
   (b, /*[0*/a/*0]*/) = (/*[1*/a/*1]*/, b);
@@ -1090,9 +1096,7 @@ void f(String ^a, String b) {
   Future<void> test_pattern_assignment_list() async {
     await assertReferences(
       kind: ElementKind.PARAMETER,
-      resultKinds: {
-        0: SearchResultKind.WRITE,
-      },
+      resultKinds: {0: SearchResultKind.WRITE},
       '''
 void f(List<int> x, num ^a) {
   [/*[0*/a/*0]*/] = x;
@@ -1121,9 +1125,7 @@ class MyClass {}
   Future<void> test_pattern_cast_variable() async {
     await assertReferences(
       kind: ElementKind.LOCAL_VARIABLE,
-      resultKinds: {
-        0: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ},
       '''
 void f((num, String) record) {
   var (i as int, s^ as String) = record;
@@ -1136,9 +1138,7 @@ void f((num, String) record) {
   Future<void> test_pattern_map() async {
     await assertReferences(
       kind: ElementKind.LOCAL_VARIABLE,
-      resultKinds: {
-        0: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ},
       '''
 void f(x) {
   switch (x) {
@@ -1175,9 +1175,7 @@ class ^A {}
   Future<void> test_pattern_nullAssert() async {
     await assertReferences(
       kind: ElementKind.LOCAL_VARIABLE,
-      resultKinds: {
-        0: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ},
       '''
 void f((int?, int?) position) {
   var (x!, y^!) = position;
@@ -1190,9 +1188,7 @@ void f((int?, int?) position) {
   Future<void> test_pattern_nullCheck() async {
     await assertReferences(
       kind: ElementKind.LOCAL_VARIABLE,
-      resultKinds: {
-        0: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ},
       '''
 void f(String? maybeString) {
   switch (maybeString) {
@@ -1207,9 +1203,7 @@ void f(String? maybeString) {
   Future<void> test_pattern_object_field() async {
     await assertReferences(
       kind: ElementKind.FIELD,
-      resultKinds: {
-        0: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ},
       '''
 double calculateArea(Shape shape) =>
   switch (shape) {
@@ -1227,9 +1221,7 @@ class Square extends Shape {
   Future<void> test_pattern_object_fieldName_explicit() async {
     await assertReferences(
       kind: ElementKind.FIELD,
-      resultKinds: {
-        0: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ},
       '''
 double calculateArea(Object a) =>
   switch (a) {
@@ -1246,9 +1238,7 @@ class Square {
   Future<void> test_pattern_object_fieldName_implicit() async {
     await assertReferences(
       kind: ElementKind.FIELD,
-      resultKinds: {
-        0: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ},
       '''
 double calculateArea(Object a) =>
   switch (a) {
@@ -1265,9 +1255,7 @@ class Square {
   Future<void> test_pattern_object_typeName() async {
     await assertReferences(
       kind: ElementKind.CLASS,
-      resultKinds: {
-        0: SearchResultKind.REFERENCE,
-      },
+      resultKinds: {0: SearchResultKind.REFERENCE},
       '''
 double calculateArea(Object a) =>
   switch (a) {
@@ -1284,10 +1272,7 @@ class Sq^uare {
   Future<void> test_pattern_object_variable() async {
     await assertReferences(
       kind: ElementKind.LOCAL_VARIABLE,
-      resultKinds: {
-        0: SearchResultKind.READ,
-        1: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ, 1: SearchResultKind.READ},
       '''
 double calculateArea(Shape shape) =>
   switch (shape) {
@@ -1305,9 +1290,7 @@ class Square extends Shape {
   Future<void> test_pattern_record_fieldAssignment() async {
     await assertReferences(
       kind: ElementKind.PARAMETER,
-      resultKinds: {
-        0: SearchResultKind.WRITE,
-      },
+      resultKinds: {0: SearchResultKind.WRITE},
       '''
 void f(({int foo}) x, num ^a) {
   (foo: /*[0*/a/*0]*/,) = x;
@@ -1319,9 +1302,7 @@ void f(({int foo}) x, num ^a) {
   Future<void> test_pattern_relational_variable() async {
     await assertReferences(
       kind: ElementKind.LOCAL_VARIABLE,
-      resultKinds: {
-        0: SearchResultKind.READ,
-      },
+      resultKinds: {0: SearchResultKind.READ},
       '''
 String f(int char) {
   const ze^ro = 0;

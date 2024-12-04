@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,9 +20,7 @@ class FlutterTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_enclosingWidgetExpression_node_instanceCreation() async {
@@ -117,7 +115,7 @@ Text createEmptyText() => Text('');
   }
 
   Future<void>
-      test_enclosingWidgetExpression_node_prefixedIdentifier_identifier() async {
+  test_enclosingWidgetExpression_node_prefixedIdentifier_identifier() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -136,7 +134,7 @@ void f(Foo foo) {
   }
 
   Future<void>
-      test_enclosingWidgetExpression_node_prefixedIdentifier_prefix() async {
+  test_enclosingWidgetExpression_node_prefixedIdentifier_prefix() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -217,7 +215,7 @@ void useWidget(Widget w) {}
   }
 
   Future<void>
-      test_enclosingWidgetExpression_parent_assignmentExpression() async {
+  test_enclosingWidgetExpression_parent_assignmentExpression() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -248,7 +246,7 @@ void useWidget(Widget w) {}
   }
 
   Future<void>
-      test_enclosingWidgetExpression_parent_conditionalExpression() async {
+  test_enclosingWidgetExpression_parent_conditionalExpression() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -264,7 +262,7 @@ void f(bool condition, Widget w1, Widget w2) {
   }
 
   Future<void>
-      test_enclosingWidgetExpression_parent_expressionFunctionBody() async {
+  test_enclosingWidgetExpression_parent_expressionFunctionBody() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -275,7 +273,7 @@ void f(Widget widget) => widget; // ref
   }
 
   Future<void>
-      test_enclosingWidgetExpression_parent_expressionStatement() async {
+  test_enclosingWidgetExpression_parent_expressionStatement() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -443,19 +441,20 @@ class MyContainer extends Container {}
 class NotFlutter {}
 class NotWidget extends State {}
 ''');
-    var myStatelessWidget = testUnitElement.getClass('MyStatelessWidget');
+
+    var myStatelessWidget = findElement2.class_('MyStatelessWidget');
     expect(myStatelessWidget.isWidget, isTrue);
 
-    var myStatefulWidget = testUnitElement.getClass('MyStatefulWidget');
+    var myStatefulWidget = findElement2.class_('MyStatefulWidget');
     expect(myStatefulWidget.isWidget, isTrue);
 
-    var myContainer = testUnitElement.getClass('MyContainer');
+    var myContainer = findElement2.class_('MyContainer');
     expect(myContainer.isWidget, isTrue);
 
-    var notFlutter = testUnitElement.getClass('NotFlutter');
+    var notFlutter = findElement2.class_('NotFlutter');
     expect(notFlutter.isWidget, isFalse);
 
-    var notWidget = testUnitElement.getClass('NotWidget');
+    var notWidget = findElement2.class_('NotWidget');
     expect(notWidget.isWidget, isFalse);
   }
 
@@ -551,8 +550,10 @@ Text createEmptyText() => new Text('');
     fail('Not found $name in $unit');
   }
 
-  InstanceCreationExpression _getTopVariableCreation(String name,
-      [CompilationUnit? unit]) {
+  InstanceCreationExpression _getTopVariableCreation(
+    String name, [
+    CompilationUnit? unit,
+  ]) {
     return _getTopVariable(name, unit).initializer
         as InstanceCreationExpression;
   }

@@ -5,8 +5,11 @@
 part of dart.async;
 
 /// Runs user code and takes actions depending on success or failure.
-_runUserCode<T>(T userCode(), onSuccess(T value),
-    onError(Object error, StackTrace stackTrace)) {
+_runUserCode<T>(
+  T userCode(),
+  onSuccess(T value),
+  onError(Object error, StackTrace stackTrace),
+) {
   try {
     onSuccess(userCode());
   } catch (error, stackTrace) {
@@ -21,8 +24,12 @@ _runUserCode<T>(T userCode(), onSuccess(T value),
 
 /** Helper function to cancel a subscription and wait for the potential future,
   before completing with an error. */
-void _cancelAndError(StreamSubscription subscription, _Future future,
-    Object error, StackTrace stackTrace) {
+void _cancelAndError(
+  StreamSubscription subscription,
+  _Future future,
+  Object error,
+  StackTrace stackTrace,
+) {
   var cancelFuture = subscription.cancel();
   if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._completeError(error, stackTrace));
@@ -31,8 +38,12 @@ void _cancelAndError(StreamSubscription subscription, _Future future,
   }
 }
 
-void _cancelAndErrorWithReplacement(StreamSubscription subscription,
-    _Future future, Object error, StackTrace stackTrace) {
+void _cancelAndErrorWithReplacement(
+  StreamSubscription subscription,
+  _Future future,
+  Object error,
+  StackTrace stackTrace,
+) {
   AsyncError? replacement = _interceptError(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
@@ -43,7 +54,9 @@ void _cancelAndErrorWithReplacement(StreamSubscription subscription,
 
 /// Helper function to make an onError argument to [_runUserCode].
 void Function(Object error, StackTrace stackTrace) _cancelAndErrorClosure(
-    StreamSubscription subscription, _Future future) {
+  StreamSubscription subscription,
+  _Future future,
+) {
   return (Object error, StackTrace stackTrace) {
     _cancelAndError(subscription, future, error, stackTrace);
   };
@@ -74,15 +87,28 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
 
   bool get isBroadcast => _source.isBroadcast;
 
-  StreamSubscription<T> listen(void onData(T value)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<T> listen(
+    void onData(T value)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  }) {
     return _createSubscription(onData, onError, onDone, cancelOnError ?? false);
   }
 
-  StreamSubscription<T> _createSubscription(void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError) {
+  StreamSubscription<T> _createSubscription(
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) {
     return new _ForwardingStreamSubscription<S, T>(
-        this, onData, onError, onDone, cancelOnError);
+      this,
+      onData,
+      onError,
+      onDone,
+      cancelOnError,
+    );
   }
 
   // Override the following methods in subclasses to change the behavior.
@@ -105,11 +131,18 @@ class _ForwardingStreamSubscription<S, T>
 
   StreamSubscription<S>? _subscription;
 
-  _ForwardingStreamSubscription(this._stream, void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError)
-      : super(onData, onError, onDone, cancelOnError) {
-    _subscription = _stream._source
-        .listen(_handleData, onError: _handleError, onDone: _handleDone);
+  _ForwardingStreamSubscription(
+    this._stream,
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) : super(onData, onError, onDone, cancelOnError) {
+    _subscription = _stream._source.listen(
+      _handleData,
+      onError: _handleError,
+      onDone: _handleDone,
+    );
   }
 
   // _StreamSink interface.
@@ -165,7 +198,10 @@ class _ForwardingStreamSubscription<S, T>
 // -------------------------------------------------------------------
 
 void _addErrorWithReplacement(
-    _EventSink sink, Object error, StackTrace stackTrace) {
+  _EventSink sink,
+  Object error,
+  StackTrace stackTrace,
+) {
   var replacement = _interceptError(error, stackTrace);
   if (replacement != null) {
     error = replacement.error;
@@ -178,8 +214,8 @@ class _WhereStream<T> extends _ForwardingStream<T, T> {
   final bool Function(T) _test;
 
   _WhereStream(Stream<T> source, bool test(T value))
-      : _test = test,
-        super(source);
+    : _test = test,
+      super(source);
 
   void _handleData(T inputEvent, _EventSink<T> sink) {
     bool satisfies;
@@ -202,8 +238,8 @@ class _MapStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, T> _transform;
 
   _MapStream(Stream<S> source, T transform(S event))
-      : this._transform = transform,
-        super(source);
+    : this._transform = transform,
+      super(source);
 
   void _handleData(S inputEvent, _EventSink<T> sink) {
     T outputEvent;
@@ -222,8 +258,8 @@ class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, Iterable<T>> _expand;
 
   _ExpandStream(Stream<S> source, Iterable<T> expand(S event))
-      : this._expand = expand,
-        super(source);
+    : this._expand = expand,
+      super(source);
 
   void _handleData(S inputEvent, _EventSink<T> sink) {
     try {
@@ -245,7 +281,7 @@ class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
   final bool Function(Object)? _test;
 
   _HandleErrorStream(Stream<T> source, this._onError, this._test)
-      : super(source);
+    : super(source);
 
   void _handleData(T data, _EventSink<T> sink) {
     sink._add(data);
@@ -282,18 +318,26 @@ class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
 class _TakeStream<T> extends _ForwardingStream<T, T> {
   final int _count;
 
-  _TakeStream(Stream<T> source, int count)
-      : this._count = count,
-        super(source);
+  _TakeStream(Stream<T> source, int count) : this._count = count, super(source);
 
-  StreamSubscription<T> _createSubscription(void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError) {
+  StreamSubscription<T> _createSubscription(
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) {
     if (_count == 0) {
       _source.listen(null).cancel();
       return new _DoneStreamSubscription<T>(onDone);
     }
     return new _StateStreamSubscription<int, T>(
-        this, onData, onError, onDone, cancelOnError, _count);
+      this,
+      onData,
+      onError,
+      onDone,
+      cancelOnError,
+      _count,
+    );
   }
 
   void _handleData(T inputEvent, _EventSink<T> sink) {
@@ -319,17 +363,22 @@ class _StateStreamSubscription<S, T>
     extends _ForwardingStreamSubscription<T, T> {
   S _subState;
 
-  _StateStreamSubscription(_ForwardingStream<T, T> stream, void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError, this._subState)
-      : super(stream, onData, onError, onDone, cancelOnError);
+  _StateStreamSubscription(
+    _ForwardingStream<T, T> stream,
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+    this._subState,
+  ) : super(stream, onData, onError, onDone, cancelOnError);
 }
 
 class _TakeWhileStream<T> extends _ForwardingStream<T, T> {
   final bool Function(T) _test;
 
   _TakeWhileStream(Stream<T> source, bool test(T value))
-      : this._test = test,
-        super(source);
+    : this._test = test,
+      super(source);
 
   void _handleData(T inputEvent, _EventSink<T> sink) {
     bool satisfies;
@@ -353,17 +402,27 @@ class _SkipStream<T> extends _ForwardingStream<T, T> {
   final int _count;
 
   _SkipStream(Stream<T> source, int count)
-      : this._count = count,
-        super(source) {
+    : this._count = count,
+      super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
     RangeError.checkNotNegative(count, "count");
   }
 
-  StreamSubscription<T> _createSubscription(void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError) {
+  StreamSubscription<T> _createSubscription(
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) {
     return new _StateStreamSubscription<int, T>(
-        this, onData, onError, onDone, cancelOnError, _count);
+      this,
+      onData,
+      onError,
+      onDone,
+      cancelOnError,
+      _count,
+    );
   }
 
   void _handleData(T inputEvent, _EventSink<T> sink) {
@@ -381,13 +440,23 @@ class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
   final bool Function(T) _test;
 
   _SkipWhileStream(Stream<T> source, bool test(T value))
-      : this._test = test,
-        super(source);
+    : this._test = test,
+      super(source);
 
-  StreamSubscription<T> _createSubscription(void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError) {
+  StreamSubscription<T> _createSubscription(
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) {
     return new _StateStreamSubscription<bool, T>(
-        this, onData, onError, onDone, cancelOnError, false);
+      this,
+      onData,
+      onError,
+      onDone,
+      cancelOnError,
+      false,
+    );
   }
 
   void _handleData(T inputEvent, _EventSink<T> sink) {
@@ -419,13 +488,23 @@ class _DistinctStream<T> extends _ForwardingStream<T, T> {
   final bool Function(T, T)? _equals;
 
   _DistinctStream(Stream<T> source, bool equals(T a, T b)?)
-      : _equals = equals,
-        super(source);
+    : _equals = equals,
+      super(source);
 
-  StreamSubscription<T> _createSubscription(void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError) {
+  StreamSubscription<T> _createSubscription(
+    void onData(T data)?,
+    Function? onError,
+    void onDone()?,
+    bool cancelOnError,
+  ) {
     return new _StateStreamSubscription<Object?, T>(
-        this, onData, onError, onDone, cancelOnError, _SENTINEL);
+      this,
+      onData,
+      onError,
+      onDone,
+      cancelOnError,
+      _SENTINEL,
+    );
   }
 
   void _handleData(T inputEvent, _EventSink<T> sink) {

@@ -77,9 +77,7 @@ class SortChildPropertyLastTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   /// More coverage in the `sort_child_properties_last_test.dart` assist test.

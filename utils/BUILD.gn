@@ -47,7 +47,7 @@ template("aot_compile_using_prebuilt_sdk") {
 }
 
 aot_compile_using_prebuilt_sdk("compile_platform.exe") {
-  entry_point = "$_dart_root/pkg/front_end/tool/_fasta/compile_platform.dart"
+  entry_point = "$_dart_root/pkg/front_end/tool/compile_platform.dart"
   output = "$root_out_dir/compile_platform.exe"
   package_config = "$_dart_root/.dart_tool/package_config.json"
 }

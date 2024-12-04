@@ -34,8 +34,9 @@ class AddReopen extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.startLength(token, 0), (builder) {
         builder.write('@');
-        builder
-            .writeImportedName([Uri.parse('package:meta/meta.dart')], 'reopen');
+        builder.writeImportedName([
+          Uri.parse('package:meta/meta.dart'),
+        ], 'reopen');
         builder.writeln();
       });
     });

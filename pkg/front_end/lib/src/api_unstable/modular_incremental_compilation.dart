@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
 import 'package:kernel/target/targets.dart' show Target;
 import 'package:macros/src/executor/serialization.dart' show SerializationMode;
@@ -212,7 +214,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           throw new StateError("Expected to get digest for $additionalDillUri");
         }
 
-        List<int> bytes =
+        Uint8List bytes =
             await fileSystem.entityForUri(additionalDillUri).readAsBytes();
         WorkerInputComponent cachedInput = new WorkerInputComponent(
             digest,

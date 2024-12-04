@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import "package:async_helper/async_minitest.dart";
+import "package:expect/legacy/async_minitest.dart"; // ignore: deprecated_member_use
 
 /// Tests for exceptions raised in async*
 main() {

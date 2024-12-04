@@ -84,6 +84,23 @@ void f() {
     _expectSdkCoreType(result, 'String');
   }
 
+  Future<void> test_getter_synthetic() async {
+    var code = TestCode.parse('''
+class A {
+  String aaa = '';
+}
+
+void f() {
+  final a = A();
+  print(a.[!a^aa!]);
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
   Future<void> test_intLiteral() async {
     var code = TestCode.parse('''
 const a = [!12^3!];
@@ -128,8 +145,10 @@ const a = '^';
 
     newFile(pubspecFilePath, code.code);
     await initialize();
-    var results =
-        await getTypeDefinitionAsLocation(mainFileUri, code.position.position);
+    var results = await getTypeDefinitionAsLocation(
+      mainFileUri,
+      code.position.position,
+    );
     expect(results, isEmpty);
   }
 
@@ -436,10 +455,7 @@ void f() {
     expect(range.end.line, isPositive);
     // Expect a single line, with the length matching `name`.
     expect(range.start.line, range.end.line);
-    expect(
-      range.end.character - range.start.character,
-      name.length,
-    );
+    expect(range.end.character - range.start.character, name.length);
   }
 
   /// Expects [range] looks consistent with a range of an elements code.
@@ -456,15 +472,20 @@ void f() {
   Future<Location> _getLocationResult(TestCode code) async {
     await initialize();
     await openFile(mainFileUri, code.code);
-    var results =
-        await getTypeDefinitionAsLocation(mainFileUri, code.position.position);
+    var results = await getTypeDefinitionAsLocation(
+      mainFileUri,
+      code.position.position,
+    );
     return results.single;
   }
 
   /// Advertises support for the LSP LocationLink type and gets the type
   /// definition using that.
-  Future<LocationLink> _getResult(TestCode code,
-      {Uri? fileUri, bool inOpenFile = true}) async {
+  Future<LocationLink> _getResult(
+    TestCode code, {
+    Uri? fileUri,
+    bool inOpenFile = true,
+  }) async {
     fileUri ??= mainFileUri;
     await initialize();
     if (inOpenFile) {

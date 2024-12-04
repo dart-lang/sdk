@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class UnnecessaryNullCheckPatternTest extends PubPackageResolutionTest {
-  test_interfaceType_nonNullable() async {
+  Future<void> test_interfaceType_nonNullable() async {
     await assertErrorsInCode('''
 void f(int x) {
   if (x case var a?) {}
@@ -26,7 +26,7 @@ void f(int x) {
     ]);
   }
 
-  test_interfaceType_nullable() async {
+  Future<void> test_interfaceType_nullable() async {
     await assertErrorsInCode('''
 void f(int? x) {
   if (x case var a?) {}
@@ -36,7 +36,34 @@ void f(int? x) {
     ]);
   }
 
-  test_typeParameter_nonNullable() async {
+  Future<void> test_invalidType_nonNullable() async {
+    await assertErrorsInCode('''
+UnknownType getValue() => UnknownType();
+void f() {
+  if (getValue() case final valueX?) {
+    print(valueX);
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 11),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 26, 11),
+    ]);
+  }
+
+  Future<void> test_invalidType_nullable() async {
+    await assertErrorsInCode('''
+UnknownType? getValue() => null;
+void f() {
+  if (getValue() case final valueX?) {
+    print(valueX);
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 11),
+    ]);
+  }
+
+  Future<void> test_typeParameter_nonNullable() async {
     await assertErrorsInCode('''
 class A<T extends num> {
   void f(T x) {
@@ -49,7 +76,7 @@ class A<T extends num> {
     ]);
   }
 
-  test_typeParameter_nullable() async {
+  Future<void> test_typeParameter_nullable() async {
     await assertErrorsInCode('''
 class A<T> {
   void f(T x) {

@@ -141,8 +141,7 @@ class B extends A {
   void m(int q) {}
 }
 ''');
-    var result = await resolveFile(lib.path);
-    await assertNoDiagnosticsIn(result.errors);
+    await assertNoDiagnosticsInFile(lib.path);
   }
 
   test_positional_sameName() async {

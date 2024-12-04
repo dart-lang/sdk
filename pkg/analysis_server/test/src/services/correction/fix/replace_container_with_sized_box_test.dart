@@ -24,9 +24,7 @@ class ReplaceContainedWithSizedBoxMultiTest extends BulkFixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_singleFile() async {
@@ -72,9 +70,7 @@ class ReplaceContainedWithSizedBoxTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_simple() async {

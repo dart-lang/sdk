@@ -88,11 +88,13 @@ import 'package:test1/foo.dart';
 import 'package:test/foo';
 ''');
 
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'foo';
 ''',
-        errorFilter: (error) =>
-            error.errorCode != CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+      errorFilter:
+          (error) => error.errorCode != CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+    );
   }
 
   Future<void> test_relativeImportRespectQuoteStyle() async {

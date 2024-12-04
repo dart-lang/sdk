@@ -6,7 +6,7 @@ library KeyboardEventTest;
 
 import 'dart:html';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 // Test that we are correctly determining keyCode and charCode uniformly across
 // browsers.

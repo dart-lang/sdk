@@ -6,6 +6,7 @@ import 'dart:_foreign_helper' show JS, JS_GET_NAME, TYPE_REF;
 import 'dart:_js_shared_embedded_names' show JsGetName;
 import 'dart:_rti' as rti;
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 import 'subtype_utils.dart';
 
@@ -78,7 +79,7 @@ void testTopTypes() {
 }
 
 void testNull() {
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     unrelated(nullName, 'int');
     unrelated(nullName, 'Iterable<CodeUnits>');
     unrelated(nullName, objectName);
@@ -93,7 +94,7 @@ void testNull() {
 
 void testBottom() {
   String never = '0&';
-  if (hasSoundNullSafety) {
+  if (!unsoundNullSafety) {
     strictSubtype(never, nullName);
   } else {
     equivalent(never, nullName);

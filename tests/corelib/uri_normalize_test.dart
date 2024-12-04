@@ -13,7 +13,8 @@ testNormalizePath() {
     }
   }
 
-  var unreserved = "-._~0123456789"
+  var unreserved =
+      "-._~0123456789"
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz";
 
@@ -34,8 +35,10 @@ testNormalizePath() {
       x.write(i.toRadixString(16));
     }
   }
-  Expect.equals(x.toString().toUpperCase(),
-      new Uri(path: x.toString()).toString().toUpperCase());
+  Expect.equals(
+    x.toString().toUpperCase(),
+    new Uri(path: x.toString()).toString().toUpperCase(),
+  );
 
   // Normalized paths.
 
@@ -136,10 +139,11 @@ class NonCanonicalizingUri implements Uri {
 
   List<String> get pathSegments => path.split("/");
 
-  String toString() => "${hasScheme ? "$scheme:" : ""}"
+  String toString() =>
+      "${hasScheme ? "$scheme:" : ""}"
       "${hasAuthority ? "//${hasUserInfo ? "$userInfo@" : ""}"
-          "$host"
-          "${hasPort ? ":$port" : ""}" : ""}"
+              "$host"
+              "${hasPort ? ":$port" : ""}" : ""}"
       "$path${hasQuery ? "?$query" : ""}${hasFragment ? "#$fragment" : ""}";
 
   int get hashCode => toString().hashCode;

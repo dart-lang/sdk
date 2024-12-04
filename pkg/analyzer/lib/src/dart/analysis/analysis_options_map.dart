@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/dart/analysis/analysis_options.dart';
+library;
+
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 
 /// Instances of the class [AnalysisOptionsMap] map [File]s under analysis to
 /// their corresponding [AnalysisOptions].

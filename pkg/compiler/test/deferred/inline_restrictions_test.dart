@@ -5,9 +5,9 @@
 // Test that we do not accidentally leak code from deferred libraries but do
 // allow inlining of empty functions and from main.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/compiler.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 

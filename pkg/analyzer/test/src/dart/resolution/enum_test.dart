@@ -57,7 +57,7 @@ GenericFunctionType
       type: NamedType
         name: double
         element: dart:core::<fragment>::@class::double
-        element2: dart:core::<fragment>::@class::double#element
+        element2: dart:core::@class::double
         type: double
       declaredElement: @-1
         type: double
@@ -161,7 +161,7 @@ EnumConstantDeclaration
         NamedType
           name: double
           element: dart:core::<fragment>::@class::double
-          element2: dart:core::<fragment>::@class::double#element
+          element2: dart:core::@class::double
           type: double
       rightBracket: >
     constructorSelector: ConstructorSelector
@@ -398,7 +398,7 @@ enum E2 {a, b}
 var v = [E1.a, E2.b];
 ''');
 
-    var v = findElement.topVar('v');
+    var v = findElement2.topVar('v');
     assertType(v.type, 'List<Enum>');
   }
 
@@ -418,7 +418,7 @@ ImplementsClause
     NamedType
       name: I
       element: <testLibraryFragment>::@class::I
-      element2: <testLibraryFragment>::@class::I#element
+      element2: <testLibrary>::@class::I
       type: I
 ''');
   }
@@ -430,10 +430,10 @@ enum E {
 }
 ''');
 
-    expect(findElement.field('a').isEnumConstant, isTrue);
-    expect(findElement.field('b').isEnumConstant, isTrue);
+    expect(findElement2.field('a').isEnumConstant, isTrue);
+    expect(findElement2.field('b').isEnumConstant, isTrue);
 
-    expect(findElement.field('values').isEnumConstant, isFalse);
+    expect(findElement2.field('values').isEnumConstant, isFalse);
   }
 
   test_method() async {
@@ -450,7 +450,7 @@ MethodDeclaration
   returnType: NamedType
     name: int
     element: dart:core::<fragment>::@class::int
-    element2: dart:core::<fragment>::@class::int#element
+    element2: dart:core::@class::int
     type: int
   name: foo
   typeParameters: TypeParameterList
@@ -506,7 +506,7 @@ MethodDeclaration
   returnType: NamedType
     name: String
     element: dart:core::<fragment>::@class::String
-    element2: dart:core::<fragment>::@class::String#element
+    element2: dart:core::@class::String
     type: String
   name: toString
   parameters: FormalParameterList
@@ -538,7 +538,7 @@ WithClause
     NamedType
       name: M
       element: <testLibraryFragment>::@mixin::M
-      element2: <testLibraryFragment>::@mixin::M#element
+      element2: <testLibrary>::@mixin::M
       type: M
 ''');
   }
@@ -565,16 +565,16 @@ WithClause
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@mixin::M1
-      element2: <testLibraryFragment>::@mixin::M1#element
+      element2: <testLibrary>::@mixin::M1
       type: M1<int>
     NamedType
       name: M2
       element: <testLibraryFragment>::@mixin::M2
-      element2: <testLibraryFragment>::@mixin::M2#element
+      element2: <testLibrary>::@mixin::M2
       type: M2<int>
 ''');
   }
@@ -629,7 +629,7 @@ PropertyAccess
     prefix: SimpleIdentifier
       token: E
       staticElement: <testLibraryFragment>::@enum::E
-      element: <testLibraryFragment>::@enum::E#element
+      element: <testLibrary>::@enum::E
       staticType: null
     period: .
     identifier: SimpleIdentifier

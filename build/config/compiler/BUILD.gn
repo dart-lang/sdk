@@ -250,13 +250,7 @@ config("compiler") {
   }
 
   if (is_android || is_linux || is_mac || is_ios || is_fuchsia) {
-    if (use_flutter_cxx) {
-      # shared_library_config isn't transitive, so we don't automatically get
-      # another versions of libcxx with and without -fPIC. Properly setting this
-      # up so only shard libraries pay the extra cost fPIC over fPIE means
-      # something like separate GN toolchains like in the Fuchsia GN build. For
-      # now, globally enabling fPIC is okay because it is limited to test-only
-      # builds.
+    if (is_shared_library) {
       cflags += [ "-fPIC" ]
       ldflags += [ "-fPIC" ]
     } else {
@@ -327,10 +321,10 @@ config("compiler") {
     cc_std = [
       # This option fixes the value of the __cplusplus macro when using MSVC.
       "/Zc:__cplusplus",
-      "/std:c++17",
+      "/std:c++20",
     ]
   } else {
-    cc_std = [ "-std=c++17" ]
+    cc_std = [ "-std=c++20" ]
   }
   cflags_cc += cc_std
   cflags_objcc += cc_std
@@ -433,10 +427,10 @@ config("compiler") {
 config("cxx_version_default") {
   if (is_win) {
     cflags_c = [ "/std:c17" ]
-    cc_std = [ "/std:c++17" ]
+    cc_std = [ "/std:c++20" ]
   } else {
     cflags_c = [ "-std=c17" ]
-    cc_std = [ "-std=c++17" ]
+    cc_std = [ "-std=c++20" ]
   }
   cflags_cc = cc_std
   cflags_objcc = cc_std
@@ -480,10 +474,10 @@ config("cxx_version_17") {
 
 config("cxx_version_20") {
   if (is_win) {
-    cflags_c = [ "/std:c20" ]
+    cflags_c = [ "/std:c17" ]
     cc_std = [ "/std:c++20" ]
   } else {
-    cflags_c = [ "-std=c20" ]
+    cflags_c = [ "-std=c17" ]
     cc_std = [ "-std=c++20" ]
   }
   cflags_cc = cc_std
@@ -915,4 +909,8 @@ config("symbols") {
       "-ggdb3",
     ]
   }
+}
+
+config("dart_shared_lib") {
+  defines = [ "DART_SHARED_LIB" ]
 }

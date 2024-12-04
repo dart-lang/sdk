@@ -26,7 +26,11 @@ void applyMixin(@notNull Object to, @notNull Object from) {
   var mixinOnFn = JS('', '#[#]', from, mixinOn);
   if (mixinOnFn != null) {
     var proto = JS<Object>(
-        '!', '#(#).prototype', mixinOnFn, jsObjectGetPrototypeOf(to));
+      '!',
+      '#(#).prototype',
+      mixinOnFn,
+      jsObjectGetPrototypeOf(to),
+    );
     _copyMembers(toProto, proto);
   }
 }
@@ -41,7 +45,10 @@ void _copyMembers(@notNull Object to, @notNull Object from) {
 }
 
 void _copyMember(
-    @notNull Object to, @notNull Object from, @notNull Object name) {
+  @notNull Object to,
+  @notNull Object from,
+  @notNull Object name,
+) {
   var desc = getOwnPropertyDescriptor(from, name);
   if (JS('!', '# == Symbol.iterator', name)) {
     // On native types, Symbol.iterator may already be present.
@@ -61,18 +68,34 @@ void _copyMember(
   if (getter != null) {
     if (setter == null) {
       var obj = JS<Object>(
-          '!', '{ set [#](x) { return super[#] = x; } }', name, name);
+        '!',
+        '{ set [#](x) { return super[#] = x; } }',
+        name,
+        name,
+      );
       jsObjectSetPrototypeOf(obj, jsObjectGetPrototypeOf(to));
       JS<Object>(
-          '!', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
+        '!',
+        '#.set = #.set',
+        desc,
+        getOwnPropertyDescriptor(obj, name),
+      );
     }
   } else if (setter != null) {
     if (getter == null) {
-      var obj =
-          JS<Object>('!', '{ get [#]() { return super[#]; } }', name, name);
+      var obj = JS<Object>(
+        '!',
+        '{ get [#]() { return super[#]; } }',
+        name,
+        name,
+      );
       jsObjectSetPrototypeOf(obj, jsObjectGetPrototypeOf(to));
       JS<Object>(
-          '!', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
+        '!',
+        '#.get = #.get',
+        desc,
+        getOwnPropertyDescriptor(obj, name),
+      );
     }
   }
   defineProperty(to, name, desc);
@@ -93,8 +116,14 @@ void _mixinSignature(@notNull Object to, @notNull Object from, kind) {
 
 final _mixin = JS('', 'Symbol("mixin")');
 
-getMixin(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
-    clazz, _mixin, clazz, _mixin);
+getMixin(clazz) => JS(
+  '',
+  'Object.hasOwnProperty.call(#, #) ? #[#] : null',
+  clazz,
+  _mixin,
+  clazz,
+  _mixin,
+);
 
 final mixinOn = JS('', 'Symbol("mixinOn")');
 
@@ -140,8 +169,13 @@ getTypeSignatureContainer(obj) {
   // Object.create(null) produces a js object without a prototype.
   // In that case use the native Object constructor.
   var constructor = JS('!', '#.constructor', obj);
-  return JS('!', '# ? # : #.Object.prototype.constructor', constructor,
-      constructor, global_);
+  return JS(
+    '!',
+    '# ? # : #.Object.prototype.constructor',
+    constructor,
+    constructor,
+    global_,
+  );
 }
 
 getLibraryUri(value) => JS('', '#[#]', value, _libraryUri);
@@ -162,9 +196,10 @@ String getClassName(Object? cls) {
 /// Returns the class of the instance [obj].
 ///
 /// The passed [obj] is expected to have a Dart class representation.
-Object getClass(obj) => _jsInstanceOf(obj, Object)
-    ? JS('', '#.constructor', obj)
-    : JS('', '#[#]', obj, _extensionType);
+Object getClass(obj) =>
+    _jsInstanceOf(obj, Object)
+        ? JS('', '#.constructor', obj)
+        : JS('', '#[#]', obj, _extensionType);
 
 bool isJsInterop(obj) {
   if (obj == null) return false;
@@ -207,14 +242,22 @@ getMethodType(obj, name) {
 /// Returns the default type argument values for the instance method [name].
 JSArray<Object> getMethodDefaultTypeArgs(obj, name) {
   var typeSigHolder = getTypeSignatureContainer(obj);
-  var typeArgsOrFunction =
-      JS<Object>('', '#[#]', getMethodsDefaultTypeArgs(typeSigHolder), name);
+  var typeArgsOrFunction = JS<Object>(
+    '',
+    '#[#]',
+    getMethodsDefaultTypeArgs(typeSigHolder),
+    name,
+  );
   if (JS<bool>('!', 'typeof # == "function"', typeArgsOrFunction)) {
     // Signatures for generic types are resolved at runtime.
     // A JS function here indicates that this signature has not yet been bound
     // to an instance.
-    typeArgsOrFunction =
-        JS<Object>('', '#(#)', typeArgsOrFunction, rti.instanceType(obj));
+    typeArgsOrFunction = JS<Object>(
+      '',
+      '#(#)',
+      typeArgsOrFunction,
+      rti.instanceType(obj),
+    );
   }
   return JS<JSArray<Object>>('', '#', typeArgsOrFunction);
 }
@@ -363,12 +406,16 @@ void _applyExtension(jsType, dartExtType) {
   if (JS('!', '# === #.Object', jsType, global_)) {
     var extName = JS<String>('!', '#.name', dartExtType);
     _warn(
-        "Attempting to install properties from non-Object type '$extName' onto the native JS Object.");
+      "Attempting to install properties from non-Object type '$extName' onto the native JS Object.",
+    );
     return;
   }
 
   _installProperties(
-      jsProto, dartExtType, JS('', '#[#]', jsProto, _extensionType));
+    jsProto,
+    dartExtType,
+    JS('', '#[#]', jsProto, _extensionType),
+  );
 
   // Mark the JS type's instances so we can easily check for extensions.
   if (JS('!', '# !== #', dartExtType, JS_CLASS_REF(JSFunction))) {
@@ -377,8 +424,14 @@ void _applyExtension(jsType, dartExtType) {
 
   // Attach member signature tags.
   JS('', '#[#] = #[#]', jsType, _methodSig, dartExtType, _methodSig);
-  JS('', '#[#] = #[#]', jsType, _methodsDefaultTypeArgSig, dartExtType,
-      _methodsDefaultTypeArgSig);
+  JS(
+    '',
+    '#[#] = #[#]',
+    jsType,
+    _methodsDefaultTypeArgSig,
+    dartExtType,
+    _methodsDefaultTypeArgSig,
+  );
   JS('', '#[#] = #[#]', jsType, _fieldSig, dartExtType, _fieldSig);
   JS('', '#[#] = #[#]', jsType, _getterSig, dartExtType, _getterSig);
   JS('', '#[#] = #[#]', jsType, _setterSig, dartExtType, _setterSig);
@@ -395,8 +448,13 @@ applyExtension(name, nativeObject) {
 /// Apply all registered extensions to a window.  This is intended for
 /// different frames, where registrations need to be reapplied.
 applyAllExtensions(global) {
-  JS('', '#.forEach((dartExtType, name) => #(#[name], dartExtType))',
-      _extensionMap, _applyExtension, global);
+  JS(
+    '',
+    '#.forEach((dartExtType, name) => #(#[name], dartExtType))',
+    _extensionMap,
+    _applyExtension,
+    global,
+  );
 }
 
 /// Copy symbols from the prototype of the source to destination.
@@ -470,15 +528,20 @@ void defineExtensionAccessors(type, Iterable memberNames) {
 }
 
 definePrimitiveHashCode(proto) {
-  defineProperty(proto, identityHashCode_,
-      getOwnPropertyDescriptor(proto, extensionSymbol('hashCode')));
+  defineProperty(
+    proto,
+    identityHashCode_,
+    getOwnPropertyDescriptor(proto, extensionSymbol('hashCode')),
+  );
 }
 
 /// Connects the prototype chains such that [cls] extends [superClass].
 void classExtends(@notNull Object cls, @notNull Object superClass) {
   jsObjectSetPrototypeOf(cls, superClass);
   jsObjectSetPrototypeOf(
-      JS('', '#.prototype', cls), JS('', '#.prototype', superClass));
+    JS('', '#.prototype', cls),
+    JS('', '#.prototype', superClass),
+  );
 }
 
 /// A runtime mapping of interface type recipe to the symbol used to tag the
@@ -510,8 +573,13 @@ void addRtiResources(Object classRef, JSArray<String> interfaceRecipes) {
   // Attach the [classRef]'s own interface type recipe.
   // The recipe is used in dart:_rti to create an [rti.Rti] instance when
   // needed.
-  JS('', r'#.# = #[0]', classRef, rti.interfaceTypeRecipePropertyName,
-      interfaceRecipes);
+  JS(
+    '',
+    r'#.# = #[0]',
+    classRef,
+    rti.interfaceTypeRecipePropertyName,
+    interfaceRecipes,
+  );
   // Add specialized test resources used for fast interface type checks in
   // dart:_rti.
   var prototype = JS<Object>('!', '#.prototype', classRef);

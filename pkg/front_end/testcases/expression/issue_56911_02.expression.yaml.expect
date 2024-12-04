@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered #lib1::ExtensionType% /* erasure=dart.core::String, declared=! */ #this) → dynamic
+  return #this as{Unchecked} dart.core::String;

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 /// Test derived from a broken co19 test
 /// (LayoutTests/fast/mediastream/getusermedia_t01.dart). Caused dart2js to
 /// crash.

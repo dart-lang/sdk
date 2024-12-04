@@ -16,13 +16,19 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   SearchFindElementReferencesHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
     var searchEngine = server.searchEngine;
-    var params = protocol.SearchFindElementReferencesParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = protocol.SearchFindElementReferencesParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
     // prepare element
     var element = await server.getElementAtOffset(file, params.offset);
@@ -47,8 +53,13 @@ class SearchFindElementReferencesHandler extends LegacyHandler {
     if (element != null) {
       var computer = ElementReferencesComputer(searchEngine);
       var results = await computer.compute(element, params.includePotential);
-      sendSearchResults(protocol.SearchResultsParams(
-          searchId, results.map(newSearchResult_fromMatch).toList(), true));
+      sendSearchResults(
+        protocol.SearchResultsParams(
+          searchId,
+          results.map(newSearchResult_fromMatch).toList(),
+          true,
+        ),
+      );
     }
   }
 }

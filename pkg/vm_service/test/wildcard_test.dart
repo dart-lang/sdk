@@ -5,7 +5,7 @@
 // SharedOptions=--enable-experiment=wildcard-variables
 
 // ignore: invalid_language_version_override
-// @dart = 3.6
+// @dart = 3.7
 
 import 'dart:developer';
 // Tests wildcard import prefixes.

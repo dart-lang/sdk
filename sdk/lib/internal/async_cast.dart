@@ -11,10 +11,15 @@ class CastStream<S, T> extends Stream<T> {
   CastStream(this._source);
   bool get isBroadcast => _source.isBroadcast;
 
-  StreamSubscription<T> listen(void Function(T data)? onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+  StreamSubscription<T> listen(
+    void Function(T data)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
     return new CastStreamSubscription<S, T>(
-        _source.listen(null, onDone: onDone, cancelOnError: cancelOnError))
+        _source.listen(null, onDone: onDone, cancelOnError: cancelOnError),
+      )
       ..onData(onData)
       ..onError(onError);
   }
@@ -41,9 +46,10 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
   Future cancel() => _source.cancel();
 
   void onData(void Function(T data)? handleData) {
-    _handleData = handleData == null
-        ? null
-        : _zone.registerUnaryCallback<dynamic, T>(handleData);
+    _handleData =
+        handleData == null
+            ? null
+            : _zone.registerUnaryCallback<dynamic, T>(handleData);
   }
 
   void onError(Function? handleError) {
@@ -51,13 +57,16 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
     if (handleError == null) {
       _handleError = null;
     } else if (handleError is void Function(Object, StackTrace)) {
-      _handleError = _zone
-          .registerBinaryCallback<dynamic, Object, StackTrace>(handleError);
+      _handleError = _zone.registerBinaryCallback<dynamic, Object, StackTrace>(
+        handleError,
+      );
     } else if (handleError is void Function(Object)) {
       _handleError = _zone.registerUnaryCallback<dynamic, Object>(handleError);
     } else {
-      throw ArgumentError("handleError callback must take either an Object "
-          "(the error), or both an Object (the error) and a StackTrace.");
+      throw ArgumentError(
+        "handleError callback must take either an Object "
+        "(the error), or both an Object (the error) and a StackTrace.",
+      );
     }
   }
 
@@ -78,7 +87,9 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
         _zone.runBinaryGuarded<Object, StackTrace>(handleError, error, stack);
       } else {
         _zone.runUnaryGuarded<Object>(
-            handleError as void Function(Object), error);
+          handleError as void Function(Object),
+          error,
+        );
       }
       return;
     }

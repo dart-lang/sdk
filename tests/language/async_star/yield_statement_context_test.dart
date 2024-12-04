@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 import 'utils.dart';
 
@@ -53,7 +53,9 @@ void main() {
     f() async* {
       // DO NOT RUN dart format on this file. The labels should be on the same.
       // line. Originally VM issue #2238.
-      label1: label2: yield 0;
+      label1:
+      label2:
+      yield 0;
     }
 
     return expectList(f(), [0]);

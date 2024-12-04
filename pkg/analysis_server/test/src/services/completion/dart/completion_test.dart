@@ -242,7 +242,9 @@ void f(String s) {
     var matchingSuggestions = suggestions.where((s) => s.completion == 'm');
     expect(matchingSuggestions, hasLength(1));
     expect(
-        matchingSuggestions.single.libraryUri, 'package:test/extensions.dart');
+      matchingSuggestions.single.libraryUri,
+      'package:test/extensions.dart',
+    );
   }
 
   /// Extensions can also be imported from libraries that export them.
@@ -262,13 +264,10 @@ void f(String s) {
 ''');
     var matchingSuggestions = suggestions.where((s) => s.completion == 'm');
     expect(matchingSuggestions, hasLength(2));
-    expect(
-      matchingSuggestions.map((s) => s.libraryUri),
-      [
-        'package:test/extensions.dart',
-        'package:test/reexported.dart',
-      ],
-    );
+    expect(matchingSuggestions.map((s) => s.libraryUri), [
+      'package:test/extensions.dart',
+      'package:test/reexported.dart',
+    ]);
   }
 
   Future<void> test_explicitTarget_method_sameUnit() async {
@@ -476,8 +475,11 @@ class C {
   set x(int x) {}
 }
 ''');
-    assertHasCompletion('x',
-        elementKind: ElementKind.SETTER, isDeprecated: true);
+    assertHasCompletion(
+      'x',
+      elementKind: ElementKind.SETTER,
+      isDeprecated: true,
+    );
   }
 
   Future<void> test_setter_deprecated_withNonDeprecatedGetter() async {
@@ -491,8 +493,11 @@ class C {
   set x(int x) {}
 }
 ''');
-    assertHasCompletion('x',
-        elementKind: ElementKind.GETTER, isDeprecated: false);
+    assertHasCompletion(
+      'x',
+      elementKind: ElementKind.GETTER,
+      isDeprecated: false,
+    );
   }
 }
 

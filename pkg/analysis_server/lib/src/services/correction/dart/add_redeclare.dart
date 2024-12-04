@@ -31,8 +31,9 @@ class AddRedeclare extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(token.offset, (builder) {
         builder.write('@');
-        builder.writeImportedName(
-            [Uri.parse('package:meta/meta.dart')], 'redeclare');
+        builder.writeImportedName([
+          Uri.parse('package:meta/meta.dart'),
+        ], 'redeclare');
         builder.write('$eol$indent');
       });
     });

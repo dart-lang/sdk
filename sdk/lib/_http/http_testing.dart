@@ -38,8 +38,8 @@ typedef TestingClass$_Cookie = _Cookie;
 typedef TestingClass$_HttpHeaders = _HttpHeaders;
 typedef TestingClass$_HttpParser = _HttpParser;
 typedef TestingClass$_SHA1 = _SHA1;
-typedef TestingClass$_WebSocketProtocolTransformer
-    = _WebSocketProtocolTransformer;
+typedef TestingClass$_WebSocketProtocolTransformer =
+    _WebSocketProtocolTransformer;
 typedef TestingClass$_WebSocketImpl = _WebSocketImpl;
 
 extension Testing$HttpDate on HttpDate {
@@ -58,12 +58,18 @@ extension Testing$_WebSocketProtocolTransformer
 }
 
 extension Testing$_WebSocketImpl on _WebSocketImpl {
-  static Future<WebSocket> connect(String url, Iterable<String>? protocols,
-          Map<String, dynamic>? headers,
-          {CompressionOptions compression =
-              CompressionOptions.compressionDefault,
-          HttpClient? customClient}) =>
-      _WebSocketImpl.connect(url, protocols, headers,
-          compression: compression, customClient: customClient);
+  static Future<WebSocket> connect(
+    String url,
+    Iterable<String>? protocols,
+    Map<String, dynamic>? headers, {
+    CompressionOptions compression = CompressionOptions.compressionDefault,
+    HttpClient? customClient,
+  }) => _WebSocketImpl.connect(
+    url,
+    protocols,
+    headers,
+    compression: compression,
+    customClient: customClient,
+  );
   Timer? get test$_pingTimer => this._pingTimer;
 }

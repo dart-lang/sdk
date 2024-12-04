@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -29,9 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ExtractLocalVariableOptions extends RefactoringOptions {
 
-  public static final ExtractLocalVariableOptions[] EMPTY_ARRAY = new ExtractLocalVariableOptions[0];
-
-  public static final List<ExtractLocalVariableOptions> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ExtractLocalVariableOptions> EMPTY_LIST = List.of();
 
   /**
    * The name that the local variable should be given.
@@ -55,10 +50,9 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ExtractLocalVariableOptions) {
-      ExtractLocalVariableOptions other = (ExtractLocalVariableOptions) obj;
+    if (obj instanceof ExtractLocalVariableOptions other) {
       return
-        ObjectUtilities.equals(other.name, name) &&
+        Objects.equals(other.name, name) &&
         other.extractAll == extractAll;
     }
     return false;
@@ -74,10 +68,9 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ExtractLocalVariableOptions> list = new ArrayList<ExtractLocalVariableOptions>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ExtractLocalVariableOptions> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -100,10 +93,10 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(name);
-    builder.append(extractAll);
-    return builder.toHashCode();
+    return Objects.hash(
+      name,
+      extractAll
+    );
   }
 
   /**
@@ -122,6 +115,7 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
     this.name = name;
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("name", name);
@@ -134,7 +128,8 @@ public class ExtractLocalVariableOptions extends RefactoringOptions {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("extractAll=");
     builder.append(extractAll);
     builder.append("]");

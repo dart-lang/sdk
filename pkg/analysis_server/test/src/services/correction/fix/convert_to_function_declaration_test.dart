@@ -65,7 +65,8 @@ void f() {
 class ConvertToFunctionDeclarationInFileTest extends FixInFileProcessorTest {
   Future<void> test_file() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.prefer_function_declarations_over_variables]);
+      lints: [LintNames.prefer_function_declarations_over_variables],
+    );
     await resolveTestCode('''
 void f() {
   var v = () {

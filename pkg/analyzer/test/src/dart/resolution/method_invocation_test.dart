@@ -9,10 +9,12 @@ import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -37,7 +39,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: <testLibraryFragment>::@function::g
-    element: <testLibraryFragment>::@function::g#element
+    element: <testLibrary>::@function::g
     staticType: void Function(Object)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -69,7 +71,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: g
     staticElement: <testLibraryFragment>::@function::g
-    element: <testLibraryFragment>::@function::g#element
+    element: <testLibrary>::@function::g
     staticType: void Function(int, int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -156,7 +158,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: h
     staticElement: <testLibraryFragment>::@function::h
-    element: <testLibraryFragment>::@function::h#element
+    element: <testLibrary>::@function::h
     staticType: dynamic Function(double)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -180,7 +182,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -194,7 +196,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -231,7 +233,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: h
     staticElement: <testLibraryFragment>::@function::h
-    element: <testLibraryFragment>::@function::h#element
+    element: <testLibrary>::@function::h
     staticType: dynamic Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -255,7 +257,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -269,7 +271,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -318,7 +320,7 @@ MethodInvocation
         methodName: SimpleIdentifier
           token: f
           staticElement: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -332,7 +334,7 @@ MethodInvocation
         methodName: SimpleIdentifier
           token: f
           staticElement: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -533,7 +535,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: h
     staticElement: <testLibraryFragment>::@function::h
-    element: <testLibraryFragment>::@function::h#element
+    element: <testLibrary>::@function::h
     staticType: dynamic Function(double)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -557,7 +559,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -571,7 +573,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -606,7 +608,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: h
     staticElement: <testLibraryFragment>::@function::h
-    element: <testLibraryFragment>::@function::h#element
+    element: <testLibrary>::@function::h
     staticType: dynamic Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -630,7 +632,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -644,7 +646,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -693,7 +695,7 @@ MethodInvocation
         methodName: SimpleIdentifier
           token: f
           staticElement: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -707,7 +709,7 @@ MethodInvocation
         methodName: SimpleIdentifier
           token: f
           staticElement: <testLibraryFragment>::@function::f
-          element: <testLibraryFragment>::@function::f#element
+          element: <testLibrary>::@function::f
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1122,7 +1124,7 @@ MethodInvocation
           staticType: int
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: .
@@ -1303,7 +1305,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: h
     staticElement: <testLibraryFragment>::@function::h
-    element: <testLibraryFragment>::@function::h#element
+    element: <testLibrary>::@function::h
     staticType: dynamic Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1327,7 +1329,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -1341,7 +1343,7 @@ MethodInvocation
               methodName: SimpleIdentifier
                 token: f
                 staticElement: <testLibraryFragment>::@function::f
-                element: <testLibraryFragment>::@function::f#element
+                element: <testLibrary>::@function::f
                 staticType: T Function<T>()
               argumentList: ArgumentList
                 leftParenthesis: (
@@ -1433,7 +1435,7 @@ MethodInvocation
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -1717,7 +1719,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: test
     staticElement: <testLibraryFragment>::@function::test
-    element: <testLibraryFragment>::@function::test#element
+    element: <testLibrary>::@function::test
     staticType: void Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2047,8 +2049,7 @@ FunctionExpressionInvocation
     token: foo
     staticElement: <testLibraryFragment>::@class::C::@getter::foo
     element: <testLibraryFragment>::@class::C::@getter::foo#element
-    staticType: double Function(int)
-      alias: <testLibraryFragment>::@typeAlias::MyFunction
+    staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -2137,7 +2138,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: C
       staticElement: <testLibraryFragment>::@class::C
-      element: <testLibraryFragment>::@class::C#element
+      element: <testLibrary>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -2253,7 +2254,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: package:test/a.dart::<fragment>::@function::foo
-    element: package:test/a.dart::<fragment>::@function::foo#element
+    element: package:test/a.dart::@function::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2285,8 +2286,8 @@ MethodInvocation
   operator: ?.
   methodName: SimpleIdentifier
     token: loadLibrary
-    staticElement: loadLibrary@-1
-    element: loadLibrary@-1
+    staticElement: dart:math::<fragment>::@function::loadLibrary
+    element: dart:math::@function::loadLibrary
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2443,7 +2444,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2482,7 +2483,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2526,7 +2527,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2564,7 +2565,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2578,7 +2579,7 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -2606,7 +2607,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3034,7 +3035,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3181,7 +3182,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3189,7 +3190,7 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3217,7 +3218,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: Map<T, U> Function<T extends num, U>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3225,7 +3226,7 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -3387,7 +3388,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: C
       staticElement: <testLibraryFragment>::@class::C
-      element: <testLibraryFragment>::@class::C#element
+      element: <testLibrary>::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -3428,7 +3429,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: C
     staticElement: <testLibraryFragment>::@class::C
-    element: <testLibraryFragment>::@class::C#element
+    element: <testLibrary>::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3475,7 +3476,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3515,7 +3516,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3553,8 +3554,8 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: loadLibrary
-    staticElement: loadLibrary@-1
-    element: loadLibrary@-1
+    staticElement: dart:math::<fragment>::@function::loadLibrary
+    element: dart:math::@function::loadLibrary
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3587,8 +3588,8 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: loadLibrary
-    staticElement: loadLibrary@-1
-    element: loadLibrary@-1
+    staticElement: dart:math::<fragment>::@function::loadLibrary
+    element: dart:math::@function::loadLibrary
     staticType: Future<dynamic> Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3669,7 +3670,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@extension::A
-      element: <testLibraryFragment>::@extension::A#element
+      element: <testLibrary>::@extension::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -3713,7 +3714,7 @@ FunctionExpressionInvocation
     target: SimpleIdentifier
       token: A
       staticElement: <testLibraryFragment>::@extension::A
-      element: <testLibraryFragment>::@extension::A#element
+      element: <testLibrary>::@extension::A
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -3754,7 +3755,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@extension::A
-    element: <testLibraryFragment>::@extension::A#element
+    element: <testLibrary>::@extension::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3794,7 +3795,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@extension::A
-    element: <testLibraryFragment>::@extension::A#element
+    element: <testLibrary>::@extension::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3832,7 +3833,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@extensionType::A
-    element: <testLibraryFragment>::@extensionType::A#element
+    element: <testLibrary>::@extensionType::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3863,7 +3864,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function(int)
   operator: .
   methodName: SimpleIdentifier
@@ -3899,7 +3900,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
   operator: .
   methodName: SimpleIdentifier
@@ -3949,7 +3950,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: package:test/a.dart::<fragment>::@function::foo
-    element: package:test/a.dart::<fragment>::@function::foo#element
+    element: package:test/a.dart::@function::foo
     staticType: T Function<T extends num>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5432,10 +5433,10 @@ FunctionExpressionInvocation
       identifier: SimpleIdentifier
         token: C
         staticElement: package:test/a.dart::<fragment>::@class::C
-        element: package:test/a.dart::<fragment>::@class::C#element
+        element: package:test/a.dart::@class::C
         staticType: null
       staticElement: package:test/a.dart::<fragment>::@class::C
-      element: package:test/a.dart::<fragment>::@class::C#element
+      element: package:test/a.dart::@class::C
       staticType: null
     operator: .
     propertyName: SimpleIdentifier
@@ -5487,10 +5488,10 @@ MethodInvocation
     identifier: SimpleIdentifier
       token: C
       staticElement: package:test/a.dart::<fragment>::@class::C
-      element: package:test/a.dart::<fragment>::@class::C#element
+      element: package:test/a.dart::@class::C
       staticType: null
     staticElement: package:test/a.dart::<fragment>::@class::C
-    element: package:test/a.dart::<fragment>::@class::C#element
+    element: package:test/a.dart::@class::C
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -5944,7 +5945,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -5984,7 +5985,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: B
     staticElement: <testLibraryFragment>::@typeAlias::B
-    element: <testLibraryFragment>::@typeAlias::B#element
+    element: <testLibrary>::@typeAlias::B
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -6226,7 +6227,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function({int? p})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6412,7 +6413,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6442,7 +6443,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6533,7 +6534,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: A
     staticElement: <testLibraryFragment>::@class::A
-    element: <testLibraryFragment>::@class::A#element
+    element: <testLibrary>::@class::A
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -6824,7 +6825,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function({int? a, bool? b})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6884,7 +6885,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function(A, B, {C? c, D? d})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6893,7 +6894,7 @@ MethodInvocation
         methodName: SimpleIdentifier
           token: g1
           staticElement: <testLibraryFragment>::@function::g1
-          element: <testLibraryFragment>::@function::g1#element
+          element: <testLibrary>::@function::g1
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -6915,7 +6916,7 @@ MethodInvocation
           methodName: SimpleIdentifier
             token: g3
             staticElement: <testLibraryFragment>::@function::g3
-            element: <testLibraryFragment>::@function::g3#element
+            element: <testLibrary>::@function::g3
             staticType: T Function<T>()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -6929,7 +6930,7 @@ MethodInvocation
         methodName: SimpleIdentifier
           token: g2
           staticElement: <testLibraryFragment>::@function::g2
-          element: <testLibraryFragment>::@function::g2#element
+          element: <testLibrary>::@function::g2
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -6951,7 +6952,7 @@ MethodInvocation
           methodName: SimpleIdentifier
             token: g4
             staticElement: <testLibraryFragment>::@function::g4
-            element: <testLibraryFragment>::@function::g4#element
+            element: <testLibrary>::@function::g4
             staticType: T Function<T>()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -7387,7 +7388,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7580,7 +7581,7 @@ CascadeExpression
       type: NamedType
         name: A
         element: <testLibraryFragment>::@class::A
-        element2: <testLibraryFragment>::@class::A#element
+        element2: <testLibrary>::@class::A
         type: A
       staticElement: <testLibraryFragment>::@class::A::@constructor::new
       element: <testLibraryFragment>::@class::A::@constructor::new#element
@@ -7697,7 +7698,7 @@ MethodInvocation
   target: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: void Function()
   operator: .
   methodName: SimpleIdentifier
@@ -7723,10 +7724,11 @@ void f() {
 }
 ''');
 
-    var element = findNode.simple('a:').staticElement!;
     // See https://github.com/dart-lang/sdk/issues/54669 for why we check for
     // isNotNull despite #50660 suggesting the source would be null.
-    expect(element.source, isNotNull);
+    var element = findNode.simple('a:').element!;
+    var libraryFragment2 = element.firstFragment.libraryFragment!;
+    expect(libraryFragment2.source, isNotNull);
   }
 
   test_remainder_int_context_cascaded() async {
@@ -7744,7 +7746,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7772,7 +7774,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7800,7 +7802,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7833,7 +7835,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7860,7 +7862,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8010,7 +8012,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8044,7 +8046,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: f
     staticElement: <testLibraryFragment>::@function::f
-    element: <testLibraryFragment>::@function::f#element
+    element: <testLibrary>::@function::f
     staticType: T Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8054,6 +8056,131 @@ MethodInvocation
   staticType: num
   typeArgumentTypes
     num
+''');
+  }
+
+  test_rewrite_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A(this.content);
+  final String Function() content;
+}
+
+class B {
+  const B(this.a);
+  final A a;
+}
+
+void main() {
+  (null as B?)?.a.content();
+}
+''');
+    var node = findNode.functionExpressionInvocation('content()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: PropertyAccess
+      target: ParenthesizedExpression
+        leftParenthesis: (
+        expression: AsExpression
+          expression: NullLiteral
+            literal: null
+            staticType: Null
+          asOperator: as
+          type: NamedType
+            name: B
+            question: ?
+            element: <testLibraryFragment>::@class::B
+            element2: <testLibrary>::@class::B
+            type: B?
+          staticType: B?
+        rightParenthesis: )
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        staticElement: <testLibraryFragment>::@class::B::@getter::a
+        element: <testLibraryFragment>::@class::B::@getter::a#element
+        staticType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: content
+      staticElement: <testLibraryFragment>::@class::A::@getter::content
+      element: <testLibraryFragment>::@class::A::@getter::content#element
+      staticType: String Function()
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  element: <null>
+  staticInvokeType: String Function()
+  staticType: String?
+''');
+  }
+
+  test_rewrite_with_target() async {
+    await assertNoErrorsInCode(r'''
+test<T extends Function>(List<T> x) {
+  x.first();
+}
+''');
+
+    var node = findNode.functionExpressionInvocation('x.first()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: x
+      staticElement: <testLibraryFragment>::@function::test::@parameter::x
+      element: <testLibraryFragment>::@function::test::@parameter::x#element
+      staticType: List<T>
+    operator: .
+    propertyName: SimpleIdentifier
+      token: first
+      staticElement: GetterMember
+        base: dart:core::<fragment>::@class::Iterable::@getter::first
+        substitution: {E: T, E: T}
+      element: dart:core::<fragment>::@class::Iterable::@getter::first#element
+      staticType: T
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  element: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_rewrite_without_target() async {
+    await assertNoErrorsInCode(r'''
+extension E<T extends Function> on List<T> {
+  test() {
+    first();
+  }
+}
+''');
+
+    var node = findNode.functionExpressionInvocation('first()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: first
+    staticElement: GetterMember
+      base: dart:core::<fragment>::@class::Iterable::@getter::first
+      substitution: {E: T, E: T}
+    element: dart:core::<fragment>::@class::Iterable::@getter::first#element
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  element: <null>
+  staticInvokeType: dynamic
+  staticType: dynamic
 ''');
   }
 
@@ -8275,7 +8402,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function(int, {required bool b})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8319,7 +8446,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: U Function<T, U>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8354,7 +8481,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T extends Object>(T?)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8390,7 +8517,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T extends Object>(List<T?>)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8426,7 +8553,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T extends num>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8455,7 +8582,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T extends num>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -8463,7 +8590,7 @@ MethodInvocation
       NamedType
         name: bool
         element: dart:core::<fragment>::@class::bool
-        element2: dart:core::<fragment>::@class::bool#element
+        element2: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -8493,7 +8620,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -8501,12 +8628,12 @@ MethodInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: double
         element: dart:core::<fragment>::@class::double
-        element2: dart:core::<fragment>::@class::double#element
+        element2: dart:core::@class::double
         type: double
     rightBracket: >
   argumentList: ArgumentList
@@ -8534,7 +8661,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (

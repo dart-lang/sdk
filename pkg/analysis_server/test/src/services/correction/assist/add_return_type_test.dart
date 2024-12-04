@@ -157,9 +157,7 @@ class A {
   }
 
   Future<void> test_method_setter_lint_avoidReturnTypesOnSetters() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.avoid_return_types_on_setters,
-    ]);
+    createAnalysisOptionsFile(lints: [LintNames.avoid_return_types_on_setters]);
     await resolveTestCode('''
 class A {
   set /*caret*/foo(int a) {
@@ -220,10 +218,8 @@ set /*caret*/foo(int a) {
   }
 
   Future<void>
-      test_topLevelFunction_setter_lint_avoidReturnTypesOnSetters() async {
-    createAnalysisOptionsFile(lints: [
-      LintNames.avoid_return_types_on_setters,
-    ]);
+  test_topLevelFunction_setter_lint_avoidReturnTypesOnSetters() async {
+    createAnalysisOptionsFile(lints: [LintNames.avoid_return_types_on_setters]);
     await resolveTestCode('''
 set /*caret*/foo(int a) {
   if (a == 0) return;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.incremental_compiler;
-
 import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
 import 'dart:typed_data';
@@ -66,7 +64,8 @@ import '../api_prototype/incremental_kernel_generator.dart'
         IncrementalCompilerResult,
         IncrementalKernelGenerator,
         isLegalIdentifier;
-import '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
+import '../api_prototype/lowering_predicates.dart'
+    show isExtensionThisName, syntheticThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import '../base/nnbd_mode.dart';
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -666,7 +665,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
-    nextGoodKernelTarget.loader.fragmentsCreatedWithReferences.clear();
     nextGoodKernelTarget.loader.hierarchyBuilder.clear();
     nextGoodKernelTarget.loader.membersBuilder.clear();
     nextGoodKernelTarget.loader.referenceFromIndex = null;
@@ -1457,7 +1455,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       worklist.addAll(usedClasses);
       classes.addAll(usedClasses);
 
-      // Get all classes touched by fasta class hierarchy.
+      // Get all classes touched by class hierarchy builder.
       if (builderHierarchy != null) {
         for (Class c in builderHierarchy.classNodes.keys) {
           if (classes.add(c)) worklist.add(c);
@@ -1918,6 +1916,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 builder.lookupLocalMember(afterDot, setter: false);
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
+                List<VariableDeclaration>? positionals =
+                    subBuilder.invokeTarget?.function?.positionalParameters;
+                if (positionals != null &&
+                    positionals.isNotEmpty &&
+                    isExtensionThisName(positionals.first.name) &&
+                    usedDefinitions.containsKey(syntheticThisName)) {
+                  // If we setup the extensionType (and later the
+                  // `extensionThis`) we should also set the type correctly
+                  // (at least in a non-static setting).
+                  usedDefinitions[syntheticThisName] = positionals.first.type;
+                }
                 isStatic = false;
               }
             }
@@ -1986,6 +1995,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               isAugmenting: false,
               indexedLibrary: null,
               mayImplementRestrictedTypes: false);
+      debugCompilationUnit.markLanguageVersionFinal();
+
       SourceLibraryBuilder debugLibrary = debugCompilationUnit.createLibrary();
       debugLibrary.buildNameSpace();
       libraryBuilder.libraryNameSpace.forEachLocalMember((name, member) {
@@ -2048,8 +2059,27 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           isAugmenting: false,
           indexedLibrary: null,
           mayImplementRestrictedTypes: false);
+      debugCompilationUnit.markLanguageVersionFinal();
 
+      SourceLibraryBuilder? orgDebugLibrary = debugLibrary;
       debugLibrary = debugCompilationUnit.createLibrary();
+
+      // Copy over the prefix namespace for extensions
+      // (`forEachExtensionInScope`) to be found when imported via prefixes.
+      // TODO(johnniwinther): Extensions should be available through
+      // [parentScope].
+      orgDebugLibrary.prefixNameSpace.forEachLocalMember((name, member) {
+        debugLibrary.prefixNameSpace
+            .addLocalMember(name, member, setter: false);
+      });
+      // Does a prefix namespace ever have anything but locals?
+      orgDebugLibrary.prefixNameSpace.forEachLocalSetter((name, member) {
+        debugLibrary.prefixNameSpace.addLocalMember(name, member, setter: true);
+      });
+      orgDebugLibrary.prefixNameSpace.forEachLocalExtension((member) {
+        debugLibrary.prefixNameSpace.addExtension(member);
+      });
+      orgDebugLibrary = null;
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;
@@ -2084,7 +2114,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           .buildSyntheticLibrariesUntilBuildScopes([debugLibrary]);
       lastGoodKernelTarget
           .buildSyntheticLibrariesUntilComputeDefaultTypes([debugLibrary]);
-      lastGoodKernelTarget.loader.finishTypeVariables(
+      lastGoodKernelTarget.loader.finishTypeParameters(
           [debugLibrary],
           lastGoodKernelTarget.objectClassBuilder,
           lastGoodKernelTarget.dynamicType);
@@ -2477,7 +2507,7 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
       _ComponentProblems componentProblems,
       IncrementalSerializer? incrementalSerializer,
       RecorderForTesting? recorderForTesting) async {
-    List<int>? summaryBytes = await context.options.loadSdkSummaryBytes();
+    Uint8List? summaryBytes = await context.options.loadSdkSummaryBytes();
     return _prepareSummary(
         dillLoadedData, summaryBytes, uriTranslator, context, data);
   }
@@ -2485,7 +2515,7 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
   // Coverage-ignore(suite): Not run.
   int _prepareSummary(
       DillTarget dillLoadedTarget,
-      List<int>? summaryBytes,
+      Uint8List? summaryBytes,
       UriTranslator uriTranslator,
       CompilerContext context,
       IncrementalCompilerData data) {
@@ -2575,7 +2605,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
       _ComponentProblems componentProblems,
       IncrementalSerializer? incrementalSerializer,
       RecorderForTesting? recorderForTesting) async {
-    List<int>? summaryBytes = await context.options.loadSdkSummaryBytes();
+    Uint8List? summaryBytes = await context.options.loadSdkSummaryBytes();
     int bytesLength = _prepareSummary(
         dillLoadedData, summaryBytes, uriTranslator, context, data);
     try {
@@ -2653,7 +2683,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
     FileSystemEntity entity =
         context.options.fileSystem.entityForUri(initializeFromDillUri);
     if (await entity.exists()) {
-      List<int> initializationBytes = await entity.readAsBytes();
+      Uint8List initializationBytes = await entity.readAsBytes();
       if (initializationBytes.isNotEmpty) {
         dillLoadedData.ticker.logMs("Read $initializeFromDillUri");
         data.initializationBytes = initializationBytes;
@@ -2754,7 +2784,6 @@ class _ComponentProblems {
     // Report old problems that wasn't reported again.
     for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
         in _remainingComponentProblems.entries) {
-      // Coverage-ignore-block(suite): Not run.
       List<DiagnosticMessageFromJson> messages = entry.value;
       for (int i = 0; i < messages.length; i++) {
         DiagnosticMessageFromJson message = messages[i];

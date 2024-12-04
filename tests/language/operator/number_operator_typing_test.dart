@@ -4,7 +4,7 @@
 
 // Test the rules for static types of number operators,
 // as modified by Null Safety
-import "../static_type_helper.dart";
+import "package:expect/static_type_helper.dart";
 
 // ignore_for_file: receiver_of_type_never
 

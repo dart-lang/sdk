@@ -21,9 +21,7 @@ class B {
 
 class C extends B {
   final int z;
-  C(super.x, super._, super._, this.z)
-      : assert(x > 0),
-        assert(_ >= 0) {}
+  C(super.x, super._, super._, this.z) : assert(x > 0), assert(_ >= 0) {}
 }
 
 main() {}

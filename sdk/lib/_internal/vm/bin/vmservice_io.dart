@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:_vmservice';
 
+part 'resident_compiler_utils.dart';
 part 'vmservice_server.dart';
 
 // The TCP ip/port that dds listens on.
@@ -247,9 +248,9 @@ void _registerSignalHandler() {
     // Cannot register for signals on Windows or Fuchsia.
     return;
   }
-  _signalSubscription = signalWatch(ProcessSignal.sigquit).listen(
-    (_) => _toggleWebServer(),
-  );
+  _signalSubscription = signalWatch(
+    ProcessSignal.sigquit,
+  ).listen((_) => _toggleWebServer());
 }
 
 @pragma('vm:entry-point', !const bool.fromEnvironment('dart.vm.product'))

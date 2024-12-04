@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 final _dartdocCodeBlockSections = RegExp(r'(```\w+) +\w+');
-final _dartdocDirectives =
-    RegExp(r'(\n *{@.*?}$)|(^{@.*?}\n)', multiLine: true);
+final _dartdocDirectives = RegExp(
+  r'(\n *{@.*?}$)|(^{@.*?}\n)',
+  multiLine: true,
+);
 
 String? cleanDartdoc(String? doc) {
   if (doc == null) {

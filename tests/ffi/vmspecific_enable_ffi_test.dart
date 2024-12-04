@@ -6,6 +6,9 @@
 //
 // VMOptions=--enable-ffi=false
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import 'dart:ffi'; //# 01: compile-time error
 
 import 'package:ffi/ffi.dart'; //# 01: compile-time error

@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class ConflictingKeyTest extends AbstractTransformSetParserTest {
   void test_element() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -26,14 +27,17 @@ transforms:
     method: 'm'
     class: 'C'
   changes: []
-''', [
-      error(TransformSetErrorCode.missingOneOfMultipleKeys, 69, 53),
-      error(TransformSetErrorCode.conflictingKey, 109, 5),
-    ]);
+''',
+      [
+        error(TransformSetErrorCode.missingOneOfMultipleKeys, 69, 53),
+        error(TransformSetErrorCode.conflictingKey, 109, 5),
+      ],
+    );
   }
 
   void test_removeParameterChange() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -45,8 +49,8 @@ transforms:
     - kind: removeParameter
       index: 2
       name: 'p'
-''', [
-      error(TransformSetErrorCode.conflictingKey, 167, 4),
-    ]);
+''',
+      [error(TransformSetErrorCode.conflictingKey, 167, 4)],
+    );
   }
 }

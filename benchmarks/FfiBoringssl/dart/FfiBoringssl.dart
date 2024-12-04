@@ -139,10 +139,7 @@ class DigestDartMemory extends BenchmarkBase {
 //
 
 void main(List<String> args) {
-  final benchmarks = [
-    DigestCMemory.new,
-    DigestDartMemory.new,
-  ];
+  final benchmarks = [DigestCMemory.new, DigestDartMemory.new];
 
   final filter = args.firstOrNull;
   for (var constructor in benchmarks) {

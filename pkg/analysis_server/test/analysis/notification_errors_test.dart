@@ -28,12 +28,16 @@ class NotificationErrorsTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var decoded = AnalysisErrorsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       filesErrors[getFile(decoded.file)] = decoded.errors;
     } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
-      var decoded = AnalysisFlushResultsParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var decoded = AnalysisFlushResultsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       for (var file in decoded.files) {
         filesErrors[getFile(file)] = null;
       }
@@ -95,8 +99,11 @@ include: package:pedantic/analysis_options.yaml
   }
 
   Future<void> test_androidManifestFile() async {
-    var manifestPath =
-        join(testPackageRootPath, 'android', 'AndroidManifest.xml');
+    var manifestPath = join(
+      testPackageRootPath,
+      'android',
+      'AndroidManifest.xml',
+    );
     var manifestFile = newFile(manifestPath, '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -125,8 +132,12 @@ analyzer:
   }
 
   Future<void> test_androidManifestFile_dotDirectoryIgnored() async {
-    var manifestPath =
-        join(testPackageRootPath, 'ios', '.symlinks', 'AndroidManifest.xml');
+    var manifestPath = join(
+      testPackageRootPath,
+      'ios',
+      '.symlinks',
+      'AndroidManifest.xml',
+    );
     var manifestFile = newFile(manifestPath, '''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
@@ -154,8 +165,10 @@ analyzer:
     // Although errors are not generated for dotfolders, their contents should
     // still be analyzed so that code that references them (for example
     // flutter_gen) should still be updated.
-    var configPath =
-        join(testPackageRootPath, '.dart_tool/package_config.json');
+    var configPath = join(
+      testPackageRootPath,
+      '.dart_tool/package_config.json',
+    );
     var generatedProject = join(testPackageRootPath, '.dart_tool/foo');
     var generatedFile = join(generatedProject, 'lib', 'foo.dart');
 
@@ -211,8 +224,10 @@ transforms:
     // is analyzed).
     await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
-    var brokenFile =
-        newFile(join(testPackageRootPath, '.dart_tool/broken.dart'), 'err');
+    var brokenFile = newFile(
+      join(testPackageRootPath, '.dart_tool/broken.dart'),
+      'err',
+    );
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -235,8 +250,10 @@ transforms:
     // editor forever.
     await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
-    var brokenFile =
-        newFile('$testPackageRootPath/.dart_tool/broken.dart', 'err');
+    var brokenFile = newFile(
+      '$testPackageRootPath/.dart_tool/broken.dart',
+      'err',
+    );
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -244,8 +261,10 @@ transforms:
 
     // Send a getHover request for the file that will cause it to be read from disk.
     await handleSuccessfulRequest(
-      AnalysisGetHoverParams(brokenFile.path, 0)
-          .toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisGetHoverParams(
+        brokenFile.path,
+        0,
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -261,8 +280,10 @@ analyzer:
     - excluded/**
 ''');
     await setRoots(included: [workspaceRootPath], excluded: []);
-    var excludedFile =
-        newFile('$testPackageRootPath/excluded/broken.dart', 'err');
+    var excludedFile = newFile(
+      '$testPackageRootPath/excluded/broken.dart',
+      'err',
+    );
 
     // There should be no errors initially.
     await waitForTasksFinished();
@@ -271,8 +292,10 @@ analyzer:
 
     // Triggering the file to be processed should still generate no errors.
     await handleSuccessfulRequest(
-      AnalysisGetHoverParams(excludedFile.path, 0)
-          .toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisGetHoverParams(
+        excludedFile.path,
+        0,
+      ).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -280,8 +303,9 @@ analyzer:
 
     // Opening the file should still generate no errors.
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams([excludedFile.path])
-          .toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([
+        excludedFile.path,
+      ]).toRequest('0', clientUriConverter: server.uriConverter),
     );
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -354,8 +378,10 @@ void f() {
     // if they have overlays added.
     await setRoots(included: [workspaceRootPath], excluded: []);
     addTestFile('');
-    var brokenFile =
-        newFile('$testPackageRootPath/.dart_tool/broken.dart', 'err');
+    var brokenFile = newFile(
+      '$testPackageRootPath/.dart_tool/broken.dart',
+      'err',
+    );
 
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);

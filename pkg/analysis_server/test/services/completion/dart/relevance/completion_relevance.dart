@@ -12,8 +12,11 @@ abstract class CompletionRelevanceTest extends AbstractCompletionDriverTest {
   /// suggestions are ordered in decreasing order based on relevance scores.
   void assertOrder(List<CompletionSuggestion> suggestions) {
     var length = suggestions.length;
-    expect(length, greaterThan(1),
-        reason: 'Test must specify more than one suggestion');
+    expect(
+      length,
+      greaterThan(1),
+      reason: 'Test must specify more than one suggestion',
+    );
     var previous = suggestions[0];
     for (var i = 1; i < length; i++) {
       var current = suggestions[i];

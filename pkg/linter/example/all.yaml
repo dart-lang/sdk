@@ -111,10 +111,10 @@ linter:
     - null_closures
     - omit_local_variable_types
     - omit_obvious_local_variable_types
+    - omit_obvious_property_types
     - one_member_abstracts
     - only_throw_errors
     - overridden_fields
-    - package_api_docs
     - package_names
     - package_prefixed_library_names
     - parameter_assignments
@@ -170,6 +170,7 @@ linter:
     - sort_pub_dependencies
     - sort_unnamed_constructors_first
     - specify_nonobvious_local_variable_types
+    - specify_nonobvious_property_types
     - test_types_in_equals
     - throw_in_finally
     - tighten_type_of_initializing_formals
@@ -205,7 +206,7 @@ linter:
     - unnecessary_to_list_in_spreads
     - unreachable_from_main
     - unrelated_type_equality_checks
-    - unsafe_html
+    - unsafe_variance
     - use_build_context_synchronously
     - use_colored_box
     - use_decorated_box

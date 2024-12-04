@@ -46,8 +46,8 @@ class CompletionPerformance extends RequestPerformance {
     super.requestLatency,
     required String content,
     required int offset,
-  })  : snippet = _computeCompletionSnippet(content, offset),
-        super(operation: 'Completion');
+  }) : snippet = _computeCompletionSnippet(content, offset),
+       super(operation: 'Completion');
 
   String get computedSuggestionCountStr {
     if (computedSuggestionCount == null) return '';

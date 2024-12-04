@@ -65,16 +65,19 @@ main() {
 
   // Test that apply can itself be applied.
   Expect.equals(
-      42,
-      Function.apply(Function.apply, [
-        test2,
-        [17, 25]
-      ]));
+    42,
+    Function.apply(Function.apply, [
+      test2,
+      [17, 25],
+    ]),
+  );
 
   // Test that apply works on callable objects when it is passed to a method
   // that expects Function (and not dynamic).
   Expect.throwsWhen(
-      v.checkedImplicitDowncasts, () => testList(42, new Callable(), [13, 29]));
+    v.checkedImplicitDowncasts,
+    () => testList(42, new Callable(), [13, 29]),
+  );
 
   testListTyped(42, new Callable(), [13, 29]);
 }

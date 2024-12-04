@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const const1 = <String, String>{
-  '0': '1',
-};
+const const1 = <String, String>{'0': '1'};
 
-final final1 = <String, String>{
-  '0': '1',
-};
+final final1 = <String, String>{'0': '1'};
 
 const const5 = <String, String>{
   '0': '1',

@@ -15,7 +15,9 @@ import 'to_html.dart';
 /// Create a [GeneratedFile] that creates Java code and outputs it to [path].
 /// [path] uses Posix-style path separators regardless of the OS.
 GeneratedFile javaGeneratedFile(
-    String path, CodegenJavaVisitor Function(Api api) createVisitor) {
+  String path,
+  CodegenJavaVisitor Function(Api api) createVisitor,
+) {
   return GeneratedFile(path, (String pkgPath) async {
     var visitor = createVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
@@ -73,10 +75,10 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// Return true iff the passed [TypeDecl] is a type declared in the
   /// spec_input.
   bool isDeclaredInSpec(TypeDecl type) {
-//    TypeReference resolvedType = super.resolveTypeReferenceChain(type);
-//    if(resolvedType is TypeObject) {
-//      return true;
-//    }
+    //    TypeReference resolvedType = super.resolveTypeReferenceChain(type);
+    //    if(resolvedType is TypeObject) {
+    //      return true;
+    //    }
     if (type is TypeReference) {
       return api.types.containsKey(type.typeName) && javaType(type) != 'String';
     }

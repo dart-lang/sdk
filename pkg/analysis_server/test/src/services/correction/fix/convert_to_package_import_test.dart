@@ -12,10 +12,12 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        ConvertToPackageImport_AvoidRelativeLibImportsBulkTest);
+      ConvertToPackageImport_AvoidRelativeLibImportsBulkTest,
+    );
     defineReflectiveTests(ConvertToPackageImport_AvoidRelativeLibImportsTest);
     defineReflectiveTests(
-        ConvertToPackageImport_AlwaysUsePackageImportsBulkTest);
+      ConvertToPackageImport_AlwaysUsePackageImportsBulkTest,
+    );
     defineReflectiveTests(ConvertToPackageImport_AlwaysUsePackageImportsTest);
   });
 }

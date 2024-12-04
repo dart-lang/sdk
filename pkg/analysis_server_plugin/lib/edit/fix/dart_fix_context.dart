@@ -6,6 +6,7 @@ import 'package:analysis_server_plugin/edit/fix/fix_context.dart';
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -29,8 +30,11 @@ class DartFixContext implements FixContext {
   /// being composed.
   final InstrumentationService instrumentationService;
 
-  /// The resolution result in which the fix operates.
-  final ResolvedUnitResult resolvedResult;
+  /// The library result in which the fix operates.
+  final ResolvedLibraryResult libraryResult;
+
+  /// The unit result in which the fix operates.
+  final ResolvedUnitResult unitResult;
 
   /// The workspace in which the fix contributor operates.
   final ChangeWorkspace workspace;
@@ -41,7 +45,8 @@ class DartFixContext implements FixContext {
   DartFixContext({
     required this.instrumentationService,
     required this.workspace,
-    required this.resolvedResult,
+    required this.libraryResult,
+    required this.unitResult,
     required this.error,
     this.autoTriggered = false,
   });
@@ -53,20 +58,20 @@ class DartFixContext implements FixContext {
   /// For getters and setters the corresponding top-level variable is returned.
   Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
       String name) async {
-    return TopLevelDeclarations(resolvedResult).withName(name);
+    return TopLevelDeclarations(unitResult).withName(name);
   }
 
   /// Returns libraries with extensions that declare non-static public
   /// extension members with the [memberName].
   // TODO(srawlins): The documentation above is wrong; `memberName` is unused.
   Stream<LibraryElement> librariesWithExtensions(String memberName) async* {
-    var analysisContext = resolvedResult.session.analysisContext;
+    var analysisContext = unitResult.session.analysisContext;
     var analysisDriver = (analysisContext as DriverBasedAnalysisContext).driver;
     await analysisDriver.discoverAvailableFiles();
 
     var fsState = analysisDriver.fsState;
     var filter = FileStateFilter(
-      fsState.getFileForPath(resolvedResult.path),
+      fsState.getFileForPath(unitResult.path),
     );
 
     for (var file in fsState.knownFiles.toList()) {
@@ -80,6 +85,33 @@ class DartFixContext implements FixContext {
       }
 
       yield elementResult.element;
+    }
+  }
+
+  /// Returns libraries with extensions that declare non-static public
+  /// extension members with the [memberName].
+  // TODO(srawlins): The documentation above is wrong; `memberName` is unused.
+  Stream<LibraryElement2> librariesWithExtensions2(String memberName) async* {
+    var analysisContext = unitResult.session.analysisContext;
+    var analysisDriver = (analysisContext as DriverBasedAnalysisContext).driver;
+    await analysisDriver.discoverAvailableFiles();
+
+    var fsState = analysisDriver.fsState;
+    var filter = FileStateFilter(
+      fsState.getFileForPath(unitResult.path),
+    );
+
+    for (var file in fsState.knownFiles.toList()) {
+      if (!filter.shouldInclude(file)) {
+        continue;
+      }
+
+      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
+      if (elementResult is! LibraryElementResult) {
+        continue;
+      }
+
+      yield elementResult.element2;
     }
   }
 }

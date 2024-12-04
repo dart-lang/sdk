@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_context.dart';
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analysis_server/src/services/snippets/snippet_producer.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,40 +24,35 @@ void main() {
 class SnippetManagerTest extends AbstractSingleUnitTest {
   Future<void> test_filter_match() async {
     await resolveTestCode('');
-    var request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: 0,
-    );
+    var request = DartSnippetRequest(unit: testAnalysisResult, offset: 0);
 
     var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
     });
-    var results =
-        await manager.computeSnippets(request, filter: (String s) => true);
+    var results = await manager.computeSnippets(
+      request,
+      filter: (String s) => true,
+    );
     expect(results, isNotEmpty);
   }
 
   Future<void> test_filter_noMatch() async {
     await resolveTestCode('');
-    var request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: 0,
-    );
+    var request = DartSnippetRequest(unit: testAnalysisResult, offset: 0);
 
     var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
     });
-    var results =
-        await manager.computeSnippets(request, filter: (String s) => false);
+    var results = await manager.computeSnippets(
+      request,
+      filter: (String s) => false,
+    );
     expect(results, isEmpty);
   }
 
   Future<void> test_notValidProducers() async {
     await resolveTestCode('');
-    var request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: 0,
-    );
+    var request = DartSnippetRequest(unit: testAnalysisResult, offset: 0);
 
     var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_NotValidSnippetProducer.newInstance],
@@ -68,20 +63,16 @@ class SnippetManagerTest extends AbstractSingleUnitTest {
 
   Future<void> test_onlyCreatesForContext() async {
     await resolveTestCode('');
-    var request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: 0,
-    );
+    var request = DartSnippetRequest(unit: testAnalysisResult, offset: 0);
 
     var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
       SnippetContext.inClass: [
         (
           context, {
-          required Map<Element, LibraryElement?> elementImportCache,
-        }) =>
-            throw 'Tried to create producer for wrong context',
-      ]
+          required Map<Element2, LibraryElement2?> elementImportCache,
+        }) => throw 'Tried to create producer for wrong context',
+      ],
     });
     var results = await manager.computeSnippets(request);
     expect(results, hasLength(1));
@@ -89,10 +80,7 @@ class SnippetManagerTest extends AbstractSingleUnitTest {
 
   Future<void> test_validProducers() async {
     await resolveTestCode('');
-    var request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: 0,
-    );
+    var request = DartSnippetRequest(unit: testAnalysisResult, offset: 0);
 
     var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
@@ -124,9 +112,10 @@ class _NotValidSnippetProducer extends SnippetProducer {
   @override
   Future<bool> isValid() async => false;
 
-  static _NotValidSnippetProducer newInstance(DartSnippetRequest request,
-          {required Map<Element, LibraryElement?> elementImportCache}) =>
-      _NotValidSnippetProducer._(request);
+  static _NotValidSnippetProducer newInstance(
+    DartSnippetRequest request, {
+    required Map<Element2, LibraryElement2?> elementImportCache,
+  }) => _NotValidSnippetProducer._(request);
 }
 
 class _TestDartSnippetManager extends DartSnippetManager {
@@ -157,7 +146,8 @@ class _ValidSnippetProducer extends SnippetProducer {
   @override
   Future<bool> isValid() async => true;
 
-  static _ValidSnippetProducer newInstance(DartSnippetRequest request,
-          {required Map<Element, LibraryElement?> elementImportCache}) =>
-      _ValidSnippetProducer._(request);
+  static _ValidSnippetProducer newInstance(
+    DartSnippetRequest request, {
+    required Map<Element2, LibraryElement2?> elementImportCache,
+  }) => _ValidSnippetProducer._(request);
 }

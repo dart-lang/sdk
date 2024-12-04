@@ -15,7 +15,6 @@ import '../builder/declaration_builders.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/fragment.dart';
 import 'source_field_builder.dart';
-import 'source_function_builder.dart';
 
 /// Map from offsets of directives and declarations to the objects the define.
 ///
@@ -23,11 +22,14 @@ import 'source_function_builder.dart';
 /// are created, with the [DietListener], where the objects are looked up.
 class OffsetMap {
   final Uri uri;
-  final Map<int, DeclarationFragment> _declarationFragments = {};
+  final Map<int, DeclarationFragment> _declarations = {};
   final Map<int, FieldFragment> _fields = {};
-  final Map<int, ConstructorFragment> _constructorFragments = {};
+  final Map<int, PrimaryConstructorFragment> _primaryConstructors = {};
+  final Map<int, ConstructorFragment> _constructors = {};
   final Map<int, FactoryFragment> _factoryFragments = {};
-  final Map<int, MethodFragment> _procedures = {};
+  final Map<int, GetterFragment> _getters = {};
+  final Map<int, SetterFragment> _setters = {};
+  final Map<int, MethodFragment> _methods = {};
   final Map<int, LibraryPart> _parts = {};
   final Map<int, Import> _imports = {};
   final Map<int, Export> _exports = {};
@@ -75,21 +77,21 @@ class OffsetMap {
 
   void registerNamedDeclarationFragment(
       Identifier identifier, DeclarationFragment fragment) {
-    _declarationFragments[identifier.nameOffset] = fragment;
+    _declarations[identifier.nameOffset] = fragment;
   }
 
   DeclarationBuilder lookupNamedDeclaration(Identifier identifier) {
-    return _checkBuilder(_declarationFragments[identifier.nameOffset]?.builder,
+    return _checkBuilder(_declarations[identifier.nameOffset]?.builder,
         identifier.name, identifier.nameOffset);
   }
 
   void registerUnnamedDeclaration(
       Token beginToken, DeclarationFragment fragment) {
-    _declarationFragments[beginToken.charOffset] = fragment;
+    _declarations[beginToken.charOffset] = fragment;
   }
 
   DeclarationBuilder lookupUnnamedDeclaration(Token beginToken) {
-    return _checkBuilder(_declarationFragments[beginToken.charOffset]?.builder,
+    return _checkBuilder(_declarations[beginToken.charOffset]?.builder,
         '<unnamed-declaration>', beginToken.charOffset);
   }
 
@@ -103,18 +105,18 @@ class OffsetMap {
   }
 
   void registerPrimaryConstructor(
-      Token beginToken, ConstructorFragment builder) {
-    _constructorFragments[beginToken.charOffset] = builder;
+      Token beginToken, PrimaryConstructorFragment fragment) {
+    _primaryConstructors[beginToken.charOffset] = fragment;
   }
 
-  SourceFunctionBuilder lookupPrimaryConstructor(Token beginToken) {
-    return _checkBuilder(_constructorFragments[beginToken.charOffset]?.builder,
+  FunctionFragment lookupPrimaryConstructor(Token beginToken) {
+    return _checkFragment(_primaryConstructors[beginToken.charOffset],
         '<primary-constructor>', beginToken.charOffset);
   }
 
   void registerConstructorFragment(
       Identifier identifier, ConstructorFragment fragment) {
-    _constructorFragments[identifier.nameOffset] = fragment;
+    _constructors[identifier.nameOffset] = fragment;
   }
 
   void registerFactoryFragment(
@@ -122,21 +124,37 @@ class OffsetMap {
     _factoryFragments[identifier.nameOffset] = fragment;
   }
 
-  SourceFunctionBuilder lookupConstructor(Identifier identifier) {
-    return _checkBuilder(
-        _constructorFragments[identifier.nameOffset]?.builder ??
-            _factoryFragments[identifier.nameOffset]?.builder,
-        identifier.name,
+  FunctionFragment lookupConstructor(Identifier identifier) {
+    FunctionFragment? fragment = _constructors[identifier.nameOffset];
+    fragment ??= _factoryFragments[identifier.nameOffset];
+    return _checkFragment(fragment, identifier.name, identifier.nameOffset);
+  }
+
+  void registerGetter(Identifier identifier, GetterFragment fragment) {
+    _getters[identifier.nameOffset] = fragment;
+  }
+
+  void registerSetter(Identifier identifier, SetterFragment fragment) {
+    _setters[identifier.nameOffset] = fragment;
+  }
+
+  void registerMethod(Identifier identifier, MethodFragment fragment) {
+    _methods[identifier.nameOffset] = fragment;
+  }
+
+  FunctionFragment lookupGetter(Identifier identifier) {
+    return _checkFragment(_getters[identifier.nameOffset], identifier.name,
         identifier.nameOffset);
   }
 
-  void registerProcedure(Identifier identifier, MethodFragment fragment) {
-    _procedures[identifier.nameOffset] = fragment;
+  FunctionFragment lookupSetter(Identifier identifier) {
+    return _checkFragment(_setters[identifier.nameOffset], identifier.name,
+        identifier.nameOffset);
   }
 
-  SourceFunctionBuilder lookupProcedure(Identifier identifier) {
-    return _checkBuilder(_procedures[identifier.nameOffset]?.builder,
-        identifier.name, identifier.nameOffset);
+  FunctionFragment lookupMethod(Identifier identifier) {
+    return _checkFragment(_methods[identifier.nameOffset], identifier.name,
+        identifier.nameOffset);
   }
 
   T _checkDirective<T>(T? directive, String name, int charOffset) {
@@ -154,9 +172,17 @@ class OffsetMap {
           templateInternalProblemNotFound.withArguments(name), charOffset, uri);
     }
     if (uri != declaration.fileUri) {
-      unexpected("$uri", "${declaration.fileUri}", declaration.charOffset,
+      unexpected("$uri", "${declaration.fileUri}", declaration.fileOffset,
           declaration.fileUri);
     }
     return declaration;
+  }
+
+  T _checkFragment<T>(T? fragment, String name, int fileOffset) {
+    if (fragment == null) {
+      internalProblem(
+          templateInternalProblemNotFound.withArguments(name), fileOffset, uri);
+    }
+    return fragment;
   }
 }

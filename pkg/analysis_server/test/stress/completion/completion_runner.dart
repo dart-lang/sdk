@@ -37,26 +37,28 @@ class CompletionRunner {
   bool deleteBeforeCompletion = false;
 
   /// Initialize a newly created completion runner.
-  CompletionRunner(
-      {StringSink? output,
-      bool? printMissing,
-      bool? printQuality,
-      bool? timing,
-      bool? verbose})
-      : output = output ?? NullStringSink(),
-        printMissing = printMissing ?? false,
-        printQuality = printQuality ?? false,
-        timing = timing ?? false,
-        verbose = verbose ?? false;
+  CompletionRunner({
+    StringSink? output,
+    bool? printMissing,
+    bool? printQuality,
+    bool? timing,
+    bool? verbose,
+  }) : output = output ?? NullStringSink(),
+       printMissing = printMissing ?? false,
+       printQuality = printQuality ?? false,
+       timing = timing ?? false,
+       verbose = verbose ?? false;
 
   /// Test the completion engine at the locations of each of the identifiers in
   /// each of the files in the given [analysisRoot].
   Future<void> runAll(String analysisRoot) async {
-    var resourceProvider =
-        OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+    var resourceProvider = OverlayResourceProvider(
+      PhysicalResourceProvider.INSTANCE,
+    );
     var collection = AnalysisContextCollection(
-        includedPaths: <String>[analysisRoot],
-        resourceProvider: resourceProvider);
+      includedPaths: <String>[analysisRoot],
+      resourceProvider: resourceProvider,
+    );
     var contributor = DartCompletionManager(
       budget: CompletionBudget(const Duration(seconds: 30)),
     );
@@ -80,8 +82,9 @@ class CompletionRunner {
         }
         fileCount++;
         output.write('.');
-        var result = await context.currentSession.getResolvedUnit(path)
-            as ResolvedUnitResult;
+        var result =
+            await context.currentSession.getResolvedUnit(path)
+                as ResolvedUnitResult;
         var content = result.content;
         var lineInfo = result.lineInfo;
         var identifiers = _identifiersIn(result.unit);
@@ -90,12 +93,17 @@ class CompletionRunner {
           identifierCount++;
           var offset = identifier.offset;
           if (deleteBeforeCompletion) {
-            var modifiedContent = content.substring(0, offset) +
+            var modifiedContent =
+                content.substring(0, offset) +
                 content.substring(identifier.end);
-            resourceProvider.setOverlay(path,
-                content: modifiedContent, modificationStamp: stamp++);
-            result = await context.currentSession.getResolvedUnit(path)
-                as ResolvedUnitResult;
+            resourceProvider.setOverlay(
+              path,
+              content: modifiedContent,
+              modificationStamp: stamp++,
+            );
+            result =
+                await context.currentSession.getResolvedUnit(path)
+                    as ResolvedUnitResult;
           }
 
           timer.start();
@@ -120,8 +128,10 @@ class CompletionRunner {
               missingCount++;
               if (printMissing) {
                 var location = lineInfo.getLocation(offset);
-                output.writeln('Missing suggestion of "${identifier.name}" at '
-                    '$path:${location.lineNumber}:${location.columnNumber}');
+                output.writeln(
+                  'Missing suggestion of "${identifier.name}" at '
+                  '$path:${location.lineNumber}:${location.columnNumber}',
+                );
                 if (verbose) {
                   _printSuggestions(suggestions);
                 }
@@ -130,10 +140,14 @@ class CompletionRunner {
               if (index < indexCount.length) {
                 indexCount[index]++;
               }
-              var filteredSuggestions =
-                  _filterBy(suggestions, identifier.name.substring(0, 1));
-              var filteredIndex =
-                  _indexOf(filteredSuggestions, identifier.name);
+              var filteredSuggestions = _filterBy(
+                suggestions,
+                identifier.name.substring(0, 1),
+              );
+              var filteredIndex = _indexOf(
+                filteredSuggestions,
+                identifier.name,
+              );
               if (filteredIndex < filteredIndexCount.length) {
                 filteredIndexCount[filteredIndex]++;
               }
@@ -154,8 +168,10 @@ class CompletionRunner {
       output.writeln('  $expectedCount were expected to code complete');
       if (printQuality) {
         var percent = (missingCount * 100 / expectedCount).round();
-        output.writeln('  $percent% of which were missing suggestions '
-            '($missingCount)');
+        output.writeln(
+          '  $percent% of which were missing suggestions '
+          '($missingCount)',
+        );
 
         var foundCount = expectedCount - missingCount;
 
@@ -200,13 +216,17 @@ class CompletionRunner {
     if (timing && identifierCount > 0) {
       var time = timer.elapsedMilliseconds;
       var averageTime = (time / identifierCount).round();
-      output.writeln('completion took $time ms, '
-          'which is an average of $averageTime ms per completion');
+      output.writeln(
+        'completion took $time ms, '
+        'which is an average of $averageTime ms per completion',
+      );
     }
   }
 
   List<CompletionSuggestionBuilder> _filterBy(
-      List<CompletionSuggestionBuilder> suggestions, String pattern) {
+    List<CompletionSuggestionBuilder> suggestions,
+    String pattern,
+  ) {
     return suggestions
         .where((suggestion) => suggestion.completion.startsWith(pattern))
         .toList();
@@ -223,7 +243,9 @@ class CompletionRunner {
   /// If the given list of [suggestions] includes a suggestion for the given
   /// [identifier], return the index of the suggestion. Otherwise, return `-1`.
   int _indexOf(
-      List<CompletionSuggestionBuilder> suggestions, String identifier) {
+    List<CompletionSuggestionBuilder> suggestions,
+    String identifier,
+  ) {
     for (var i = 0; i < suggestions.length; i++) {
       if (suggestions[i].completion == identifier) {
         return i;
@@ -252,7 +274,8 @@ class CompletionRunner {
   }
 
   List<CompletionSuggestionBuilder> _sort(
-      List<CompletionSuggestionBuilder> suggestions) {
+    List<CompletionSuggestionBuilder> suggestions,
+  ) {
     suggestions.sort((first, second) => second.relevance - first.relevance);
     return suggestions;
   }

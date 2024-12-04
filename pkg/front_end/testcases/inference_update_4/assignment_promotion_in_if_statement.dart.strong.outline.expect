@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method nullableInt() → core::int?
+  ;
+static method notEqualNull_assignIfNull() → dynamic
+  ;
+static method notEqualNullNull_eq() → dynamic
+  ;
+static method is_eq() → dynamic
+  ;
+static method is_plusEq() → dynamic
+  ;
+static method is_postfix() → dynamic
+  ;
+static method is_prefix() → dynamic
+  ;

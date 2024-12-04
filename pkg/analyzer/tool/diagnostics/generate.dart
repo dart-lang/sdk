@@ -132,7 +132,7 @@ class DocumentationGenerator {
     }
   }
 
-  /// Write the documentation to the file at the given [outputPath].
+  /// Writes the documentation to [sink].
   void writeDocumentation(StringSink sink) {
     _writeHeader(sink);
     _writeGlossary(sink);

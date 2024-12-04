@@ -33,7 +33,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
 
   void registerRule(LintRule rule) {
     addedRules.add(rule);
-    Registry.ruleRegistry.register(rule);
+    Registry.ruleRegistry.registerLintRule(rule);
   }
 
   void setUp() {
@@ -42,7 +42,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
 
   void tearDown() {
     for (var rule in addedRules) {
-      Registry.ruleRegistry.unregister(rule);
+      Registry.ruleRegistry.unregisterLintRule(rule);
     }
   }
 
@@ -51,7 +51,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
 analyzer:
   ^
 ''');
-    assertSuggestion('${AnalyzerOptions.enableExperiment}:');
+    assertSuggestion('${AnalysisOptionsFile.enableExperiment}:');
   }
 
   void test_analyzer_enableExperiment() {
@@ -112,7 +112,7 @@ analyzer:
 code-style:
   ^
 ''');
-    assertSuggestion('${AnalyzerOptions.format}: ');
+    assertSuggestion('${AnalysisOptionsFile.format}: ');
   }
 
   void test_codeStyle_format() {
@@ -126,11 +126,20 @@ code-style:
 
   void test_empty() {
     getCompletions('^');
-    assertSuggestion('${AnalyzerOptions.analyzer}: ');
-    assertSuggestion('${AnalyzerOptions.codeStyle}: ');
-    assertSuggestion('${AnalyzerOptions.include}: ');
+    assertSuggestion('${AnalysisOptionsFile.analyzer}: ');
+    assertSuggestion('${AnalysisOptionsFile.codeStyle}: ');
+    assertSuggestion('${AnalysisOptionsFile.formatter}: ');
+    assertSuggestion('${AnalysisOptionsFile.include}: ');
     // TODO(brianwilkerson): Replace this with a constant.
     assertSuggestion('linter: ');
+  }
+
+  void test_formatter() {
+    getCompletions('''
+formatter:
+  ^
+''');
+    assertSuggestion('${AnalysisOptionsFile.pageWidth}: ');
   }
 
   void test_linter() {
@@ -148,10 +157,7 @@ linter:
     ^
 ''');
     var completion = assertSuggestion('annotate_overrides');
-    expect(
-      completion.docComplete,
-      contains('Annotate overridden members.'),
-    );
+    expect(completion.docComplete, contains('Annotate overridden members.'));
   }
 
   void test_linter_rules_internal() {
@@ -173,7 +179,7 @@ linter:
     - ^
     - annotate_overrides
 ''');
-    assertSuggestion('avoid_as');
+    assertSuggestion('always_declare_return_types');
     assertNoSuggestion('annotate_overrides');
   }
 
@@ -184,7 +190,7 @@ linter:
     - annotate_overrides
     - ^
 ''');
-    assertSuggestion('avoid_as');
+    assertSuggestion('always_declare_return_types');
     assertNoSuggestion('annotate_overrides');
   }
 
@@ -196,7 +202,7 @@ linter:
     - ^
     - avoid_empty_else
 ''');
-    assertSuggestion('avoid_as');
+    assertSuggestion('always_declare_return_types');
     assertNoSuggestion('annotate_overrides');
     assertNoSuggestion('avoid_empty_else');
   }
@@ -229,6 +235,18 @@ linter:
     assertSuggestion('annotate_overrides');
   }
 
+  void test_linter_rules_removed() {
+    registerRule(_RemovedLint());
+
+    getCompletions('''
+linter:
+  rules:
+    ^
+''');
+
+    assertNoSuggestion('removed_lint');
+  }
+
   @failingTest
   void test_topLevel_afterOtherKeys() {
     // This test fails because the cursor is considered to be inside the exclude
@@ -239,7 +257,7 @@ analyzer:
     - '*.g.dart'
 ^
 ''');
-    assertSuggestion('${AnalyzerOptions.include}: ');
+    assertSuggestion('${AnalysisOptionsFile.include}: ');
   }
 
   @failingTest
@@ -257,16 +275,25 @@ li^
 }
 
 class InternalRule extends LintRule {
-  static const LintCode code = LintCode('internal_rule', 'Internal rule.',
-      correctionMessage: 'Try internal rule.');
+  static const LintCode code = LintCode(
+    'internal_rule',
+    'Internal rule.',
+    correctionMessage: 'Try internal rule.',
+  );
 
   InternalRule()
-      : super(
-          name: 'internal_lint',
-          state: State.internal(),
-          description: '',
-        );
+    : super(name: 'internal_lint', state: State.internal(), description: '');
 
   @override
   LintCode get lintCode => code;
+}
+
+class _RemovedLint extends LintRule {
+  static const LintCode _code = LintCode('removed_lint', 'Removed rule.');
+
+  _RemovedLint()
+    : super(name: 'removed_lint', state: State.removed(), description: '');
+
+  @override
+  LintCode get lintCode => _code;
 }

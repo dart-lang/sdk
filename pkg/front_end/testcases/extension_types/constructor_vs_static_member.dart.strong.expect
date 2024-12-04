@@ -2,67 +2,59 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:8:3: Error: Conflicts with member 'n'.
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:8:3: Error: The constructor conflicts with member 'n'.
 //   Class1.n(this.id); /* Error */
-//   ^
-//
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:7:18: Error: Conflicts with constructor 'Class1.n'.
+//   ^^^^^^^^
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:7:18: Context: Conflicting member 'n'.
 //   static int get n => 1;
 //                  ^
 //
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:14:9: Error: Conflicts with member 'n'.
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:14:9: Error: The constructor conflicts with member 'n'.
 //   const Class2.n(this.id); /* Error */
-//         ^
-//
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:13:14: Error: Conflicts with constructor 'Class2.n'.
+//         ^^^^^^^^
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:13:14: Context: Conflicting member 'n'.
 //   static int n() => 2;
 //              ^
 //
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:21:11: Error: Conflicts with member 'n'.
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:21:11: Error: The factory conflicts with member 'n'.
 //   factory Class3.n(int id) = Class3.new; /* Error */
-//           ^
-//
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:19:14: Error: Conflicts with factory 'Class3.n'.
+//           ^^^^^^^^
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:19:14: Context: Conflicting member 'n'.
 //   static int n() => 3;
 //              ^
 //
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:27:3: Error: Conflicts with member 'n'.
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:27:3: Error: The constructor conflicts with member 'n'.
 //   Class4.n(this.id); /* Error */
-//   ^
-//
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:26:14: Error: Conflicts with constructor 'Class4.n'.
+//   ^^^^^^^^
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:26:14: Context: Conflicting member 'n'.
 //   static int n = 1;
 //              ^
 //
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:32:3: Error: Conflicts with member 'n'.
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:32:3: Error: The constructor conflicts with member 'n'.
 //   ET1.n(this.id); /* Error */
-//   ^
-//
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:31:18: Error: Conflicts with constructor 'ET1.n'.
+//   ^^^^^
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:31:18: Context: Conflicting member 'n'.
 //   static int get n => 1;
 //                  ^
 //
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:37:9: Error: Conflicts with member 'n'.
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:37:9: Error: The constructor conflicts with member 'n'.
 //   const ET2.n(this.id); /* Error */
-//         ^
-//
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:36:14: Error: Conflicts with constructor 'ET2.n'.
+//         ^^^^^
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:36:14: Context: Conflicting member 'n'.
 //   static int n() => 2;
 //              ^
 //
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:42:11: Error: Conflicts with member 'n'.
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:42:11: Error: The factory conflicts with member 'n'.
 //   factory ET3.n(int id) = ET3.new; /* Error */
-//           ^
-//
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:41:14: Error: Conflicts with factory 'ET3.n'.
+//           ^^^^^
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:41:14: Context: Conflicting member 'n'.
 //   static int n() => 3;
 //              ^
 //
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:47:3: Error: Conflicts with member 'n'.
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:47:3: Error: The constructor conflicts with member 'n'.
 //   ET4.n(this.id); /* Error */
-//   ^
-//
-// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:46:14: Error: Conflicts with constructor 'ET4.n'.
+//   ^^^^^
+// pkg/front_end/testcases/extension_types/constructor_vs_static_member.dart:46:14: Context: Conflicting member 'n'.
 //   static int n = 1;
 //              ^
 //

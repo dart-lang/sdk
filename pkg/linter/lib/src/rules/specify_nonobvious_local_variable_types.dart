@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/obvious_types.dart';
 
 const _desc = r'Specify non-obvious type annotations for local variables.';
@@ -34,6 +33,7 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
     var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
     registry.addPatternVariableDeclarationStatement(this, visitor);
+    registry.addSwitchExpression(this, visitor);
     registry.addSwitchStatement(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }
@@ -88,7 +88,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSwitchExpression(SwitchExpression node) {}
+  void visitSwitchExpression(SwitchExpression node) {
+    if (node.expression.hasObviousType) return;
+    node.cases.forEach(_PatternVisitor(rule).visitSwitchExpressionCase);
+  }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {

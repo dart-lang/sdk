@@ -47,7 +47,6 @@ class DefiningLinkingUnit extends LinkingUnit {
     required super.reference,
     required super.node,
     required super.element,
-    required super.container,
   });
 }
 
@@ -82,16 +81,9 @@ class LibraryBuilder with MacroApplicationsContainer {
   final Map<EnumElementImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
 
-  /// The top-level elements that can be augmented.
-  final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
-      {};
-
-  /// The top-level variables and accessors that can be augmented.
-  late final AugmentedTopVariablesBuilder topVariables =
-      AugmentedTopVariablesBuilder(_augmentationTargets);
-
-  /// The top-level elements that can be augmented.
-  final Map<String, ElementImpl> _augmentationTargets = {};
+  final Map<String, FragmentedElementBuilder> elementBuilderGetters = {};
+  final Map<String, FragmentedElementBuilder> elementBuilderSetters = {};
+  final Map<String, FragmentedElementBuilder> elementBuilderVariables = {};
 
   /// Local declarations.
   final Map<String, Reference> _declaredReferences = {};
@@ -101,6 +93,9 @@ class LibraryBuilder with MacroApplicationsContainer {
 
   /// The `export` directives that export this library.
   final List<Export> exports = [];
+
+  /// The identifier of the reference used for unnamed fragments.
+  int _nextUnnamedId = 0;
 
   /// The fields that were speculatively created as [ConstFieldElementImpl],
   /// but we want to clear [ConstVariableElement.constantInitializer] for it
@@ -185,10 +180,12 @@ class LibraryBuilder with MacroApplicationsContainer {
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
+      constructor.typeName = classElement.name2;
+      constructor.name2 = 'new';
 
       classElement.constructors = [constructor].toFixedList();
 
-      if (classElement.augmented case AugmentedClassElementImpl augmented) {
+      if (classElement.augmented case ClassElementImpl2 augmented) {
         augmented.constructors = classElement.constructors;
       }
     }
@@ -199,14 +196,12 @@ class LibraryBuilder with MacroApplicationsContainer {
   void buildElements() {
     _buildDirectives(
       kind: kind,
-      containerLibrary: element,
       containerUnit: element.definingCompilationUnit,
     );
 
     for (var linkingUnit in units) {
       var elementBuilder = ElementBuilder(
         libraryBuilder: this,
-        unitReference: linkingUnit.reference,
         unitElement: linkingUnit.element,
       );
       elementBuilder.buildDirectiveElements(linkingUnit.node);
@@ -257,13 +252,15 @@ class LibraryBuilder with MacroApplicationsContainer {
       var reference = containerRef.getChild('new');
       reference.element = constructor;
       constructor.reference = reference;
+      constructor.typeName = enumElement.name2;
+      constructor.name2 = 'new';
 
       enumElement.constructors = [
         ...enumElement.constructors,
         constructor,
       ].toFixedList();
 
-      if (enumElement.augmented case AugmentedEnumElementImpl augmented) {
+      if (enumElement.augmented case EnumElementImpl2 augmented) {
         augmented.constructors = enumElement.constructors;
       }
     }
@@ -471,10 +468,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     }
   }
 
-  AugmentedInstanceDeclarationBuilder? getAugmentedBuilder(String name) {
-    return _augmentedBuilders[name];
-  }
-
   MacroResultOutput? getCacheableMacroResult() {
     // Nothing if we already reuse a cached result.
     if (inputMacroPartInclude != null) {
@@ -596,7 +589,6 @@ class LibraryBuilder with MacroApplicationsContainer {
 
     _buildDirectives(
       kind: includedPart,
-      containerLibrary: element,
       containerUnit: unitElement,
     );
 
@@ -652,13 +644,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     ).applyToUnit(unitElement, informativeBytes);
   }
 
-  void putAugmentedBuilder(
-    String name,
-    AugmentedInstanceDeclarationBuilder element,
-  ) {
-    _augmentedBuilders[name] = element;
-  }
-
   void replaceConstFieldsIfNoConstConstructor() {
     var withConstConstructors = Set<ClassElementImpl>.identity();
     for (var classElement in element.topLevelElements) {
@@ -675,7 +660,7 @@ class LibraryBuilder with MacroApplicationsContainer {
       var enclosing = fieldElement.enclosingElement3;
       var augmented = enclosing.ifTypeOrNull<ClassElementImpl>()?.augmented;
       if (augmented == null) continue;
-      if (!withConstConstructors.contains(augmented.declaration)) {
+      if (!withConstConstructors.contains(augmented.firstFragment)) {
         fieldElement.constantInitializer = null;
       }
     }
@@ -747,9 +732,7 @@ class LibraryBuilder with MacroApplicationsContainer {
           if (augmented.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
             interface.superclassConstraints = [objectType];
-            if (augmented is AugmentedMixinElementImpl) {
-              augmented.superclassConstraints = [objectType];
-            }
+            augmented.superclassConstraints = [objectType];
           }
       }
     }
@@ -776,29 +759,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     var entryPoint = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
     if (entryPoint is FunctionElement) {
       element.entryPoint = entryPoint;
-    }
-  }
-
-  void updateAugmentationTarget<T extends ElementImpl>(
-    String name,
-    AugmentableElement<T> augmentation,
-  ) {
-    if (augmentation.isAugmentation) {
-      var target = _augmentationTargets[name];
-      target ??= topVariables.accessors[name];
-      target ??= topVariables.accessors['$name='];
-
-      augmentation.augmentationTargetAny = target;
-      switch (target) {
-        case null:
-          _augmentationTargets[name] = augmentation;
-        case AugmentableElement<T> target:
-          augmentation.isAugmentationChainStart = false;
-          target.augmentation = augmentation as T;
-          _augmentationTargets[name] = augmentation;
-      }
-    } else {
-      _augmentationTargets[name] = augmentation;
     }
   }
 
@@ -924,7 +884,6 @@ class LibraryBuilder with MacroApplicationsContainer {
     performance.run('elements + types', (performance) {
       ElementBuilder(
         libraryBuilder: this,
-        unitReference: macroLinkingUnit.reference,
         unitElement: macroLinkingUnit.element,
       ).buildDeclarationElements(macroLinkingUnit.node);
 
@@ -973,7 +932,6 @@ class LibraryBuilder with MacroApplicationsContainer {
   /// augmentations.
   void _buildDirectives({
     required FileKind kind,
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
   }) {
     containerUnit.libraryExports = kind.libraryExports.map((state) {
@@ -982,7 +940,6 @@ class LibraryBuilder with MacroApplicationsContainer {
 
     containerUnit.libraryImports = kind.libraryImports.map((state) {
       return _buildLibraryImport(
-        containerLibrary: containerLibrary,
         containerUnit: containerUnit,
         state: state,
       );
@@ -1068,15 +1025,13 @@ class LibraryBuilder with MacroApplicationsContainer {
   }
 
   LibraryImportElementImpl _buildLibraryImport({
-    required LibraryOrAugmentationElementImpl containerLibrary,
     required CompilationUnitElementImpl containerUnit,
     required LibraryImportState state,
   }) {
     var importPrefix = state.unlinked.prefix.mapOrNull((unlinked) {
       var prefix = _buildLibraryImportPrefix(
-        name: unlinked.name,
         nameOffset: unlinked.nameOffset,
-        containerLibrary: containerLibrary,
+        name: unlinked.name,
         containerUnit: containerUnit,
       );
       if (unlinked.deferredOffset != null) {
@@ -1093,8 +1048,7 @@ class LibraryBuilder with MacroApplicationsContainer {
     var prefixFragment = state.unlinked.prefix.mapOrNull((unlinked) {
       return _buildLibraryImportPrefixFragment(
         libraryFragment: containerUnit,
-        name: unlinked.name,
-        nameOffset: unlinked.nameOffset,
+        unlinkedName: unlinked.name,
         isDeferred: unlinked.deferredOffset != null,
       );
     });
@@ -1171,24 +1125,23 @@ class LibraryBuilder with MacroApplicationsContainer {
   }
 
   PrefixElementImpl _buildLibraryImportPrefix({
-    required String name,
     required int nameOffset,
-    required LibraryOrAugmentationElementImpl containerLibrary,
+    required UnlinkedLibraryImportPrefixName? name,
     required CompilationUnitElementImpl containerUnit,
   }) {
     // TODO(scheglov): Make reference required.
     var containerRef = containerUnit.reference!;
-    var reference = containerRef.getChild('@prefix').getChild(name);
+    var refName = name?.name ?? '${_nextUnnamedId++}';
+    var reference = containerRef.getChild('@prefix').getChild(refName);
     var existing = reference.element;
     if (existing is PrefixElementImpl) {
       return existing;
     } else {
       var result = PrefixElementImpl(
-        name,
+        name?.name ?? '',
         nameOffset,
         reference: reference,
       );
-      result.enclosingElement = containerLibrary;
       result.enclosingElement3 = containerUnit;
       return result;
     }
@@ -1196,19 +1149,19 @@ class LibraryBuilder with MacroApplicationsContainer {
 
   PrefixFragmentImpl _buildLibraryImportPrefixFragment({
     required CompilationUnitElementImpl libraryFragment,
-    required String name,
-    required int nameOffset,
+    required UnlinkedLibraryImportPrefixName? unlinkedName,
     required bool isDeferred,
   }) {
     var fragment = PrefixFragmentImpl(
       enclosingFragment: libraryFragment,
-      name: name,
-      nameOffset: nameOffset,
+      name2: unlinkedName?.name,
+      nameOffset2: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     );
 
     var containerRef = libraryFragment.reference!;
-    var reference = containerRef.getChild('@prefix2').getChild(name);
+    var refName = unlinkedName?.name ?? '${_nextUnnamedId++}';
+    var reference = containerRef.getChild('@prefix2').getChild(refName);
     var element = reference.element2 as PrefixElementImpl2?;
 
     if (element == null) {
@@ -1256,14 +1209,12 @@ class LibraryBuilder with MacroApplicationsContainer {
             LinkingUnit(
               reference: unitReference,
               node: partUnitNode,
-              container: containerLibrary,
               element: unitElement,
             ),
           );
 
           _buildDirectives(
             kind: includedPart,
-            containerLibrary: element,
             containerUnit: unitElement,
           );
 
@@ -1304,6 +1255,25 @@ class LibraryBuilder with MacroApplicationsContainer {
 
     return PartElementImpl(
       uri: directiveUri,
+    );
+  }
+
+  /// We want to have stable references for `loadLibrary` function. But we
+  /// cannot create the function itself right now, because the type provider
+  /// might be not available yet. So, we create references together with the
+  /// library, and create the fragment and element later.
+  void _createLoadLibraryReferences() {
+    var name = FunctionElement.LOAD_LIBRARY_NAME;
+
+    var fragmentContainer = units[0].reference.getChild('@function');
+    var fragmentReference = fragmentContainer.addChild(name);
+
+    var elementContainer = reference.getChild('@function');
+    var elementReference = elementContainer.addChild(name);
+
+    element.loadLibraryProvider = LoadLibraryFunctionProvider(
+      fragmentReference: fragmentReference,
+      elementReference: elementReference,
     );
   }
 
@@ -1363,9 +1333,8 @@ class LibraryBuilder with MacroApplicationsContainer {
       libraryUnitNode.featureSet,
     );
     libraryElement.isSynthetic = !libraryFile.exists;
-    libraryElement.languageVersion = libraryUnitNode.languageVersion!;
+    libraryElement.languageVersion = libraryUnitNode.languageVersion;
     _bindReference(libraryReference, libraryElement);
-    elementFactory.setLibraryTypeSystem(libraryElement);
 
     var unitContainerRef = libraryReference.getChild('@fragment');
 
@@ -1388,7 +1357,6 @@ class LibraryBuilder with MacroApplicationsContainer {
           reference: unitReference,
           node: libraryUnitNode,
           element: unitElement,
-          container: libraryElement,
         ),
       );
 
@@ -1403,6 +1371,9 @@ class LibraryBuilder with MacroApplicationsContainer {
       element: libraryElement,
       units: linkingUnits,
     );
+
+    builder._createLoadLibraryReferences();
+    elementFactory.setLibraryTypeSystem(libraryElement);
 
     if (inputMacroResult != null) {
       var import = inputLibrary.addMacroPart(
@@ -1425,13 +1396,11 @@ class LibraryBuilder with MacroApplicationsContainer {
 class LinkingUnit {
   final Reference reference;
   final ast.CompilationUnitImpl node;
-  final LibraryOrAugmentationElementImpl container;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
     required this.reference,
     required this.node,
-    required this.container,
     required this.element,
   });
 }

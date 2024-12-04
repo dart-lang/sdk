@@ -78,11 +78,8 @@ augment class A {
 augment class A { }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(a.path);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_mutableClass() async {

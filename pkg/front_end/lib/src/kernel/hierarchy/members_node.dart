@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.class_hierarchy_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/names.dart' show noSuchMethodName;
@@ -24,8 +22,6 @@ import '../../base/messages.dart'
         templateCantInferTypesDueToNoCombinedSignature,
         templateCantInferReturnTypeDueToNoCombinedSignature,
         templateCantInferTypeDueToNoCombinedSignature,
-        templateDuplicatedDeclaration,
-        templateDuplicatedDeclarationCause,
         templateInstanceAndSynthesizedStaticConflict,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
@@ -103,7 +99,7 @@ abstract class MembersNodeBuilder {
       } else {
         declarationBuilder.addProblem(
             messageInheritedMembersConflict,
-            declarationBuilder.charOffset,
+            declarationBuilder.fileOffset,
             declarationBuilder.fullNameForErrors.length,
             context: _inheritedConflictContext(a, b));
       }
@@ -137,52 +133,6 @@ abstract class MembersNodeBuilder {
             name.length,
             instanceMember.fileUri);
       }
-    } else {
-      // This message can be reported twice (when merging localMembers with
-      // classSetters, or localSetters with classMembers). By ensuring that
-      // we always report the one with higher charOffset as the duplicate,
-      // the message duplication logic ensures that we only report this
-      // problem once.
-      ClassMember existing;
-      ClassMember duplicate;
-      assert(a.fileUri == b.fileUri ||
-          // Coverage-ignore(suite): Not run.
-          a.name.text == "toString" &&
-              (a.fileUri.isScheme("org-dartlang-sdk") &&
-                      a.fileUri.pathSegments.isNotEmpty &&
-                      a.fileUri.pathSegments.last == "enum.dart" ||
-                  b.fileUri.isScheme("org-dartlang-sdk") &&
-                      b.fileUri.pathSegments.isNotEmpty &&
-                      b.fileUri.pathSegments.last == "enum.dart"));
-
-      if (a.fileUri != b.fileUri) {
-        // Coverage-ignore-block(suite): Not run.
-        if (a.fileUri.isScheme("org-dartlang-sdk")) {
-          existing = a;
-          duplicate = b;
-        } else {
-          assert(b.fileUri.isScheme("org-dartlang-sdk"));
-          existing = b;
-          duplicate = a;
-        }
-      } else {
-        if (a.charOffset < b.charOffset) {
-          existing = a;
-          duplicate = b;
-        } else {
-          existing = b;
-          duplicate = a;
-        }
-      }
-      declarationBuilder.libraryBuilder.addProblem(
-          templateDuplicatedDeclaration.withArguments(name),
-          duplicate.charOffset,
-          name.length,
-          duplicate.fileUri,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
-                existing.fileUri, existing.charOffset, name.length)
-          ]);
     }
   }
 }
@@ -217,7 +167,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             declaredMember.formals != null &&
                 declaredMember.formals!.any(
                     (parameter) => parameter.type is InferableTypeBuilder))) {
-      Procedure declaredProcedure = declaredMember.member as Procedure;
+      Procedure declaredProcedure = declaredMember.invokeTarget as Procedure;
       FunctionNode declaredFunction = declaredProcedure.function;
       List<TypeParameter> declaredTypeParameters =
           declaredFunction.typeParameters;
@@ -941,12 +891,14 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           /// not a valid getter/setter in `Class` because the type of the getter
           /// `Super.property2` is _not_ a subtype of the setter
           /// `Mixin.property1`.
-          _membersBuilder.registerGetterSetterCheck(
-              new DelayedClassGetterSetterCheck(
-                  classBuilder as SourceClassBuilder,
-                  name,
-                  interfaceGetable,
-                  interfaceSetable));
+          SourceClassBuilder sourceClassBuilder =
+              classBuilder as SourceClassBuilder;
+          if (!sourceClassBuilder
+              .libraryBuilder.libraryFeatures.getterSetterError.isEnabled) {
+            _membersBuilder.registerGetterSetterCheck(
+                new DelayedClassGetterSetterCheck(sourceClassBuilder, name,
+                    interfaceGetable, interfaceSetable));
+          }
         }
       }
       overrides.collectOverrides(
@@ -1089,7 +1041,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     classBuilder.addProblem(
         templateMissingImplementationNotAbstract.withArguments(
             classBuilder.fullNameForErrors, names),
-        classBuilder.charOffset,
+        classBuilder.fileOffset,
         classBuilder.fullNameForErrors.length,
         context: context);
   }
@@ -2849,7 +2801,7 @@ void reportCantInferParameterType(ClassBuilder cls,
       .toList();
   cls.addProblem(
       templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-      parameter.charOffset,
+      parameter.fileOffset,
       name.length,
       wasHandled: true,
       context: context);
@@ -2870,7 +2822,7 @@ void reportCantInferTypes(ClassBuilder cls, SourceProcedureBuilder member,
       .toList();
   cls.addProblem(
       templateCantInferTypesDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
+      member.fileOffset,
       name.length,
       wasHandled: true,
       context: context);
@@ -2938,7 +2890,7 @@ void reportCantInferReturnType(ClassBuilder cls, SourceProcedureBuilder member,
   // }
   cls.addProblem(
       templateCantInferReturnTypeDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
+      member.fileOffset,
       name.length,
       wasHandled: true,
       context: context);
@@ -2959,7 +2911,7 @@ void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member,
   String name = member.fullNameForErrors;
   cls.addProblem(
       templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-      member.charOffset,
+      member.fileOffset,
       name.length,
       wasHandled: true,
       context: context);

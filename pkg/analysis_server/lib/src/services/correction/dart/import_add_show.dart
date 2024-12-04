@@ -20,8 +20,9 @@ class ImportAddShow extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.IMPORT_ADD_SHOW;
@@ -134,7 +135,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   void _addImplicitExtensionName(Element2? enclosingElement) {
     if (enclosingElement is ExtensionElement2) {
-      if (namespace[enclosingElement.name] == enclosingElement) {
+      if (namespace[enclosingElement.name3] == enclosingElement) {
         referencedNames.add(enclosingElement.displayName);
       }
     }
@@ -143,8 +144,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   void _addName(Token nameToken, Element2? element) {
     if (element != null) {
       var name = nameToken.lexeme;
-      if (namespace[name] == element ||
-          (name != element.name && namespace[element.name] == element)) {
+      if (namespace[name] == element || namespace['$name='] == element) {
         referencedNames.add(element.displayName);
       }
     }

@@ -30,8 +30,10 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
   }) async {
     var code = TestCode.parse(content);
     // If verifyInsertReplaceRanges is true, we need both expected contents.
-    assert(verifyInsertReplaceRanges == false ||
-        (expectedContent != null && expectedContentIfInserting != null));
+    assert(
+      verifyInsertReplaceRanges == false ||
+          (expectedContent != null && expectedContentIfInserting != null),
+    );
 
     if (!initialized) {
       setCompletionItemSnippetSupport();
@@ -49,14 +51,18 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
       await closeFile(fileUri);
     }
 
-    var sortedResults = completionResults
-        // Filter to those we expect (unless `expectNoAdditionalItems` which
-        // indicates the test wants to ensure no additional unmatched items)
-        .where((r) =>
-            expectNoAdditionalItems || expectCompletions.contains(r.label))
-        .toList()
-      // Sort using sortText as a client would.
-      ..sort(sortTextSorter);
+    var sortedResults =
+        completionResults
+            // Filter to those we expect (unless `expectNoAdditionalItems` which
+            // indicates the test wants to ensure no additional unmatched items)
+            .where(
+              (r) =>
+                  expectNoAdditionalItems ||
+                  expectCompletions.contains(r.label),
+            )
+            .toList()
+          // Sort using sortText as a client would.
+          ..sort(sortTextSorter);
 
     expect(sortedResults.map((item) => item.label), equals(expectCompletions));
 
@@ -73,28 +79,31 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
       if (verifyInsertReplaceRanges &&
           expectedContent != expectedContentIfInserting) {
         // Replacing.
-        updatedContent = applyTextEdits(
-          code.code,
-          [textEditForReplace(item.textEdit!)],
-        );
+        updatedContent = applyTextEdits(code.code, [
+          textEditForReplace(item.textEdit!),
+        ]);
         expect(
-            withCaret(updatedContent, insertFormat), equals(expectedContent));
+          withCaret(updatedContent, insertFormat),
+          equals(expectedContent),
+        );
 
         // Inserting.
-        var inserted = applyTextEdits(
-          code.code,
-          [textEditForInsert(item.textEdit!)],
+        var inserted = applyTextEdits(code.code, [
+          textEditForInsert(item.textEdit!),
+        ]);
+        expect(
+          withCaret(inserted, insertFormat),
+          equals(expectedContentIfInserting),
         );
-        expect(withCaret(inserted, insertFormat),
-            equals(expectedContentIfInserting));
       } else {
-        updatedContent = applyTextEdits(
-          code.code,
-          [toTextEdit(item.textEdit!)],
-        );
+        updatedContent = applyTextEdits(code.code, [
+          toTextEdit(item.textEdit!),
+        ]);
         if (expectedContent != null) {
           expect(
-              withCaret(updatedContent, insertFormat), equals(expectedContent));
+            withCaret(updatedContent, insertFormat),
+            equals(expectedContent),
+          );
         }
       }
       return updatedContent;

@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * The set of top-level elements encoded as pairs of the defining library URI and the name, and
@@ -32,9 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ImportedElementSet {
 
-  public static final ImportedElementSet[] EMPTY_ARRAY = new ImportedElementSet[0];
-
-  public static final List<ImportedElementSet> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ImportedElementSet> EMPTY_LIST = List.of();
 
   /**
    * The list of unique strings in this object.
@@ -62,10 +57,9 @@ public class ImportedElementSet {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ImportedElementSet) {
-      ImportedElementSet other = (ImportedElementSet) obj;
+    if (obj instanceof ImportedElementSet other) {
       return
-        ObjectUtilities.equals(other.strings, strings) &&
+        Objects.equals(other.strings, strings) &&
         Arrays.equals(other.uris, uris) &&
         Arrays.equals(other.names, names);
     }
@@ -83,10 +77,9 @@ public class ImportedElementSet {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ImportedElementSet> list = new ArrayList<ImportedElementSet>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ImportedElementSet> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -114,11 +107,11 @@ public class ImportedElementSet {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(strings);
-    builder.append(uris);
-    builder.append(names);
-    return builder.toHashCode();
+    return Objects.hash(
+      strings,
+      Arrays.hashCode(uris),
+      Arrays.hashCode(names)
+    );
   }
 
   public JsonObject toJson() {
@@ -146,11 +139,13 @@ public class ImportedElementSet {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("strings=");
-    builder.append(StringUtils.join(strings, ", ") + ", ");
+    builder.append(strings.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("uris=");
-    builder.append(StringUtils.join(uris, ", ") + ", ");
+    builder.append(Arrays.stream(uris).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("names=");
-    builder.append(StringUtils.join(names, ", "));
+    builder.append(Arrays.stream(names).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

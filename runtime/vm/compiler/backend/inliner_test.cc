@@ -90,7 +90,9 @@ ISOLATE_UNIT_TEST_CASE(Inliner_PolyInliningRedefinition) {
   // above, or a default case if there was no branch instruction for B's cid.
   while (true) {
     EXPECT(current->IsBranch());
-    const ComparisonInstr* check = current->AsBranch()->comparison();
+    const EqualityCompareInstr* check =
+        current->AsBranch()->condition()->AsEqualityCompare();
+    EXPECT(check != nullptr);
     EXPECT(check->left()->definition() == lcid);
     if (check->right()->definition() == cid_B) break;
     current = current->SuccessorAt(1);
@@ -193,7 +195,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_TypedData_Regress7551) {
                  value_param);
   RELEASE_ASSERT(store_instr->InputAt(0)->definition() == list_param);
   RELEASE_ASSERT(store_instr->InputAt(2)->definition() == unbox_instr);
-  RELEASE_ASSERT(unbox_instr->is_truncating());
 }
 
 #if defined(DART_PRECOMPILER)

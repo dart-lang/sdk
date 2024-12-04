@@ -5,7 +5,7 @@ import "dart:core" as core;
 class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = const <self::E>[self::E::v];
   enum-element static const field self::E v = const self::E::•(0, "v", const <dynamic>[]);
-  const constructor •(core::int #index, core::String #name, dynamic _) → self::E
+  const constructor •(core::int #index, core::String #name, wildcard dynamic _#wc0#formal) → self::E
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

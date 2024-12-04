@@ -146,11 +146,16 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Stored stack traces leading to the instructions for watch points.
   final Map<ir.Instruction, StackTrace>? _stackTraces;
 
+  /// Whether the instruction block is for a Wasm constant expression.
+  final bool _constantExpression;
+
   /// Create a new instruction sequence.
   InstructionsBuilder(
-      this.module, List<ir.ValueType> inputs, List<ir.ValueType> outputs)
+      this.module, List<ir.ValueType> inputs, List<ir.ValueType> outputs,
+      {bool constantExpression = false})
       : _stackTraces = module.watchPoints.isNotEmpty ? {} : null,
-        _sourceMappings = module.sourceMapUrl == null ? null : [] {
+        _sourceMappings = module.sourceMapUrl == null ? null : [],
+        _constantExpression = constantExpression {
     _labelStack.add(Expression(const [], outputs));
     for (ir.ValueType paramType in inputs) {
       _addParameter(paramType);
@@ -184,6 +189,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       locals, _instructions, _stackTraces, _traceLines, _sourceMappings);
 
   void _add(ir.Instruction i) {
+    assert(!_constantExpression || i.isConstant,
+        "Non-constant instruction $i added to constant expression");
     if (!_reachable) return;
     _instructions.add(i);
     if (module.watchPoints.isNotEmpty) {
@@ -545,6 +552,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     final Try try_ = _topOfLabelStack as Try;
     assert(_verifyEndOfBlock(tag.type.inputs,
         trace: ['catch', tag], reachableAfter: try_.reachable, reindent: true));
+    assert(tag.enclosingModule == module);
     try_.hasCatch = true;
     _reachable = try_.reachable;
     _add(ir.Catch(tag));
@@ -564,6 +572,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `throw` instruction.
   void throw_(ir.Tag tag) {
     assert(_verifyTypes(tag.type.inputs, const [], trace: ['throw', tag]));
+    assert(tag.enclosingModule == module);
     _add(ir.Throw(tag));
     _reachable = false;
   }
@@ -643,6 +652,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void call_indirect(ir.FunctionType type, [ir.Table? table]) {
     assert(_verifyTypes([...type.inputs, ir.NumType.i32], type.outputs,
         trace: ['call_indirect', type, if (table != null) table.name]));
+    assert(table == null || table.enclosingModule == module);
     _add(ir.CallIndirect(type, table));
   }
 
@@ -709,6 +719,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void global_get(ir.Global global) {
     assert(_verifyTypes(const [], [global.type.type],
         trace: ['global.get', global]));
+    assert(global.enclosingModule == module);
     _add(ir.GlobalGet(global));
   }
 
@@ -717,6 +728,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     assert(global.type.mutable);
     assert(_verifyTypes([global.type.type], const [],
         trace: ['global.set', global]));
+    assert(global.enclosingModule == module);
     _add(ir.GlobalSet(global));
   }
 
@@ -726,6 +738,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void table_get(ir.Table table) {
     assert(_verifyTypes(const [ir.NumType.i32], [table.type],
         trace: ['table.get', table.name]));
+    assert(table.enclosingModule == module);
     _add(ir.TableGet(table));
   }
 
@@ -733,6 +746,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void table_set(ir.Table table) {
     assert(_verifyTypes([ir.NumType.i32, table.type], const [],
         trace: ['table.set', table.name]));
+    assert(table.enclosingModule == module);
     _add(ir.TableSet(table));
   }
 
@@ -740,16 +754,19 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void table_size(ir.Table table) {
     assert(_verifyTypes(const [], const [ir.NumType.i32],
         trace: ['table.size', table.name]));
+    assert(table.enclosingModule == module);
     _add(ir.TableSize(table));
   }
 
   // Memory instructions
   void _addMemoryInstruction(
-          ir.Instruction Function(ir.MemoryOffsetAlign memory) create,
-          ir.Memory memory,
-          {required int offset,
-          required int align}) =>
-      _add(create(ir.MemoryOffsetAlign(memory, offset: offset, align: align)));
+      ir.Instruction Function(ir.MemoryOffsetAlign memory) create,
+      ir.Memory memory,
+      {required int offset,
+      required int align}) {
+    assert(memory.enclosingModule == module);
+    _add(create(ir.MemoryOffsetAlign(memory, offset: offset, align: align)));
+  }
 
   /// Emit an `i32.load` instruction.
   void i32_load(ir.Memory memory, int offset, [int align = 2]) {
@@ -957,12 +974,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `memory.size` instruction.
   void memory_size(ir.Memory memory) {
     assert(_verifyTypes(const [], const [ir.NumType.i32]));
+    assert(memory.enclosingModule == module);
     _add(ir.MemorySize(memory));
   }
 
   /// Emit a `memory.grow` instruction.
   void memory_grow(ir.Memory memory) {
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32]));
+    assert(memory.enclosingModule == module);
     _add(ir.MemoryGrow(memory));
   }
 

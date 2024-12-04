@@ -205,8 +205,6 @@ void f() {
   Future<void> _assertNoRefactoring() async {
     await initializeServer();
 
-    await expectNoCodeAction(
-      ConvertAllFormalParametersToNamed.constTitle,
-    );
+    await expectNoCodeAction(ConvertAllFormalParametersToNamed.constTitle);
   }
 }

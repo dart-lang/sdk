@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final in for-each loop variable if reference is not reassigned.';
@@ -18,6 +17,9 @@ class PreferFinalInForEach extends LintRule {
           name: LintNames.prefer_final_in_for_each,
           description: _desc,
         );
+
+  @override
+  List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
   List<LintCode> get lintCodes => [

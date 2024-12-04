@@ -1,0 +1,22 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources: |
+  void stopHere() {
+    List<(int, {double foo, String bar})> listOfRecord = [(42, foo: 42.42, bar: "fortytwo")];
+    print(helper(listOfRecord));
+  }
+  bool helper(List<(int, {double foo, String bar})> listOfRecord) {
+    final record = listOfRecord.first;
+    return record.$1 == 42 && record.foo >= 42.0 && record.bar.length >= 4;
+  }
+definitions: ["listOfRecord"]
+# List<(int, {String bar, double foo})> // Note the names being sorted!
+definition_types: ["dart:core", "List", "1", "1", "record", "1", "3", "1", "bar", "foo", "dart:core", "int", "1", "0", "dart:core", "String", "1", "0", "dart:core", "double", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "stopHere"
+expression: |
+  helper(listOfRecord)

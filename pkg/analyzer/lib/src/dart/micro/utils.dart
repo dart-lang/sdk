@@ -44,7 +44,7 @@ ConstructorElement? _getActualConstructorElement(
   var seenConstructors = <ConstructorElement?>{};
   while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
     var enclosing = constructor.enclosingElement3;
-    if (enclosing is ClassElement && enclosing.isMixinApplication) {
+    if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers
           .whereType<SuperConstructorInvocation>()
           .singleOrNull;
@@ -62,9 +62,9 @@ ConstructorElement? _getActualConstructorElement(
   return constructor;
 }
 
-/// Return the [LibraryImportElement] that declared [prefix] and imports [element].
+/// Returns the [LibraryImportElement] that declared [prefix] and imports [element].
 ///
-/// [libraryElement] - the [LibraryElement] where reference is.
+/// [libraryFragment] - the [CompilationUnitElementImpl] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
 /// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.

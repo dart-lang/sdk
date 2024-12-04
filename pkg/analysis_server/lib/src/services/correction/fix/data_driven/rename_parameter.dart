@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -33,7 +33,9 @@ class RenameParameter extends Change<_Data> {
       var declaration = data.methodDeclaration;
       var parameter = declaration.parameterNamed(oldName);
       if (parameter != null) {
-        var overriddenMethod = declaration.overriddenElement();
+        var overriddenMethod = declaration.overriddenElement(
+          fix.inheritanceManager,
+        );
         var overriddenParameter = overriddenMethod?.parameterNamed(oldName);
         if (overriddenParameter == null) {
           // If the overridden parameter has already been removed, then just
@@ -46,16 +48,18 @@ class RenameParameter extends Change<_Data> {
           // If the overridden parameter still exists, then mark the overriding
           // parameter as deprecated (if it isn't already and the overridden
           // parameter is) and add a declaration of the new parameter.
-          var parameterElement = parameter.declaredElement;
+          var parameterElement = parameter.declaredFragment?.element;
           if (parameterElement != null) {
             builder.addInsertion(parameter.offset, (builder) {
-              builder.writeParameter(newName,
-                  isCovariant: parameterElement.isCovariant,
-                  isRequiredNamed: parameterElement.isRequiredNamed,
-                  type: parameterElement.type);
+              builder.writeParameter(
+                newName,
+                isCovariant: parameterElement.isCovariant,
+                isRequiredNamed: parameterElement.isRequiredNamed,
+                type: parameterElement.type,
+              );
               builder.write(', ');
-              if (overriddenParameter.hasDeprecated &&
-                  !parameterElement.hasDeprecated) {
+              if (overriddenParameter.metadata2.hasDeprecated &&
+                  !parameterElement.metadata2.hasDeprecated) {
                 builder.write('@deprecated ');
               }
             });
@@ -127,27 +131,34 @@ class _OverrideData extends _Data {
 }
 
 extension on MethodDeclaration {
-  /// Return the element that this method overrides, or `null` if this method
-  /// doesn't override any inherited member.
-  ExecutableElement? overriddenElement() {
-    var element = declaredElement;
+  /// Returns the element that this method overrides.
+  ///
+  /// Returns `null` if this method doesn't override any inherited member.
+  ExecutableElement2? overriddenElement(
+    InheritanceManager3 inheritanceManager,
+  ) {
+    var element = declaredFragment?.element;
     if (element != null) {
-      var enclosingElement = element.enclosingElement3;
-      if (enclosingElement is InterfaceElement) {
-        var name = Name(enclosingElement.library.source.uri, element.name);
-        return InheritanceManager3().getInherited2(enclosingElement, name);
+      var enclosingElement = element.enclosingElement2;
+      if (enclosingElement is InterfaceElement2) {
+        var name = Name(
+          enclosingElement.library2.uri,
+          element.name3!,
+        );
+        return inheritanceManager.getInherited4(enclosingElement, name);
       }
     }
     return null;
   }
 
-  /// Return the parameter of this method whose name matches the given [name],
-  /// or `null` if there is no such parameter.
+  /// Returns the parameter of this method whose name matches the given [name].
+  ///
+  /// Returns `null` if there is no such parameter.
   FormalParameter? parameterNamed(String name) {
     var parameters = this.parameters;
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        if (parameter.declaredElement?.name == name) {
+        if (parameter.declaredFragment?.name2 == name) {
           return parameter;
         }
       }
@@ -156,12 +167,14 @@ extension on MethodDeclaration {
   }
 }
 
-extension on ExecutableElement {
-  /// Return the parameter of this executable element whose name matches the
-  /// given [name], or `null` if there is no such parameter.
-  ParameterElement? parameterNamed(String name) {
-    for (var parameter in parameters) {
-      if (parameter.name == name) {
+extension on ExecutableElement2 {
+  /// Returns the parameter of this executable element whose name matches the
+  /// given [name]
+  ///
+  /// Returns `null` if there is no such parameter.
+  FormalParameterElement? parameterNamed(String name) {
+    for (var parameter in formalParameters) {
+      if (parameter.name3 == name) {
         return parameter;
       }
     }

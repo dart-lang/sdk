@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -11,6 +10,7 @@ import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/d8_helper.dart';
 import 'package:compiler/src/util/memory_compiler.dart';

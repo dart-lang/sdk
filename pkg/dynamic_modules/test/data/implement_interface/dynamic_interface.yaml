@@ -12,7 +12,13 @@ callable:
     # TODO(sigmund): This should be included by default
   - library: 'dart:core'
     class: 'Object'
-    member: ''
+  - library: 'dart:core'
+    class: 'int'
+  - library: 'dart:core'
+    class: 'pragma'
+    member: '_'
+  - library: 'dart:core'
+    member: 'override'
 
 can-be-overridden:
   - library: 'shared/shared.dart'

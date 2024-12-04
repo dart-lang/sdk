@@ -42,6 +42,13 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitClassTypeAlias(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.name case var name?) {
       _addOccurrence(node.declaredElement!, name.offset);
@@ -105,6 +112,20 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitGenericTypeAlias(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _addOccurrence(node.declaredElement!, node.name.offset);
     super.visitMethodDeclaration(node);
@@ -121,7 +142,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var element = node.element;
     if (element != null) {
-      _addOccurrence(element, node.offset);
+      _addOccurrence(element, node.name2.offset);
     }
 
     super.visitNamedType(node);
@@ -132,9 +153,10 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     var element = node.element;
     var pattern = node.pattern;
     // If no explicit field name, use the variables name.
-    var name = node.name?.name == null && pattern is VariablePattern
-        ? pattern.name
-        : node.name?.name;
+    var name =
+        node.name?.name == null && pattern is VariablePattern
+            ? pattern.name
+            : node.name?.name;
     if (element != null && name != null) {
       _addOccurrence(element, name.offset);
     }

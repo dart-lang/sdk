@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageCodeObject;
-import 'package:async_helper/async_helper.dart' show asyncTest;
+import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;

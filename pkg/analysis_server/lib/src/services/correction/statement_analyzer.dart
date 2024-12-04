@@ -22,12 +22,14 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     var tokens = <Token>[];
-    var scanner = Scanner(_SourceMock.instance, CharSequenceReader(text),
-        AnalysisErrorListener.NULL_LISTENER)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
-      );
+    var scanner = Scanner(
+      _SourceMock.instance,
+      CharSequenceReader(text),
+      AnalysisErrorListener.NULL_LISTENER,
+    )..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
     var token = scanner.tokenize();
     while (!token.isEof) {
       tokens.add(token);
@@ -46,7 +48,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
   final RefactoringStatus _status = RefactoringStatus();
 
   StatementAnalyzer(this.resolveResult, SourceRange selection)
-      : super(selection);
+    : super(selection);
 
   /// Returns the [RefactoringStatus] result of selection checking.
   RefactoringStatus get status => _status;
@@ -96,7 +98,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
     var selectedNodes = this.selectedNodes;
     if (_contains(selectedNodes, node.body)) {
       invalidSelection(
-          "Operation not applicable to a 'do' statement's body and expression.");
+        "Operation not applicable to a 'do' statement's body and expression.",
+      );
     }
   }
 
@@ -121,13 +124,16 @@ class StatementAnalyzer extends SelectionAnalyzer {
       var containsBody = _contains(selectedNodes, node.body);
       if (containsInit && containsCondition) {
         invalidSelection(
-            "Operation not applicable to a 'for' statement's initializer and condition.");
+          "Operation not applicable to a 'for' statement's initializer and condition.",
+        );
       } else if (containsCondition && containsUpdaters) {
         invalidSelection(
-            "Operation not applicable to a 'for' statement's condition and updaters.");
+          "Operation not applicable to a 'for' statement's condition and updaters.",
+        );
       } else if (containsUpdaters && containsBody) {
         invalidSelection(
-            "Operation not applicable to a 'for' statement's updaters and body.");
+          "Operation not applicable to a 'for' statement's updaters and body.",
+        );
       }
     }
   }
@@ -140,7 +146,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
     for (var selectedNode in selectedNodes) {
       if (switchMembers.contains(selectedNode)) {
         invalidSelection(
-            'Selection must either cover whole switch statement or parts of a single case block.');
+          'Selection must either cover whole switch statement or parts of a single case block.',
+        );
         break;
       }
     }
@@ -154,7 +161,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
       if (firstSelectedNode == node.body ||
           firstSelectedNode == node.finallyBlock) {
         invalidSelection(
-            'Selection must either cover whole try statement or parts of try, catch, or finally block.');
+          'Selection must either cover whole try statement or parts of try, catch, or finally block.',
+        );
       } else {
         List<CatchClause> catchClauses = node.catchClauses;
         for (var catchClause in catchClauses) {
@@ -162,7 +170,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
               firstSelectedNode == catchClause.body ||
               firstSelectedNode == catchClause.exceptionParameter) {
             invalidSelection(
-                'Selection must either cover whole try statement or parts of try, catch, or finally block.');
+              'Selection must either cover whole try statement or parts of try, catch, or finally block.',
+            );
           }
         }
       }
@@ -176,7 +185,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
     if (_contains(selectedNodes, node.condition) &&
         _contains(selectedNodes, node.body)) {
       invalidSelection(
-          "Operation not applicable to a while statement's expression and body.");
+        "Operation not applicable to a while statement's expression and body.",
+      );
     }
   }
 
@@ -186,25 +196,31 @@ class StatementAnalyzer extends SelectionAnalyzer {
     // some tokens before first selected node
     {
       var firstNode = nodes[0];
-      var rangeBeforeFirstNode =
-          range.startOffsetEndOffset(selection.offset, firstNode.offset);
+      var rangeBeforeFirstNode = range.startOffsetEndOffset(
+        selection.offset,
+        firstNode.offset,
+      );
       if (_hasTokens(rangeBeforeFirstNode)) {
         invalidSelection(
-            'The beginning of the selection contains characters that '
-            'do not belong to a statement.',
-            newLocation_fromUnit(unit, rangeBeforeFirstNode));
+          'The beginning of the selection contains characters that '
+          'do not belong to a statement.',
+          newLocation_fromUnit(unit, rangeBeforeFirstNode),
+        );
       }
     }
     // some tokens after last selected node
     {
       var lastNode = nodes.last;
-      var rangeAfterLastNode =
-          range.startOffsetEndOffset(lastNode.end, selection.end);
+      var rangeAfterLastNode = range.startOffsetEndOffset(
+        lastNode.end,
+        selection.end,
+      );
       if (_hasTokens(rangeAfterLastNode)) {
         invalidSelection(
-            'The end of the selection contains characters that '
-            'do not belong to a statement.',
-            newLocation_fromUnit(unit, rangeAfterLastNode));
+          'The end of the selection contains characters that '
+          'do not belong to a statement.',
+          newLocation_fromUnit(unit, rangeAfterLastNode),
+        );
       }
     }
   }

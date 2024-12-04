@@ -5,7 +5,8 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart' as server
+import 'package:analysis_server/src/protocol_server.dart'
+    as server
     show SourceEdit;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -28,7 +29,7 @@ final _isValidFormatterChange = RegExp(r'^[\s,;<>]*$').hasMatch;
 /// Since the translation from line/characters to offsets needs to take previous
 /// changes into account, this will also apply the edits to [oldContent].
 ErrorOr<({String content, List<plugin.SourceEdit> edits})>
-    applyAndConvertEditsToServer(
+applyAndConvertEditsToServer(
   String oldContent,
   List<TextDocumentContentChangeEvent> changes, {
   bool failureIsCritical = false,
@@ -44,10 +45,16 @@ ErrorOr<({String content, List<plugin.SourceEdit> edits})>
       // {range, text}
       (change) {
         var lines = LineInfo.fromContent(newContent);
-        var offsetStart = toOffset(lines, change.range.start,
-            failureIsCritical: failureIsCritical);
-        var offsetEnd = toOffset(lines, change.range.end,
-            failureIsCritical: failureIsCritical);
+        var offsetStart = toOffset(
+          lines,
+          change.range.start,
+          failureIsCritical: failureIsCritical,
+        );
+        var offsetEnd = toOffset(
+          lines,
+          change.range.end,
+          failureIsCritical: failureIsCritical,
+        );
         if (offsetStart.isError) {
           return failure(offsetStart);
         }
@@ -55,10 +62,18 @@ ErrorOr<({String content, List<plugin.SourceEdit> edits})>
           return failure(offsetEnd);
         }
         (offsetStart, offsetEnd).ifResults((offsetStart, offsetEnd) {
-          newContent =
-              newContent.replaceRange(offsetStart, offsetEnd, change.text);
-          serverEdits.add(server.SourceEdit(
-              offsetStart, offsetEnd - offsetStart, change.text));
+          newContent = newContent.replaceRange(
+            offsetStart,
+            offsetEnd,
+            change.text,
+          );
+          serverEdits.add(
+            server.SourceEdit(
+              offsetStart,
+              offsetEnd - offsetStart,
+              change.text,
+            ),
+          );
         });
       },
       // TextDocumentContentChangeEvent2
@@ -78,12 +93,25 @@ ErrorOr<({String content, List<plugin.SourceEdit> edits})>
   return ErrorOr.success((content: newContent, edits: serverEdits));
 }
 
+/// Generates a list of [TextEdit]s to format the code for [result].
+///
+/// [defaultPageWidth] will be used as the default page width if [result] does
+/// not have an analysis_options file that defines a page width.
+///
+/// If [range] is provided, only edits that intersect with this range will be
+/// returned.
 ErrorOr<List<TextEdit>?> generateEditsForFormatting(
-  ParsedUnitResult result,
-  int? lineLength, {
+  ParsedUnitResult result, {
+  int? defaultPageWidth,
   Range? range,
 }) {
   var unformattedSource = result.content;
+
+  // The analysis options page width always takes priority over the default from
+  // the LSP configuration.
+  var effectivePageWidth =
+      result.analysisOptions.formatterOptions.pageWidth ?? defaultPageWidth;
+  var effectiveLanguageVersion = result.unit.languageVersion.effective;
 
   var code = SourceCode(unformattedSource);
   SourceCode formattedResult;
@@ -91,12 +119,11 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     // Create a new formatter on every request because it may contain state that
     // affects repeated formats.
     // https://github.com/dart-lang/dart_style/issues/1337
-    var languageVersion =
-        result.unit.declaredElement?.library.languageVersion.effective ??
-            DartFormatter.latestLanguageVersion;
-    formattedResult =
-        DartFormatter(pageWidth: lineLength, languageVersion: languageVersion)
-            .formatSource(code);
+    var formatter = DartFormatter(
+      pageWidth: effectivePageWidth,
+      languageVersion: effectiveLanguageVersion,
+    );
+    formattedResult = formatter.formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the
     // use seeing edits on every save with invalid code (if LSP gains the
@@ -114,14 +141,19 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
 }
 
 List<TextEdit> generateFullEdit(
-    LineInfo lineInfo, String unformattedSource, String formattedSource) {
+  LineInfo lineInfo,
+  String unformattedSource,
+  String formattedSource,
+) {
   var end = lineInfo.getLocation(unformattedSource.length);
   return [
     TextEdit(
-      range:
-          Range(start: Position(line: 0, character: 0), end: toPosition(end)),
+      range: Range(
+        start: Position(line: 0, character: 0),
+        end: toPosition(end),
+      ),
       newText: formattedSource,
-    )
+    ),
   ];
 }
 
@@ -229,14 +261,14 @@ class _MinimalEditComputer {
       [TokenType.GT_GT, TokenType.GT],
     },
     TokenType.GT_GT: {
-      [TokenType.GT, TokenType.GT]
+      [TokenType.GT, TokenType.GT],
     },
     TokenType.LT_LT: {
-      [TokenType.LT, TokenType.LT]
+      [TokenType.LT, TokenType.LT],
     },
     TokenType.INDEX: {
-      [TokenType.OPEN_SQUARE_BRACKET, TokenType.CLOSE_SQUARE_BRACKET]
-    }
+      [TokenType.OPEN_SQUARE_BRACKET, TokenType.CLOSE_SQUARE_BRACKET],
+    },
   };
 
   final LineInfo _lineInfo;
@@ -259,13 +291,13 @@ class _MinimalEditComputer {
     required String formatted,
     required int? rangeStart,
     required int? rangeEnd,
-  })  : _lineInfo = lineInfo,
-        _unformatted = unformatted,
-        _formatted = formatted,
-        _rangeStart = rangeStart,
-        _rangeEnd = rangeEnd,
-        _parsedUnformatted = _parse(unformatted, result.unit.featureSet),
-        _parsedFormatted = _parse(formatted, result.unit.featureSet);
+  }) : _lineInfo = lineInfo,
+       _unformatted = unformatted,
+       _formatted = formatted,
+       _rangeStart = rangeStart,
+       _rangeEnd = rangeEnd,
+       _parsedUnformatted = _parse(unformatted, result.unit.featureSet),
+       _parsedFormatted = _parse(formatted, result.unit.featureSet);
 
   /// Compute the edits.
   ///
@@ -441,10 +473,14 @@ class _MinimalEditComputer {
     int formattedEnd, {
     bool allowAnyContentDifferences = false,
   }) {
-    var unformattedWhitespace =
-        _unformatted.substring(unformattedStart, unformattedEnd);
-    var formattedWhitespace =
-        _formatted.substring(formattedStart, formattedEnd);
+    var unformattedWhitespace = _unformatted.substring(
+      unformattedStart,
+      unformattedEnd,
+    );
+    var formattedWhitespace = _formatted.substring(
+      formattedStart,
+      formattedEnd,
+    );
 
     if (_rangeStart != null && _rangeEnd != null) {
       // If this change crosses over the start of the requested range,
@@ -547,13 +583,15 @@ class _MinimalEditComputer {
     // Note: As with all LSP edits, offsets are based on the original location
     // as they are applied in one shot. They should not account for the previous
     // edits in the same set.
-    _edits.add(TextEdit(
-      range: Range(
-        start: toPosition(_lineInfo.getLocation(startOffset)),
-        end: toPosition(_lineInfo.getLocation(endOffset)),
+    _edits.add(
+      TextEdit(
+        range: Range(
+          start: toPosition(_lineInfo.getLocation(startOffset)),
+          end: toPosition(_lineInfo.getLocation(endOffset)),
+        ),
+        newText: newText,
       ),
-      newText: newText,
-    ));
+    );
   }
 
   /// Generates fallback results for if we are unable to minimize edits
@@ -634,12 +672,14 @@ class _MinimalEditComputer {
   /// be parsed.
   static Token? _parse(String s, FeatureSet featureSet) {
     try {
-      var scanner = Scanner(_SourceMock.instance, CharSequenceReader(s),
-          AnalysisErrorListener.NULL_LISTENER)
-        ..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+      var scanner = Scanner(
+        _SourceMock.instance,
+        CharSequenceReader(s),
+        AnalysisErrorListener.NULL_LISTENER,
+      )..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
       return scanner.tokenize();
     } catch (e) {
       return null;

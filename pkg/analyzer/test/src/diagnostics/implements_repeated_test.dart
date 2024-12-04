@@ -31,12 +31,12 @@ ImplementsClause
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
 ''');
   }
@@ -79,12 +79,12 @@ ImplementsClause
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
       element: <testLibraryFragment>::@typeAlias::B
-      element2: <testLibraryFragment>::@typeAlias::B#element
+      element2: <testLibrary>::@typeAlias::B
       type: A
         alias: <testLibraryFragment>::@typeAlias::B
 ''');
@@ -119,12 +119,12 @@ ImplementsClause
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
 ''');
   }
@@ -169,12 +169,12 @@ ImplementsClause
     NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
       element: <testLibraryFragment>::@typeAlias::B
-      element2: <testLibraryFragment>::@typeAlias::B#element
+      element2: <testLibrary>::@typeAlias::B
       type: A
         alias: <testLibraryFragment>::@typeAlias::B
 ''');
@@ -208,12 +208,12 @@ ImplementsClause
     NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
 ''');
   }
@@ -254,12 +254,12 @@ ImplementsClause
     NamedType
       name: int
       element: dart:core::<fragment>::@class::int
-      element2: dart:core::<fragment>::@class::int#element
+      element2: dart:core::@class::int
       type: int
     NamedType
       name: A
       element: <testLibraryFragment>::@typeAlias::A
-      element2: <testLibraryFragment>::@typeAlias::A#element
+      element2: <testLibrary>::@typeAlias::A
       type: int
         alias: <testLibraryFragment>::@typeAlias::A
 ''');

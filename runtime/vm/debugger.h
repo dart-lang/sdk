@@ -884,8 +884,6 @@ class Debugger {
   // If any other |ErrorPtr| is returned, it means that a |BreakpointLocation|
   // was not prepared successfully, and the return value will point to an
   // |Error| describing why the |BreakpointLocation| could not be prepared.
-  // TODO(derekxu16): Continue looking at all usages of functions that return
-  // |ErrorPtr|s and account for Object::no_debuggable_code_error().
   ErrorPtr SetBreakpoint(const GrowableHandlePtrArray<const Script>& scripts,
                          TokenPosition token_pos,
                          TokenPosition last_token_pos,

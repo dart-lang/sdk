@@ -45,7 +45,7 @@ sealed class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .rawType(superclass, context.nonNullable);
     }
-    DartType type = getStaticType(context).nonTypeVariableBound;
+    DartType type = getStaticType(context).nonTypeParameterBound;
     if (type is NullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);

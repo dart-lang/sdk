@@ -65,8 +65,7 @@ class C {}
 import 'package:test/lib.dart';
 ''');
     await resolveTestFile();
-    var result = await resolveFile(bin.path);
-    await assertNoDiagnosticsIn(result.errors);
+    await assertNoDiagnosticsInFile(bin.path);
   }
 
   test_samePackage_packageSchema_inPart() async {

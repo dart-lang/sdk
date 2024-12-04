@@ -89,9 +89,10 @@ import '$uriContent';
     newFile('$packagesRootPath/bar/lib/bar01.dart', '');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: fooPackageRoot.path)
-        ..add(name: 'bar', rootPath: barPackageRoot.path),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: fooPackageRoot.path)
+            ..add(name: 'bar', rootPath: barPackageRoot.path),
     );
   }
 }

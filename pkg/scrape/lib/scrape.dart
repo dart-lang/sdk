@@ -9,7 +9,9 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -281,8 +283,14 @@ class Scrape {
     var lineInfo = LineInfo(scanner.lineStarts);
 
     // Parse it.
-    var parser = Parser(stringSource, errorListener,
-        featureSet: featureSet, lineInfo: lineInfo);
+    var parser = Parser(
+      stringSource,
+      errorListener,
+      featureSet: featureSet,
+      languageVersion: LibraryLanguageVersion(
+          package: ExperimentStatus.currentVersion, override: null),
+      lineInfo: lineInfo,
+    );
 
     if (_printFiles) {
       if (Platform.isWindows) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.library_builder;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart' show Class, Library, Version;
 import 'package:kernel/reference_from_index.dart';
@@ -38,7 +36,6 @@ import 'builder.dart';
 import 'declaration_builders.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'modifier_builder.dart';
 import 'name_iterator.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';
@@ -230,7 +227,7 @@ abstract class SourceCompilationUnit implements CompilationUnit {
 
   /// This method instantiates type parameters to their bounds in some cases
   /// where they were omitted by the programmer and not provided by the type
-  /// inference.  The method returns the number of distinct type variables
+  /// inference.  The method returns the number of distinct type parameters
   /// that were instantiated in this library.
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass);
@@ -241,16 +238,17 @@ abstract class SourceCompilationUnit implements CompilationUnit {
   /// use of the parameters in the right-hand side of the typedef definition.
   int computeVariances();
 
-  /// Adds all unbound nominal variables to [nominalVariables] and unbound
-  /// structural variables to [structuralVariables], mapping them to
+  /// Adds all unbound nominal parameters to [nominalParameters] and unbound
+  /// structural parameters to [structuralParameters], mapping them to
   /// [libraryBuilder].
   ///
-  /// This is used to compute the bounds of type variable while taking the
+  /// This is used to compute the bounds of type parameters while taking the
   /// bound dependencies, which might span multiple libraries, into account.
-  void collectUnboundTypeVariables(
+  void collectUnboundTypeParameters(
       SourceLibraryBuilder libraryBuilder,
-      Map<NominalVariableBuilder, SourceLibraryBuilder> nominalVariables,
-      Map<StructuralVariableBuilder, SourceLibraryBuilder> structuralVariables);
+      Map<NominalParameterBuilder, SourceLibraryBuilder> nominalParameters,
+      Map<StructuralParameterBuilder, SourceLibraryBuilder>
+          structuralParameters);
 
   /// Adds [prefixFragment] to library name space.
   ///
@@ -392,7 +390,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   }
 }
 
-abstract class LibraryBuilderImpl extends ModifierBuilderImpl
+abstract class LibraryBuilderImpl extends BuilderImpl
     implements LibraryBuilder {
   @override
   final Uri fileUri;
@@ -408,20 +406,13 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   Builder? get parent => null;
 
   @override
-  int get charOffset => -1;
+  int get fileOffset => -1;
 
   @override
   bool get isPart => false;
 
   @override
-  String get debugName => "$runtimeType";
-
-  @override
   Loader get loader;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  int get modifiers => 0;
 
   @override
   Uri get importUri;
@@ -615,8 +606,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       CompilationUnit accessor, int charOffset, int length, Uri fileUri) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
-  StringBuffer printOn(StringBuffer buffer) {
-    return buffer..write(isPart || isAugmenting ? fileUri : importUri);
+  String toString() {
+    return '$runtimeType(${isPart || isAugmenting ? fileUri : importUri})';
   }
 }

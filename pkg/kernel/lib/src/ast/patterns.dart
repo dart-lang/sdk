@@ -358,6 +358,12 @@ class NullCheckPattern extends Pattern {
 
 /// A [Pattern] for `<typeArgument>[pattern0, ... patternN]`.
 class ListPattern extends Pattern {
+  static const int FlagNeedsCheck = 1 << 0;
+  static const int FlagHasRestPattern = 1 << 1;
+  static const int FlagIsNeverPattern = 1 << 2;
+
+  int flags = 0;
+
   /// The element type argument as specified by the list pattern syntax.
   DartType? typeArgument;
 
@@ -379,7 +385,10 @@ class ListPattern extends Pattern {
   /// If `true`, the matched expression must be checked to be a `List`.
   ///
   /// This is set during inference.
-  bool needsCheck = false;
+  bool get needsCheck => flags & FlagNeedsCheck != 0;
+  void set needsCheck(bool value) {
+    flags = value ? (flags | FlagNeedsCheck) : (flags & ~FlagNeedsCheck);
+  }
 
   /// The most specific type of the matched expression. Either the
   /// [requiredType] or the [matchedValueType] if it is a subtype of
@@ -390,10 +399,24 @@ class ListPattern extends Pattern {
   /// This is set during inference.
   DartType? lookupType;
 
+  /// If `true`, this list pattern is performed on an expression of type
+  /// `Never`.
+  ///
+  /// This is set during inference.
+  bool get isNeverPattern => flags & FlagIsNeverPattern != 0;
+  void set isNeverPattern(bool value) {
+    flags =
+        value ? (flags | FlagIsNeverPattern) : (flags & ~FlagIsNeverPattern);
+  }
+
   /// If `true`, this list pattern contains a rest pattern.
   ///
   /// This is set during inference.
-  bool hasRestPattern = false;
+  bool get hasRestPattern => flags & FlagHasRestPattern != 0;
+  void set hasRestPattern(bool value) {
+    flags =
+        value ? (flags | FlagHasRestPattern) : (flags & ~FlagHasRestPattern);
+  }
 
   /// Reference to the target of the `length` property of the list.
   ///
@@ -935,6 +958,11 @@ class AssignedVariablePattern extends Pattern {
 }
 
 class MapPattern extends Pattern {
+  static const int FlagNeedsCheck = 1 << 0;
+  static const int FlagIsNeverPattern = 1 << 1;
+
+  int flags = 0;
+
   /// The key type arguments as specific in the map pattern syntax.
   DartType? keyType;
 
@@ -959,7 +987,10 @@ class MapPattern extends Pattern {
   /// If `true`, the matched expression must be checked to be a `Map`.
   ///
   /// This is set during inference.
-  bool needsCheck = false;
+  bool get needsCheck => flags & FlagNeedsCheck != 0;
+  void set needsCheck(bool value) {
+    flags = value ? (flags | FlagNeedsCheck) : (flags & ~FlagNeedsCheck);
+  }
 
   /// The most specific type of the matched expression. Either the
   /// [requiredType] or the [matchedValueType] if it is a subtype of
@@ -969,6 +1000,15 @@ class MapPattern extends Pattern {
   ///
   /// This is set during inference.
   DartType? lookupType;
+
+  /// If `true`, this map pattern is performed on an expression of type `Never`.
+  ///
+  /// This is set during inference.
+  bool get isNeverPattern => flags & FlagIsNeverPattern != 0;
+  void set isNeverPattern(bool value) {
+    flags =
+        value ? (flags | FlagIsNeverPattern) : (flags & ~FlagIsNeverPattern);
+  }
 
   /// Reference to the target of the `containsKey` method of the map.
   ///

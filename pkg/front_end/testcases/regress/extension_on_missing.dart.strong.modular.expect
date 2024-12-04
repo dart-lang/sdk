@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/extension_on_missing.dart:5:11: Error: Expected 'on' after this.
+// extension bar {
+//           ^^^
+//
+// pkg/front_end/testcases/regress/extension_on_missing.dart:5:15: Error: Expected a type, but got '{'.
+// extension bar {
+//               ^
+//
+import self as self;
+
+extension bar on invalid-type {
+  get foo = self::bar|get#foo;
+}
+static extension-member method bar|get#foo(lowered final invalid-type #this) → dynamic {}

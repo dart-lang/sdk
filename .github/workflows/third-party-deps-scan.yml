@@ -22,17 +22,17 @@ jobs:
       contents: read
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
       - name: "setup python"
-        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
         with:
           python-version: '3.7.7' # install the python version needed
       - name: "extract deps, find commit hash, pass to osv-scanner"
         run: python .github/extract_deps.py --output osv-lockfile-${{github.sha}}.json
       - name: "upload osv-scanner deps"
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
         with:
           # use github.ref in name to avoid duplicated artifacts
           name: osv-lockfile-${{github.sha}}

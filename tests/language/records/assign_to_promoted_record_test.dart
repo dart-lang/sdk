@@ -6,7 +6,7 @@
 /// to a record type, and the newly assigned value doesn't match the previously
 /// promoted type, no error occurs (the variable is simply demoted).
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 void testPositionalFieldTypeMismatch(Object o) {
   if (o is (int,)) {

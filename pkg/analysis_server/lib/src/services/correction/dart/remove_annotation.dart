@@ -17,8 +17,9 @@ class RemoveAnnotation extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_annotationName];

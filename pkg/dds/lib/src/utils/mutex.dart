@@ -72,11 +72,15 @@ class Mutex {
   }
 
   void _releaseLock() {
-    _locked = false;
     if (_outstandingRequests.isNotEmpty) {
       final request = _outstandingRequests.removeFirst();
       request.complete();
+      return;
     }
+    // Only release the lock if no other requests are pending to prevent races
+    // between the next request from the queue to be handled and incoming
+    // requests.
+    _locked = false;
   }
 
   int _weakGuards = 0;

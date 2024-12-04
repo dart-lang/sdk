@@ -713,7 +713,7 @@ class ForInStatement extends Statement implements LoopStatement {
   /// type of this for-in statement is not already cached in [context].
   DartType getElementTypeInternal(StaticTypeContext context) {
     DartType iterableType =
-        iterable.getStaticType(context).nonTypeVariableBound;
+        iterable.getStaticType(context).nonTypeParameterBound;
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
     while (iterableType is TypeParameterType) {

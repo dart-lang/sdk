@@ -194,10 +194,38 @@ class ExpressionEvaluationTestDriver {
         var dartLibraryPath = escaped(
             p.join(ddcPath, 'lib', 'js', 'ddc', 'ddc_module_loader.js'));
         var outputPath = output.toFilePath();
-        // This is used in the DDC module system for multiapp workflows and is
-        // stubbed here.
-        var uuid = '00000000-0000-0000-0000-000000000000';
-        bootstrapFile.writeAsStringSync('''
+        if (setup.emitLibraryBundle) {
+          bootstrapFile.writeAsStringSync('''
+<script src='$dartLibraryPath'></script>
+<script src='$dartSdkPath'></script>
+<script src='$outputPath'></script>
+<script>
+  'use strict';
+  let dartApplication = true;
+  var sound = ${setup.soundNullSafety};
+
+  let sdkOptions = {};
+
+  if (sound) {
+    sdkOptions['nativeNonNullAsserts'] = true;
+  } else {
+    sdkOptions['weakNullSafetyWarnings'] = false;
+    sdkOptions['weakNullSafetyErrors'] = false;
+    sdkOptions['nonNullAsserts'] = true;
+  }
+
+  // Unlike the typical app bootstraper, we delay calling main until all
+  // breakpoints are setup.
+  let scheduleMain = () => {
+    dartDevEmbedder.runMain('$appName.dart', sdkOptions);
+  };
+</script>
+''');
+        } else {
+          // This is used in the DDC module system for multiapp workflows and is
+          // stubbed here.
+          var uuid = '00000000-0000-0000-0000-000000000000';
+          bootstrapFile.writeAsStringSync('''
 <script src='$dartLibraryPath'></script>
 <script src='$dartSdkPath'></script>
 <script src='$outputPath'></script>
@@ -215,7 +243,6 @@ class ExpressionEvaluationTestDriver {
     sdk.dart.nonNullAsserts(true);
   }
 
-  sdk._debugger.registerDevtoolsFormatter();
   // Unlike the typical app bootstraper, we delay calling main until all
   // breakpoints are setup.
   let scheduleMain = () => {
@@ -223,7 +250,7 @@ class ExpressionEvaluationTestDriver {
   };
 </script>
 ''');
-        break;
+        }
       case ModuleFormat.amd:
         var dartSdkPathNoExtension = escaped(SetupCompilerOptions.buildRoot
             .resolve(p.join(
@@ -278,7 +305,6 @@ class ExpressionEvaluationTestDriver {
       sdk.dart.nonNullAsserts(true);
     }
 
-    sdk._debugger.registerDevtoolsFormatter();
     scheduleMain = () => {
       app.$mainLibraryName.main([]);
     };
@@ -288,7 +314,6 @@ class ExpressionEvaluationTestDriver {
 </script>
 ''');
 
-        break;
       default:
         throw Exception('Unsupported module format for SDK evaluation tests: '
             '${setup.moduleFormat}');
@@ -673,11 +698,22 @@ class ExpressionEvaluationTestDriver {
   }) async {
     var frame = event.getCallFrames().first;
 
+    String jsExpressionBody;
+    if (setup.emitLibraryBundle) {
+      jsExpressionBody = 'var dart = dartDevEmbedder.debugger;';
+    } else {
+      var loadModule = setup.moduleFormat == ModuleFormat.amd
+          ? 'require'
+          : 'dart_library.import';
+      jsExpressionBody = '''
+        var sdk = $loadModule('dart_sdk');
+        var dart = sdk.dart;
+      ''';
+    }
+
     var jsExpression = '''
       (function () {
-        var sdk = ${setup.loadModule}('dart_sdk');
-        var dart = sdk.dart;
-        var interceptors = sdk._interceptors;
+        $jsExpressionBody
         return $expression;
       })()
       ''';
@@ -841,7 +877,6 @@ class ExpressionEvaluationTestDriver {
     switch (type) {
       case 'function':
         str = obj.description ?? '';
-        break;
       case 'object':
         if (obj.subtype == 'null') {
           return 'null';
@@ -860,10 +895,8 @@ class ExpressionEvaluationTestDriver {
         } catch (e, s) {
           throw StateError('Failed to stringify remote object $obj: $e:$s');
         }
-        break;
       default:
         str = '${obj.value}';
-        break;
     }
     return str;
   }

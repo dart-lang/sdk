@@ -49,7 +49,7 @@ enum E7 {
 enum E8 {
   element;
 
-  void set index(String value) {} // Error.
+  void set index(String value) {}
 }
 
 enum E9 {

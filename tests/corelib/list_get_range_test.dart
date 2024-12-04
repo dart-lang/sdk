@@ -10,7 +10,8 @@ testGetRange(list, start, end, bool isModifiable) {
   Expect.throwsRangeError(() => list.getRange(1, 0));
   Expect.throwsRangeError(() => list.getRange(0, list.length + 1));
   Expect.throwsRangeError(
-      () => list.getRange(list.length + 1, list.length + 1));
+    () => list.getRange(list.length + 1, list.length + 1),
+  );
   Iterable iterable = list.getRange(start, end);
   Expect.isFalse(iterable is List);
   if (start == end) {

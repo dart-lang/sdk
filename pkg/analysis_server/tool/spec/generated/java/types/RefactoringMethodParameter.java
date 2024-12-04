@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a parameter in a method refactoring.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class RefactoringMethodParameter {
 
-  public static final RefactoringMethodParameter[] EMPTY_ARRAY = new RefactoringMethodParameter[0];
-
-  public static final List<RefactoringMethodParameter> EMPTY_LIST = Lists.newArrayList();
+  public static final List<RefactoringMethodParameter> EMPTY_LIST = List.of();
 
   /**
    * The unique identifier of the parameter. Clients may omit this field for the parameters they want
@@ -77,14 +72,13 @@ public class RefactoringMethodParameter {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof RefactoringMethodParameter) {
-      RefactoringMethodParameter other = (RefactoringMethodParameter) obj;
+    if (obj instanceof RefactoringMethodParameter other) {
       return
-        ObjectUtilities.equals(other.id, id) &&
-        ObjectUtilities.equals(other.kind, kind) &&
-        ObjectUtilities.equals(other.type, type) &&
-        ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.parameters, parameters);
+        Objects.equals(other.id, id) &&
+        Objects.equals(other.kind, kind) &&
+        Objects.equals(other.type, type) &&
+        Objects.equals(other.name, name) &&
+        Objects.equals(other.parameters, parameters);
     }
     return false;
   }
@@ -102,10 +96,9 @@ public class RefactoringMethodParameter {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<RefactoringMethodParameter> list = new ArrayList<RefactoringMethodParameter>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<RefactoringMethodParameter> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -151,13 +144,13 @@ public class RefactoringMethodParameter {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(id);
-    builder.append(kind);
-    builder.append(type);
-    builder.append(name);
-    builder.append(parameters);
-    return builder.toHashCode();
+    return Objects.hash(
+      id,
+      kind,
+      type,
+      name,
+      parameters
+    );
   }
 
   /**
@@ -218,13 +211,17 @@ public class RefactoringMethodParameter {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("id=");
-    builder.append(id + ", ");
+    builder.append(id);
+    builder.append(", ");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("type=");
-    builder.append(type + ", ");
+    builder.append(type);
+    builder.append(", ");
     builder.append("name=");
-    builder.append(name + ", ");
+    builder.append(name);
+    builder.append(", ");
     builder.append("parameters=");
     builder.append(parameters);
     builder.append("]");

@@ -27,10 +27,13 @@ extension E on int {
     // check status
     refactoring.newName = 'newName';
     var status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Extension 'E' already declares method with name 'newName'.",
-        expectedContextSearch: 'newName() {} // existing');
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage:
+          "Extension 'E' already declares method with name 'newName'.",
+      expectedContextSearch: 'newName() {} // existing',
+    );
   }
 
   Future<void> test_checkFinalConditions_OK_dropSuffix() async {
@@ -47,7 +50,7 @@ extension E on int {
   }
 
   Future<void>
-      test_checkFinalConditions_shadowed_byLocalFunction_inExtension() async {
+  test_checkFinalConditions_shadowed_byLocalFunction_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -71,7 +74,7 @@ extension E on int {
   }
 
   Future<void>
-      test_checkFinalConditions_shadowed_byLocalVariable_inExtension() async {
+  test_checkFinalConditions_shadowed_byLocalVariable_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -95,7 +98,7 @@ extension E on int {
   }
 
   Future<void>
-      test_checkFinalConditions_shadowed_byParameter_inExtension() async {
+  test_checkFinalConditions_shadowed_byParameter_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}

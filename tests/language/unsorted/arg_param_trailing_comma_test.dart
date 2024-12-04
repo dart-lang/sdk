@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing params.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Convenience values.
 var c = new C();
 var x = 42;

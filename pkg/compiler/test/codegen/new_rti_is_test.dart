@@ -5,7 +5,7 @@
 library new_rti_is_test;
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../helpers/compiler_helper.dart';
 
 // 'N' tests all have a nullable input so should not reduce is-test.

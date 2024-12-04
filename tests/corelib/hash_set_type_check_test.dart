@@ -23,8 +23,16 @@ void main() {
   testSet(() => new Set<String>.identity());
   testSet(() => new HashSet<String>.identity());
   testSet(() => new LinkedHashSet<String>.identity());
-  testSet(() => new HashSet<String>(
-      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
-  testSet(() => new LinkedHashSet<String>(
-      equals: (x, y) => identical(x, y), hashCode: (x) => identityHashCode(x)));
+  testSet(
+    () => new HashSet<String>(
+      equals: (x, y) => identical(x, y),
+      hashCode: (x) => identityHashCode(x),
+    ),
+  );
+  testSet(
+    () => new LinkedHashSet<String>(
+      equals: (x, y) => identical(x, y),
+      hashCode: (x) => identityHashCode(x),
+    ),
+  );
 }

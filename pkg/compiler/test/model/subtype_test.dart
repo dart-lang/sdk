@@ -5,9 +5,9 @@
 library subtype_test;
 
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/types.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import '../helpers/type_test_helper.dart';
 

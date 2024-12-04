@@ -23,9 +23,7 @@ class FlutterWrapPaddingTest extends AssistProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_aroundContainer() async {
@@ -49,11 +47,7 @@ void f() {
   }
 
   Future<void> test_aroundContainer_preferIntLiterals() async {
-    createAnalysisOptionsFile(
-      lints: [
-        LintNames.prefer_int_literals,
-      ],
-    );
+    createAnalysisOptionsFile(lints: [LintNames.prefer_int_literals]);
 
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';

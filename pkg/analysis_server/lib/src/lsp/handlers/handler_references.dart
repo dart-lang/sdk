@@ -29,8 +29,11 @@ class ReferencesHandler
       ReferenceParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<Location>?>> handle(ReferenceParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<Location>?>> handle(
+    ReferenceParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -40,9 +43,11 @@ class ReferencesHandler
     var unit = await path.mapResult(requireResolvedUnit);
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
     return await message.performance.runAsync(
-        '_getReferences',
-        (performance) async => (unit, offset).mapResults((unit, offset) =>
-            _getReferences(unit, offset, params, performance)));
+      '_getReferences',
+      (performance) async => (unit, offset).mapResults(
+        (unit, offset) => _getReferences(unit, offset, params, performance),
+      ),
+    );
   }
 
   List<Location> _getDeclarations(Element element) {
@@ -56,16 +61,20 @@ class ReferencesHandler
       Location(
         uri: uriConverter.toClientUri(unitElement.source.fullName),
         range: toRange(
-            unitElement.lineInfo, element.nameOffset, element.nameLength),
-      )
+          unitElement.lineInfo,
+          element.nameOffset,
+          element.nameLength,
+        ),
+      ),
     ];
   }
 
   Future<ErrorOr<List<Location>?>> _getReferences(
-      ResolvedUnitResult result,
-      int offset,
-      ReferenceParams params,
-      OperationPerformanceImpl performance) async {
+    ResolvedUnitResult result,
+    int offset,
+    ReferenceParams params,
+    OperationPerformanceImpl performance,
+  ) async {
     var node = NodeLocator(offset).searchWithin(result.unit);
     node = _getReferenceTargetNode(node);
 
@@ -82,9 +91,10 @@ class ReferencesHandler
     var computer = ElementReferencesComputer(server.searchEngine);
     var session = element.session ?? result.session;
     var results = await performance.runAsync(
-        'computer.compute',
-        (childPerformance) =>
-            computer.compute(element, false, performance: childPerformance));
+      'computer.compute',
+      (childPerformance) =>
+          computer.compute(element, false, performance: childPerformance),
+    );
 
     Location? toLocation(SearchMatch result) {
       var file = session.getFile(result.file);
@@ -102,12 +112,15 @@ class ReferencesHandler
     }
 
     var referenceResults = performance.run(
-        'convert', (_) => convert(results, toLocation).nonNulls.toList());
+      'convert',
+      (_) => convert(results, toLocation).nonNulls.toList(),
+    );
 
     if (params.context.includeDeclaration == true) {
       // Also include the definition for the resolved element.
-      referenceResults.addAll(performance.run(
-          '_getDeclarations', (_) => _getDeclarations(element)));
+      referenceResults.addAll(
+        performance.run('_getDeclarations', (_) => _getDeclarations(element)),
+      );
     }
 
     return success(referenceResults);

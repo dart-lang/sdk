@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../rules/prefer_single_quotes.dart';
 
 const _desc =

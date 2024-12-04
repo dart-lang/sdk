@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../base/common.dart';
+import '../base/modifiers.dart';
 import '../base/name_space.dart';
+import '../base/problems.dart';
+import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
@@ -16,9 +20,9 @@ import '../codes/cfe_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength;
+import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
-import '../base/problems.dart';
-import '../base/scope.dart';
+import '../kernel/kernel_helper.dart';
 import 'name_scheme.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
@@ -27,7 +31,17 @@ import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
     with SourceDeclarationBuilderMixin {
-  final Extension _extension;
+  @override
+  final SourceLibraryBuilder parent;
+
+  final int _nameOffset;
+
+  @override
+  final Uri fileUri;
+
+  final Modifiers _modifiers;
+
+  late final Extension _extension;
 
   SourceExtensionBuilder? _origin;
   SourceExtensionBuilder? augmentationForTesting;
@@ -43,7 +57,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   late final ConstructorScope _constructorScope;
 
   @override
-  final List<NominalVariableBuilder>? typeParameters;
+  final List<NominalParameterBuilder>? typeParameters;
 
   @override
   final LookupScope typeParameterScope;
@@ -53,33 +67,56 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   final ExtensionName extensionName;
 
+  final Reference _reference;
+
+  /// The `extension` declaration that introduces this extension. Subsequent
+  /// extensions of the same name must be augmentations.
+  // TODO(johnniwinther): Add [_augmentations] field.
+  final ExtensionFragment _introductory;
+
   SourceExtensionBuilder(
-      {required List<MetadataBuilder>? metadata,
-      required int modifiers,
-      required this.extensionName,
-      required this.typeParameters,
-      required this.onType,
-      required this.typeParameterScope,
-      required DeclarationNameSpaceBuilder nameSpaceBuilder,
-      required SourceLibraryBuilder enclosingLibraryBuilder,
-      required Uri fileUri,
+      {required SourceLibraryBuilder enclosingLibraryBuilder,
+      required this.fileUri,
       required int startOffset,
       required int nameOffset,
       required int endOffset,
+      required ExtensionFragment fragment,
       required Reference? reference})
-      : _extension = new Extension(
-            name: extensionName.name,
-            fileUri: fileUri,
-            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
-                typeParameters),
-            reference: reference)
-          ..isUnnamedExtension = extensionName.isUnnamedExtension
-          ..fileOffset = nameOffset,
-        _nameSpaceBuilder = nameSpaceBuilder,
-        super(metadata, modifiers, extensionName.name, enclosingLibraryBuilder,
-            fileUri, nameOffset) {
+      : _introductory = fragment,
+        _reference = reference ?? new Reference(),
+        _nameOffset = nameOffset,
+        parent = enclosingLibraryBuilder,
+        _modifiers = fragment.modifiers,
+        extensionName = fragment.extensionName,
+        typeParameters = fragment.typeParameters,
+        typeParameterScope = fragment.typeParameterScope,
+        onType = fragment.onType,
+        _nameSpaceBuilder = fragment.toDeclarationNameSpaceBuilder() {
+    _introductory.builder = this;
+    _introductory.bodyScope.declarationBuilder = this;
+
+    // TODO(johnniwinther): Move this to the [build] once augmentations are
+    // handled through fragments.
+    _extension = new Extension(
+        name: extensionName.name,
+        fileUri: fileUri,
+        typeParameters:
+            NominalParameterBuilder.typeParametersFromBuilders(typeParameters),
+        reference: _reference)
+      ..isUnnamedExtension = extensionName.isUnnamedExtension
+      ..fileOffset = _nameOffset;
     extensionName.attachExtension(_extension);
   }
+
+  // TODO(johnniwinther): Avoid exposing this. Annotations for macros and
+  //  patches should be computing from within the builder.
+  Iterable<MetadataBuilder>? get metadata => _introductory.metadata;
+
+  @override
+  int get fileOffset => _nameOffset;
+
+  @override
+  String get name => extensionName.name;
 
   @override
   LookupScope get scope => _scope;
@@ -90,6 +127,17 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   ConstructorScope get constructorScope => _constructorScope;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => _modifiers.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isStatic => _modifiers.isStatic;
+
+  @override
+  bool get isAugment => _modifiers.isAugment;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
@@ -128,21 +176,16 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       : throw new UnimplementedError("SourceExtensionBuilder.mergedScope");
 
   @override
-  Extension get extension => isAugmenting
-      ?
-      // Coverage-ignore(suite): Not run.
-      origin._extension
-      : _extension;
+  Reference get reference => _reference;
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ExtensionBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  Extension get extension {
+    return isAugmenting ? origin.extension : _extension;
+  }
+
+  @override
+  BodyBuilderContext createBodyBuilderContext() {
+    return new ExtensionBodyBuilderContext(this);
   }
 
   @override
@@ -161,8 +204,21 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     _extension.onType = onType.build(libraryBuilder, TypeUse.extensionOnType);
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
-
     return _extension;
+  }
+
+  @override
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    MetadataBuilder.buildAnnotations(
+        annotatable,
+        _introductory.metadata,
+        createBodyBuilderContext(),
+        libraryBuilder,
+        _introductory.fileUri,
+        libraryBuilder.scope);
+
+    super.buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
   }
 
   @override
@@ -170,7 +226,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   void addMemberInternal(SourceMemberBuilder memberBuilder,
       BuiltMemberKind memberKind, Member member, Member? tearOff) {
     unhandled("${memberBuilder.runtimeType}:${memberKind}", "addMemberInternal",
-        memberBuilder.charOffset, memberBuilder.fileUri);
+        memberBuilder.fileOffset, memberBuilder.fileUri);
   }
 
   @override
@@ -199,7 +255,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         unhandled(
             "${memberBuilder.runtimeType}:${memberKind}",
             "addMemberDescriptorInternal",
-            memberBuilder.charOffset,
+            memberBuilder.fileOffset,
             memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
@@ -229,11 +285,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void applyAugmentation(Builder augmentation) {
     if (augmentation is SourceExtensionBuilder) {
       augmentation._origin = this;
       if (retainDataForTesting) {
+        // Coverage-ignore-block(suite): Not run.
         augmentationForTesting = augmentation;
       }
       // TODO(johnniwinther): Check that type parameters and on-type match
@@ -246,7 +302,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
           member.applyAugmentation(memberAugmentation);
         }
       });
-      nameSpace.forEachLocalSetter((String name, Builder member) {
+      nameSpace.forEachLocalSetter(
+          // Coverage-ignore(suite): Not run.
+          (String name, Builder member) {
         Builder? memberAugmentation =
             augmentation.nameSpace.lookupLocalMember(name, setter: true);
         if (memberAugmentation != null) {
@@ -254,10 +312,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         }
       });
     } else {
+      // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          augmentation.charOffset, noLength, augmentation.fileUri, context: [
+          augmentation.fileOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength)
+            fileUri, fileOffset, noLength)
       ]);
     }
   }

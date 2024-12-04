@@ -17,6 +17,7 @@ import '../../Iterators/dart/Iterators.dart' as lib_Iterators;
 import '../../ListCopy/dart/ListCopy.dart' as lib_ListCopy;
 import '../../MD5/dart/md5.dart' as lib_MD5;
 import '../../MapCopy/dart/MapCopy.dart' as lib_MapCopy;
+import '../../MultipleReturns/dart/MultipleReturns.dart' as lib_MultipleReturns;
 import '../../RecordCollections/dart/RecordCollections.dart'
     as lib_RecordCollections;
 import '../../RuntimeType/dart/RuntimeType.dart' as lib_RuntimeType;
@@ -39,6 +40,7 @@ final Map<String, Function()> benchmarks = {
   'ListCopy': lib_ListCopy.main,
   'MapCopy': () => lib_MapCopy.main([]),
   'MD5': lib_MD5.main,
+  'MultipleReturns': lib_MultipleReturns.main,
   'RecordCollections': lib_RecordCollections.main,
   'RuntimeType': lib_RuntimeType.main,
   'SHA1': lib_SHA1.main,

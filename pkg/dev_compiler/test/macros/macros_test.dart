@@ -9,6 +9,7 @@ import 'package:dev_compiler/ddc.dart' as ddc;
 import 'package:frontend_server/compute_kernel.dart';
 import 'package:macros/src/bootstrap.dart';
 import 'package:macros/src/executor/serialization.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
@@ -22,12 +23,14 @@ String _resolvePath(String executableRelativePath) {
 void main() {
   group('DDC: Macros', timeout: Timeout(Duration(minutes: 2)), () {
     late File testMacroDart;
-    late File bootstrapDillFileVm;
+    late String bootstrapDillPathVm;
+    late String bootstrapAotPathVm;
     late File bootstrapDillFileDdc;
     late Uri testMacroUri;
     late File packageConfig;
     late List<String> ddcArgs;
     late List<String> executableArgs;
+    late String dartAot;
 
     final applyTestMacroDart = file('apply_test_macro.dart');
     final testMacroJS = file('test_macro.js');
@@ -99,19 +102,31 @@ macro class TestMacro implements ClassDeclarationsMacro {
           'lib/_internal/vm_platform_strong_product.dill'));
       var ddcPlatformDill = File(_resolvePath('../'
           'lib/_internal/ddc_outline.dill'));
-      bootstrapDillFileVm = file('bootstrap.dart.dill');
+      bootstrapDillPathVm = 'bootstrap.dart.dill';
       var bootstrapResult = await computeKernel([
         '--enable-experiment=macros',
         '--no-summary',
         '--no-summary-only',
         '--target=vm',
         '--dart-sdk-summary=${productPlatformDill.uri}',
-        '--output=${bootstrapDillFileVm.path}',
+        '--output=$bootstrapDillPathVm',
         '--source=${bootstrapFile.uri}',
         '--source=${testMacroDart.uri}',
         '--packages-file=${packageConfig.uri}',
       ]);
       expect(bootstrapResult.succeeded, true);
+
+      // Compile the macro to vm AOT executable to be run by the CFE.
+      bootstrapAotPathVm = 'bootstrap.dart.exe';
+      var bootstrapAotResult = Process.runSync(Platform.resolvedExecutable, [
+        'compile',
+        'exe',
+        '--enable-experiment=macros',
+        '-o',
+        bootstrapAotPathVm,
+        bootstrapFile.path,
+      ]);
+      expect(bootstrapAotResult.exitCode, EXIT_CODE_OK);
 
       // Compile the macro to ddc dill for the ddc build.
       bootstrapDillFileDdc = file('bootstrap_ddc.dart.dill');
@@ -146,11 +161,6 @@ void main() {
         _resolvePath('../../ddc_outline.dill'),
         '--packages=${packageConfig.uri}',
       ];
-
-      executableArgs = [
-        _resolvePath('../../gen/dartdevc.dart.snapshot'),
-        ...ddcArgs
-      ];
     });
 
     tearDown(() {
@@ -175,7 +185,7 @@ void main() {
       await ddc.internalMain([
         ...ddcArgs,
         '--precompiled-macro',
-        '${bootstrapDillFileVm.path};$testMacroUri',
+        '$bootstrapDillPathVm;$testMacroUri',
         '--no-source-map',
         '--no-summarize',
         '-s',
@@ -193,7 +203,15 @@ void main() {
     });
 
     test('compile using dartdevc snapshot', () {
-      var result = Process.runSync(Platform.executable, [
+      executableArgs = [
+        _resolvePath('snapshots/dartdevc_aot.dart.snapshot'),
+        ...ddcArgs
+      ];
+
+      dartAot = p.absolute(p.dirname(Platform.resolvedExecutable),
+          Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
+
+      var result = Process.runSync(dartAot, [
         ...executableArgs,
         '--no-source-map',
         '-o',
@@ -207,10 +225,10 @@ void main() {
       expect(testMacroJS.existsSync(), isTrue);
       expect(testMacroSummary.existsSync(), isTrue);
 
-      result = Process.runSync(Platform.executable, [
+      result = Process.runSync(dartAot, [
         ...executableArgs,
         '--precompiled-macro',
-        '${bootstrapDillFileVm.path};$testMacroUri',
+        '$bootstrapAotPathVm;$testMacroUri',
         '--no-source-map',
         '--no-summarize',
         '-s',

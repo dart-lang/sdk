@@ -6,6 +6,8 @@
 /// provide information to the test harness.
 library;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'package:dynamic_modules/dynamic_modules.dart';
 
 import 'read_bytes.dart' if (dart.library.io) 'read_bytes_aot.dart';
@@ -14,13 +16,20 @@ import 'read_bytes.dart' if (dart.library.io) 'read_bytes_aot.dart';
 ///
 /// The module is identified by the name of its entrypoint file within the
 /// `modules/` subfolder.
-Future<Object?> load(String moduleName) {
+///
+/// Optional [transformBytes] callback can be used to tweak dynamic modules
+/// bytes if underlying implementation loads dynamic modules from bytes.
+Future<Object?> load(String moduleName,
+    {Uint8List Function(Uint8List)? transformBytes}) {
   if (const bool.fromEnvironment('dart.library.html')) {
     // DDC implementation
     return loadModuleFromUri(Uri(scheme: '', path: moduleName));
   }
   if (const bool.fromEnvironment('dart.library.io')) {
-    final bytes = readBytes('modules/$moduleName.bytecode');
+    var bytes = readBytes('modules/$moduleName.bytecode');
+    if (transformBytes != null) {
+      bytes = transformBytes(bytes);
+    }
     return loadModuleFromBytes(bytes);
   }
   throw "load is not implemented for dart2wasm";

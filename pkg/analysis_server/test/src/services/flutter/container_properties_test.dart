@@ -218,10 +218,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Align(
-    alignment: Alignment.bottomLeft,
-    child: Text(''),
-  );
+  Align(alignment: Alignment.bottomLeft, child: Text(''));
 }
 ''');
   }
@@ -278,10 +275,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
-    alignment: Alignment.bottomLeft,
-    child: Text(''),
-  );
+  Container(alignment: Alignment.bottomLeft, child: Text(''));
 }
 ''');
   }
@@ -310,10 +304,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
-    alignment: Alignment.bottomLeft,
-    child: Text(''),
-  );
+  Container(alignment: Alignment.bottomLeft, child: Text(''));
 }
 ''');
   }
@@ -406,12 +397,7 @@ import 'package:flutter/material.dart';
 
 void f() {
   Column(
-    children: [
-      Container(
-        alignment: Alignment.bottomLeft,
-        child: Text(''),
-      ),
-    ],
+    children: [Container(alignment: Alignment.bottomLeft, child: Text(''))],
   );
 }
 ''');
@@ -827,9 +813,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 1,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 1),
     );
 
     assertExpectedChange(result, r'''
@@ -860,19 +844,14 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 1,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 1),
     );
 
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
-    padding: EdgeInsets.only(left: 1),
-    child: Text(''),
-  );
+  Container(padding: EdgeInsets.only(left: 1), child: Text(''));
 }
 ''');
   }
@@ -893,19 +872,14 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       topProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 1,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 1),
     );
 
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
-    padding: EdgeInsets.all(1),
-    child: Text(''),
-  );
+  Container(padding: EdgeInsets.all(1), child: Text(''));
 }
 ''');
   }
@@ -926,19 +900,14 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 11,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 11),
     );
 
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
-    padding: EdgeInsets.only(left: 11, right: 3),
-    child: Text(''),
-  );
+  Container(padding: EdgeInsets.only(left: 11, right: 3), child: Text(''));
 }
 ''');
   }
@@ -959,9 +928,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       topProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 0,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 0),
     );
 
     assertExpectedChange(result, r'''
@@ -991,9 +958,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       topProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 4,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 4),
     );
 
     assertExpectedChange(result, r'''
@@ -1024,19 +989,14 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 3,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 3),
     );
 
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
-    padding: EdgeInsets.symmetric(horizontal: 3),
-    child: Text(''),
-  );
+  Container(padding: EdgeInsets.symmetric(horizontal: 3), child: Text(''));
 }
 ''');
   }
@@ -1057,19 +1017,14 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       topProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 4,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 4),
     );
 
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void f() {
-  Container(
-    padding: EdgeInsets.symmetric(vertical: 4),
-    child: Text(''),
-  );
+  Container(padding: EdgeInsets.symmetric(vertical: 4), child: Text(''));
 }
 ''');
   }
@@ -1090,19 +1045,14 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 11,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 11),
     );
 
     assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void f() {
-  Padding(
-    padding: EdgeInsets.only(left: 11, right: 3),
-    child: Text(''),
-  );
+  Padding(padding: EdgeInsets.only(left: 11, right: 3), child: Text(''));
 }
 ''');
   }
@@ -1124,9 +1074,7 @@ void f() {
 
     var result = await descriptions.setPropertyValue(
       leftProperty.id,
-      protocol.FlutterWidgetPropertyValue(
-        doubleValue: 1,
-      ),
+      protocol.FlutterWidgetPropertyValue(doubleValue: 1),
     );
 
     assertExpectedChange(result, r'''
@@ -1134,12 +1082,7 @@ import 'package:flutter/material.dart';
 
 void f() {
   Column(
-    children: [
-      Container(
-        padding: EdgeInsets.only(left: 1),
-        child: Text(''),
-      ),
-    ],
+    children: [Container(padding: EdgeInsets.only(left: 1), child: Text(''))],
   );
 }
 ''');

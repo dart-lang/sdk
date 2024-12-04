@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
@@ -215,7 +214,7 @@ class _UnnecessaryMethodOverrideVisitor
     if (enclosingElement is! InterfaceElement) return null;
 
     var augmented = enclosingElement.augmented;
-    return augmented.declaration.thisType.lookUpMethod2(
+    return augmented.firstFragment.thisType.lookUpMethod2(
       node.name.lexeme,
       element.library,
       concrete: true,

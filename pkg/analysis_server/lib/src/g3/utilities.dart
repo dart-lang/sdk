@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -23,7 +24,8 @@ import 'package:pub_semver/pub_semver.dart';
 String format(String content, {Version? languageVersion}) {
   var code = SourceCode(content);
   var formatter = DartFormatter(
-      languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion);
+    languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion,
+  );
   SourceCode formattedResult;
   formattedResult = formatter.formatSource(code);
   return formattedResult.text;
@@ -34,19 +36,26 @@ String format(String content, {Version? languageVersion}) {
 /// cause of the failure, a list of [AnalysisError]'s.
 ParseStringResult sortDirectives(String contents, {String? fileName}) {
   var (unit, errors) = _parse(contents, fullName: fileName);
-  var hasParseErrors = errors.any((error) =>
-      error.errorCode is ScannerErrorCode ||
-      error.errorCode is ParserErrorCode);
-  if (hasParseErrors) {
-    return ParseStringResultImpl(contents, unit, errors);
+  var parseErrors =
+      errors
+          .where(
+            (error) =>
+                error.errorCode is ScannerErrorCode ||
+                error.errorCode is ParserErrorCode,
+          )
+          .toList();
+  if (parseErrors.isNotEmpty) {
+    return ParseStringResultImpl(contents, unit, parseErrors);
   }
-  var sorter = ImportOrganizer(contents, unit, errors);
+  var sorter = ImportOrganizer(contents, unit, parseErrors);
   sorter.organize();
-  return ParseStringResultImpl(sorter.code, unit, errors);
+  return ParseStringResultImpl(sorter.code, unit, parseErrors);
 }
 
-(CompilationUnit, List<AnalysisError>) _parse(String contents,
-    {String? fullName}) {
+(CompilationUnit, List<AnalysisError>) _parse(
+  String contents, {
+  String? fullName,
+}) {
   var source = StringSource(contents, fullName);
   var errorListener = RecordingErrorListener();
   var reader = CharSequenceReader(contents);
@@ -54,19 +63,23 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [],
   );
-  var scanner = Scanner(source, reader, errorListener)
-    ..configureFeatures(
-      featureSetForOverriding: FeatureSet.latestLanguageVersion(),
-      featureSet: featureSet,
-    );
+  var scanner = Scanner(source, reader, errorListener)..configureFeatures(
+    featureSetForOverriding: FeatureSet.latestLanguageVersion(),
+    featureSet: featureSet,
+  );
   var token = scanner.tokenize(reportScannerErrors: false);
   var lineInfo = LineInfo(scanner.lineStarts);
+  var languageVersion = LibraryLanguageVersion(
+    package: ExperimentStatus.currentVersion,
+    override: scanner.overrideVersion,
+  );
 
   var parser = p.Parser(
     source,
     errorListener,
     featureSet: scanner.featureSet,
     lineInfo: lineInfo,
+    languageVersion: languageVersion,
   );
 
   var unit = parser.parseCompilationUnit(token);

@@ -1,0 +1,37 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+entry_point: a1.dart
+sources:
+  a1.dart: |
+    import 'a2.dart' as ext;
+    import 'a3.dart';
+
+    void stopHere() {
+      final i = 0;
+      print(i.f1());
+      print(i.f2());
+      print(i.f3());
+    }
+
+    extension E1 on int {
+      int f1() => this;
+    }
+  a2.dart: |
+    extension E2 on int {
+      int f2() => this;
+    }
+  a3.dart: |
+    extension E3 on int {
+      int f3() => this;
+    }
+definitions: ["i"]
+# int
+definition_types: ["dart:core", "int", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "stopHere"
+expression: |
+  i.f1() + i.f2() + i.f3()

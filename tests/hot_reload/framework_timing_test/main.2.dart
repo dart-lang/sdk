@@ -9,7 +9,7 @@ import 'package:reload_test/reload_test_utils.dart';
 
 var x = 'Hello Bar';
 
-void main() {
+Future<void> main() async {
   Expect.equals('Hello Bar', x);
   Expect.equals(2, hotRestartGeneration);
 
@@ -24,18 +24,17 @@ void main() {
   }).then((_) {
     Expect.equals(2, hotRestartGeneration);
   });
-  hotRestart();
 }
 /** DIFF **/
 /*
-@@ -7,27 +7,22 @@
+@@ -7,27 +7,21 @@
  import 'package:expect/expect.dart';
  import 'package:reload_test/reload_test_utils.dart';
  
 -var x = 'Hello Foo';
 +var x = 'Hello Bar';
  
- void main() {
+ Future<void> main() async {
 -  Expect.equals('Hello Foo', x);
 -  Expect.equals(1, hotRestartGeneration);
 +  Expect.equals('Hello Bar', x);
@@ -61,6 +60,6 @@ void main() {
 -        'This should never run.');
 -  });
 -
-   hotRestart();
+-  await hotRestart();
  }
 */

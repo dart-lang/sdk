@@ -49,17 +49,17 @@ class C extends core::Object {
   method superMethod() → dynamic {}
   get setterOnly() → dynamic
     return null;
-  set setterOnly(dynamic _) → void {}
+  set setterOnly(wildcard dynamic _#wc0#formal) → void {}
   get getterOnly() → dynamic
     return null;
-  set getterOnly(dynamic _) → void {}
+  set getterOnly(wildcard dynamic _#wc1#formal) → void {}
 }
 class D extends self::C {
   field dynamic field = null;
   synthetic constructor •() → self::D
     : super self::C::•()
     ;
-  set setterOnly(dynamic _) → void {}
+  set setterOnly(wildcard dynamic _#wc2#formal) → void {}
   get getterOnly() → dynamic
     return null;
   method method() → dynamic {}

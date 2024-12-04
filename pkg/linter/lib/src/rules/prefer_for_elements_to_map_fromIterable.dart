@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `for` elements when building maps from iterables.';
 
@@ -40,7 +39,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression creation) {
     var element = creation.constructorName.element;
     if (element == null ||
-        element.name != 'fromIterable' ||
+        element.name3 != 'fromIterable' ||
         element.enclosingElement2 != context.typeProvider.mapElement2) {
       return;
     }

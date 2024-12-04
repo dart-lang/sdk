@@ -336,9 +336,9 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
     }
 
     // Comparing char-codes instead of strings.
-    EqualityCompareInstr* comp =
-        new (Z) EqualityCompareInstr(call->source(), op_kind, left_val,
-                                     right_val, kSmiCid, call->deopt_id());
+    EqualityCompareInstr* comp = new (Z) EqualityCompareInstr(
+        call->source(), op_kind, left_val, right_val, kTagged, call->deopt_id(),
+        /*null_aware=*/false);
     ReplaceCall(call, comp);
 
     // Remove dead instructions.
@@ -367,10 +367,10 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
 
   ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
-  Definition* const left = call->ArgumentAt(0);
-  Definition* const right = call->ArgumentAt(1);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
 
-  intptr_t cid = kIllegalCid;
+  Representation representation = kNoRepresentation;
   if (binary_feedback.OperandsAre(kOneByteStringCid)) {
     return TryStringLengthOneEquality(call, op_kind);
   } else if (binary_feedback.OperandsAre(kSmiCid)) {
@@ -382,14 +382,20 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                  new (Z) CheckSmiInstr(new (Z) Value(right), call->deopt_id(),
                                        call->source()),
                  call->env(), FlowGraph::kEffect);
-    cid = kSmiCid;
+    representation = kTagged;
   } else if (binary_feedback.OperandsAreSmiOrMint()) {
-    cid = kMintCid;
+    left =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(left), call->deopt_id(),
+                           UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, left, call->env(), FlowGraph::kValue);
+    right =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(right),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    representation = kUnboxedInt64;
   } else if (binary_feedback.OperandsAreSmiOrDouble()) {
     // Use double comparison.
-    if (SmiFitsInDouble()) {
-      cid = kDoubleCid;
-    } else {
+    if (!SmiFitsInDouble()) {
       if (binary_feedback.IncludesOperands(kSmiCid)) {
         // We cannot use double comparison on two smis. Need polymorphic
         // call.
@@ -400,9 +406,17 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
             new (Z) CheckEitherNonSmiInstr(
                 new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
             call->env(), FlowGraph::kEffect);
-        cid = kDoubleCid;
       }
     }
+    left =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(left),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, left, call->env(), FlowGraph::kValue);
+    right =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(right),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    representation = kUnboxedDouble;
   } else {
     // Check if ICDData contains checks with Smi/Null combinations. In that case
     // we can still emit the optimized Smi equality operation but need to add
@@ -411,7 +425,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       AddChecksForArgNr(call, left, /* arg_number = */ 0);
       AddChecksForArgNr(call, right, /* arg_number = */ 1);
 
-      cid = kSmiCid;
+      representation = kTagged;
     } else {
       // Shortcut for equality with null.
       // TODO(vegorov): this optimization is not speculative and should
@@ -430,10 +444,10 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       return false;
     }
   }
-  ASSERT(cid != kIllegalCid);
-  EqualityCompareInstr* comp =
-      new (Z) EqualityCompareInstr(call->source(), op_kind, new (Z) Value(left),
-                                   new (Z) Value(right), cid, call->deopt_id());
+  ASSERT(representation != kNoRepresentation);
+  EqualityCompareInstr* comp = new (Z) EqualityCompareInstr(
+      call->source(), op_kind, new (Z) Value(left), new (Z) Value(right),
+      representation, call->deopt_id(), /*null_aware=*/false);
   ReplaceCall(call, comp);
   return true;
 }
@@ -447,7 +461,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
 
-  intptr_t cid = kIllegalCid;
+  Representation representation = kNoRepresentation;
   if (binary_feedback.OperandsAre(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(left), call->deopt_id(),
@@ -457,14 +471,20 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                  new (Z) CheckSmiInstr(new (Z) Value(right), call->deopt_id(),
                                        call->source()),
                  call->env(), FlowGraph::kEffect);
-    cid = kSmiCid;
+    representation = kTagged;
   } else if (binary_feedback.OperandsAreSmiOrMint()) {
-    cid = kMintCid;
+    left =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(left), call->deopt_id(),
+                           UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, left, call->env(), FlowGraph::kValue);
+    right =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(right),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    representation = kUnboxedInt64;
   } else if (binary_feedback.OperandsAreSmiOrDouble()) {
     // Use double comparison.
-    if (SmiFitsInDouble()) {
-      cid = kDoubleCid;
-    } else {
+    if (!SmiFitsInDouble()) {
       if (binary_feedback.IncludesOperands(kSmiCid)) {
         // We cannot use double comparison on two smis. Need polymorphic
         // call.
@@ -475,16 +495,24 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
             new (Z) CheckEitherNonSmiInstr(
                 new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
             call->env(), FlowGraph::kEffect);
-        cid = kDoubleCid;
       }
     }
+    left =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(left),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, left, call->env(), FlowGraph::kValue);
+    right =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(right),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    representation = kUnboxedDouble;
   } else {
     return false;
   }
-  ASSERT(cid != kIllegalCid);
-  RelationalOpInstr* comp =
-      new (Z) RelationalOpInstr(call->source(), op_kind, new (Z) Value(left),
-                                new (Z) Value(right), cid, call->deopt_id());
+  ASSERT(representation != kNoRepresentation);
+  RelationalOpInstr* comp = new (Z)
+      RelationalOpInstr(call->source(), op_kind, new (Z) Value(left),
+                        new (Z) Value(right), representation, call->deopt_id());
   ReplaceCall(call, comp);
   return true;
 }
@@ -606,23 +634,30 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
               new (Z) Value(left), new (Z) Value(right), call->deopt_id()),
           call->env(), FlowGraph::kEffect);
     }
-
+    left =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(left),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, left, call->env(), FlowGraph::kValue);
+    right =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(right),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, right, call->env(), FlowGraph::kValue);
     BinaryDoubleOpInstr* double_bin_op = new (Z)
         BinaryDoubleOpInstr(op_kind, new (Z) Value(left), new (Z) Value(right),
                             call->deopt_id(), call->source());
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
-    if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
-        (op_kind == Token::kUSHR)) {
-      SpeculativeShiftInt64OpInstr* shift_op = new (Z)
-          SpeculativeShiftInt64OpInstr(op_kind, new (Z) Value(left),
-                                       new (Z) Value(right), call->deopt_id());
-      ReplaceCall(call, shift_op);
-    } else {
-      BinaryInt64OpInstr* bin_op = new (Z) BinaryInt64OpInstr(
-          op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
-      ReplaceCall(call, bin_op);
-    }
+    left =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(left), call->deopt_id(),
+                           UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, left, call->env(), FlowGraph::kValue);
+    right =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(right),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, right, call->env(), FlowGraph::kValue);
+    BinaryIntegerOpInstr* bin_op = new (Z) BinaryInt64OpInstr(
+        op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
+    ReplaceCall(call, bin_op);
   } else if ((operands_type == kFloat32x4Cid) ||
              (operands_type == kInt32x4Cid) ||
              (operands_type == kFloat64x2Cid)) {
@@ -689,11 +724,19 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
         UnarySmiOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if ((op_kind == Token::kBIT_NOT) &&
              call->Targets().ReceiverIsSmiOrMint()) {
+    input =
+        UnboxInstr::Create(kUnboxedInt64, new (Z) Value(input),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, input, call->env(), FlowGraph::kValue);
     unary_op = new (Z)
         UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (call->Targets().ReceiverIs(kDoubleCid) &&
              (op_kind == Token::kNEGATE)) {
     AddReceiverCheck(call);
+    input =
+        UnboxInstr::Create(kUnboxedDouble, new (Z) Value(input),
+                           call->deopt_id(), UnboxInstr::ValueMode::kCheckType);
+    InsertBefore(call, input, call->env(), FlowGraph::kValue);
     unary_op = new (Z) UnaryDoubleOpInstr(Token::kNEGATE, new (Z) Value(input),
                                           call->deopt_id());
   } else {
@@ -965,17 +1008,20 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   MethodRecognizer::Kind recognized_kind = target.recognized_kind();
 
   if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
+    Definition* input = call->ArgumentAt(0);
     if (receiver_cid == kSmiCid) {
       AddReceiverCheck(call);
-      ReplaceCall(call,
-                  new (Z) SmiToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
-                                           call->source()));
+      ReplaceCall(
+          call, new (Z) SmiToDoubleInstr(new (Z) Value(input), call->source()));
       return true;
     } else if ((receiver_cid == kMintCid) && CanConvertInt64ToDouble()) {
       AddReceiverCheck(call);
-      ReplaceCall(call,
-                  new (Z) Int64ToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
-                                             call->deopt_id()));
+      input = UnboxInstr::Create(kUnboxedInt64, new (Z) Value(input),
+                                 call->deopt_id(),
+                                 UnboxInstr::ValueMode::kCheckType);
+      InsertBefore(call, input, call->env(), FlowGraph::kValue);
+      ReplaceCall(call, new (Z) Int64ToDoubleInstr(new (Z) Value(input),
+                                                   call->deopt_id()));
       return true;
     }
   }
@@ -1204,10 +1250,10 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     InsertBefore(call, load_cid, nullptr, FlowGraph::kValue);
     ConstantInstr* constant_cid = flow_graph()->GetConstant(
         Smi::Handle(Z, Smi::New(type_cid)), kUnboxedUword);
-    EqualityCompareInstr* check_cid = new (Z) EqualityCompareInstr(
-        call->source(), Token::kEQ, new Value(load_cid),
-        new Value(constant_cid), kIntegerCid, DeoptId::kNone, false,
-        Instruction::kNotSpeculative);
+    EqualityCompareInstr* check_cid = new (Z)
+        EqualityCompareInstr(call->source(), Token::kEQ, new Value(load_cid),
+                             new Value(constant_cid), kUnboxedUword,
+                             DeoptId::kNone, /*null_aware=*/false);
     ReplaceCall(call, check_cid);
     return;
   }
@@ -1272,33 +1318,6 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
     const BinaryFeedback& binary_feedback = call->BinaryFeedback();
 
     switch (recognized_kind) {
-      case MethodRecognizer::kMathMin:
-      case MethodRecognizer::kMathMax: {
-        // We can handle only monomorphic min/max call sites with both arguments
-        // being either doubles or smis.
-        if (targets.IsMonomorphic() && (call->FirstArgIndex() == 0)) {
-          intptr_t result_cid = kIllegalCid;
-          if (binary_feedback.IncludesOperands(kDoubleCid)) {
-            result_cid = kDoubleCid;
-          } else if (binary_feedback.IncludesOperands(kSmiCid)) {
-            result_cid = kSmiCid;
-          }
-          if (result_cid != kIllegalCid) {
-            MathMinMaxInstr* min_max = new (Z) MathMinMaxInstr(
-                recognized_kind, new (Z) Value(call->ArgumentAt(0)),
-                new (Z) Value(call->ArgumentAt(1)), call->deopt_id(),
-                result_cid);
-            const Cids* cids = Cids::CreateMonomorphic(Z, result_cid);
-            AddCheckClass(min_max->left()->definition(), *cids,
-                          call->deopt_id(), call->env(), call);
-            AddCheckClass(min_max->right()->definition(), *cids,
-                          call->deopt_id(), call->env(), call);
-            ReplaceCall(call, min_max);
-            return;
-          }
-        }
-        break;
-      }
       case MethodRecognizer::kDoubleFromInteger: {
         if (call->HasICData() && targets.IsMonomorphic() &&
             (call->FirstArgIndex() == 0)) {
@@ -1607,16 +1626,17 @@ void TypedDataSpecializer::AppendMutableCheck(TemplateDartCall<0>* call,
 void TypedDataSpecializer::AppendBoundsCheck(TemplateDartCall<0>* call,
                                              Definition* array,
                                              Definition** index) {
-  if (flow_graph_->ShouldOmitCheckBoundsIn(call->env()->function())) {
-    return;
-  }
+  auto omit_check =
+      flow_graph_->ShouldOmitCheckBoundsIn(call->env()->function());
 
   auto length = new (Z) LoadFieldInstr(
       new (Z) Value(array), Slot::TypedDataBase_length(), call->source());
   flow_graph_->InsertBefore(call, length, call->env(), FlowGraph::kValue);
 
   auto check = new (Z) GenericCheckBoundInstr(
-      new (Z) Value(length), new (Z) Value(*index), DeoptId::kNone);
+      new (Z) Value(length), new (Z) Value(*index), DeoptId::kNone,
+      omit_check ? GenericCheckBoundInstr::Mode::kPhantom
+                 : GenericCheckBoundInstr::Mode::kReal);
   flow_graph_->InsertBefore(call, check, call->env(), FlowGraph::kValue);
 
   // Use data dependency as control dependency.
@@ -1667,19 +1687,17 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
     // Insert explicit unboxing instructions with truncation to avoid relying
     // on [SelectRepresentations] which doesn't mark them as truncating.
     value = UnboxInstr::Create(rep, new (Z) Value(value), deopt_id,
-                               Instruction::kNotSpeculative);
+                               UnboxInstr::ValueMode::kHasValidType);
     flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
   } else if (rep == kUnboxedFloat) {
-    value = new (Z) DoubleToFloatInstr(new (Z) Value(value), deopt_id,
-                                       Instruction::kNotSpeculative);
+    value = new (Z) DoubleToFloatInstr(new (Z) Value(value), deopt_id);
     flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
   }
 
   auto store = new (Z) StoreIndexedInstr(
       new (Z) Value(array), new (Z) Value(index), new (Z) Value(value),
       kNoStoreBarrier, /*index_unboxed=*/false, index_scale, cid,
-      kAlignedAccess, DeoptId::kNone, call->source(),
-      Instruction::kNotSpeculative);
+      kAlignedAccess, DeoptId::kNone, call->source());
   flow_graph_->InsertBefore(call, store, call->env(), FlowGraph::kEffect);
 }
 
@@ -1937,7 +1955,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
     // on [SelectRepresentations] which doesn't mark them as truncating.
     stored_value =
         UnboxInstr::Create(rep, new (Z) Value(stored_value), call->deopt_id(),
-                           Instruction::kNotSpeculative);
+                           UnboxInstr::ValueMode::kHasValidType);
     *last = flow_graph->AppendTo(*last, stored_value, call->env(),
                                  FlowGraph::kValue);
   }
@@ -1970,7 +1988,14 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
-  // Arguments are checked. No need for class check.
+  left =
+      UnboxInstr::Create(kUnboxedDouble, new (Z) Value(left), call->deopt_id(),
+                         UnboxInstr::ValueMode::kCheckType);
+  flow_graph->InsertBefore(call, left, call->env(), FlowGraph::kValue);
+  right =
+      UnboxInstr::Create(kUnboxedDouble, new (Z) Value(right), call->deopt_id(),
+                         UnboxInstr::ValueMode::kCheckType);
+  flow_graph->InsertBefore(call, right, call->env(), FlowGraph::kValue);
   BinaryDoubleOpInstr* double_bin_op = new (Z)
       BinaryDoubleOpInstr(op_kind, new (Z) Value(left), new (Z) Value(right),
                           call->deopt_id(), call->source());
@@ -2746,7 +2771,7 @@ class SimdLowering : public ValueObject {
     }
     Definition* unbox = AddDefinition(
         UnboxInstr::Create(rep, new (zone()) Value(arg), DeoptId::kNone,
-                           Instruction::kNotSpeculative));
+                           UnboxInstr::ValueMode::kHasValidType));
     for (intptr_t lane = 0; lane < n; lane++) {
       in_[i][lane] = unbox;
     }
@@ -2771,8 +2796,7 @@ class SimdLowering : public ValueObject {
   void UnaryDoubleOp(Token::Kind op, Representation rep, intptr_t n) {
     for (intptr_t lane = 0; lane < n; lane++) {
       op_[lane] = AddDefinition(new (zone()) UnaryDoubleOpInstr(
-          op, new (zone()) Value(in_[0][lane]), call_->deopt_id(),
-          Instruction::kNotSpeculative, rep));
+          op, new (zone()) Value(in_[0][lane]), call_->deopt_id(), rep));
     }
   }
 
@@ -2781,7 +2805,7 @@ class SimdLowering : public ValueObject {
       op_[lane] = AddDefinition(new (zone()) BinaryDoubleOpInstr(
           op, new (zone()) Value(in_[0][lane]),
           new (zone()) Value(in_[1][lane]), call_->deopt_id(), call_->source(),
-          Instruction::kNotSpeculative, rep));
+          rep));
     }
   }
 
@@ -3033,9 +3057,8 @@ static Instruction* InlineMul(FlowGraph* flow_graph,
                               Instruction* cursor,
                               Definition* x,
                               Definition* y) {
-  BinaryInt64OpInstr* mul = new (Z)
-      BinaryInt64OpInstr(Token::kMUL, new (Z) Value(x), new (Z) Value(y),
-                         DeoptId::kNone, Instruction::kNotSpeculative);
+  BinaryInt64OpInstr* mul = new (Z) BinaryInt64OpInstr(
+      Token::kMUL, new (Z) Value(x), new (Z) Value(y), DeoptId::kNone);
   return flow_graph->AppendTo(cursor, mul, nullptr, FlowGraph::kValue);
 }
 
@@ -3102,6 +3125,49 @@ static bool InlineMathIntPow(FlowGraph* flow_graph,
       return true;
     }
   }
+  return false;
+}
+
+static bool InlineMathMinMax(MethodRecognizer::Kind kind,
+                             FlowGraph* flow_graph,
+                             Instruction* call,
+                             GraphEntryInstr* graph_entry,
+                             FunctionEntryInstr** entry,
+                             Instruction** last,
+                             Definition** result) {
+  intptr_t i = call->AsStaticCall()->FirstArgIndex();
+  if (call->ArgumentValueAt(i + 0)->Type()->IsDouble() &&
+      call->ArgumentValueAt(i + 1)->Type()->IsDouble()) {
+    *last = *entry = new (Z)
+        FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                           call->GetBlock()->try_index(), DeoptId::kNone);
+    *result = new (Z) MathMinMaxInstr(
+        kind, new (Z) Value(call->ArgumentAt(i + 0)),
+        new (Z) Value(call->ArgumentAt(i + 1)), DeoptId::kNone, kUnboxedDouble);
+    flow_graph->AppendTo(
+        *last, *result,
+        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+        FlowGraph::kValue);
+    *last = *result;
+    return true;
+  }
+#if defined(TARGET_ARCH_IS_64_BIT)
+  if (call->ArgumentValueAt(i + 0)->Type()->IsInt() &&
+      call->ArgumentValueAt(i + 1)->Type()->IsInt()) {
+    *last = *entry = new (Z)
+        FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                           call->GetBlock()->try_index(), DeoptId::kNone);
+    *result = new (Z) MathMinMaxInstr(
+        kind, new (Z) Value(call->ArgumentAt(i + 0)),
+        new (Z) Value(call->ArgumentAt(i + 1)), DeoptId::kNone, kUnboxedInt64);
+    flow_graph->AppendTo(
+        *last, *result,
+        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+        FlowGraph::kValue);
+    *last = *result;
+    return true;
+  }
+#endif
   return false;
 }
 
@@ -3175,6 +3241,10 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kClassIDgetID:
       return InlineLoadClassId(flow_graph, call, graph_entry, entry, last,
                                result);
+    case MethodRecognizer::kMathMin:
+    case MethodRecognizer::kMathMax:
+      return InlineMathMinMax(kind, flow_graph, call, graph_entry, entry, last,
+                              result);
     default:
       break;
   }
@@ -3437,7 +3507,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
       // on [SelectRepresentations] which doesn't mark them as truncating.
       value = UnboxInstr::Create(StoreIndexedInstr::ValueRepresentation(cid),
                                  new (Z) Value(value), call->deopt_id(),
-                                 Instruction::kNotSpeculative);
+                                 UnboxInstr::ValueMode::kHasValidType);
       flow_graph->AppendTo(*entry, value, call->env(), FlowGraph::kValue);
 
       *last = new (Z) StoreIndexedInstr(

@@ -31,11 +31,10 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
 
     // Ensure we have set `removeFinal` so that fixKind is accurate after
     // configure is completed.
-    if (context.node
-        case VariableDeclarationList(
-          keyword: var keywordToken?,
-          type: var type,
-        )) {
+    if (context.node case VariableDeclarationList(
+      keyword: var keywordToken?,
+      type: var type,
+    )) {
       if (type != null) {
         // If a type and keyword is present, the keyword is `final`.
         finalKeyword = keywordToken;
@@ -43,8 +42,9 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
       } else if (keywordToken.keyword == Keyword.FINAL) {
         finalKeyword = keywordToken;
       }
-    } else if (context.node
-        case PatternVariableDeclaration(keyword: var keywordToken)) {
+    } else if (context.node case PatternVariableDeclaration(
+      keyword: var keywordToken,
+    )) {
       finalKeyword = keywordToken;
     }
 
@@ -59,30 +59,33 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
     required super.context,
     required Token? finalKeyword,
     required bool removeFinal,
-  })  : _finalKeyword = finalKeyword,
-        _removeFinal = removeFinal;
+  }) : _finalKeyword = finalKeyword,
+       _removeFinal = removeFinal;
 
   @override
   CorrectionApplicability get applicability =>
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => _removeFinal
-      ? DartFixKind.REMOVE_UNNECESSARY_FINAL
-      : DartFixKind.REPLACE_FINAL_WITH_VAR;
+  FixKind get fixKind =>
+      _removeFinal
+          ? DartFixKind.REMOVE_UNNECESSARY_FINAL
+          : DartFixKind.REPLACE_FINAL_WITH_VAR;
 
   @override
-  FixKind get multiFixKind => _removeFinal
-      ? DartFixKind.REMOVE_UNNECESSARY_FINAL_MULTI
-      : DartFixKind.REPLACE_FINAL_WITH_VAR_MULTI;
+  FixKind get multiFixKind =>
+      _removeFinal
+          ? DartFixKind.REMOVE_UNNECESSARY_FINAL_MULTI
+          : DartFixKind.REPLACE_FINAL_WITH_VAR_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (_finalKeyword case var finalKeyword?) {
       if (_removeFinal) {
         await builder.addDartFileEdit(file, (builder) {
-          builder
-              .addDeletion(range.startStart(finalKeyword, finalKeyword.next!));
+          builder.addDeletion(
+            range.startStart(finalKeyword, finalKeyword.next!),
+          );
         });
       } else {
         await builder.addDartFileEdit(file, (builder) {

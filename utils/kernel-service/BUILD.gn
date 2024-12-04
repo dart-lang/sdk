@@ -69,12 +69,19 @@ aot_snapshot("frontend_server_aot") {
   main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
   name = "frontend_server_aot"
   output = "$root_out_dir/frontend_server_aot.dart.snapshot"
+}
 
-  # dartaotruntime has dart_product_config applied to it, so it is built in
-  # product mode in both release and product builds, and is only built in debug
-  # mode in debug builds. The following line ensures that the dartaotruntime and
-  # frontend_server_aot snapshot in an SDK build are always compatible with
-  # each other.
+aot_snapshot("frontend_server_aot_product") {
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
+  name = "frontend_server_aot_product"
+  output = "$root_out_dir/frontend_server_aot_product.dart.snapshot"
+
+  # dartaotruntime in the dart sdk has dart_product_config applied to it,
+  # so it is built in product mode in both release and
+  # product sdks, and is built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and frontend_server aot snapshot in an SDK build are
+  # always compatible with each other.
   force_product_mode = !dart_debug
 }
 

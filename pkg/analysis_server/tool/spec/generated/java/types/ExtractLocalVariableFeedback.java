@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -29,9 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
-  public static final ExtractLocalVariableFeedback[] EMPTY_ARRAY = new ExtractLocalVariableFeedback[0];
-
-  public static final List<ExtractLocalVariableFeedback> EMPTY_LIST = Lists.newArrayList();
+  public static final List<ExtractLocalVariableFeedback> EMPTY_LIST = List.of();
 
   /**
    * The offsets of the expressions that cover the specified selection, from the down most to the up
@@ -75,12 +70,11 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof ExtractLocalVariableFeedback) {
-      ExtractLocalVariableFeedback other = (ExtractLocalVariableFeedback) obj;
+    if (obj instanceof ExtractLocalVariableFeedback other) {
       return
         Arrays.equals(other.coveringExpressionOffsets, coveringExpressionOffsets) &&
         Arrays.equals(other.coveringExpressionLengths, coveringExpressionLengths) &&
-        ObjectUtilities.equals(other.names, names) &&
+        Objects.equals(other.names, names) &&
         Arrays.equals(other.offsets, offsets) &&
         Arrays.equals(other.lengths, lengths);
     }
@@ -100,10 +94,9 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<ExtractLocalVariableFeedback> list = new ArrayList<ExtractLocalVariableFeedback>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<ExtractLocalVariableFeedback> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -149,15 +142,16 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(coveringExpressionOffsets);
-    builder.append(coveringExpressionLengths);
-    builder.append(names);
-    builder.append(offsets);
-    builder.append(lengths);
-    return builder.toHashCode();
+    return Objects.hash(
+      Arrays.hashCode(coveringExpressionOffsets),
+      Arrays.hashCode(coveringExpressionLengths),
+      names,
+      Arrays.hashCode(offsets),
+      Arrays.hashCode(lengths)
+    );
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     if (coveringExpressionOffsets != null) {
@@ -197,15 +191,19 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("coveringExpressionOffsets=");
-    builder.append(StringUtils.join(coveringExpressionOffsets, ", ") + ", ");
+    builder.append(coveringExpressionOffsets == null ? "null" : Arrays.stream(coveringExpressionOffsets).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("coveringExpressionLengths=");
-    builder.append(StringUtils.join(coveringExpressionLengths, ", ") + ", ");
+    builder.append(coveringExpressionLengths == null ? "null" : Arrays.stream(coveringExpressionLengths).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("names=");
-    builder.append(StringUtils.join(names, ", ") + ", ");
+    builder.append(names.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("offsets=");
-    builder.append(StringUtils.join(offsets, ", ") + ", ");
+    builder.append(Arrays.stream(offsets).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("lengths=");
-    builder.append(StringUtils.join(lengths, ", "));
+    builder.append(Arrays.stream(lengths).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

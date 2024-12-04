@@ -246,6 +246,7 @@ class StructuralParameter extends Node
   /// This is set to [unsetBoundSentinel] temporarily during IR construction.
   /// This is set to the `Object?` for type parameters without an explicit
   /// bound.
+  @override
   DartType bound;
 
   /// Sentinel value used for the [defaultType] that has not yet been computed.
@@ -464,16 +465,16 @@ sealed class DartType extends Node implements SharedTypeStructure<DartType> {
         nullability == Nullability.undetermined;
   }
 
-  /// Returns the non-type variable bound of this type, taking nullability
+  /// Returns the non-type parameter bound of this type, taking nullability
   /// into account.
   ///
   /// For instance in
   ///
   ///     method<T, S extends Class, U extends S?>()
   ///
-  /// the non-type variable bound of `T` is `Object?`, for `S` it is `Class`,
+  /// the non-type parameter bound of `T` is `Object?`, for `S` it is `Class`,
   /// and for `U` it is `Class?`.
-  DartType get nonTypeVariableBound;
+  DartType get nonTypeParameterBound;
 
   /// Returns `true` if members *not* declared on `Object` can be accessed on
   /// a receiver of this type.
@@ -567,7 +568,7 @@ class InvalidType extends DartType
   void visitChildren(Visitor v) {}
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => true;
@@ -621,7 +622,7 @@ class DynamicType extends DartType
   void visitChildren(Visitor v) {}
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => false;
@@ -666,7 +667,7 @@ class VoidType extends DartType implements SharedVoidTypeStructure<DartType> {
   void visitChildren(Visitor v) {}
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => false;
@@ -725,7 +726,7 @@ class NeverType extends DartType {
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => switch (declaredNullability) {
@@ -773,7 +774,7 @@ class NeverType extends DartType {
   }
 }
 
-class NullType extends DartType {
+class NullType extends DartType implements SharedNullTypeStructure<DartType> {
   @override
   final int hashCode = 415324;
 
@@ -791,7 +792,7 @@ class NullType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => false;
@@ -855,7 +856,7 @@ class InterfaceType extends TypeDeclarationType {
       };
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -961,7 +962,7 @@ class FunctionType extends DartType
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => switch (declaredNullability) {
@@ -1180,7 +1181,7 @@ class TypedefType extends DartType {
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get nonTypeVariableBound => unalias.nonTypeVariableBound;
+  DartType get nonTypeParameterBound => unalias.nonTypeParameterBound;
 
   @override
   bool get hasNonObjectMemberAccess => unalias.hasNonObjectMemberAccess;
@@ -1290,7 +1291,7 @@ class FutureOrType extends DartType {
   }
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => false;
@@ -1394,7 +1395,7 @@ class ExtensionType extends TypeDeclarationType {
   }
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => switch (declaredNullability) {
@@ -1613,17 +1614,17 @@ class IntersectionType extends DartType {
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
                 rightNullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/types/kernel_type_parser_test
+            // pkg/front_end/test/incremental_hello_test
+            // pkg/front_end/test/types/cfe_types_test
+            // pkg/front_end/tool/cfe_perf_test
             // nnbd/issue42089
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
                 rightNullability == Nullability.nullable) ||
             // pkg/front_end/test/dill_round_trip_test
             // pkg/front_end/test/compile_dart2js_with_no_sdk_test
-            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/types/large_app_benchmark_test
             // pkg/front_end/test/incremental_dart2js_test
             // pkg/front_end/test/read_dill_from_binary_md_test
             // pkg/front_end/test/static_types/static_type_test
@@ -1637,24 +1638,24 @@ class IntersectionType extends DartType {
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.legacy &&
                 rightNullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/incremental_hello_test
+            // pkg/front_end/tool/cfe_perf_test
             // replicated in nnbd_mixed/type_parameter_nullability
             (leftNullability == Nullability.nullable &&
                 rightNullability == Nullability.undetermined) ||
             // These are only observed in tests and might be artifacts of the
             // tests rather than real situations:
             //
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/types/kernel_type_parser_test
+            // pkg/front_end/test/types/cfe_types_test
             (leftNullability == Nullability.legacy &&
                 rightNullability == Nullability.nullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/types/kernel_type_parser_test
+            // pkg/front_end/test/types/cfe_types_test
             (leftNullability == Nullability.nonNullable &&
                 rightNullability == Nullability.nullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/types/kernel_type_parser_test
+            // pkg/front_end/test/types/cfe_types_test
             (leftNullability == Nullability.undetermined &&
                 rightNullability == Nullability.legacy) ||
             // pkg/kernel/test/clone_test
@@ -1667,8 +1668,8 @@ class IntersectionType extends DartType {
   }
 
   @override
-  DartType get nonTypeVariableBound {
-    DartType resolvedTypeParameterType = right.nonTypeVariableBound;
+  DartType get nonTypeParameterBound {
+    DartType resolvedTypeParameterType = right.nonTypeParameterBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
             inner: resolvedTypeParameterType.declaredNullability,
@@ -1677,7 +1678,7 @@ class IntersectionType extends DartType {
 
   @override
   bool get hasNonObjectMemberAccess =>
-      nonTypeVariableBound.hasNonObjectMemberAccess;
+      nonTypeParameterBound.hasNonObjectMemberAccess;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitIntersectionType(this);
@@ -1775,16 +1776,16 @@ class IntersectionType extends DartType {
             // pkg/front_end/test/id_tests/type_promotion_test
             (lhsNullability == Nullability.nullable &&
                 rhsNullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
-            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/types/kernel_type_parser_test
+            // pkg/front_end/test/incremental_hello_test
+            // pkg/front_end/test/types/cfe_types_test
+            // pkg/front_end/tool/cfe_perf_test
             // nnbd/issue42089
             (lhsNullability == Nullability.nullable &&
                 rhsNullability == Nullability.nullable) ||
             // pkg/front_end/test/dill_round_trip_test
             // pkg/front_end/test/compile_dart2js_with_no_sdk_test
-            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/types/large_app_benchmark_test
             // pkg/front_end/test/incremental_dart2js_test
             // pkg/front_end/test/read_dill_from_binary_md_test
             // pkg/front_end/test/static_types/static_type_test
@@ -1797,9 +1798,9 @@ class IntersectionType extends DartType {
             // inference/infer_types_on_loop_indices_for_each_loop_async
             (lhsNullability == Nullability.legacy &&
                 rhsNullability == Nullability.nonNullable) ||
-            // pkg/front_end/test/fasta/incremental_hello_test
-            // pkg/front_end/tool/fasta_perf_test
-            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/incremental_hello_test
+            // pkg/front_end/tool/cfe_perf_test
+            // pkg/front_end/test/incremental_hello_test
             (lhsNullability == Nullability.nullable &&
                 rhsNullability == Nullability.undetermined) ||
 
@@ -1807,12 +1808,12 @@ class IntersectionType extends DartType {
             // (lhsNullability == Nullability.legacy &&
             //     rhsNullability == Nullability.nullable) ||
 
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/types/kernel_type_parser_test
+            // pkg/front_end/test/types/cfe_types_test
             (lhsNullability == Nullability.undetermined &&
                 rhsNullability == Nullability.legacy) ||
-            // pkg/front_end/test/fasta/types/kernel_type_parser_test
-            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/types/kernel_type_parser_test
+            // pkg/front_end/test/types/cfe_types_test
             (lhsNullability == Nullability.nonNullable &&
                 rhsNullability == Nullability.nullable),
         "Unexpected nullabilities for: LHS nullability = $lhsNullability, "
@@ -1955,8 +1956,8 @@ class TypeParameterType extends DartType {
       : declaredNullability = computeNullabilityFromBound(parameter);
 
   @override
-  DartType get nonTypeVariableBound {
-    DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
+  DartType get nonTypeParameterBound {
+    DartType resolvedTypeParameterType = bound.nonTypeParameterBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
             inner: resolvedTypeParameterType.declaredNullability,
@@ -1965,7 +1966,7 @@ class TypeParameterType extends DartType {
 
   @override
   bool get hasNonObjectMemberAccess =>
-      nonTypeVariableBound.hasNonObjectMemberAccess;
+      nonTypeParameterBound.hasNonObjectMemberAccess;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
@@ -2097,8 +2098,8 @@ class StructuralParameterType extends DartType {
       : this(to, TypeParameterType.computeNullabilityFromBound(from));
 
   @override
-  DartType get nonTypeVariableBound {
-    DartType resolvedTypeParameterType = bound.nonTypeVariableBound;
+  DartType get nonTypeParameterBound {
+    DartType resolvedTypeParameterType = bound.nonTypeParameterBound;
     return resolvedTypeParameterType.withDeclaredNullability(
         combineNullabilitiesForSubstitution(
             inner: resolvedTypeParameterType.nullability,
@@ -2107,7 +2108,7 @@ class StructuralParameterType extends DartType {
 
   @override
   bool get hasNonObjectMemberAccess =>
-      nonTypeVariableBound.hasNonObjectMemberAccess;
+      nonTypeParameterBound.hasNonObjectMemberAccess;
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitStructuralParameterType(this);
@@ -2248,14 +2249,18 @@ class RecordType extends DartType
             "Named field types aren't sorted lexicographically "
             "in a RecordType: ${named}");
 
-  @override
   List<SharedNamedTypeStructure<DartType>> get namedTypes => named;
+
+  @override
+  List<SharedNamedTypeStructure<DartType>> get sortedNamedTypes {
+    return namedTypes;
+  }
 
   @override
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get nonTypeVariableBound => this;
+  DartType get nonTypeParameterBound => this;
 
   @override
   bool get hasNonObjectMemberAccess => switch (declaredNullability) {

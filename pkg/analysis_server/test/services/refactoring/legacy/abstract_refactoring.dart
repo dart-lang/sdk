@@ -77,10 +77,12 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   /// Asserts that [status] has expected severity and message.
   void assertRefactoringStatus(
-      RefactoringStatus status, RefactoringProblemSeverity? expectedSeverity,
-      {String? expectedMessage,
-      SourceRange? expectedContextRange,
-      String? expectedContextSearch}) {
+    RefactoringStatus status,
+    RefactoringProblemSeverity? expectedSeverity, {
+    String? expectedMessage,
+    SourceRange? expectedContextRange,
+    String? expectedContextSearch,
+  }) {
     expect(status.severity, expectedSeverity, reason: status.toString());
     if (expectedSeverity != null) {
       var problem = status.problem!;

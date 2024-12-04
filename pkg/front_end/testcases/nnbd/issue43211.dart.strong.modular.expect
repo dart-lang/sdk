@@ -221,7 +221,7 @@ class B<X extends self::A<Null>?> extends core::Object implements self::A<self::
   }
 }
 class C extends core::Object {
-  constructor internal(dynamic _) → self::C
+  constructor internal(wildcard dynamic _#wc0#formal) → self::C
     : super core::Object::•() {
     self::A<self::A<Null>>? a;
     self::D<core::String>? b;

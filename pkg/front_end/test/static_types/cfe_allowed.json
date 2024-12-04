@@ -1,11 +1,11 @@
 {
+  "pkg/_fe_analyzer_shared/lib/src/util/colors.dart": {
+    "Dynamic invocation of 'split'.": 1
+  },
   "pkg/_fe_analyzer_shared/lib/src/util/libraries_specification.dart": {
     "Dynamic invocation of 'toList'.": 1,
     "Dynamic invocation of 'map'.": 1,
     "Dynamic invocation of '[]='.": 1
-  },
-  "pkg/_fe_analyzer_shared/lib/src/util/colors.dart": {
-    "Dynamic invocation of 'split'.": 1
   },
   "pkg/_fe_analyzer_shared/lib/src/util/runtimes.dart": {
     "Dynamic invocation of 'createUriForKernelBlob'.": 1
@@ -13,8 +13,5 @@
   "pkg/front_end/lib/src/macros/isolate_macro_serializer.dart": {
     "Dynamic invocation of 'unregisterKernelBlobUri'.": 1,
     "Dynamic invocation of 'createUriForKernelBlob'.": 1
-  },
-  "pkg/front_end/lib/src/dill/dill_member_builder.dart": {
-    "Dynamic access of 'fileUri'.": 1
   }
 }

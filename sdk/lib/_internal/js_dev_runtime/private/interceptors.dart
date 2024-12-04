@@ -175,8 +175,12 @@ class JSFunction extends Interceptor {
       // `.toString()` but they might be accessed through debugging tools.
       return 'Dart class: ${JS<String>('!', '#.name', this)}';
     }
-    return JS<String>('!', r'"Closure: " + # + " from: " + #',
-        dart.typeName(dart.getReifiedType(this)), this);
+    return JS<String>(
+      '!',
+      r'"Closure: " + # + " from: " + #',
+      dart.typeName(dart.getReifiedType(this)),
+      this,
+    );
   }
 
   // TODO(nshahan): We can remove these if we canonicalize all tearoffs and no
@@ -237,12 +241,13 @@ class JSFunction extends Interceptor {
     // This is an instance tearoff, test if the bound instances and methods
     // are equal.
     return JS<bool>(
-        '!',
-        '# === #._boundObject && #._boundMethod === #._boundMethod',
-        boundObj,
-        otherFn,
-        originalFn,
-        otherFn);
+      '!',
+      '# === #._boundObject && #._boundMethod === #._boundMethod',
+      boundObj,
+      otherFn,
+      originalFn,
+      otherFn,
+    );
   }
 
   get hashCode {

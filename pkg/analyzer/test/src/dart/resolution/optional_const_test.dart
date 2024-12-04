@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,7 +25,7 @@ InstanceCreationExpression
     type: NamedType
       name: B
       element: package:test/a.dart::<fragment>::@class::B
-      element2: package:test/a.dart::<fragment>::@class::B#element
+      element2: package:test/a.dart::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
@@ -54,7 +54,7 @@ InstanceCreationExpression
     type: NamedType
       name: B
       element: package:test/a.dart::<fragment>::@class::B
-      element2: package:test/a.dart::<fragment>::@class::B#element
+      element2: package:test/a.dart::@class::B
       type: B<num>
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::B::@constructor::new
@@ -80,7 +80,7 @@ InstanceCreationExpression
         element2: package:test/b.dart::<fragment>::@prefix2::p
       name: B
       element: package:test/a.dart::<fragment>::@class::B
-      element2: package:test/a.dart::<fragment>::@class::B#element
+      element2: package:test/a.dart::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
@@ -114,7 +114,7 @@ InstanceCreationExpression
         element2: package:test/b.dart::<fragment>::@prefix2::p
       name: B
       element: package:test/a.dart::<fragment>::@class::B
-      element2: package:test/a.dart::<fragment>::@class::B#element
+      element2: package:test/a.dart::@class::B
       type: B<num>
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::B::@constructor::new
@@ -135,7 +135,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -160,7 +160,7 @@ InstanceCreationExpression
     type: NamedType
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A
     staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
     element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
@@ -184,7 +184,7 @@ InstanceCreationExpression
         element2: package:test/b.dart::<fragment>::@prefix2::p
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -214,7 +214,7 @@ InstanceCreationExpression
         element2: package:test/b.dart::<fragment>::@prefix2::p
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: A
     staticElement: package:test/a.dart::<fragment>::@class::A::@constructor::new
     element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
@@ -255,11 +255,11 @@ InstanceCreationExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::C
-      element2: package:test/a.dart::<fragment>::@class::C#element
+      element2: package:test/a.dart::@class::C
       type: C<int>
     staticElement: ConstructorMember
       base: package:test/a.dart::<fragment>::@class::C::@constructor::new
@@ -302,8 +302,8 @@ import 'b.dart';
 var v = a;
 ''');
 
-    var vg = findNode.simple('a;').staticElement as PropertyAccessorElement;
-    var v = vg.variable2 as ConstVariableElement;
+    var vg = findNode.simple('a;').element as PropertyAccessorElement2;
+    var v = vg.variable3!.firstFragment as ConstVariableElement;
 
     var creation = v.constantInitializer as InstanceCreationExpression;
     return creation;

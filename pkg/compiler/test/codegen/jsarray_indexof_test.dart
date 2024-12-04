@@ -5,7 +5,6 @@
 // Test that `length` access in JSArray.indexOf is encoding using `.length` and
 // not `.get$length()`.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -15,6 +14,7 @@ import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/universe/selector.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 import '../helpers/element_lookup.dart';

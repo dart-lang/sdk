@@ -128,8 +128,11 @@ abstract final class String implements Comparable<String>, Pattern {
   /// and if [end] is omitted, all char-codes after [start] are included.
   /// If [charCodes] does not have [end], or even [start], elements,
   /// the specified char-codes may be shorter than `end - start`, or even empty.
-  external factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]);
+  external factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]);
 
   /// Allocates a new string containing the specified [charCode].
   ///
@@ -182,8 +185,10 @@ abstract final class String implements Comparable<String>, Pattern {
   /// The compilation configuration environment is not the same as the
   /// environment variables of a POSIX process. Those can be accessed on
   /// native platforms using `Platform.environment` from the `dart:io` library.
-  external const factory String.fromEnvironment(String name,
-      {String defaultValue = ""});
+  external const factory String.fromEnvironment(
+    String name, {
+    String defaultValue = "",
+  });
 
   /// The character (as a single-code-unit [String]) at the given [index].
   ///
@@ -522,8 +527,11 @@ abstract final class String implements Comparable<String>, Pattern {
   /// is replaced by the result of calling [replace] with the match object.
   ///
   /// The [startIndex] must be non-negative and no greater than [length].
-  String replaceFirstMapped(Pattern from, String replace(Match match),
-      [int startIndex = 0]);
+  String replaceFirstMapped(
+    Pattern from,
+    String replace(Match match), [
+    int startIndex = 0,
+  ]);
 
   /// Replaces all substrings that match [from] with [replace].
   ///
@@ -693,8 +701,11 @@ abstract final class String implements Comparable<String>, Pattern {
   ///     onNonMatch: (n) => '*');
   /// print(result); // *shoots*
   /// ```
-  String splitMapJoin(Pattern pattern,
-      {String Function(Match)? onMatch, String Function(String)? onNonMatch});
+  String splitMapJoin(
+    Pattern pattern, {
+    String Function(Match)? onMatch,
+    String Function(String)? onNonMatch,
+  });
 
   /// An unmodifiable list of the UTF-16 code units of this string.
   List<int> get codeUnits;
@@ -825,9 +836,9 @@ final class RuneIterator implements Iterator<int> {
 
   /// Create an iterator positioned at the beginning of the string.
   RuneIterator(String string)
-      : this.string = string,
-        _position = 0,
-        _nextPosition = 0;
+    : this.string = string,
+      _position = 0,
+      _nextPosition = 0;
 
   /// Create an iterator positioned before the [index]th code unit of the string.
   ///
@@ -838,9 +849,9 @@ final class RuneIterator implements Iterator<int> {
   ///
   /// The [index] position must not be in the middle of a surrogate pair.
   RuneIterator.at(String string, int index)
-      : string = string,
-        _position = index,
-        _nextPosition = index {
+    : string = string,
+      _position = index,
+      _nextPosition = index {
     RangeError.checkValueInInterval(index, 0, string.length);
     _checkSplitSurrogate(index);
   }
@@ -869,8 +880,12 @@ final class RuneIterator implements Iterator<int> {
   /// Setting the position to the end of the string means that there is no
   /// current rune.
   void set rawIndex(int rawIndex) {
-    IndexError.check(rawIndex, string.length,
-        indexable: string, name: "rawIndex");
+    IndexError.check(
+      rawIndex,
+      string.length,
+      indexable: string,
+      name: "rawIndex",
+    );
     reset(rawIndex);
     moveNext();
   }

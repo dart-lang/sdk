@@ -1180,6 +1180,7 @@ expressed
 expression
 expressions
 extend
+extendable
 extended
 extending
 extends
@@ -2697,6 +2698,7 @@ review
 revise
 revision
 revisit
+rewind
 rewrite
 rewriter
 rewriting
@@ -2831,6 +2833,7 @@ shorted
 shorten
 shortened
 shorter
+shorthands
 shorting
 shorts
 should
@@ -2938,6 +2941,7 @@ stable
 stack
 stacked
 stage
+stamped
 stamps
 standalone
 standard

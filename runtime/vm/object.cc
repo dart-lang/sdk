@@ -58,7 +58,7 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
-#include "vm/regexp.h"
+#include "vm/regexp/regexp.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/reverse_pc_lookup_cache.h"
@@ -1039,7 +1039,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   // at the start of the first entry.
   {
     const intptr_t array_size =
-        TypeArguments::Cache::kHeaderSize + TypeArguments::Cache::kEntrySize;
+        static_cast<intptr_t>(TypeArguments::Cache::kHeaderSize) +
+        static_cast<intptr_t>(TypeArguments::Cache::kEntrySize);
     uword address =
         heap->Allocate(thread, Array::InstanceSize(array_size), Heap::kOld);
     InitializeObjectVariant<Array>(address, kImmutableArrayCid, array_size);
@@ -2837,7 +2838,11 @@ void Object::InitializeObject(uword address,
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif
+
   reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
+#if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
+  std::atomic_thread_fence(std::memory_order_release);
+#endif
 }
 
 void Object::CheckHandle() const {
@@ -4341,7 +4346,10 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   Zone* zone = thread->zone();
 
   Function& forwarder = Function::Handle(zone);
-  forwarder ^= Object::Clone(*this, Heap::kOld);
+  // Load with relaxed atomics to prevent data race with updating original's
+  // properties that are overridden below for the copy anyway.
+  forwarder ^= Object::Clone(*this, Heap::kOld,
+                             /*load_with_relaxed_atomics=*/true);
 
   forwarder.reset_unboxed_parameters_and_return();
 
@@ -17997,16 +18005,12 @@ void Code::set_num_variables(intptr_t num_variables) const {
 }
 #endif
 
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
 TypedDataPtr Code::catch_entry_moves_maps() const {
-  ASSERT(FLAG_precompiled_mode);
   return TypedData::RawCast(untag()->catch_entry());
 }
 void Code::set_catch_entry_moves_maps(const TypedData& maps) const {
-  ASSERT(FLAG_precompiled_mode);
   untag()->set_catch_entry(maps.ptr());
 }
-#endif
 
 void Code::set_deopt_info_array(const Array& array) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -25248,6 +25252,7 @@ ArrayPtr Array::NewUninitialized(intptr_t class_id,
   if (UseCardMarkingForAllocation(len)) {
     ASSERT(raw->IsOldObject());
     raw->untag()->SetCardRememberedBitUnsynchronized();
+    Page::Of(raw)->AllocateCardTable();
   }
   return raw;
 }
@@ -27723,7 +27728,8 @@ ErrorPtr EntryPointMemberInvocationError(const Object& member) {
 // dynamic call site.
 intptr_t Function::MaxNumberOfParametersInRegisters(Zone* zone) const {
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_ARM)
+    defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_RISCV32) ||                \
+    defined(TARGET_ARCH_RISCV64)
   if (!FLAG_precompiled_mode) {
     return 0;
   }

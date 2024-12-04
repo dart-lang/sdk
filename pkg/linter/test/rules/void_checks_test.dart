@@ -17,6 +17,16 @@ class VoidChecksTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.void_checks;
 
+  test_assert_blockBody_returnStatement() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  assert(() {
+    return true;
+  }());
+}
+''');
+  }
+
   test_constructorArgument_genericParameter() async {
     await assertDiagnostics(r'''
 void f(dynamic p) {
@@ -126,6 +136,28 @@ void m([void v]) {}
     ]);
   }
 
+  test_functionExpression_blockBody_returnStatement_genericContext() async {
+    await assertNoDiagnostics(r'''
+generics_with_function() {
+  g<T>(T Function() p) => p();
+  g(() {
+    return 1;
+  });
+}
+''');
+  }
+
+  test_functionExpression_blockBody_returnStatement_voidContext() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  void g(Function p) {}
+  g(() async {
+    return 1;
+  });
+}
+''');
+  }
+
   // https://github.com/dart-lang/linter/issues/2685
   test_functionType_FutureOrVoidReturnType_Never() async {
     await assertNoDiagnostics(r'''
@@ -168,6 +200,93 @@ void f() {
 ''');
   }
 
+  test_futureOrVoidField_assignDynamic() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(A a, dynamic p) {
+  a.x = p; // OK
+}
+class A {
+  FutureOr<void> x;
+  A(this.x);
+}
+''');
+  }
+
+  test_futureOrVoidField_assignFutureOrVoid() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(A a, FutureOr<void> p) {
+  a.x = p;
+}
+class A {
+  FutureOr<void> x;
+  A(this.x);
+}
+''');
+  }
+
+  test_futureOrVoidField_assignFutureVoid() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(A a) {
+  a.x = Future.value();
+}
+class A {
+  FutureOr<void> x;
+  A(this.x);
+}
+''');
+  }
+
+  test_futureOrVoidField_assignInt() async {
+    await assertDiagnostics(r'''
+import 'dart:async';
+void f(A a) {
+  a.x = 1;
+}
+class A {
+  FutureOr<void> x;
+  A(this.x);
+}
+''', [
+      lint(37, 7),
+    ]);
+  }
+
+  test_futureOrVoidField_assignNull() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(A a) {
+  a.x = null; // OK
+}
+class A {
+  FutureOr<void> x;
+  A(this.x);
+}
+''');
+  }
+
+  test_futureOrVoidFunction_blockBody_returnsFuture() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+FutureOr<void> f() {
+  return Future.value();
+}
+''');
+  }
+
+  test_futureOrVoidFunction_blockBody_returnStatement() async {
+    await assertDiagnostics(r'''
+import 'dart:async';
+FutureOr<void> f() {
+  return 1;
+}
+''', [
+      lint(44, 9),
+    ]);
+  }
+
   test_listPattern_local() async {
     await assertDiagnostics(r'''
 void f() {
@@ -190,6 +309,15 @@ void f(void p) {
     ]);
   }
 
+  test_localFunction_emptyBlockBody_matchingFutureOrVoidSignature() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(FutureOr<void> Function() p) {
+  p = () {};
+}
+''');
+  }
+
   test_neverReturningCallbackThrows() async {
     await assertNoDiagnostics(r'''
 import 'dart:async';
@@ -200,6 +328,15 @@ void f() async {
   await Future.value(5).then<void>((x) {
     fail();
   });
+}
+''');
+  }
+
+  test_nonVoidFunction_assignedToVoidFunction() async {
+    await assertNoDiagnostics(r'''
+void f(void Function() p) {
+  int g() => 1;
+  p = g;
 }
 ''');
   }
@@ -259,5 +396,29 @@ class A<T> {
 ''', [
       lint(33, 7),
     ]);
+  }
+
+  test_voidFunction_blockBody_returnStatement() async {
+    await assertDiagnostics(r'''
+void f(dynamic p) {
+  return p;
+}
+''', [
+      lint(22, 9),
+    ]);
+  }
+
+  test_voidFunction_blockBody_returnStatement_empty() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  return;
+}
+''');
+  }
+
+  test_voidFunction_expressionBody() async {
+    await assertNoDiagnostics(r'''
+void f() => 7;
+''');
   }
 }

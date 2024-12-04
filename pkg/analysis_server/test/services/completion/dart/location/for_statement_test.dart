@@ -97,7 +97,7 @@ suggestions
   }
 
   Future<void>
-      test_afterVariableDeclaration_beforeRightParen_partial_i() async {
+  test_afterVariableDeclaration_beforeRightParen_partial_i() async {
     await computeSuggestions('''
 void f() {for (int x i^)}
 ''');
@@ -111,7 +111,7 @@ suggestions
   }
 
   Future<void>
-      test_afterVariableDeclaration_beforeRightParen_partial_in() async {
+  test_afterVariableDeclaration_beforeRightParen_partial_in() async {
     await computeSuggestions('''
 void f() {for (int x in^)}
 ''');

@@ -28,7 +28,7 @@ Run end-to-end tests using dartk + VM:
 
 Optionally (this is slow) run end-to-end tests using AOT:
 ```
-./tools/build.py dart_precompiled_runtime
+./tools/build.py runtime_precompiled
 ./tools/test.py -cdartkp -rdart_precompiled language co19
 ```
 

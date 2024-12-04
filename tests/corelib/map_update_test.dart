@@ -105,12 +105,15 @@ void testNonNull(Map<Comparable?, Object?> map) {
 
   map.clear();
   Expect.throws(
-      () => map.update("key1", unreachable, ifAbsent: () => throw "expected"),
-      (t) => t == "expected");
+    () => map.update("key1", unreachable, ifAbsent: () => throw "expected"),
+    (t) => t == "expected",
+  );
 
   map["key1"] = 42;
-  Expect.throws(() => map.update("key1", (_) => throw "expected"),
-      (t) => t == "expected");
+  Expect.throws(
+    () => map.update("key1", (_) => throw "expected"),
+    (t) => t == "expected",
+  );
 
   // No ifAbsent means throw if key not there.
   Expect.throws(() => map.update("key-not", unreachable), (e) => e is Error);
@@ -190,9 +193,7 @@ class TestKeyIterator<K> implements Iterator<K> {
   final int _modCount;
   int _index = 0;
   var _current;
-  TestKeyIterator(map)
-      : _map = map,
-        _modCount = map._modCount;
+  TestKeyIterator(map) : _map = map, _modCount = map._modCount;
 
   bool moveNext() {
     if (_modCount != _map._modCount) {

@@ -33,8 +33,11 @@ void foo() { }
     expect(currentAnalysisErrors[pathname], isEmpty);
 
     // expect a postfix completion applicable result
-    var result =
-        await sendEditIsPostfixCompletionApplicable(pathname, '.tryon', loc);
+    var result = await sendEditIsPostfixCompletionApplicable(
+      pathname,
+      '.tryon',
+      loc,
+    );
     expect(result.value, isTrue);
   }
 }

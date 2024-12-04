@@ -39,6 +39,10 @@ class ElementDisplayStringBuilder {
     _write(element.name ?? '<unnamed $runtimeType>');
   }
 
+  void writeAbstractElement2(ElementImpl2 element) {
+    _write(element.name3 ?? '<unnamed $runtimeType>');
+  }
+
   void writeClassElement(ClassElementImpl element) {
     if (element.isAugmentation) {
       _write('augment ');
@@ -252,13 +256,39 @@ class ElementDisplayStringBuilder {
   }
 
   void writePrefixElement(PrefixElementImpl element) {
-    _write('as ');
-    _write(element.displayName);
+    var libraryImports = element.imports;
+    var displayName = element.displayName;
+    if (libraryImports.isEmpty) {
+      _write('as ');
+      _write(displayName);
+      return;
+    }
+    var first = libraryImports.first;
+    _write("import '${first.libraryName}' as $displayName;");
+    if (libraryImports.length == 1) {
+      return;
+    }
+    for (var libraryImport in libraryImports.sublist(1)) {
+      _write("\nimport '${libraryImport.libraryName}' as $displayName;");
+    }
   }
 
   void writePrefixElement2(PrefixElementImpl2 element) {
-    _write('as ');
-    _write(element.displayName);
+    var libraryImports = element.imports;
+    var displayName = element.displayName;
+    if (libraryImports.isEmpty) {
+      _write('as ');
+      _write(displayName);
+      return;
+    }
+    var first = libraryImports.first;
+    _write("import '${first.libraryName}' as $displayName;");
+    if (libraryImports.length == 1) {
+      return;
+    }
+    for (var libraryImport in libraryImports.sublist(1)) {
+      _write("\nimport '${libraryImport.libraryName}' as $displayName;");
+    }
   }
 
   void writeRecordType(RecordType type) {
@@ -600,6 +630,7 @@ class ElementDisplayStringBuilder {
       }
 
       var newTypeParameter = TypeParameterElementImpl(name, -1);
+      newTypeParameter.name2 = name;
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter);
     }
@@ -609,3 +640,12 @@ class ElementDisplayStringBuilder {
 }
 
 enum _WriteFormalParameterKind { requiredPositional, optionalPositional, named }
+
+extension on LibraryImportElement {
+  String get libraryName {
+    if (uri case DirectiveUriWithRelativeUriString uri) {
+      return uri.relativeUriString;
+    }
+    return '<unknown>';
+  }
+}

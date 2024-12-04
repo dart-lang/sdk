@@ -27,11 +27,14 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
 
   Future<void> findMemberDeclarations(String name) async {
     await waitForTasksFinished();
-    var request = SearchFindMemberDeclarationsParams(name)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = SearchFindMemberDeclarationsParams(
+      name,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = SearchFindMemberDeclarationsResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = SearchFindMemberDeclarationsResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     searchId = result.id;
     return waitForSearchResults();
   }

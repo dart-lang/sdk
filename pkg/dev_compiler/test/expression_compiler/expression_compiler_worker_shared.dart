@@ -1191,15 +1191,28 @@ class DDCKernelGenerator {
   static final dart = Platform.resolvedExecutable;
   static final sdkPath =
       computePlatformBinariesLocation(forceBuildDir: true).toFilePath();
-
-  static final dartdevc =
-      p.join(sdkPath, 'dart-sdk', 'bin', 'snapshots', 'dartdevc.dart.snapshot');
-  static final kernelWorker = p.join(
-      sdkPath, 'dart-sdk', 'bin', 'snapshots', 'kernel_worker.dart.snapshot');
+  static var dartExecutable = p.join(
+    sdkPath,
+    'dart-sdk',
+    'bin',
+    Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+  );
+  static var dartdevc = p.join(
+      sdkPath, 'dart-sdk', 'bin', 'snapshots', 'dartdevc_aot.dart.snapshot');
+  static var kernelWorker = p.join(sdkPath, 'dart-sdk', 'bin', 'snapshots',
+      'kernel_worker_aot.dart.snapshot');
 
   DDCKernelGenerator(this.config, this.verbose);
 
   Future<int> generate() async {
+    if (!File(dartdevc).existsSync()) {
+      // This can be removed once we stop supporting ia32 architecture.
+      dartdevc = p.join(
+          sdkPath, 'dart-sdk', 'bin', 'snapshots', 'dartdevc.dart.snapshot');
+      kernelWorker = p.join(sdkPath, 'dart-sdk', 'bin', 'snapshots',
+          'kernel_worker.dart.snapshot');
+      dartExecutable = Platform.resolvedExecutable;
+    }
     Directory.fromUri(config.outputPath).createSync();
 
     // generate summaries
@@ -1238,7 +1251,7 @@ class DDCKernelGenerator {
       if (!config.soundNullSafety) '--no-sound-null-safety',
     ];
 
-    return runProcess(dart, args, config.rootPath, verbose);
+    return runProcess(dartExecutable, args, config.rootPath, verbose);
   }
 
   Future<int> _generateFullDill(ModuleConfiguration module) async {
@@ -1270,7 +1283,7 @@ class DDCKernelGenerator {
       '--no-summarize',
     ];
 
-    return await runProcess(dart, args, config.rootPath, verbose);
+    return await runProcess(dartExecutable, args, config.rootPath, verbose);
   }
 }
 

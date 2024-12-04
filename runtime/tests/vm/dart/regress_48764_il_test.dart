@@ -40,7 +40,7 @@ void matchIL$main_testForIn(FlowGraph graph) {
       'v3' << match.LoadField('v2', slot: 'Closure.context'),
       'v4' << match.LoadField('v3', slot: 'list'),
       'v92' << match.LoadField('v4', slot: 'GrowableObjectArray.length'),
-      'v112' << match.UnboxInt64('v92'),
+      if (!is32BitConfiguration) 'v112' << match.UnboxInt64('v92'),
       match.Goto('B14'),
     ]),
     'B14' <<
@@ -48,14 +48,11 @@ void matchIL$main_testForIn(FlowGraph graph) {
           'v124' << match.Phi(match.any, 'v37'),
           match.CheckStackOverflow(),
           if (is32BitConfiguration)
-            'v124_ext' <<
-                match.IntConverter('v124', from: 'int32', to: 'int64'),
-          match.Branch(
-              match.RelationalOp(
-                  is32BitConfiguration ? 'v124_ext' : 'v124', 'v112',
-                  kind: '>='),
-              ifTrue: 'B4',
-              ifFalse: 'B3'),
+            // Not moved out of the loop due to the current pass
+            // ordering (LICM is performed before RangeAnalysis).
+            'v112' << match.UnboxInt32('v92'),
+          match.Branch(match.RelationalOp('v124', 'v112', kind: '>='),
+              ifTrue: 'B4', ifFalse: 'B3'),
         ]),
     'B4' <<
         match.block('Target', [

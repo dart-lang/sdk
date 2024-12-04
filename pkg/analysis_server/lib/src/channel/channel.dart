@@ -78,8 +78,8 @@ class NotificationConverter
 
   @override
   ChunkedConversionSink<Map<String, Object?>> startChunkedConversion(
-          Sink<Notification> sink) =>
-      ChannelChunkSink<Map<String, Object?>, Notification>(this, sink);
+    Sink<Notification> sink,
+  ) => ChannelChunkSink<Map<String, Object?>, Notification>(this, sink);
 }
 
 /// Instances of the class [ResponseConverter] convert JSON maps to [Response]s.

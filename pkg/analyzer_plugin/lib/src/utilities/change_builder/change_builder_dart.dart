@@ -17,6 +17,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -291,10 +292,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ExecutableElement2? methodBeingCopied,
       bool includeDefaultValues = true,
       bool requiredTypes = false}) {
-    var parameterNames = {
-      for (var parameter in parameters.where((p) => p.name.isNotEmpty))
-        parameter.name,
-    };
+    var parameterNames = parameters.map((e) => e.name3).nonNulls.toSet();
 
     write('(');
     var sawNamed = false;
@@ -317,13 +315,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       }
       // Parameter.
-      var name = parameter.name;
-      if (name.isEmpty) {
+      var name = parameter.name3;
+      if (name == null || name == '') {
         name = _generateUniqueName(parameterNames, 'p');
         parameterNames.add(name);
       }
       var groupPrefix =
-          methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
+          methodBeingCopied != null ? '${methodBeingCopied.name3}:' : '';
       writeFormalParameter(name,
           isCovariant: parameter.isCovariant,
           isRequiredNamed: parameter.isRequiredNamed,
@@ -738,7 +736,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         writeln();
         write(prefix2);
         selectAllIfSetSelection(
-            () => write('super.$memberName = ${parameters[0].name};'));
+            () => write('super.$memberName = ${parameters[0].name3};'));
       } else {
         if (setSelection) selectHere();
       }
@@ -948,6 +946,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeReference2(Element2 element) {
+    if (element.enclosingElement2 is LibraryElement2) {
+      _writeLibraryReference2(element);
+    }
+    write(element.displayName);
+  }
+
+  @override
   void writeSetterDeclaration(String name,
       {void Function()? bodyWriter,
       bool isStatic = false,
@@ -1051,7 +1057,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeTypeParameter2(TypeParameterElement2 typeParameter,
       {ExecutableElement2? methodBeingCopied}) {
-    write(typeParameter.name);
+    write(typeParameter.name3 ?? '');
     if (typeParameter.bound != null) {
       write(' extends ');
       _writeType2(typeParameter.bound, methodBeingCopied: methodBeingCopied);
@@ -1502,6 +1508,42 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
+  /// Writes the import prefix to reference the [element], if needed.
+  ///
+  /// The prefix is not needed if the [element] is defined in the target
+  /// library, or there is already an import without prefix that exports the
+  /// [element]. If there are no existing import that exports the [element], a
+  /// library that exports the [element] is scheduled for import, possibly with
+  /// a prefix.
+  void _writeLibraryReference2(Element2 element) {
+    // If the element is defined in the library, then no prefix needed.
+    if (dartFileEditBuilder._isDefinedLocally2(element)) {
+      return;
+    }
+
+    // TODO(scheglov): We should use "methodBeingCopied" to verify that
+    // we really are just copying this type parameter.
+    if (element is TypeParameterElement2) {
+      return;
+    }
+
+    var import = dartFileEditBuilder._getImportElement2(element);
+    if (import == null) {
+      var library = element.library2?.uri;
+      if (library != null) {
+        import = dartFileEditBuilder._importLibrary(library);
+      }
+    }
+    if (import == null) {
+      return;
+    }
+    import.ensureShown(element.name3!);
+    var prefix = import.prefix;
+    if (prefix.isNotEmpty) {
+      write('$prefix.');
+    }
+  }
+
   void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
       List<ParameterElement> parameters) {
     var isOperator = element.isOperator;
@@ -1532,10 +1574,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(', ');
       }
       if (parameters[i].isNamed) {
-        write(parameters[i].name);
+        write(parameters[i].name3 ?? '');
         write(': ');
       }
-      write(parameters[i].name);
+      write(parameters[i].name3 ?? '');
     }
     write(isOperator ? ';' : ');');
   }
@@ -1917,9 +1959,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// the names used in generated code, to information about these imports.
   Map<Uri, _LibraryImport> librariesToImport = {};
 
-  /// A mapping of [Element]s to pending imports that will be added to make
-  /// them visible in the generated code.
-  final Map<Element, _LibraryImport> _elementLibrariesToImport = {};
+  /// A mapping of elements to pending imports that will be added to make them
+  /// visible in the generated code.
+  final Map<Element2, _LibraryImport> _elementLibrariesToImport = {};
 
   /// Initializes a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder].
@@ -2094,7 +2136,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     var uriToImport = libraryToImport?.source.uri;
     if (uriToImport != null) {
-      var newImport = elementLibrariesToImport[element] = _importLibrary(
+      var newImport =
+          elementLibrariesToImport[element.asElement2!] = _importLibrary(
         uriToImport,
         isExplicitImport: false,
         shownName: element.name,
@@ -2105,6 +2148,55 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // imports in which case we could remove them to avoid adding unnecessary
       // imports.
       _removeUnnecessaryPendingElementImports(newImport, libraryToImport);
+    }
+  }
+
+  /// Arranges to have an import added that makes [element] available.
+  ///
+  /// If [element] is already available in the current library, does nothing.
+  ///
+  /// If the library [element] is declared in is inside the `src` folder, will
+  /// try to locate a public URI to import instead.
+  ///
+  /// If [useShow] is `true`, new imports will be added that `show` only the
+  /// requested element (or if there is a pending import for the library, added
+  /// to its `show` combinator).
+  Future<void> importElementLibrary2(Element2 element,
+      {Map<Element2, LibraryElement2?>? resultCache,
+      bool useShow = false}) async {
+    if (_isDefinedLocally2(element)) {
+      return;
+    }
+
+    var existingImport = _getImportElement2(element);
+    var name = element.name3;
+    if (existingImport != null && name != null) {
+      existingImport.ensureShown(name, useShow: useShow);
+      return;
+    }
+
+    var elementLibrariesToImport =
+        (libraryChangeBuilder ?? this)._elementLibrariesToImport;
+    var libraryToImport = resultCache?[element] ??
+        await TopLevelDeclarations(resolvedUnit)
+            .publiclyExporting2(element, resultCache: resultCache) ??
+        // Fall back to the element's library if we didn't find a better one.
+        element.library2;
+
+    var uriToImport = libraryToImport?.uri;
+    if (uriToImport != null) {
+      var newImport = elementLibrariesToImport[element] = _importLibrary(
+        uriToImport,
+        isExplicitImport: false,
+        shownName: element.name3,
+        useShow: useShow,
+      );
+
+      // It's possible this new import can satisfy other pending element's
+      // imports in which case we could remove them to avoid adding unnecessary
+      // imports.
+      _removeUnnecessaryPendingElementImports(
+          newImport, libraryToImport as LibraryElement);
     }
   }
 
@@ -2134,12 +2226,35 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return ImportLibraryElementResultImpl(null);
   }
 
-  String importLibraryWithAbsoluteUri(Uri uri, [String? prefix]) {
-    return _importLibrary(uri, prefix: prefix, forceAbsolute: true).uriText;
+  String importLibraryWithAbsoluteUri(
+    Uri uri, {
+    String? prefix,
+    String? shownName,
+    bool useShow = false,
+  }) {
+    return _importLibrary(
+      uri,
+      prefix: prefix,
+      shownName: shownName,
+      useShow: useShow,
+      forceAbsolute: true,
+    ).uriText;
   }
 
-  String importLibraryWithRelativeUri(Uri uri, [String? prefix]) {
-    return _importLibrary(uri, prefix: prefix, forceRelative: true).uriText;
+  String importLibraryWithRelativeUri(
+    Uri uri, {
+    String? prefix,
+    String? shownName,
+    bool useShow = false,
+  }) {
+    return _importLibrary(
+      uri,
+      prefix: prefix,
+      shownName: shownName,
+      useShow: useShow,
+      forceAbsolute: true,
+      forceRelative: true,
+    ).uriText;
   }
 
   @override
@@ -2693,6 +2808,41 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
+    return (libraryChangeBuilder ?? this)
+        ._elementLibrariesToImport[element.asElement2];
+  }
+
+  /// Returns information about the library used to import the given [element]
+  /// into the target library, or `null` if the element was not imported, such
+  /// as when the element is declared in the same library.
+  ///
+  /// The result may be an existing import, or one that is pending.
+  _LibraryImport? _getImportElement2(Element2 element) {
+    for (var import
+        in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
+      var definedNames = import.namespace.definedNames2;
+      if (definedNames.containsValue(element)) {
+        var importedLibrary = import.importedLibrary2;
+        if (importedLibrary != null) {
+          return _LibraryImport(
+            uriText: importedLibrary.uri.toString(),
+            isExplicitlyImported: true,
+            shownNames: [
+              for (var combinator in import.combinators)
+                if (combinator is ShowElementCombinator)
+                  combinator.shownNames.toList(),
+            ],
+            hiddenNames: [
+              for (var combinator in import.combinators)
+                if (combinator is HideElementCombinator)
+                  combinator.hiddenNames.toList(),
+            ],
+            prefix: import.prefix2?.name2 ?? '',
+          );
+        }
+      }
+    }
+
     return (libraryChangeBuilder ?? this)._elementLibrariesToImport[element];
   }
 
@@ -2829,6 +2979,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return element.library == resolvedUnit.libraryElement;
   }
 
+  /// Returns whether the [element] is defined in the target library.
+  bool _isDefinedLocally2(Element2 element) {
+    return element.library2 == resolvedUnit.libraryElement2;
+  }
+
   /// Removes any pending imports (for [Element]s) that are no longer necessary
   /// because the newly-added [newImport] for [newLibrary] also provides those
   /// [Element]s.
@@ -2852,7 +3007,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
       // If this new import exports the other element, change it to this import
       // and record it as a removal candidate.
-      if (newLibrary?.exportNamespace.get(otherElement.displayName) ==
+      if (newLibrary?.exportNamespace.get2(otherElement.displayName) ==
           otherElement) {
         candidatesToRemove.add(otherImport);
         elementLibrariesToImport[otherElement] = newImport;

@@ -42,7 +42,7 @@ void main() {
         var from = matches[idx][0];
         var length = matches[idx][1];
         var expected = str.substring(from, from + length);
-        var name = "$str[$from..${from+length}]";
+        var name = "$str[$from..${from + length}]";
         assertEquals(expected, result[idx].group(0), name);
       }
     } else {
@@ -52,54 +52,58 @@ void main() {
 
   CheckMatch(new RegExp(r"abc"), "xxxabcxxxabcxxx", [
     [3, 3],
-    [9, 3]
+    [9, 3],
   ]);
   CheckMatch(new RegExp(r"abc"), "abcabcabc", [
     [0, 3],
     [3, 3],
-    [6, 3]
+    [6, 3],
   ]);
   CheckMatch(new RegExp(r"aba"), "ababababa", [
     [0, 3],
-    [4, 3]
+    [4, 3],
   ]);
   CheckMatch(new RegExp(r"foo"), "ofooofoooofofooofo", [
     [1, 3],
     [5, 3],
-    [12, 3]
+    [12, 3],
   ]);
   CheckMatch(new RegExp(r"foobarbaz"), "xx", []);
   CheckMatch(new RegExp(r"abc"), "abababa", []);
 
-  assertEquals("xxxdefxxxdefxxx",
-      "xxxabcxxxabcxxx".replaceAll(new RegExp(r"abc"), "def"));
   assertEquals(
-      "o-o-oofo-ofo", "ofooofoooofofooofo".replaceAll(new RegExp(r"foo"), "-"));
+    "xxxdefxxxdefxxx",
+    "xxxabcxxxabcxxx".replaceAll(new RegExp(r"abc"), "def"),
+  );
+  assertEquals(
+    "o-o-oofo-ofo",
+    "ofooofoooofofooofo".replaceAll(new RegExp(r"foo"), "-"),
+  );
   assertEquals("deded", "deded".replaceAll(new RegExp(r"x"), "-"));
   assertEquals("-a-b-c-d-e-f-", "abcdef".replaceAll(new RegExp(""), "-"));
 
   CheckMatch(new RegExp(r"a(.)"), "xyzzyabxyzzyacxyzzy", [
     [5, 2],
-    [12, 2]
+    [12, 2],
   ]);
 
   CheckMatch(new RegExp(r"a|(?:)"), "aba", [
     [0, 1],
     [1, 0],
     [2, 1],
-    [3, 0]
+    [3, 0],
   ]);
   CheckMatch(new RegExp(r"a|(?:)"), "baba", [
     [0, 0],
     [1, 1],
     [2, 0],
     [3, 1],
-    [4, 0]
+    [4, 0],
   ]);
   CheckMatch(new RegExp(r"a|(?:)"), "bab", [
     [0, 0],
     [1, 1],
     [2, 0],
-    [3, 0]
+    [3, 0],
   ]);
 }

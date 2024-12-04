@@ -69,10 +69,12 @@ abstract class AnalyzerStatusTest extends AbstractLspAnalysisServerTest {
     // and track which event came first to ensure they arrived in the expected
     // order.
     bool? firstNotificationWasAnalyzing;
-    var startNotification = waitForAnalysisStart()
-        .then((_) => firstNotificationWasAnalyzing ??= true);
-    var completeNotification = waitForAnalysisComplete()
-        .then((_) => firstNotificationWasAnalyzing ??= false);
+    var startNotification = waitForAnalysisStart().then(
+      (_) => firstNotificationWasAnalyzing ??= true,
+    );
+    var completeNotification = waitForAnalysisComplete().then(
+      (_) => firstNotificationWasAnalyzing ??= false,
+    );
 
     await initialize();
     await startNotification;

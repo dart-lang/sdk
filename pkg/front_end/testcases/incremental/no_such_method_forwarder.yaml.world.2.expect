@@ -12,7 +12,7 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     synthetic constructor •() → lib1::Y
       : super dart.core::Object::•()
       ;
-    method noSuchMethod(dart.core::Invocation _) → void {
+    method noSuchMethod(wildcard dart.core::Invocation _#wc0#formal) → void {
       dart.core::print("Hello from noSuchMethod");
     }
     no-such-method-forwarder method foo() → void

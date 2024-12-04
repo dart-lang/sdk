@@ -16,8 +16,9 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.JOIN_IF_WITH_OUTER;
@@ -48,6 +49,12 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     if (outerIfStatement.elseStatement != null) {
       return;
     }
+
+    // If target (inner) is if-case, we cannot join them.
+    if (targetIfStatement.caseClause != null) {
+      return;
+    }
+
     // prepare environment
     var prefix = utils.getNodePrefix(outerIfStatement);
     // merge conditions
@@ -61,7 +68,30 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     if (outerCondition.shouldWrapParenthesisBeforeAnd) {
       outerConditionSource = '($outerConditionSource)';
     }
+
     var condition = '$outerConditionSource && $targetConditionSource';
+
+    // If outer is if-case.
+    var outerCaseClause = outerIfStatement.caseClause;
+    if (outerCaseClause != null) {
+      var casePattern = outerCaseClause.guardedPattern.pattern;
+      var caseWhenExpression =
+          outerCaseClause.guardedPattern.whenClause?.expression;
+
+      if (caseWhenExpression != null) {
+        var caseWhenSource = '$caseWhenExpression';
+        if (caseWhenExpression.shouldWrapParenthesisBeforeAnd) {
+          caseWhenSource = '($caseWhenSource)';
+        }
+
+        condition =
+            '$outerConditionSource case $casePattern when $caseWhenSource && $targetConditionSource';
+      } else {
+        condition =
+            '$outerConditionSource case $casePattern when $targetConditionSource';
+      }
+    }
+
     // replace outer "if" statement
     var targetThenStatement = targetIfStatement.thenStatement;
     var targetThenStatements = getStatements(targetThenStatement);
@@ -70,8 +100,10 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     var newSource = utils.indentSourceLeftRight(oldSource);
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.node(outerIfStatement),
-          'if ($condition) {$eol$newSource$prefix}');
+      builder.addSimpleReplacement(
+        range.node(outerIfStatement),
+        'if ($condition) {$eol$newSource$prefix}',
+      );
     });
   }
 }

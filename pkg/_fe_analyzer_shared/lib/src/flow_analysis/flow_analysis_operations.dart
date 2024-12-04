@@ -10,6 +10,9 @@ library;
 /// representation of variables and types.
 abstract interface class FlowAnalysisOperations<Variable extends Object,
     Type extends Object> implements FlowAnalysisTypeOperations<Type> {
+  /// Whether the given [variable] was declared with the `final` modifier.
+  bool isFinal(Variable variable);
+
   /// Determines whether the given property can be promoted.
   ///
   /// [property] will correspond to a `propertyMember` value passed to

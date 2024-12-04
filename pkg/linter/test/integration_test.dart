@@ -9,19 +9,18 @@ import 'package:test/test.dart';
 
 import '../tool/checks/check_all_yaml.dart';
 import '../tool/checks/check_messages_yaml.dart';
-import 'mocks.dart';
 
 void main() {
   group('integration', () {
     group('config', () {
       var currentOut = outSink;
-      var collectingOut = CollectingSink();
+      var collectingOut = StringBuffer();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
       });
       tearDown(() {
-        collectingOut.buffer.clear();
+        collectingOut.clear();
         outSink = currentOut;
         exitCode = 0;
       });

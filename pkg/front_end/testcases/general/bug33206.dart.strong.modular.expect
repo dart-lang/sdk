@@ -18,7 +18,7 @@ class Y extends core::Object {
   synthetic constructor •() → self::Y
     : super core::Object::•()
     ;
-  method f(dynamic _) → dynamic {}
+  method f(wildcard dynamic _#wc0#formal) → dynamic {}
 }
 static method f1() → asy::Future<core::List<core::Object>> async /* emittedValueType= core::List<core::Object> */ {
   return <core::Object>[1];

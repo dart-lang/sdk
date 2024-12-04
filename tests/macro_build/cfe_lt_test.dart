@@ -8,7 +8,7 @@ void main() {
   testMacroBuild([
     r'$DART pub get',
     r'$DART '
-        r'$DART_SDK/pkg/front_end/tool/_fasta/compile.dart '
+        r'$DART_SDK/pkg/front_end/tool/compile.dart '
         '--verify '
         '--skip-platform-verification -o out.dill '
         '--platform '

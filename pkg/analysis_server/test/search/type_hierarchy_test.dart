@@ -59,25 +59,25 @@ class B extends A {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [1]
+        'subclasses': [1],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -101,48 +101,48 @@ augment class C extends MyClass1 {}
           'kind': 'CLASS',
           'name': 'MyClass1',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [2, 3]
+        'subclasses': [2, 3],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -176,47 +176,47 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'AAA',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [2, 3]
+        'subclasses': [2, 3],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'BBB',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [3]
+        'subclasses': [3],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'CCC',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
     ]);
   }
@@ -228,13 +228,13 @@ library lib_a;
 class A {}
 class B extends A {}
 ''');
-    writePackageConfig(
-      convertPath('$packagesRootPath/pkgA'),
-    );
+    writePackageConfig(convertPath('$packagesRootPath/pkgA'));
     // reference the package from a project
     writeTestPackageConfig(
-        config: (PackageConfigFileBuilder()
-          ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA')));
+      config:
+          (PackageConfigFileBuilder()
+            ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA')),
+    );
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}
@@ -269,35 +269,35 @@ class Foo extends foo.Foo {}
           'kind': 'CLASS',
           'name': 'Foo',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [2]
+        'subclasses': [2],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Foo',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
     ]);
   }
@@ -317,48 +317,48 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [2]
+        'subclasses': [2],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [3]
+        'subclasses': [3],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -378,48 +378,48 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [3]
+        'subclasses': [3],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -439,48 +439,48 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 3,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -538,48 +538,48 @@ class T implements MA, MB {
           'kind': 'CLASS',
           'name': 'T',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [2, 3],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'MA',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'MB',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -714,13 +714,19 @@ class D extends C {
     expect(itemB.classElement.name, 'B');
     expect(itemC.classElement.name, 'C');
     expect(itemD.classElement.name, 'D');
-    expect(itemA.memberElement!.location!.offset,
-        findOffset('test => null; // in A'));
-    expect(itemB.memberElement!.location!.offset,
-        findOffset('test => null; // in B'));
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('test => null; // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('test => null; // in B'),
+    );
     expect(itemC.memberElement, isNull);
-    expect(itemD.memberElement!.location!.offset,
-        findOffset('test => null; // in D'));
+    expect(
+      itemD.memberElement!.location!.offset,
+      findOffset('test => null; // in D'),
+    );
   }
 
   Future<void> test_class_member_method() async {
@@ -747,12 +753,18 @@ class D extends C {
     expect(itemC.classElement.name, 'C');
     expect(itemD.classElement.name, 'D');
     expect(
-        itemA.memberElement!.location!.offset, findOffset('test() {} // in A'));
+      itemA.memberElement!.location!.offset,
+      findOffset('test() {} // in A'),
+    );
     expect(
-        itemB.memberElement!.location!.offset, findOffset('test() {} // in B'));
+      itemB.memberElement!.location!.offset,
+      findOffset('test() {} // in B'),
+    );
     expect(itemC.memberElement, isNull);
     expect(
-        itemD.memberElement!.location!.offset, findOffset('test() {} // in D'));
+      itemD.memberElement!.location!.offset,
+      findOffset('test() {} // in D'),
+    );
   }
 
   Future<void> test_class_member_method_private_differentLib() async {
@@ -809,11 +821,17 @@ class C extends B {
     expect(itemB.classElement.name, 'B');
     expect(itemC.classElement.name, 'C');
     expect(
-        itemA.memberElement!.location!.offset, findOffset('_m() {} // in A'));
+      itemA.memberElement!.location!.offset,
+      findOffset('_m() {} // in A'),
+    );
     expect(
-        itemB.memberElement!.location!.offset, findOffset('_m() {} // in B'));
+      itemB.memberElement!.location!.offset,
+      findOffset('_m() {} // in B'),
+    );
     expect(
-        itemC.memberElement!.location!.offset, findOffset('_m() {} // in C'));
+      itemC.memberElement!.location!.offset,
+      findOffset('_m() {} // in C'),
+    );
   }
 
   Future<void> test_class_member_ofMixin2_method() async {
@@ -887,7 +905,9 @@ class Derived2 extends Base {
     expect(memberBase.location!.offset, findOffset('test; // in Base'));
     expect(member1.location!.offset, findOffset('test => null; // in Mixin'));
     expect(
-        member2.location!.offset, findOffset('test => null; // in Derived2'));
+      member2.location!.offset,
+      findOffset('test => null; // in Derived2'),
+    );
   }
 
   Future<void> test_class_member_ofMixin_method() async {
@@ -1020,13 +1040,19 @@ class D extends C {
     expect(itemB.classElement.name, 'B');
     expect(itemC.classElement.name, 'C');
     expect(itemD.classElement.name, 'D');
-    expect(itemA.memberElement!.location!.offset,
-        findOffset('==(x) => null; // in A'));
-    expect(itemB.memberElement!.location!.offset,
-        findOffset('==(x) => null; // in B'));
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('==(x) => null; // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('==(x) => null; // in B'),
+    );
     expect(itemC.memberElement, isNull);
-    expect(itemD.memberElement!.location!.offset,
-        findOffset('==(x) => null; // in D'));
+    expect(
+      itemD.memberElement!.location!.offset,
+      findOffset('==(x) => null; // in D'),
+    );
   }
 
   Future<void> test_class_member_setter() async {
@@ -1052,13 +1078,19 @@ class D extends C {
     expect(itemB.classElement.name, 'B');
     expect(itemC.classElement.name, 'C');
     expect(itemD.classElement.name, 'D');
-    expect(itemA.memberElement!.location!.offset,
-        findOffset('test(x) {} // in A'));
-    expect(itemB.memberElement!.location!.offset,
-        findOffset('test(x) {} // in B'));
+    expect(
+      itemA.memberElement!.location!.offset,
+      findOffset('test(x) {} // in A'),
+    );
+    expect(
+      itemB.memberElement!.location!.offset,
+      findOffset('test(x) {} // in B'),
+    );
     expect(itemC.memberElement, isNull);
-    expect(itemD.memberElement!.location!.offset,
-        findOffset('test(x) {} // in D'));
+    expect(
+      itemD.memberElement!.location!.offset,
+      findOffset('test(x) {} // in D'),
+    );
   }
 
   Future<void> test_class_superOnly() async {
@@ -1075,60 +1107,63 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [3],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
   Future<void> test_class_superOnly_fileDoesNotExist() async {
     var request = SearchGetTypeHierarchyParams(
-            convertPath('/does/not/exist.dart'), 0,
-            superOnly: true)
-        .toRequest(requestId, clientUriConverter: server.uriConverter);
+      convertPath('/does/not/exist.dart'),
+      0,
+      superOnly: true,
+    ).toRequest(requestId, clientUriConverter: server.uriConverter);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var items = SearchGetTypeHierarchyResult.fromResponse(response,
-            clientUriConverter: server.uriConverter)
-        .hierarchyItems;
+    var items =
+        SearchGetTypeHierarchyResult.fromResponse(
+          response,
+          clientUriConverter: server.uriConverter,
+        ).hierarchyItems;
     expect(items, isNull);
   }
 
@@ -1148,48 +1183,48 @@ class T extends Object with MA, MB {
           'kind': 'CLASS',
           'name': 'T',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [2, 3],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'MA',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'MB',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -1231,60 +1266,60 @@ enum E implements A, B {
           'kind': 'ENUM',
           'name': 'E',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [3, 4],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Enum',
           'location': anything,
-          'flags': 1
+          'flags': 1,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -1419,47 +1454,47 @@ enum E with M {
           'kind': 'ENUM',
           'name': 'E',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [3],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Enum',
           'location': anything,
-          'flags': 1
+          'flags': 1,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'MIXIN',
           'name': 'M',
           'location': anything,
-          'flags': 1
+          'flags': 1,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -1476,35 +1511,35 @@ extension type E(B it) implements A {}
           'kind': 'EXTENSION_TYPE',
           'name': 'E',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [1],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 2,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -1520,36 +1555,36 @@ extension type E(A it) implements A {}
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [2]
+        'subclasses': [2],
       },
       {
         'classElement': {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'EXTENSION_TYPE',
           'name': 'E',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -1566,23 +1601,23 @@ extension type E2(A it) implements E1 {}
           'kind': 'EXTENSION_TYPE',
           'name': 'E2',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [1],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [],
       },
       {
         'classElement': {
           'kind': 'EXTENSION_TYPE',
           'name': 'E1',
           'location': anything,
-          'flags': 0
+          'flags': 0,
         },
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
-      }
+        'subclasses': [],
+      },
     ]);
   }
 
@@ -1619,7 +1654,9 @@ extension type E(A it) implements A {
     expect(itemA.classElement.name, 'A');
     expect(itemE.classElement.name, 'E');
     expect(
-        itemA.memberElement!.location!.offset, findOffset('test() {} // in A'));
+      itemA.memberElement!.location!.offset,
+      findOffset('test() {} // in A'),
+    );
     expect(itemE.memberElement, isNull);
   }
 
@@ -1628,24 +1665,31 @@ extension type E(A it) implements A {
   }
 
   Request _createGetTypeHierarchyRequest(String search, {bool? superOnly}) {
-    return SearchGetTypeHierarchyParams(testFile.path, findOffset(search),
-            superOnly: superOnly)
-        .toRequest(requestId, clientUriConverter: server.uriConverter);
+    return SearchGetTypeHierarchyParams(
+      testFile.path,
+      findOffset(search),
+      superOnly: superOnly,
+    ).toRequest(requestId, clientUriConverter: server.uriConverter);
   }
 
-  Future<List<TypeHierarchyItem>> _getTypeHierarchy(String search,
-      {bool? superOnly}) async {
+  Future<List<TypeHierarchyItem>> _getTypeHierarchy(
+    String search, {
+    bool? superOnly,
+  }) async {
     return (await _getTypeHierarchyOrNull(search, superOnly: superOnly))!;
   }
 
-  Future<List<TypeHierarchyItem>?> _getTypeHierarchyOrNull(String search,
-      {bool? superOnly}) async {
+  Future<List<TypeHierarchyItem>?> _getTypeHierarchyOrNull(
+    String search, {
+    bool? superOnly,
+  }) async {
     await waitForTasksFinished();
     var request = _createGetTypeHierarchyRequest(search, superOnly: superOnly);
     var response = await serverChannel.simulateRequestFromClient(request);
-    return SearchGetTypeHierarchyResult.fromResponse(response,
-            clientUriConverter: server.uriConverter)
-        .hierarchyItems;
+    return SearchGetTypeHierarchyResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    ).hierarchyItems;
   }
 
   List<Map<String, Object>> _toJson(List<TypeHierarchyItem> items) {

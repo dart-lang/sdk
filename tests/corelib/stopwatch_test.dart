@@ -44,7 +44,7 @@ class StopwatchTest {
       }
       sw2LastElapsed = sw2.elapsedTicks;
     }
-    // The test only makes sense if measureable time elapsed and elapsed time
+    // The test only makes sense if measurable time elapsed and elapsed time
     // on the stopped Stopwatch did not increase.
     Expect.isTrue(sw2.elapsedTicks > 0);
     return true;

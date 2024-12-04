@@ -1,3 +1,213 @@
+## 3.7.0
+
+### Language
+
+Dart 3.7 adds [wildcard variables] to the language. To use them, set your
+package's [SDK constraint][language version] lower bound to 3.7 or greater
+(`sdk: '^3.7.0'`).
+
+#### Wildcard Variables
+
+[wildcard variables]: https://github.com/dart-lang/language/issues/3712
+
+Local variables and parameters named `_` are now non-binding and they can
+be declared multiple times without collisions. You will no longer be able to use
+these variables nor access their values. All wildcard variable declaration types
+that have this behavior are described in the
+[wildcard variables specification](https://github.com/dart-lang/language/blob/main/accepted/future-releases/wildcard-variables/feature-specification.md).
+
+Top-level variables, top-level function names, type names, member names, etc.
+are unchanged. They can be named `_` and used as they are today.
+
+These are a few examples of where wildcard variables can be used:
+```dart
+Foo(_, this._, super._, void _()) {}
+
+main() {
+  var _ = 1;
+  int _ = 2;
+
+  list.where((_) => true);
+}
+```
+
+#### Other Language Changes
+
+- **Breaking Change** [#56893][]: If a field is promoted to the type `Null`
+  using `is` or `as`, this type promotion is now properly accounted for in
+  reachability analysis. This makes the type system more self-consistent,
+  because it mirrors the behavior of promoted local variables. This change is
+  not expected to make any difference in practice.
+
+[#56893]: https://github.com/dart-lang/sdk/issues/56893
+
+### Tools
+
+#### Analyzer
+
+- Assists and quick fixes that add an import now consider the
+  `prefer_relative_imports` and `always_use_package_imports` lint rules.
+- Add a new fix that converts a `~/` operation into `/`, when the `~/`
+  operation is not available.
+- Add a fix that wraps an expression in `await` if the expression is currently
+  not assignable, but awaiting it would make it assignable.
+- Assists and quick fixes that convert a `forEach` call into a for-loop now
+  consider the `prefer_final_in_for_each` and `always_specify_types` lint
+  rules.
+- Add an additional fix to correct a `cascade_invocations` lint rule violation.
+- Offer additional assists to wrap a Flutter widget with an `Expanded` widget,
+  and with a `Flexible` widget.
+- Offer an assist to "inline" an else-block's inner if-statement with the
+  else-block to read `else if`.
+  (Thanks [@FMorschel](https://github.com/FMorschel) for the above enhacements!
+- Add the experimental `specify_nonobvious_property_types` lint rule.
+- Add the experimental `omit_obvious_property_types` lint rule.
+- Deprecate the `package_api_docs` lint rule.
+
+#### Dart format
+
+The formatter implements a [new style][tall style] better suited for the kind of
+declarative code that many Dart users are writing today. The new style looks
+similar to the style you get when you add trailing commas to argument lists,
+except that now the formatter will add and remove those commas for you.
+
+The `dart format` command [uses the language version][formatter lang version] of
+each input file to determine which style it gets. If the language version is 3.6
+or lower, the code is formatted with the old style. If 3.7 or later, it gets the
+new tall style.
+
+You typically control the language version by [setting a min SDK constraint in
+your package's pubspec][versioning]. This means that when you update the SDK
+constraint in your pubspec to move to 3.7, you are also opting in to the new
+style.
+
+In order to correctly determine the language version of each file it formats,
+`dart format` (like other `dart` commands) looks for a `package_config.json`
+file surrounding the files being formatted. This means that **you need to run
+`dart pub get` before formatting code in your package.** If you have format
+checks in your continuous integration server, you'll want to make sure it runs
+`dart pub get` too.
+
+We don't intend to support both styles indefinitely. At some point in the
+future when most of the ecosystem is on 3.7 or later, support for the old style
+will be removed.
+
+[tall style]: https://github.com/dart-lang/dart_style/issues/1253
+
+[versioning]: https://dart.dev/guides/language/evolution
+
+[formatter lang version]: https://github.com/dart-lang/dart_style/issues/1402
+
+In addition to the new formatting style, a number of other changes are included,
+some of them breaking:
+
+* **Project-wide page width configuration.** By long request, you can now
+  configure your preferred formatting page width on a project-wide basis. When
+  formatting a file, the formatter will look in the file's directory and any
+  surrounding directories for an `analysis_options.yaml` file. If it finds one,
+  it looks for YAML like so:
+
+  ```yaml
+  formatter:
+    page_width: 123
+  ```
+
+  If it finds a page width matching that schema, then the file is formatted
+  using that width. Since the formatter will walk the surrounding directories
+  until it finds an `analysis_options.yaml` file, this can be used to globally
+  set the page width for an entire directory, package, or even collection of
+  packages. Since `analysis_options.yaml` files already support an `include`
+  key to reference other `analysis_options.yaml` files, you can define a single
+  configuration and share it across a number of packages.
+
+* **Opting out a region of code from formatting.** In code formatted using the
+  new style, you can use a pair of special marker comments to opt a region of
+  code out of automated formatting:
+
+  ```dart
+  main() {
+    this.isFormatted();
+    // dart format off
+    no   +   formatting
+      +
+        here;
+    // dart format on
+    formatting.isBackOnHere();
+  }
+  ```
+
+  The comments must be exactly `// dart format off` and `// dart format on`.
+  A file may have multiple regions, but they can't overlap or nest.
+
+  This can be useful for highly structured data where custom layout helps the
+  reader understand the data, like large lists of numbers.
+
+* **Overriding the page width for a single file.** In code formatted
+  using the new tall style, you can use a special marker comment to control the
+  page width that it's formatted using:
+
+  ```dart
+  // dart format width=30
+  main() {
+    someExpression +
+        thatSplitsAt30;
+  }
+  ```
+
+  This comment must appear before any code in the file and must match that
+  format exactly. The width set by the comment overrides the width set by any
+  surrounding `analysis_options.yaml` file.
+
+  This feature is mainly for code generators that generate and immediately
+  format code but don't know about any surrounding `analysis_options.yaml`
+  that might be configuring the page width. By inserting this comment in the
+  generated code before formatting, it ensures that the code generator's
+  behavior matches the behavior of `dart format`.
+
+  End users should mostly use `analysis_options.yaml` for configuring their
+  preferred page width (or do nothing and continue to use the default page width
+  of 80).
+
+* **Breaking change: Remove support for `dart format --fix`.** Instead, use
+  `dart fix`. It supports all of the fixes that `dart format --fix` could apply
+  and many more.
+
+* **Treat the `--stdin-name` name as a path when inferring language version.**
+  When reading input on stdin, the formatter still needs to know its language
+  version to know what style to apply. If the `--stdin-name` option is set, then
+  that is treated as a file path and the formatter looks for a package config
+  surrounding that file path to infer the language version from.
+
+  If you don't want that behavior, pass in an explicit language version using
+  `--language-version=`, or use `--language-version=latest` to parse the input
+  using the latest language version supported by the formatter.
+
+  If `--stdin-name` and `--language-version` are both omitted, then the
+  formatter parses stdin using the latest supported language version.
+
+* **Rename the `--line-length` option to `--page-width`.** This is consistent
+  with the public API, internal implementation, and docs, which all use "page
+  width" to refer to the limit that the formatter tries to fit code into.
+
+  The `--line-length` name is still supported for backwards compatibility, but
+  may be removed at some point in the future. You're encouraged to move to
+  `--page-width`. Use of this option (however it's named) is rare, and will
+  likely be even rarer now that project-wide configuration is supported, so
+  this shouldn't affect many users.
+
+#### Dart to Javascript Compiler (dart2js)
+
+The dart2js compiler which is invoked when the command 'dart compile js' is
+used has been switched to use an AOT snapshot instead of a JIT snapshot.
+
+#### Dart Development Compiler (dartdevc)
+
+The dartdevc compiler and kernel_worker utility have been switched to use an
+AOT snapshot instead of a JIT snapshot, the SDK build still includes a JIT
+snapshot of these tools as package build/build_web_compiler depends on it. The
+AOT snapshot can be used as follows to run DDC <dart-sdk>/bin/dartaotruntime
+<dart-sdk>/bin/snapshots/dartdevc_aot.dart.snapshot <options>
+
 ## 3.6.0
 
 ### Language
@@ -2250,7 +2460,7 @@ This is a patch release that:
   spawned via `Isolate.spawnUri`. See [`SendPort.send`] documentation for
   the full list of restrictions.
 
-[`SendPort.send`]: https://api.dart.dev/stable/dart-isolate/SendPort/send.html
+[`SendPort.send`]: https://api.dart.dev/dart-isolate/SendPort/send.html
 
 #### `dart:mirrors`
 
@@ -2259,8 +2469,8 @@ This is a patch release that:
   previously used internally in dart2js. Both are no longer functional.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
-[`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
-[`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
+[`MirrorsUsed`]: https://api.dart.dev/dart-mirrors/MirrorsUsed-class.html
+[`Comment`]: https://api.dart.dev/dart-mirrors/Comment-class.html
 
 ### Other libraries
 
@@ -5349,7 +5559,7 @@ Thanks to **Vincenzo di Cicco** for finding and reporting this issue.
 This release also improves compatibility with ARMv8 processors (issue [40001][])
 and dart:io stability (issue [40589][]).
 
-[nodevalidator]: https://api.dart.dev/stable/dart-html/NodeValidator-class.html
+[nodevalidator]: https://api.dart.dev/dart-html/NodeValidator-class.html
 [cve-2020-8923]:
   https://github.com/dart-lang/sdk/security/advisories/GHSA-hfq3-v9pv-p627
 [40001]: https://github.com/dart-lang/sdk/issues/40001

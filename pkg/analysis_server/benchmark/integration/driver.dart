@@ -61,7 +61,9 @@ class Driver extends IntegrationTest {
   /// If the server acknowledges the command with an error response, the future
   /// will be completed with an error.
   Future<Map<String, Object?>?> send(
-      String method, Map<String, dynamic> params) {
+    String method,
+    Map<String, dynamic> params,
+  ) {
     return server.send(method, params);
   }
 
@@ -81,14 +83,14 @@ class Driver extends IntegrationTest {
     return server
         .start(dartSdkPath: dartSdkPath, diagnosticPort: diagnosticPort)
         .then((params) {
-      server.listenToOutput(dispatchNotification);
-      server.exitCode.then((_) {
-        logger.log(Level.FINE, 'server stopped');
-        running = false;
-        _resultsReady();
-      });
-      return serverConnected.future;
-    });
+          server.listenToOutput(dispatchNotification);
+          server.exitCode.then((_) {
+            logger.log(Level.FINE, 'server stopped');
+            running = false;
+            _resultsReady();
+          });
+          return serverConnected.future;
+        });
   }
 
   /// Shutdown the analysis server if it is running.
@@ -98,9 +100,12 @@ class Driver extends IntegrationTest {
       // Give the server a short time to comply with the shutdown request; if it
       // doesn't exit, then forcibly terminate it.
       unawaited(sendServerShutdown());
-      await server.exitCode.timeout(timeout, onTimeout: () {
-        return server.kill('server failed to exit');
-      });
+      await server.exitCode.timeout(
+        timeout,
+        onTimeout: () {
+          return server.kill('server failed to exit');
+        },
+      );
     }
     _resultsReady();
   }
@@ -206,7 +211,11 @@ class Results {
       }
     }
     _printTotals(
-        keyLen, totalCount, totalErrorCount, totalUnexpectedResultCount);
+      keyLen,
+      totalCount,
+      totalErrorCount,
+      totalUnexpectedResultCount,
+    );
     print('');
     _printGroupHeader('Notifications', keyLen);
     for (var entry in sortedEntries) {
@@ -225,8 +234,12 @@ class Results {
   }
 
   /// Record the elapsed time for the given operation.
-  void record(String tag, Duration elapsed,
-      {bool notification = false, bool success = true}) {
+  void record(
+    String tag,
+    Duration elapsed, {
+    bool notification = false,
+    bool success = true,
+  }) {
     var measurement = measurements[tag];
     if (measurement == null) {
       measurement = Measurement(tag, notification);
@@ -256,8 +269,12 @@ class Results {
     print(buffer.toString());
   }
 
-  static void _printTotals(int keyLength, int totalCount, int totalErrorCount,
-      int totalUnexpectedResultCount) {
+  static void _printTotals(
+    int keyLength,
+    int totalCount,
+    int totalErrorCount,
+    int totalUnexpectedResultCount,
+  ) {
     var buffer = StringBuffer();
     buffer.writePadRight('Totals', keyLength);
     buffer.writePadLeft(totalCount.toString(), 6);

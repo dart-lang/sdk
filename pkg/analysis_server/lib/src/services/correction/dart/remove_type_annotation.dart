@@ -18,7 +18,7 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   final _Kind _kind;
 
   RemoveTypeAnnotation.fixVarAndType({required super.context})
-      : _kind = _Kind.fixVarAndType;
+    : _kind = _Kind.fixVarAndType;
 
   RemoveTypeAnnotation.other({required super.context}) : _kind = _Kind.other;
 
@@ -49,8 +49,11 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
         return _removeTypeAnnotation(builder, node.type);
       }
       if (node is SuperFormalParameter) {
-        return _removeTypeAnnotation(builder, node.type,
-            parameters: node.parameters);
+        return _removeTypeAnnotation(
+          builder,
+          node.type,
+          parameters: node.parameters,
+        );
       }
       if (node is TypeAnnotation && diagnostic != null) {
         return _removeTypeAnnotation(builder, node);
@@ -62,7 +65,9 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   }
 
   Future<void> _removeFromDeclarationList(
-      ChangeBuilder builder, VariableDeclarationList declarationList) async {
+    ChangeBuilder builder,
+    VariableDeclarationList declarationList,
+  ) async {
     // we need a type
     var type = declarationList.type;
     if (type == null) {
@@ -136,7 +141,9 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   }
 
   Future<void> _removeFromDeclaredIdentifier(
-      ChangeBuilder builder, DeclaredIdentifier declaration) async {
+    ChangeBuilder builder,
+    DeclaredIdentifier declaration,
+  ) async {
     var typeNode = declaration.type;
     if (typeNode == null) {
       return;
@@ -154,8 +161,10 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   }
 
   Future<void> _removeTypeAnnotation(
-      ChangeBuilder builder, TypeAnnotation? type,
-      {FormalParameterList? parameters}) async {
+    ChangeBuilder builder,
+    TypeAnnotation? type, {
+    FormalParameterList? parameters,
+  }) async {
     if (type == null) {
       return;
     }
@@ -177,30 +186,19 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
     }) async {
       if (varKeyword != null && type != null) {
         await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(
-            range.endEnd(varKeyword, type),
-          );
+          builder.addDeletion(range.endEnd(varKeyword, type));
         });
       }
     }
 
     if (node is DeclaredVariablePattern) {
-      await removeTypeAfterVar(
-        varKeyword: node.varKeyword,
-        type: node.type,
-      );
+      await removeTypeAfterVar(varKeyword: node.varKeyword, type: node.type);
     }
 
     if (node is VariableDeclarationList) {
-      await removeTypeAfterVar(
-        varKeyword: node.varKeyword,
-        type: node.type,
-      );
+      await removeTypeAfterVar(varKeyword: node.varKeyword, type: node.type);
     }
   }
 }
 
-enum _Kind {
-  fixVarAndType,
-  other,
-}
+enum _Kind { fixVarAndType, other }

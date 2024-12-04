@@ -6,7 +6,7 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;
 
 import '../tool/dart_doctest_impl.dart';
-import 'fasta/suite_utils.dart';
+import 'utils/suite_utils.dart';
 
 void main([List<String> arguments = const []]) => internalMain(createContext,
     arguments: arguments,
@@ -14,8 +14,8 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     configurationPath: "../testing.json");
 
 Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new Context(suite.name);
+    Chain suite, Map<String, String> environment) {
+  return new Future.value(new Context(suite.name));
 }
 
 class Context extends ChainContext {

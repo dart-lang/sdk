@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show utf8;
+import 'dart:typed_data';
 
 import "package:front_end/src/api_prototype/file_system.dart" show FileSystem;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
@@ -17,7 +18,7 @@ import 'package:kernel/kernel.dart'
         Procedure,
         RecursiveVisitor;
 
-List<int> postProcess(Component c, {bool clearMetadata = true}) {
+Uint8List postProcess(Component c, {bool clearMetadata = true}) {
   postProcessComponent(c, clearMetadata: clearMetadata);
   return serializeComponent(c);
 }

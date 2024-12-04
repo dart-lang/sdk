@@ -14,8 +14,9 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _manager = LspRefactorManager._();
 
@@ -31,15 +32,16 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
   LspRefactorManager get manager => _manager;
 
   FutureOr<ErrorOr<void>> execute(
-      String path,
-      String kind,
-      int offset,
-      int length,
-      Map<String, Object?>? options,
-      LspClientCapabilities clientCapabilities,
-      CancellationToken cancellationToken,
-      ProgressReporter reporter,
-      int? docVersion);
+    String path,
+    String kind,
+    int offset,
+    int length,
+    Map<String, Object?>? options,
+    LspClientCapabilities clientCapabilities,
+    CancellationToken cancellationToken,
+    ProgressReporter reporter,
+    int? docVersion,
+  );
 
   Future<ErrorOr<Refactoring>> getRefactoring(
     RefactoringKind kind,
@@ -51,7 +53,11 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
     switch (kind) {
       case RefactoringKind.EXTRACT_METHOD:
         var refactor = ExtractMethodRefactoring(
-            server.searchEngine, result, offset, length);
+          server.searchEngine,
+          result,
+          offset,
+          length,
+        );
 
         var preferredName = options != null ? options['name'] as String : null;
         // checkInitialConditions will populate names with suggestions.
@@ -88,7 +94,11 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
 
       case RefactoringKind.EXTRACT_WIDGET:
         var refactor = ExtractWidgetRefactoring(
-            server.searchEngine, result, offset, length);
+          server.searchEngine,
+          result,
+          offset,
+          length,
+        );
         // Provide a default name for clients that do not have any custom
         // handling.
         // Clients can use the information documented for refactor.perform to
@@ -100,44 +110,58 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
         return success(refactor);
 
       case RefactoringKind.INLINE_LOCAL_VARIABLE:
-        var refactor =
-            InlineLocalRefactoring(server.searchEngine, result, offset);
+        var refactor = InlineLocalRefactoring(
+          server.searchEngine,
+          result,
+          offset,
+        );
         return success(refactor);
 
       case RefactoringKind.INLINE_METHOD:
-        var refactor =
-            InlineMethodRefactoring(server.searchEngine, result, offset);
+        var refactor = InlineMethodRefactoring(
+          server.searchEngine,
+          result,
+          offset,
+        );
         return success(refactor);
 
       case RefactoringKind.CONVERT_GETTER_TO_METHOD:
         var node = NodeLocator(offset).searchWithin(result.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          if (element is PropertyAccessorElement) {
-            var refactor = ConvertGetterToMethodRefactoring(
-                server.refactoringWorkspace, result.session, element);
-            return success(refactor);
-          }
+        var element = server.getElementOfNode(node).asElement2;
+        if (element is GetterElement) {
+          var refactor = ConvertGetterToMethodRefactoring(
+            server.refactoringWorkspace,
+            result.session,
+            element,
+          );
+          return success(refactor);
         }
-        return error(ServerErrorCodes.InvalidCommandArguments,
-            'Location supplied to $commandName $kind is not longer valid');
+        return error(
+          ServerErrorCodes.InvalidCommandArguments,
+          'Location supplied to $commandName $kind is no longer valid',
+        );
 
       case RefactoringKind.CONVERT_METHOD_TO_GETTER:
         var node = NodeLocator(offset).searchWithin(result.unit);
-        var element = server.getElementOfNode(node);
-        if (element != null) {
-          if (element is ExecutableElement) {
-            var refactor = ConvertMethodToGetterRefactoring(
-                server.refactoringWorkspace, result.session, element);
-            return success(refactor);
-          }
+        var element = server.getElementOfNode(node).asElement2;
+        if (element is ExecutableElement2) {
+          var refactor = ConvertMethodToGetterRefactoring(
+            server.refactoringWorkspace,
+            result.session,
+            element,
+          );
+          return success(refactor);
         }
-        return error(ServerErrorCodes.InvalidCommandArguments,
-            'Location supplied to $commandName $kind is not longer valid');
+        return error(
+          ServerErrorCodes.InvalidCommandArguments,
+          'Location supplied to $commandName $kind is no longer valid',
+        );
 
       default:
-        return error(ServerErrorCodes.InvalidCommandArguments,
-            'Unknown RefactoringKind $kind was supplied to $commandName');
+        return error(
+          ServerErrorCodes.InvalidCommandArguments,
+          'Unknown RefactoringKind $kind was supplied to $commandName',
+        );
     }
   }
 
@@ -154,21 +178,25 @@ abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
     }
 
     if (parameters['kind'] is! String ||
+        // TODO(dantup): We should migrate this to URIs.
         parameters['path'] is! String ||
         (parameters['docVersion'] is! int?) ||
         parameters['offset'] is! int ||
         parameters['length'] is! int ||
         (parameters['options'] is! Map<String, Object?>?)) {
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.InvalidCommandArguments,
-        message: '$commandName requires 6 parameters: '
-            'kind: String (RefactoringKind), '
-            'filePath: String, '
-            'docVersion: int?, '
-            'offset: int, '
-            'length: int, '
-            'options: Map<String, Object?>',
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidCommandArguments,
+          message:
+              '$commandName requires 6 parameters: '
+              'kind: String (RefactoringKind), '
+              'filePath: String, '
+              'docVersion: int?, '
+              'offset: int, '
+              'length: int, '
+              'options: Map<String, Object?>',
+        ),
+      );
     }
 
     var kind = parameters['kind'] as String;
@@ -225,7 +253,10 @@ class LspRefactorManager {
 
   /// Begins a new refactor, cancelling any other in-progress refactors.
   void begin(CancelableToken cancelToken) {
-    _currentRefactoringCancellationToken?.cancel();
+    _currentRefactoringCancellationToken?.cancel(
+      reason:
+          'Another workspace/executeCommand request for a refactor was started',
+    );
     _currentRefactoringCancellationToken = cancelToken;
   }
 

@@ -1,0 +1,275 @@
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# TODO(brettw) Use "gcc_toolchain.gni" like the Linux toolchains. This requires
+# some enhancements since the commands on Mac are slightly different than on
+# Linux.
+
+import("//build/config/ios/ios_sdk.gni")
+import("//build/config/mac/mac_sdk.gni")
+
+assert(host_os == "mac")
+
+import("//build/config/sysroot.gni")
+import("//build/toolchain/rbe.gni")
+import("//build/toolchain/signing.gni")
+
+if (use_rbe) {
+  compiler_args =
+      rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
+  if (rbe_os != host_os || rbe_cpu != host_cpu) {
+    compiler_args += [
+      "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
+      "--remote_wrapper=../../build/rbe/llvm.sh",
+    ]
+  }
+  assembler_prefix = ""
+  compiler_prefix = string_join(" ", compiler_args) + " "
+  link_prefix = ""
+} else {
+  assembler_prefix = ""
+  compiler_prefix = ""
+  link_prefix = ""
+}
+
+if (host_cpu == "arm64") {
+  rebased_clang_dir =
+      rebase_path("//buildtools/mac-arm64/clang/bin", root_build_dir)
+} else {
+  rebased_clang_dir =
+      rebase_path("//buildtools/mac-x64/clang/bin", root_build_dir)
+}
+
+# Shared toolchain definition. Invocations should set toolchain_os to set the
+# build args in this definition.
+template("mac_toolchain") {
+  toolchain(target_name) {
+    assert(defined(invoker.asm), "mac_toolchain() must specify a \"asm\" value")
+    assert(defined(invoker.cc), "mac_toolchain() must specify a \"cc\" value")
+    assert(defined(invoker.cxx), "mac_toolchain() must specify a \"cxx\" value")
+    assert(defined(invoker.ar), "mac_toolchain() must specify an \"ar\" value")
+    assert(defined(invoker.ld), "mac_toolchain() must specify a \"ld\" value")
+    assert(defined(invoker.toolchain_cpu),
+           "mac_toolchain() must specify a \"toolchain_cpu\"")
+    assert(defined(invoker.toolchain_os),
+           "mac_toolchain() must specify a \"toolchain_os\"")
+
+    # We can't do string interpolation ($ in strings) on things with dots in
+    # them. To allow us to use $cc below, for example, we create copies of
+    # these values in our scope.
+    asm = invoker.asm
+    cc = invoker.cc
+    cxx = invoker.cxx
+    ar = invoker.ar
+    ld = invoker.ld
+    nm = invoker.nm
+
+    # Make these apply to all tools below.
+    lib_switch = "-l"
+    lib_dir_switch = "-L"
+
+    sysroot_flags = ""
+
+    if (defined(invoker.sysroot_flags)) {
+      sysroot_flags = invoker.sysroot_flags
+    }
+
+    toolchain_flags = ""
+    if (invoker.toolchain_cpu == "i386") {
+      toolchain_flags = "-m32"
+    }
+
+    tool("cc") {
+      depfile = "{{output}}.d"
+      command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+      depsformat = "gcc"
+      description = "CC {{output}}"
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+    }
+
+    tool("cxx") {
+      depfile = "{{output}}.d"
+      command = "$cxx -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+      depsformat = "gcc"
+      description = "CXX {{output}}"
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+    }
+
+    tool("asm") {
+      # For GCC we can just use the C compiler to compile assembly.
+      depfile = "{{output}}.d"
+      command = "$asm -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{asmflags}} -c {{source}} -o {{output}}"
+      depsformat = "gcc"
+      description = "ASM {{output}}"
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+    }
+
+    tool("objc") {
+      depfile = "{{output}}.d"
+      command = "$cxx -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{cflags}} {{cflags_c}} {{cflags_objc}} -c {{source}} -o {{output}}"
+      depsformat = "gcc"
+      description = "OBJC {{output}}"
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+    }
+
+    tool("objcxx") {
+      depfile = "{{output}}.d"
+      command = "$cxx -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{cflags}} {{cflags_cc}} {{cflags_objcc}} -c {{source}} -o {{output}}"
+      depsformat = "gcc"
+      description = "OBJCXX {{output}}"
+      outputs =
+          [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+    }
+
+    tool("alink") {
+      rspfile = "{{output}}.rsp"
+      command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
+      description = "AR {{output}}"
+      rspfile_content = "{{inputs}}"
+      outputs =
+          [ "{{target_out_dir}}/{{target_output_name}}{{output_extension}}" ]
+      default_output_extension = ".a"
+      output_prefix = "lib"
+    }
+
+    tool("solink") {
+      dylib = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"  # eg
+                                                                             # "./libfoo.dylib"
+      rspfile = dylib + ".rsp"
+
+      # These variables are not build into GN but are helpers that implement
+      # (1) linking to produce a .so, (2) extracting the symbols from that file
+      # to a temporary file, (3) if the temporary file has differences from the
+      # existing .TOC file, overwrite it, otherwise, don't change it.
+      #
+      # As a special case, if the library reexports symbols from other dynamic
+      # libraries, we always update the .TOC and skip the temporary file and
+      # diffing steps, since that library always needs to be re-linked.
+      tocname = dylib + ".TOC"
+      temporary_tocname = dylib + ".tmp"
+
+      does_reexport_command = "[ ! -e $dylib -o ! -e $tocname ] || otool -l $dylib | grep -q LC_REEXPORT_DYLIB"
+      link_command = "$ld -shared $sysroot_flags $toolchain_flags {{ldflags}} -o $dylib -Wl,-filelist,$rspfile {{solibs}} {{libs}} {{frameworks}}"
+      replace_command = "if ! cmp -s $temporary_tocname $tocname; then mv $temporary_tocname $tocname"
+      extract_toc_command = "{ otool -l $dylib | grep LC_ID_DYLIB -A 5; nm -gP $dylib | cut -f1-2 -d' ' | grep -v U\$\$; true; }"
+
+      command = "if $does_reexport_command ; then $link_command && $extract_toc_command > $tocname; else $link_command && $extract_toc_command > $temporary_tocname && $replace_command ; fi; fi"
+
+      rspfile_content = "{{inputs_newline}}"
+
+      description = "SOLINK {{output}}"
+
+      # Use this for {{output_extension}} expansions unless a target manually
+      # overrides it (in which case {{output_extension}} will be what the target
+      # specifies).
+      default_output_extension = ".dylib"
+
+      output_prefix = "lib"
+
+      # Since the above commands only updates the .TOC file when it changes, ask
+      # Ninja to check if the timestamp actually changed to know if downstream
+      # dependencies should be recompiled.
+      restat = true
+
+      # Tell GN about the output files. It will link to the dylib but use the
+      # tocname for dependency management.
+      outputs = [
+        dylib,
+        tocname,
+      ]
+      link_output = dylib
+      depend_output = tocname
+    }
+
+    tool("link") {
+      exename = "{{target_output_name}}{{output_extension}}"
+      outfile = "{{root_out_dir}}/$exename"
+      rspfile = "$outfile.rsp"
+      symfile = "$outfile.sym"
+
+      if (defined(invoker.strip)) {
+        stripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
+      }
+
+      commands = [ "$ld $sysroot_flags $toolchain_flags {{ldflags}} -Xlinker -rpath -Xlinker @executable_path/Frameworks -o $outfile -Wl,-filelist,$rspfile {{solibs}} {{libs}} {{frameworks}}" ]
+
+      symbolizer_script =
+          rebase_path("//runtime/tools/dart_profiler_symbols.py")
+      commands +=
+          [ "$symbolizer_script --nm $nm --output $symfile --binary $outfile" ]
+
+      if (defined(invoker.strip)) {
+        strip = invoker.strip
+        commands += [ "${strip} -x -o $stripped_outfile $outfile" ]
+      }
+
+      if (codesigning_identity != "") {
+        # codesign tool performs signing in-place. This does not fit very well
+        # into the overall build: we would have to produce unsigned binary with
+        # some suffix (e.g. dart_unsigned), then copy it to the final location
+        # and sign. To avoid this dance we choose to perform signing here
+        # at the link step. Unfortunately this also comes with some limitations:
+        # executable target can't push arbitrary configuration variables down
+        # to the link step. Which means we can't specify per target
+        # entitlement files - and instead rely on dart_codesign.py script to
+        # match binaries to their entitlement files by name.
+        signing_script = rebase_path("//runtime/tools/dart_codesign.py")
+        binaries_to_sign = [
+          "--binary",
+          outfile,
+        ]
+        if (defined(stripped_outfile)) {
+          binaries_to_sign += [
+            "--binary",
+            stripped_outfile,
+          ]
+        }
+        commands += [ "$signing_script --identity $codesigning_identity " +
+                      string_join(" ", binaries_to_sign) ]
+      }
+
+      command = string_join(" && ", commands)
+      description = "LINK $outfile"
+      rspfile_content = "{{inputs_newline}}"
+      outputs = [
+        outfile,
+        symfile,
+      ]
+      if (defined(invoker.strip)) {
+        outputs += [ stripped_outfile ]
+      }
+    }
+
+    tool("stamp") {
+      command = "touch {{output}}"
+      description = "STAMP {{output}}"
+    }
+
+    tool("copy") {
+      command = "ln -f {{source}} {{output}} 2>/dev/null || (rm -rf {{output}} && cp -af {{source}} {{output}})"
+      description = "COPY {{source}} {{output}}"
+    }
+
+    toolchain_args = {
+      current_cpu = invoker.toolchain_cpu
+      current_os = invoker.toolchain_os
+
+      # These values need to be passed through unchanged.
+      target_os = target_os
+      target_cpu = target_cpu
+
+      if (defined(invoker.is_clang)) {
+        is_clang = invoker.is_clang
+      }
+
+      if (defined(invoker.toolchain_args)) {
+        forward_variables_from(invoker.toolchain_args, "*")
+      }
+    }
+  }
+}

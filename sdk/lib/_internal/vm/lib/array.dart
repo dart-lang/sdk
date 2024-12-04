@@ -81,8 +81,10 @@ abstract class _Array<E> extends FixedLengthListBase<E> {
 @pragma("vm:entry-point")
 class _List<E> extends _Array<E> {
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type",
-      <dynamic>[_List, "result-type-uses-passed-type-arguments"])
+  @pragma("vm:exact-result-type", <dynamic>[
+    _List,
+    "result-type-uses-passed-type-arguments",
+  ])
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "List_allocate")
   external factory _List(length);
@@ -155,7 +157,8 @@ class _List<E> extends _Array<E> {
   }
 
   factory _List._ofEfficientLengthIterable(
-      EfficientLengthIterable<E> elements) {
+    EfficientLengthIterable<E> elements,
+  ) {
     final int length = elements.length;
     final list = _List<E>(length);
     if (length > 0) {
@@ -255,7 +258,8 @@ class _List<E> extends _Array<E> {
 class _ImmutableList<E> extends _Array<E> with UnmodifiableListMixin<E> {
   factory _ImmutableList._uninstantiable() {
     throw new UnsupportedError(
-        "ImmutableArray can only be allocated by the VM");
+      "ImmutableArray can only be allocated by the VM",
+    );
   }
 
   @pragma("vm:external-name", "ImmutableList_from")
@@ -270,9 +274,9 @@ class _ArrayIterator<E> implements Iterator<E> {
   E? _current;
 
   _ArrayIterator(_Array<E> array)
-      : _array = array,
-        _length = array.length,
-        _index = 0 {}
+    : _array = array,
+      _length = array.length,
+      _index = 0 {}
 
   E get current => _current as E;
 

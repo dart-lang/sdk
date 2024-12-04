@@ -112,7 +112,6 @@ void f() {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4941')
   test_functionLocal_main_async_arrow() async {
     await assertDiagnostics(r'''
 void f() {
@@ -144,6 +143,17 @@ void get f async => null;
     await assertNoDiagnostics(r'''
 void get f => null;
 ''');
+  }
+
+  test_localFunction_async() async {
+    await assertDiagnostics(r'''
+Future<void> f() async {
+  void g() async {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 32, 1),
+      lint(32, 1),
+    ]);
   }
 
   test_main_async() async {

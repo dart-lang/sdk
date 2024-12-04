@@ -81,13 +81,16 @@ void main() {
 
   // Same with replaceAll().
   assertEquals(
-      x + L + x + T + x + L + x + T + x, (L + T + L + T).replaceAll(r, "x"));
+    x + L + x + T + x + L + x + T + x,
+    (L + T + L + T).replaceAll(r, "x"),
+  );
 
   assertEquals(x + L + T + x + L + T + x, (L + T + L + T).replaceAll(u, "x"));
 
   assertEquals((x + L + T) * c + x, ((L + T) * c).replaceAll(u, "x"));
 
   // Also test String#split.
-  Expect.deepEquals(
-      ["\u{12345}"], "\u{12345}".split(RegExp(r"(?:)", unicode: true)));
+  Expect.deepEquals([
+    "\u{12345}",
+  ], "\u{12345}".split(RegExp(r"(?:)", unicode: true)));
 }

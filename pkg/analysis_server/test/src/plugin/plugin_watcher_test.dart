@@ -35,47 +35,43 @@ class PluginWatcherTest extends AbstractContextTest {
   Future<void> test_addedDriver() async {
     newPubspecYamlFile('/foo', 'name: foo');
     newFile(
-      join('/foo', PluginLocator.toolsFolderName,
-          PluginLocator.defaultPluginFolderName, 'bin', 'plugin.dart'),
+      join(
+        '/foo',
+        PluginLocator.toolsFolderName,
+        PluginLocator.defaultPluginFolderName,
+        'bin',
+        'plugin.dart',
+      ),
       '',
     );
+    newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
+analyzer:
+  plugins:
+    - foo
+''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: convertPath('/foo')),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'foo', rootPath: convertPath('/foo')),
     );
 
     var driver = driverFor(testFile);
-    // TODO(pq): stop modifying options objects (https://github.com/dart-lang/sdk/issues/54045)
-    driver.getAnalysisOptionsForFile(testFile).enabledLegacyPluginNames = [
-      'foo',
-    ];
 
     expect(manager.addedContextRoots, isEmpty);
     watcher.addedDriver(driver);
-
-    //
-    // Test to see whether the listener was configured correctly.
-    //
-    // Use a file in the package being analyzed.
-    //
-//    await driver.computeResult('package:pkg1/test1.dart');
-//    expect(manager.addedContextRoots, isEmpty);
-    //
-    // Use a file that imports a package with a plugin.
-    //
-//    await driver.computeResult('package:pkg2/pk2.dart');
 
     await _waitForEvents();
     expect(manager.addedContextRoots, hasLength(1));
   }
 
   Future<void> test_addedDriver_missingPackage() async {
+    newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
+analyzer:
+  plugins:
+    - no_such_package
+''');
     var driver = driverFor(testFile);
-    // TODO(pq): stop modifying options objects (https://github.com/dart-lang/sdk/issues/54045)
-    driver.getAnalysisOptionsForFile(testFile).enabledLegacyPluginNames = [
-      'noSuchPackage',
-    ];
 
     watcher.addedDriver(driver);
     expect(manager.addedContextRoots, isEmpty);
@@ -112,7 +108,9 @@ class TestPluginManager implements PluginManager {
 
   @override
   Future<void> addPluginToContextRoot(
-      ContextRoot contextRoot, String path) async {
+    ContextRoot contextRoot,
+    String path,
+  ) async {
     addedContextRoots.add(contextRoot);
     return;
   }

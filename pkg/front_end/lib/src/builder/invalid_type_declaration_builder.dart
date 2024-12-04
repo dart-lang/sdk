@@ -8,7 +8,7 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     with ErroneousMemberBuilderMixin
     implements TypeDeclarationBuilder {
   @override
-  String get debugName => "InvalidTypeDeclarationBuilder";
+  final String name;
 
   final LocatedMessage message;
 
@@ -16,9 +16,15 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   final bool suppressMessage;
 
-  InvalidTypeDeclarationBuilder(String name, this.message,
-      {this.context, this.suppressMessage = true})
-      : super(null, 0, name, null, message.charOffset);
+  InvalidTypeDeclarationBuilder(this.name, this.message,
+      {this.context, this.suppressMessage = true});
+
+  @override
+  Builder? get parent => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get fileOffset => message.charOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -59,8 +65,8 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   @override
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     // TODO(johnniwinther,cstefantsova): Consider implementing
     // invalidNullability.
     return Nullability.nullable;

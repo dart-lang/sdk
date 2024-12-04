@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Avoid defining a one-member abstract class when a simple function will do.';
@@ -54,8 +53,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (methods.length != 1) return;
 
     var method = methods.first;
-    if (method.isAbstract) {
-      rule.reportLintForToken(node.name, arguments: [method.name]);
-    }
+    if (!method.isAbstract) return;
+
+    var name = method.name3;
+    if (name == null) return;
+
+    rule.reportLintForToken(node.name, arguments: [name]);
   }
 }

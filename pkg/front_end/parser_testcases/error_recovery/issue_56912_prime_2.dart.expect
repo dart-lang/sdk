@@ -1,0 +1,35 @@
+Problems reported:
+
+parser/error_recovery/issue_56912_prime_2:1:9: Expected an identifier, but got '<'.
+typedef <E> = Map<E, int>;
+        ^
+
+beginCompilationUnit(typedef)
+  beginMetadataStar(typedef)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(typedef)
+    beginTypedef(typedef)
+      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '<'., Try inserting an identifier before '<'., {lexeme: <}], <, <)
+      handleIdentifier(, typedefDeclaration)
+      beginTypeVariables(<)
+        beginMetadataStar(E)
+        endMetadataStar(0)
+        handleIdentifier(E, typeVariableDeclaration)
+        beginTypeVariable(E)
+          handleTypeVariablesDefined(E, 1)
+          handleNoType(E)
+        endTypeVariable(>, 0, null, null)
+      endTypeVariables(<, >)
+      handleIdentifier(Map, typeReference)
+      beginTypeArguments(<)
+        handleIdentifier(E, typeReference)
+        handleNoTypeArguments(,)
+        handleType(E, null)
+        handleIdentifier(int, typeReference)
+        handleNoTypeArguments(>)
+        handleType(int, null)
+      endTypeArguments(2, <, >)
+      handleType(Map, null)
+    endTypedef(null, typedef, =, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(1, )

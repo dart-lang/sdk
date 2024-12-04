@@ -20,8 +20,12 @@ const int _MAX_VALUE = 1 << 10;
 /// This implementation follows from Algorithms on Strings, Trees and Sequences
 /// by Dan Gusfield and Chas Emerick's implementation of the Levenshtein
 /// distance algorithm.
-int levenshtein(String s, String t, int threshold,
-    {bool caseSensitive = true}) {
+int levenshtein(
+  String s,
+  String t,
+  int threshold, {
+  bool caseSensitive = true,
+}) {
   if (threshold < 0) {
     throw ArgumentError('Threshold must not be negative');
   }

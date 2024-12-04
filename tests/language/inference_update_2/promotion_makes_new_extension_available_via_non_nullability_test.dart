@@ -5,7 +5,7 @@
 // Tests that promotion of a field makes it possible to access methods, getters,
 // and operators in an extension that doesn't apply to the unpromoted type.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class A {
   final int Function(int) field;

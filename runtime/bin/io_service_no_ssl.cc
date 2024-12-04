@@ -52,9 +52,11 @@ void IOServiceCallback(Dart_Port dest_port_id, Dart_CObject* message) {
   Dart_PostCObject(reply_port_id, result.AsApiCObject());
 }
 
+intptr_t IOService::max_concurrency_ = 32;
+
 Dart_Port IOService::GetServicePort() {
   return Dart_NewConcurrentNativePort("IOService", IOServiceCallback,
-                                      /*max_concurrency=*/32);
+                                      max_concurrency_);
 }
 
 void FUNCTION_NAME(IOService_NewServicePort)(Dart_NativeArguments args) {

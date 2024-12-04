@@ -62,7 +62,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedClassElement implements AugmentedInterfaceElement {
   @override
-  ClassElement get declaration;
+  ClassElement get firstFragment;
 }
 
 /// The result of applying augmentations to an [EnumElement].
@@ -73,7 +73,7 @@ abstract class AugmentedEnumElement implements AugmentedInterfaceElement {
   List<FieldElement> get constants;
 
   @override
-  EnumElement get declaration;
+  EnumElement get firstFragment;
 }
 
 /// The result of applying augmentations to an [ExtensionElement].
@@ -90,7 +90,7 @@ abstract class AugmentedExtensionElement implements AugmentedInstanceElement {
 abstract class AugmentedExtensionTypeElement
     implements AugmentedInterfaceElement {
   @override
-  ExtensionTypeElement get declaration;
+  ExtensionTypeElement get firstFragment;
 
   /// The primary constructor of this extension.
   ConstructorElement get primaryConstructor;
@@ -114,14 +114,14 @@ abstract class AugmentedInstanceElement {
   /// other [PropertyAccessorElement]s are appended.
   List<PropertyAccessorElement> get accessors;
 
-  /// The declaration (not augmentation) that owns this result.
-  InstanceElement get declaration;
-
   /// The fields declared in this element.
   ///
-  /// [FieldAugmentationElement]s replace corresponding elements, other
+  /// `FieldAugmentationElement`s replace corresponding elements, other
   /// [FieldElement]s are appended.
   List<FieldElement> get fields;
+
+  /// The declaration (not augmentation) that owns this result.
+  InstanceElement get firstFragment;
 
   /// The metadata associated with this element.
   ///
@@ -131,7 +131,7 @@ abstract class AugmentedInstanceElement {
 
   /// The methods declared in this element.
   ///
-  /// [MethodAugmentationElement]s replace corresponding elements, other
+  /// `MethodAugmentationElement`s replace corresponding elements, other
   /// [MethodElement]s are appended.
   List<MethodElement> get methods;
 
@@ -190,12 +190,12 @@ abstract class AugmentedInstanceElement {
 abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
   /// The constructors declared in this element.
   ///
-  /// [ConstructorAugmentationElement]s replace corresponding elements,
+  /// `ConstructorAugmentationElement`s replace corresponding elements,
   /// other [ConstructorElement]s are appended.
   List<ConstructorElement> get constructors;
 
   @override
-  InterfaceElement get declaration;
+  InterfaceElement get firstFragment;
 
   /// The interfaces implemented by this element.
   ///
@@ -348,10 +348,6 @@ abstract class ClassMemberElement implements Element {
   // TODO(brianwilkerson): Either remove this class or rename it to something
   //  more correct.
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element get enclosingElement;
-
   @override
   Element get enclosingElement3;
 
@@ -375,11 +371,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The classes declared in this compilation unit.
   List<ClassElement> get classes;
-
-  /// The library, or library augmentation that encloses this unit.
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  LibraryOrAugmentationElement get enclosingElement;
 
   /// The [CompilationUnitElement] that uses `part` directive to include this
   /// element, or `null` if this element is the defining unit of the library.
@@ -464,10 +455,6 @@ abstract class ConstructorElement
 
   @override
   String get displayName;
-
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  InterfaceElement get enclosingElement;
 
   @override
   InterfaceElement get enclosingElement3;
@@ -559,6 +546,10 @@ abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
+  /// The library fragment referenced by the [source].
+  @experimental
+  LibraryFragment get libraryFragment;
+
   /// The unit referenced by the [source].
   CompilationUnitElement get unit;
 }
@@ -614,13 +605,6 @@ abstract class Element implements AnalysisTarget {
   /// The content of the documentation comment (including delimiters) for this
   /// element, or `null` if this element does not or cannot have documentation.
   String? get documentationComment;
-
-  /// The element that either physically or logically encloses this element.
-  ///
-  /// This will be `null` if this element is a library because libraries are
-  /// the top-level elements in the model.
-  @Deprecated('Use enclosingElement3 instead')
-  Element? get enclosingElement;
 
   /// The element that either physically or logically encloses this element.
   ///
@@ -897,6 +881,16 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// other element.
   Element? get element;
 
+  /// Returns the element referenced by this annotation.
+  ///
+  /// In valid code this element can be a [GetterElement] of a constant
+  /// top-level variable, or a constant static field of a class; or a
+  /// constant [ConstructorElement].
+  ///
+  /// In invalid code this element can be `null`, or a reference to any
+  /// other element.
+  Element2? get element2;
+
   /// Whether the annotation marks the associated function as always throwing.
   bool get isAlwaysThrows;
 
@@ -1000,6 +994,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Whether the annotation marks the associated member as being visible
   /// outside of template files.
   bool get isVisibleOutsideTemplate;
+
+  /// Whether the annotation marks the associated member as being a widget
+  /// factory.
+  bool get isWidgetFactory;
 
   /// Returns a representation of the value of this annotation, forcing the
   /// value to be computed if it had not previously been computed, or `null`
@@ -1289,10 +1287,6 @@ abstract class ExecutableElement implements FunctionTypedElement {
   @override
   String get displayName;
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element get enclosingElement;
-
   @override
   Element get enclosingElement3;
 
@@ -1581,10 +1575,6 @@ abstract class InstanceElement
   /// specified by the merge operations.
   @experimental
   AugmentedInstanceElement get augmented;
-
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  CompilationUnitElement get enclosingElement;
 
   @override
   CompilationUnitElement get enclosingElement3;
@@ -1888,10 +1878,6 @@ abstract class JoinPatternVariableElement implements PatternVariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LabelElement implements Element {
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  ExecutableElement get enclosingElement;
-
   @override
   ExecutableElement get enclosingElement3;
 
@@ -1902,8 +1888,10 @@ abstract class LabelElement implements Element {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement
-    implements LibraryOrAugmentationElement, _ExistingElement {
+abstract class LibraryElement implements _ExistingElement {
+  /// The compilation unit that defines this library.
+  CompilationUnitElement get definingCompilationUnit;
+
   /// Returns `null`, because libraries are the top-level elements in the model.
   @override
   Null get enclosingElement3;
@@ -1916,11 +1904,17 @@ abstract class LibraryElement
   FunctionElement? get entryPoint;
 
   /// The libraries that are exported from this library.
-  @Deprecated('Use CompilationUnitElement.libraryExports')
   List<LibraryElement> get exportedLibraries;
 
   /// The export [Namespace] of this library.
   Namespace get exportNamespace;
+
+  /// The set of features available to this library.
+  ///
+  /// Determined by the combination of the language version for the enclosing
+  /// package, enabled experiments, and the presence of a `// @dart` language
+  /// version override comment at the top of the file.
+  FeatureSet get featureSet;
 
   /// The identifier that uniquely identifies this element among the children
   /// of this element's parent.
@@ -1930,12 +1924,7 @@ abstract class LibraryElement
   ///
   /// This includes all of the libraries that are imported using a prefix, and
   /// those that are imported without a prefix.
-  @Deprecated('Use CompilationUnitElement.libraryImports')
   List<LibraryElement> get importedLibraries;
-
-  /// Whether the library is an application that can be run in the browser.
-  @Deprecated('Not used anymore')
-  bool get isBrowserApplication;
 
   /// Whether the library is the `dart:async` library.
   bool get isDartAsync;
@@ -1945,6 +1934,12 @@ abstract class LibraryElement
 
   /// Whether the library is part of the SDK.
   bool get isInSdk;
+
+  /// The language version for this library.
+  LibraryLanguageVersion get languageVersion;
+
+  @override
+  LibraryElement get library;
 
   /// The element representing the synthetic function `loadLibrary` that is
   /// implicitly defined for this library if the library is imported using a
@@ -1956,17 +1951,22 @@ abstract class LibraryElement
   @override
   String get name;
 
-  /// The list of `part` directives of this library.
-  @Deprecated('Use CompilationUnitElement.parts')
-  List<PartElement> get parts;
-
   /// The public [Namespace] of this library.
   Namespace get publicNamespace;
+
+  @override
+  AnalysisSession get session;
 
   /// The top-level elements defined in each of the compilation units that are
   /// included in this library. This includes both public and private elements,
   /// but does not include imports, exports, or synthetic elements.
   Iterable<Element> get topLevelElements;
+
+  /// The [TypeProvider] that is used in this library.
+  TypeProvider get typeProvider;
+
+  /// The [TypeSystem] that is used in this library.
+  TypeSystem get typeSystem;
 
   /// The compilation units this library consists of.
   ///
@@ -1977,17 +1977,6 @@ abstract class LibraryElement
   /// The class defined in this library that has the given [name], or
   /// `null` if this library does not define a class with the given name.
   ClassElement? getClass(String name);
-
-  /// If a legacy library, returns the legacy view on the [element].
-  ///
-  /// Otherwise, return the original element.
-  @Deprecated('Only non-nullable by default mode is supported')
-  T toLegacyElementIfOptOut<T extends Element>(T element);
-
-  /// If a legacy library, return the legacy version of the [type].
-  /// Otherwise, return the original type.
-  @Deprecated('Only non-nullable by default mode is supported')
-  DartType toLegacyTypeIfOptOut(DartType type);
 }
 
 /// A single export directive within a library.
@@ -2052,65 +2041,6 @@ class LibraryLanguageVersion {
   Version get effective {
     return override ?? package;
   }
-}
-
-/// Shared interface between [LibraryElement] and [LibraryAugmentationElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class LibraryOrAugmentationElement implements Element {
-  /// The extension elements accessible within this library.
-  @Deprecated('Use CompilationUnitElement.accessibleExtensions instead')
-  List<ExtensionElement> get accessibleExtensions;
-
-  /// The compilation unit that defines this library.
-  CompilationUnitElement get definingCompilationUnit;
-
-  /// The set of features available to this library.
-  ///
-  /// Determined by the combination of the language version for the enclosing
-  /// package, enabled experiments, and the presence of a `// @dart` language
-  /// version override comment at the top of the file.
-  FeatureSet get featureSet;
-
-  @Deprecated('Only non-nullable by default mode is supported')
-  bool get isNonNullableByDefault;
-
-  /// The language version for this library.
-  LibraryLanguageVersion get languageVersion;
-
-  @override
-  LibraryElement get library;
-
-  /// The exports defined in this library.
-  @Deprecated('Use CompilationUnitElement.libraryExports')
-  List<LibraryExportElement> get libraryExports;
-
-  /// The imports defined in this library.
-  @Deprecated('Use CompilationUnitElement.libraryImports')
-  List<LibraryImportElement> get libraryImports;
-
-  /// The prefixes used to `import` libraries into this library.
-  ///
-  /// Each prefix can be used in more than one `import` directive.
-  @Deprecated('Use CompilationUnitElement.libraryImportPrefixes')
-  List<PrefixElement> get prefixes;
-
-  /// The name lookup scope for this library.
-  ///
-  /// It consists of elements that are either declared in the library, or
-  /// imported into it.
-  @Deprecated('Use CompilationUnitElement.scope')
-  Scope get scope;
-
-  @override
-  AnalysisSession get session;
-
-  /// The [TypeProvider] that is used in this library.
-  TypeProvider get typeProvider;
-
-  /// The [TypeSystem] that is used in this library.
-  TypeSystem get typeSystem;
 }
 
 /// An element that can be (but is not required to be) defined within a method
@@ -2195,15 +2125,6 @@ abstract class MixinElement implements InterfaceElement {
 abstract class MultiplyDefinedElement implements Element {
   /// The elements that were defined within the scope to have the same name.
   List<Element> get conflictingElements;
-}
-
-/// An [ExecutableElement], with the additional information of a list of
-/// [ExecutableElement]s from which this element was composed.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
-  /// The executable elements defined within this executable element.
-  List<ExecutableElement> get inheritedElements;
 }
 
 /// An object that controls how namespaces are combined.
@@ -2341,11 +2262,6 @@ abstract class PatternVariableElement implements LocalVariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements _ExistingElement {
-  /// The library, or library augmentation that encloses this element.
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  LibraryOrAugmentationElement get enclosingElement;
-
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -2408,10 +2324,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   @override
   PropertyAccessorElement get declaration;
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  Element get enclosingElement;
-
   @override
   Element get enclosingElement3;
 
@@ -2420,13 +2332,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 
   /// Whether the accessor represents a setter.
   bool get isSetter;
-
-  /// The field or top-level variable associated with this accessor.
-  ///
-  /// If this accessor was explicitly defined (is not synthetic) then the
-  /// variable associated with it will be synthetic.
-  @Deprecated('Use variable2')
-  PropertyInducingElement get variable;
 
   /// The field or top-level variable associated with this accessor.
   ///
@@ -2575,10 +2480,6 @@ abstract class TypeAliasElement
   /// a [FunctionType].
   DartType get aliasedType;
 
-  @Deprecated('Use enclosingElement3 instead')
-  @override
-  CompilationUnitElement get enclosingElement;
-
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -2620,6 +2521,7 @@ abstract class TypeParameterElement
   /// if this parameter does not have an explicit bound. Being able to
   /// distinguish between an implicit and explicit bound is needed by the
   /// instantiate to bounds algorithm.
+  @override
   DartType? get bound;
 
   @override

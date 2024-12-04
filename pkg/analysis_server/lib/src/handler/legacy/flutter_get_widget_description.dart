@@ -14,12 +14,18 @@ class FlutterGetWidgetDescriptionHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   FlutterGetWidgetDescriptionHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = FlutterGetWidgetDescriptionParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = FlutterGetWidgetDescriptionParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
     var offset = params.offset;
 
@@ -37,10 +43,7 @@ class FlutterGetWidgetDescriptionHandler extends LegacyHandler {
 
     FlutterGetWidgetDescriptionResult? result;
     try {
-      result = await computer.getDescription(
-        resolvedUnit,
-        offset,
-      );
+      result = await computer.getDescription(resolvedUnit, offset);
     } on InconsistentAnalysisException {
       sendResponse(
         Response(

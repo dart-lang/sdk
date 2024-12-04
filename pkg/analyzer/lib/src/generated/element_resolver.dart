@@ -263,12 +263,12 @@ class ElementResolver {
   ///
   /// If [node] is rewritten to be a [FunctionExpressionInvocation] in the
   /// process, then returns that new node. Otherwise, returns `null`.
-  FunctionExpressionInvocation? visitMethodInvocation(MethodInvocation node,
-      {List<WhyNotPromotedGetter>? whyNotPromotedList,
+  FunctionExpressionInvocationImpl? visitMethodInvocation(MethodInvocation node,
+      {List<WhyNotPromotedGetter>? whyNotPromotedArguments,
       required DartType contextType}) {
-    whyNotPromotedList ??= [];
+    whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolve(
-        node as MethodInvocationImpl, whyNotPromotedList,
+        node as MethodInvocationImpl, whyNotPromotedArguments,
         contextType: contextType);
   }
 

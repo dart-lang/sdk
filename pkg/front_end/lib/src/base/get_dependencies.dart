@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.get_dependencies;
+import 'dart:typed_data';
 
 import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 import 'package:kernel/target/targets.dart' show Target;
@@ -41,7 +41,7 @@ Future<List<Uri>> getDependencies(Uri script,
     DillTarget dillTarget =
         new DillTarget(c, c.options.ticker, uriTranslator, c.options.target);
     if (platform != null) {
-      List<int> bytes = await fileSystem.entityForUri(platform).readAsBytes();
+      Uint8List bytes = await fileSystem.entityForUri(platform).readAsBytes();
       Component platformComponent = loadComponentFromBytes(bytes);
       dillTarget.loader.appendLibraries(platformComponent);
     }

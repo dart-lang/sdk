@@ -501,7 +501,8 @@ void f(int a) {
 
   Future<void> test_noAssistWithLint() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.curly_braces_in_flow_control_structures]);
+      lints: [LintNames.curly_braces_in_flow_control_structures],
+    );
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 void f() {

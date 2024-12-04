@@ -310,8 +310,6 @@ class LinkedElementFactory {
     libraryElement.typeProvider = analysisContext.typeProvider;
     libraryElement.typeSystem = analysisContext.typeSystem;
     libraryElement.hasTypeProviderSystemSet = true;
-
-    libraryElement.createLoadLibraryFunction();
   }
 
   void _disposeLibrary(Element? libraryElement) {

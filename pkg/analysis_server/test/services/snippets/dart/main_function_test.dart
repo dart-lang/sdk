@@ -28,30 +28,27 @@ class MainFunctionTest extends DartSnippetProducerTest {
   String get prefix => MainFunction.prefix;
 
   Future<void> test_noParams_testFolder() => testInFile(
-        convertPath('$testPackageLibPath/test/foo_test.dart'),
-        expectArgsParameter: false,
-      );
+    convertPath('$testPackageLibPath/test/foo_test.dart'),
+    expectArgsParameter: false,
+  );
 
   Future<void> test_params_binFolder() => testInFile(
-        convertPath('$testPackageLibPath/bin/main.dart'),
-        expectArgsParameter: true,
-      );
+    convertPath('$testPackageLibPath/bin/main.dart'),
+    expectArgsParameter: true,
+  );
 
   Future<void> test_params_projectRoot() => testInFile(
-        convertPath('$testPackageRootPath/foo.dart'),
-        expectArgsParameter: true,
-      );
+    convertPath('$testPackageRootPath/foo.dart'),
+    expectArgsParameter: true,
+  );
 
   Future<void> test_params_toolFolder() => testInFile(
-        convertPath('$testPackageLibPath/tool/tool.dart'),
-        expectArgsParameter: true,
-      );
+    convertPath('$testPackageLibPath/tool/tool.dart'),
+    expectArgsParameter: true,
+  );
 
-  Future<void> test_typedPrefix() => testInFile(
-        testFile.path,
-        content: '$prefix^',
-        expectArgsParameter: true,
-      );
+  Future<void> test_typedPrefix() =>
+      testInFile(testFile.path, content: '$prefix^', expectArgsParameter: true);
 
   Future<void> testInFile(
     String file, {

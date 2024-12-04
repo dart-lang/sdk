@@ -5,7 +5,7 @@
 // Verifies that when there is a control flow join implied by a pattern, the
 // split point is the beginning of the top level pattern.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 void guarded(int Function(Object) f, int? i) {
   if (f(throw '') case int() when i == null) {

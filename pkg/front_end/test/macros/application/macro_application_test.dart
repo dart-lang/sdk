@@ -265,7 +265,7 @@ class MacroDataComputer extends CfeDataComputer<String> {
             lookupMemberBuilder(testResultData.compilerResult, member)!;
         if (resultsText.isNotEmpty) {
           registry.registerValue(memberBuilder.fileUri!,
-              memberBuilder.charOffset, id, '\n$resultsText', member);
+              memberBuilder.fileOffset, id, '\n$resultsText', member);
         }
       }
     }

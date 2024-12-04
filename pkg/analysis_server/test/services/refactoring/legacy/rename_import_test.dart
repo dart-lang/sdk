@@ -23,9 +23,10 @@ class RenameImportTest extends RenameRefactoringTest {
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'The new name must be different than the current name.');
+      refactoring.checkNewName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'The new name must be different than the current name.',
+    );
     // empty
     refactoring.newName = '';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -77,7 +78,7 @@ void f() {
   }
 
   Future<void>
-      test_createChange_add_interpolationExpression_hasCurlyBrackets() async {
+  test_createChange_add_interpolationExpression_hasCurlyBrackets() async {
     await indexTestUnit(r'''
 import 'dart:async';
 void f() {
@@ -100,7 +101,7 @@ void f() {
   }
 
   Future<void>
-      test_createChange_add_interpolationExpression_noCurlyBrackets() async {
+  test_createChange_add_interpolationExpression_noCurlyBrackets() async {
     await indexTestUnit(r'''
 import 'dart:async';
 void f() {

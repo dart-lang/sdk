@@ -12,7 +12,7 @@ static field core::int getter;
 static field core::int setter;
 static extension-member method _extension#0|get#getter(lowered final core::int #this) → dynamic
   ;
-static extension-member method _extension#0|set#setter(lowered final core::int #this, dynamic _) → void
+static extension-member method _extension#0|set#setter(lowered final core::int #this, wildcard dynamic _#wc0#formal) → void
   ;
 static extension-member method _extension#0|method(lowered final core::int #this) → dynamic
   ;

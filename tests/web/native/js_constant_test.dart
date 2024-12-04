@@ -13,7 +13,7 @@ import 'native_testing.dart';
 //
 //     -5 .toString()
 //
-// The unparethesized version is `-(5 .toString())`, which creates the string
+// The unparenthesized version is `-(5 .toString())`, which creates the string
 // `"5"`, then converts it to a number for negation, giving a number result
 // instead of a string result.
 

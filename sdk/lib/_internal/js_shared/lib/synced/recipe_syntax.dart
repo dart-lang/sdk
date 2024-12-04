@@ -192,23 +192,38 @@ abstract class Recipe {
     test("wrapFutureOr", wrapFutureOr, wrapFutureOrString);
     test("startTypeArguments", startTypeArguments, startTypeArgumentsString);
     test("endTypeArguments", endTypeArguments, endTypeArgumentsString);
-    test("startFunctionArguments", startFunctionArguments,
-        startFunctionArgumentsString);
-    test("endFunctionArguments", endFunctionArguments,
-        endFunctionArgumentsString);
+    test(
+      "startFunctionArguments",
+      startFunctionArguments,
+      startFunctionArgumentsString,
+    );
+    test(
+      "endFunctionArguments",
+      endFunctionArguments,
+      endFunctionArgumentsString,
+    );
     test("startOptionalGroup", startOptionalGroup, startOptionalGroupString);
     test("endOptionalGroup", endOptionalGroup, endOptionalGroupString);
     test("startNamedGroup", startNamedGroup, startNamedGroupString);
     test("endNamedGroup", endNamedGroup, endNamedGroupString);
     test("nameSeparator", nameSeparator, nameSeparatorString);
-    test("requiredNameSeparator", requiredNameSeparator,
-        requiredNameSeparatorString);
-    test("genericFunctionTypeParameterIndex", genericFunctionTypeParameterIndex,
-        genericFunctionTypeParameterIndexString);
+    test(
+      "requiredNameSeparator",
+      requiredNameSeparator,
+      requiredNameSeparatorString,
+    );
+    test(
+      "genericFunctionTypeParameterIndex",
+      genericFunctionTypeParameterIndex,
+      genericFunctionTypeParameterIndexString,
+    );
     test("startRecord", startRecord, startRecordString);
     test("extensionOp", extensionOp, extensionOpString);
     testExtension(
-        "pushNeverExtension", pushNeverExtension, pushNeverExtensionString);
+      "pushNeverExtension",
+      pushNeverExtension,
+      pushNeverExtensionString,
+    );
     testExtension("pushAnyExtension", pushAnyExtension, pushAnyExtensionString);
 
     test("_formfeed", _formfeed, _formfeedString);

@@ -4,11 +4,11 @@
 
 import 'dart:html';
 
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 main() {
   if (!FileSystem.supported) return;
-  // Prepend this file name to prevent collisions among tests runnning on the
+  // Prepend this file name to prevent collisions among tests running on the
   // same browser.
   const prefix = 'fileapi_directory_';
 

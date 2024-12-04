@@ -20,7 +20,7 @@ class ExpandoTest {
       {'x': 1, 'y': 2},
       const {'x': 1, 'y': 2},
       new Expando(),
-      new Expando('horse')
+      new Expando('horse'),
     ];
     for (var object in legal) {
       testNamedExpando(object);

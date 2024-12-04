@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::int i) → dynamic
+  return #lib1::E1|f1(i).{dart.core::num::+}(#lib2::E2|f2(i)){(dart.core::num) → dart.core::int}.{dart.core::num::+}(#lib3::E3|f3(i)){(dart.core::num) → dart.core::int};

@@ -237,8 +237,11 @@ abstract class TimingTest extends IntegrationTest {
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
-    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill('server failed to exit');
-    });
+    return server.exitCode.timeout(
+      SHUTDOWN_TIMEOUT,
+      onTimeout: () {
+        return server.kill('server failed to exit');
+      },
+    );
   }
 }

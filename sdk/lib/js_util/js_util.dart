@@ -225,8 +225,9 @@ external Object? dartify(Object? o);
 /// JSClass mock = createStaticInteropMock<JSClass, DartClass>(DartClass());
 /// ```
 external T createStaticInteropMock<T extends Object, U extends Object>(
-    U dartMock,
-    [Object? proto = null]);
+  U dartMock, [
+  Object? proto = null,
+]);
 
 /// Given a Dart object that is marked exportable, creates a JS object literal
 /// that forwards to that Dart class. Look at the `@JSExport` annotation to

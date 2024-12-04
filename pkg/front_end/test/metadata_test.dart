@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io' show File;
-import 'dart:typed_data' show BytesBuilder;
+import 'dart:typed_data' show BytesBuilder, Uint8List;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
@@ -142,14 +142,14 @@ void validate(Component p, NodePredicate shouldAnnotate) {
   }));
 }
 
-Component fromBinary(List<int> bytes) {
+Component fromBinary(Uint8List bytes) {
   var component = new Component();
   component.addMetadataRepository(new TestMetadataRepository());
   new BinaryBuilderWithMetadata(bytes).readComponent(component);
   return component;
 }
 
-List<int> toBinary(Component p) {
+Uint8List toBinary(Component p) {
   final sink = new BytesBuilderSink();
   new BinaryPrinter(sink).writeComponentFile(p);
   return sink.builder.takeBytes();
@@ -164,10 +164,10 @@ void main() async {
 
   final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
       .resolve("vm_platform_strong.dill");
-  final List<int> platformBinary =
+  final Uint8List platformBinary =
       await new File(platform.toFilePath()).readAsBytes();
 
-  Future<void> testRoundTrip(List<int> Function(List<int>) binaryTransformer,
+  Future<void> testRoundTrip(Uint8List Function(Uint8List) binaryTransformer,
       NodePredicate shouldAnnotate) async {
     final component = fromBinary(platformBinary);
     annotate(component, shouldAnnotate);

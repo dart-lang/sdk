@@ -29,7 +29,8 @@ class RemoveToList extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
-          range.startEnd(invocation.operator!, invocation.argumentList));
+        range.startEnd(invocation.operator!, invocation.argumentList),
+      );
     });
   }
 }

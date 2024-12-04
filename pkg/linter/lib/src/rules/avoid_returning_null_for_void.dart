@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid returning `null` for `void`.';
 
@@ -51,9 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visit(AstNode node, Expression expression) {
-    if (expression is! NullLiteral) {
-      return;
-    }
+    if (expression is! NullLiteral) return;
 
     var parent = node.thisOrAncestorMatching(
         (e) => e is FunctionExpression || e is MethodDeclaration);
@@ -61,12 +58,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var (type, isAsync, code) = switch (parent) {
       FunctionExpression() => (
-          parent.declaredElement?.returnType,
+          parent.declaredFragment?.element.returnType,
           parent.body.isAsynchronous,
           LinterLintCode.avoid_returning_null_for_void_from_function,
         ),
       MethodDeclaration() => (
-          parent.declaredElement?.returnType,
+          parent.declaredFragment?.element.returnType,
           parent.body.isAsynchronous,
           LinterLintCode.avoid_returning_null_for_void_from_method,
         ),

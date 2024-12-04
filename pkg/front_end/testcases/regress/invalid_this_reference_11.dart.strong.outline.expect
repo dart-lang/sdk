@@ -1,0 +1,32 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_11.dart:10:3: Error: The name of a constructor must match the name of the enclosing class.
+//   Foo.bar() : _foo = this();
+//   ^^^
+//
+// pkg/front_end/testcases/regress/invalid_this_reference_11.dart:10:3: Error: Extensions can't declare constructors.
+// Try removing the constructor declaration.
+//   Foo.bar() : _foo = this();
+//   ^^^
+//
+import self as self;
+
+extension /* unnamed */ _extension#0 on dynamic {
+}
+extension type Foo(dynamic _foo) {
+  abstract extension-type-member representation-field get _foo() → dynamic;
+  constructor • = self::Foo|constructor#;
+  constructor tearoff • = self::Foo|constructor#_#new#tearOff;
+  constructor bar = self::Foo|constructor#bar;
+  constructor tearoff bar = self::Foo|constructor#_#bar#tearOff;
+}
+static extension-type-member method Foo|constructor#(dynamic _foo) → self::Foo% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member method Foo|constructor#_#new#tearOff(dynamic _foo) → self::Foo% /* erasure=dynamic, declared=! */
+  return self::Foo|constructor#(_foo);
+static extension-type-member method Foo|constructor#bar() → self::Foo% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member method Foo|constructor#_#bar#tearOff() → self::Foo% /* erasure=dynamic, declared=! */
+  return self::Foo|constructor#bar();

@@ -1,0 +1,40 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method test() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@_in::patch
+extension IntExtension on core::int {
+  method method2 = self2::IntExtension|method2;
+  method tearoff method2 = self2::IntExtension|get#method2;
+  method method1 = self2::IntExtension|method1;
+  method tearoff method1 = self2::IntExtension|get#method1;
+}
+@_in::patch
+external static extension-member method IntExtension|method1(lowered final core::int #this) → core::int;
+static extension-member method IntExtension|get#method1(lowered final core::int #this) → () → core::int
+  return () → core::int => self2::IntExtension|method1(#this);
+static method method1() → dynamic
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|method2(lowered final core::int #this) → core::int
+  ;
+static extension-member method /* from org-dartlang-testcase:///patch_lib.dart */ IntExtension|get#method2(lowered final core::int #this) → () → core::int
+  return () → core::int => self2::IntExtension|method2(#this);
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _method2() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:9:2 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:12:1 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 8, effectively constant: 2

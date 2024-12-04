@@ -7,7 +7,7 @@ library external_static_member_lowerings_test;
 
 import 'dart:js_interop';
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 import 'external_static_member_lowerings_with_namespaces.dart' as namespace;
 

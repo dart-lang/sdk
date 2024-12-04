@@ -34,11 +34,6 @@ class WhileStatement extends DartSnippetProducer {
       });
     });
 
-    return Snippet(
-      prefix,
-      label,
-      'Insert a while loop.',
-      builder.sourceChange,
-    );
+    return Snippet(prefix, label, 'Insert a while loop.', builder.sourceChange);
   }
 }

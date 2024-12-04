@@ -28,8 +28,9 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
 
   late final preferencesFile = preferences.preferencesFile;
 
-  late final _optionalStateResourceProvider =
-      _OptionalStateResourceProvider(resourceProvider);
+  late final _optionalStateResourceProvider = _OptionalStateResourceProvider(
+    resourceProvider,
+  );
 
   String get currentFileContents => preferencesFile!.readAsStringSync();
 
@@ -42,10 +43,7 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
     expect(fileExists, isFalse);
     preferences.showDartFixPrompts = true;
     expect(fileExists, isTrue);
-    expect(
-      currentFileJson,
-      {'showDartFixPrompts': true},
-    );
+    expect(currentFileJson, {'showDartFixPrompts': true});
   }
 
   Future<void> test_handlesCorruptFile() async {
@@ -56,10 +54,7 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
 
     // Ensure we can persist over the corrupt file.
     preferences.showDartFixPrompts = false;
-    expect(
-      currentFileJson,
-      {'showDartFixPrompts': false},
-    );
+    expect(currentFileJson, {'showDartFixPrompts': false});
   }
 
   /// Test that we default to showing the prompt if the file doesn't exist.
@@ -83,10 +78,7 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
   Future<void> test_readsExternallyUpdatedFile() async {
     // Write our own value.
     preferences.showDartFixPrompts = true;
-    expect(
-      currentFileJson,
-      {'showDartFixPrompts': true},
-    );
+    expect(currentFileJson, {'showDartFixPrompts': true});
 
     // Update the file directly to another value.
     preferencesFile!.writeAsStringSync(
@@ -99,16 +91,10 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
 
   Future<void> test_updateFile() async {
     preferences.showDartFixPrompts = true;
-    expect(
-      currentFileJson,
-      {'showDartFixPrompts': true},
-    );
+    expect(currentFileJson, {'showDartFixPrompts': true});
 
     preferences.showDartFixPrompts = false;
-    expect(
-      currentFileJson,
-      {'showDartFixPrompts': false},
-    );
+    expect(currentFileJson, {'showDartFixPrompts': false});
   }
 }
 

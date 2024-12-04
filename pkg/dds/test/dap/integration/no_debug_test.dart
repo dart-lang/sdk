@@ -72,7 +72,7 @@ main() {
         runInTerminalArgs!.args,
         containsAllInOrder([
           Platform.resolvedExecutable,
-          dap.client.uppercaseDriveLetter(testFile.path),
+          uppercaseDriveLetter(testFile.path),
         ]),
       );
     });

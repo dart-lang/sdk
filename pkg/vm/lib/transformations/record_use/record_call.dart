@@ -9,14 +9,29 @@ import 'package:record_use/record_use_internal.dart';
 import 'package:vm/metadata/loading_units.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
-class StaticCallRecorder {
-  final Map<ast.Procedure, Usage<CallReference>> callsForMethod = {};
+/// Record calls and their constant arguments. Currently tracks
+/// * static or top-level method calls through [recordStaticInvocation]
+/// * tear-offs through [recordConstantExpression]
+///
+/// The result of adding calls can be fetched from [foundCalls].
+class CallRecorder {
+  /// The collection of recorded calls found so far.
+  Iterable<Usage<CallReference>> get foundCalls => _callsForMethod.values;
+
+  /// Keep track of the calls which are recorded, to easily add newly found
+  /// ones.
+  final Map<ast.Procedure, Usage<CallReference>> _callsForMethod = {};
+
+  /// The ordered list of loading units to retrieve the loading unit index from.
   final List<LoadingUnit> _loadingUnits;
-  final Uri source;
 
-  StaticCallRecorder(this.source, this._loadingUnits);
+  /// The source uri to base relative URIs off of.
+  final Uri _source;
 
-  void recordStaticCall(ast.StaticInvocation node) {
+  CallRecorder(this._source, this._loadingUnits);
+
+  /// Will record a static invocation if it is annotated with `@RecordUse`.
+  void recordStaticInvocation(ast.StaticInvocation node) {
     final annotations = recordUse.findRecordUseAnnotation(node.target);
     if (annotations.isNotEmpty) {
       final call = _getCall(node.target);
@@ -26,16 +41,25 @@ class StaticCallRecorder {
     }
   }
 
-  void recordTearoff(ast.ConstantExpression node) {
+  /// Will record a tear-off if the target is annotated with `@RecordUse`.
+  void recordConstantExpression(ast.ConstantExpression node) {
     final constant = node.constant;
     if (constant is ast.StaticTearOffConstant) {
-      final annotations = recordUse.findRecordUseAnnotation(constant.target);
-      if (annotations.isNotEmpty) {
-        final call = _getCall(constant.target);
-        CallReference reference = _collectTearOff(constant, node);
-        call.references.add(reference);
+      final hasRecordUseAnnotation =
+          recordUse.findRecordUseAnnotation(constant.target).isNotEmpty;
+      if (hasRecordUseAnnotation) {
+        _recordTearOff(constant, node);
       }
     }
+  }
+
+  void _recordTearOff(
+    ast.StaticTearOffConstant constant,
+    ast.ConstantExpression node,
+  ) {
+    final call = _getCall(constant.target);
+    final reference = _collectTearOff(constant, node);
+    call.references.add(reference);
   }
 
   /// Record a tear off as a call with all non-const arguments.
@@ -53,7 +77,7 @@ class StaticCallRecorder {
       ),
     );
     return CallReference(
-      location: node.location!.recordLocation(source),
+      location: node.location!.recordLocation(_source),
       arguments: Arguments(nonConstArguments: nonConstArguments),
     );
   }
@@ -62,10 +86,8 @@ class StaticCallRecorder {
   /// shared across multiple calls to the same method.
   Usage _getCall(ast.Procedure target) {
     final definition = _definitionFromMember(target);
-    return callsForMethod.putIfAbsent(
-      target,
-      () => Usage(definition: definition, references: []),
-    );
+    return _callsForMethod[target] ??=
+        Usage(definition: definition, references: []);
   }
 
   CallReference _createCallReference(ast.StaticInvocation node) {
@@ -89,7 +111,7 @@ class StaticCallRecorder {
     final namedGrouped = _groupByNull(namedArguments);
 
     return CallReference(
-      location: node.location!.recordLocation(source),
+      location: node.location!.recordLocation(_source),
       loadingUnit: loadingUnitForNode(node, _loadingUnits).toString(),
       arguments: Arguments(
         constArguments: ConstArguments(
@@ -126,7 +148,7 @@ class StaticCallRecorder {
 
   Definition _definitionFromMember(ast.Member target) {
     final enclosingLibrary = target.enclosingLibrary;
-    String file = getImportUri(enclosingLibrary, source);
+    String file = getImportUri(enclosingLibrary, _source);
 
     return Definition(
       identifier: Identifier(
@@ -134,7 +156,7 @@ class StaticCallRecorder {
         parent: target.enclosingClass?.name,
         name: target.name.text,
       ),
-      location: target.location!.recordLocation(source),
+      location: target.location!.recordLocation(_source),
       loadingUnit:
           loadingUnitForNode(enclosingLibrary, _loadingUnits).toString(),
     );

@@ -6,8 +6,8 @@
 // the main page.
 
 import "deferred_with_cross_origin_lib.dart" deferred as lib;
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 import "dart:html";
 
 main() {

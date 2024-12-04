@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 import "dart:async";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 class Tracer {
   final String expected;
@@ -444,7 +447,7 @@ runTest(expectedTrace, fun, [expectedError]) async {
   tracer.done();
 }
 
-test() async {
+Future test() async {
   await runTest("abceX", foo1, "Error2");
   await runTest("abdeX", foo2, "Error2");
   await runTest("abde", foo3);

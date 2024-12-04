@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../utils.dart';
 
 const _desc =

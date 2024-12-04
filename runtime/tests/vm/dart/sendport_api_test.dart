@@ -5,7 +5,7 @@
 import 'dart:isolate';
 import 'dart:ffi';
 
-import 'package:async_helper/async_helper.dart' show asyncEnd, asyncStart;
+import 'package:expect/async_helper.dart' show asyncEnd, asyncStart;
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 

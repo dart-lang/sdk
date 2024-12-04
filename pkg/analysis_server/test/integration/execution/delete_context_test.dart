@@ -23,16 +23,20 @@ class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
 
     var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;
 
-    var result =
-        await sendExecutionMapUri(contextId, uri: 'package:test/main.dart');
+    var result = await sendExecutionMapUri(
+      contextId,
+      uri: 'package:test/main.dart',
+    );
     expect(result.file, pathname);
 
     await sendExecutionDeleteContext(contextId);
 
     // After the delete, expect this to fail.
     try {
-      result =
-          await sendExecutionMapUri(contextId, uri: 'package:test/main.dart');
+      result = await sendExecutionMapUri(
+        contextId,
+        uri: 'package:test/main.dart',
+      );
       fail('expected exception after context delete');
     } on ServerErrorMessage catch (message) {
       expect(message.error['code'], 'INVALID_PARAMETER');

@@ -43,11 +43,20 @@ class RuntimeObjectKind {
 /// ]
 /// ```
 ///
-/// TODO(annagrin): remove when debugger consumes debug symbols.
-/// Issue: https://github.com/dart-lang/sdk/issues/40273.
+/// If [libraries] is not null, assumes it's the set of libraries from the
+/// `LibraryManager` within the `dartDevEmbedder`, and queries that object
+/// instead.
+// TODO(annagrin): remove when debugger consumes debug symbols.
+// Issue: https://github.com/dart-lang/sdk/issues/40273.
 @notNull
-List<String> getLibraryMetadata(@notNull String libraryUri) {
-  var library = getLibrary('$libraryUri');
+List<String> getLibraryMetadata(
+  @notNull String libraryUri, [
+  Object? libraries,
+]) {
+  var library =
+      libraries != null
+          ? _get<Object?>(libraries, libraryUri)
+          : getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
   final classes = <String>[];
@@ -70,7 +79,7 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
 ///
 /// Returns a JavaScript descriptor for the class [name] class in [libraryUri].
 ///
-/// /// ```
+/// ```
 /// {
 ///   'className': <dart class name>,
 ///   'superClassName': <super class name, if any>
@@ -94,11 +103,27 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
 ///   },
 /// }
 /// ```
-/// TODO(annagrin): remove when debugger reads symbols.
-/// Issue: https://github.com/dart-lang/sdk/issues/40273
-Object? getClassMetadata(@notNull String libraryUri, @notNull String name,
-    {Object? objectInstance}) {
-  var library = getLibrary('$libraryUri');
+///
+/// If [libraries] is not null, assumes it's the set of libraries from the
+/// `LibraryManager` within the `dartDevEmbedder`, and queries that object
+/// instead.
+///
+// TODO(annagrin): remove when debugger reads symbols.
+// Issue: https://github.com/dart-lang/sdk/issues/40273
+// TODO(srujzs): Field `className` and `classLibraryId` should actually be
+// labeled as `typeName`/`typeLibraryId` or
+// `staticTypeName`/`staticTypeLibraryId` as it describes the static type and
+// the library in which the type is declared.
+Object? getClassMetadata(
+  @notNull String libraryUri,
+  @notNull String name, [
+  Object? objectInstance,
+  Object? libraries,
+]) {
+  var library =
+      libraries != null
+          ? _get<Object?>(libraries, libraryUri)
+          : getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
   final rawName = name.split('<').first;
@@ -119,20 +144,9 @@ Object? getClassMetadata(@notNull String libraryUri, @notNull String name,
 
   var methodDescriptors = <String, Object>{};
 
-  _collectMethodDescriptors(
-    methodDescriptors,
-    getMethods(cls),
-  );
-  _collectMethodDescriptors(
-    methodDescriptors,
-    getSetters(cls),
-    isSetter: true,
-  );
-  _collectMethodDescriptors(
-    methodDescriptors,
-    getGetters(cls),
-    isGetter: true,
-  );
+  _collectMethodDescriptors(methodDescriptors, getMethods(cls));
+  _collectMethodDescriptors(methodDescriptors, getSetters(cls), isSetter: true);
+  _collectMethodDescriptors(methodDescriptors, getGetters(cls), isGetter: true);
 
   _collectMethodDescriptorsFromNames(
     methodDescriptors,
@@ -230,8 +244,8 @@ void _collectFieldDescriptors(
 
   for (var symbol in getOwnNamesAndSymbols(fields)) {
     var fieldInfo = _get<Object>(fields, symbol);
-    // An object instance is required to resolve the type of a field.
     var typeSignature = _get(fieldInfo, 'type');
+    // An object instance is required to resolve the type of a field.
     var typeRti = rtiFromSignature(objectInstance, typeSignature);
     var className = typeRti == null ? '?' : typeName(typeRti);
     var isConst = _get(fieldInfo, 'isConst');
@@ -287,11 +301,12 @@ Object getObjectMetadata(@notNull Object object) {
   var reifiedType = getReifiedType(object);
   var className = typeName(reifiedType);
   var libraryId = null;
-  var cls = JS<bool>('!', '#.Array.isArray(#)', global_, object)
-      // When the object is actually represented by a JavaScript Array use the
-      // interceptor class that matches the reified type.
-      ? JS_CLASS_REF(JSArray)
-      : _get<Object?>(object, 'constructor');
+  var cls =
+      JS<bool>('!', '#.Array.isArray(#)', global_, object)
+          // When the object is actually represented by a JavaScript Array use
+          // the interceptor class that matches the reified type.
+          ? JS_CLASS_REF(JSArray)
+          : _get<Object?>(object, 'constructor');
   if (cls != null) {
     libraryId = getLibraryUri(cls);
   }
@@ -388,9 +403,11 @@ void _collectObjectFieldNames(
 ) {
   if (fields == null) return;
 
-  for (Object? current = fields;
-      current != null;
-      current = getPrototypeOf(current)) {
+  for (
+    Object? current = fields;
+    current != null;
+    current = getPrototypeOf(current)
+  ) {
     for (var symbol in getOwnNamesAndSymbols(current)) {
       var name = _getDartSymbolName(symbol);
       if (name != null && !fieldNames.contains(name)) {
@@ -411,9 +428,7 @@ void _collectObjectFieldNames(
 /// ```
 @notNull
 Object getSetElements(@notNull Set set) {
-  return _createJsObject({
-    'entries': set.toList(),
-  });
+  return _createJsObject({'entries': set.toList()});
 }
 
 /// Elements for [map].
@@ -550,9 +565,10 @@ Shape _recordTypeShape(@notNull Type type) {
 String _symbolDescription(@notNull Object symbol) =>
     _get(symbol, 'description');
 
-String? _getDartSymbolName(@notNull dynamic symbol) => symbol is String
-    ? _getDartName(symbol)
-    : _getDartName(_symbolDescription(symbol));
+String? _getDartSymbolName(@notNull dynamic symbol) =>
+    symbol is String
+        ? _getDartName(symbol)
+        : _getDartName(_symbolDescription(symbol));
 
 String? _getDartName(String? name) {
   if (name == null || name.startsWith('dartx.')) {

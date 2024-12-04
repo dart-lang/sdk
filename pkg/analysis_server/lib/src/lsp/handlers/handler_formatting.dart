@@ -30,7 +30,10 @@ class FormattingHandler
     var file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(
-          ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
+        ServerErrorCodes.InvalidFilePath,
+        'File does not exist',
+        path,
+      );
     }
 
     var result = await server.getParsedUnit(path);
@@ -39,12 +42,15 @@ class FormattingHandler
     }
 
     var lineLength = server.lspClientConfiguration.forResource(path).lineLength;
-    return generateEditsForFormatting(result, lineLength);
+    return generateEditsForFormatting(result, defaultPageWidth: lineLength);
   }
 
   @override
-  Future<ErrorOr<List<TextEdit>?>> handle(DocumentFormattingParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<TextEdit>?>> handle(
+    DocumentFormattingParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

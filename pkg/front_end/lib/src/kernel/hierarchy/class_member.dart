@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.class_hierarchy_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -574,7 +572,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         classBuilder.addProblem(
             templateCombinedMemberSignatureFailed.withArguments(
                 name, declarations.first.fullNameForErrors),
-            classBuilder.charOffset,
+            classBuilder.fileOffset,
             nameLength,
             context: context);
         // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
@@ -948,7 +946,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       extensionTypeDeclarationBuilder.addProblem(
           templateExtensionTypeCombinedMemberSignatureFailed.withArguments(
               name, declarations.first.fullNameForErrors),
-          extensionTypeDeclarationBuilder.charOffset,
+          extensionTypeDeclarationBuilder.fileOffset,
           nameLength,
           context: context);
       // TODO(johnniwinther): Maybe we should have an invalid marker to avoid

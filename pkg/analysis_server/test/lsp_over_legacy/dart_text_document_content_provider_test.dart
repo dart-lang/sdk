@@ -20,7 +20,8 @@ class DartTextDocumentContentProviderTest extends LspOverLegacyTest {
   /// fetch any content from a URI.
   Future<void> enableCustomUriSupport() async {
     var request = createLegacyRequest(
-        ServerSetClientCapabilitiesParams([], supportsUris: true));
+      ServerSetClientCapabilitiesParams([], supportsUris: true),
+    );
     await handleRequest(request);
   }
 
@@ -44,17 +45,15 @@ class A {}
     await enableCustomUriSupport();
 
     // Fetch the content for the custom URI scheme.
-    var macroGeneratedContent =
-        await getDartTextDocumentContent(testFileMacroUri);
+    var macroGeneratedContent = await getDartTextDocumentContent(
+      testFileMacroUri,
+    );
 
     // Verify the contents appear correct without doing an exact string
     // check that might make this text fragile.
     expect(
       macroGeneratedContent!.content,
-      allOf([
-        contains('augment class A'),
-        contains('void foo() {'),
-      ]),
+      allOf([contains('augment class A'), contains('void foo() {')]),
     );
   }
 
@@ -74,18 +73,16 @@ class A {}
     var collector = EventsCollector(this);
 
     // Verify initial contents of the macro.
-    var macroGeneratedContent =
-        await getDartTextDocumentContent(testFileMacroUri);
+    var macroGeneratedContent = await getDartTextDocumentContent(
+      testFileMacroUri,
+    );
     expect(macroGeneratedContent!.content, contains('void foo() {'));
 
     // Modify the file, changing its API signature.
     // So, the macro runs, and the macro generated file changes.
     newFile(
       testFilePath,
-      content.replaceAll(
-        'void foo() {}',
-        'void foo2() {}',
-      ),
+      content.replaceAll('void foo() {}', 'void foo2() {}'),
     );
 
     // Note, 'dart/textDocumentContentDidChange' before 'AnalysisErrors'.

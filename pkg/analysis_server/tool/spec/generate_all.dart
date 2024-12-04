@@ -29,10 +29,18 @@ List<GeneratedContent> get allTargets {
   var targets = <GeneratedContent>[];
   targets.add(codegen_analysis_server.target);
   targets.add(codegen_dart_notification_handler.clientTarget());
-  targets.add(codegen_dart_protocol.clientTarget(
-      false, codegen_dart_protocol.CodegenUriConverterKind.none));
-  targets.add(codegen_dart_protocol.serverTarget(
-      false, codegen_dart_protocol.CodegenUriConverterKind.requiredParameter));
+  targets.add(
+    codegen_dart_protocol.clientTarget(
+      false,
+      codegen_dart_protocol.CodegenUriConverterKind.none,
+    ),
+  );
+  targets.add(
+    codegen_dart_protocol.serverTarget(
+      false,
+      codegen_dart_protocol.CodegenUriConverterKind.requiredParameter,
+    ),
+  );
   targets.add(codegen_java_types.targetDir);
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);

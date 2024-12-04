@@ -47,7 +47,8 @@ class CombinedCodeStatistics {
 
   static EntryCounter SlowPathCounterFor(Instruction::Tag tag) {
     return static_cast<CombinedCodeStatistics::EntryCounter>(
-        CombinedCodeStatistics::kTagGraphEntrySlowPath + tag);
+        static_cast<uint32_t>(CombinedCodeStatistics::kTagGraphEntrySlowPath) +
+        static_cast<uint32_t>(tag));
   }
 
  private:

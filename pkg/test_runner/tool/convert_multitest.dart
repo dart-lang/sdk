@@ -19,11 +19,11 @@ import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/update_errors.dart';
 
-import 'update_static_error_tests.dart' show runAnalyzer, runCfe;
+import 'update_static_error_tests.dart' show runAnalyzerCli, runCfe;
 
 Future<List<StaticError>> getErrors(
     List<String> options, String filePath) async {
-  var analyzerErrors = await runAnalyzer(File(filePath), options);
+  var analyzerErrors = await runAnalyzerCli(File(filePath), options);
   var cfeErrors = await runCfe(File(filePath), options);
   return [...analyzerErrors, ...cfeErrors];
 }
@@ -180,10 +180,12 @@ Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
     var contentWithoutMarkers = cleanedTest.text;
     // Get the reported errors for the multi-test and all generated sub-tests
     // from the analyser and the common front-end.
-    var options = test.sharedOptions;
-    if (experiments.isNotEmpty) {
-      options.add("--enable-experiment=${experiments.join(',')}");
-    }
+    var options = [
+      ...test.sharedOptions,
+      if (experiments.isNotEmpty)
+        "--enable-experiment=${experiments.join(',')}",
+    ];
+
     var errors = <List<StaticError>>[];
     for (var test in tests) {
       if (verbose) {

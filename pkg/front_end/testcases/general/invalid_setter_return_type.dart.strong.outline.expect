@@ -38,7 +38,7 @@ import "dart:core" as core;
 class Class1 extends core::Object {
   synthetic constructor •() → self::Class1
     ;
-  set setter1(dynamic _) → void
+  set setter1(wildcard dynamic _#wc4#formal) → void
     ;
   operator []=(dynamic a, dynamic b) → void
     ;
@@ -46,7 +46,7 @@ class Class1 extends core::Object {
 class Class2 extends core::Object {
   synthetic constructor •() → self::Class2
     ;
-  set setter2(dynamic _) → void
+  set setter2(wildcard dynamic _#wc5#formal) → void
     ;
   operator []=(dynamic a, dynamic b) → void
     ;
@@ -54,7 +54,7 @@ class Class2 extends core::Object {
 class Class3 extends core::Object {
   synthetic constructor •() → self::Class3
     ;
-  set setter3(dynamic _) → void
+  set setter3(wildcard dynamic _#wc6#formal) → void
     ;
   operator []=(dynamic a, dynamic b) → void
     ;
@@ -62,18 +62,18 @@ class Class3 extends core::Object {
 class Class4 extends core::Object {
   synthetic constructor •() → self::Class4
     ;
-  set setter4(dynamic _) → void
+  set setter4(wildcard dynamic _#wc7#formal) → void
     ;
   operator []=(dynamic a, dynamic b) → void
     ;
 }
-static set setter1(dynamic _) → void
+static set setter1(wildcard dynamic _#wc0#formal) → void
   ;
-static set setter2(dynamic _) → void
+static set setter2(wildcard dynamic _#wc1#formal) → void
   ;
-static set setter3(dynamic _) → void
+static set setter3(wildcard dynamic _#wc2#formal) → void
   ;
-static set setter4(dynamic _) → void
+static set setter4(wildcard dynamic _#wc3#formal) → void
   ;
 static method main() → dynamic
   ;

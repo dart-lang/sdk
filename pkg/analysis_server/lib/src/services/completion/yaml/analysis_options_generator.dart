@@ -21,36 +21,37 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   //  For example, the lint rules can either be a list or a map, but we only
   //  suggest list items.
   static MapProducer analysisOptionsProducer = MapProducer({
-    AnalyzerOptions.analyzer: MapProducer({
-      AnalyzerOptions.enableExperiment: ListProducer(_ExperimentProducer()),
-      AnalyzerOptions.errors: _ErrorProducer(),
-      AnalyzerOptions.exclude: EmptyProducer(),
-      AnalyzerOptions.language: MapProducer({
-        AnalyzerOptions.strictCasts: EmptyProducer(),
-        AnalyzerOptions.strictInference: EmptyProducer(),
-        AnalyzerOptions.strictRawTypes: EmptyProducer(),
+    AnalysisOptionsFile.analyzer: MapProducer({
+      AnalysisOptionsFile.enableExperiment: ListProducer(_ExperimentProducer()),
+      AnalysisOptionsFile.errors: _ErrorProducer(),
+      AnalysisOptionsFile.exclude: EmptyProducer(),
+      AnalysisOptionsFile.language: MapProducer({
+        AnalysisOptionsFile.strictCasts: EmptyProducer(),
+        AnalysisOptionsFile.strictInference: EmptyProducer(),
+        AnalysisOptionsFile.strictRawTypes: EmptyProducer(),
       }),
-      AnalyzerOptions.optionalChecks: MapProducer({
-        AnalyzerOptions.chromeOsManifestChecks: EmptyProducer(),
+      AnalysisOptionsFile.optionalChecks: MapProducer({
+        AnalysisOptionsFile.chromeOsManifestChecks: EmptyProducer(),
       }),
-      AnalyzerOptions.plugins: EmptyProducer(),
-      AnalyzerOptions.propagateLinterExceptions: EmptyProducer(),
+      AnalysisOptionsFile.plugins: EmptyProducer(),
+      AnalysisOptionsFile.propagateLinterExceptions: EmptyProducer(),
     }),
-    AnalyzerOptions.codeStyle: MapProducer({
-      AnalyzerOptions.format: BooleanProducer(),
+    AnalysisOptionsFile.codeStyle: MapProducer({
+      AnalysisOptionsFile.format: BooleanProducer(),
+    }),
+    AnalysisOptionsFile.formatter: MapProducer({
+      AnalysisOptionsFile.pageWidth: EmptyProducer(),
     }),
     // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
-    AnalyzerOptions.include: EmptyProducer(),
+    AnalysisOptionsFile.include: EmptyProducer(),
     // TODO(brianwilkerson): Create constants for 'linter' and 'rules'.
-    'linter': MapProducer({
-      'rules': ListProducer(_LintRuleProducer()),
-    }),
+    'linter': MapProducer({'rules': ListProducer(_LintRuleProducer())}),
   });
 
   /// Initialize a newly created suggestion generator for analysis options
   /// files.
   AnalysisOptionsGenerator(ResourceProvider resourceProvider)
-      : super(resourceProvider, null);
+    : super(resourceProvider, null);
 
   @override
   Producer get topLevelProducer => analysisOptionsProducer;
@@ -68,14 +69,13 @@ class _ErrorProducer extends KeyValueProducer {
   Producer? producerForKey(String key) => enumProducer;
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
-    for (var error in errorCodeValues) {
-      yield identifier('${error.name.toLowerCase()}: ');
-    }
-    for (var rule in Registry.ruleRegistry.rules) {
-      yield identifier('${rule.name}: ');
-    }
+  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      for (var error in errorCodeValues)
+        identifier('${error.name.toLowerCase()}: '),
+      for (var rule in Registry.ruleRegistry.rules)
+        identifier('${rule.name}: '),
+    ];
   }
 }
 
@@ -85,13 +85,11 @@ class _ExperimentProducer extends Producer {
   const _ExperimentProducer();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
-    for (var feature in ExperimentStatus.knownFeatures.values) {
-      if (!feature.isEnabledByDefault) {
-        yield identifier(feature.enableString);
-      }
-    }
+  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      for (var feature in ExperimentStatus.knownFeatures.values)
+        if (!feature.isEnabledByDefault) identifier(feature.enableString),
+    ];
   }
 }
 
@@ -101,13 +99,13 @@ class _LintRuleProducer extends Producer {
   const _LintRuleProducer();
 
   @override
-  Iterable<CompletionSuggestion> suggestions(
-      YamlCompletionRequest request) sync* {
-    for (var rule in Registry.ruleRegistry.rules) {
-      // TODO(pq): consider suggesting internal lints if editing an SDK options file
-      if (!rule.state.isInternal) {
-        yield identifier(rule.name, docComplete: rule.description);
-      }
-    }
+  Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    return [
+      for (var rule in Registry.ruleRegistry.rules)
+        // TODO(pq): consider suggesting internal lints if editing an SDK
+        // options file.
+        if (!rule.state.isInternal && !rule.state.isRemoved)
+          identifier(rule.name, docComplete: rule.description),
+    ];
   }
 }

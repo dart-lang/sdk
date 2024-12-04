@@ -2,22 +2,24 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue45660.dart:8:22: Error: Inferred type argument 'Null' doesn't conform to the bound 'num' of the type variable 'T' on 'call'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
+// pkg/front_end/testcases/general/issue45660.dart:8:33: Error: The value 'null' can't be assigned to the parameter type 'num' because 'num' is not nullable.
 //   extendsNumReturnArg/*<Null>*/(null);
-//                      ^
+//                                 ^
 //
-// pkg/front_end/testcases/general/issue45660.dart:9:22: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'call'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
+// pkg/front_end/testcases/general/issue45660.dart:9:35: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
 //   extendsNumReturnArg/*<String>*/("");
-//                      ^
+//                                   ^
 //
 import self as self;
 import "dart:core" as core;
 
 static field <T extends core::num = dynamic>(T) → T extendsNumReturnArg = <S extends core::num>(S s) → S => s;
 static method functionInvocations() → dynamic {
-  self::extendsNumReturnArg<Null>(null){(Null) → Null};
-  self::extendsNumReturnArg<core::String>(""){(core::String) → core::String};
+  self::extendsNumReturnArg<core::num>(invalid-expression "pkg/front_end/testcases/general/issue45660.dart:8:33: Error: The value 'null' can't be assigned to the parameter type 'num' because 'num' is not nullable.
+  extendsNumReturnArg/*<Null>*/(null);
+                                ^" in null as{TypeError} core::num){(core::num) → core::num};
+  self::extendsNumReturnArg<core::num>(invalid-expression "pkg/front_end/testcases/general/issue45660.dart:9:35: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
+  extendsNumReturnArg/*<String>*/(\"\");
+                                  ^" in "" as{TypeError} core::num){(core::num) → core::num};
 }
 static method main() → dynamic {}

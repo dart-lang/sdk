@@ -46,7 +46,8 @@ bool f() {
 
     await initialize();
     var verifier = await verifyCommandEdits(
-        Command(command: commandId, title: 'UNUSED'), '''
+      Command(command: commandId, title: 'UNUSED'),
+      '''
 >>>>>>>>>> lib/a.dart
 >>>>>>>>>>   Convert to single quoted string: line 2, line 2
 >>>>>>>>>>   Replace with 'isEmpty': line 3
@@ -61,7 +62,8 @@ bool f() {
   var files = ['b'];
   return files.isEmpty;
 }
-''');
+''',
+    );
     var annotations = verifier.edit.changeAnnotations?.values ?? [];
     for (var annotation in annotations) {
       expect(annotation.needsConfirmation, expectRequiresConfirmation);
@@ -114,7 +116,8 @@ void f() {
 
     await initialize();
     var verifier = await verifyCommandEdits(
-        Command(command: commandId, title: 'UNUSED'), '''
+      Command(command: commandId, title: 'UNUSED'),
+      '''
 >>>>>>>>>> lib/main.dart
 >>>>>>>>>>   Remove unnecessary 'final': line 2
 >>>>>>>>>>   Replace 'final' with 'var': line 3
@@ -122,7 +125,8 @@ void f() {
   int a = 1;
   var b = 1;
 }
-''');
+''',
+    );
     var annotations = verifier.edit.changeAnnotations?.values ?? [];
     for (var annotation in annotations) {
       expect(annotation.needsConfirmation, expectRequiresConfirmation);
@@ -131,8 +135,10 @@ void f() {
 
   Future<void> test_serverAdvertisesCommand() async {
     await initialize();
-    expect(serverCapabilities.executeCommandProvider!.commands,
-        contains(commandId));
+    expect(
+      serverCapabilities.executeCommandProvider!.commands,
+      contains(commandId),
+    );
   }
 
   Future<void> test_unsupported_clientLacksApplyEdit() async {
@@ -141,11 +147,14 @@ void f() {
 
     await expectLater(
       executeCommand(Command(command: commandId, title: 'UNUSED')),
-      throwsA(isResponseError(
-        ServerErrorCodes.FeatureDisabled,
-        message: '"$commandName" is only available for '
-            'clients that support workspace/applyEdit',
-      )),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.FeatureDisabled,
+          message:
+              '"$commandName" is only available for '
+              'clients that support workspace/applyEdit',
+        ),
+      ),
     );
   }
 
@@ -155,11 +164,14 @@ void f() {
 
     await expectLater(
       executeCommand(Command(command: commandId, title: 'UNUSED')),
-      throwsA(isResponseError(
-        ServerErrorCodes.FeatureDisabled,
-        message: '"$commandName" is only available for '
-            'clients that support change annotations',
-      )),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.FeatureDisabled,
+          message:
+              '"$commandName" is only available for '
+              'clients that support change annotations',
+        ),
+      ),
     );
   }
 }

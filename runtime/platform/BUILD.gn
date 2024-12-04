@@ -11,6 +11,7 @@ library_for_all_configs("libdart_platform") {
   sources = platform_sources
   include_dirs = [ ".." ]
   extra_deps = []
+  configurable_deps = [ ":libdart_platform_no_tsan" ]
 
   if (is_fuchsia) {
     extra_deps += [
@@ -18,4 +19,23 @@ library_for_all_configs("libdart_platform") {
       "$fuchsia_sdk/pkg/sys_cpp",
     ]
   }
+}
+
+config("no_tsan_config") {
+  if (!is_win) {
+    cflags = [ "-fno-sanitize=thread" ]
+  }
+}
+
+library_for_all_configs("libdart_platform_no_tsan") {
+  target_type = "source_set"
+  public_configs = [
+    "../vm:libdart_vm_config",
+    ":no_tsan_config",
+  ]
+  sources = [
+    "no_tsan.cc",
+    "no_tsan.h",
+  ]
+  include_dirs = [ ".." ]
 }

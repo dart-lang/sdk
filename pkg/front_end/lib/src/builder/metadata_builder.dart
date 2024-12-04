@@ -2,22 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.metadata_builder;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
+import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
+import '../kernel/macro/metadata.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+bool computeSharedExpressionForTesting = false;
+bool delaySharedExpressionLookupForTesting = false;
 
 class MetadataBuilder {
   /// Token for `@` for annotations that have not yet been parsed.
-  Token? _beginToken;
+  Token? _atToken;
 
-  final int charOffset;
+  final int atOffset;
 
   /// `true` if the annotation begins with 'patch'.
   ///
@@ -28,12 +32,23 @@ class MetadataBuilder {
   /// Expression for an already parsed annotation.
   Expression? _expression;
 
-  MetadataBuilder(Token this._beginToken)
-      : charOffset = _beginToken.charOffset,
-        hasPatch = _beginToken.next?.lexeme == 'patch';
+  MetadataBuilder(Token this._atToken)
+      : atOffset = _atToken.charOffset,
+        hasPatch = _atToken.next?.lexeme == 'patch';
 
   // Coverage-ignore(suite): Not run.
-  Token? get beginToken => _beginToken;
+  Token? get beginToken => _atToken;
+
+  shared.Expression? _sharedExpression;
+
+  shared.Expression? _unresolvedSharedExpressionForTesting;
+
+  // Coverage-ignore(suite): Not run.
+  shared.Expression? get expression => _sharedExpression;
+
+  // Coverage-ignore(suite): Not run.
+  shared.Expression? get unresolvedExpressionForTesting =>
+      _unresolvedSharedExpressionForTesting;
 
   static void buildAnnotations(
       Annotatable parent,
@@ -59,15 +74,27 @@ class MetadataBuilder {
 
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
-      Token? beginToken = annotationBuilder._beginToken;
+      Token? beginToken = annotationBuilder._atToken;
       if (beginToken != null) {
+        if (computeSharedExpressionForTesting) {
+          // Coverage-ignore-block(suite): Not run.
+          annotationBuilder._sharedExpression = _parseSharedExpression(
+              library.loader, beginToken, library.importUri, fileUri, scope);
+          if (delaySharedExpressionLookupForTesting) {
+            annotationBuilder._unresolvedSharedExpressionForTesting =
+                _parseSharedExpression(library.loader, beginToken,
+                    library.importUri, fileUri, scope,
+                    delayLookupForTesting: true);
+          }
+        }
+
         bodyBuilder ??= library.loader.createBodyBuilderForOutlineExpression(
             library, bodyBuilderContext, scope, fileUri);
         Expression annotation = bodyBuilder.parseAnnotation(beginToken);
-        annotationBuilder._beginToken = null;
+        annotationBuilder._atToken = null;
         if (createFileUriExpression) {
           annotation = new FileUriExpression(annotation, fileUri)
-            ..fileOffset = annotationBuilder.charOffset;
+            ..fileOffset = annotationBuilder.atOffset;
         }
         // Record the index of [annotation] in `parent.annotations`.
         parsedAnnotationBuilders[annotationBuilder] = parent.annotations.length;
@@ -98,7 +125,7 @@ class MetadataBuilder {
         // Coverage-ignore(suite): Not run.
         if (createFileUriExpression && annotation is! FileUriExpression) {
           annotation = new FileUriExpression(annotation, fileUri)
-            ..fileOffset = annotationBuilder.charOffset;
+            ..fileOffset = annotationBuilder.atOffset;
         }
         parent.addAnnotation(annotation);
       }
@@ -116,4 +143,12 @@ class MetadataBuilder {
       }
     }
   }
+}
+
+// Coverage-ignore(suite): Not run.
+shared.Expression _parseSharedExpression(
+    Loader loader, Token atToken, Uri importUri, Uri fileUri, LookupScope scope,
+    {bool delayLookupForTesting = false}) {
+  return parseAnnotation(loader, atToken, importUri, fileUri, scope,
+      delayLookupForTesting: delayLookupForTesting);
 }

@@ -167,10 +167,10 @@ enum NegationStyle { none, negated, positive }
 
 extension on TokenType {
   TokenType get inverted => switch (this) {
-        TokenType.LT_EQ => TokenType.GT_EQ,
-        TokenType.LT => TokenType.GT,
-        TokenType.GT => TokenType.LT,
-        TokenType.GT_EQ => TokenType.LT_EQ,
-        _ => this
-      };
+    TokenType.LT_EQ => TokenType.GT_EQ,
+    TokenType.LT => TokenType.GT,
+    TokenType.GT => TokenType.LT,
+    TokenType.GT_EQ => TokenType.LT_EQ,
+    _ => this,
+  };
 }

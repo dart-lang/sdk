@@ -64,6 +64,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super(coreTypes, hierarchy);
 
+  // Coverage-ignore(suite): Not run.
   InterfaceType functionRawType(Nullability nullability) {
     return coreTypes.functionRawType(nullability);
   }
@@ -167,7 +168,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         parameter.defaultType is DynamicType;
   }
 
-  /// Use the given [constraints] to substitute for type variables.
+  /// Use the given [constraints] to substitute for type parameters.
   ///
   /// [typeParametersToInfer] is the set of type parameters that should be
   /// substituted for.  [previouslyInferredTypes], if present, should be the set
@@ -233,6 +234,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             TypeConstraintGatherer extendsConstraintGatherer =
                 new TypeConstraintGatherer(this, typeParametersToInfer,
                     typeOperations: operations,
+                    inferenceUsingBoundsIsEnabled:
+                        inferenceUsingBoundsIsEnabled,
                     inferenceResultForTesting: null);
             extendsConstraintGatherer.tryConstrainLower(typeParamBound,
                 mergedTypeConstraint.lower.unwrapTypeSchemaView(),
@@ -350,6 +353,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType? returnContextType,
       {bool isConst = false,
       required OperationsCfe typeOperations,
+      required bool inferenceUsingBoundsIsEnabled,
       required TypeInferenceResultForTesting? inferenceResultForTesting,
       required TreeNode? treeNodeForTesting}) {
     assert(typeParametersToInfer.isNotEmpty);
@@ -361,14 +365,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     TypeConstraintGatherer gatherer = new TypeConstraintGatherer(
         this, typeParametersToInfer,
         typeOperations: typeOperations,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
         inferenceResultForTesting: inferenceResultForTesting);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
-        returnContextType = new NullabilityAwareFreeTypeVariableEliminator(
-                bottomType: const NeverType.nonNullable(),
-                topType: objectNullableRawType,
-                topFunctionType: functionRawType(Nullability.nonNullable))
+        returnContextType = new NullabilityAwareFreeTypeParameterEliminator(
+                coreTypes: coreTypes)
             .eliminateToLeast(returnContextType!);
       }
       gatherer.tryConstrainUpper(declaredReturnType!, returnContextType!,
@@ -377,7 +380,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return gatherer;
   }
 
-  /// Computes the constraint solution for a type variable based on a given set
+  /// Computes the constraint solution for a type parameter based on a given set
   /// of constraints.
   ///
   /// If [grounded] is `true`, then the returned type is guaranteed to be a
@@ -388,12 +391,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// If [isContravariant] is `true`, then we are solving for a contravariant
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
-  DartType solveTypeConstraint(
-      MergedTypeConstraint constraint, DartType topType, DartType bottomType,
-      {bool grounded = false, bool isContravariant = false}) {
-    assert(bottomType == const NeverType.nonNullable() ||
-        // Coverage-ignore(suite): Not run.
-        bottomType == const NullType());
+  DartType solveTypeConstraint(MergedTypeConstraint constraint,
+      {required DartType topType,
+      bool grounded = false,
+      bool isContravariant = false}) {
     if (!isContravariant) {
       // Prefer the known bound, if any.
       if (isKnown(constraint.lower.unwrapTypeSchemaView())) {
@@ -407,13 +408,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.lower is! SharedUnknownTypeSchemaView<DartType>) {
         return grounded
-            ? leastClosure(
-                constraint.lower.unwrapTypeSchemaView(), topType, bottomType)
+            ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
+                topType: topType)
             : constraint.lower.unwrapTypeSchemaView();
       } else if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(
-                constraint.upper.unwrapTypeSchemaView(), topType, bottomType)
+            ? greatestClosure(constraint.upper.unwrapTypeSchemaView(),
+                topType: topType)
             : constraint.upper.unwrapTypeSchemaView();
       } else {
         return const UnknownType();
@@ -433,13 +434,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (constraint.upper is! UnknownType) {
         // Coverage-ignore-block(suite): Not run.
         return grounded
-            ? greatestClosure(
-                constraint.upper.unwrapTypeSchemaView(), topType, bottomType)
+            ? greatestClosure(constraint.upper.unwrapTypeSchemaView(),
+                topType: topType)
             : constraint.upper.unwrapTypeSchemaView();
       } else if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(
-                constraint.lower.unwrapTypeSchemaView(), topType, bottomType)
+            ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
+                topType: topType)
             :
             // Coverage-ignore(suite): Not run.
             constraint.lower.unwrapTypeSchemaView();
@@ -531,9 +532,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
           new SharedTypeSchemaView(extendsConstraint), operations);
     }
 
-    return solveTypeConstraint(constraint, coreTypes.objectNullableRawType,
-        const NeverType.nonNullable(),
-        grounded: true, isContravariant: isContravariant);
+    return solveTypeConstraint(constraint,
+        topType: coreTypes.objectNullableRawType,
+        grounded: true,
+        isContravariant: isContravariant);
   }
 
   void _mergeInConstraintsFromBound(
@@ -573,7 +575,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     }
 
     DartType t = solveTypeConstraint(constraint,
-        coreTypes.objectNullableRawType, const NeverType.nonNullable());
+        topType: coreTypes.objectNullableRawType);
     if (!isKnown(t)) {
       return t;
     }
@@ -600,19 +602,19 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       constraint = constraint.clone();
       constraint.mergeInTypeSchemaUpper(
           new SharedTypeSchemaView(extendsConstraint), operations);
-      return solveTypeConstraint(constraint, coreTypes.objectNullableRawType,
-          const NeverType.nonNullable());
+      return solveTypeConstraint(constraint,
+          topType: coreTypes.objectNullableRawType);
     }
 
     return t;
   }
 }
 
-class TypeVariableEliminator extends Substitution {
+class TypeParameterEliminator extends Substitution {
   final DartType bottomType;
   final DartType topType;
 
-  TypeVariableEliminator(this.bottomType, this.topType);
+  TypeParameterEliminator(this.bottomType, this.topType);
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {

@@ -90,10 +90,10 @@ class ColorComputerTest extends AbstractContextTest {
     // in non-const contexts.
     'const CupertinoDynamicColor.withBrightness(color: CupertinoColors.white, darkColor: CupertinoColors.black)':
         {
-      null: 0xFFFFFFFF,
-      'CupertinoColors.white': 0xFFFFFFFF,
-      'CupertinoColors.black': 0xFF000000,
-    },
+          null: 0xFFFFFFFF,
+          'CupertinoColors.white': 0xFFFFFFFF,
+          'CupertinoColors.black': 0xFF000000,
+        },
   };
 
   late String testPath;
@@ -156,7 +156,8 @@ class ColorComputerTest extends AbstractContextTest {
     expect(
       colors,
       hasLength(expectedColorValues.length),
-      reason: '${expectedColorValues.length} colors should be detected in:\n'
+      reason:
+          '${expectedColorValues.length} colors should be detected in:\n'
           '$dartCode',
     );
 
@@ -169,8 +170,10 @@ class ColorComputerTest extends AbstractContextTest {
       var expectedGreen = (0x0000ff00 & expectedColorValue) >> 8;
       var expectedBlue = (0x000000ff & expectedColorValue) >> 0;
 
-      var regionText =
-          dartCode.substring(color.offset, color.offset + color.length);
+      var regionText = dartCode.substring(
+        color.offset,
+        color.offset + color.length,
+      );
       expect(
         regionText,
         equals(expectedColorCode),
@@ -178,10 +181,10 @@ class ColorComputerTest extends AbstractContextTest {
       );
 
       void expectComponent(int actual, int expected, String name) => expect(
-            actual,
-            expected,
-            reason: '$name value for $expectedColorCode is not correct',
-          );
+        actual,
+        expected,
+        reason: '$name value for $expectedColorCode is not correct',
+      );
 
       expectComponent(color.color.alpha, expectedAlpha, 'Alpha');
       expectComponent(color.color.red, expectedRed, 'Red');
@@ -192,9 +195,10 @@ class ColorComputerTest extends AbstractContextTest {
 
   void expectNoErrors(ResolvedUnitResult result) {
     // If the test code has errors, generate a suitable failure to help debug.
-    var errors = result.errors
-        .where((error) => error.severity == Severity.error)
-        .toList();
+    var errors =
+        result.errors
+            .where((error) => error.severity == Severity.error)
+            .toList();
     if (errors.isNotEmpty) {
       throw 'Code has errors: $errors\n\n${result.content}';
     }
@@ -256,16 +260,12 @@ class MyTheme {
         instanceMaterialRedAccent = Colors.redAccent;
 }
 ''';
-    await expectColors(
-      testCode,
-      {
-        'MyTheme.staticWhite': 0xFFFFFFFF,
-        'MyTheme.staticMaterialRedAccent': 0xFFFFAA00,
-        'theme.instanceWhite': 0xFFFFFFFF,
-        'theme.instanceMaterialRedAccent': 0xFFFFAA00,
-      },
-      otherCode: otherCode,
-    );
+    await expectColors(testCode, {
+      'MyTheme.staticWhite': 0xFFFFFFFF,
+      'MyTheme.staticMaterialRedAccent': 0xFFFFAA00,
+      'theme.instanceWhite': 0xFFFFFFFF,
+      'theme.instanceMaterialRedAccent': 0xFFFFAA00,
+    }, otherCode: otherCode);
   }
 
   Future<void> test_customConst_initializer() async {
@@ -282,14 +282,10 @@ void f() {
 const myThemeWhite = Colors.white;
 const myThemeMaterialRedAccent = Colors.redAccent;
 ''';
-    await expectColors(
-      testCode,
-      {
-        'myThemeWhite': 0xFFFFFFFF,
-        'myThemeMaterialRedAccent': 0xFFFFAA00,
-      },
-      otherCode: otherCode,
-    );
+    await expectColors(testCode, {
+      'myThemeWhite': 0xFFFFFFFF,
+      'myThemeMaterialRedAccent': 0xFFFFAA00,
+    }, otherCode: otherCode);
   }
 
   Future<void> test_local_const() async {

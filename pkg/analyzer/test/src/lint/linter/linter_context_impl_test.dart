@@ -6,6 +6,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -41,9 +42,9 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       unit: result.unit,
     );
 
-    var libraryElement = result.libraryElement;
+    var libraryElement = result.libraryElement2;
     var analysisContext = libraryElement.session.analysisContext;
-    var libraryPath = libraryElement.source.fullName;
+    var libraryPath = libraryElement.firstFragment.source.fullName;
     var workspace = analysisContext.contextRoot.workspace;
     var workspacePackage = workspace.findPackageFor(libraryPath);
 

@@ -270,7 +270,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -291,7 +291,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -304,7 +304,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -325,7 +325,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -338,7 +338,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -380,7 +380,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -414,7 +414,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -435,7 +435,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -469,7 +469,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -507,7 +507,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -528,7 +528,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -566,7 +566,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -587,7 +587,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -629,7 +629,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -671,7 +671,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -692,7 +692,7 @@ RecordLiteral
         methodName: SimpleIdentifier
           token: g
           staticElement: <testLibraryFragment>::@function::g
-          element: <testLibraryFragment>::@function::g#element
+          element: <testLibrary>::@function::g
           staticType: T Function<T>()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -772,7 +772,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -785,7 +785,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -815,7 +815,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -828,7 +828,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -862,7 +862,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -896,7 +896,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -909,7 +909,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1208,7 +1208,7 @@ RecordLiteral
       methodName: SimpleIdentifier
         token: f
         staticElement: <testLibraryFragment>::@function::f
-        element: <testLibraryFragment>::@function::f#element
+        element: <testLibrary>::@function::f
         staticType: void Function()
       argumentList: ArgumentList
         leftParenthesis: (

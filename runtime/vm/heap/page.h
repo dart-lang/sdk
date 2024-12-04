@@ -271,32 +271,27 @@ class Page {
   bool IsSurvivor(uword raw_addr) const { return raw_addr < survivor_end_; }
   bool IsResolved() const { return top_ == resolved_top_; }
 
+  void AllocateCardTable() {
+    ASSERT(card_table_ == nullptr);
+    ASSERT(is_large());
+    size_t size_in_bits = card_table_size();
+    size_t size_in_bytes =
+        Utils::RoundUp(size_in_bits, kBitsPerWord) >> kBitsPerByteLog2;
+    card_table_ = reinterpret_cast<RelaxedAtomic<uword>*>(
+        calloc(size_in_bytes, sizeof(uint8_t)));
+  }
+
  private:
   void RememberCard(uword slot) {
     ASSERT(Contains(slot));
-    uword* card_table = card_table_.load();
-    if (card_table == nullptr) {
-      size_t size_in_bits = card_table_size();
-      size_t size_in_bytes =
-          Utils::RoundUp(size_in_bits, kBitsPerWord) >> kBitsPerByteLog2;
-      uword* new_card_table =
-          reinterpret_cast<uword*>(calloc(size_in_bytes, sizeof(uint8_t)));
-      if (card_table_.compare_exchange_strong(card_table, new_card_table)) {
-        card_table = new_card_table;
-      } else {
-        // Lost race.
-        ASSERT(card_table != nullptr);
-        free(new_card_table);
-      }
-    }
+    ASSERT(card_table_ != nullptr);
     intptr_t offset = slot - reinterpret_cast<uword>(this);
     intptr_t index = offset >> kBytesPerCardLog2;
     ASSERT((index >= 0) && (index < card_table_size()));
     intptr_t word_offset = index >> kBitsPerWordLog2;
     intptr_t bit_offset = index & (kBitsPerWord - 1);
     uword bit_mask = static_cast<uword>(1) << bit_offset;
-    reinterpret_cast<std::atomic<uword>*>(&card_table[word_offset])
-        ->fetch_or(bit_mask, std::memory_order_relaxed);
+    card_table_[word_offset].fetch_or(bit_mask);
   }
   bool IsCardRemembered(uword slot) {
     ASSERT(Contains(slot));
@@ -309,7 +304,7 @@ class Page {
     intptr_t word_offset = index >> kBitsPerWordLog2;
     intptr_t bit_offset = index & (kBitsPerWord - 1);
     uword bit_mask = static_cast<uword>(1) << bit_offset;
-    return (card_table_[word_offset] & bit_mask) != 0;
+    return (card_table_[word_offset].load() & bit_mask) != 0;
   }
 
   void set_object_end(uword value) {
@@ -328,7 +323,7 @@ class Page {
   VirtualMemory* memory_;
   Page* next_;
   ForwardingPage* forwarding_page_;
-  RelaxedAtomic<uword*> card_table_;  // Remembered set, not marking.
+  RelaxedAtomic<uword>* card_table_;  // Remembered set, not marking.
   RelaxedAtomic<intptr_t> progress_bar_;
 
   // The thread using this page for allocation, otherwise nullptr.

@@ -115,7 +115,7 @@
         const Error& error = Error::Handle(thread->StealStickyError());        \
         if (error.ptr() == Object::branch_offset_error().ptr()) {              \
           RELEASE_ASSERT(far_branch_level < 2);                                \
-          far_branch_level++;                                                  \
+          far_branch_level = far_branch_level + 1;                             \
         } else {                                                               \
           FATAL("Unexpected error: %s\n", error.ToErrorCString());             \
         }                                                                      \

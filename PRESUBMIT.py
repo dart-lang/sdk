@@ -117,10 +117,6 @@ def _CheckDartFormat(input_api, output_api):
         print('WARNING: dart not found: %s' % (dart))
         return []
 
-    dartFixes = [
-        '--fix-named-default-separator',
-    ]
-
     def HasFormatErrors(filename: str = None,
                         filenames: list = None,
                         contents: str = None):
@@ -141,7 +137,6 @@ def _CheckDartFormat(input_api, output_api):
         args = [
             dart,
             'format',
-        ] + dartFixes + [
             '--set-exit-if-changed',
             '--output=none',
             '--summary=none',
@@ -188,8 +183,7 @@ def _CheckDartFormat(input_api, output_api):
             output_api.PresubmitError(
                 'File output does not match dart format.\n'
                 'Fix these issues with:\n'
-                '%s format %s%s%s' % (dart, ' '.join(dartFixes), lineSep,
-                                      lineSep.join(unformatted_files)))
+                '%s format %s' % (dart, lineSep.join(unformatted_files)))
         ]
 
     return []
@@ -430,8 +424,6 @@ def _CheckAnalyzerFiles(input_api, output_api):
     #   content, when `pkg/analyzer/messages.yaml` is modified.
     # * Verify that `diagnostics/generate.dart` does not produce different
     #   content, when `pkg/analyzer/messages.yaml` is modified.
-    # * Verify that `machine.json` is not outdated, when any
-    #   `pkg/linter/lib/src/rules` file is modified.
     # * Maybe "verify_no_solo" for individual modified (not deleted test files
     #   in Analyzer-team-owned directories.
 
@@ -540,7 +532,12 @@ def _CheckDevCompilerSync(input_api, output_api):
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
-    results.extend(_CheckDartFormat(input_api, output_api))
+
+    # TODO(rnystrom): Temporarily disabling dart format checking while
+    # migrating to the new formatting style.
+    # See: https://github.com/dart-lang/sdk/issues/56688
+    # results.extend(_CheckDartFormat(input_api, output_api))
+
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))

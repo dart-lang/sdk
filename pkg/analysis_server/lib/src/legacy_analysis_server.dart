@@ -102,8 +102,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -118,8 +118,13 @@ import 'package:telemetry/crash_reporting.dart';
 import 'package:watcher/watcher.dart';
 
 /// A function that can be executed to create a handler for a request.
-typedef HandlerGenerator = LegacyHandler Function(
-    LegacyAnalysisServer, Request, CancellationToken, OperationPerformanceImpl);
+typedef HandlerGenerator =
+    LegacyHandler Function(
+      LegacyAnalysisServer,
+      Request,
+      CancellationToken,
+      OperationPerformanceImpl,
+    );
 
 typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
 
@@ -382,29 +387,34 @@ class LegacyAnalysisServer extends AnalysisServer {
     DartFixPromptManager? dartFixPromptManager,
     super.providedByteStore,
     super.pluginManager,
-  })  : lspClientConfiguration =
-            lsp.LspClientConfiguration(baseResourceProvider.pathContext),
-        super(
-          options,
-          sdkManager,
-          diagnosticServer,
-          analyticsManager,
-          crashReportingAttachmentsBuilder,
-          baseResourceProvider,
-          instrumentationService,
-          httpClient,
-          processRunner,
-          NotificationManager(channel, baseResourceProvider.pathContext),
-          requestStatistics: requestStatistics,
-          enableBlazeWatcher: enableBlazeWatcher,
-          dartFixPromptManager: dartFixPromptManager,
-        ) {
-    var contextManagerCallbacks =
-        ServerContextManagerCallbacks(this, resourceProvider);
+    bool retainDataForTesting = false,
+  }) : lspClientConfiguration = lsp.LspClientConfiguration(
+         baseResourceProvider.pathContext,
+       ),
+       super(
+         options,
+         sdkManager,
+         diagnosticServer,
+         analyticsManager,
+         crashReportingAttachmentsBuilder,
+         baseResourceProvider,
+         instrumentationService,
+         httpClient,
+         processRunner,
+         NotificationManager(channel, baseResourceProvider.pathContext),
+         requestStatistics: requestStatistics,
+         enableBlazeWatcher: enableBlazeWatcher,
+         dartFixPromptManager: dartFixPromptManager,
+         retainDataForTesting: retainDataForTesting,
+       ) {
+    var contextManagerCallbacks = ServerContextManagerCallbacks(
+      this,
+      resourceProvider,
+    );
     contextManager.callbacks = contextManagerCallbacks;
 
-    analysisDriverSchedulerEventsSubscription =
-        analysisDriverScheduler.events.listen(handleAnalysisEvent);
+    analysisDriverSchedulerEventsSubscription = analysisDriverScheduler.events
+        .listen(handleAnalysisEvent);
     analysisDriverScheduler.start();
 
     onAnalysisStarted.first.then((_) {
@@ -418,8 +428,10 @@ class LegacyAnalysisServer extends AnalysisServer {
         io.pid,
       ).toNotification(clientUriConverter: uriConverter),
     );
-    debounceRequests(channel, discardedRequests)
-        .listen(handleRequestOrResponse, onDone: done, onError: error);
+    debounceRequests(
+      channel,
+      discardedRequests,
+    ).listen(handleRequestOrResponse, onDone: done, onError: error);
     _newRefactoringManager();
   }
 
@@ -436,7 +448,8 @@ class LegacyAnalysisServer extends AnalysisServer {
       // URI support implies LSP, as that's the only way to access (and get
       // change notifications for) custom-scheme files.
       uriConverter = ClientUriConverter.withVirtualFileSupport(
-          resourceProvider.pathContext);
+        resourceProvider.pathContext,
+      );
       initializeLspOverLegacy();
     } else {
       uriConverter = ClientUriConverter.noop(resourceProvider.pathContext);
@@ -474,8 +487,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     return (Uri uri) async {
       var requestId = '${nextServerRequestId++}';
       await sendRequest(
-        ServerOpenUrlRequestParams('$uri')
-            .toRequest(requestId, clientUriConverter: uriConverter),
+        ServerOpenUrlRequestParams(
+          '$uri',
+        ).toRequest(requestId, clientUriConverter: uriConverter),
       );
     };
   }
@@ -536,79 +550,100 @@ class LegacyAnalysisServer extends AnalysisServer {
     sendStatusNotificationNew(status);
   }
 
-  /// Handle a [request] that was read from the communication channel.
-  void handleRequest(Request request) {
+  /// Handle a [request] that was read from the communication channel. The completer
+  /// is used to indicate when the request handling is done.
+  void handleRequest(
+    Request request,
+    Completer<void> completer,
+    CancelableToken? cancellationToken,
+  ) {
     var startTime = DateTime.now();
     performance.logRequestTiming(request.clientRequestTime);
 
     // Because we don't `await` the execution of the handlers, we wrap the
     // execution in order to have one central place to handle exceptions.
-    runZonedGuarded(() async {
-      // Record performance information for the request.
-      var rootPerformance = OperationPerformanceImpl('<root>');
-      RequestPerformance? requestPerformance;
-      await rootPerformance.runAsync('request', (performance) async {
-        requestPerformance = RequestPerformance(
-          operation: request.method,
-          performance: performance,
-          requestLatency: request.timeSinceRequest,
-          startTime: startTime,
-        );
-        recentPerformance.requests.add(requestPerformance!);
+    runZonedGuarded(
+      () async {
+        // Record performance information for the request.
+        var rootPerformance = OperationPerformanceImpl('<root>');
+        RequestPerformance? requestPerformance;
+        await rootPerformance.runAsync('request', (performance) async {
+          requestPerformance = RequestPerformance(
+            operation: request.method,
+            performance: performance,
+            requestLatency: request.timeSinceRequest,
+            startTime: startTime,
+          );
+          recentPerformance.requests.add(requestPerformance!);
 
-        var cancellationToken = CancelableToken();
-        cancellationTokens[request.id] = cancellationToken;
-        var generator = requestHandlerGenerators[request.method];
-        if (generator != null) {
-          var handler =
-              generator(this, request, cancellationToken, performance);
-          if (!handler.recordsOwnAnalytics) {
+          var token = cancellationToken ??= CancelableToken();
+          cancellationTokens[request.id] = token;
+          var generator = requestHandlerGenerators[request.method];
+          if (generator != null) {
+            var handler = generator(this, request, token, performance);
+            if (!handler.recordsOwnAnalytics) {
+              analyticsManager.startedRequest(
+                request: request,
+                startTime: startTime,
+              );
+            }
+            await handler.handle();
+          } else {
             analyticsManager.startedRequest(
-                request: request, startTime: startTime);
+              request: request,
+              startTime: startTime,
+            );
+            sendResponse(Response.unknownRequest(request));
           }
-          await handler.handle();
-        } else {
-          analyticsManager.startedRequest(
-              request: request, startTime: startTime);
-          sendResponse(Response.unknownRequest(request));
+        });
+        if (requestPerformance != null &&
+            requestPerformance!.performance.elapsed >
+                ServerRecentPerformance.slowRequestsThreshold) {
+          recentPerformance.slowRequests.add(requestPerformance!);
         }
-      });
-      if (requestPerformance != null &&
-          requestPerformance!.performance.elapsed >
-              ServerRecentPerformance.slowRequestsThreshold) {
-        recentPerformance.slowRequests.add(requestPerformance!);
-      }
-    }, (exception, stackTrace) {
-      if (exception is InconsistentAnalysisException) {
-        sendResponse(Response.contentModified(request));
-      } else if (exception is RequestFailure) {
-        sendResponse(exception.response);
-      } else {
-        // Log the exception.
-        instrumentationService.logException(
-          FatalException(
-            'Failed to handle request: ${request.method}',
-            exception,
-            stackTrace,
-          ),
-          null,
-          crashReportingAttachmentsBuilder.forException(exception),
-        );
-        // Then return an error response to the client.
-        var error =
-            RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
-        error.stackTrace = stackTrace.toString();
-        var response = Response(request.id, error: error);
-        sendResponse(response);
-      }
-    });
+        completer.complete();
+      },
+      (exception, stackTrace) {
+        if (exception is InconsistentAnalysisException) {
+          sendResponse(Response.contentModified(request));
+        } else if (exception is RequestFailure) {
+          sendResponse(exception.response);
+        } else {
+          // Log the exception.
+          instrumentationService.logException(
+            FatalException(
+              'Failed to handle request: ${request.method}',
+              exception,
+              stackTrace,
+            ),
+            null,
+            crashReportingAttachmentsBuilder.forException(exception),
+          );
+          // Then return an error response to the client.
+          var error = RequestError(
+            RequestErrorCode.SERVER_ERROR,
+            exception.toString(),
+          );
+          error.stackTrace = stackTrace.toString();
+          var response = Response(request.id, error: error);
+          sendResponse(response);
+        }
+        completer.complete();
+      },
+    );
   }
 
   /// Handle a [request] that was read from the communication channel.
   void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
     if (requestOrResponse is Request) {
-      messageScheduler.add(LegacyMessage(request: requestOrResponse));
-      messageScheduler.notify();
+      var cancellationToken = CancelableToken();
+      cancellationTokens[requestOrResponse.id] = cancellationToken;
+      messageScheduler.add(
+        LegacyMessage(
+          request: requestOrResponse,
+          cancellationToken: cancellationToken,
+        ),
+      );
     } else if (requestOrResponse is Response) {
       handleResponse(requestOrResponse);
     }
@@ -666,8 +701,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
 
     channel.sendNotification(
-      LspNotificationParams(notification)
-          .toNotification(clientUriConverter: uriConverter),
+      LspNotificationParams(
+        notification,
+      ).toNotification(clientUriConverter: uriConverter),
     );
   }
 
@@ -715,20 +751,27 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
 
     // send the notification
-    channel.sendNotification(ServerErrorParams(fatal, msg, '$stackTrace')
-        .toNotification(clientUriConverter: uriConverter));
+    channel.sendNotification(
+      ServerErrorParams(
+        fatal,
+        msg,
+        '$stackTrace',
+      ).toNotification(clientUriConverter: uriConverter),
+    );
 
     // remember the last few exceptions
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
     }
 
-    exceptions.add(ServerException(
-      message,
-      exception,
-      stackTrace is StackTrace ? stackTrace : StackTrace.current,
-      fatal,
-    ));
+    exceptions.add(
+      ServerException(
+        message,
+        exception,
+        stackTrace is StackTrace ? stackTrace : StackTrace.current,
+        fatal,
+      ),
+    );
   }
 
   /// Send status notification to the client. The state of analysis is given by
@@ -745,8 +788,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     }
     // Perform on-idle actions.
     if (!isAnalyzing) {
-      if (generalAnalysisServices
-          .contains(GeneralAnalysisService.ANALYZED_FILES)) {
+      if (generalAnalysisServices.contains(
+        GeneralAnalysisService.ANALYZED_FILES,
+      )) {
         sendAnalysisNotificationAnalyzedFiles(this);
       }
       _scheduleAnalysisImplementedNotification();
@@ -766,8 +810,11 @@ class LegacyAnalysisServer extends AnalysisServer {
       reportAnalysisAnalytics();
     }
     var analysis = AnalysisStatus(isAnalyzing);
-    channel.sendNotification(ServerStatusParams(analysis: analysis)
-        .toNotification(clientUriConverter: uriConverter));
+    channel.sendNotification(
+      ServerStatusParams(
+        analysis: analysis,
+      ).toNotification(clientUriConverter: uriConverter),
+    );
   }
 
   /// Implementation for `analysis.setAnalysisRoots`.
@@ -780,16 +827,23 @@ class LegacyAnalysisServer extends AnalysisServer {
   //
   // So, we can start working in parallel on adding services and improving
   // projects/contexts support.
-  Future<void> setAnalysisRoots(String requestId, List<String> includedPaths,
-      List<String> excludedPaths) async {
+  Future<void> setAnalysisRoots(
+    String requestId,
+    List<String> includedPaths,
+    List<String> excludedPaths,
+  ) async {
     var completer = analysisContextRebuildCompleter = Completer();
     try {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
       try {
         await contextManager.setRoots(includedPaths, excludedPaths);
       } on UnimplementedError catch (e) {
-        throw RequestFailure(Response.unsupportedFeature(
-            requestId, e.message ?? 'Unsupported feature.'));
+        throw RequestFailure(
+          Response.unsupportedFeature(
+            requestId,
+            e.message ?? 'Unsupported feature.',
+          ),
+        );
       }
     } finally {
       completer.complete();
@@ -798,7 +852,8 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Implementation for `analysis.setSubscriptions`.
   void setAnalysisSubscriptions(
-      Map<AnalysisService, Set<String>> subscriptions) {
+    Map<AnalysisService, Set<String>> subscriptions,
+  ) {
     notificationManager.setSubscriptions(subscriptions);
     analysisServices = subscriptions;
     _sendSubscriptions(analysis: true);
@@ -812,16 +867,19 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Implementation for `analysis.setGeneralSubscriptions`.
   void setGeneralAnalysisSubscriptions(
-      List<GeneralAnalysisService> subscriptions) {
+    List<GeneralAnalysisService> subscriptions,
+  ) {
     var newServices = subscriptions.toSet();
     if (newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
-        !generalAnalysisServices
-            .contains(GeneralAnalysisService.ANALYZED_FILES) &&
+        !generalAnalysisServices.contains(
+          GeneralAnalysisService.ANALYZED_FILES,
+        ) &&
         isAnalysisComplete()) {
       sendAnalysisNotificationAnalyzedFiles(this);
     } else if (!newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
-        generalAnalysisServices
-            .contains(GeneralAnalysisService.ANALYZED_FILES)) {
+        generalAnalysisServices.contains(
+          GeneralAnalysisService.ANALYZED_FILES,
+        )) {
       prevAnalyzedFiles = null;
     }
     generalAnalysisServices = newServices;
@@ -857,9 +915,11 @@ class LegacyAnalysisServer extends AnalysisServer {
     assert(supportsShowMessageRequest);
     var requestId = (nextServerRequestId++).toString();
     var actions = actionLabels.map((label) => MessageAction(label)).toList();
-    var request =
-        ServerShowMessageRequestParams(type.forLegacy, message, actions)
-            .toRequest(requestId, clientUriConverter: uriConverter);
+    var request = ServerShowMessageRequestParams(
+      type.forLegacy,
+      message,
+      actions,
+    ).toRequest(requestId, clientUriConverter: uriConverter);
     var response = await sendRequest(request);
     return response.result?['action'] as String?;
   }
@@ -874,10 +934,12 @@ class LegacyAnalysisServer extends AnalysisServer {
 
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
-    unawaited(Future(() {
-      instrumentationService.shutdown();
-      channel.close();
-    }));
+    unawaited(
+      Future(() {
+        instrumentationService.shutdown();
+        channel.close();
+      }),
+    );
   }
 
   /// Implementation for `analysis.updateContent`.
@@ -900,16 +962,28 @@ class LegacyAnalysisServer extends AnalysisServer {
         if (oldContents == null) {
           // The client may only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
-          throw RequestFailure(Response(id,
-              error: RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
-                  'Invalid overlay change')));
+          throw RequestFailure(
+            Response(
+              id,
+              error: RequestError(
+                RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                'Invalid overlay change',
+              ),
+            ),
+          );
         }
         try {
           newContents = SourceEdit.applySequence(oldContents, change.edits);
         } on RangeError {
-          throw RequestFailure(Response(id,
-              error: RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
-                  'Invalid overlay change')));
+          throw RequestFailure(
+            Response(
+              id,
+              error: RequestError(
+                RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                'Invalid overlay change',
+              ),
+            ),
+          );
         }
       } else if (change is RemoveContentOverlay) {
         newContents = null;
@@ -947,25 +1021,25 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// existing analysis context.
   void updateOptions(List<OptionUpdater> optionUpdaters) {
     // TODO(scheglov): implement for the new analysis driver
-//    //
-//    // Update existing contexts.
-//    //
-//    for (AnalysisContext context in analysisContexts) {
-//      AnalysisOptionsImpl options =
-//          new AnalysisOptionsImpl.from(context.analysisOptions);
-//      optionUpdaters.forEach((OptionUpdater optionUpdater) {
-//        optionUpdater(options);
-//      });
-//      context.analysisOptions = options;
-//      // `TODO`(brianwilkerson) As far as I can tell, this doesn't cause analysis
-//      // to be scheduled for this context.
-//    }
-//    //
-//    // Update the defaults used to create new contexts.
-//    //
-//    optionUpdaters.forEach((OptionUpdater optionUpdater) {
-//      optionUpdater(defaultContextOptions);
-//    });
+    //    //
+    //    // Update existing contexts.
+    //    //
+    //    for (AnalysisContext context in analysisContexts) {
+    //      AnalysisOptionsImpl options =
+    //          new AnalysisOptionsImpl.from(context.analysisOptions);
+    //      optionUpdaters.forEach((OptionUpdater optionUpdater) {
+    //        optionUpdater(options);
+    //      });
+    //      context.analysisOptions = options;
+    //      // `TODO`(brianwilkerson) As far as I can tell, this doesn't cause analysis
+    //      // to be scheduled for this context.
+    //    }
+    //    //
+    //    // Update the defaults used to create new contexts.
+    //    //
+    //    optionUpdaters.forEach((OptionUpdater optionUpdater) {
+    //      optionUpdater(defaultContextOptions);
+    //    });
   }
 
   /// Returns `true` if there is a subscription for the given [service] and
@@ -1055,26 +1129,39 @@ class ServerContextManagerCallbacks
 
     var unit = result.unit;
     if (analysisServer._hasAnalysisServiceSubscription(
-        AnalysisService.HIGHLIGHTS, path)) {
+      AnalysisService.HIGHLIGHTS,
+      path,
+    )) {
       _runDelayed(() {
         _notificationManager.recordHighlightRegions(
-            NotificationManager.serverId, path, _computeHighlightRegions(unit));
+          NotificationManager.serverId,
+          path,
+          _computeHighlightRegions(unit),
+        );
       });
     }
     if (analysisServer._hasAnalysisServiceSubscription(
-        AnalysisService.NAVIGATION, path)) {
+      AnalysisService.NAVIGATION,
+      path,
+    )) {
       _runDelayed(() {
         _notificationManager.recordNavigationParams(
-            NotificationManager.serverId,
-            path,
-            _computeNavigationParams(path, result));
+          NotificationManager.serverId,
+          path,
+          _computeNavigationParams(path, result),
+        );
       });
     }
     if (analysisServer._hasAnalysisServiceSubscription(
-        AnalysisService.OCCURRENCES, path)) {
+      AnalysisService.OCCURRENCES,
+      path,
+    )) {
       _runDelayed(() {
         _notificationManager.recordOccurrences(
-            NotificationManager.serverId, path, _computeOccurrences(unit));
+          NotificationManager.serverId,
+          path,
+          _computeOccurrences(unit),
+        );
       });
     }
     // if (analysisServer._hasAnalysisServiceSubscription(
@@ -1087,33 +1174,51 @@ class ServerContextManagerCallbacks
     //   });
     // }
     if (analysisServer._hasAnalysisServiceSubscription(
-        AnalysisService.CLOSING_LABELS, path)) {
+      AnalysisService.CLOSING_LABELS,
+      path,
+    )) {
       _runDelayed(() {
         sendAnalysisNotificationClosingLabels(
-            analysisServer, path, result.lineInfo, unit);
+          analysisServer,
+          path,
+          result.lineInfo,
+          unit,
+        );
       });
     }
     if (analysisServer._hasAnalysisServiceSubscription(
-        AnalysisService.FOLDING, path)) {
+      AnalysisService.FOLDING,
+      path,
+    )) {
       _runDelayed(() {
         sendAnalysisNotificationFolding(
-            analysisServer, path, result.lineInfo, unit);
+          analysisServer,
+          path,
+          result.lineInfo,
+          unit,
+        );
       });
     }
     if (analysisServer._hasAnalysisServiceSubscription(
-        AnalysisService.OUTLINE, path)) {
+      AnalysisService.OUTLINE,
+      path,
+    )) {
       _runDelayed(() {
         sendAnalysisNotificationOutline(analysisServer, result);
       });
     }
     if (analysisServer._hasAnalysisServiceSubscription(
-        AnalysisService.OVERRIDES, path)) {
+      AnalysisService.OVERRIDES,
+      path,
+    )) {
       _runDelayed(() {
         sendAnalysisNotificationOverrides(analysisServer, path, unit);
       });
     }
     if (analysisServer._hasFlutterServiceSubscription(
-        FlutterService.OUTLINE, path)) {
+      FlutterService.OUTLINE,
+      path,
+    )) {
       _runDelayed(() {
         sendFlutterNotificationOutline(analysisServer, result);
       });
@@ -1125,12 +1230,18 @@ class ServerContextManagerCallbacks
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(
-      String path, ParsedUnitResult result) {
+    String path,
+    ParsedUnitResult result,
+  ) {
     var collector = NavigationCollectorImpl();
     computeDartNavigation(resourceProvider, collector, result, null, null);
     collector.createRegions();
     return server.AnalysisNavigationParams(
-        path, collector.regions, collector.targets, collector.files);
+      path,
+      collector.regions,
+      collector.targets,
+      collector.files,
+    );
   }
 
   List<Occurrences> _computeOccurrences(CompilationUnit unit) {

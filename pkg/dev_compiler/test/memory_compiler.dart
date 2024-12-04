@@ -4,7 +4,6 @@
 
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/command/command.dart';
-import 'package:dev_compiler/src/compiler/shared_command.dart';
 import 'package:dev_compiler/src/js_ast/js_ast.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/target/targets.dart';

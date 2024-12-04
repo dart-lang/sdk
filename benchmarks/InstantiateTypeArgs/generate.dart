@@ -93,13 +93,19 @@ class C$i {}
 
 void main() {
   final dartFilePath = path.join(
-      path.dirname(Platform.script.path), 'dart', '$benchmarkName.dart');
+    path.dirname(Platform.script.path),
+    'dart',
+    '$benchmarkName.dart',
+  );
   final dartSink = File(dartFilePath).openWrite();
   generateBenchmarkClassesAndUtilities(dartSink, nnbd: true);
   dartSink..flush();
 
   final dart2FilePath = path.join(
-      path.dirname(Platform.script.path), 'dart2', '$benchmarkName.dart');
+    path.dirname(Platform.script.path),
+    'dart2',
+    '$benchmarkName.dart',
+  );
   final dart2Sink = File(dart2FilePath).openWrite();
   generateBenchmarkClassesAndUtilities(dart2Sink, nnbd: false);
   dart2Sink..flush();

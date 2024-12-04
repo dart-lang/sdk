@@ -18,6 +18,5 @@ class NotA {}
 NotA myF() => throw '';
 
 test() {
-  var /*@type=C<NotA>*/ x =
-      new /*error:COULD_NOT_INFER*/ /*@typeArgs=NotA*/ C(myF);
+  var /*@type=C<A>*/ x = new /*error:COULD_NOT_INFER*/ /*@typeArgs=A*/ C(myF);
 }

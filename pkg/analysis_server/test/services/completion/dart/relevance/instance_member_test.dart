@@ -103,7 +103,7 @@ void f(A a) {
     // Getters, setters and fields now all have the same relevance.
     assertOrder([
       suggestionWith(completion: 'g'),
-//      suggestionWith(completion: 's'),
+      //      suggestionWith(completion: 's'),
       suggestionWith(completion: 'm'),
     ]);
   }

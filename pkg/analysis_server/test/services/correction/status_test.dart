@@ -39,15 +39,16 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     var element = findElement.class_('MyClass');
     var sourceRange = range.elementName(element);
     SearchMatch match = SearchMatchImpl(
-        element.source.fullName,
-        element.library.source,
-        element.source,
-        element.library,
-        element,
-        true,
-        false,
-        MatchKind.DECLARATION,
-        sourceRange);
+      element.source.fullName,
+      element.library.source,
+      element.source,
+      element.library,
+      element,
+      true,
+      false,
+      MatchKind.DECLARATION,
+      sourceRange,
+    );
     // check
     var location = newLocation_fromMatch(match);
     expect(location.file, testFile.path);

@@ -28,7 +28,7 @@
 ///
 /// In the future we may optimize and combine hunks, at that point this test
 /// needs to be rewritten.
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'dart:async';
 

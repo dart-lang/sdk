@@ -55,7 +55,9 @@ void f() {
     var request = getDocumentHighlights(mainFileUri, pos);
 
     await expectLater(
-        request, throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)));
+      request,
+      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+    );
   }
 
   Future<void> test_localVariable() => _testMarkedContent('''
@@ -77,20 +79,21 @@ import 'macros.dart';
 class A {}
 ''';
     newFile(mainFilePath, content);
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await Future.wait([waitForAnalysisComplete(), initialize()]);
 
     // Fetch the content and locate the two references to `f` we will test.
     var generatedFile = await getDartTextDocumentContent(mainFileMacroUri);
     var generatedContent = generatedFile!.content!;
     var functionDefinitionOffset = generatedContent.indexOf('f() {');
     var functionCallOffset = generatedContent.indexOf('f();');
-    var functionDefinitionPosition =
-        positionFromOffset(functionDefinitionOffset, generatedContent);
-    var functionCallOffsetPosition =
-        positionFromOffset(functionCallOffset, generatedContent);
+    var functionDefinitionPosition = positionFromOffset(
+      functionDefinitionOffset,
+      generatedContent,
+    );
+    var functionCallOffsetPosition = positionFromOffset(
+      functionCallOffset,
+      generatedContent,
+    );
 
     // Request document highlights on one occurrence of `f`.
     var highlights = await getDocumentHighlights(
@@ -150,6 +153,14 @@ void f() {
 }
 ''');
 
+  Future<void> test_prefixed() => _testMarkedContent('''
+import '' as p;
+
+class /*[0*/A^/*0]*/ {}
+
+p./*[1*/A/*1]*/? a;
+''');
+
   Future<void> test_shadow_inner() => _testMarkedContent('''
 void f() {
   var foo = 1;
@@ -185,6 +196,42 @@ void f() {
   print(/*[1*/_/*1]*/);
   /*[2*/^_/*2]*/ = '';
 }
+''');
+
+  Future<void> test_typeAlias_class_declaration() => _testMarkedContent('''
+class MyClass {}
+mixin MyMixin {}
+class /*[0*/MyAli^as/*0]*/ = MyClass with MyMixin;
+/*[1*/MyAlias/*1]*/? a;
+''');
+
+  Future<void> test_typeAlias_class_reference() => _testMarkedContent('''
+class MyClass {}
+mixin MyMixin {}
+class /*[0*/MyAlias/*0]*/ = MyClass with MyMixin;
+/*[1*/MyAl^ias/*1]*/? a;
+''');
+
+  Future<void> test_typeAlias_function_declaration() => _testMarkedContent('''
+typedef /*[0*/myFu^nc/*0]*/();
+/*[1*/myFunc/*1]*/? f;
+''');
+
+  Future<void> test_typeAlias_function_reference() => _testMarkedContent('''
+typedef /*[0*/myFunc/*0]*/();
+/*[1*/myFun^c/*1]*/? f;
+''');
+
+  Future<void> test_typeAlias_generic_declaration() => _testMarkedContent('''
+typedef /*[0*/TD^/*0]*/ = String;
+
+/*[1*/TD/*1]*/? a;
+''');
+
+  Future<void> test_typeAlias_generic_reference() => _testMarkedContent('''
+typedef /*[0*/TD/*0]*/ = String;
+
+/*[1*/TD^/*1]*/? a;
 ''');
 
   /// Tests highlights in a Dart file using the provided content.

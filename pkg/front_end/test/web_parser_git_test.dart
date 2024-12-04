@@ -7,7 +7,7 @@ import 'dart:io';
 
 import "utils/io_utils.dart";
 
-Future<void> main(List<String> args) async {
+void main(List<String> args) {
   Uri dart = repoDir.resolve(
       "tools/sdks/dart-sdk/bin/dart${Platform.isWindows ? ".exe" : ""}");
   if (!new File.fromUri(dart).existsSync()) {

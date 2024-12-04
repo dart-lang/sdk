@@ -370,7 +370,7 @@ AssignmentExpression
     methodName: SimpleIdentifier
       token: g
       staticElement: <testLibraryFragment>::@function::g
-      element: <testLibraryFragment>::@function::g#element
+      element: <testLibrary>::@function::g
       staticType: T Function<T>()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -465,7 +465,7 @@ PropertyAccess
         NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -479,7 +479,7 @@ PropertyAccess
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -520,7 +520,7 @@ MethodInvocation
         NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -534,7 +534,7 @@ MethodInvocation
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -588,7 +588,7 @@ PropertyAccess
         NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -602,7 +602,7 @@ PropertyAccess
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -644,7 +644,7 @@ AssignmentExpression
           NamedType
             name: num
             element: dart:core::<fragment>::@class::num
-            element2: dart:core::<fragment>::@class::num#element
+            element2: dart:core::@class::num
             type: num
         rightBracket: >
       argumentList: ArgumentList
@@ -658,7 +658,7 @@ AssignmentExpression
             staticType: A<int>
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A<num>
       staticType: null
       typeArgumentTypes
@@ -701,11 +701,12 @@ f(String s) {
   E(s).foo();
 }
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 69, 1),
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 71,
+          1),
     ]);
     var override = findNode.extensionOverride('E(s)');
-    assertElementTypes(override.typeArgumentTypes, ['String']);
-    assertType(override.extendedType, 'String');
+    assertElementTypes(override.typeArgumentTypes, ['num']);
+    assertType(override.extendedType, 'num');
   }
 
   test_override_inferTypeArguments_getter() async {
@@ -737,7 +738,7 @@ PropertyAccess
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -783,7 +784,7 @@ MethodInvocation
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -842,7 +843,7 @@ PropertyAccess
           staticType: A<int>
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -888,7 +889,7 @@ AssignmentExpression
             staticType: A<int>
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A<int>
       staticType: null
       typeArgumentTypes

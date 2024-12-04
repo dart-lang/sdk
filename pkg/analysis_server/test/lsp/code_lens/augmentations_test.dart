@@ -65,24 +65,28 @@ abstract class AbstractAugmentationCodeLensTest
     targetRange ??= this.targetRange;
 
     var documentCodeLenses = (await getCodeLens(sourceUri)) ?? [];
-    var matchingCodeLenses = documentCodeLenses.where((codeLens) =>
-        codeLens.command?.title == codeLensTitle &&
-        codeLens.range.containsPosition(sourceRange!.start));
+    var matchingCodeLenses = documentCodeLenses.where(
+      (codeLens) =>
+          codeLens.command?.title == codeLensTitle &&
+          codeLens.range.containsPosition(sourceRange!.start),
+    );
 
     if (matchingCodeLenses.isEmpty) {
       var debugText = documentCodeLenses
           .map((codeLens) => '  ${codeLens.command?.title} (${codeLens.range})')
           .join('\n');
       fail(
-          'Did not find "$codeLensTitle" ($sourceRange) CodeLens in $sourceUri.\n'
-          'Found:\n$debugText');
+        'Did not find "$codeLensTitle" ($sourceRange) CodeLens in $sourceUri.\n'
+        'Found:\n$debugText',
+      );
     } else if (matchingCodeLenses.length > 1) {
       var debugText = matchingCodeLenses
           .map((codeLens) => '  ${codeLens.command?.title} (${codeLens.range})')
           .join('\n');
       fail(
-          'Found multiple "$codeLensTitle" ($sourceRange) CodeLens in $sourceUri.\n'
-          'Found:\n$debugText');
+        'Found multiple "$codeLensTitle" ($sourceRange) CodeLens in $sourceUri.\n'
+        'Found:\n$debugText',
+      );
     }
 
     var codeLens = matchingCodeLenses.single;
@@ -92,22 +96,20 @@ abstract class AbstractAugmentationCodeLensTest
     // Clients will need to provide this command and will implement it as
     // documented.
     expect(codeLens.command!.command, ClientCommands.goToLocation);
-    expect(
-      codeLens.command?.arguments,
-      [
-        Location(
-          uri: targetUri,
-          range: targetRange,
-        ).toJson() // Args are untyped, so toJson() to compare the Map.
-      ],
-    );
+    expect(codeLens.command?.arguments, [
+      Location(
+        uri: targetUri,
+        range: targetRange,
+      ).toJson(), // Args are untyped, so toJson() to compare the Map.
+    ]);
   }
 
   /// Expects no CodeLens in [uri]/[sourceUri] with the title [codeLensTitle].
   Future<void> expectNoCodeLenses([Uri? uri]) async {
     var documentCodeLenses = (await getCodeLens(uri ?? sourceUri)) ?? [];
-    var matchingCodeLenses = documentCodeLenses
-        .where((codeLens) => codeLens.command?.title == codeLensTitle);
+    var matchingCodeLenses = documentCodeLenses.where(
+      (codeLens) => codeLens.command?.title == codeLensTitle,
+    );
     expect(matchingCodeLenses, isEmpty);
   }
 
@@ -245,17 +247,19 @@ augment void [!f!]() {}
 
     await expectLater(
       expectNoCodeLenses(nonExistentFileUri),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'File does not exist')),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
+          message: 'File does not exist',
+        ),
+      ),
     );
   }
 
   test_unavailable_disabledEntirely() async {
     useSimpleClassAugmentation();
 
-    await provideConfig(initialize, {
-      'codeLens': false,
-    });
+    await provideConfig(initialize, {'codeLens': false});
     await expectNoCodeLenses();
   }
 

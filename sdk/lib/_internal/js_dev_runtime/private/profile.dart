@@ -63,14 +63,20 @@ List<List<Object>> getDynamicStats() {
       // runtime.
       var src = frames
           .skip(2)
-          .map((f) => _frameMappingCache.putIfAbsent(
-              f, () => stackTraceMapper!('\n$f')))
+          .map(
+            (f) => _frameMappingCache.putIfAbsent(
+              f,
+              () => stackTraceMapper!('\n$f'),
+            ),
+          )
           .firstWhere((f) => !f.startsWith('dart:'), orElse: () => '');
 
       var actualTypeName = dart.typeName(record.type);
       callMethodStats
           .putIfAbsent(
-              "$actualTypeName <$src>", () => _MethodStats(actualTypeName, src))
+            "$actualTypeName <$src>",
+            () => _MethodStats(actualTypeName, src),
+          )
           .count += recordRatio;
     }
 
@@ -91,7 +97,8 @@ List<List<Object>> getDynamicStats() {
   _totalCallRecords = 0;
   var keys = callMethodStats.keys.toList();
   keys.sort(
-      (a, b) => callMethodStats[b]!.count.compareTo(callMethodStats[a]!.count));
+    (a, b) => callMethodStats[b]!.count.compareTo(callMethodStats[a]!.count),
+  );
   var ret = <List<Object>>[];
   for (var key in keys) {
     var stats = callMethodStats[key]!;
@@ -123,8 +130,10 @@ trackCall(obj) {
     index = JS<int>('!', 'Math.floor(Math.random() * #)', _totalCallRecords);
     if (index >= _callMethodRecords.length) return; // don't sample
   }
-  var record =
-      _CallMethodRecord(JS('', 'new Error()'), dart.getReifiedType(obj));
+  var record = _CallMethodRecord(
+    JS('', 'new Error()'),
+    dart.getReifiedType(obj),
+  );
   if (index == -1) {
     _callMethodRecords.add(record);
   } else {

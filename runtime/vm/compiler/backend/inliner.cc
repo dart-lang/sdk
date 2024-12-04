@@ -133,7 +133,7 @@ class CalleeGraphValidator : public AllStatic {
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
         if (current->IsBranch()) {
-          current = current->AsBranch()->comparison();
+          current = current->AsBranch()->condition();
         }
         // The following instructions are not safe to inline, since they make
         // assumptions about the frame layout.
@@ -486,12 +486,6 @@ class CallSites : public ValueObject {
         last_unhandled_call_index--;
       }
 
-      // Can't apply canonicalization rule to this definition.
-      if (defn->HasUnmatchedInputRepresentations() &&
-          defn->SpeculativeModeOfInputs() == Instruction::kGuardInputs) {
-        continue;
-      }
-
       auto replacement = defn->Canonicalize(graph);
       if (replacement != defn) {
         changed = true;
@@ -701,6 +695,14 @@ static bool IsSmallLeafOrReduction(int inlining_depth,
           instruction_count += 1;  // pop the call frame.
         }
         continue;
+      }
+      if (auto check = current->AsGenericCheckBound()) {
+        if (check->IsPhantom()) {
+          // Discount the check since it is guaranteed to be removed.
+          instruction_count -= 1;
+          // TODO(dartbug.com/56902): The bound (length input) might also become
+          // dead. Discount these instructions too.
+        }
       }
     }
   }
@@ -1230,7 +1232,7 @@ class CallSiteInliner : public ValueObject {
         constant_arg_count == 0 ? function.optimized_instruction_count() : 0;
     const intptr_t call_site_count =
         constant_arg_count == 0 ? function.optimized_call_site_count() : 0;
-    InliningDecision decision =
+    volatile InliningDecision decision =
         ShouldWeInline(function, instruction_count, call_site_count);
     if (!decision.value) {
       TRACE_INLINING(
@@ -2200,21 +2202,20 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       // For all variants except the last, use a branch on the loaded class
       // id.
       BlockEntryInstr* cid_test_entry_block = current_block;
-      ComparisonInstr* compare;
+      ConditionInstr* condition;
       if (variant.cid_start == variant.cid_end) {
         ConstantInstr* cid_constant = owner_->caller_graph()->GetConstant(
             Smi::ZoneHandle(Smi::New(variant.cid_end)), cid_representation);
-        compare = new EqualityCompareInstr(
+        condition = new EqualityCompareInstr(
             call_->source(), Token::kEQ, new Value(load_cid),
-            new Value(cid_constant),
-            cid_representation == kTagged ? kSmiCid : kIntegerCid,
-            DeoptId::kNone, false, Instruction::kNotSpeculative);
+            new Value(cid_constant), cid_representation, DeoptId::kNone,
+            /*null_aware=*/false);
       } else {
-        compare = new TestRangeInstr(call_->source(), new Value(load_cid),
-                                     variant.cid_start, variant.cid_end,
-                                     cid_representation);
+        condition = new TestRangeInstr(call_->source(), new Value(load_cid),
+                                       variant.cid_start, variant.cid_end,
+                                       cid_representation);
       }
-      BranchInstr* branch = new BranchInstr(compare, DeoptId::kNone);
+      BranchInstr* branch = new BranchInstr(condition, DeoptId::kNone);
 
       branch->InheritDeoptTarget(zone(), call_);
       AppendInstruction(cursor, branch);

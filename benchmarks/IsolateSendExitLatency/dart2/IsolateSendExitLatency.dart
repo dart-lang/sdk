@@ -15,13 +15,16 @@ import 'dart:isolate';
 import 'latency.dart';
 
 main() async {
-  final statsFuture =
-      measureEventLoopLatency(const Duration(milliseconds: 1), 4000, work: () {
-    // Every 1 ms we allocate some objects which may trigger GC some time.
-    for (int i = 0; i < 32; i++) {
-      List.filled(32 * 1024 ~/ 8, null);
-    }
-  });
+  final statsFuture = measureEventLoopLatency(
+    const Duration(milliseconds: 1),
+    4000,
+    work: () {
+      // Every 1 ms we allocate some objects which may trigger GC some time.
+      for (int i = 0; i < 32; i++) {
+        List.filled(32 * 1024 ~/ 8, null);
+      }
+    },
+  );
 
   final result = await compute(() {
     final l = <dynamic>[];

@@ -11,5 +11,5 @@ class A<X extends core::Object? = dynamic> extends core::Object {
 }
 static method main() → dynamic {
   self::A<core::num> a = new self::A::•<core::int>();
-  a.{self::A::f}<core::int>(<X extends core::Object? = dynamic>(self::A<X%> _) → core::int => 42){(<X extends core::Object? = dynamic>(self::A<X%>) → core::int) → core::int};
+  a.{self::A::f}<core::int>(<X extends core::Object? = dynamic>(self::A<X%> _#wc0#formal) → core::int => 42){(<X extends core::Object? = dynamic>(self::A<X%>) → core::int) → core::int};
 }

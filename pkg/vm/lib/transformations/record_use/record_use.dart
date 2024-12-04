@@ -36,16 +36,16 @@ ast.Component transformComponent(
       component.metadata[tag] as LoadingUnitsMetadataRepository;
   final loadingUnits = loadingMetadata.mapping[component]?.loadingUnits ?? [];
 
-  final staticCallRecorder = StaticCallRecorder(source, loadingUnits);
-  final instanceUseRecorder = InstanceUseRecorder(source, loadingUnits);
+  final staticCallRecorder = CallRecorder(source, loadingUnits);
+  final instanceUseRecorder = InstanceRecorder(source, loadingUnits);
   component.accept(_RecordUseVisitor(
     staticCallRecorder,
     instanceUseRecorder,
   ));
 
   final usages = _usages(
-    staticCallRecorder.callsForMethod.values,
-    instanceUseRecorder.instancesForClass.values,
+    staticCallRecorder.foundCalls,
+    instanceUseRecorder.foundInstances,
   );
   var usagesStorageFormat = usages.toJson();
   File.fromUri(recordedUsagesFile).writeAsStringSync(
@@ -56,8 +56,8 @@ ast.Component transformComponent(
 }
 
 class _RecordUseVisitor extends ast.RecursiveVisitor {
-  final StaticCallRecorder staticCallRecorder;
-  final InstanceUseRecorder instanceUseRecorder;
+  final CallRecorder staticCallRecorder;
+  final InstanceRecorder instanceUseRecorder;
 
   _RecordUseVisitor(
     this.staticCallRecorder,
@@ -66,18 +66,16 @@ class _RecordUseVisitor extends ast.RecursiveVisitor {
 
   @override
   void visitStaticInvocation(ast.StaticInvocation node) {
-    staticCallRecorder.recordStaticCall(node);
-    node.visitChildren(this);
+    staticCallRecorder.recordStaticInvocation(node);
+
+    super.visitStaticInvocation(node);
   }
 
   @override
   void visitConstantExpression(ast.ConstantExpression node) {
-    staticCallRecorder.recordTearoff(node);
+    staticCallRecorder.recordConstantExpression(node);
+    instanceUseRecorder.recordConstantExpression(node);
 
-    final parent = node.parent;
-    if (parent is ast.Annotatable && parent.annotations.contains(node)) {
-      instanceUseRecorder.recordAnnotationUse(node);
-    }
     super.visitConstantExpression(node);
   }
 }

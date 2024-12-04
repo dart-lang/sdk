@@ -30,8 +30,7 @@ Future<void> main() async {
 
   await hotReload();
 
-  Expect.contains(
-      "type 'A' is not a subtype of type 'B' of 'function result'", helper());
+  Expect.contains("type 'A' is not a subtype of type 'B'", helper());
   Expect.equals(1, hotReloadGeneration);
 }
 /** DIFF **/

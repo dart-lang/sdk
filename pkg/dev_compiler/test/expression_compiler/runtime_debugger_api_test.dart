@@ -42,15 +42,24 @@ Future<void> runAllTests(bool soundNullSafety, List<String> args) async {
 }
 
 const simpleClassSource = '''
+import 'dart:js_interop';
+
+@JS()
+external void eval(String code);
+
+@JS()
+external JSObject? catchError(JSFunction f);
+
 int get globalField { print('globalField access!'); return 0; }
 late final int globalLateFinalField;
 
-class BaseClass {
+class BaseClass<T extends num> {
   static const int staticConstField = 0;
   static int staticField = 1;
   static int _staticField = 2;
   static int _unusedStaticField = 3;
   int field;
+  T genericField;
 
   int _field;
   int _unusedField = 4;
@@ -74,12 +83,12 @@ class BaseClass {
   static final ExtDuration staticFinalExtensionTypeField =
       ExtDuration(Duration.zero);
 
-  BaseClass(this.field, this._field) {
+  BaseClass(this.field, this._field) : genericField = 0 as T {
     int y = 1;
     lateFinalField = 35;
   }
 
-  BaseClass.named(this.field): _field = 42;
+  BaseClass.named(this.field): _field = 42, genericField = 0 as T;
 
   BaseClass.redirecting(int x) : this(x, 99);
 
@@ -97,11 +106,13 @@ class DerivedClass extends BaseClass {
   final int _newPrivateField = 0;
   final int newPublicField = 1;
 
-  DerivedClass(): super(1, 3);
-  void additionalMethod() { print('foo'); }
+  DerivedClass(int field, int field2): super(field, field2);
+  int stringLength(String input) => input.length;
 }
 
-void globalFunction() {}
+DerivedClass globalFunction(int a, int b) {
+  return DerivedClass(a, b);
+}
 
 class AnotherClass {
   int a = 0;
@@ -114,15 +125,28 @@ extension type ExtString(String _) {}
 extension type const ExtDuration(Duration _) {}
 
 main() {
+  eval(\'\'\'
+    globalThis.catchError = function (f) {
+      try {
+        f();
+      } catch (e) {
+        return e;
+      }
+      return null;
+    };
+  \'\'\');
+
   int x = 15;
-  var derived = DerivedClass();
-  var base = BaseClass(5, 6);
+  var derived = DerivedClass(1, 3);
+  var base = BaseClass<int>(5, 6);
   var set = <String>{ 'a', 'b', 'c' };
   var list = <int>[1, 2, 3];
   var map = <String, int>{'a': 1, 'b': 2};
   var stream = Stream.fromIterable([1, 2, 3]);
   var record = (0, 2, name: 'cat');
   var object = Object();
+  var globalMethod = globalFunction;
+  var staticMethod = BaseClass.staticMethod;
 
   var xType = x.runtimeType;
   var baseType = base.runtimeType;
@@ -131,6 +155,13 @@ main() {
   var listType = list.runtimeType;
   var mapType = map.runtimeType;
   var recordType = record.runtimeType;
+
+  // We want to test the type representation of the thrown error. However, we
+  // can't do this in Dart as the `catch` block unwraps the error. Instead, use
+  // interop to catch the JS wrapped error and return that directly.
+  var error = catchError((() {
+    throw 'Throwing Dart error that should be wrapped with DartError.';
+  } as void Function()).toJS);
 
   // Breakpoint: BP
   print('foo');
@@ -150,10 +181,13 @@ void runSharedTests(
       await driver.cleanupTest();
     });
 
-    test('getLibraryMetadata', () async {
+    test('getClassesInLibrary', () async {
+      var getClasses = setup.emitLibraryBundle
+          ? 'getClassesInLibrary'
+          : 'getLibraryMetadata';
       await driver.checkRuntimeInFrame(
         breakpointId: 'BP',
-        expression: 'dart.getLibraryMetadata("package:eval_test/test.dart")',
+        expression: 'dart.$getClasses("package:eval_test/test.dart")',
         expectedResult: ['BaseClass', 'DerivedClass', 'AnotherClass'],
       );
     });
@@ -161,8 +195,7 @@ void runSharedTests(
     test('getClassMetadata (object)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression:
-              'dart.getClassMetadata("dart:core", "Object", {"objectInstance": object})',
+          expression: 'dart.getClassMetadata("dart:core", "Object")',
           expectedResult: {
             'className': 'Object',
             'fields': {},
@@ -183,7 +216,7 @@ void runSharedTests(
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass", {"objectInstance": base})',
+              'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass", base)',
           expectedResult: {
             'className': 'BaseClass',
             'superClassName': 'Object',
@@ -192,7 +225,7 @@ void runSharedTests(
               'field': {'className': 'int', 'classLibraryId': 'dart:core'},
               'functionField': {'className': '() => void'},
               'nullableField': {
-                'className': 'BaseClass?',
+                'className': 'BaseClass<num>?',
                 'classLibraryId': 'package:eval_test/test.dart',
               },
               'nonNullableField': {
@@ -200,6 +233,7 @@ void runSharedTests(
                 'classLibraryId': 'package:eval_test/test.dart',
               },
               '_field': {'className': 'int', 'classLibraryId': 'dart:core'},
+              'genericField': {'className': 'int'},
               '_unusedField': {
                 'className': 'int',
                 'classLibraryId': 'dart:core',
@@ -245,7 +279,7 @@ void runSharedTests(
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
           expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass", {"objectInstance": derived})',
+              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
           expectedResult: {
             'className': 'DerivedClass',
             'superClassName': 'BaseClass',
@@ -264,7 +298,7 @@ void runSharedTests(
               '_newStaticConstPrivateField': {'isStatic': true},
             },
             'methods': {
-              'additionalMethod': {},
+              'stringLength': {},
               'lateFinalField': {'isGetter': true},
               'getter': {'isGetter': true},
               '_privateGetter': {'isGetter': true},
@@ -322,10 +356,10 @@ void runSharedTests(
           breakpointId: 'BP',
           expression: 'dart.getObjectMetadata(base)',
           expectedResult: {
-            'className': 'BaseClass',
+            'className': 'BaseClass<int>',
             'libraryId': 'package:eval_test/test.dart',
             'runtimeKind': 'object',
-            'length': 9,
+            'length': 10,
           });
     });
 
@@ -392,8 +426,7 @@ void runSharedTests(
     test('getObjectMetadata (LegacyJavaScriptObject)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression:
-              'dart.getObjectMetadata(new interceptors.LegacyJavaScriptObject.new())',
+          expression: 'dart.getObjectMetadata({})',
           expectedResult: {
             'className': 'LegacyJavaScriptObject',
             'libraryId': 'dart:_interceptors',
@@ -404,8 +437,7 @@ void runSharedTests(
     test('getObjectMetadata (NativeError)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression:
-              'dart.getObjectMetadata(new interceptors.NativeError.new())',
+          expression: 'dart.getObjectMetadata(new Error())',
           expectedResult: {
             'className': 'NativeError',
             'libraryId': 'dart:_interceptors',
@@ -416,7 +448,7 @@ void runSharedTests(
     test('getObjectMetadata (DartError)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata(new dart.DartError())',
+          expression: 'dart.getObjectMetadata(error)',
           expectedResult: {
             'className': 'NativeError',
             'libraryId': 'dart:_interceptors',
@@ -437,7 +469,7 @@ void runSharedTests(
         breakpointId: 'BP',
         expression: 'baseType.toString()',
       );
-      expect(typeName, 'BaseClass');
+      expect(typeName, 'BaseClass<int>');
     });
 
     test('getObjectMetadata (int type)', () async {
@@ -566,25 +598,6 @@ void runSharedTests(
       );
     });
 
-    test('getObjectMetadata (Rti)', () async {
-      final rti = 'dart.dloadRepl(object.runtimeType, "_rti")';
-      final typeName = await driver.evaluateJsExpression(
-        breakpointId: 'BP',
-        expression: '$rti.runtimeType.toString()',
-      );
-      expect(typeName, 'Rti');
-
-      await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getObjectMetadata($rti)',
-          expectedResult: {
-            'className': typeName,
-            'libraryId': 'dart:_rti',
-            'runtimeKind': 'object',
-            'length': 13,
-          });
-    });
-
     test('getObjectFieldNames (object)', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
@@ -604,6 +617,7 @@ void runSharedTests(
             'extensionTypeField',
             'field',
             'functionField',
+            'genericField',
             'lateFinalField',
             'newPublicField',
             'nonNullableField',
@@ -622,6 +636,7 @@ void runSharedTests(
             'extensionTypeField',
             'field',
             'functionField',
+            'genericField',
             'lateFinalField',
             'nonNullableField',
             'nullableField',
@@ -647,22 +662,6 @@ void runSharedTests(
           });
     });
 
-    // TODO(annagrin): Add recursive check for nested objects.
-    test('getTypeFields', () async {
-      await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getTypeFields(baseType)',
-          expectedResult: {'hashCode': isA<int>(), 'runtimeType': {}});
-    });
-
-    // TODO(annagrin): Add recursive check for nested objects.
-    test('getTypeFields (nested)', () async {
-      await driver.checkRuntimeInFrame(
-          breakpointId: 'BP',
-          expression: 'dart.getTypeFields(baseTypeType)',
-          expectedResult: {'hashCode': isA<int>(), 'runtimeType': {}});
-    });
-
     test('getRecordFields', () async {
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
@@ -686,35 +685,32 @@ void runSharedTests(
           });
     });
 
-    test('getFunctionMetadata (method)', () async {
+    test('getFunctionName (method)', () async {
+      var getFunctionName =
+          setup.emitLibraryBundle ? 'getFunctionName' : 'getFunctionMetadata';
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression: 'dart.getFunctionMetadata(base.method)',
+          expression: 'dart.$getFunctionName(base.method)',
           expectedResult: 'method');
     });
 
-    test('getFunctionMetadata (static method)', () async {
-      const module = 'test';
-      const library = 'package:eval_test/test.dart';
-      const className = 'BaseClass';
-      const function = 'staticMethod';
+    test('getFunctionName (static method)', () async {
+      var getFunctionName =
+          setup.emitLibraryBundle ? 'getFunctionName' : 'getFunctionMetadata';
 
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression:
-              'dart.getFunctionMetadata(dart.getModuleLibraries("$module")["$library"]["$className"]["$function"])',
+          expression: 'dart.$getFunctionName(staticMethod)',
           expectedResult: 'staticMethod');
     });
 
     test('getFunctionName (global method)', () async {
-      const module = 'test';
-      const library = 'package:eval_test/test.dart';
-      const function = 'globalFunction';
+      var getFunctionName =
+          setup.emitLibraryBundle ? 'getFunctionName' : 'getFunctionMetadata';
 
       await driver.checkRuntimeInFrame(
           breakpointId: 'BP',
-          expression:
-              'dart.getFunctionMetadata(dart.getModuleLibraries("$module")["$library"]["$function"])',
+          expression: 'dart.$getFunctionName(globalMethod)',
           expectedResult: 'globalFunction');
     });
 
@@ -774,6 +770,29 @@ void runSharedTests(
             isA<List>().having((p) => p.length, 'length', equals(1)),
       );
     });
+
+    test('callLibraryMethod', () async {
+      await driver.checkRuntimeInFrame(
+        breakpointId: 'BP',
+        expression:
+            "dart.getObjectMetadata(dart.callLibraryMethod('package:eval_test/test.dart', 'globalFunction', [1, 3]))",
+        expectedResult: {
+          'className': 'DerivedClass',
+          'libraryId': 'package:eval_test/test.dart',
+          'runtimeKind': 'object',
+          'length': 12
+        },
+      );
+    }, skip: !setup.emitLibraryBundle);
+
+    test('callInstanceMethod', () async {
+      await driver.checkRuntimeInFrame(
+        breakpointId: 'BP',
+        expression:
+            "dart.callInstanceMethod(dart.callLibraryMethod('package:eval_test/test.dart', 'globalFunction', [1, 3]), 'stringLength', ['hello'])",
+        expectedResult: 5,
+      );
+    }, skip: !setup.emitLibraryBundle);
   });
 
   group('extension type expression compilations |', () {

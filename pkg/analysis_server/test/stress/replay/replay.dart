@@ -135,21 +135,29 @@ class Driver {
   /// arguments.
   ArgParser _createArgParser() {
     var parser = ArgParser();
-    parser.addFlag(HELP_FLAG_NAME,
-        abbr: 'h', help: 'Print usage information', negatable: false);
-    parser.addOption(OVERLAY_STYLE_OPTION_NAME,
-        help:
-            'The style of interaction to use for analysis.updateContent requests',
-        allowed: [CHANGE_OVERLAY_STYLE, MULTIPLE_ADD_OVERLAY_STYLE],
-        allowedHelp: {
-          CHANGE_OVERLAY_STYLE: '<add> <change>* <remove>',
-          MULTIPLE_ADD_OVERLAY_STYLE: '<add>+ <remove>'
-        },
-        defaultsTo: 'change');
-    parser.addFlag(VERBOSE_FLAG_NAME,
-        abbr: 'v',
-        help: 'Produce verbose output for debugging',
-        negatable: false);
+    parser.addFlag(
+      HELP_FLAG_NAME,
+      abbr: 'h',
+      help: 'Print usage information',
+      negatable: false,
+    );
+    parser.addOption(
+      OVERLAY_STYLE_OPTION_NAME,
+      help:
+          'The style of interaction to use for analysis.updateContent requests',
+      allowed: [CHANGE_OVERLAY_STYLE, MULTIPLE_ADD_OVERLAY_STYLE],
+      allowedHelp: {
+        CHANGE_OVERLAY_STYLE: '<add> <change>* <remove>',
+        MULTIPLE_ADD_OVERLAY_STYLE: '<add>+ <remove>',
+      },
+      defaultsTo: 'change',
+    );
+    parser.addFlag(
+      VERBOSE_FLAG_NAME,
+      abbr: 'v',
+      help: 'Produce verbose output for debugging',
+      negatable: false,
+    );
     return parser;
   }
 
@@ -159,7 +167,8 @@ class Driver {
     for (var hunk in blobDiff.hunks) {
       var srcStart = info.getOffsetOfLine(hunk.srcLine);
       var srcEnd = info.getOffsetOfLine(
-          math.min(hunk.srcLine + hunk.removeLines.length, info.lineCount - 1));
+        math.min(hunk.srcLine + hunk.removeLines.length, info.lineCount - 1),
+      );
       var addedText = _join(hunk.addLines);
       //
       // Create the source edits.
@@ -214,17 +223,19 @@ class Driver {
   List<int> _getBreakOffsets(String text) {
     var breakOffsets = <int>[];
     var featureSet = FeatureSet.latestLanguageVersion();
-    var scanner = Scanner(_TestSource(), CharSequenceReader(text),
-        error.AnalysisErrorListener.NULL_LISTENER)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
-      );
+    var scanner = Scanner(
+      _TestSource(),
+      CharSequenceReader(text),
+      error.AnalysisErrorListener.NULL_LISTENER,
+    )..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
     var token = scanner.tokenize();
     // TODO(brianwilkerson): Randomize. Sometimes add zero (0) as a break point.
     while (!token.isEof) {
       // TODO(brianwilkerson): Break inside comments?
-//      Token comment = token.precedingComments;
+      //      Token comment = token.precedingComments;
       var offset = token.offset;
       var length = token.length;
       breakOffsets.add(offset);
@@ -282,15 +293,18 @@ class Driver {
     repositoryPath = path.normalize(arguments[0]);
     repository = GitRepository(repositoryPath, logger: logger);
 
-    analysisRoots = arguments
-        .sublist(1)
-        .map((String analysisRoot) => path.normalize(analysisRoot))
-        .toList();
+    analysisRoots =
+        arguments
+            .sublist(1)
+            .map((String analysisRoot) => path.normalize(analysisRoot))
+            .toList();
     for (var analysisRoot in analysisRoots) {
       if (repositoryPath != analysisRoot &&
           !path.isWithin(repositoryPath, analysisRoot)) {
-        _showUsage(parser,
-            'Analysis roots must be contained within the repository: $analysisRoot');
+        _showUsage(
+          parser,
+          'Analysis roots must be contained within the repository: $analysisRoot',
+        );
         return false;
       }
     }
@@ -319,16 +333,16 @@ class Driver {
         var commit = iterator.srcCommit;
         repository.checkout(commit);
         if (expectedErrors != null) {
-//          ErrorMap actualErrors =
+          //          ErrorMap actualErrors =
           await server.computeErrorMap(server.analyzedDartFiles);
-//          String difference = expectedErrors.expectErrorMap(actualErrors);
-//          if (difference != null) {
-//            stdout.write('Mismatched errors after commit ');
-//            stdout.writeln(commit);
-//            stdout.writeln();
-//            stdout.writeln(difference);
-//            return;
-//          }
+          //          String difference = expectedErrors.expectErrorMap(actualErrors);
+          //          if (difference != null) {
+          //            stdout.write('Mismatched errors after commit ');
+          //            stdout.writeln(commit);
+          //            stdout.writeln();
+          //            stdout.writeln(difference);
+          //            return;
+          //          }
         }
         if (firstCheckout) {
           changedPubspecs = _findPubspecsInAnalysisRoots();
@@ -388,7 +402,7 @@ class Driver {
         AnalysisService.NAVIGATION: currentFile,
         AnalysisService.OCCURRENCES: currentFile,
         AnalysisService.OUTLINE: currentFile,
-        AnalysisService.OVERRIDES: currentFile
+        AnalysisService.OVERRIDES: currentFile,
       });
       for (var operation in edit.getOperations()) {
         statistics.editCount++;
@@ -402,8 +416,10 @@ class Driver {
   void _runPub(String filePath) {
     var directoryPath = path.dirname(filePath);
     if (Directory(directoryPath).existsSync()) {
-      Process.runSync(Platform.resolvedExecutable, ['pub', 'get'],
-          workingDirectory: directoryPath);
+      Process.runSync(Platform.resolvedExecutable, [
+        'pub',
+        'get',
+      ], workingDirectory: directoryPath);
     }
   }
 
@@ -414,15 +430,16 @@ class Driver {
     stopwatch.start();
     await server.start();
     server.sendServerSetSubscriptions([ServerService.STATUS]);
-    server.sendAnalysisSetGeneralSubscriptions(
-        [GeneralAnalysisService.ANALYZED_FILES]);
+    server.sendAnalysisSetGeneralSubscriptions([
+      GeneralAnalysisService.ANALYZED_FILES,
+    ]);
     // TODO(brianwilkerson): Get the list of glob patterns from the server after
     // an API for getting them has been implemented.
     fileGlobs = <Glob>[
       Glob(path.context.separator, '**.dart'),
       Glob(path.context.separator, '**.html'),
       Glob(path.context.separator, '**.htm'),
-      Glob(path.context.separator, '**/.analysisOptions')
+      Glob(path.context.separator, '**/.analysisOptions'),
     ];
     try {
       await _replayChanges();

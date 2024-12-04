@@ -55,7 +55,10 @@ class Object {
   @pragma("vm:entry-point", "call")
   @pragma("vm:external-name", "Object_instanceOf")
   external bool _instanceOf(
-      instantiatorTypeArguments, functionTypeArguments, type);
+    instantiatorTypeArguments,
+    functionTypeArguments,
+    type,
+  );
 
   // Group of functions for implementing fast simple instance of.
   @pragma("vm:entry-point", "call")

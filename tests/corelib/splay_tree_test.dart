@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Dart test for Splaytrees.
 library splay_tree_test;
 
@@ -112,8 +115,11 @@ void regressFromCompare() {
 
   var entries = {key(0): 0, key(1): 1, key(2): 2, key(0): 0};
   Expect.equals(4, entries.length);
-  var map =
-      new SplayTreeMap<IncomparableKey, int>.from(entries, compare, isValidKey);
+  var map = new SplayTreeMap<IncomparableKey, int>.from(
+    entries,
+    compare,
+    isValidKey,
+  );
   Expect.equals(3, map.length);
   for (int i = 0; i < 3; i++) {
     Expect.isTrue(map.containsKey(key(i)));
@@ -158,6 +164,7 @@ void regressIncomparable() {
     }
     throw UnsupportedError("Nope");
   }
+
   for (var key in [null, IncomparableKey(0)]) {
     set = SplayTreeSet<Object?>(compare);
     set.add(key);

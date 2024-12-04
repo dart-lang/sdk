@@ -82,6 +82,43 @@ entry. Notably, any change that:
 should have a short entry in the `CHANGELOG`. Feel free to bring up any
 questions in your PR.
 
+### Benchmarking
+
+Lint rules can be benchmarked with real code on disk. (There is no
+micro-benchmarking suite.) Use the `tool/benchmark.dart` script to execute one
+or more lint rules against a corpus of code. Here are some examples:
+
+Execute all known lint rules against all of the code in a specified
+directory.
+
+```none
+dart tool/benchmark.dart $HOME/my/example/package
+```
+
+Execute all known lint rules against all of the code in the specified file.
+
+```none
+dart tool/benchmark.dart $HOME/my/example/package/lib/some_file.dart
+```
+
+Execute all known lint rules except those _explicitly disabled_ by a specified
+analysis options file against all of the code in the specified directory.
+
+```none
+dart tool/benchmark.dart \
+    --config $HOME/my/example/analysis_options.yaml \
+    $HOME/my/example/package
+```
+
+Execute all of a set of specified lint rules against all of the code in the
+specified directory.
+
+```none
+dart tool/benchmark.dart \
+    --rules rule_1,rule_2 \
+    $HOME/my/example/package
+```
+
 **Thank you!**
 
 ### The small print

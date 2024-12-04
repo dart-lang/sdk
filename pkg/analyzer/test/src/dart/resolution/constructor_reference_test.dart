@@ -39,7 +39,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -77,7 +77,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -117,7 +117,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -152,7 +152,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -186,7 +186,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -220,7 +220,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -252,7 +252,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -282,7 +282,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -314,7 +314,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -346,7 +346,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -386,7 +386,7 @@ ConstructorReference
         element2: <testLibraryFragment>::@prefix2::a
       name: TA
       element: package:test/a.dart::<fragment>::@typeAlias::TA
-      element2: package:test/a.dart::<fragment>::@typeAlias::TA#element
+      element2: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -426,7 +426,7 @@ ConstructorReference
         element2: <testLibraryFragment>::@prefix2::a
       name: TA
       element: package:test/a.dart::<fragment>::@typeAlias::TA
-      element2: package:test/a.dart::<fragment>::@typeAlias::TA#element
+      element2: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -465,7 +465,7 @@ ConstructorReference
         element2: <testLibraryFragment>::@prefix2::a
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -504,7 +504,7 @@ ConstructorReference
         element2: <testLibraryFragment>::@prefix2::a
       name: A
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -535,7 +535,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -568,7 +568,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -599,7 +599,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -636,7 +636,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -680,16 +680,16 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -729,11 +729,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -775,16 +775,16 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -819,7 +819,7 @@ ConstructorReference
     type: NamedType
       name: TA
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -857,11 +857,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -918,11 +918,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -966,11 +966,11 @@ ConstructorReference
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@typeAlias::TA
-      element2: <testLibraryFragment>::@typeAlias::TA#element
+      element2: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -1009,11 +1009,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1054,11 +1054,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1141,11 +1141,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1190,11 +1190,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1238,11 +1238,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1281,11 +1281,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1322,11 +1322,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1367,11 +1367,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1412,11 +1412,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1459,11 +1459,11 @@ ConstructorReference
           NamedType
             name: String
             element: dart:core::<fragment>::@class::String
-            element2: dart:core::<fragment>::@class::String#element
+            element2: dart:core::@class::String
             type: String
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1512,11 +1512,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@typeAlias::TA
-      element2: package:test/a.dart::<fragment>::@typeAlias::TA#element
+      element2: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -1564,11 +1564,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1619,11 +1619,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1671,11 +1671,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: package:test/a.dart::<fragment>::@class::A
-      element2: package:test/a.dart::<fragment>::@class::A#element
+      element2: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1722,11 +1722,11 @@ ConstructorReference
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1760,7 +1760,7 @@ ConstructorReference
     type: NamedType
       name: A
       element: <testLibraryFragment>::@class::A
-      element2: <testLibraryFragment>::@class::A#element
+      element2: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier

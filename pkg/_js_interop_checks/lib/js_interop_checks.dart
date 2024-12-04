@@ -927,7 +927,7 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _isAllowedExternalType(DartType type) {
     if (type is VoidType || type is NullType) return true;
     if (type is TypeParameterType || type is StructuralParameterType) {
-      final bound = type.nonTypeVariableBound;
+      final bound = type.nonTypeParameterBound;
       // If it can be used as a representation type of an interop extension
       // type, it is okay to be used as a bound.
       // TODO(srujzs): We may want to support type parameters with primitive

@@ -62,7 +62,8 @@ final class DynamicLibrary {
 @patch
 extension DynamicLibraryExtension on DynamicLibrary {
   @patch
-  DS lookupFunction<NS extends Function, DS extends Function>(String symbolName,
-          {bool isLeaf = false}) =>
-      throw UnsupportedError("The body is inlined in the frontend.");
+  DS lookupFunction<NS extends Function, DS extends Function>(
+    String symbolName, {
+    bool isLeaf = false,
+  }) => throw UnsupportedError("The body is inlined in the frontend.");
 }

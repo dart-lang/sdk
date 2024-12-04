@@ -7,11 +7,11 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/linter_lint_codes.dart';
+import 'package:linter/src/lint_codes.dart';
 
 class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
   ReplaceWithDecoratedBox({required super.context});
@@ -33,8 +33,9 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     if (instanceCreation is! InstanceCreationExpression) return;
 
     if (applyingBulkFixes) {
-      var parent = instanceCreation.parent
-          ?.thisOrAncestorOfType<InstanceCreationExpression>();
+      var parent =
+          instanceCreation.parent
+              ?.thisOrAncestorOfType<InstanceCreationExpression>();
 
       while (parent != null) {
         if (_hasLint(parent)) return;
@@ -55,8 +56,10 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
 
     /// Replace the expression if [isReplace] is `true` and it [_hasLint]
     /// and return whether it can be a `const` or not.
-    bool canExpressionBeConst(Expression expression,
-        {required bool isReplace}) {
+    bool canExpressionBeConst(
+      Expression expression, {
+      required bool isReplace,
+    }) {
       var canBeConst = expression.canBeConst;
       if (!canBeConst &&
           isReplace &&
@@ -67,8 +70,10 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
         for (var argument in expression.argumentList.arguments) {
           if (argument is NamedExpression) {
             var child = argument.expression;
-            var canChildBeConst =
-                canExpressionBeConst(child, isReplace: applyingBulkFixes);
+            var canChildBeConst = canExpressionBeConst(
+              child,
+              isReplace: applyingBulkFixes,
+            );
             canBeConst &= canChildBeConst;
             if (child is InstanceCreationExpression) {
               childrenConstMap[child] = canChildBeConst;

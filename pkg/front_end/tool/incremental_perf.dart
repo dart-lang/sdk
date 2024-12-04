@@ -259,7 +259,7 @@ class OverlayFileSystemEntity implements FileSystemEntity {
   Future<Uint8List> readAsBytes() async => (await delegate).readAsBytes();
 
   @override
-  Future<List<int>> readAsBytesAsyncIfPossible() async =>
+  Future<Uint8List> readAsBytesAsyncIfPossible() async =>
       (await delegate).readAsBytesAsyncIfPossible();
 
   @override

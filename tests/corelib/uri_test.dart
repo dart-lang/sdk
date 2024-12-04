@@ -20,8 +20,10 @@ testUri(String uriText, bool isAbsolute) {
 
   // Test that removeFragment doesn't change anything else.
   if (uri.hasFragment) {
-    Expect.equals(Uri.parse(uriText.substring(0, uriText.indexOf('#'))),
-        uri.removeFragment());
+    Expect.equals(
+      Uri.parse(uriText.substring(0, uriText.indexOf('#'))),
+      uri.removeFragment(),
+    );
   } else {
     Expect.equals(uri, Uri.parse(uriText + "#fragment").removeFragment());
   }
@@ -41,8 +43,12 @@ testEncodeDecodeComponent(String orig, String encoded) {
   Expect.stringEquals(orig, d);
 }
 
-testEncodeDecodeQueryComponent(String orig, String encodedUTF8,
-    String encodedLatin1, String? encodedAscii) {
+testEncodeDecodeQueryComponent(
+  String orig,
+  String encodedUTF8,
+  String encodedLatin1,
+  String? encodedAscii,
+) {
   var e, d;
   e = Uri.encodeQueryComponent(orig);
   Expect.stringEquals(encodedUTF8, e);
@@ -66,7 +72,8 @@ testEncodeDecodeQueryComponent(String orig, String encodedUTF8,
     Expect.stringEquals(orig, d);
   } else {
     Expect.throwsArgumentError(
-        () => Uri.encodeQueryComponent(orig, encoding: ascii));
+      () => Uri.encodeQueryComponent(orig, encoding: ascii),
+    );
   }
 }
 
@@ -137,9 +144,13 @@ testUriPerRFCs() {
 
 void testResolvePath(String expected, String path) {
   Expect.equals(
-      expected, new Uri(path: '/').resolveUri(new Uri(path: path)).path);
-  Expect.equals("http://localhost$expected",
-      Uri.parse("http://localhost").resolveUri(new Uri(path: path)).toString());
+    expected,
+    new Uri(path: '/').resolveUri(new Uri(path: path)).path,
+  );
+  Expect.equals(
+    "http://localhost$expected",
+    Uri.parse("http://localhost").resolveUri(new Uri(path: path)).toString(),
+  );
 }
 
 const ALPHA = r"abcdefghijklmnopqrstuvwxuzABCDEFGHIJKLMNOPQRSTUVWXUZ";
@@ -164,12 +175,12 @@ void testValidCharacters() {
       "",
       "@",
       "$USERINFOCHAR$USERINFOCHAR@",
-      "$USERINFOCHAR:$DIGIT@"
+      "$USERINFOCHAR:$DIGIT@",
     ]) {
       for (var host in [
         "", "$REGNAMECHAR$REGNAMECHAR",
         "255.255.255.256", // valid reg-name.
-        "[ffff::ffff:ffff]", "[ffff::255.255.255.255]"
+        "[ffff::ffff:ffff]", "[ffff::255.255.255.255]",
       ]) {
         for (var port in ["", ":", ":$DIGIT$DIGIT"]) {
           var auth = "$userinfo$host$port";
@@ -187,7 +198,10 @@ void testValidCharacters() {
                 ..add("$PCHAR_NC/$PCHAR")
                 ..add("$PCHAR_NC/$PCHAR/");
             } else {
-              paths..add(PCHAR)..add("$PCHAR/$PCHAR")..add("$PCHAR/$PCHAR/");
+              paths
+                ..add(PCHAR)
+                ..add("$PCHAR/$PCHAR")
+                ..add("$PCHAR/$PCHAR/");
             }
           }
           for (var path in paths) {
@@ -235,7 +249,10 @@ void testInvalidUrls() {
 
   // Regression test for http://dartbug.com/16081
   checkInvalidReplaced(
-      "http://www.example.org/red%09ros{}#red)", "\u00e9", "%C3%A9");
+    "http://www.example.org/red%09ros{}#red)",
+    "\u00e9",
+    "%C3%A9",
+  );
   checkInvalidReplaced("http://r{}sum\{}.example.org", "\u00E9", "%C3%A9");
 
   // Invalid characters. The characters must be rejected, even if normalizing
@@ -311,8 +328,10 @@ void testNormalization() {
     var char = UNRESERVED[i];
     var escape = "%" + char.codeUnitAt(0).toRadixString(16); // all > 0xf.
 
-    uri = Uri.parse("s://xX${escape}xX@yY${escape}yY/zZ${escape}zZ"
-        "?vV${escape}vV#wW${escape}wW");
+    uri = Uri.parse(
+      "s://xX${escape}xX@yY${escape}yY/zZ${escape}zZ"
+      "?vV${escape}vV#wW${escape}wW",
+    );
     Expect.equals("xX${char}xX", uri.userInfo);
     Expect.equals("yY${char}yY".toLowerCase(), uri.host);
     Expect.equals("/zZ${char}zZ", uri.path);
@@ -322,8 +341,10 @@ void testNormalization() {
 
   // Escapes of reserved characters are kept, but upper-cased.
   for (var escape in ["%00", "%1f", "%7F", "%fF"]) {
-    uri = Uri.parse("s://xX${escape}xX@yY${escape}yY/zZ${escape}zZ"
-        "?vV${escape}vV#wW${escape}wW");
+    uri = Uri.parse(
+      "s://xX${escape}xX@yY${escape}yY/zZ${escape}zZ"
+      "?vV${escape}vV#wW${escape}wW",
+    );
     var normalizedEscape = escape.toUpperCase();
     Expect.equals("xX${normalizedEscape}xX", uri.userInfo);
     Expect.equals("yy${normalizedEscape}yy", uri.host);
@@ -375,9 +396,15 @@ void testNormalization() {
 
   Expect.equals("scheme:///?#", Uri.parse("scheme:///?#").toString());
   Expect.equals(
-      "scheme:///#",
-      new Uri(scheme: "scheme", host: "", path: "/", query: "", fragment: "")
-          .toString());
+    "scheme:///#",
+    new Uri(
+      scheme: "scheme",
+      host: "",
+      path: "/",
+      query: "",
+      fragment: "",
+    ).toString(),
+  );
 
   // We allow, and escape, general delimiters in paths, queries and fragments.
   // Allow `[` and `]` in path:
@@ -397,8 +424,10 @@ void testReplace() {
     Uri.parse(""),
     Uri.parse("a://@:/?#"),
     Uri.parse("a://b@c:4/e/f?g#h"),
-    Uri.parse("$SCHEMECHAR://$USERINFOCHAR@$REGNAMECHAR:$DIGIT/$PCHAR/$PCHAR"
-        "?$QUERYCHAR#$QUERYCHAR"),
+    Uri.parse(
+      "$SCHEMECHAR://$USERINFOCHAR@$REGNAMECHAR:$DIGIT/$PCHAR/$PCHAR"
+      "?$QUERYCHAR#$QUERYCHAR",
+    ),
   ];
   for (var uri1 in uris) {
     for (var uri2 in uris) {
@@ -415,14 +444,15 @@ void testReplace() {
 
       void test() {
         var tmp2 = new Uri(
-            scheme: scheme,
-            userInfo: userInfo,
-            host: host,
-            port: port,
-            path: path,
-            query: query == "" ? null : query,
-            queryParameters: query == "" ? {} : null,
-            fragment: fragment);
+          scheme: scheme,
+          userInfo: userInfo,
+          host: host,
+          port: port,
+          path: path,
+          query: query == "" ? null : query,
+          queryParameters: query == "" ? {} : null,
+          fragment: fragment,
+        );
         Expect.equals(tmp1, tmp2);
       }
 
@@ -464,10 +494,12 @@ void testReplace() {
   Expect.isFalse(uri.hasAuthority);
 
   uri = new Uri(scheme: "foo", path: "bar");
-  uri = uri.replace(queryParameters: {
-    "x": ["42", "37"],
-    "y": ["43", "38"]
-  });
+  uri = uri.replace(
+    queryParameters: {
+      "x": ["42", "37"],
+      "y": ["43", "38"],
+    },
+  );
   var params = uri.queryParametersAll;
   Expect.equals(2, params.length);
   Expect.listEquals(["42", "37"], params["x"]!);
@@ -486,166 +518,180 @@ void testPackageUris() {
   // If so, the package name is unaffected by path resolution.
   var uri = Uri.parse("package:foo/bar/baz"); // Simple base URI.
 
-  Expect.stringEquals("package:foo/qux", // Resolve simple URI.
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals(
+    "package:foo/qux", // Resolve simple URI.
+    uri.resolve("../../qux").toString(),
+  );
 
-  Expect.stringEquals("package:foo/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("package:foo/qux", uri.resolve("/qux").toString());
 
-  Expect.stringEquals("package:foo/qux?%2F", // Resolve non-simple URI.
-      uri.resolve("../../qux?%2F").toString());
+  Expect.stringEquals(
+    "package:foo/qux?%2F", // Resolve non-simple URI.
+    uri.resolve("../../qux?%2F").toString(),
+  );
 
-  Expect.stringEquals("package:foo/qux?%2F",
-      uri.resolve("/qux?%2F").toString());
+  Expect.stringEquals(
+    "package:foo/qux?%2F",
+    uri.resolve("/qux?%2F").toString(),
+  );
 
   uri = Uri.parse("package:foo/%62ar/baz"); // Non-simple base URI.
 
-  Expect.stringEquals("package:foo/qux", // Resolve simple URI.
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals(
+    "package:foo/qux", // Resolve simple URI.
+    uri.resolve("../../qux").toString(),
+  );
 
-  Expect.stringEquals("package:foo/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("package:foo/qux", uri.resolve("/qux").toString());
 
-  Expect.stringEquals("package:foo/qux?%2F", // Resolve non-simple URI.
-      uri.resolve("../../qux?%2F").toString());
+  Expect.stringEquals(
+    "package:foo/qux?%2F", // Resolve non-simple URI.
+    uri.resolve("../../qux?%2F").toString(),
+  );
 
-  Expect.stringEquals("package:foo/qux?%2F",
-      uri.resolve("/qux?%2F").toString());
+  Expect.stringEquals(
+    "package:foo/qux?%2F",
+    uri.resolve("/qux?%2F").toString(),
+  );
 
   // The following base URIs are not recognized as package URIs:
   uri = Uri.parse("puckage:foo/bar/baz"); // Not "package" scheme.
 
-  Expect.stringEquals("puckage:/qux",
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals("puckage:/qux", uri.resolve("../../qux").toString());
 
-  Expect.stringEquals("puckage:/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("puckage:/qux", uri.resolve("/qux").toString());
 
   uri = Uri.parse("package://foo/bar/baz"); // Has authority.
 
-  Expect.stringEquals("package://foo/qux",
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals("package://foo/qux", uri.resolve("../../qux").toString());
 
-  Expect.stringEquals("package://foo/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("package://foo/qux", uri.resolve("/qux").toString());
 
   uri = Uri.parse("package:/foo/bar/baz"); // Has empty package name.
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("../../qux").toString());
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("/qux").toString());
 
   uri = Uri.parse("package:f%2fo/bar/baz"); // Has escape in package name.
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("../../qux").toString());
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("/qux").toString());
 
   uri = Uri.parse("package:f:o/bar/baz"); // Has colon in package name.
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("../../qux").toString());
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("/qux").toString());
 
   uri = Uri.parse("package:.../bar/baz"); // Has only '.' in package name.
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("../../qux").toString());
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("/qux").toString());
 
   uri = Uri.parse("package:foo?/"); // Has no `/` after package name.
 
   // Resolving relative against non-absolute path gives
   // a non-absolute path again.
   // TODO(lrn): Is this a bug?
-  Expect.stringEquals("package:qux",
-      uri.resolve("../../qux").toString());
+  Expect.stringEquals("package:qux", uri.resolve("../../qux").toString());
 
-  Expect.stringEquals("package:/qux",
-      uri.resolve("/qux").toString());
+  Expect.stringEquals("package:/qux", uri.resolve("/qux").toString());
 }
 
 void testBackslashes() {
   // Tests change which makes `\` be treated as `/` in
   // authority and path.
 
-  Expect.stringEquals("https://example.com/",
-      Uri.parse(r"https:\\example.com\").toString());
+  Expect.stringEquals(
+    "https://example.com/",
+    Uri.parse(r"https:\\example.com\").toString(),
+  );
 
-  Expect.stringEquals("https://example.com/",
-      Uri.parse(r"https:\/example.com/").toString());
-  Expect.stringEquals("https://example.com/",
-      Uri.parse(r"https:/\example.com/").toString());
-  Expect.stringEquals("https://example.com/",
-      Uri.parse(r"https://example.com/").toString());
-  Expect.stringEquals("https://example.com/foo//bar",
-      Uri.parse(r"https://example.com/foo\\bar").toString());
+  Expect.stringEquals(
+    "https://example.com/",
+    Uri.parse(r"https:\/example.com/").toString(),
+  );
+  Expect.stringEquals(
+    "https://example.com/",
+    Uri.parse(r"https:/\example.com/").toString(),
+  );
+  Expect.stringEquals(
+    "https://example.com/",
+    Uri.parse(r"https://example.com/").toString(),
+  );
+  Expect.stringEquals(
+    "https://example.com/foo//bar",
+    Uri.parse(r"https://example.com/foo\\bar").toString(),
+  );
 
-  Expect.stringEquals("https:/example.com/foo?%5C#%5C",
-      Uri.parse(r"https:\example.com/foo?\#\").toString());
+  Expect.stringEquals(
+    "https:/example.com/foo?%5C#%5C",
+    Uri.parse(r"https:\example.com/foo?\#\").toString(),
+  );
 
-  Expect.stringEquals("https://example.com/@example.net/foo",
-      Uri.parse(r"https://example.com\@example.net/foo").toString());
+  Expect.stringEquals(
+    "https://example.com/@example.net/foo",
+    Uri.parse(r"https://example.com\@example.net/foo").toString(),
+  );
 
-  Expect.stringEquals("file:///foo",
-      Uri.parse(r"file:foo").toString());
-  Expect.stringEquals("file:///foo",
-      Uri.parse(r"file:\foo").toString());
-  Expect.stringEquals("file://foo/",
-      Uri.parse(r"file:\\foo").toString());
-  Expect.stringEquals("file:///foo",
-      Uri.parse(r"file:\\\foo").toString());
-  Expect.stringEquals("file:///foo",
-      Uri.parse(r"file:\//foo").toString());
-  Expect.stringEquals("file:///foo",
-      Uri.parse(r"file:/\/foo").toString());
-  Expect.stringEquals("file:///foo",
-      Uri.parse(r"file://\foo").toString());
+  Expect.stringEquals("file:///foo", Uri.parse(r"file:foo").toString());
+  Expect.stringEquals("file:///foo", Uri.parse(r"file:\foo").toString());
+  Expect.stringEquals("file://foo/", Uri.parse(r"file:\\foo").toString());
+  Expect.stringEquals("file:///foo", Uri.parse(r"file:\\\foo").toString());
+  Expect.stringEquals("file:///foo", Uri.parse(r"file:\//foo").toString());
+  Expect.stringEquals("file:///foo", Uri.parse(r"file:/\/foo").toString());
+  Expect.stringEquals("file:///foo", Uri.parse(r"file://\foo").toString());
 
   // No scheme.
-  Expect.stringEquals("//example.com/foo",
-      Uri.parse(r"\\example.com\foo").toString());
+  Expect.stringEquals(
+    "//example.com/foo",
+    Uri.parse(r"\\example.com\foo").toString(),
+  );
 
   // No authority.
-  Expect.stringEquals("http:/foo",
-      Uri.parse(r"http:\foo").toString());
+  Expect.stringEquals("http:/foo", Uri.parse(r"http:\foo").toString());
 
   /// No scheme or authority.
 
-  Expect.stringEquals("foo/bar/baz",
-      Uri.parse(r"foo\bar\baz").toString());
+  Expect.stringEquals("foo/bar/baz", Uri.parse(r"foo\bar\baz").toString());
 
-  Expect.stringEquals("foo/bar/baz",
-      Uri.parse(r"foo\bar\.\baz").toString());
+  Expect.stringEquals("foo/bar/baz", Uri.parse(r"foo\bar\.\baz").toString());
 
-  Expect.stringEquals("foo/baz",
-      Uri.parse(r"foo\bar\..\baz").toString());
+  Expect.stringEquals("foo/baz", Uri.parse(r"foo\bar\..\baz").toString());
 
   // Not converted to / in query or fragment, still escaped.
-  Expect.stringEquals("https://example.com/foo?%5C#%5C",
-      Uri.parse(r"https://example.com/foo?\#\").toString());
+  Expect.stringEquals(
+    "https://example.com/foo?%5C#%5C",
+    Uri.parse(r"https://example.com/foo?\#\").toString(),
+  );
 
   // Applies when a path is provided, but not when using path segments.
-  Expect.stringEquals("https://example.com/foo/bar",
-    Uri(scheme: "https", host: "example.com", path: r"\foo\bar").toString());
+  Expect.stringEquals(
+    "https://example.com/foo/bar",
+    Uri(scheme: "https", host: "example.com", path: r"\foo\bar").toString(),
+  );
 
-  Expect.stringEquals("https://example.com/foo%5Cbar",
-    Uri(scheme: "https", host: "example.com", pathSegments: [r"foo\bar"])
-        .toString());
+  Expect.stringEquals(
+    "https://example.com/foo%5Cbar",
+    Uri(
+      scheme: "https",
+      host: "example.com",
+      pathSegments: [r"foo\bar"],
+    ).toString(),
+  );
 
   // Does not apply to constructors which expect an unencoded path.
-  Expect.stringEquals("http://example.com/%5Cfoo%5Cbar",
-      Uri.http("example.com", r"\foo\bar").toString());
-  Expect.stringEquals("https://example.com/%5Cfoo%5Cbar",
-      Uri.https("example.com", r"\foo\bar").toString());
+  Expect.stringEquals(
+    "http://example.com/%5Cfoo%5Cbar",
+    Uri.http("example.com", r"\foo\bar").toString(),
+  );
+  Expect.stringEquals(
+    "https://example.com/%5Cfoo%5Cbar",
+    Uri.https("example.com", r"\foo\bar").toString(),
+  );
 }
 
 main() {
@@ -654,29 +700,33 @@ main() {
   testUri("file", false);
   testUri("http://user@example.com:8080/fisk?query=89&hest=silas", true);
   testUri(
-      "http://user@example.com:8080/fisk?query=89&hest=silas#fragment", false);
+    "http://user@example.com:8080/fisk?query=89&hest=silas#fragment",
+    false,
+  );
   Expect.stringEquals(
-      "http://user@example.com/a/b/c?query#fragment",
-      new Uri(
-              scheme: "http",
-              userInfo: "user",
-              host: "example.com",
-              port: 80,
-              path: "/a/b/c",
-              query: "query",
-              fragment: "fragment")
-          .toString());
+    "http://user@example.com/a/b/c?query#fragment",
+    new Uri(
+      scheme: "http",
+      userInfo: "user",
+      host: "example.com",
+      port: 80,
+      path: "/a/b/c",
+      query: "query",
+      fragment: "fragment",
+    ).toString(),
+  );
   Expect.stringEquals(
-      "/a/b/c/",
-      new Uri(
-              scheme: null,
-              userInfo: null,
-              host: null,
-              port: 0,
-              path: "/a/b/c/",
-              query: null,
-              fragment: null)
-          .toString());
+    "/a/b/c/",
+    new Uri(
+      scheme: null,
+      userInfo: null,
+      host: null,
+      port: 0,
+      path: "/a/b/c/",
+      query: null,
+      fragment: null,
+    ).toString(),
+  );
   Expect.stringEquals("file:///", Uri.parse("file:").toString());
 
   testResolvePath("/a/g", "/a/b/c/./../../g");
@@ -694,52 +744,72 @@ main() {
   testUriPerRFCs();
 
   Expect.stringEquals(
-      "http://example.com", Uri.parse("http://example.com/a/b/c").origin);
+    "http://example.com",
+    Uri.parse("http://example.com/a/b/c").origin,
+  );
   Expect.stringEquals(
-      "https://example.com", Uri.parse("https://example.com/a/b/c").origin);
-  Expect.stringEquals("http://example.com:1234",
-      Uri.parse("http://example.com:1234/a/b/c").origin);
-  Expect.stringEquals("https://example.com:1234",
-      Uri.parse("https://example.com:1234/a/b/c").origin);
-  Expect.throwsStateError(() => Uri.parse("http:").origin,
-      "origin for uri with empty host should fail");
+    "https://example.com",
+    Uri.parse("https://example.com/a/b/c").origin,
+  );
+  Expect.stringEquals(
+    "http://example.com:1234",
+    Uri.parse("http://example.com:1234/a/b/c").origin,
+  );
+  Expect.stringEquals(
+    "https://example.com:1234",
+    Uri.parse("https://example.com:1234/a/b/c").origin,
+  );
   Expect.throwsStateError(
-      () => new Uri(
-              scheme: "http",
-              userInfo: null,
-              host: "",
-              port: 80,
-              path: "/a/b/c",
-              query: "query",
-              fragment: "fragment")
-          .origin,
-      "origin for uri with empty host should fail");
+    () => Uri.parse("http:").origin,
+    "origin for uri with empty host should fail",
+  );
   Expect.throwsStateError(
-      () => new Uri(
-              scheme: null,
-              userInfo: null,
-              host: "",
-              port: 80,
-              path: "/a/b/c",
-              query: "query",
-              fragment: "fragment")
-          .origin,
-      "origin for uri with empty scheme should fail");
+    () =>
+        new Uri(
+          scheme: "http",
+          userInfo: null,
+          host: "",
+          port: 80,
+          path: "/a/b/c",
+          query: "query",
+          fragment: "fragment",
+        ).origin,
+    "origin for uri with empty host should fail",
+  );
   Expect.throwsStateError(
-      () => new Uri(
-              scheme: "http",
-              userInfo: null,
-              host: null,
-              port: 80,
-              path: "/a/b/c",
-              query: "query",
-              fragment: "fragment")
-          .origin,
-      "origin for uri with empty host should fail");
-  Expect.throwsStateError(() => Uri.parse("http://:80").origin,
-      "origin for uri with empty host should fail");
-  Expect.throwsStateError(() => Uri.parse("file://localhost/test.txt").origin,
-      "origin for non-http/https uri should fail");
+    () =>
+        new Uri(
+          scheme: null,
+          userInfo: null,
+          host: "",
+          port: 80,
+          path: "/a/b/c",
+          query: "query",
+          fragment: "fragment",
+        ).origin,
+    "origin for uri with empty scheme should fail",
+  );
+  Expect.throwsStateError(
+    () =>
+        new Uri(
+          scheme: "http",
+          userInfo: null,
+          host: null,
+          port: 80,
+          path: "/a/b/c",
+          query: "query",
+          fragment: "fragment",
+        ).origin,
+    "origin for uri with empty host should fail",
+  );
+  Expect.throwsStateError(
+    () => Uri.parse("http://:80").origin,
+    "origin for uri with empty host should fail",
+  );
+  Expect.throwsStateError(
+    () => Uri.parse("file://localhost/test.txt").origin,
+    "origin for non-http/https uri should fail",
+  );
 
   // URI encode tests
   // Create a string with code point 0x10000 encoded as a surrogate pair.
@@ -756,7 +826,8 @@ main() {
   testEncodeDecode("\x80", "%C2%80");
   testEncodeDecode("\u0800", "%E0%A0%80");
   // All characters not escaped by encodeFull.
-  var unescapedFull = r"abcdefghijklmnopqrstuvwxyz"
+  var unescapedFull =
+      r"abcdefghijklmnopqrstuvwxyz"
       r"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       r"0123456789!#$&'()*+,-./:;=?@_~";
   // ASCII characters escaped by encodeFull:
@@ -765,14 +836,16 @@ main() {
       "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"
       r' "%<>[\]^`{|}'
       "\x7f";
-  var escapedTo = "%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F"
+  var escapedTo =
+      "%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F"
       "%10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F"
       "%20%22%25%3C%3E%5B%5C%5D%5E%60%7B%7C%7D%7F";
   testEncodeDecode(unescapedFull, unescapedFull);
   testEncodeDecode(escapedFull, escapedTo);
   var nonAscii =
       "\x80-\xff-\u{100}-\u{7ff}-\u{800}-\u{ffff}-\u{10000}-\u{10ffff}";
-  var nonAsciiEncoding = "%C2%80-%C3%BF-%C4%80-%DF%BF-%E0%A0%80-%EF%BF%BF-"
+  var nonAsciiEncoding =
+      "%C2%80-%C3%BF-%C4%80-%DF%BF-%E0%A0%80-%EF%BF%BF-"
       "%F0%90%80%80-%F4%8F%BF%BF";
   testEncodeDecode(nonAscii, nonAsciiEncoding);
   testEncodeDecode(s, "%F0%90%80%80");
@@ -788,12 +861,17 @@ main() {
   testEncodeDecodeComponent(s, "%F0%90%80%80");
   testEncodeDecodeQueryComponent("A + B", "A+%2B+B", "A+%2B+B", "A+%2B+B");
   testEncodeDecodeQueryComponent(
-      "æ ø å", "%C3%A6+%C3%B8+%C3%A5", "%E6+%F8+%E5", null);
+    "æ ø å",
+    "%C3%A6+%C3%B8+%C3%A5",
+    "%E6+%F8+%E5",
+    null,
+  );
   testEncodeDecodeComponent(nonAscii, nonAsciiEncoding);
 
   // Invalid URI - : and @ is swapped, port ("host") should be numeric.
   Expect.throwsFormatException(
-      () => Uri.parse("file://user@password:host/path"));
+    () => Uri.parse("file://user@password:host/path"),
+  );
 
   testValidCharacters();
   testInvalidUrls();
@@ -801,6 +879,28 @@ main() {
   testReplace();
   testPackageUris();
   testBackslashes();
+
+  testNonBmpEncodingRegression();
+}
+
+void testNonBmpEncodingRegression() {
+  // Regression test for bug in encoding of some non-BMP characters
+  // in host names. The failing character has to be one that doesn't have
+  // the 0x10000 bit set in its code point, and which is not in the BMP.
+  const char = "\u{2003E}"; // CJK Unified Ideo­graph.
+  const echar = "%F0%A0%80%BE"; // UTF-8 encoding of page2Char, %-encoded.
+  var nonBmpUri =
+      Uri.parse("http://$char.example.com/x${char}x?y${char}y#z${char}z");
+  Expect.equals("http://$echar.example.com/x${echar}x?y${echar}y#z${echar}z",
+      nonBmpUri.toString());
+  Expect.equals("$echar.example.com", nonBmpUri.host);
+  Expect.equals("$char.example.com", Uri.decodeComponent(nonBmpUri.host));
+  Expect.equals("/x${echar}x", nonBmpUri.path);
+  Expect.equals("/x${char}x", Uri.decodeComponent(nonBmpUri.path));
+  Expect.equals("y${echar}y", nonBmpUri.query);
+  Expect.equals("y${char}y", Uri.decodeComponent(nonBmpUri.query));
+  Expect.equals("z${echar}z", nonBmpUri.fragment);
+  Expect.equals("z${char}z", Uri.decodeComponent(nonBmpUri.fragment));
 }
 
 String dump(Uri uri) {

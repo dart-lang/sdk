@@ -44,14 +44,14 @@ class AnalyzerUseNewElementsTest extends LintRuleTest {
     );
 
     AnalyzerUseNewElements.resetCaches();
-    _writeOptIns(r'''
-lib/test.dart
-''');
+
+    // No opt-outs in the most tests.
+    _writeOptOuts('');
   }
 
-  test_enablement_notEnabled() async {
-    _writeOptIns(r'''
-lib/test2.dart
+  test_enablement_optedOut() async {
+    _writeOptOuts(r'''
+lib/test.dart
 ''');
 
     await assertDiagnostics(r'''
@@ -61,38 +61,6 @@ ClassElement f() {
   throw 42;
 }
 ''', []);
-  }
-
-  test_enablement_wholeDirectory() async {
-    _writeOptIns(r'''
-lib/
-''');
-
-    await assertDiagnostics(r'''
-import 'package:analyzer/dart/element/element.dart';
-
-ClassElement f() {
-  throw 42;
-}
-''', [
-      lint(54, 12),
-    ]);
-  }
-
-  test_enablement_withoutExtension() async {
-    _writeOptIns(r'''
-lib/test
-''');
-
-    await assertDiagnostics(r'''
-import 'package:analyzer/dart/element/element.dart';
-
-ClassElement f() {
-  throw 42;
-}
-''', [
-      lint(54, 12),
-    ]);
   }
 
   test_methodInvocation_hasFormalParameter() async {
@@ -153,6 +121,18 @@ void f(ClassDeclaration a) {
     ]);
   }
 
+  test_propertyAccess_declaredElement_src() async {
+    await assertDiagnostics(r'''
+import 'package:analyzer/src/dart/ast/ast.dart';
+
+void f(ClassDeclarationImpl a) {
+  a.declaredElement;
+}
+''', [
+      lint(87, 15),
+    ]);
+  }
+
   test_propertyAccess_nestedType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:analyzer/dart/element/element.dart';
@@ -171,7 +151,7 @@ void f() {
     ]);
   }
 
-  void _writeOptIns(String lines) {
+  void _writeOptOuts(String lines) {
     newFile('$testPackageRootPath/analyzer_use_new_elements.txt', lines);
   }
 }

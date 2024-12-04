@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = "Don't use `final` for local variables.";
 
@@ -20,8 +19,11 @@ class UnnecessaryFinal extends LintRule {
         );
 
   @override
-  List<String> get incompatibleRules =>
-      const [LintNames.prefer_final_locals, LintNames.prefer_final_parameters];
+  List<String> get incompatibleRules => const [
+        LintNames.prefer_final_locals,
+        LintNames.prefer_final_parameters,
+        LintNames.prefer_final_in_for_each
+      ];
 
   @override
   List<LintCode> get lintCodes => [

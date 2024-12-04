@@ -28,7 +28,8 @@ void fromEntriesTest(Map<K, V> Function<K, V>(Iterable<MapEntry<K, V>>) ctor) {
 }
 
 void emptyIterableTest(
-    Map<K, V> Function<K, V>(Iterable<MapEntry<K, V>>) ctor) {
+  Map<K, V> Function<K, V>(Iterable<MapEntry<K, V>>) ctor,
+) {
   var map = ctor([]);
   Expect.equals(0, map.length);
   Expect.equals(0, map.keys.length);
@@ -36,9 +37,13 @@ void emptyIterableTest(
 }
 
 void equalElementsTest(
-    Map<K, V> Function<K, V>(Iterable<MapEntry<K, V>>) ctor) {
-  var map =
-      ctor([MapEntry(1, "one"), MapEntry(2, "two"), MapEntry(2, "other")]);
+  Map<K, V> Function<K, V>(Iterable<MapEntry<K, V>>) ctor,
+) {
+  var map = ctor([
+    MapEntry(1, "one"),
+    MapEntry(2, "two"),
+    MapEntry(2, "other"),
+  ]);
   Expect.equals(2, map.length);
   Expect.equals(2, map.keys.length);
   Expect.equals(2, map.values.length);

@@ -47,26 +47,27 @@ class HttpDate {
       "Sep",
       "Oct",
       "Nov",
-      "Dec"
+      "Dec",
     ];
 
     DateTime d = date.toUtc();
-    StringBuffer sb = StringBuffer()
-      ..write(wkday[d.weekday - 1])
-      ..write(", ")
-      ..write(d.day <= 9 ? "0" : "")
-      ..write(d.day.toString())
-      ..write(" ")
-      ..write(month[d.month - 1])
-      ..write(" ")
-      ..write(d.year.toString())
-      ..write(d.hour <= 9 ? " 0" : " ")
-      ..write(d.hour.toString())
-      ..write(d.minute <= 9 ? ":0" : ":")
-      ..write(d.minute.toString())
-      ..write(d.second <= 9 ? ":0" : ":")
-      ..write(d.second.toString())
-      ..write(" GMT");
+    StringBuffer sb =
+        StringBuffer()
+          ..write(wkday[d.weekday - 1])
+          ..write(", ")
+          ..write(d.day <= 9 ? "0" : "")
+          ..write(d.day.toString())
+          ..write(" ")
+          ..write(month[d.month - 1])
+          ..write(" ")
+          ..write(d.year.toString())
+          ..write(d.hour <= 9 ? " 0" : " ")
+          ..write(d.hour.toString())
+          ..write(d.minute <= 9 ? ":0" : ":")
+          ..write(d.minute.toString())
+          ..write(d.second <= 9 ? ":0" : ":")
+          ..write(d.second.toString())
+          ..write(" GMT");
     return sb.toString();
   }
 
@@ -92,7 +93,7 @@ class HttpDate {
       "Thursday",
       "Friday",
       "Saturday",
-      "Sunday"
+      "Sunday",
     ];
     const List months = [
       "Jan",
@@ -106,7 +107,7 @@ class HttpDate {
       "Sep",
       "Oct",
       "Nov",
-      "Dec"
+      "Dec",
     ];
 
     final int formatRfc1123 = 0;
@@ -231,7 +232,7 @@ class HttpDate {
       "sep",
       "oct",
       "nov",
-      "dec"
+      "dec",
     ];
 
     int position = 0;
@@ -277,7 +278,7 @@ class HttpDate {
 
     int toInt(String s) {
       int index = 0;
-      for (; index < s.length && isDigit(s[index]); index++);
+      for (; index < s.length && isDigit(s[index]); index++) ;
       return int.parse(s.substring(0, index));
     }
 
@@ -324,7 +325,8 @@ class HttpDate {
     int year = toInt(yearStr);
     if (year >= 70 && year <= 99)
       year += 1900;
-    else if (year >= 0 && year <= 69) year += 2000;
+    else if (year >= 0 && year <= 69)
+      year += 2000;
     if (year < 1601) error();
 
     int dayOfMonth = toInt(dayOfMonthStr);

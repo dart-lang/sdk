@@ -28,7 +28,7 @@ FutureOr<FutureOr<void>> test3() {
   return null as FutureOr<void>;
 }
 
-// Testing that a block bodied function may return Futu``re<void>
+// Testing that a block bodied function may return `Future<void>`
 FutureOr<FutureOr<void>> test4() {
   return Future<Future<void>>.value(Future<void>.value(null));
 }

@@ -22,9 +22,10 @@ void main() {
   const delta = 60 * Duration.millisecondsPerDay;
   while (time2 > 0) {
     time2 -= delta;
-    offset2 = DateTime.fromMillisecondsSinceEpoch(time2)
-        .timeZoneOffset
-        .inMilliseconds;
+    offset2 =
+        DateTime.fromMillisecondsSinceEpoch(
+          time2,
+        ).timeZoneOffset.inMilliseconds;
     if (verbose) {
       print("Search: ${tz(time2, offset2)} - ${tz(time, offset)}");
     }
@@ -70,10 +71,12 @@ void test(TimeZoneChange change) {
   // Sanity check. The time zones match the [change] one second
   // before and after the change.
   var before = DateTime.fromMillisecondsSinceEpoch(
-      change.msSinceEpoch - Duration.millisecondsPerSecond);
+    change.msSinceEpoch - Duration.millisecondsPerSecond,
+  );
   Expect.equals(change.msOffsetBefore, before.timeZoneOffset.inMilliseconds);
   var after = DateTime.fromMillisecondsSinceEpoch(
-      change.msSinceEpoch + Duration.millisecondsPerSecond);
+    change.msSinceEpoch + Duration.millisecondsPerSecond,
+  );
   Expect.equals(change.msOffsetAfter, after.timeZoneOffset.inMilliseconds);
 
   if (verbose) print("From MS    : ${dtz(before)} --- ${dtz(after)}");
@@ -83,13 +86,25 @@ void test(TimeZoneChange change) {
 
   // One second before the change, even if clock moves backwards,
   // we pick a value that is in the earlier time zone.
-  var localBefore = DateTime(before.year, before.month, before.day, before.hour,
-      before.minute, before.second);
+  var localBefore = DateTime(
+    before.year,
+    before.month,
+    before.day,
+    before.hour,
+    before.minute,
+    before.second,
+  );
   Expect.equals(before, localBefore);
 
   // Asking for a calendar date one second after the change.
-  var localAfter = DateTime(after.year, after.month, after.day, after.hour,
-      after.minute, after.second);
+  var localAfter = DateTime(
+    after.year,
+    after.month,
+    after.day,
+    after.hour,
+    after.minute,
+    after.second,
+  );
   if (verbose) print("From YMDHMS: ${dtz(localBefore)} --- ${dtz(localAfter)}");
   if (before.timeZoneOffset < after.timeZoneOffset) {
     // Clock moved forwards.
@@ -131,7 +146,8 @@ TimeZoneChange findChange(int before, int after) {
         DateTime.fromMillisecondsSinceEpoch(mid).timeZoneOffset.inMilliseconds;
     if (verbose) {
       print(
-          "Bsearch: ${tz(before, offsetBefore)} - ${tz(mid, offsetMid)} - ${tz(after, offsetAfter)}");
+        "Bsearch: ${tz(before, offsetBefore)} - ${tz(mid, offsetMid)} - ${tz(after, offsetAfter)}",
+      );
     }
     if (offsetMid == offsetBefore) {
       before = mid;
@@ -176,14 +192,16 @@ class TimeZoneChange {
 // Helpers when printing timezones.
 
 /// Point in time in ms since epoch, and known offset in ms.
-String tz(int ms, int offset) => "${DateTime.fromMillisecondsSinceEpoch(ms)}"
+String tz(int ms, int offset) =>
+    "${DateTime.fromMillisecondsSinceEpoch(ms)}"
     "${ltz(Duration(milliseconds: offset))}";
 
 /// Time plus Zone from DateTime
 String dtz(DateTime dt) => "$dt${dt.isUtc ? "" : ltz(dt.timeZoneOffset)}";
 
 /// Time zone from duration ("+h:ss" format).
-String ltz(Duration d) => "${d.isNegative ? "-" : "+"}${d.inHours}"
+String ltz(Duration d) =>
+    "${d.isNegative ? "-" : "+"}${d.inHours}"
     ":${(d.inMinutes % 60).toString().padLeft(2, "0")}";
 
 /// Set to true if debugging.

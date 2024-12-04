@@ -23,9 +23,9 @@ final class ServiceExtensionResponse {
   /// Requires [result] to be a JSON object encoded as a string. When forming
   /// the JSON-RPC message [result] will be inlined directly.
   ServiceExtensionResponse.result(String result)
-      : result = result,
-        errorCode = null,
-        errorDetail = null {
+    : result = result,
+      errorCode = null,
+      errorDetail = null {
     // TODO: When NNBD is complete, delete the following line.
     checkNotNullable(result, "result");
   }
@@ -37,9 +37,9 @@ final class ServiceExtensionResponse {
   /// encoded as a string. When forming the JSON-RPC message [errorDetail] will
   /// be inlined directly.
   ServiceExtensionResponse.error(int errorCode, String errorDetail)
-      : result = null,
-        errorCode = errorCode,
-        errorDetail = errorDetail {
+    : result = null,
+      errorCode = errorCode,
+      errorDetail = errorDetail {
     _validateErrorCode(errorCode);
     // TODO: When NNBD is complete, delete the following line.
     checkNotNullable(errorDetail, "errorDetail");
@@ -84,7 +84,7 @@ final class ServiceExtensionResponse {
         json.encode({
           'code': errorCode!,
           'message': _errorCodeMessage(errorCode!),
-          'data': {'details': errorDetail!}
+          'data': {'details': errorDetail!},
         });
   }
 }
@@ -97,7 +97,9 @@ final class ServiceExtensionResponse {
 ///
 /// *NOTE*: all parameter names and values are encoded as strings.
 typedef Future<ServiceExtensionResponse> ServiceExtensionHandler(
-    String method, Map<String, String> parameters);
+  String method,
+  Map<String, String> parameters,
+);
 
 /// Register a [ServiceExtensionHandler] that will be invoked in this isolate
 /// for [method]. *NOTE*: Service protocol extensions must be registered
@@ -152,8 +154,11 @@ external bool get extensionStreamHasListener;
 /// Override [stream] to set the destination stream that the event should be
 /// posted to. The [stream] may not start with an underscore or be a core VM
 /// Service stream.
-void postEvent(String eventKind, Map eventData,
-    {@Since('3.0 ') String stream = 'Extension'}) {
+void postEvent(
+  String eventKind,
+  Map eventData, {
+  @Since('3.0 ') String stream = 'Extension',
+}) {
   const destinationStreamKey = '__destinationStream';
   // Keep protected streams in sync with `streams_` in runtime/vm/service.cc
   // `Extension` is the only stream that should not be protected here.
@@ -171,10 +176,16 @@ void postEvent(String eventKind, Map eventData,
 
   if (protectedStreams.contains(stream)) {
     throw ArgumentError.value(
-        stream, 'stream', 'Cannot be a protected stream.');
+      stream,
+      'stream',
+      'Cannot be a protected stream.',
+    );
   } else if (stream.startsWith('_')) {
     throw ArgumentError.value(
-        stream, 'stream', 'Cannot start with an underscore.');
+      stream,
+      'stream',
+      'Cannot start with an underscore.',
+    );
   }
 
   if (!extensionStreamHasListener) {

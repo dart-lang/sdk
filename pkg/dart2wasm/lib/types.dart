@@ -50,7 +50,7 @@ class Types {
 
   /// Wasm array type of `WasmArray<_Type>`
   late final w.ArrayType typeArrayArrayType =
-      translator.arrayTypeForDartType(typeType);
+      translator.arrayTypeForDartType(typeType, mutable: true);
 
   /// Wasm value type of `WasmArray<_Type>`
   late final w.ValueType typeArrayExpectedType =
@@ -95,8 +95,8 @@ class Types {
   w.ValueType classAndFieldToType(Class cls, int fieldIndex) =>
       translator.classInfo[cls]!.struct.fields[fieldIndex].type.unpacked;
 
-  /// Wasm value type for non-nullable `_Type` values
-  w.ValueType get nonNullableTypeType => typeClassInfo.nonNullableType;
+  /// Wasm value type for non-nullable `_Type` values.
+  w.RefType get nonNullableTypeType => typeClassInfo.nonNullableType;
 
   InterfaceType get namedParameterType =>
       InterfaceType(translator.namedParameterClass, Nullability.nonNullable);
@@ -202,7 +202,8 @@ class Types {
 
     final names = translator.constants.makeArrayOf(
         translator.coreTypes.stringNonNullableRawType,
-        type.named.map((t) => StringConstant(t.name)).toList());
+        type.named.map((t) => StringConstant(t.name)).toList(),
+        mutable: false);
 
     translator.constants.instantiateConstant(
         codeGen.b, names, recordTypeNamesFieldExpectedType);

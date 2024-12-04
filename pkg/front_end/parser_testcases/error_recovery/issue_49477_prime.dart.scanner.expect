@@ -1,0 +1,19 @@
+import 'dart:io';
+
+void main(List<String> args) async {
+final proc = await Process.start('', []);
+proc.stdout.
+
+int getNumber() { return 42; }
+}
+
+
+import[KeywordToken] 'dart:io'[StringToken];[SimpleToken]
+
+void[KeywordToken] main[StringToken]([BeginToken]List[StringToken]<[BeginToken]String[StringToken]>[SimpleToken] args[StringToken])[SimpleToken] async[KeywordToken] {[BeginToken]
+final[KeywordToken] proc[StringToken] =[SimpleToken] await[KeywordToken] Process[StringToken].[SimpleToken]start[StringToken]([BeginToken]''[StringToken],[SimpleToken] [][SimpleToken])[SimpleToken];[SimpleToken]
+proc[StringToken].[SimpleToken]stdout[StringToken].[SimpleToken]
+
+int[StringToken] getNumber[StringToken]([BeginToken])[SimpleToken] {[BeginToken] return[KeywordToken] 42[StringToken];[SimpleToken] }[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

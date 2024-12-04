@@ -17,12 +17,17 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyzerConverter {
-  /// Convert the analysis [error] from the 'analyzer' package to an analysis
-  /// error defined by the plugin API. If a [lineInfo] is provided then the
-  /// error's location will have a start line and start column. If a [severity]
-  /// is provided, then it will override the severity defined by the error.
-  plugin.AnalysisError convertAnalysisError(analyzer.AnalysisError error,
-      {analyzer.LineInfo? lineInfo, analyzer.ErrorSeverity? severity}) {
+  /// Converts the analysis [error] from the 'analyzer' package to an analysis
+  /// error defined by the plugin API.
+  ///
+  /// If a [lineInfo] is provided then the error's location will have a start
+  /// line and start column. If a [severity] is provided, then it will override
+  /// the severity defined by the error.
+  plugin.AnalysisError convertAnalysisError(
+    analyzer.AnalysisError error, {
+    analyzer.LineInfo? lineInfo,
+    analyzer.ErrorSeverity? severity,
+  }) {
     var errorCode = error.errorCode;
     severity ??= errorCode.errorSeverity;
     var offset = error.offset;
@@ -58,15 +63,19 @@ class AnalyzerConverter {
         hasFix: true);
   }
 
-  /// Convert the list of analysis [errors] from the 'analyzer' package to a
-  /// list of analysis errors defined by the plugin API. If a [lineInfo] is
-  /// provided then the resulting errors locations will have a start line and
-  /// start column. If an analysis [options] is provided then the severities of
-  /// the errors will be altered based on those options.
+  /// Converts the list of analysis [errors] from the 'analyzer' package to a
+  /// list of analysis errors defined by the plugin API.
+  ///
+  /// The severities of the errors are altered based on [options].
   List<plugin.AnalysisError> convertAnalysisErrors(
-      List<analyzer.AnalysisError> errors,
-      {analyzer.LineInfo? lineInfo,
-      analyzer.AnalysisOptions? options}) {
+    List<analyzer.AnalysisError> errors, {
+    // TODO(srawlins): Make `lineInfo` required and non-nullable, in a breaking
+    // change release.
+    analyzer.LineInfo? lineInfo,
+    // TODO(srawlins): Make `options` required and non-nullable, in a breaking
+    // change release.
+    analyzer.AnalysisOptions? options,
+  }) {
     var serverErrors = <plugin.AnalysisError>[];
     for (var error in errors) {
       var processor = analyzer.ErrorProcessor.getProcessor(options, error);
@@ -149,12 +158,12 @@ class AnalyzerConverter {
   /// error severity defined by the plugin API.
   plugin.AnalysisErrorSeverity convertErrorSeverity(
           analyzer.ErrorSeverity severity) =>
-      plugin.AnalysisErrorSeverity(severity.name);
+      plugin.AnalysisErrorSeverity.values.byName(severity.name);
 
   /// Convert the error [type] from the 'analyzer' package to an analysis error
   /// type defined by the plugin API.
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
-      plugin.AnalysisErrorType(type.name);
+      plugin.AnalysisErrorType.values.byName(type.name);
 
   /// Create a location based on an the given [element].
   // TODO(srawlins): Deprecate this.

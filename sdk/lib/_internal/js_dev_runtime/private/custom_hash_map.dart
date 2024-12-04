@@ -7,7 +7,7 @@ part of dart._js_helper;
 base class CustomKeyHashMap<K, V> extends CustomHashMap<K, V> {
   final _Predicate<Object?> _validKey;
   CustomKeyHashMap(_Equality<K> equals, _Hasher<K> hashCode, this._validKey)
-      : super(equals, hashCode);
+    : super(equals, hashCode);
 
   @override
   @notNull
@@ -120,7 +120,7 @@ base class CustomHashMap<K, V> extends InternalMap<K, V> {
       JS('', '#.set(#, [#])', keyMap, hash, key);
     } else {
       var equals = _equals;
-      for (int i = 0, n = JS<int>('!', '#.length', buckets);;) {
+      for (int i = 0, n = JS<int>('!', '#.length', buckets); ;) {
         K k = JS('', '#[#]', buckets, i);
         if (equals(k, key)) {
           key = k;

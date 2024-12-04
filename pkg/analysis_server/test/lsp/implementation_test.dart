@@ -56,10 +56,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, content);
-    var res = await getImplementations(
-      mainFileUri,
-      startOfDocPos,
-    );
+    var res = await getImplementations(mainFileUri, startOfDocPos);
 
     expect(res, isEmpty);
   }
@@ -273,10 +270,7 @@ abstract class MyInterface {
 
     await initialize();
 
-    var res = await getImplementations(
-      mainFileUri,
-      code.position.position,
-    );
+    var res = await getImplementations(mainFileUri, code.position.position);
 
     var expectedLocations = [
       for (final range in code.ranges)

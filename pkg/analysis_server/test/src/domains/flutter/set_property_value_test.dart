@@ -37,10 +37,7 @@ void f() {
 import 'package:flutter/material.dart';
 
 void f() {
-  Text(
-    '',
-    maxLines: 42,
-  );
+  Text('', maxLines: 42);
 }
 ''');
   }
@@ -137,8 +134,10 @@ void f() {
   ) async {
     var response = await _setValueResponse(property, value);
     expect(response.error, isNull);
-    return FlutterSetWidgetPropertyValueResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    return FlutterSetWidgetPropertyValueResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
   }
 
   Future<Response> _setValueResponse(

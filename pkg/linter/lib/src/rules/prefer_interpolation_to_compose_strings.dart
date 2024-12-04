@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use interpolation to compose strings and values.';
 

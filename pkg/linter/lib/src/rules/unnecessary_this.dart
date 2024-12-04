@@ -4,11 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../linter_lint_codes.dart';
 import '../util/scope.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
@@ -50,11 +49,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitThisExpression(ThisExpression node) {
     var parent = node.parent;
 
-    Element? element;
+    Element2? element;
     if (parent is PropertyAccess && !parent.isNullAware) {
-      element = getWriteOrReadElement(parent.propertyName);
+      element = getWriteOrReadElement2(parent.propertyName);
     } else if (parent is MethodInvocation && !parent.isNullAware) {
-      element = parent.methodName.staticElement;
+      element = parent.methodName.element;
     } else {
       return;
     }
@@ -64,25 +63,23 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _canReferenceElementWithoutThisPrefix(Element? element, AstNode node) {
-    if (element == null) {
-      return false;
-    }
+  bool _canReferenceElementWithoutThisPrefix(Element2? element, AstNode node) {
+    if (element == null) return false;
 
     var id = element.displayName;
-    var isSetter = element is PropertyAccessorElement && element.isSetter;
-    var result = resolveNameInScope(id, node, shouldResolveSetter: isSetter);
+    var result = resolveNameInScope(id, node,
+        shouldResolveSetter: element is SetterElement);
 
     // No result, definitely no shadowing.
     // The requested element is inherited, or from an extension.
-    if (result.isNone) {
-      return true;
-    }
+    if (result.isNone) return true;
+
+    var resultElement = result.element;
 
     // The result has the matching name, might be shadowing.
     // Check that the element is the same.
     if (result.isRequestedName) {
-      return result.element == element;
+      return resultElement == element;
     }
 
     // The result has the same basename, but not the same name.
@@ -91,8 +88,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     //  - prevents us from going up to the library scope;
     //  - the requested element must be inherited, or from an extension.
     if (result.isDifferentName) {
-      var enclosing = result.element?.enclosingElement3;
-      return enclosing is ClassElement;
+      var enclosing = resultElement?.enclosingElement2;
+      return enclosing is ClassElement2;
     }
 
     // Should not happen.

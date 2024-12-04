@@ -23,7 +23,7 @@
 # e.g. if adding a new flag that doesn't happen to be lexicographically last.
 #
 # kernel:
-#   dart pkg/front_end/tool/fasta.dart generate-experimental-flags
+#   dart pkg/front_end/tool/cfe.dart generate-experimental-flags
 #
 # vm:
 #   dart tools/generate_experimental_flags.dart
@@ -109,7 +109,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.6.0'
+current-version: '3.7.0'
 
 features:
   variance:
@@ -128,26 +128,28 @@ features:
   record-use:
     help: "Output arguments used by static functions."
 
-  wildcard-variables:
-    help: "Local declarations and parameters named `_` are non-binding."
-
   null-aware-elements:
     help: "Null-aware elements and map entries in collections."
 
   enhanced-parts:
+    experimentalReleaseVersion: '3.6.0'
     help: "Generalize parts to be nested and have exports/imports."
 
   unquoted-imports:
     help: "Shorter import syntax."
 
   augmentations:
+    experimentalReleaseVersion: '3.6.0'
     help: "Augmentations - enhancing declarations from outside"
-
-  inference-using-bounds:
-    help: "Use type parameter bounds more extensively in type inference."
 
   inference-update-4:
     help: "A bundle of updates to type inference."
+
+  enum-shorthands:
+    help: "Shorter dot syntax for enum values."
+
+  getter-setter-error:
+    help: "Stop reporting errors about mismatching types in a getter/setter pair."
 
 # Experiment flag only used for testing.
   test-experiment:
@@ -161,6 +163,27 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  inference-using-bounds:
+    enabledIn: '3.7.0'
+    validation: |
+      import 'dart:async';
+      foo<T extends Object>(T? t) => throw 42;
+      bar(FutureOr<Object?> x) => foo(x);
+      main() {
+        print('feature enabled');
+      }
+    help: "Use type parameter bounds more extensively in type inference."
+
+  wildcard-variables:
+    enabledIn: '3.7.0'
+    validation: |
+      main() {
+        int _ = 1;
+        var _ = 2;
+        print('feature enabled');
+      }
+    help: "Local declarations and parameters named `_` are non-binding."
 
   digit-separators:
     enabledIn: '3.6.0'

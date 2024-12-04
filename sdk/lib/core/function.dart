@@ -141,8 +141,11 @@ abstract final class Function {
   /// // Output of the example is:
   /// // Hello world!
   /// ```
-  external static apply(Function function, List<dynamic>? positionalArguments,
-      [Map<Symbol, dynamic>? namedArguments]);
+  external static apply(
+    Function function,
+    List<dynamic>? positionalArguments, [
+    Map<Symbol, dynamic>? namedArguments,
+  ]);
 
   /// A hash code value that is compatible with `operator==`.
   int get hashCode;

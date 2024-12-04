@@ -172,17 +172,6 @@ extension type C(Never it) implements A, B {}
     ]);
   }
 
-  test_extensionType_objectNone_objectQuestion() async {
-    await assertNoErrorsInCode('''
-extension type A(int? it) {}
-extension type B(int it) implements A, num {}
-''');
-    assertElementTypes(
-      findElement.extensionType('B').allSupertypes,
-      ['A', 'Object', 'num', 'Comparable<num>'],
-    );
-  }
-
   test_mixin_on_implements() async {
     await assertErrorsInCode('''
 class I<T> {}

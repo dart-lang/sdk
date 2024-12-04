@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.source_class_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
@@ -21,6 +19,7 @@ import 'package:kernel/type_algebra.dart'
         updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
+import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled, unimplemented;
 import '../base/scope.dart';
@@ -41,6 +40,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'class_declaration.dart';
 import 'name_scheme.dart';
@@ -54,18 +54,18 @@ import 'source_member_builder.dart';
 import 'type_parameter_scope_builder.dart';
 
 Class initializeClass(
-    List<NominalVariableBuilder>? typeVariables,
+    List<NominalParameterBuilder>? typeParameters,
     String name,
     Uri fileUri,
-    int startCharOffset,
-    int charOffset,
-    int charEndOffset,
+    int startOffset,
+    int nameOffset,
+    int endOffset,
     IndexedClass? indexedClass,
     {required bool isAugmentation}) {
   Class cls = new Class(
       name: name,
       typeParameters:
-          NominalVariableBuilder.typeParametersFromBuilders(typeVariables),
+          NominalParameterBuilder.typeParametersFromBuilders(typeParameters),
       // If the class is an augmentation class it shouldn't use the reference
       // from index even when available.
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
@@ -73,24 +73,39 @@ Class initializeClass(
       reference: isAugmentation ? null : indexedClass?.reference,
       fileUri: fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
-    cls.startFileOffset = startCharOffset;
+    cls.startFileOffset = startOffset;
   }
   if (cls.fileOffset == TreeNode.noOffset) {
-    cls.fileOffset = charOffset;
+    cls.fileOffset = nameOffset;
   }
   if (cls.fileEndOffset == TreeNode.noOffset) {
-    cls.fileEndOffset = charEndOffset;
+    cls.fileEndOffset = endOffset;
   }
 
   return cls;
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    with ClassDeclarationMixin, SourceTypedDeclarationBuilderMixin
+    with ClassDeclarationMixin
     implements
         Comparable<SourceClassBuilder>,
         ClassDeclaration,
         SourceDeclarationBuilder {
+  @override
+  final SourceLibraryBuilder libraryBuilder;
+
+  final int nameOffset;
+
+  @override
+  final String name;
+
+  @override
+  final Uri fileUri;
+
+  final Modifiers _modifiers;
+
+  final List<MetadataBuilder>? metadata;
+
   final Class actualCls;
 
   final DeclarationNameSpaceBuilder nameSpaceBuilder;
@@ -102,7 +117,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   late final ConstructorScope _constructorScope;
 
   @override
-  List<NominalVariableBuilder>? typeVariables;
+  List<NominalParameterBuilder>? typeParameters;
 
   /// The scope in which the [typeParameters] are declared.
   final LookupScope typeParameterScope;
@@ -123,27 +138,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   TypeBuilder? mixedInTypeBuilder;
 
   final IndexedClass? indexedClass;
-
-  @override
-  final bool isMacro;
-
-  @override
-  final bool isSealed;
-
-  @override
-  final bool isBase;
-
-  @override
-  final bool isInterface;
-
-  @override
-  final bool isFinal;
-
-  /// Set to `true` if this class is declared using the `augment` modifier.
-  final bool isAugmentation;
-
-  @override
-  final bool isMixinClass;
 
   @override
   bool isMixinDeclaration;
@@ -167,38 +161,76 @@ class SourceClassBuilder extends ClassBuilderImpl
   MergedClassMemberScope? _mergedScope;
 
   SourceClassBuilder(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      this.typeVariables,
-      this.supertypeBuilder,
-      this.interfaceBuilders,
-      this.onTypes,
-      this.typeParameterScope,
-      this.nameSpaceBuilder,
-      SourceLibraryBuilder parent,
-      this.constructorReferences,
-      Uri fileUri,
-      int startCharOffset,
-      int nameOffset,
-      int charEndOffset,
+      {required this.metadata,
+      required Modifiers modifiers,
+      required this.name,
+      required this.typeParameters,
+      required this.supertypeBuilder,
+      required this.interfaceBuilders,
+      required this.onTypes,
+      required this.typeParameterScope,
+      required this.nameSpaceBuilder,
+      required this.libraryBuilder,
+      required this.constructorReferences,
+      required this.fileUri,
+      required int startOffset,
+      required this.nameOffset,
+      required int endOffset,
       this.indexedClass,
-      {this.mixedInTypeBuilder,
-      this.isMixinDeclaration = false,
-      this.isMacro = false,
-      this.isSealed = false,
-      this.isBase = false,
-      this.isInterface = false,
-      this.isFinal = false,
-      bool isAugmentation = false,
-      this.isMixinClass = false})
-      : actualCls = initializeClass(typeVariables, name, fileUri,
-            startCharOffset, nameOffset, charEndOffset, indexedClass,
-            isAugmentation: isAugmentation),
-        isAugmentation = isAugmentation,
-        super(metadata, modifiers, name, parent, fileUri, nameOffset) {
+      this.mixedInTypeBuilder,
+      this.isMixinDeclaration = false})
+      : _modifiers = modifiers,
+        actualCls = initializeClass(typeParameters, name, fileUri, startOffset,
+            nameOffset, endOffset, indexedClass,
+            isAugmentation: modifiers.isAugment) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
+
+  @override
+  int get fileOffset => nameOffset;
+
+  @override
+  bool get isAbstract => _modifiers.isAbstract;
+
+  @override
+  bool get isNamedMixinApplication {
+    return isMixinApplication && _modifiers.isNamedMixinApplication;
+  }
+
+  @override
+  bool get declaresConstConstructor => _modifiers.declaresConstConstructor;
+
+  @override
+  bool get isMacro => _modifiers.isMacro;
+
+  @override
+  bool get isSealed => _modifiers.isSealed;
+
+  @override
+  bool get isBase => _modifiers.isBase;
+
+  @override
+  bool get isInterface => _modifiers.isInterface;
+
+  @override
+  bool get isFinal => _modifiers.isFinal;
+
+  /// Set to `true` if this class is declared using the `augment` modifier.
+  bool get isAugmentation => _modifiers.isAugment;
+
+  @override
+  bool get isMixinClass => _modifiers.isMixin;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => _modifiers.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isStatic => _modifiers.isStatic;
+
+  @override
+  bool get isAugment => _modifiers.isAugment;
 
   @override
   LookupScope get scope => _scope;
@@ -245,28 +277,21 @@ class SourceClassBuilder extends ClassBuilderImpl
   Class get cls => origin.actualCls;
 
   @override
-  SourceLibraryBuilder get libraryBuilder =>
-      super.libraryBuilder as SourceLibraryBuilder;
+  SourceLibraryBuilder get parent => libraryBuilder;
 
   Class build(LibraryBuilder coreLibrary) {
-    SourceLibraryBuilder.checkMemberConflicts(libraryBuilder, nameSpace,
-        // These checks are performed as part of the class hierarchy
-        // computation.
-        checkForInstanceVsStaticConflict: false,
-        checkForMethodVsSetterConflict: false);
-
     void buildBuilders(Builder declaration) {
       if (declaration.parent != this) {
         if (declaration.parent?.origin != origin) {
           // Coverage-ignore-block(suite): Not run.
           if (fileUri != declaration.parent?.fileUri) {
-            unexpected("$fileUri", "${declaration.parent?.fileUri}", charOffset,
+            unexpected("$fileUri", "${declaration.parent?.fileUri}", fileOffset,
                 fileUri);
           } else {
             unexpected(
                 fullNameForErrors,
                 declaration.parent?.fullNameForErrors ?? '',
-                charOffset,
+                fileOffset,
                 fileUri);
           }
         }
@@ -283,7 +308,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         });
       } else {
         unhandled("${declaration.runtimeType}", "buildBuilders",
-            declaration.charOffset, declaration.fileUri);
+            declaration.fileOffset, declaration.fileUri);
       }
     }
 
@@ -310,7 +335,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // and that is allowed to be a mixin's interface.
       libraryBuilder.addProblem(
           templateSupertypeIsIllegal.withArguments(actualCls.superclass!.name),
-          charOffset,
+          fileOffset,
           noLength,
           fileUri);
       supertype = null;
@@ -372,20 +397,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    checkConstructorStaticConflict();
-
     cls.procedures.sort(compareProcedures);
     return cls;
   }
 
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
-    return new ClassBodyBuilderContext(this,
-        inOutlineBuildingPhase: inOutlineBuildingPhase,
-        inMetadata: inMetadata,
-        inConstFields: inConstFields);
+  BodyBuilderContext createBodyBuilderContext() {
+    return new ClassBodyBuilderContext(this);
   }
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
@@ -399,24 +416,15 @@ class SourceClassBuilder extends ClassBuilderImpl
     MetadataBuilder.buildAnnotations(
         isAugmenting ? origin.cls : cls,
         metadata,
-        createBodyBuilderContext(
-            inOutlineBuildingPhase: true,
-            inMetadata: true,
-            inConstFields: false),
+        createBodyBuilderContext(),
         libraryBuilder,
         fileUri,
         libraryBuilder.scope,
         createFileUriExpression: isAugmenting);
-    if (typeVariables != null) {
-      for (int i = 0; i < typeVariables!.length; i++) {
-        typeVariables![i].buildOutlineExpressions(
-            libraryBuilder,
-            createBodyBuilderContext(
-                inOutlineBuildingPhase: true,
-                inMetadata: true,
-                inConstFields: false),
-            classHierarchy,
-            typeParameterScope);
+    if (typeParameters != null) {
+      for (int i = 0; i < typeParameters!.length; i++) {
+        typeParameters![i].buildOutlineExpressions(libraryBuilder,
+            createBodyBuilderContext(), classHierarchy, typeParameterScope);
       }
     }
 
@@ -500,20 +508,20 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  int get typeVariablesCount => typeVariables?.length ?? 0;
+  int get typeParametersCount => typeParameters?.length ?? 0;
 
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    if (arguments == null && typeVariables == null) {
+    if (arguments == null && typeParameters == null) {
       return <DartType>[];
     }
 
-    if (arguments == null && typeVariables != null) {
+    if (arguments == null && typeParameters != null) {
       // TODO(johnniwinther): Use i2b here when needed.
       List<DartType> result = new List<DartType>.generate(
-          typeVariables!.length,
-          (int i) => typeVariables![i]
+          typeParameters!.length,
+          (int i) => typeParameters![i]
               .defaultType!
               // TODO(johnniwinther): Using [libraryBuilder] here instead of
               // [library] preserves the nullability of the original
@@ -524,7 +532,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       return result;
     }
 
-    if (arguments != null && arguments.length != typeVariablesCount) {
+    if (arguments != null && arguments.length != typeParametersCount) {
       // Coverage-ignore-block(suite): Not run.
       assert(libraryBuilder.loader.assertProblemReportedElsewhere(
           "SourceClassBuilder.buildAliasedTypeArguments: "
@@ -532,14 +540,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
           templateTypeArgumentMismatch
-              .withArguments(typeVariablesCount)
+              .withArguments(typeParametersCount)
               .problemMessage,
           "buildTypeArguments",
           -1,
           null);
     }
 
-    assert(arguments!.length == typeVariablesCount);
+    assert(arguments!.length == typeParametersCount);
     List<DartType> result = new List<DartType>.generate(
         arguments!.length,
         (int i) =>
@@ -548,7 +556,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     return result;
   }
 
-  /// Returns a map which maps the type variables of [superclass] to their
+  /// Returns a map which maps the type parameters of [superclass] to their
   /// respective values as defined by the superclass clause of this class (and
   /// its superclasses).
   ///
@@ -604,26 +612,26 @@ class SourceClassBuilder extends ClassBuilderImpl
 
       mergedScope.addAugmentationScope(augmentation);
 
-      int originLength = typeVariables?.length ?? 0;
-      int augmentationLength = augmentation.typeVariables?.length ?? 0;
+      int originLength = typeParameters?.length ?? 0;
+      int augmentationLength = augmentation.typeParameters?.length ?? 0;
       if (originLength != augmentationLength) {
         // Coverage-ignore-block(suite): Not run.
-        augmentation.addProblem(messagePatchClassTypeVariablesMismatch,
-            augmentation.charOffset, noLength, context: [
-          messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
+        augmentation.addProblem(messagePatchClassTypeParametersMismatch,
+            augmentation.fileOffset, noLength, context: [
+          messagePatchClassOrigin.withLocation(fileUri, fileOffset, noLength)
         ]);
-      } else if (typeVariables != null) {
+      } else if (typeParameters != null) {
         int count = 0;
-        for (NominalVariableBuilder t in augmentation.typeVariables!) {
-          typeVariables![count++].applyAugmentation(t);
+        for (NominalParameterBuilder t in augmentation.typeParameters!) {
+          typeParameters![count++].applyAugmentation(t);
         }
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
       libraryBuilder.addProblem(messagePatchDeclarationMismatch,
-          augmentation.charOffset, noLength, augmentation.fileUri, context: [
+          augmentation.fileOffset, noLength, augmentation.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength)
+            fileUri, fileOffset, noLength)
       ]);
     }
   }
@@ -706,7 +714,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
         addProblem(templateEnumSupertypeOfNonAbstractClass.withArguments(name),
-            charOffset, noLength);
+            fileOffset, noLength);
       }
 
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
@@ -723,7 +731,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
-              customValuesDeclaration!.charOffset,
+              customValuesDeclaration!.fileOffset,
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
@@ -739,7 +747,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           libraryBuilder.addProblem(
               templateEnumImplementerContainsValuesDeclaration
                   .withArguments(this.name),
-              customValuesDeclaration!.charOffset,
+              customValuesDeclaration!.fileOffset,
               customValuesDeclaration.fullNameForErrors.length,
               fileUri);
         }
@@ -747,7 +755,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           libraryBuilder.addProblem(
               templateInheritedRestrictedMemberOfEnumImplementer.withArguments(
                   "values", superclassDeclaringConcreteValues.name),
-              charOffset,
+              fileOffset,
               noLength,
               fileUri);
         }
@@ -761,7 +769,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             libraryBuilder.addProblem(
                 templateEnumImplementerContainsRestrictedInstanceDeclaration
                     .withArguments(this.name, restrictedMemberName),
-                member.charOffset,
+                member.fileOffset,
                 member.fullNameForErrors.length,
                 fileUri);
           }
@@ -774,7 +782,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 templateInheritedRestrictedMemberOfEnumImplementer
                     .withArguments(restrictedMemberName,
                         restrictedNameMemberProvider.name),
-                charOffset,
+                fileOffset,
                 noLength,
                 fileUri);
           }
@@ -799,7 +807,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (isMacroFound) {
         addProblem(templateMacroClassNotDeclaredMacro.withArguments(name),
-            charOffset, noLength);
+            fileOffset, noLength);
       }
     }
 
@@ -811,7 +819,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // Coverage-ignore-block(suite): Not run.
         addProblem(message, nameOffset, nameLength, context: [
           messageTypedefCause.withLocation(
-              aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+              aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
         ]);
       } else {
         addProblem(message, nameOffset, nameLength);
@@ -851,7 +859,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             addProblem(
                 templateIllegalMixinDueToConstructors
                     .withArguments(fullNameForErrors),
-                constructor.charOffset,
+                constructor.fileOffset,
                 noLength);
           }
         }
@@ -895,14 +903,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         ClassBuilder interface = unaliasedDeclaration;
         if (superClass == interface) {
           addProblem(templateImplementsSuperClass.withArguments(interface.name),
-              this.charOffset, noLength);
+              this.fileOffset, noLength);
         } else if (interface.cls.name == "FutureOr" &&
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.path == "async") {
           // Coverage-ignore-block(suite): Not run.
-          addProblem(messageImplementsFutureOr, this.charOffset, noLength);
+          addProblem(messageImplementsFutureOr, this.fileOffset, noLength);
         } else if (implemented.contains(interface)) {
           // Aggregate repetitions.
           problems ??= <ClassBuilder, int>{};
@@ -986,30 +994,30 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   TypeBuilder _checkSupertype(TypeBuilder supertype) {
-    if (typeVariables == null) return supertype;
+    if (typeParameters == null) return supertype;
     Message? message;
-    for (int i = 0; i < typeVariables!.length; ++i) {
-      NominalVariableBuilder typeVariableBuilder = typeVariables![i];
+    for (int i = 0; i < typeParameters!.length; ++i) {
+      NominalParameterBuilder typeParameterBuilder = typeParameters![i];
       Variance variance = supertype
-          .computeTypeVariableBuilderVariance(typeVariableBuilder,
+          .computeTypeParameterBuilderVariance(typeParameterBuilder,
               sourceLoader: libraryBuilder.loader)
           .variance!;
-      if (!variance.greaterThanOrEqual(typeVariables![i].variance)) {
-        if (typeVariables![i].parameter.isLegacyCovariant) {
-          message = templateInvalidTypeVariableInSupertype.withArguments(
-              typeVariables![i].name,
+      if (!variance.greaterThanOrEqual(typeParameters![i].variance)) {
+        if (typeParameters![i].parameter.isLegacyCovariant) {
+          message = templateInvalidTypeParameterInSupertype.withArguments(
+              typeParameters![i].name,
               variance.keyword,
               supertype.typeName!.name);
         } else {
           // Coverage-ignore-block(suite): Not run.
           message =
-              templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
-                  typeVariables![i].variance.keyword,
-                  typeVariables![i].name,
+              templateInvalidTypeParameterInSupertypeWithVariance.withArguments(
+                  typeParameters![i].variance.keyword,
+                  typeParameters![i].name,
                   variance.keyword,
                   supertype.typeName!.name);
         }
-        libraryBuilder.addProblem(message, charOffset, noLength, fileUri);
+        libraryBuilder.addProblem(message, fileOffset, noLength, fileUri);
       }
     }
     if (message != null) {
@@ -1017,13 +1025,13 @@ class SourceClassBuilder extends ClassBuilderImpl
       return new NamedTypeBuilderImpl(
           typeName, const NullabilityBuilder.omitted(),
           fileUri: fileUri,
-          charOffset: charOffset,
-          instanceTypeVariableAccess:
-              InstanceTypeVariableAccessState.Unexpected)
+          charOffset: fileOffset,
+          instanceTypeParameterAccess:
+              InstanceTypeParameterAccessState.Unexpected)
         ..bind(
             libraryBuilder,
             new InvalidTypeDeclarationBuilder(typeName.name,
-                message.withLocation(fileUri, charOffset, noLength)));
+                message.withLocation(fileUri, fileOffset, noLength)));
     }
     return supertype;
   }
@@ -1035,14 +1043,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           computeVariance(typeParameter, fieldBuilder.fieldType);
       if (fieldBuilder.isClassInstanceMember) {
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
-            fieldBuilder.fileUri, fieldBuilder.charOffset);
+            fieldBuilder.fileUri, fieldBuilder.fileOffset);
       }
       if (fieldBuilder.isClassInstanceMember &&
           fieldBuilder.isAssignable &&
           !fieldBuilder.isCovariantByDeclaration) {
         fieldVariance = Variance.contravariant.combine(fieldVariance);
         reportVariancePositionIfInvalid(fieldVariance, typeParameter,
-            fieldBuilder.fileUri, fieldBuilder.charOffset);
+            fieldBuilder.fileUri, fieldBuilder.fileOffset);
       }
     }
   }
@@ -1101,11 +1109,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       // Coverage-ignore-block(suite): Not run.
       Message message;
       if (isReturnType) {
-        message = templateInvalidTypeVariableVariancePositionInReturnType
+        message = templateInvalidTypeParameterVariancePositionInReturnType
             .withArguments(typeParameter.variance.keyword, typeParameter.name!,
                 variance.keyword);
       } else {
-        message = templateInvalidTypeVariableVariancePosition.withArguments(
+        message = templateInvalidTypeParameterVariancePosition.withArguments(
             typeParameter.variance.keyword,
             typeParameter.name!,
             variance.keyword);
@@ -1115,20 +1123,43 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
+  @override
+  int computeDefaultTypes(ComputeDefaultTypeContext context) {
+    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
+    int count = context.computeDefaultTypesForVariables(typeParameters,
+        inErrorRecovery: hasErrors);
+
+    Iterator<SourceMemberBuilder> iterator =
+        nameSpace.filteredConstructorIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      count += iterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
+
+    Iterator<SourceMemberBuilder> memberIterator =
+        fullMemberIterator<SourceMemberBuilder>();
+    while (memberIterator.moveNext()) {
+      count += memberIterator.current
+          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
+    }
+    return count;
+  }
+
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     Iterator<SourceMemberBuilder> memberIterator =
         fullMemberIterator<SourceMemberBuilder>();
     while (memberIterator.moveNext()) {
       SourceMemberBuilder builder = memberIterator.current;
       builder.checkVariance(this, typeEnvironment);
-      builder.checkTypes(libraryBuilder, typeEnvironment);
+      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
 
     Iterator<SourceMemberBuilder> constructorIterator =
         fullConstructorIterator<SourceMemberBuilder>();
     while (constructorIterator.moveNext()) {
       SourceMemberBuilder builder = constructorIterator.current;
-      builder.checkTypes(libraryBuilder, typeEnvironment);
+      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     }
   }
 
@@ -1257,7 +1288,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   int compareTo(SourceClassBuilder other) {
     int result = "$fileUri".compareTo("${other.fileUri}");
     if (result != 0) return result;
-    return charOffset.compareTo(other.charOffset);
+    return fileOffset.compareTo(other.fileOffset);
   }
 
   void _handleSeenCovariant(
@@ -1381,7 +1412,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
           isInterfaceCheck,
           declaredMember,
-          templateOverrideTypeVariablesMismatch.withArguments(
+          templateOverrideTypeParametersMismatch.withArguments(
               "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
               "${interfaceMemberOrigin.enclosingClass!.name}."
@@ -1452,7 +1483,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             reportInvalidOverride(
                 isInterfaceCheck,
                 declaredMember,
-                templateOverrideTypeVariablesBoundMismatch.withArguments(
+                templateOverrideTypeParametersBoundMismatch.withArguments(
                     declaredBound,
                     declaredParameter.name!,
                     "${declaredMember.enclosingClass!.name}."

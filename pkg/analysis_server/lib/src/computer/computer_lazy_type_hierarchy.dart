@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -38,7 +38,7 @@ class DartLazyTypeHierarchyComputer {
     SearchEngine searchEngine,
   ) async {
     var targetElement = await _findTargetElement(location);
-    if (targetElement is! InterfaceElement) {
+    if (targetElement is! InterfaceElement2) {
       return null;
     }
 
@@ -89,10 +89,11 @@ class DartLazyTypeHierarchyComputer {
 
     if (type == null) {
       // Try enclosing class/mixins.
-      Declaration? declaration = node
-          ?.thisOrAncestorMatching((node) => _isValidTargetDeclaration(node));
-      var element = declaration?.declaredElement;
-      if (element is InterfaceElement) {
+      Declaration? declaration = node?.thisOrAncestorMatching(
+        (node) => _isValidTargetDeclaration(node),
+      );
+      var element = declaration?.declaredFragment?.element;
+      if (element is InterfaceElement2) {
         type = element.thisType;
       }
     }
@@ -101,17 +102,21 @@ class DartLazyTypeHierarchyComputer {
   }
 
   /// Locate the [Element] referenced by [location].
-  Future<InterfaceElement?> _findTargetElement(ElementLocation location) async {
-    var element = await _result.session.locateElement(location);
-    return element is InterfaceElement ? element : null;
+  Future<InterfaceElement2?> _findTargetElement(
+    ElementLocation location,
+  ) async {
+    var element = await _result.session.locateElement2(location);
+    return element is InterfaceElement2 ? element : null;
   }
 
   /// Gets immediate sub types for the class/mixin [element].
   Future<List<TypeHierarchyRelatedItem>> _getSubtypes(
-      InterfaceElement target, SearchEngine searchEngine) async {
+    InterfaceElement2 target,
+    SearchEngine searchEngine,
+  ) async {
     /// Helper to convert a [SearchMatch] to a [TypeHierarchyRelatedItem].
     TypeHierarchyRelatedItem toHierarchyItem(SearchMatch match) {
-      var element = match.element as InterfaceElement;
+      var element = match.element2 as InterfaceElement2;
       var type = element.thisType;
       switch (match.kind) {
         case MatchKind.REFERENCE_IN_EXTENDS_CLAUSE:
@@ -128,10 +133,13 @@ class DartLazyTypeHierarchyComputer {
       }
     }
 
-    var matches =
-        await searchEngine.searchSubtypes(target, SearchEngineCache());
+    var matches = await searchEngine.searchSubtypes2(
+      target,
+      SearchEngineCache(),
+    );
+    var seenElements = <Element2>{};
     return matches
-        .where((match) => !(match.element as InterfaceElement).isAugmentation)
+        .where((match) => seenElements.add(match.element2))
         .map(toHierarchyItem)
         .toList();
   }
@@ -184,7 +192,9 @@ class DartLazyTypeHierarchyComputer {
   /// Navigate to [target] from [anchor], preserving type arguments supplied
   /// along the way.
   Future<InterfaceType?> _locateTargetFromAnchor(
-      TypeHierarchyAnchor anchor, InterfaceType target) async {
+    TypeHierarchyAnchor anchor,
+    InterfaceType target,
+  ) async {
     // Start from the anchor.
     var anchorElement = await _findTargetElement(anchor.location);
     var anchorPath = anchor.path;
@@ -199,7 +209,7 @@ class DartLazyTypeHierarchyComputer {
 
     // Verify the element we arrived at matches the targetElement to guard
     // against code changes that made the path from the anchor invalid.
-    return type != null && type.element == target.element ? type : null;
+    return type != null && type.element3 == target.element3 ? type : null;
   }
 }
 
@@ -248,20 +258,20 @@ class TypeHierarchyItem {
   }) : _type = type;
 
   TypeHierarchyItem.forType(InterfaceType type)
-      : this(
-          type: type,
-          displayName: _displayNameForType(type),
-          location: type.element.location!,
-          nameRange: _nameRangeForElement(type.element),
-          codeRange: _codeRangeForElement(type.element),
-          file: type.element.source.fullName,
-        );
+    : this(
+        type: type,
+        displayName: _displayNameForType(type),
+        location: type.element3.location!,
+        nameRange: _nameRangeForElement(type.element3),
+        codeRange: _codeRangeForElement(type.element3),
+        file: type.element3.firstFragment.libraryFragment.source.fullName,
+      );
 
   /// Returns the [SourceRange] of the code for [element].
-  static SourceRange _codeRangeForElement(Element element) {
+  static SourceRange _codeRangeForElement(Element2 element) {
     // Non-synthetic elements should always have code locations.
-    var elementImpl = element.nonSynthetic as ElementImpl;
-    return SourceRange(elementImpl.codeOffset!, elementImpl.codeLength!);
+    var firstFragment = element.nonSynthetic2.firstFragment as ElementImpl;
+    return SourceRange(firstFragment.codeOffset!, firstFragment.codeLength!);
   }
 
   /// Returns a name to display in the hierarchy for [type].
@@ -270,15 +280,15 @@ class TypeHierarchyItem {
   }
 
   /// Returns the [SourceRange] of the name for [element].
-  static SourceRange _nameRangeForElement(Element element) {
-    element = element.nonSynthetic;
+  static SourceRange _nameRangeForElement(Element2 element) {
+    var fragment = element.nonSynthetic2.firstFragment;
 
     // Some non-synthetic items can still have invalid nameOffsets (for example
     // a compilation unit). This should never happen here, but guard against it.
-    assert(element.nameOffset != -1);
-    return element.nameOffset == -1
+    assert(fragment.nameOffset2 != -1);
+    return fragment.nameOffset2 == -1
         ? SourceRange(0, 0)
-        : SourceRange(element.nameOffset, element.nameLength);
+        : SourceRange(fragment.nameOffset2 ?? 0, fragment.name2?.length ?? 0);
   }
 }
 
@@ -298,26 +308,27 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
   TypeHierarchyAnchor? _anchor;
 
   TypeHierarchyRelatedItem.constrainedTo(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.constrainedTo);
+    : this._forType(
+        type,
+        relationship: TypeHierarchyItemRelationship.constrainedTo,
+      );
   TypeHierarchyRelatedItem.extends_(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.extends_);
+    : this._forType(type, relationship: TypeHierarchyItemRelationship.extends_);
 
   TypeHierarchyRelatedItem.implements(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.implements);
+    : this._forType(
+        type,
+        relationship: TypeHierarchyItemRelationship.implements,
+      );
 
   TypeHierarchyRelatedItem.mixesIn(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.mixesIn);
+    : this._forType(type, relationship: TypeHierarchyItemRelationship.mixesIn);
 
   TypeHierarchyRelatedItem.unknown(InterfaceType type)
-      : this._forType(type,
-            relationship: TypeHierarchyItemRelationship.unknown);
+    : this._forType(type, relationship: TypeHierarchyItemRelationship.unknown);
 
   TypeHierarchyRelatedItem._forType(super.type, {required this.relationship})
-      : super.forType();
+    : super.forType();
 
   /// An optional anchor element used to preserve type args.
   TypeHierarchyAnchor? get anchor => _anchor;

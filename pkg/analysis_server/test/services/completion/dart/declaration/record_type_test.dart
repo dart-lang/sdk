@@ -60,6 +60,9 @@ suggestions
   toString
     kind: methodInvocation
     returnType: String
+  jsify
+    kind: methodInvocation
+    returnType: JSAny?
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic
@@ -94,6 +97,9 @@ suggestions
   toString
     kind: methodInvocation
     returnType: String
+  jsify
+    kind: methodInvocation
+    returnType: JSAny?
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic
@@ -130,6 +136,9 @@ suggestions
   foo
     kind: methodInvocation
     returnType: void
+  jsify
+    kind: methodInvocation
+    returnType: JSAny?
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic
@@ -160,6 +169,9 @@ suggestions
   toString
     kind: methodInvocation
     returnType: String
+  jsify
+    kind: methodInvocation
+    returnType: JSAny?
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic
@@ -190,6 +202,9 @@ suggestions
   toString
     kind: methodInvocation
     returnType: String
+  jsify
+    kind: methodInvocation
+    returnType: JSAny?
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic
@@ -220,6 +235,9 @@ suggestions
   toString
     kind: methodInvocation
     returnType: String
+  jsify
+    kind: methodInvocation
+    returnType: JSAny?
   noSuchMethod
     kind: methodInvocation
     returnType: dynamic

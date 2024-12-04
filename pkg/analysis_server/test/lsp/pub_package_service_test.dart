@@ -35,8 +35,10 @@ class PubApiTest {
   Future<void> check_pubHostedUrl(String? envValue, String expectedBase) async {
     var api = PubApi(InstrumentationService.NULL_SERVICE, httpClient, envValue);
     await api.allPackages();
-    expect(lastCalledUrl.toString(),
-        equals('$expectedBase/api/package-name-completion-data'));
+    expect(
+      lastCalledUrl.toString(),
+      equals('$expectedBase/api/package-name-completion-data'),
+    );
   }
 
   void setUp() {
@@ -55,9 +57,9 @@ class PubApiTest {
       check_pubHostedUrl('test', pubDefaultUrl);
 
   Future<void> test_envPubHostedUrl_missingScheme() =>
-      // It's hard to tell that this is intended to be a valid URL minus the scheme
-      // so it will fail validation and fall back to the default.
-      check_pubHostedUrl('pub.example.org', pubDefaultUrl);
+  // It's hard to tell that this is intended to be a valid URL minus the scheme
+  // so it will fail validation and fall back to the default.
+  check_pubHostedUrl('pub.example.org', pubDefaultUrl);
 
   Future<void> test_envPubHostedUrl_null() =>
       check_pubHostedUrl(null, pubDefaultUrl);
@@ -71,8 +73,10 @@ class PubApiTest {
   Future<void> test_httpClient_closesOwn() async {
     var api = PubApi(InstrumentationService.NULL_SERVICE, null, null);
     api.close();
-    expect(() => api.httpClient.get(Uri.parse('https://www.google.co.uk/')),
-        throwsA(anything));
+    expect(
+      () => api.httpClient.get(Uri.parse('https://www.google.co.uk/')),
+      throwsA(anything),
+    );
   }
 
   Future<void> test_httpClient_doesNotCloseProvided() async {
@@ -92,15 +96,21 @@ class PubCommandTest with ResourceProviderMixin {
     pubspecPath = convertPath('/home/project/pubspec.yaml');
     pubspec2Path = convertPath('/home/project2/pubspec.yaml');
     processRunner = MockProcessRunner();
-    pubCommand = PubCommand(InstrumentationService.NULL_SERVICE,
-        resourceProvider.pathContext, processRunner);
+    pubCommand = PubCommand(
+      InstrumentationService.NULL_SERVICE,
+      resourceProvider.pathContext,
+      processRunner,
+    );
   }
 
   Future<void> test_doesNotRunConcurrently() async {
     var isRunning = false;
     processRunner.startHandler = (executable, args, {dir, env}) async {
-      expect(isRunning, isFalse,
-          reason: 'pub commands should not run concurrently');
+      expect(
+        isRunning,
+        isFalse,
+        reason: 'pub commands should not run concurrently',
+      );
       isRunning = true;
       await pumpEventQueue(times: 500);
       isRunning = false;
@@ -133,28 +143,24 @@ class PubCommandTest with ResourceProviderMixin {
   Future<void> test_outdated_args() async {
     processRunner.startHandler = (executable, args, {dir, env}) {
       expect(executable, Platform.resolvedExecutable);
-      expect(
-          args,
-          equals([
-            'pub',
-            'outdated',
-            '--show-all',
-            '--json',
-          ]));
+      expect(args, equals(['pub', 'outdated', '--show-all', '--json']));
       expect(dir, equals(convertPath('/home/project')));
       expect(
-          env!['PUB_ENVIRONMENT'],
-          anyOf(equals('analysis_server.pub_api'),
-              endsWith(':analysis_server.pub_api')));
+        env!['PUB_ENVIRONMENT'],
+        anyOf(
+          equals('analysis_server.pub_api'),
+          endsWith(':analysis_server.pub_api'),
+        ),
+      );
       return MockProcess(0, 0, '', '');
     };
     await pubCommand.outdatedVersions(pubspecPath);
   }
 
   Future<void> test_outdated_invalidJson() async {
-    processRunner.startHandler = (String executable, List<String> args,
-            {dir, env}) =>
-        MockProcess(1, 0, 'NOT VALID JSON', '');
+    processRunner.startHandler =
+        (String executable, List<String> args, {dir, env}) =>
+            MockProcess(1, 0, 'NOT VALID JSON', '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
@@ -208,9 +214,10 @@ class PubCommandTest with ResourceProviderMixin {
 
     processRunner.startHandler = (executable, args, {dir, env}) {
       // Return different json based on the directory we were invoked in.
-      var json = dir == resourceProvider.pathContext.dirname(pubspecPath)
-          ? pubspecJson1
-          : pubspecJson2;
+      var json =
+          dir == resourceProvider.pathContext.dirname(pubspecPath)
+              ? pubspecJson1
+              : pubspecJson2;
       return MockProcess(1, 0, json, '');
     };
     var result1 = await pubCommand.outdatedVersions(pubspecPath);
@@ -270,8 +277,9 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
   ''';
 
   void expectPackages(List<String> packageNames) => expect(
-      server.pubPackageService.cachedPackages.map((p) => p.packageName),
-      equals(packageNames));
+    server.pubPackageService.cachedPackages.map((p) => p.packageName),
+    equals(packageNames),
+  );
 
   void providePubApiPackageList(String jsonResponse) {
     httpClient.sendHandler = (BaseRequest request) async {
@@ -316,7 +324,8 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
 
     // Write a cache that is not stale.
     server.pubPackageService.writeDiskCache(
-        PackageDetailsCache.fromApiResults([PubApiPackage('freshPackage1')]));
+      PackageDetailsCache.fromApiResults([PubApiPackage('freshPackage1')]),
+    );
 
     await initialize();
     await openFile(pubspecFileUri, '');
@@ -391,7 +400,8 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_packageCache_readsDiskCache() async {
     server.pubPackageService.writeDiskCache(
-        PackageDetailsCache.fromApiResults([PubApiPackage('package1')]));
+      PackageDetailsCache.fromApiResults([PubApiPackage('package1')]),
+    );
 
     await initialize();
     expectPackages([]);
@@ -466,11 +476,15 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
 
     // Cache from 10 hours ago should max-10 hours remaining.
     expectHoursRemaining(
-        DateTime.now().add(Duration(hours: -10)), maxHours - 10);
+      DateTime.now().add(Duration(hours: -10)),
+      maxHours - 10,
+    );
 
     // Cache from maxAge ago should have no hours remaining.
     expectHoursRemaining(
-        DateTime.now().add(-PackageDetailsCache.maxCacheAge), 0);
+      DateTime.now().add(-PackageDetailsCache.maxCacheAge),
+      0,
+    );
   }
 
   Future<void> test_packageCache_writesDiskCache() async {

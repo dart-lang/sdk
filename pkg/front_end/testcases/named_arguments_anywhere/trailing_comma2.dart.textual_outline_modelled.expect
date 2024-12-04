@@ -3,10 +3,7 @@ class Bad {
 }
 
 class C {
-  operator []=(
-    x,
-    y,
-  ) {}
+  operator []=(x, y) {}
 }
 
 main() {}

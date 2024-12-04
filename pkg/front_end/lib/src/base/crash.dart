@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.crash;
-
 import 'dart:convert' show jsonEncode;
 import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
@@ -80,7 +78,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
   hasCrashed = true;
   Map<String, dynamic> data = <String, dynamic>{};
   data["type"] = "crash";
-  data["client"] = "package:fasta";
+  data["client"] = "package:cfe";
   if (uri != null) data["uri"] = "$uri";
   if (charOffset != null) data["offset"] = charOffset;
   data["error"] = safeToString(error);

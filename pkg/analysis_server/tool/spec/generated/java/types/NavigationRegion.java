@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A description of a region from which the user can navigate to the declaration of an element.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class NavigationRegion {
 
-  public static final NavigationRegion[] EMPTY_ARRAY = new NavigationRegion[0];
-
-  public static final List<NavigationRegion> EMPTY_LIST = Lists.newArrayList();
+  public static final List<NavigationRegion> EMPTY_LIST = List.of();
 
   /**
    * The offset of the region from which the user can navigate.
@@ -52,7 +47,7 @@ public class NavigationRegion {
    */
   private final int[] targets;
 
-  private final List<NavigationTarget> targetObjects = Lists.newArrayList();
+  private final List<NavigationTarget> targetObjects = new ArrayList<>();
 
   /**
    * Constructor for {@link NavigationRegion}.
@@ -69,8 +64,7 @@ public class NavigationRegion {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NavigationRegion) {
-      NavigationRegion other = (NavigationRegion) obj;
+    if (obj instanceof NavigationRegion other) {
       return
         other.offset == offset &&
         other.length == length &&
@@ -90,10 +84,9 @@ public class NavigationRegion {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<NavigationRegion> list = new ArrayList<NavigationRegion>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<NavigationRegion> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -127,16 +120,15 @@ public class NavigationRegion {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(offset);
-    builder.append(length);
-    builder.append(targets);
-    return builder.toHashCode();
+    return Objects.hash(
+      offset,
+      length,
+      Arrays.hashCode(targets)
+    );
   }
 
   public void lookupTargets(List<NavigationTarget> allTargets) {
-    for (int i = 0; i < targets.length; i++) {
-      int targetIndex = targets[i];
+    for (int targetIndex : targets) {
       NavigationTarget target = allTargets.get(targetIndex);
       targetObjects.add(target);
     }
@@ -159,11 +151,13 @@ public class NavigationRegion {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("offset=");
-    builder.append(offset + ", ");
+    builder.append(offset);
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("targets=");
-    builder.append(StringUtils.join(targets, ", "));
+    builder.append(Arrays.stream(targets).mapToObj(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

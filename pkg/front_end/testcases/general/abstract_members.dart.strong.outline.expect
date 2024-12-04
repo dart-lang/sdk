@@ -210,9 +210,9 @@ abstract class A extends core::Object implements self::Interface1, self::Interfa
   method aMethod() → dynamic
     ;
   abstract method abstractMethod() → dynamic;
-  abstract set property1(dynamic _) → void;
-  abstract set property2(dynamic _) → void;
-  abstract set property3(dynamic _) → void;
+  abstract set property1(wildcard dynamic _#wc0#formal) → void;
+  abstract set property2(wildcard dynamic _#wc1#formal) → void;
+  abstract set property3(wildcard dynamic _#wc2#formal) → void;
 }
 abstract class B extends self::A {
   final field dynamic property1;
@@ -239,10 +239,10 @@ class MyClass extends self::B {
 class MyMock1 extends self::B {
   synthetic constructor •() → self::MyMock1
     ;
-  method noSuchMethod(core::Invocation _) → dynamic
+  method noSuchMethod(wildcard core::Invocation _#wc3#formal) → dynamic
     ;
-  no-such-method-forwarder set property1(dynamic _) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set property1(dynamic _#wc0#formal) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_#wc0#formal]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
   no-such-method-forwarder method abstractMethod() → dynamic
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#abstractMethod, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
   no-such-method-forwarder method interfaceMethod1() → void
@@ -253,25 +253,25 @@ class MyMock1 extends self::B {
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod2, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
   no-such-method-forwarder method interfaceMethod3() → void
     return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod3, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
-  no-such-method-forwarder set property2(dynamic _) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property2=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
-  no-such-method-forwarder set property3(dynamic _) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set property2(dynamic _#wc1#formal) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property2=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_#wc1#formal]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set property3(dynamic _#wc2#formal) → void
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_#wc2#formal]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))){(core::Invocation) → dynamic};
 }
 class MyMock2 extends self::MyMock1 {
   synthetic constructor •() → self::MyMock2
     ;
-  abstract method noSuchMethod(core::Invocation _) → dynamic;
+  abstract method noSuchMethod(wildcard core::Invocation _#wc4#formal) → dynamic;
 }
 class MyMock3 extends self::B {
   synthetic constructor •() → self::MyMock3
     ;
-  abstract method noSuchMethod(core::Invocation _) → dynamic;
+  abstract method noSuchMethod(wildcard core::Invocation _#wc5#formal) → dynamic;
 }
 class C extends core::Object {
   synthetic constructor •() → self::C
     ;
-  method interfaceMethod1(dynamic _) → void
+  method interfaceMethod1(wildcard dynamic _#wc6#formal) → void
     ;
 }
 abstract class D extends self::C implements self::Interface2 {
@@ -281,7 +281,7 @@ abstract class D extends self::C implements self::Interface2 {
 class E extends core::Object {
   synthetic constructor •() → self::E
     ;
-  set interfaceMethod1(dynamic _) → void
+  set interfaceMethod1(wildcard dynamic _#wc7#formal) → void
     ;
 }
 abstract class F extends self::E implements self::Interface1 {

@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A collection of positions that should be linked (edited simultaneously) for the purposes of
@@ -40,9 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class LinkedEditGroup {
 
-  public static final LinkedEditGroup[] EMPTY_ARRAY = new LinkedEditGroup[0];
-
-  public static final List<LinkedEditGroup> EMPTY_LIST = Lists.newArrayList();
+  public static final List<LinkedEditGroup> EMPTY_LIST = List.of();
 
   /**
    * The positions of the regions (after applying the relevant edits) that should be edited
@@ -71,12 +66,11 @@ public class LinkedEditGroup {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof LinkedEditGroup) {
-      LinkedEditGroup other = (LinkedEditGroup) obj;
+    if (obj instanceof LinkedEditGroup other) {
       return
-        ObjectUtilities.equals(other.positions, positions) &&
+        Objects.equals(other.positions, positions) &&
         other.length == length &&
-        ObjectUtilities.equals(other.suggestions, suggestions);
+        Objects.equals(other.suggestions, suggestions);
     }
     return false;
   }
@@ -92,10 +86,9 @@ public class LinkedEditGroup {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<LinkedEditGroup> list = new ArrayList<LinkedEditGroup>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<LinkedEditGroup> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -124,11 +117,11 @@ public class LinkedEditGroup {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(positions);
-    builder.append(length);
-    builder.append(suggestions);
-    return builder.toHashCode();
+    return Objects.hash(
+      positions,
+      length,
+      suggestions
+    );
   }
 
   public JsonObject toJson() {
@@ -152,11 +145,13 @@ public class LinkedEditGroup {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("positions=");
-    builder.append(StringUtils.join(positions, ", ") + ", ");
+    builder.append(positions.stream().map(String::valueOf).collect(Collectors.joining(", ")));
+    builder.append(", ");
     builder.append("length=");
-    builder.append(length + ", ");
+    builder.append(length);
+    builder.append(", ");
     builder.append("suggestions=");
-    builder.append(StringUtils.join(suggestions, ", "));
+    builder.append(suggestions.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

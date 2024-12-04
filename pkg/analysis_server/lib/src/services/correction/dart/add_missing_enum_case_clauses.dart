@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -15,9 +16,10 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Adding the missing case is not a sufficient fix (user logic needs
-      // adding too).
-      CorrectionApplicability.singleLocation;
+          // Adding the missing case is not a sufficient fix (user logic needs
+          // adding too).
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
@@ -45,10 +47,10 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     if (expressionType is InterfaceType) {
       var enumElement = expressionType.element3;
       if (enumElement is EnumElement2) {
-        enumName = enumElement.name;
+        enumName = enumElement.name3;
         for (var field in enumElement.fields2) {
           if (field.isEnumConstant) {
-            unhandledEnumCases.add(field.name);
+            unhandledEnumCases.addIfNotNull(field.name3);
           }
         }
         prefix = _importPrefix(enumElement);
@@ -67,7 +69,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
         if (expression is Identifier) {
           var element = expression.element;
           if (element is GetterElement) {
-            unhandledEnumCases.remove(element.name);
+            unhandledEnumCases.remove(element.name3);
           }
         } else if (expression is NullLiteral) {
           unhandledNullValue = false;
@@ -85,35 +87,37 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     var enumName_final = '$prefixString$enumName';
     await builder.addDartFileEdit(file, (builder) {
       builder.insertCaseClauseAtEnd(
-          switchKeyword: statement.switchKeyword,
-          rightParenthesis: statement.rightParenthesis,
-          leftBracket: statement.leftBracket,
-          rightBracket: statement.rightBracket, (builder) {
-        void addMissingCase(String expression) {
-          builder.write(statementIndent);
-          builder.write(singleIndent);
-          builder.write('case ');
-          builder.write(expression);
-          builder.writeln(':');
-          builder.write(statementIndent);
-          builder.write(singleIndent);
-          builder.write(singleIndent);
-          builder.writeln('// TODO: Handle this case.');
-          builder.write(statementIndent);
-          builder.write(singleIndent);
-          builder.write(singleIndent);
-          builder.writeln('break;');
-        }
+        switchKeyword: statement.switchKeyword,
+        rightParenthesis: statement.rightParenthesis,
+        leftBracket: statement.leftBracket,
+        rightBracket: statement.rightBracket,
+        (builder) {
+          void addMissingCase(String expression) {
+            builder.write(statementIndent);
+            builder.write(singleIndent);
+            builder.write('case ');
+            builder.write(expression);
+            builder.writeln(':');
+            builder.write(statementIndent);
+            builder.write(singleIndent);
+            builder.write(singleIndent);
+            builder.writeln('// TODO: Handle this case.');
+            builder.write(statementIndent);
+            builder.write(singleIndent);
+            builder.write(singleIndent);
+            builder.writeln('break;');
+          }
 
-        // TODO(brianwilkerson): Consider inserting the names in order into the
-        //  switch statement.
-        for (var constantName in unhandledEnumCases) {
-          addMissingCase('$enumName_final.$constantName');
-        }
-        if (unhandledNullValue) {
-          addMissingCase('null');
-        }
-      });
+          // TODO(brianwilkerson): Consider inserting the names in order into the
+          //  switch statement.
+          for (var constantName in unhandledEnumCases) {
+            addMissingCase('$enumName_final.$constantName');
+          }
+          if (unhandledNullValue) {
+            addMissingCase('null');
+          }
+        },
+      );
     });
   }
 
@@ -123,7 +127,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     var shortestPrefix = '';
     for (var directive in unit.directives) {
       if (directive is ImportDirective) {
-        var namespace = directive.element?.namespace;
+        var namespace = directive.libraryImport?.namespace;
         if (namespace != null) {
           if (namespace.definedNames2.containsValue(element)) {
             var prefix = directive.prefix?.name;

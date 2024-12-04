@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class MissingOneOfMultipleKeysTest extends AbstractTransformSetParserTest {
   void test_element() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -24,13 +25,14 @@ transforms:
   element:
     uris: ['test.dart']
   changes: []
-''', [
-      error(TransformSetErrorCode.missingOneOfMultipleKeys, 69, 22),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingOneOfMultipleKeys, 69, 22)],
+    );
   }
 
   void test_element_container() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -39,13 +41,14 @@ transforms:
     uris: ['test.dart']
     method: 'm'
   changes: []
-''', [
-      error(TransformSetErrorCode.missingOneOfMultipleKeys, 69, 38),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingOneOfMultipleKeys, 69, 38)],
+    );
   }
 
   void test_removeParameterChange() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -55,13 +58,14 @@ transforms:
     function: 'f'
   changes:
     - kind: removeParameter
-''', [
-      error(TransformSetErrorCode.missingOneOfMultipleKeys, 124, 22),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingOneOfMultipleKeys, 124, 22)],
+    );
   }
 
   void test_transform() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -69,8 +73,8 @@ transforms:
   element:
     uris: ['test.dart']
     function: 'f'
-''', [
-      error(TransformSetErrorCode.missingOneOfMultipleKeys, 0, 107),
-    ]);
+''',
+      [error(TransformSetErrorCode.missingOneOfMultipleKeys, 0, 107)],
+    );
   }
 }

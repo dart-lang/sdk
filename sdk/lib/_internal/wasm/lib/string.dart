@@ -52,7 +52,12 @@ WasmArray<WasmI8> oneByteStringArray(OneByteString s) => s._array;
 /// The [fromStart] and [toStart] indices together with the [length] must
 /// specify ranges within the bounds of the list / string.
 void copyRangeFromUint8ListToOneByteString(
-    Uint8List from, OneByteString to, int fromStart, int toStart, int length) {
+  Uint8List from,
+  OneByteString to,
+  int fromStart,
+  int toStart,
+  int length,
+) {
   for (int i = 0; i < length; i++) {
     to._setAt(toStart + i, from[fromStart + i]);
   }
@@ -60,14 +65,19 @@ void copyRangeFromUint8ListToOneByteString(
 
 @pragma("wasm:prefer-inline")
 OneByteString createOneByteStringFromCharacters(
-        U8List bytes, int start, int end) =>
-    createOneByteStringFromCharactersArray(bytes.data, start, end);
+  U8List bytes,
+  int start,
+  int end,
+) => createOneByteStringFromCharactersArray(bytes.data, start, end);
 
 /// Create a [OneByteString] with the [array] contents in the range from
 /// [start] to [end] (exclusive).
 @pragma("wasm:prefer-inline")
 OneByteString createOneByteStringFromCharactersArray(
-    WasmArray<WasmI8> array, int start, int end) {
+  WasmArray<WasmI8> array,
+  int start,
+  int end,
+) {
   final len = end - start;
   final s = OneByteString.withLength(len);
   s._array.copy(0, array, start, len);
@@ -78,7 +88,10 @@ OneByteString createOneByteStringFromCharactersArray(
 /// character array is an `i16 array` instead of `i8 array`.
 @pragma("wasm:prefer-inline")
 OneByteString createOneByteStringFromTwoByteCharactersArray(
-    WasmArray<WasmI16> array, int start, int end) {
+  WasmArray<WasmI16> array,
+  int start,
+  int end,
+) {
   final len = end - start;
   final s = OneByteString.withLength(len);
   for (int i = 0; i < len; i += 1) {
@@ -92,7 +105,10 @@ OneByteString createOneByteStringFromTwoByteCharactersArray(
 /// [start] to [end] (exclusive).
 @pragma("wasm:prefer-inline")
 TwoByteString createTwoByteStringFromCharactersArray(
-    WasmArray<WasmI16> array, int start, int end) {
+  WasmArray<WasmI16> array,
+  int start,
+  int end,
+) {
   final len = end - start;
   final s = TwoByteString.withLength(len);
   s._array.copy(0, array, start, len);
@@ -108,13 +124,23 @@ extension OneByteStringUnsafeExtensions on String {
 const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 
-String _toUpperCase(String string) =>
-    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
-        "s => s.toUpperCase()", jsStringFromDartString(string).toExternRef)));
+String _toUpperCase(String string) => jsStringToDartString(
+  JSStringImpl(
+    JS<WasmExternRef>(
+      "s => s.toUpperCase()",
+      jsStringFromDartString(string).toExternRef,
+    ),
+  ),
+);
 
-String _toLowerCase(String string) =>
-    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
-        "s => s.toLowerCase()", jsStringFromDartString(string).toExternRef)));
+String _toLowerCase(String string) => jsStringToDartString(
+  JSStringImpl(
+    JS<WasmExternRef>(
+      "s => s.toLowerCase()",
+      jsStringFromDartString(string).toExternRef,
+    ),
+  ),
+);
 
 /**
  * [StringBase] contains common methods used by concrete String
@@ -166,7 +192,10 @@ abstract final class StringBase extends WasmStringBase
    * It's `null` if unknown.
    */
   static String createFromCharCodes(
-      Iterable<int> charCodes, int start, int? end) {
+    Iterable<int> charCodes,
+    int start,
+    int? end,
+  ) {
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
     if (ccid != ClassID.cidFixedLengthList &&
@@ -233,14 +262,21 @@ abstract final class StringBase extends WasmStringBase
       return TwoByteString.allocateFromTwoByteList(typedCharCodes, start, end);
     }
     return _createFromAdjustedCodePoints(
-        typedCharCodes, start, end, end - start + multiCodeUnitChars);
+      typedCharCodes,
+      start,
+      end,
+      end - start + multiCodeUnitChars,
+    );
   }
 
   static int _actualEnd(int? end, int length) =>
       (end == null || end > length) ? length : end;
 
   static String _createStringFromIterable(
-      Iterable<int> charCodes, int start, int? end) {
+    Iterable<int> charCodes,
+    int start,
+    int? end,
+  ) {
     // Treat charCodes as Iterable.
     bool endKnown = false;
     if (charCodes is EfficientLengthIterable) {
@@ -311,7 +347,10 @@ abstract final class StringBase extends WasmStringBase
   }
 
   static String _createFromOneByteCodes(
-      List<int> charCodes, int start, int end) {
+    List<int> charCodes,
+    int start,
+    int end,
+  ) {
     OneByteString result = OneByteString.withLength(end - start);
     for (int i = start; i < end; i++) {
       result._setAt(i - start, charCodes[i]);
@@ -325,7 +364,11 @@ abstract final class StringBase extends WasmStringBase
   /// `length - (end - start)` of them, which is why they require
   /// a two-byte string of length [length].
   static String _createFromAdjustedCodePoints(
-      List<int> codePoints, int start, int end, int length) {
+    List<int> codePoints,
+    int start,
+    int end,
+    int length,
+  ) {
     assert(length > end - start);
     TwoByteString result = TwoByteString.withLength(length);
     int cursor = 0;
@@ -645,12 +688,16 @@ abstract final class StringBase extends WasmStringBase
     return pattern.allMatches(this.substring(startIndex)).isNotEmpty;
   }
 
-  String replaceFirst(Pattern pattern, String replacement,
-      [int startIndex = 0]) {
+  String replaceFirst(
+    Pattern pattern,
+    String replacement, [
+    int startIndex = 0,
+  ]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
-    Iterator iterator = startIndex == 0
-        ? pattern.allMatches(this).iterator
-        : pattern.allMatches(this, startIndex).iterator;
+    Iterator iterator =
+        startIndex == 0
+            ? pattern.allMatches(this).iterator
+            : pattern.allMatches(this, startIndex).iterator;
     if (!iterator.moveNext()) return this;
     Match match = iterator.current;
     return replaceRange(match.start, match.end, replacement);
@@ -669,7 +716,11 @@ abstract final class StringBase extends WasmStringBase
       int index = 0;
       index = result._setRange(index, this_, 0, start);
       index = result._setRange(
-          start, unsafeCast<OneByteString>(replacement), 0, replacementLength);
+        start,
+        unsafeCast<OneByteString>(replacement),
+        0,
+        replacementLength,
+      );
       result._setRange(index, this_, localEnd, length);
       return result;
     }
@@ -678,7 +729,11 @@ abstract final class StringBase extends WasmStringBase
     if (replacement.length > 0) slices.add(replacement);
     _addReplaceSlice(slices, localEnd, length);
     return _joinReplaceAllResult(
-        this, slices, totalLength, replacementIsOneByte);
+      this,
+      slices,
+      totalLength,
+      replacementIsOneByte,
+    );
   }
 
   static int _addReplaceSlice(List matches, int start, int end) {
@@ -729,7 +784,10 @@ abstract final class StringBase extends WasmStringBase
    * is always a [OneByteString].
    */
   static String _joinReplaceAllOneByteResult(
-      String base, List matches, int length) {
+    String base,
+    List matches,
+    int length,
+  ) {
     OneByteString result = OneByteString.withLength(length);
     int writeIndex = 0;
     for (int i = 0; i < matches.length; i++) {
@@ -776,10 +834,15 @@ abstract final class StringBase extends WasmStringBase
    * If they are, then we have to check the base string slices to know
    * whether the result must be a one-byte string.
    */
-  String _joinReplaceAllResult(String base, List matches, int length,
-      bool replacementStringsAreOneByte) {
+  String _joinReplaceAllResult(
+    String base,
+    List matches,
+    int length,
+    bool replacementStringsAreOneByte,
+  ) {
     if (length < 0) throw ArgumentError.value(length);
-    bool isOneByte = replacementStringsAreOneByte &&
+    bool isOneByte =
+        replacementStringsAreOneByte &&
         _slicesAreOneByte(base, matches, length);
     if (isOneByte) {
       return _joinReplaceAllOneByteResult(base, matches, length);
@@ -873,11 +936,18 @@ abstract final class StringBase extends WasmStringBase
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
     return _joinReplaceAllResult(
-        this, matches, length, replacementStringsAreOneByte);
+      this,
+      matches,
+      length,
+      replacementStringsAreOneByte,
+    );
   }
 
-  String replaceFirstMapped(Pattern pattern, String replace(Match match),
-      [int startIndex = 0]) {
+  String replaceFirstMapped(
+    Pattern pattern,
+    String replace(Match match), [
+    int startIndex = 0,
+  ]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
 
     var matches = pattern.allMatches(this, startIndex).iterator;
@@ -891,7 +961,9 @@ abstract final class StringBase extends WasmStringBase
   static String _stringIdentity(String string) => string;
 
   String _splitMapJoinEmptyString(
-      String onMatch(Match match), String onNonMatch(String nonMatch)) {
+    String onMatch(Match match),
+    String onNonMatch(String nonMatch),
+  ) {
     // Pattern is the empty string.
     StringBuffer buffer = StringBuffer();
     int length = this.length;
@@ -919,8 +991,11 @@ abstract final class StringBase extends WasmStringBase
     return buffer.toString();
   }
 
-  String splitMapJoin(Pattern pattern,
-      {String onMatch(Match match)?, String onNonMatch(String nonMatch)?}) {
+  String splitMapJoin(
+    Pattern pattern, {
+    String onMatch(Match match)?,
+    String onNonMatch(String nonMatch)?,
+  }) {
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;
     if (pattern is String) {
@@ -979,7 +1054,8 @@ abstract final class StringBase extends WasmStringBase
       return OneByteString._concat2(string1, string2);
     }
     return StringBase._interpolate(
-        WasmArray<Object?>.literal([string1, string2]));
+      WasmArray<Object?>.literal([string1, string2]),
+    );
   }
 
   @pragma("wasm:entry-point", "call")
@@ -993,12 +1069,17 @@ abstract final class StringBase extends WasmStringBase
       return OneByteString._concat3(string1, string2, string3);
     }
     return StringBase._interpolate(
-        WasmArray<Object?>.literal([string1, string2, string3]));
+      WasmArray<Object?>.literal([string1, string2, string3]),
+    );
   }
 
   @pragma("wasm:entry-point", "call")
   static String _interpolate4(
-      Object? value1, Object? value2, Object? value3, Object? value4) {
+    Object? value1,
+    Object? value2,
+    Object? value3,
+    Object? value4,
+  ) {
     final String string1 = value1 is String ? value1 : value1.toString();
     final String string2 = value2 is String ? value2 : value2.toString();
     final String string3 = value3 is String ? value3 : value3.toString();
@@ -1010,7 +1091,8 @@ abstract final class StringBase extends WasmStringBase
       return OneByteString._concat4(string1, string2, string3, string4);
     }
     return StringBase._interpolate(
-        WasmArray<Object?>.literal([string1, string2, string3, string4]));
+      WasmArray<Object?>.literal([string1, string2, string3, string4]),
+    );
   }
 
   @pragma('wasm:entry-point')
@@ -1047,8 +1129,10 @@ abstract final class StringBase extends WasmStringBase
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      List<String> result =
-          List<String>.generate(this.length, (int i) => this[i]);
+      List<String> result = List<String>.generate(
+        this.length,
+        (int i) => this[i],
+      );
       return result;
     }
     int length = this.length;
@@ -1094,7 +1178,9 @@ abstract final class StringBase extends WasmStringBase
   // To be called if not all of the given [StringBase] strings are
   // [OneByteString]s.
   static String _concatAllFallback(
-      WasmArray<Object?> strings, int totalLength) {
+    WasmArray<Object?> strings,
+    int totalLength,
+  ) {
     final result = TwoByteString.withLength(totalLength);
     int offset = 0;
     for (int i = 0; i < strings.length; i++) {
@@ -1131,7 +1217,11 @@ abstract final class StringBase extends WasmStringBase
 
   // To be called if not all strings are [OneByteString]s.
   static String _concatRangeFallback(
-      WasmArray<String> strings, int start, int end, int totalLength) {
+    WasmArray<String> strings,
+    int start,
+    int end,
+    int totalLength,
+  ) {
     final result = TwoByteString.withLength(totalLength);
     int offset = 0;
     for (int i = start; i < end; i++) {
@@ -1275,13 +1365,17 @@ final class OneByteString extends StringBase {
   }
 
   static OneByteString _concat3(
-      OneByteString string1, OneByteString string2, OneByteString string3) {
+    OneByteString string1,
+    OneByteString string2,
+    OneByteString string3,
+  ) {
     final bytes1 = string1._array;
     final bytes2 = string2._array;
     final bytes3 = string3._array;
 
-    final result =
-        OneByteString.withLength(bytes1.length + bytes2.length + bytes3.length);
+    final result = OneByteString.withLength(
+      bytes1.length + bytes2.length + bytes3.length,
+    );
     final resultBytes = result._array;
 
     int resultOffset = 0;
@@ -1294,15 +1388,20 @@ final class OneByteString extends StringBase {
     return result;
   }
 
-  static OneByteString _concat4(OneByteString string1, OneByteString string2,
-      OneByteString string3, OneByteString string4) {
+  static OneByteString _concat4(
+    OneByteString string1,
+    OneByteString string2,
+    OneByteString string3,
+    OneByteString string4,
+  ) {
     final bytes1 = string1._array;
     final bytes2 = string2._array;
     final bytes3 = string3._array;
     final bytes4 = string4._array;
 
     final result = OneByteString.withLength(
-        bytes1.length + bytes2.length + bytes3.length + bytes4.length);
+      bytes1.length + bytes2.length + bytes3.length + bytes4.length,
+    );
     final resultBytes = result._array;
 
     int resultOffset = 0;
@@ -1319,7 +1418,11 @@ final class OneByteString extends StringBase {
 
   // All element of 'strings' must be OneByteStrings.
   static OneByteString _concatRange(
-      WasmArray<String> strings, int start, int end, int totalLength) {
+    WasmArray<String> strings,
+    int start,
+    int end,
+    int totalLength,
+  ) {
     final result = OneByteString.withLength(totalLength);
     final resultBytes = result._array;
     int resultOffset = 0;
@@ -1452,7 +1555,7 @@ final class OneByteString extends StringBase {
   // Lower-case conversion table for Latin-1 as string.
   // Upper-case ranges: 0x41-0x5a ('A' - 'Z'), 0xc0-0xd6, 0xd8-0xde.
   // Conversion to lower case performed by adding 0x20.
-  static const WasmArray<WasmI8> _LC_TABLE = WasmArray<WasmI8>.literal([
+  static const _LC_TABLE = ImmutableWasmArray<WasmI8>.literal([
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, //
     0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, //
     0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x23, //
@@ -1484,7 +1587,7 @@ final class OneByteString extends StringBase {
   // The German "sharp s" \xdf (ß) should be converted into two characters (SS),
   // and is also marked with 0x00.
   // Conversion to lower case performed by subtracting 0x20.
-  static const WasmArray<WasmI8> _UC_TABLE = WasmArray<WasmI8>.literal([
+  static const _UC_TABLE = ImmutableWasmArray<WasmI8>.literal([
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, //
     0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, //
     0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x23, //
@@ -1506,7 +1609,7 @@ final class OneByteString extends StringBase {
     0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0x00, 0xc0, 0xc1, 0xc2, 0xc3, //
     0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf, //
     0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xf7, 0xd8, 0xd9, 0xda, 0xdb, //
-    0xdc, 0xdd, 0xde, 0x00
+    0xdc, 0xdd, 0xde, 0x00,
   ]);
 
   String toLowerCase() {

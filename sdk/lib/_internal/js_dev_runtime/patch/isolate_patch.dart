@@ -32,27 +32,32 @@ class Isolate {
   static Uri? resolvePackageUriSync(Uri packageUri) => _unsupported();
 
   @patch
-  static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
-          {bool paused = false,
-          bool errorsAreFatal = true,
-          SendPort? onExit,
-          SendPort? onError,
-          String? debugName}) =>
-      _unsupported();
+  static Future<Isolate> spawn<T>(
+    void entryPoint(T message),
+    T message, {
+    bool paused = false,
+    bool errorsAreFatal = true,
+    SendPort? onExit,
+    SendPort? onError,
+    String? debugName,
+  }) => _unsupported();
 
   @patch
-  static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,
-          {bool paused = false,
-          SendPort? onExit,
-          SendPort? onError,
-          bool errorsAreFatal = true,
-          bool? checked,
-          Map<String, String>? environment,
-          Uri? packageRoot,
-          Uri? packageConfig,
-          bool automaticPackageResolution = false,
-          String? debugName}) =>
-      _unsupported();
+  static Future<Isolate> spawnUri(
+    Uri uri,
+    List<String> args,
+    var message, {
+    bool paused = false,
+    SendPort? onExit,
+    SendPort? onError,
+    bool errorsAreFatal = true,
+    bool? checked,
+    Map<String, String>? environment,
+    Uri? packageRoot,
+    Uri? packageConfig,
+    bool automaticPackageResolution = false,
+    String? debugName,
+  }) => _unsupported();
 
   @patch
   void _pause(Capability resumeCapability) => _unsupported();
@@ -73,9 +78,11 @@ class Isolate {
   @patch
   void kill({int priority = beforeNextEvent}) => _unsupported();
   @patch
-  void ping(SendPort responsePort,
-          {Object? response, int priority = immediate}) =>
-      _unsupported();
+  void ping(
+    SendPort responsePort, {
+    Object? response,
+    int priority = immediate,
+  }) => _unsupported();
 
   @patch
   void addErrorListener(SendPort port) => _unsupported();
@@ -109,11 +116,12 @@ class _ReceivePort extends Stream implements ReceivePort {
 
   get sendPort => _unsupported();
 
-  StreamSubscription listen(void Function(dynamic)? onData,
-          {Function? onError,
-          void Function()? onDone,
-          bool? cancelOnError = true}) =>
-      _unsupported();
+  StreamSubscription listen(
+    void Function(dynamic)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError = true,
+  }) => _unsupported();
 }
 
 @patch

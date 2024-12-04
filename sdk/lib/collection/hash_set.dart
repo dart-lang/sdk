@@ -132,10 +132,11 @@ abstract final class HashSet<E> implements Set<E> {
   /// and `isValidKey` is omitted, the resulting set is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [HashSet.identity].
-  external factory HashSet(
-      {bool Function(E, E)? equals,
-      int Function(E)? hashCode,
-      bool Function(dynamic)? isValidKey});
+  external factory HashSet({
+    bool Function(E, E)? equals,
+    int Function(E)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   /// Creates an unordered identity-based set.
   ///

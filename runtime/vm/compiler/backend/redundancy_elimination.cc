@@ -4604,7 +4604,7 @@ void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
       }
 
       if (current->IsBranch()) {
-        current = current->AsBranch()->comparison();
+        current = current->AsBranch()->condition();
       }
 
       if (current->HasUnknownSideEffects()) {

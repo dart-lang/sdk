@@ -44,8 +44,12 @@ class MockHttpClient extends http.BaseClient {
     }
 
     return sendHandler(request)
-        .then((resp) => http.StreamedResponse(
-            Stream.value(resp.body.codeUnits), resp.statusCode))
+        .then(
+          (resp) => http.StreamedResponse(
+            Stream.value(resp.body.codeUnits),
+            resp.statusCode,
+          ),
+        )
         .whenComplete(() => sendHandlerCalls++);
   }
 }
@@ -86,8 +90,13 @@ class MockProcess implements Process {
 }
 
 class MockProcessRunner implements ProcessRunner {
-  FutureOr<Process> Function(String executable, List<String> arguments,
-          {String? dir, Map<String, String>? env}) startHandler =
+  FutureOr<Process> Function(
+    String executable,
+    List<String> arguments, {
+    String? dir,
+    Map<String, String>? env,
+  })
+  startHandler =
       (executable, arguments, {dir, env}) => throw UnimplementedError();
 
   @override
@@ -105,8 +114,12 @@ class MockProcessRunner implements ProcessRunner {
     bool runInShell = false,
     ProcessStartMode mode = ProcessStartMode.normal,
   }) async {
-    return await startHandler(executable, arguments,
-        dir: workingDirectory, env: environment);
+    return await startHandler(
+      executable,
+      arguments,
+      dir: workingDirectory,
+      env: environment,
+    );
   }
 }
 
@@ -114,9 +127,7 @@ class MockSource implements Source {
   @override
   final String fullName;
 
-  MockSource({
-    this.fullName = 'mocked.dart',
-  });
+  MockSource({this.fullName = 'mocked.dart'});
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -145,8 +156,9 @@ class _IsResponseFailure extends Matcher {
 
   @override
   Description describe(Description description) {
-    description =
-        description.add('response with identifier "$_id" and an error');
+    description = description.add(
+      'response with identifier "$_id" and an error',
+    );
     var code = _code;
     if (code != null) {
       description = description.add(' with code ${code.name}');
@@ -155,8 +167,12 @@ class _IsResponseFailure extends Matcher {
   }
 
   @override
-  Description describeMismatch(Object? item, Description mismatchDescription,
-      Map<Object?, Object?> matchState, bool verbose) {
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map<Object?, Object?> matchState,
+    bool verbose,
+  ) {
     var response = item as Response;
     var id = response.id;
     var error = response.error;
@@ -191,13 +207,18 @@ class _IsResponseSuccess extends Matcher {
 
   @override
   Description describe(Description description) {
-    return description
-        .addDescriptionOf('response with identifier "$_id" and without error');
+    return description.addDescriptionOf(
+      'response with identifier "$_id" and without error',
+    );
   }
 
   @override
-  Description describeMismatch(Object? item, Description mismatchDescription,
-      Map<Object?, Object?> matchState, bool verbose) {
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map<Object?, Object?> matchState,
+    bool verbose,
+  ) {
     var response = item as Response?;
     if (response == null) {
       mismatchDescription.add('is null response');

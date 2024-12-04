@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Name source files using `lowercase_with_underscores`.';

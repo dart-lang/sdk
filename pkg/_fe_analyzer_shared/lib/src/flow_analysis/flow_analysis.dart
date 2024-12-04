@@ -138,16 +138,72 @@ class ExpressionPropertyTarget<Expression extends Object>
 /// The client should create one instance of this class for every method, field,
 /// or top level variable to be analyzed, and call the appropriate methods
 /// while visiting the code for type inference.
+///
+/// The API for flow analysis is event-based, consisting of methods that are
+/// intended to be called during a single-pass depth-first pre-order* traversal
+/// of the AST of the code being analyzed. The client only needs to make calls
+/// into flow analysis when this traversal visits "flow-relevant" AST nodes
+/// (i.e. statements and expressions that influence flow control, such as loops,
+/// return statements, etc., expressions that reference something potentially
+/// promotable, such as a variable and property gets, and anything that performs
+/// a type test). Other AST nodes (known as "flow-irrelevant" AST nodes) don't
+/// require calls to the flow analysis API on their own, but calls to flow
+/// analysis may still be required when visiting their children.
+///
+/// *Where child nodes are ordered according to when they first execute. Note
+/// that for most constructs this matches the order in which the nodes appear in
+/// the source text, but there are a small number of exceptions. For example, in
+/// `for (INITIALIZERS; CONDITION; UPDATERS) BODY;`, `UPDATERS` is executed
+/// after `BODY`, so `UPDATERS` should be visited after `BODY`. Also, in
+/// `PATTERN = EXPRESSION;`, `PATTERN` is executed after `EXPRESSION`, so
+/// `PATTERN` should be visited after `EXPRESSION`.
+///
+/// With a few exceptions, the methods in this class are named after a kind of
+/// AST node, followed by an underscore, followed by a brief phrase indicating
+/// when the method should be called during the visit of that kind of AST node.
+/// For example, when visiting an `if` statement, the client should call
+/// [ifStatement_thenBegin] after visiting its condition expression but before
+/// visiting its "then" block. The precise order for visiting any given AST node
+/// is described in comments below.
+///
+/// Some API calls have arguments representing either the AST node being visited
+/// or one of its child nodes. For example, [isExpression_end] has an argument
+/// `isExpression` representing the entire "is" expression, and
+/// [ifStatement_thenBegin] has an argument `condition` representing the
+/// "condition" part of the "if" statement.
+///
+/// Among other things, these arguments allow flow analysis to recognize
+/// parent/child relationships between parts of the syntax tree. For example,
+/// when analyzing `if (x is T)`, the AST node for `x is T` is passed first to
+/// [isExpression_end]'s `isExpression` argument and then, immediately
+/// afterwards, to [ifStatement_thenBegin]'s `condition` argument; this tells
+/// flow analysis that the "is" expression is an immediate child of the "if"
+/// statement, and therefore a type promotion should occur.
+///
+/// Whereas when analyzing `if (f(x is T))`, the same sequence of calls is made
+/// to flow analysis (since the AST node for the invocation of `f` is
+/// flow-irrelevant). But the node passed to [isExpression_end]'s `isExpression`
+/// argument is `x is T`, whereas the node passed to [ifStatement_thenBegin]'s
+/// `condition` argument is `f(x is T)`. Since these nodes are different, flow
+/// analysis knows that the "is" expression is *not* an immediate child of the
+/// "if" statement, so therefore no type promotion should occur.
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Node, Variable extends Object, Type extends Object> {
-  factory FlowAnalysis(FlowAnalysisOperations<Variable, Type> operations,
-      AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers,
-      required bool fieldPromotionEnabled}) {
-    return new _FlowAnalysisImpl(operations, assignedVariables,
-        respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers,
-        fieldPromotionEnabled: fieldPromotionEnabled);
+  factory FlowAnalysis(
+    FlowAnalysisOperations<Variable, Type> operations,
+    AssignedVariables<Node, Variable> assignedVariables, {
+    required bool respectImplicitlyTypedVarInitializers,
+    required bool fieldPromotionEnabled,
+    required bool inferenceUpdate4Enabled,
+  }) {
+    return new _FlowAnalysisImpl(
+      operations,
+      assignedVariables,
+      respectImplicitlyTypedVarInitializers:
+          respectImplicitlyTypedVarInitializers,
+      fieldPromotionEnabled: fieldPromotionEnabled,
+      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+    );
   }
 
   factory FlowAnalysis.legacy(FlowAnalysisOperations<Variable, Type> operations,
@@ -349,20 +405,21 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///
   /// Returns information about the expression that will later be needed by
   /// [equalityOperation_end].
-  ///
-  /// Note: the return type is nullable because legacy type promotion doesn't
-  /// need to record information about equality operands.
-  ExpressionInfo<Type>? equalityOperand_end(Expression operand, Type type);
+  ExpressionInfo<Type>? equalityOperand_end(Expression operand);
 
   /// Call this method just after visiting the operands of a binary `==` or `!=`
   /// expression, or an invocation of `identical`.
   ///
   /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
-  /// [equalityOperand_end].
+  /// [equalityOperand_end] for the left and right operands. [leftOperandType]
+  /// and [rightOperandType] should be the static types of the left and right
+  /// operands.
   void equalityOperation_end(
       Expression wholeExpression,
       ExpressionInfo<Type>? leftOperandInfo,
+      Type leftOperandType,
       ExpressionInfo<Type>? rightOperandInfo,
+      Type rightOperandType,
       {bool notEqual = false});
 
   /// Call this method after processing a relational pattern that uses an
@@ -449,6 +506,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method to forward information on [oldExpression] to
   /// [newExpression].
+  ///
+  /// This method must be called immediately after visiting the expression, and
+  /// before continuing to visit its parent.
   ///
   /// This can be used to preserve promotions through a replacement from
   /// [oldExpression] to [newExpression]. For instance when rewriting
@@ -761,6 +821,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting a pattern's subpattern, to restore the
   /// state that was saved by [pushSubpattern].
   void popSubpattern();
+
+  /// Call this method when writing to the [variable] with type [writtenType] in
+  /// a postfix increment or decrement operation.
+  void postIncDec(Node node, Variable variable, Type writtenType);
 
   /// Retrieves the type that a property named [propertyName] is promoted to, if
   /// the property is currently promoted.  Otherwise returns `null`.
@@ -1162,13 +1226,17 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   factory FlowAnalysisDebug(FlowAnalysisOperations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
       {required bool respectImplicitlyTypedVarInitializers,
-      required bool fieldPromotionEnabled}) {
+      required bool fieldPromotionEnabled,
+      required bool inferenceUpdate4Enabled}) {
     print('FlowAnalysisDebug()');
     return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
-        operations, assignedVariables,
-        respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers,
-        fieldPromotionEnabled: fieldPromotionEnabled));
+      operations,
+      assignedVariables,
+      respectImplicitlyTypedVarInitializers:
+          respectImplicitlyTypedVarInitializers,
+      fieldPromotionEnabled: fieldPromotionEnabled,
+      inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+    ));
   }
 
   factory FlowAnalysisDebug.legacy(
@@ -1349,22 +1417,25 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  ExpressionInfo<Type>? equalityOperand_end(Expression operand, Type type) =>
-      _wrap('equalityOperand_end($operand, $type)',
-          () => _wrapped.equalityOperand_end(operand, type),
-          isQuery: true);
+  ExpressionInfo<Type>? equalityOperand_end(Expression operand) => _wrap(
+      'equalityOperand_end($operand)',
+      () => _wrapped.equalityOperand_end(operand),
+      isQuery: true);
 
   @override
   void equalityOperation_end(
       Expression wholeExpression,
       ExpressionInfo<Type>? leftOperandInfo,
+      Type leftOperandType,
       ExpressionInfo<Type>? rightOperandInfo,
+      Type rightOperandType,
       {bool notEqual = false}) {
     _wrap(
         'equalityOperation_end($wholeExpression, $leftOperandInfo, '
-        '$rightOperandInfo, notEqual: $notEqual)',
-        () => _wrapped.equalityOperation_end(
-            wholeExpression, leftOperandInfo, rightOperandInfo,
+        '$leftOperandType, $rightOperandInfo, $rightOperandType, notEqual: '
+        '$notEqual)',
+        () => _wrapped.equalityOperation_end(wholeExpression, leftOperandInfo,
+            leftOperandType, rightOperandInfo, rightOperandType,
             notEqual: notEqual));
   }
 
@@ -1749,6 +1820,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   @override
   void popSubpattern() {
     _wrap('popSubpattern()', () => _wrapped.popSubpattern());
+  }
+
+  @override
+  void postIncDec(Node node, Variable variable, Type writtenType) {
+    _wrap(
+        'postIncDec()', () => _wrapped.postIncDec(node, variable, writtenType));
   }
 
   @override
@@ -2250,6 +2327,11 @@ class FlowModel<Type extends Object> {
       PromotionModel<Type>? info =
           result.promotionInfo?.get(helper, variableKey);
       if (info == null) continue;
+
+      // We don't need to discard promotions for final variables. They are
+      // guaranteed to be already assigned and won't be assigned again.
+      if (helper.isFinal(variableKey)) continue;
+
       PromotionModel<Type> newInfo =
           info.discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
@@ -2318,8 +2400,8 @@ class FlowModel<Type extends Object> {
       PromotionModel<Type>? otherPromotionModel = right?.model;
       PromotionModel<Type> newPromotionModel = otherPromotionModel == null
           ? promotionModel
-          : PromotionModel.inheritTested(helper.typeOperations, promotionModel,
-              otherPromotionModel.tested);
+          : PromotionModel.inheritTested(
+              promotionModel, otherPromotionModel.tested);
       if (!identical(newPromotionModel, promotionModel)) {
         result =
             result.updatePromotionInfo(helper, promotionKey, newPromotionModel);
@@ -2414,8 +2496,8 @@ class FlowModel<Type extends Object> {
       }
       // Tests are kept regardless of whether they are in `this` model or the
       // new base model.
-      List<Type> newTested = PromotionModel.joinTested(
-          thisModel.tested, baseModel.tested, helper.typeOperations);
+      List<Type> newTested =
+          PromotionModel.joinTested(thisModel.tested, baseModel.tested);
       // The variable is definitely assigned if it was definitely assigned
       // either in `this` model or the new base model.
       bool newAssigned = thisModel.assigned || baseModel.assigned;
@@ -2638,8 +2720,7 @@ class FlowModel<Type extends Object> {
       Type? promotedType) {
     List<Type> newTested = info.tested;
     if (testedType != null) {
-      newTested = PromotionModel._addTypeToUniqueList(
-          info.tested, testedType, helper.typeOperations);
+      newTested = PromotionModel._addTypeToUniqueList(info.tested, testedType);
     }
 
     List<Type>? newPromotedTypes = info.promotedTypes;
@@ -2760,6 +2841,10 @@ mixin FlowModelHelper<Type extends Object> {
   /// subtyping.
   @visibleForTesting
   FlowAnalysisTypeOperations<Type> get typeOperations;
+
+  /// Whether the variable of [variableKey] was declared with the `final`
+  /// modifier and the `inference-update-4` feature flag is enabled.
+  bool isFinal(int variableKey);
 }
 
 /// Documentation links that might be presented to the user to accompany a "why
@@ -3235,7 +3320,7 @@ class PromotionModel<Type extends Object> {
       }
 
       // Add only unique candidates.
-      if (!_typeListContains(typeOperations, candidates!, type)) {
+      if (!candidates!.contains(type)) {
         candidates!.add(type);
         return;
       }
@@ -3304,10 +3389,8 @@ class PromotionModel<Type extends Object> {
   /// regardless of the type of loop.
   @visibleForTesting
   static PromotionModel<Type> inheritTested<Type extends Object>(
-      FlowAnalysisTypeOperations<Type> typeOperations,
-      PromotionModel<Type> model,
-      List<Type> tested) {
-    List<Type> newTested = joinTested(tested, model.tested, typeOperations);
+      PromotionModel<Type> model, List<Type> tested) {
+    List<Type> newTested = joinTested(tested, model.tested);
     if (identical(newTested, model.tested)) return model;
     return new PromotionModel<Type>(
         promotedTypes: model.promotedTypes,
@@ -3343,9 +3426,8 @@ class PromotionModel<Type extends Object> {
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
-    List<Type> newTested = newWriteCaptured
-        ? const []
-        : joinTested(first.tested, second.tested, typeOperations);
+    List<Type> newTested =
+        newWriteCaptured ? const [] : joinTested(first.tested, second.tested);
     SsaNode<Type>? newSsaNode = propertySsaNode;
     if (newSsaNode == null && !newWriteCaptured) {
       (newSsaNode, newFlowModel) = SsaNode._join(
@@ -3414,8 +3496,8 @@ class PromotionModel<Type extends Object> {
   ///   small in real-world cases)
   /// - The sense of equality for the union operation is determined by `==`.
   /// - The types of interests lists are considered immutable.
-  static List<Type> joinTested<Type extends Object>(List<Type> types1,
-      List<Type> types2, FlowAnalysisTypeOperations<Type> typeOperations) {
+  static List<Type> joinTested<Type extends Object>(
+      List<Type> types1, List<Type> types2) {
     // Ensure that types1 is the shorter list.
     if (types1.length > types2.length) {
       List<Type> tmp = types1;
@@ -3431,11 +3513,11 @@ class PromotionModel<Type extends Object> {
     // not present in it.
     for (int i = shared; i < types1.length; i++) {
       Type typeToAdd = types1[i];
-      if (_typeListContains(typeOperations, types2, typeToAdd)) continue;
+      if (types2.contains(typeToAdd)) continue;
       List<Type> result = types2.toList()..add(typeToAdd);
       for (i++; i < types1.length; i++) {
         typeToAdd = types1[i];
-        if (_typeListContains(typeOperations, types2, typeToAdd)) continue;
+        if (types2.contains(typeToAdd)) continue;
         result.add(typeToAdd);
       }
       return result;
@@ -3489,9 +3571,9 @@ class PromotionModel<Type extends Object> {
           ? [promoted]
           : (promotedTypes.toList()..add(promoted));
 
-  static List<Type> _addTypeToUniqueList<Type extends Object>(List<Type> types,
-      Type newType, FlowAnalysisTypeOperations<Type> typeOperations) {
-    if (_typeListContains(typeOperations, types, newType)) return types;
+  static List<Type> _addTypeToUniqueList<Type extends Object>(
+      List<Type> types, Type newType) {
+    if (types.contains(newType)) return types;
     return new List<Type>.of(types)..add(newType);
   }
 
@@ -3525,16 +3607,6 @@ class PromotionModel<Type extends Object> {
           unassigned: newUnassigned,
           ssaNode: newSsaNode);
     }
-  }
-
-  static bool _typeListContains<Type extends Object>(
-      FlowAnalysisTypeOperations<Type> typeOperations,
-      List<Type> list,
-      Type searchType) {
-    for (Type type in list) {
-      if (type == searchType) return true;
-    }
-    return false;
   }
 }
 
@@ -4274,18 +4346,57 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// The most recently visited expression for which an [ExpressionInfo] object
   /// exists, or `null` if no expression has been visited that has a
   /// corresponding [ExpressionInfo] object.
+  ///
+  /// This field, along with [_expressionInfo], establishes a mechanism to allow
+  /// a flow analysis method that's handling a given AST node to retrieve an
+  /// [ExpressionInfo] that was previously created during the handling of one of
+  /// that node's children. The mechanism works as follows:
+  ///
+  /// While visiting the child, [_storeExpressionInfo] is called (passing in the
+  /// child node and the [ExpressionInfo]). It stores the child node in
+  /// [_expressionWithInfo] and the info in [_expressionInfo].
+  ///
+  /// While visiting the parent, [_getExpressionInfo] is called (passing in the
+  /// child node). It checks whether [_expressionWithInfo] matches the child
+  /// node; if it does match, that means there are no intervening
+  /// flow-irrelevant nodes, and so it returns [_expressionInfo]. If it doesn't
+  /// match, that means that some other flow-irrelevant was visited since the
+  /// last time [_storeExpressionInfo] was called, and so the info in
+  /// [_expressionInfo] is no longer relevant, and so it returns `null`.
+  ///
+  /// Note that if [_storeExpressionInfo] is called once for expression `e1` and
+  /// then again for expression `e2`, the second call will overwrite the info
+  /// stored by the first call. So if this is followed by a [_getExpressionInfo]
+  /// call for `e1`, `null` will be returned. In principle this situation should
+  /// never arise, since the client is expected to visit AST nodes in a
+  /// single-pass depth-first pre-order fashion. However, in practice, it
+  /// happens sometimes (see https://github.com/dart-lang/sdk/issues/56887).
   Expression? _expressionWithInfo;
 
   /// If [_expressionWithInfo] is not `null`, the [ExpressionInfo] object
   /// corresponding to it.  Otherwise `null`.
+  ///
+  /// See [_expressionWithInfo] for a detailed explanation.
   ExpressionInfo<Type>? _expressionInfo;
 
   /// The most recently visited expression which was a reference, or `null` if
   /// no such expression has been visited.
+  ///
+  /// This field serves the same role as [_expressionWithInfo], except that it
+  /// is only updated for expressions that might refer to something promotable
+  /// (a get of a local variable or a property), so it is less likely to have
+  /// trouble if the client doesn't visit AST nodes in the proper order (see
+  /// https://github.com/dart-lang/sdk/issues/56887).
   Expression? _expressionWithReference;
 
   /// If [_expressionWithReference] is not `null`, the reference corresponding
   /// to it. Otherwise `null`.
+  ///
+  /// This field serves the same role as [_expressionInfo], except that it is
+  /// only updated for expressions that might refer to something promotable (a
+  /// get of a local variable or a property), so it is less likely to have
+  /// trouble if the client doesn't visit AST nodes in the proper order (see
+  /// https://github.com/dart-lang/sdk/issues/56887).
   _Reference<Type>? _expressionReference;
 
   final AssignedVariables<Node, Variable> _assignedVariables;
@@ -4298,6 +4409,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   final bool respectImplicitlyTypedVarInitializers;
 
   final bool fieldPromotionEnabled;
+
+  final bool inferenceUpdate4Enabled;
 
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
@@ -4315,10 +4428,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   final List<_Reference<Type>> _cascadeTargetStack = [];
 
-  _FlowAnalysisImpl(this.operations, this._assignedVariables,
-      {required this.respectImplicitlyTypedVarInitializers,
-      required this.fieldPromotionEnabled})
-      : promotionKeyStore = _assignedVariables.promotionKeyStore {
+  _FlowAnalysisImpl(
+    this.operations,
+    this._assignedVariables, {
+    required this.respectImplicitlyTypedVarInitializers,
+    required this.fieldPromotionEnabled,
+    required this.inferenceUpdate4Enabled,
+  }) : promotionKeyStore = _assignedVariables.promotionKeyStore {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
@@ -4573,23 +4689,24 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  ExpressionInfo<Type> equalityOperand_end(Expression operand, Type type) =>
-      _getExpressionInfo(operand) ??
-      new ExpressionInfo<Type>.trivial(model: _current, type: type);
+  ExpressionInfo<Type>? equalityOperand_end(Expression operand) =>
+      _getExpressionInfo(operand);
 
   @override
   void equalityOperation_end(
       Expression wholeExpression,
       ExpressionInfo<Type>? leftOperandInfo,
+      Type leftOperandType,
       ExpressionInfo<Type>? rightOperandInfo,
+      Type rightOperandType,
       {bool notEqual = false}) {
     // Note: leftOperandInfo and rightOperandInfo are nullable in the base class
     // to account for the fact that legacy type promotion doesn't record
     // information about legacy operands.  But since we are currently in full
     // (post null safety) flow analysis logic, we can safely assume that they
     // are not null.
-    _EqualityCheckResult equalityCheckResult =
-        _equalityCheck(leftOperandInfo!, rightOperandInfo!);
+    _EqualityCheckResult equalityCheckResult = _equalityCheck(
+        leftOperandInfo, leftOperandType, rightOperandInfo, rightOperandType);
     if (equalityCheckResult is _GuaranteedEqual) {
       // Both operands are known by flow analysis to compare equal, so the whole
       // expression behaves equivalently to a boolean (either `true` or `false`
@@ -4887,6 +5004,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  bool isFinal(int variableKey) {
+    if (!inferenceUpdate4Enabled) return false;
+    Variable? variable = promotionKeyStore.variableForKey(variableKey);
+    if (variable != null && operations.isFinal(variable)) return true;
+    return false;
+  }
+
+  @override
   bool isUnassigned(Variable variable) {
     return _current.promotionInfo
             ?.get(this, promotionKeyStore.keyForVariable(variable))
@@ -5026,8 +5151,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (operandReference != null) {
       _current = _current.tryMarkNonNullable(this, operandReference).ifTrue;
     }
-    // Invalidate any expression info that was associated with [operand].
-    _getExpressionInfo(operand);
   }
 
   @override
@@ -5170,6 +5293,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void postIncDec(Node node, Variable variable, Type writtenType) {
+    _write(node, variable, writtenType, null, isPostfixIncDec: true);
+  }
+
+  @override
   Type? promotedPropertyType(PropertyTarget<Expression> target,
       String propertyName, Object? propertyMember, Type unpromotedType) {
     SsaNode<Type>? targetSsaNode = target._getSsaNode(this);
@@ -5274,7 +5402,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         propertyMember: propertyMember,
         promotionKey: propertySsaNode.promotionKey,
         model: _current,
-        type: unpromotedType,
+        type: promotedType ?? unpromotedType,
         ssaNode: propertySsaNode);
     if (wholeExpression != null) {
       _storeExpressionInfo(wholeExpression, propertyReference);
@@ -5296,7 +5424,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         propertyMember: propertyMember,
         promotionKey: propertySsaNode.promotionKey,
         model: _current,
-        type: unpromotedType,
+        type: promotedType ?? unpromotedType,
         ssaNode: propertySsaNode);
     _stack.add(new _PropertyPatternContext<Type>(
         _makeTemporaryReference(
@@ -5638,13 +5766,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   /// Analyzes an equality check between the operands described by
-  /// [lhsInfo] and [rhsInfo].
-  _EqualityCheckResult _equalityCheck(
-      ExpressionInfo<Type> lhsInfo, ExpressionInfo<Type> rhsInfo) {
+  /// [lhsInfo] and [rhsInfo], having static types [lhsType] and [rhsType].
+  _EqualityCheckResult _equalityCheck(ExpressionInfo<Type>? lhsInfo,
+      Type lhsType, ExpressionInfo<Type>? rhsInfo, Type rhsType) {
     TypeClassification leftOperandTypeClassification =
-        operations.classifyType(lhsInfo._type);
+        operations.classifyType(lhsType);
     TypeClassification rightOperandTypeClassification =
-        operations.classifyType(rhsInfo._type);
+        operations.classifyType(rhsType);
     if (leftOperandTypeClassification == TypeClassification.nullOrEquivalent &&
         rightOperandTypeClassification == TypeClassification.nullOrEquivalent) {
       return const _GuaranteedEqual();
@@ -5659,11 +5787,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // analysis behavior to depend on mode, so we conservatively assume that
       // either result is possible.
       return const _NoEqualityInformation();
-    } else if (lhsInfo.isNull) {
+    } else if (lhsInfo != null && lhsInfo.isNull) {
       return new _EqualityCheckIsNullCheck(
           rhsInfo is _Reference<Type> ? rhsInfo : null,
           isReferenceOnRight: true);
-    } else if (rhsInfo.isNull) {
+    } else if (rhsInfo != null && rhsInfo.isNull) {
       return new _EqualityCheckIsNullCheck(
           lhsInfo is _Reference<Type> ? lhsInfo : null,
           isReferenceOnRight: false);
@@ -5709,6 +5837,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// be the last expression that was traversed).  If there is no
   /// [ExpressionInfo] associated with the [expression], then `null` is
   /// returned.
+  ///
+  /// See [_expressionWithInfo] for details about how this works.
+  ///
+  /// To reduce GC pressure, if this method returns a non-null value, it resets
+  /// [_expressionInfo] to `null` as a side effect. This means that if
+  /// [_getExpressionInfo] is called twice for the same [expression] (without
+  /// an intervening call to [_storeExpressionInfo]), the second call will
+  /// return `null`. This should not be a problem because the client is expected
+  /// to visit AST nodes in a single-pass depth-first pre-order fashion.
   ExpressionInfo<Type>? _getExpressionInfo(Expression? expression) {
     if (identical(expression, _expressionWithInfo)) {
       ExpressionInfo<Type>? expressionInfo = _expressionInfo;
@@ -5805,7 +5942,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
           Type currentType = currentPromotionInfo.promotedTypes?.last ??
               operations.variableType(variable);
-          NonPromotionHistory? nonPromotionHistory =
+          NonPromotionHistory<Type>? nonPromotionHistory =
               currentPromotionInfo.nonPromotionHistory;
           while (nonPromotionHistory != null) {
             Type nonPromotedType = nonPromotionHistory.type;
@@ -5836,8 +5973,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _Reference<Type> newReference = context
         .createReference(matchedValueType, _current)
         .addPreviousInfo(context._matchedValueInfo, this, _current);
-    _EqualityCheckResult equalityCheckResult =
-        _equalityCheck(newReference, equalityOperand_end(operand, operandType));
+    _EqualityCheckResult equalityCheckResult = _equalityCheck(newReference,
+        matchedValueType, _getExpressionInfo(operand), operandType);
     if (equalityCheckResult is _NoEqualityInformation) {
       // We have no information so we have to assume the pattern might or
       // might not match.
@@ -6094,6 +6231,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [expressionInfo] object, and updates the
   /// current flow model state to correspond to it.
+  ///
+  /// See [_expressionWithInfo] for details about how this works.
   void _storeExpressionInfo(
       Expression expression, ExpressionInfo<Type> expressionInfo) {
     _expressionWithInfo = expression;
@@ -6102,6 +6241,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [expressionReference] object.
+  ///
+  /// This method serves the same role as [_storeExpressionInfo], but it only
+  /// handles expressions that might refer to something promotable (a get of a
+  /// local variable or a property), so it is less likely to have trouble if the
+  /// client doesn't visit AST nodes in the proper order (see
+  /// https://github.com/dart-lang/sdk/issues/56887).
   void _storeExpressionReference(
       Expression expression, _Reference<Type> expressionReference) {
     _expressionWithReference = expression;
@@ -6130,8 +6275,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// Common logic for handling writes to variables, whether they occur as part
   /// of an ordinary assignment or a pattern assignment.
+  ///
+  /// If [isPostfixIncDec] is `true`, the [node] is a postfix expression and we
+  /// won't store information about [variable].
   void _write(Node node, Variable variable, Type writtenType,
-      ExpressionInfo<Type>? expressionInfo) {
+      ExpressionInfo<Type>? expressionInfo,
+      {bool isPostfixIncDec = false}) {
     Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
@@ -6146,6 +6295,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         newSsaNode,
         operations,
         unpromotedType: unpromotedType);
+
+    // Update the type of the variable for looking up the write expression.
+    if (inferenceUpdate4Enabled && node is Expression && !isPostfixIncDec) {
+      _Reference<Type> reference = _variableReference(
+        variableKey,
+        unpromotedType,
+      );
+      _storeExpressionInfo(node, reference);
+      _storeExpressionReference(node, reference);
+    }
   }
 }
 
@@ -6411,14 +6570,15 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void doStatement_end(Expression condition) {}
 
   @override
-  ExpressionInfo<Type>? equalityOperand_end(Expression operand, Type type) =>
-      null;
+  ExpressionInfo<Type>? equalityOperand_end(Expression operand) => null;
 
   @override
   void equalityOperation_end(
       Expression wholeExpression,
       ExpressionInfo<Type>? leftOperandInfo,
+      Type leftOperandType,
       ExpressionInfo<Type>? rightOperandInfo,
+      Type rightOperandType,
       {bool notEqual = false}) {}
 
   @override
@@ -6735,6 +6895,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void popSubpattern() {}
+
+  @override
+  void postIncDec(Node node, Variable variable, Type writtenType) {}
 
   @override
   Type? promotedPropertyType(PropertyTarget<Expression> target,
@@ -7136,6 +7299,13 @@ abstract class _PropertyTargetHelper<Expression extends Object,
   /// Gets the [_Reference] associated with the [expression] (which should be
   /// the last expression that was traversed).  If there is no [_Reference]
   /// associated with the [expression], then `null` is returned.
+  ///
+  /// This method serves the same role as
+  /// [_FlowAnalysisImpl._getExpressionInfo], but it only handles expressions
+  /// that might refer to something promotable (a get of a local variable or a
+  /// property), so it is less likely to have trouble if the client doesn't
+  /// visit AST nodes in the proper order (see
+  /// https://github.com/dart-lang/sdk/issues/56887).
   _Reference<Type>? _getExpressionReference(Expression? expression);
 }
 

@@ -45,9 +45,18 @@ void matchIL$useList(FlowGraph graph) {
           match.CheckStackOverflow(),
           'a.length' <<
               match.LoadField('a', slot: 'GrowableObjectArray.length'),
-          'a.length_unboxed' << match.UnboxInt64('a.length'),
-          match.Branch(match.RelationalOp('i', 'a.length_unboxed', kind: '<'),
-              ifTrue: 'B3', ifFalse: 'B4'),
+          if (is32BitConfiguration) ...[
+            'i_32a' << match.IntConverter('i', from: 'int64', to: 'int32'),
+            'a.length_unboxed' << match.UnboxInt32('a.length'),
+          ] else ...[
+            'a.length_unboxed' << match.UnboxInt64('a.length'),
+          ],
+          match.Branch(
+              match.RelationalOp(
+                  is32BitConfiguration ? 'i_32a' : 'i', 'a.length_unboxed',
+                  kind: '<'),
+              ifTrue: 'B3',
+              ifFalse: 'B4'),
         ]),
     'B3' <<
         match.block('Target', [

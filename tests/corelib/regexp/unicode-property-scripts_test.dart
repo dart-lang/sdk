@@ -40,26 +40,36 @@ void main() {
   }
 
   t(RegExp(r"\p{Script=Common}+", unicode: true), ".");
-  f(RegExp(r"\p{Script=Common}+", unicode: true),
-      "supercalifragilisticexpialidocious");
+  f(
+    RegExp(r"\p{Script=Common}+", unicode: true),
+    "supercalifragilisticexpialidocious",
+  );
 
   t(RegExp(r"\p{Script=Han}+", unicode: true), "话说天下大势，分久必合，合久必分");
   t(RegExp(r"\p{Script=Hani}+", unicode: true), "吾庄后有一桃园，花开正盛");
   f(RegExp(r"\p{Script=Han}+", unicode: true), "おはようございます");
-  f(RegExp(r"\p{Script=Hani}+", unicode: true),
-      "Something is rotten in the state of Denmark");
+  f(
+    RegExp(r"\p{Script=Hani}+", unicode: true),
+    "Something is rotten in the state of Denmark",
+  );
 
-  t(RegExp(r"\p{Script=Latin}+", unicode: true),
-      "Wie froh bin ich, daß ich weg bin!");
-  t(RegExp(r"\p{Script=Latn}+", unicode: true),
-      "It was a bright day in April, and the clocks were striking thirteen");
+  t(
+    RegExp(r"\p{Script=Latin}+", unicode: true),
+    "Wie froh bin ich, daß ich weg bin!",
+  );
+  t(
+    RegExp(r"\p{Script=Latn}+", unicode: true),
+    "It was a bright day in April, and the clocks were striking thirteen",
+  );
   f(RegExp(r"\p{Script=Latin}+", unicode: true), "奔腾千里荡尘埃，渡水登山紫雾开");
   f(RegExp(r"\p{Script=Latn}+", unicode: true), "いただきます");
 
   t(RegExp(r"\p{sc=Hiragana}", unicode: true), "いただきます");
   t(RegExp(r"\p{sc=Hira}", unicode: true), "ありがとうございました");
-  f(RegExp(r"\p{sc=Hiragana}", unicode: true),
-      "Als Gregor Samsa eines Morgens aus unruhigen Träumen erwachte");
+  f(
+    RegExp(r"\p{sc=Hiragana}", unicode: true),
+    "Als Gregor Samsa eines Morgens aus unruhigen Träumen erwachte",
+  );
   f(RegExp(r"\p{sc=Hira}", unicode: true), "Call me Ishmael");
 
   t(RegExp(r"\p{sc=Phoenician}", unicode: true), "\u{10900}\u{1091a}");
@@ -67,11 +77,17 @@ void main() {
   f(RegExp(r"\p{sc=Phoenician}", unicode: true), "Arthur est un perroquet");
   f(RegExp(r"\p{sc=Phnx}", unicode: true), "设心狠毒非良士，操卓原来一路人");
 
-  t(RegExp(r"\p{sc=Grek}", unicode: true),
-      "ἄνδρα μοι ἔννεπε, μοῦσα, πολύτροπον, ὃς μάλα πολλὰ");
-  t(RegExp(r"\p{sc=Greek}", unicode: true),
-      "μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος");
+  t(
+    RegExp(r"\p{sc=Grek}", unicode: true),
+    "ἄνδρα μοι ἔννεπε, μοῦσα, πολύτροπον, ὃς μάλα πολλὰ",
+  );
+  t(
+    RegExp(r"\p{sc=Greek}", unicode: true),
+    "μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος",
+  );
   f(RegExp(r"\p{sc=Greek}", unicode: true), "高贤未服英雄志，屈节偏生杰士疑");
-  f(RegExp(r"\p{sc=Greek}", unicode: true),
-      "Mr. Jones, of the Manor Farm, had locked the hen-houses for the night");
+  f(
+    RegExp(r"\p{sc=Greek}", unicode: true),
+    "Mr. Jones, of the Manor Farm, had locked the hen-houses for the night",
+  );
 }

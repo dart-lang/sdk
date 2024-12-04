@@ -285,9 +285,9 @@ void main() {
   regexp = new RegExp(r"^(.*)", multiLine: true);
   assertEquals(3, regexp.allMatches("a\n\rb").length);
   assertEquals(
-      "*a\n*b\r*c\n*\r*d\r*\n*e",
-      "a\nb\rc\n\rd\r\ne"
-          .replaceAllMapped(regexp, (Match m) => "*${m.group(1)}"));
+    "*a\n*b\r*c\n*\r*d\r*\n*e",
+    "a\nb\rc\n\rd\r\ne".replaceAllMapped(regexp, (Match m) => "*${m.group(1)}"),
+  );
 
   // Test that empty matches advance one character
   regexp = new RegExp("");
@@ -307,11 +307,17 @@ void main() {
   // Check $01 and $10
   regexp = new RegExp("(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)");
   assertEquals(
-      "t", "123456789t".replaceAllMapped(regexp, (Match m) => m.group(10)!));
-  assertEquals("15",
-      "123456789t".replaceAllMapped(regexp, (Match m) => "${m.group(1)}5"));
+    "t",
+    "123456789t".replaceAllMapped(regexp, (Match m) => m.group(10)!),
+  );
   assertEquals(
-      "1", "123456789t".replaceAllMapped(regexp, (Match m) => m.group(1)!));
+    "15",
+    "123456789t".replaceAllMapped(regexp, (Match m) => "${m.group(1)}5"),
+  );
+  assertEquals(
+    "1",
+    "123456789t".replaceAllMapped(regexp, (Match m) => m.group(1)!),
+  );
 
   assertFalse("football".contains(new RegExp(r"()foo$\1")), "football1");
   assertFalse("football".contains(new RegExp(r"foo$(?=ball)")), "football2");
@@ -334,31 +340,41 @@ void main() {
   // Back-reference, ignore case:
   // ASCII
   assertEquals(
-      "a",
-      new RegExp(r"x(a)\1x", caseSensitive: false).firstMatch("xaAx")!.group(1),
-      "backref-ASCII");
-  assertFalse("xaaaaa".contains(new RegExp(r"x(...)\1", caseSensitive: false)),
-      "backref-ASCII-short");
-  assertTrue("xx".contains(new RegExp(r"x((?:))\1\1x", caseSensitive: false)),
-      "backref-ASCII-empty");
+    "a",
+    new RegExp(r"x(a)\1x", caseSensitive: false).firstMatch("xaAx")!.group(1),
+    "backref-ASCII",
+  );
+  assertFalse(
+    "xaaaaa".contains(new RegExp(r"x(...)\1", caseSensitive: false)),
+    "backref-ASCII-short",
+  );
   assertTrue(
-      "xabcx".contains(new RegExp(r"x(?:...|(...))\1x", caseSensitive: false)),
-      "backref-ASCII-uncaptured");
+    "xx".contains(new RegExp(r"x((?:))\1\1x", caseSensitive: false)),
+    "backref-ASCII-empty",
+  );
   assertTrue(
-      "xabcABCx"
-          .contains(new RegExp(r"x(?:...|(...))\1x", caseSensitive: false)),
-      "backref-ASCII-backtrack");
+    "xabcx".contains(new RegExp(r"x(?:...|(...))\1x", caseSensitive: false)),
+    "backref-ASCII-uncaptured",
+  );
+  assertTrue(
+    "xabcABCx".contains(new RegExp(r"x(?:...|(...))\1x", caseSensitive: false)),
+    "backref-ASCII-backtrack",
+  );
   assertEquals(
-      "aBc",
-      new RegExp(r"x(...)\1\1x", caseSensitive: false)
-          .firstMatch("xaBcAbCABCx")!
-          .group(1),
-      "backref-ASCII-twice");
+    "aBc",
+    new RegExp(
+      r"x(...)\1\1x",
+      caseSensitive: false,
+    ).firstMatch("xaBcAbCABCx")!.group(1),
+    "backref-ASCII-twice",
+  );
 
   for (var i = 0; i < 128; i++) {
-    var testName = "backref-ASCII-char-$i,,${i^0x20}";
-    var test = new String.fromCharCodes([i, i ^ 0x20])
-        .contains(new RegExp(r"^(.)\1$", caseSensitive: false));
+    var testName = "backref-ASCII-char-$i,,${i ^ 0x20}";
+    var test = new String.fromCharCodes([
+      i,
+      i ^ 0x20,
+    ]).contains(new RegExp(r"^(.)\1$", caseSensitive: false));
     if (('A'.codeUnitAt(0) <= i && i <= 'Z'.codeUnitAt(0)) ||
         ('a'.codeUnitAt(0) <= i && i <= 'z'.codeUnitAt(0))) {
       assertTrue(test, testName);
@@ -372,41 +388,56 @@ void main() {
   // Check decimal escapes doesn't overflow.
   // (Note: \214 is interpreted as octal).
   assertEquals(
-      "\x8c7483648",
-      new RegExp(r"\2147483648").firstMatch("\x8c7483648")!.group(0),
-      "Overflow decimal escape");
+    "\x8c7483648",
+    new RegExp(r"\2147483648").firstMatch("\x8c7483648")!.group(0),
+    "Overflow decimal escape",
+  );
 
   // Check numbers in quantifiers doesn't overflow and doesn't throw on
   // too large numbers.
   assertFalse(
-      'b'.contains(
-          new RegExp(r"a{111111111111111111111111111111111111111111111}")),
-      "overlarge1");
+    'b'.contains(
+      new RegExp(r"a{111111111111111111111111111111111111111111111}"),
+    ),
+    "overlarge1",
+  );
   assertFalse(
-      'b'.contains(
-          new RegExp(r"a{999999999999999999999999999999999999999999999}")),
-      "overlarge2");
+    'b'.contains(
+      new RegExp(r"a{999999999999999999999999999999999999999999999}"),
+    ),
+    "overlarge2",
+  );
   assertFalse(
-      'b'.contains(
-          new RegExp(r"a{1,111111111111111111111111111111111111111111111}")),
-      "overlarge3");
+    'b'.contains(
+      new RegExp(r"a{1,111111111111111111111111111111111111111111111}"),
+    ),
+    "overlarge3",
+  );
   assertFalse(
-      'b'.contains(
-          new RegExp(r"a{1,999999999999999999999999999999999999999999999}")),
-      "overlarge4");
+    'b'.contains(
+      new RegExp(r"a{1,999999999999999999999999999999999999999999999}"),
+    ),
+    "overlarge4",
+  );
   assertFalse('b'.contains(new RegExp(r"a{2147483648}")), "overlarge5");
   assertFalse('b'.contains(new RegExp(r"a{21474836471}")), "overlarge6");
   assertFalse('b'.contains(new RegExp(r"a{1,2147483648}")), "overlarge7");
   assertFalse('b'.contains(new RegExp(r"a{1,21474836471}")), "overlarge8");
   assertFalse(
-      'b'.contains(new RegExp(r"a{2147483648,2147483648}")), "overlarge9");
+    'b'.contains(new RegExp(r"a{2147483648,2147483648}")),
+    "overlarge9",
+  );
   assertFalse(
-      'b'.contains(new RegExp(r"a{21474836471,21474836471}")), "overlarge10");
+    'b'.contains(new RegExp(r"a{21474836471,21474836471}")),
+    "overlarge10",
+  );
   assertFalse('b'.contains(new RegExp(r"a{2147483647}")), "overlarge11");
   assertFalse('b'.contains(new RegExp(r"a{1,2147483647}")), "overlarge12");
   assertTrue('a'.contains(new RegExp(r"a{1,2147483647}")), "overlarge13");
   assertFalse(
-      'a'.contains(new RegExp(r"a{2147483647,2147483647}")), "overlarge14");
+    'a'.contains(new RegExp(r"a{2147483647,2147483647}")),
+    "overlarge14",
+  );
 
   // Check that we don't repad past the end of the string.
   assertFalse('b'.contains(new RegExp(r"f")));
@@ -431,23 +462,29 @@ void main() {
   // Test that merging of quick test masks gets it right.
   assertFalse('x7%%y'.contains(new RegExp(r"x([0-7]%%x|[0-6]%%y)")), 'qt');
   assertFalse(
-      'xy7%%%y'
-          .contains(new RegExp(r"()x\1(y([0-7]%%%x|[0-6]%%%y)|dkjasldkas)")),
-      'qt2');
+    'xy7%%%y'.contains(new RegExp(r"()x\1(y([0-7]%%%x|[0-6]%%%y)|dkjasldkas)")),
+    'qt2',
+  );
   assertFalse(
-      'xy%%%y'
-          .contains(new RegExp(r"()x\1(y([0-7]%%%x|[0-6]%%%y)|dkjasldkas)")),
-      'qt3');
+    'xy%%%y'.contains(new RegExp(r"()x\1(y([0-7]%%%x|[0-6]%%%y)|dkjasldkas)")),
+    'qt3',
+  );
   assertFalse(
-      'xy7%%%y'.contains(new RegExp(r"()x\1y([0-7]%%%x|[0-6]%%%y)")), 'qt4');
+    'xy7%%%y'.contains(new RegExp(r"()x\1y([0-7]%%%x|[0-6]%%%y)")),
+    'qt4',
+  );
   assertFalse(
-      'xy%%%y'
-          .contains(new RegExp(r"()x\1(y([0-7]%%%x|[0-6]%%%y)|dkjasldkas)")),
-      'qt5');
+    'xy%%%y'.contains(new RegExp(r"()x\1(y([0-7]%%%x|[0-6]%%%y)|dkjasldkas)")),
+    'qt5',
+  );
   assertFalse(
-      'xy7%%%y'.contains(new RegExp(r"()x\1y([0-7]%%%x|[0-6]%%%y)")), 'qt6');
+    'xy7%%%y'.contains(new RegExp(r"()x\1y([0-7]%%%x|[0-6]%%%y)")),
+    'qt6',
+  );
   assertFalse(
-      'xy7%%%y'.contains(new RegExp(r"xy([0-7]%%%x|[0-6]%%%y)")), 'qt7');
+    'xy7%%%y'.contains(new RegExp(r"xy([0-7]%%%x|[0-6]%%%y)")),
+    'qt7',
+  );
   assertFalse('x7%%%y'.contains(new RegExp(r"x([0-7]%%%x|[0-6]%%%y)")), 'qt8');
 
   // Don't hang on this one.
@@ -469,7 +506,10 @@ void main() {
   // Test boundary-checks.
   void assertRegExpTest(re, input, test) {
     assertEquals(
-        test, input.contains(new RegExp(re)), "test:" + re + ":" + input);
+      test,
+      input.contains(new RegExp(re)),
+      "test:" + re + ":" + input,
+    );
   }
 
   assertRegExpTest(r"b\b", "b", true);

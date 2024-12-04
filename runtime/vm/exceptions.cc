@@ -172,21 +172,7 @@ class ExceptionHandlerFinder : public StackResource {
                 cached_catch_entry_moves_ = *cached_catch_entry_moves;
               }
               if (cached_catch_entry_moves_.IsEmpty()) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-                // Only AOT mode is supported.
                 ReadCompressedCatchEntryMoves();
-#elif defined(DART_PRECOMPILER)
-                // Both AOT and JIT modes are supported.
-                if (FLAG_precompiled_mode) {
-                  ReadCompressedCatchEntryMoves();
-                } else {
-                  GetCatchEntryMovesFromDeopt(code_->num_variables(), frame);
-                }
-#else
-                // Only JIT mode is supported.
-                ASSERT(!FLAG_precompiled_mode);
-                GetCatchEntryMovesFromDeopt(code_->num_variables(), frame);
-#endif
               }
             }
           }
@@ -321,7 +307,6 @@ class ExceptionHandlerFinder : public StackResource {
     }
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   void ReadCompressedCatchEntryMoves() {
     const intptr_t pc_offset = pc_ - code_->PayloadStart();
     const auto& td = TypedData::Handle(code_->catch_entry_moves_maps());
@@ -329,22 +314,6 @@ class ExceptionHandlerFinder : public StackResource {
     CatchEntryMovesMapReader reader(td);
     catch_entry_moves_ = reader.ReadMovesForPcOffset(pc_offset);
   }
-#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  void GetCatchEntryMovesFromDeopt(intptr_t num_vars, StackFrame* frame) {
-    Isolate* isolate = thread_->isolate();
-    DeoptContext* deopt_context =
-        new DeoptContext(frame, *code_, DeoptContext::kDestIsAllocated, nullptr,
-                         nullptr, true, false /* deoptimizing_code */);
-    isolate->set_deopt_context(deopt_context);
-
-    catch_entry_moves_ = deopt_context->ToCatchEntryMoves(num_vars);
-
-    isolate->set_deopt_context(nullptr);
-    delete deopt_context;
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   bool needs_stacktrace;
   uword handler_pc;
@@ -381,13 +350,11 @@ CatchEntryMove CatchEntryMove::ReadFrom(ReadStream* stream) {
   return CatchEntryMove(src, dest_and_kind);
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 void CatchEntryMove::WriteTo(BaseWriteStream* stream) {
   using Writer = BaseWriteStream::Raw<sizeof(int32_t), int32_t>;
   Writer::Write(stream, src_);
   Writer::Write(stream, dest_and_kind_);
 }
-#endif
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 static intptr_t SlotIndexToFrameIndex(intptr_t slot) {

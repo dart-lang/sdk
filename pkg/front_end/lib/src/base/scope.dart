@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.scope;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -20,6 +18,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
+import '../kernel/type_algorithms.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -353,12 +352,12 @@ class TypeParameterScope extends AbstractTypeParameterScope {
   Builder? getTypeParameter(String name) => _typeParameters[name];
 
   static LookupScope fromList(
-      LookupScope parent, List<TypeVariableBuilder>? typeVariableBuilders) {
-    if (typeVariableBuilders == null) return parent;
+      LookupScope parent, List<TypeParameterBuilder>? typeParameterBuilders) {
+    if (typeParameterBuilders == null) return parent;
     Map<String, Builder> map = {};
-    for (TypeVariableBuilder typeVariableBuilder in typeVariableBuilders) {
-      if (typeVariableBuilder.isWildcard) continue;
-      map[typeVariableBuilder.name] = typeVariableBuilder;
+    for (TypeParameterBuilder typeParameterBuilder in typeParameterBuilders) {
+      if (typeParameterBuilder.isWildcard) continue;
+      map[typeParameterBuilder.name] = typeParameterBuilder;
     }
     return new TypeParameterScope(parent, map);
   }
@@ -540,12 +539,12 @@ abstract class ProblemBuilder extends BuilderImpl {
   final Builder builder;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   @override
   final Uri fileUri;
 
-  ProblemBuilder(this.name, this.builder, this.charOffset, this.fileUri);
+  ProblemBuilder(this.name, this.builder, this.fileOffset, this.fileUri);
 
   @override
   bool get hasProblem => true;
@@ -564,10 +563,6 @@ class AccessErrorBuilder extends ProblemBuilder {
 
   @override
   Builder? get parent => builder.parent;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isFinal => builder.isFinal;
 
   @override
   bool get isField => builder.isField;
@@ -642,7 +637,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Member get member => throw new UnsupportedError('$runtimeType.member');
+  Iterable<MetadataBuilder>? get metadataForTesting => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -662,7 +657,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Member> get exportedMembers => const [];
+  Iterable<Reference> get exportedMemberReferences => const [];
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -728,6 +723,14 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
+  int computeDefaultTypes(ComputeDefaultTypeContext context,
+      {required bool inErrorRecovery}) {
+    assert(false, "Unexpected call to $runtimeType.computeDefaultTypes.");
+    return 0;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localMembers => const <ClassMember>[];
 
   @override
@@ -743,8 +746,8 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
+      TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
 
@@ -759,10 +762,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  BodyBuilderContext createBodyBuilderContext(
-      {required bool inOutlineBuildingPhase,
-      required bool inMetadata,
-      required bool inConstFields}) {
+  BodyBuilderContext createBodyBuilderContext() {
     throw new UnsupportedError(
         '$runtimeType.bodyBuilderContextForAnnotations}');
   }
@@ -1147,10 +1147,10 @@ abstract class MergedScope<T extends Builder> {
           context = messageNonAugmentationMemberConflictCause;
         }
         originLibrary.addProblem(
-            message, newBuilder.charOffset, name.length, newBuilder.fileUri,
+            message, newBuilder.fileOffset, name.length, newBuilder.fileUri,
             context: [
               context.withLocation(existingBuilder.fileUri!,
-                  existingBuilder.charOffset, name.length)
+                  existingBuilder.fileOffset, name.length)
             ]);
       }
     } else {
@@ -1179,7 +1179,7 @@ abstract class MergedScope<T extends Builder> {
               templateUnmatchedAugmentationDeclaration.withArguments(name);
         }
         originLibrary.addProblem(
-            message, newBuilder.charOffset, name.length, newBuilder.fileUri);
+            message, newBuilder.fileOffset, name.length, newBuilder.fileUri);
       } else {
         if (inPatchLibrary &&
             !name.startsWith('_') &&
@@ -1187,7 +1187,7 @@ abstract class MergedScope<T extends Builder> {
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
-              newBuilder.charOffset,
+              newBuilder.fileOffset,
               noLength,
               newBuilder.fileUri);
         }
@@ -1349,13 +1349,13 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
                   // Coverage-ignore(suite): Not run.
                   templateNonAugmentationConstructorConflict
                       .withArguments(newConstructor.fullNameForErrors),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri,
               context: [
                 messageNonAugmentationConstructorConflictCause.withLocation(
                     existingConstructor.fileUri!,
-                    existingConstructor.charOffset,
+                    existingConstructor.fileOffset,
                     noLength)
               ]);
         }
@@ -1369,7 +1369,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
                   // Coverage-ignore(suite): Not run.
                   templateUnmatchedAugmentationConstructor
                       .withArguments(newConstructor.fullNameForErrors),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri);
         } else {
@@ -1388,7 +1388,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
           originLibrary.addProblem(
               templatePatchInjectionFailed.withArguments(
                   name, originLibrary.importUri),
-              newConstructor.charOffset,
+              newConstructor.fileOffset,
               noLength,
               newConstructor.fileUri);
         }
@@ -1474,7 +1474,7 @@ extension on Builder {
     // TODO(johnniwinther): Handle all cases here.
   }
 
-  bool _hasPatchAnnotation(List<MetadataBuilder>? metadata) {
+  bool _hasPatchAnnotation(Iterable<MetadataBuilder>? metadata) {
     if (metadata == null) {
       return false;
     }

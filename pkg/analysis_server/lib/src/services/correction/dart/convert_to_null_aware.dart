@@ -116,8 +116,10 @@ class ConvertToNullAware extends ResolvedCorrectionProducer {
         operatorRange = range.endStart(resultExpression, operator);
       } else if (resultExpression.parent is PostfixExpression) {
         // The case where the expression is just `foo!`.
-        operatorRange =
-            range.endEnd(resultExpression, resultExpression.parent!);
+        operatorRange = range.endEnd(
+          resultExpression,
+          resultExpression.parent!,
+        );
       } else {
         return;
       }

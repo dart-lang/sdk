@@ -60,7 +60,8 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
         var nodeName = getElementQualifiedName(nodeElement);
         var nameElementSourceName = nodeElement.source!.shortName;
         var refKind = target.kind.displayName;
-        var message = 'Usage of $nodeKind "$nodeName" declared in '
+        var message =
+            'Usage of $nodeKind "$nodeName" declared in '
             '"$nameElementSourceName" will be shadowed by renamed $refKind.';
         result.addError(message, newLocation_fromNode(node));
       }
@@ -116,7 +117,10 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
 /// A [Refactoring] for renaming [LocalElement]s (excluding [ParameterElement]).
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   RenameLocalRefactoringImpl(
-      super.workspace, super.sessionHelper, LocalElement super.element);
+    super.workspace,
+    super.sessionHelper,
+    LocalElement super.element,
+  );
 
   @override
   LocalElement get element => super.element as LocalElement;
@@ -163,11 +167,12 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     var element = this.element;
     if (element is PatternVariableElementImpl) {
       var rootVariable = element.rootVariable;
-      var declaredElements = rootVariable is JoinPatternVariableElementImpl
-          ? rootVariable.transitiveVariables
-              .whereType<BindPatternVariableElementImpl>()
-              .toList()
-          : [element];
+      var declaredElements =
+          rootVariable is JoinPatternVariableElementImpl
+              ? rootVariable.transitiveVariables
+                  .whereType<BindPatternVariableElementImpl>()
+                  .toList()
+              : [element];
       for (var declaredElement in declaredElements) {
         processor.addDeclarationEdit(declaredElement);
         if (declaredElement is BindPatternVariableElementImpl) {

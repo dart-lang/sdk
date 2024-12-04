@@ -16,32 +16,35 @@ void main() {
 @reflectiveTest
 class InvalidKeyTest extends AbstractTransformSetParserTest {
   void test_integer() {
-    assertErrors('''
+    assertErrors(
+      '''
 3: 4
 version: 1
 transforms: []
-''', [
-      error(TransformSetErrorCode.invalidKey, 0, 1),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidKey, 0, 1)],
+    );
   }
 
   void test_list() {
-    assertErrors('''
+    assertErrors(
+      '''
 []: 4
 version: 1
 transforms: []
-''', [
-      error(TransformSetErrorCode.invalidKey, 0, 2),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidKey, 0, 2)],
+    );
   }
 
   void test_map() {
-    assertErrors('''
+    assertErrors(
+      '''
 {}: 4
 version: 1
 transforms: []
-''', [
-      error(TransformSetErrorCode.invalidKey, 0, 2),
-    ]);
+''',
+      [error(TransformSetErrorCode.invalidKey, 0, 2)],
+    );
   }
 }

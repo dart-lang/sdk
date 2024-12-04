@@ -14,7 +14,8 @@ final class BoxedBool extends bool {
   @override
   bool operator ==(Object other) {
     return other is bool
-        ? this == other // Intrinsic ==
+        ? this ==
+            other // Intrinsic ==
         : false;
   }
 

@@ -139,7 +139,7 @@ main() {
   testUEscapes();
   // Test \b, \f, \n, \r, \t, \v.
   testSingleCharacterEscapes();
-  // Test all other single character (identity) escaeps.
+  // Test all other single character (identity) escapes.
   testIdentityEscapes();
   // Test that quotes are handled correctly.
   testQuotes();

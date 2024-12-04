@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 // Dart2js crashed on this example. It globalized closures and created
 // top-level classes for closures (here the globalized_closure). There was a
 // name-clash with the global "main_closure" class which led to a crash.

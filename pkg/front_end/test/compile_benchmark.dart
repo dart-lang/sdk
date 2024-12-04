@@ -60,7 +60,7 @@ void main(List<String> args) {
     File f = new File.fromUri(helperDill);
     if (!f.existsSync()) throw "$f doesn't exist!";
 
-    List<int> dillData = new File.fromUri(helperDill).readAsBytesSync();
+    Uint8List dillData = new File.fromUri(helperDill).readAsBytesSync();
     doWork(
       tmp,
       dillData,
@@ -87,7 +87,7 @@ void main(List<String> args) {
 ///   proportional to the number of times the procedure is called, so the
 ///   counting annotation is likely at least as useful).
 ///
-void doWork(Directory tmp, List<int> dillData, List<String> arguments,
+void doWork(Directory tmp, Uint8List dillData, List<String> arguments,
     {bool tryToAnnotate = false,
     bool tryToSlowDown = false,
     bool timeInsteadOfCount = false}) {
@@ -166,7 +166,7 @@ void doWork(Directory tmp, List<int> dillData, List<String> arguments,
 /// called for a specific run, then run it, print the result and return the
 /// procedures in sorted order (most calls first).
 List<Procedure> doCountingInstrumentation(
-    List<int> dillData, Directory tmp, List<String> arguments) {
+    Uint8List dillData, Directory tmp, List<String> arguments) {
   Instrumented instrumented = instrumentCallsCount(dillData, tmp.uri);
   List<dynamic> stdout = [];
   runXTimes(1, [instrumented.dill.toString(), ...arguments], stdout);
@@ -199,7 +199,7 @@ List<Procedure> doCountingInstrumentation(
 /// each procedure is on the stack for a specific run, then run it, print the
 /// result and return the procedures in sorted order (most time on stack first).
 List<Procedure> doTimingInstrumentation(
-    List<int> dillData, Directory tmp, List<String> arguments) {
+    Uint8List dillData, Directory tmp, List<String> arguments) {
   Instrumented instrumented = instrumentCallsTiming(dillData, tmp.uri);
   List<dynamic> stdout = [];
   runXTimes(1, [instrumented.dill.toString(), ...arguments], stdout);
@@ -242,7 +242,7 @@ class IntPair {
 /// and serialize the resulting dill into `b.dill` (return uri).
 ///
 /// The annotation is copied from the [preferInlineMe] method in the helper.
-Uri preferInlineProcedure(List<int> dillData, Uri tmp,
+Uri preferInlineProcedure(Uint8List dillData, Uri tmp,
     bool libraryMatcher(Library lib), String? className, String procedureName) {
   Component component = new Component();
   new BinaryBuilder(dillData, disableLazyReading: true)
@@ -267,7 +267,7 @@ Uri preferInlineProcedure(List<int> dillData, Uri tmp,
 ///
 /// This will make the procedure busy-wait approximately 0.002 ms for each
 /// invocation (+ whatever overhead and imprecision).
-Uri? busyWaitProcedure(List<int> dillData, Uri tmp,
+Uri? busyWaitProcedure(Uint8List dillData, Uri tmp,
     bool libraryMatcher(Library lib), String? className, String procedureName) {
   Component component = new Component();
   new BinaryBuilder(dillData, disableLazyReading: true)
@@ -301,7 +301,7 @@ Uri? busyWaitProcedure(List<int> dillData, Uri tmp,
 /// Numbers each procedure, saves the instrumented dill and returns both the
 /// dill and the list of procedures so that procedure i in the list will be
 /// annotated with a call to `registerCall(i)`.
-Instrumented instrumentCallsCount(List<int> dillData, Uri tmp) {
+Instrumented instrumentCallsCount(Uint8List dillData, Uri tmp) {
   Component component = new Component();
   new BinaryBuilder(dillData, disableLazyReading: true)
       .readComponent(component);
@@ -328,7 +328,7 @@ Instrumented instrumentCallsCount(List<int> dillData, Uri tmp) {
 /// the dill and the list of procedures so that procedure i in the list will be
 /// annotated with a call-pair to `registerCallStart(i)` and
 /// `registerCallEnd(i)`.
-Instrumented instrumentCallsTiming(List<int> dillData, Uri tmp) {
+Instrumented instrumentCallsTiming(Uint8List dillData, Uri tmp) {
   Component component = new Component();
   new BinaryBuilder(dillData, disableLazyReading: true)
       .readComponent(component);

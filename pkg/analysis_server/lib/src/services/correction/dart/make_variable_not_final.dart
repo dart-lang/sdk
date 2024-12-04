@@ -19,8 +19,9 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_variableName];
@@ -40,7 +41,17 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var declaration = NodeLocator(variable.nameOffset).searchWithin(unit);
+    var variableName = variable.name3;
+    if (variableName == null) {
+      return;
+    }
+
+    var nameOffset = variable.firstFragment.nameOffset2;
+    if (nameOffset == null) {
+      return;
+    }
+
+    var declaration = NodeLocator(nameOffset).searchWithin(unit);
     var declarationList = declaration?.parent;
 
     if (declaration is VariableDeclaration &&
@@ -52,14 +63,12 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
         await builder.addDartFileEdit(file, (builder) {
           var typeAnnotation = declarationList.type;
           if (typeAnnotation != null) {
-            builder.addDeletion(
-              range.startStart(keywordToken, typeAnnotation),
-            );
+            builder.addDeletion(range.startStart(keywordToken, typeAnnotation));
           } else {
             builder.addSimpleReplacement(range.token(keywordToken), 'var');
           }
         });
-        _variableName = variable.name;
+        _variableName = variableName;
       }
     }
   }

@@ -21,8 +21,9 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+          // Not predictably the correct action.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
@@ -54,9 +55,14 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
             if (declarationList.variables.length == 1) {
               var initializer = declarationList.variables.first.initializer;
               if (initializer is MethodInvocation) {
-                _commands.add(_DeleteSourceRangeCommand(
-                    sourceRange: SourceRange(declarationStatement.offset,
-                        initializer.offset - declarationStatement.offset)));
+                _commands.add(
+                  _DeleteSourceRangeCommand(
+                    sourceRange: SourceRange(
+                      declarationStatement.offset,
+                      initializer.offset - declarationStatement.offset,
+                    ),
+                  ),
+                );
               } else {
                 _commands.add(
                   _DeleteStatementCommand(
@@ -143,10 +149,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
     } else {
       _commands.add(
         _DeleteSourceRangeCommand(
-          sourceRange: range.endEnd(
-            logicalAnd.leftOperand,
-            declaredVariable,
-          ),
+          sourceRange: range.endEnd(logicalAnd.leftOperand, declaredVariable),
         ),
       );
     }
@@ -194,19 +197,14 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
               );
             }
             _commands.add(
-              _MakeItWildcardCommand(
-                declaredVariable: declaredVariable,
-              ),
+              _MakeItWildcardCommand(declaredVariable: declaredVariable),
             );
             return true;
           }
         }
         // Remove a single field.
         _commands.add(
-          _DeleteNodeInListCommand(
-            nodes: fields,
-            node: patternField,
-          ),
+          _DeleteNodeInListCommand(nodes: fields, node: patternField),
         );
         return true;
       case RecordPattern():
@@ -220,9 +218,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
           );
         }
         _commands.add(
-          _MakeItWildcardCommand(
-            declaredVariable: declaredVariable,
-          ),
+          _MakeItWildcardCommand(declaredVariable: declaredVariable),
         );
         return true;
     }
@@ -267,11 +263,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
         continue;
       }
 
-      _commands.add(
-        _DeleteSourceRangeCommand(
-          sourceRange: referenceRange,
-        ),
-      );
+      _commands.add(_DeleteSourceRangeCommand(sourceRange: referenceRange));
       deletedRanges.add(referenceRange);
     }
 
@@ -338,10 +330,7 @@ class _DeleteNodeInListCommand<T extends AstNode> extends _Command {
   final NodeList<T> nodes;
   final T node;
 
-  _DeleteNodeInListCommand({
-    required this.nodes,
-    required this.node,
-  });
+  _DeleteNodeInListCommand({required this.nodes, required this.node});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -353,9 +342,7 @@ class _DeleteNodeInListCommand<T extends AstNode> extends _Command {
 class _DeleteSourceRangeCommand extends _Command {
   final SourceRange sourceRange;
 
-  _DeleteSourceRangeCommand({
-    required this.sourceRange,
-  });
+  _DeleteSourceRangeCommand({required this.sourceRange});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -367,10 +354,7 @@ class _DeleteStatementCommand extends _Command {
   final CorrectionUtils utils;
   final Statement statement;
 
-  _DeleteStatementCommand({
-    required this.utils,
-    required this.statement,
-  });
+  _DeleteStatementCommand({required this.utils, required this.statement});
 
   @override
   void execute(DartFileEditBuilder builder) {
@@ -383,9 +367,7 @@ class _DeleteStatementCommand extends _Command {
 class _MakeItWildcardCommand extends _Command {
   final DeclaredVariablePattern declaredVariable;
 
-  _MakeItWildcardCommand({
-    required this.declaredVariable,
-  });
+  _MakeItWildcardCommand({required this.declaredVariable});
 
   @override
   void execute(DartFileEditBuilder builder) {

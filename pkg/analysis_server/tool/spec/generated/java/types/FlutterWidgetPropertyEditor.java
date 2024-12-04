@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * An editor for a property of a Flutter widget.
@@ -31,9 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class FlutterWidgetPropertyEditor {
 
-  public static final FlutterWidgetPropertyEditor[] EMPTY_ARRAY = new FlutterWidgetPropertyEditor[0];
-
-  public static final List<FlutterWidgetPropertyEditor> EMPTY_LIST = Lists.newArrayList();
+  public static final List<FlutterWidgetPropertyEditor> EMPTY_LIST = List.of();
 
   private final String kind;
 
@@ -49,11 +44,10 @@ public class FlutterWidgetPropertyEditor {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof FlutterWidgetPropertyEditor) {
-      FlutterWidgetPropertyEditor other = (FlutterWidgetPropertyEditor) obj;
+    if (obj instanceof FlutterWidgetPropertyEditor other) {
       return
-        ObjectUtilities.equals(other.kind, kind) &&
-        ObjectUtilities.equals(other.enumItems, enumItems);
+        Objects.equals(other.kind, kind) &&
+        Objects.equals(other.enumItems, enumItems);
     }
     return false;
   }
@@ -68,10 +62,9 @@ public class FlutterWidgetPropertyEditor {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<FlutterWidgetPropertyEditor> list = new ArrayList<FlutterWidgetPropertyEditor>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<FlutterWidgetPropertyEditor> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -86,10 +79,10 @@ public class FlutterWidgetPropertyEditor {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(kind);
-    builder.append(enumItems);
-    return builder.toHashCode();
+    return Objects.hash(
+      kind,
+      enumItems
+    );
   }
 
   public JsonObject toJson() {
@@ -110,9 +103,10 @@ public class FlutterWidgetPropertyEditor {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("kind=");
-    builder.append(kind + ", ");
+    builder.append(kind);
+    builder.append(", ");
     builder.append("enumItems=");
-    builder.append(StringUtils.join(enumItems, ", "));
+    builder.append(enumItems == null ? "null" : enumItems.stream().map(String::valueOf).collect(Collectors.joining(", ")));
     builder.append("]");
     return builder.toString();
   }

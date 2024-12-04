@@ -126,6 +126,8 @@ class AotExecutor implements TargetExecutor {
       '-Ddart.vm.product=true',
       '--import-dill',
       '${test.main}_no_aot.dill',
+      '--validate',
+      '$rootScheme:/data/${test.name}/dynamic_interface.yaml',
       '--verbosity=all',
       '--filesystem-root',
       test.folder.resolve('../../').toFilePath(),

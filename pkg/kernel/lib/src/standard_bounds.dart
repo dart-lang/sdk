@@ -1685,17 +1685,15 @@ mixin StandardBounds {
           outer: uniteNullabilities(
               type1.declaredNullability, type2.nullability)));
     }
-    NullabilityAwareTypeVariableEliminator eliminator =
-        new NullabilityAwareTypeVariableEliminator(
+    NullabilityAwareTypeParameterEliminator eliminator =
+        new NullabilityAwareTypeParameterEliminator(
             structuralEliminationTargets: {
           if (structuralEliminationTarget != null) structuralEliminationTarget
         },
             nominalEliminationTargets: {
           if (nominalEliminationTarget != null) nominalEliminationTarget
         },
-            bottomType: const NeverType.nonNullable(),
-            topType: coreTypes.objectNullableRawType,
-            topFunctionType: coreTypes.functionNonNullableRawType,
+            coreTypes: coreTypes,
             unhandledTypeHandler: (type, recursor) => false);
     DartType result = _getNullabilityAwareStandardUpperBound(
         eliminator.eliminateToGreatest(bound1), type2);
@@ -1726,13 +1724,11 @@ mixin StandardBounds {
       return demoted.withDeclaredNullability(uniteNullabilities(
           demoted.declaredNullability, type2.declaredNullability));
     }
-    NullabilityAwareTypeVariableEliminator eliminator =
-        new NullabilityAwareTypeVariableEliminator(
+    NullabilityAwareTypeParameterEliminator eliminator =
+        new NullabilityAwareTypeParameterEliminator(
             structuralEliminationTargets: {},
             nominalEliminationTargets: {type1.left.parameter},
-            bottomType: const NeverType.nonNullable(),
-            topType: coreTypes.objectNullableRawType,
-            topFunctionType: coreTypes.functionNonNullableRawType,
+            coreTypes: coreTypes,
             unhandledTypeHandler: (type, recursor) => false);
     Nullability resultingNullability =
         uniteNullabilities(type1.right.declaredNullability, type2.nullability);

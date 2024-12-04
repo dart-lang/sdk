@@ -137,6 +137,6 @@ class SetupCompilerOptions {
     );
   }
 
-  String get loadModule =>
-      moduleFormat == ModuleFormat.amd ? 'require' : 'dart_library.import';
+  bool get emitLibraryBundle =>
+      canaryFeatures && moduleFormat == ModuleFormat.ddc;
 }

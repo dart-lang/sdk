@@ -13,13 +13,13 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
@@ -441,13 +441,8 @@ class Driver implements CommandLineStarter {
     return analyzer.analyze(formatter);
   }
 
-  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) {
-    if (severity == ErrorSeverity.ERROR) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+  bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) =>
+      severity == ErrorSeverity.ERROR;
 
   void _verifyAnalysisOptionsFileExists(CommandLineOptions options) {
     var path = options.defaultAnalysisOptionsPath;
@@ -470,10 +465,8 @@ class Driver implements CommandLineStarter {
         newOptions.defaultPackagesPath == previous.defaultPackagesPath &&
         _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
         newOptions.log == previous.log &&
-        newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
-        _equalLists(
-            newOptions.enabledExperiments!, previous.enabledExperiments!);
+        _equalLists(newOptions.enabledExperiments, previous.enabledExperiments);
   }
 
   /// Perform a deep comparison of two string lists.

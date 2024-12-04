@@ -1708,7 +1708,7 @@ type ListPattern extends Pattern {
   List<Pattern> patterns;
   Option<DartType> requiredType;
   Option<DartType> matchedValueType;
-  Byte flags { needsCheck, hasRestPattern };
+  Byte flags { needsCheck, hasRestPattern, isNeverPattern };
   Option<DartType> lookupType;
   Option<MemberReference> lengthTargetReference;
   Option<DartType> lengthType;
@@ -1730,7 +1730,7 @@ type MapPattern extends Pattern {
   List<MapPatternEntry> entries;
   Option<DartType> requiredType;
   Option<DartType> matchedValueType;
-  Byte flags { needsCheck };
+  Byte flags { needsCheck, isNeverPattern };
   Option<DartType> lookupType;
   Option<MemberReference> containsKeyTargetReference;
   Option<DartType> containsKeyType;

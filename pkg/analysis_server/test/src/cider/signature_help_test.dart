@@ -42,16 +42,11 @@ foo(String s, {bool b = true, bool a}) {
 ''';
     var expectedLabel = 'foo(String s, {bool b = true, bool a})';
 
-    await testSignature(
-        content,
-        expectedLabel,
-        'Does foo.',
-        [
-          ParameterInformation(label: 'String s'),
-          ParameterInformation(label: 'bool b = true'),
-          ParameterInformation(label: 'bool a'),
-        ],
-        CharacterLocation(3, 7));
+    await testSignature(content, expectedLabel, 'Does foo.', [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool b = true'),
+      ParameterInformation(label: 'bool a'),
+    ], CharacterLocation(3, 7));
   }
 
   void test_params_multipleOptional() async {
@@ -63,16 +58,11 @@ foo(String s, [bool b = true, bool a]) {
 ''';
 
     var expectedLabel = 'foo(String s, [bool b = true, bool a])';
-    await testSignature(
-        content,
-        expectedLabel,
-        'Does foo.',
-        [
-          ParameterInformation(label: 'String s'),
-          ParameterInformation(label: 'bool b = true'),
-          ParameterInformation(label: 'bool a'),
-        ],
-        CharacterLocation(3, 7));
+    await testSignature(content, expectedLabel, 'Does foo.', [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool b = true'),
+      ParameterInformation(label: 'bool a'),
+    ], CharacterLocation(3, 7));
   }
 
   void test_retrigger_validLocation() async {
@@ -84,16 +74,11 @@ foo(String s, {bool b = true, bool a}) {
 ''';
     var expectedLabel = 'foo(String s, {bool b = true, bool a})';
 
-    await testSignature(
-        content,
-        expectedLabel,
-        'Does foo.',
-        [
-          ParameterInformation(label: 'String s'),
-          ParameterInformation(label: 'bool b = true'),
-          ParameterInformation(label: 'bool a'),
-        ],
-        CharacterLocation(3, 7));
+    await testSignature(content, expectedLabel, 'Does foo.', [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'bool b = true'),
+      ParameterInformation(label: 'bool a'),
+    ], CharacterLocation(3, 7));
   }
 
   void test_simple() async {
@@ -104,15 +89,10 @@ foo(String s, int i) {
 }
 ''';
     var expectedLabel = 'foo(String s, int i)';
-    await testSignature(
-        content,
-        expectedLabel,
-        'Does foo.',
-        [
-          ParameterInformation(label: 'String s'),
-          ParameterInformation(label: 'int i'),
-        ],
-        CharacterLocation(3, 7));
+    await testSignature(content, expectedLabel, 'Does foo.', [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ], CharacterLocation(3, 7));
   }
 
   void test_triggerCharacter_validLocation() async {
@@ -124,15 +104,10 @@ foo(String s, int i) {
 ''';
 
     var expectedLabel = 'foo(String s, int i)';
-    await testSignature(
-        content,
-        expectedLabel,
-        'Does foo.',
-        [
-          ParameterInformation(label: 'String s'),
-          ParameterInformation(label: 'int i'),
-        ],
-        CharacterLocation(3, 7));
+    await testSignature(content, expectedLabel, 'Does foo.', [
+      ParameterInformation(label: 'String s'),
+      ParameterInformation(label: 'int i'),
+    ], CharacterLocation(3, 7));
   }
 
   void test_typeParams_class() async {
@@ -144,14 +119,15 @@ class Bar extends Foo<^> {}
 ''';
 
     await testSignature(
-        content,
-        'class Foo<T1, T2 extends String>',
-        'My Foo.',
-        [
-          ParameterInformation(label: 'T1'),
-          ParameterInformation(label: 'T2 extends String')
-        ],
-        CharacterLocation(4, 23));
+      content,
+      'class Foo<T1, T2 extends String>',
+      'My Foo.',
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+      CharacterLocation(4, 23),
+    );
   }
 
   void test_typeParams_function() async {
@@ -163,14 +139,15 @@ void foo<T1, T2 extends String>() {
 ''';
 
     await testSignature(
-        content,
-        'void foo<T1, T2 extends String>()',
-        'My Foo.',
-        [
-          ParameterInformation(label: 'T1'),
-          ParameterInformation(label: 'T2 extends String')
-        ],
-        CharacterLocation(3, 7));
+      content,
+      'void foo<T1, T2 extends String>()',
+      'My Foo.',
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+      CharacterLocation(3, 7),
+    );
   }
 
   void test_typeParams_method() async {
@@ -184,38 +161,40 @@ class Foo {
 ''';
 
     await testSignature(
-        content,
-        'void foo<T1, T2 extends String>()',
-        'My Foo.',
-        [
-          ParameterInformation(label: 'T1'),
-          ParameterInformation(label: 'T2 extends String')
-        ],
-        CharacterLocation(4, 9));
+      content,
+      'void foo<T1, T2 extends String>()',
+      'My Foo.',
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+      CharacterLocation(4, 9),
+    );
   }
 
   Future<void> testSignature(
-      String content,
-      String expectedLabel,
-      String expectedDoc,
-      List<ParameterInformation> expectedParameters,
-      CharacterLocation leftParenLocation) async {
+    String content,
+    String expectedLabel,
+    String expectedDoc,
+    List<ParameterInformation> expectedParameters,
+    CharacterLocation leftParenLocation,
+  ) async {
     var result = await _compute(content);
     var signature = result!.signatureHelp.signatures.first;
     var expected = MarkupContent(kind: MarkupKind.Markdown, value: expectedDoc);
     expect(signature.label, expectedLabel);
     expect(signature.documentation!.valueEquals(expected), isTrue);
-    expect(ListEquality().equals(expectedParameters, signature.parameters),
-        isTrue);
+    expect(
+      ListEquality().equals(expectedParameters, signature.parameters),
+      isTrue,
+    );
     expect(result.callStart == leftParenLocation, isTrue);
   }
 
   Future<SignatureHelpResponse?> _compute(String content) async {
     _updateFile(content);
 
-    return CiderSignatureHelpComputer(
-      fileResolver,
-    ).compute2(
+    return CiderSignatureHelpComputer(fileResolver).compute2(
       convertPath(testPath),
       _correctionContext.line,
       _correctionContext.character,

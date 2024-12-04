@@ -27,7 +27,7 @@ extension type ExtensionType3<T extends core::num>(T it) {
 }
 extension type ExtensionType4(core::int it) {
   abstract extension-type-member representation-field get it() → core::int;
-  abstract extension-type-member representation-field get field() → core::int;
+  get field = get self::ExtensionType4|field;
   get getter = self::ExtensionType4|get#getter;
   method method = self::ExtensionType4|method;
   method tearoff method = self::ExtensionType4|get#method;
@@ -102,6 +102,7 @@ static extension-type-member method ExtensionType4|constructor#redirectingFactor
   return self::ExtensionType4|constructor#(it);
 static extension-type-member method ExtensionType4|constructor#_#redirectingFactory#tearOff(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   return self::ExtensionType4|constructor#(it);
+static abstract extension-type-member get ExtensionType4|field() → core::int;
 static extension-type-member method ExtensionType4|get#getter(lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this) → core::int
   ;
 static extension-type-member method ExtensionType4|set#setter(lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this, core::int value) → void

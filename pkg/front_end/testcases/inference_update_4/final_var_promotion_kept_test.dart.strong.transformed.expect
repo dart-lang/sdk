@@ -1,0 +1,52 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method isInt(core::bool b) → dynamic {
+  final core::num x;
+  if(b) {
+    x = 1;
+  }
+  else {
+    x = 0.1;
+  }
+  if(x is core::int) {
+    () → core::bool => x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method isInt_late(core::bool b) → dynamic {
+  late final core::num x;
+  if(b) {
+    x = 1;
+  }
+  else {
+    x = 0.1;
+  }
+  if(x is core::int) {
+    () → core::bool => x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method notEqNull(core::bool b) → dynamic {
+  final core::int? x;
+  if(b) {
+    x = 1;
+  }
+  else {
+    x = null;
+  }
+  if(!(x == null)) {
+    () → core::bool => x{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method notEqNull_late(core::bool b) → dynamic {
+  late final core::int? x;
+  if(b) {
+    x = 1;
+  }
+  else {
+    x = null;
+  }
+  if(!(x == null)) {
+    () → core::bool => x{core::int}.{core::int::isEven}{core::bool};
+  }
+}

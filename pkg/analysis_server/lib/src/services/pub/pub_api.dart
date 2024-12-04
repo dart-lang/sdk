@@ -37,15 +37,18 @@ class PubApi {
   final _headers = {
     'Accept': 'application/vnd.pub.v2+json',
     'Accept-Encoding': 'gzip',
-    'User-Agent': 'Dart Analysis Server/${Platform.version.split(' ').first}'
+    'User-Agent':
+        'Dart Analysis Server/${Platform.version.split(' ').first}'
         ' (+https://github.com/dart-lang/sdk)',
   };
 
-  PubApi(this.instrumentationService, http.Client? httpClient,
-      String? envPubHostedUrl)
-      : httpClient =
-            httpClient != null ? _NoCloseHttpClient(httpClient) : http.Client(),
-        _pubHostedUrl = _validPubHostedUrl(envPubHostedUrl);
+  PubApi(
+    this.instrumentationService,
+    http.Client? httpClient,
+    String? envPubHostedUrl,
+  ) : httpClient =
+          httpClient != null ? _NoCloseHttpClient(httpClient) : http.Client(),
+      _pubHostedUrl = _validPubHostedUrl(envPubHostedUrl);
 
   /// Fetches a list of package names from the Pub API.
   ///
@@ -106,24 +109,28 @@ class PubApi {
         } else if (response.statusCode >= 400 && response.statusCode < 500) {
           // Do not retry 4xx responses.
           instrumentationService.logError(
-              'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
-              'for $url. Not retrying.');
+            'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
+            'for $url. Not retrying.',
+          );
           return null;
         }
         instrumentationService.logError(
-            'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
-            'for $url on attempt $requestCount');
+          'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
+          'for $url on attempt $requestCount',
+        );
       } catch (e) {
         if (e is! IOException && e is! FormatException) {
-          instrumentationService
-              .logError('Error calling pub API for $url. Not retrying. $e');
+          instrumentationService.logError(
+            'Error calling pub API for $url. Not retrying. $e',
+          );
           return null;
         }
         instrumentationService.logError('Error calling pub API for $url: $e');
       }
       if (requestCount >= maxFailedRequests) {
-        instrumentationService
-            .logInfo('Pub API request failed after $requestCount requests');
+        instrumentationService.logInfo(
+          'Pub API request failed after $requestCount requests',
+        );
       } else {
         // Sleep before the next try.
         await Future.delayed(Duration(seconds: retryAfterSeconds));
@@ -136,10 +143,11 @@ class PubApi {
   /// Returns a valid Pub base URL from [envPubHostedUrl] if valid, otherwise using
   /// the default 'https://pub.dartlang.org'.
   static String _validPubHostedUrl(String? envPubHostedUrl) {
-    var validUrl = envPubHostedUrl != null &&
-            (Uri.tryParse(envPubHostedUrl)?.isAbsolute ?? false)
-        ? envPubHostedUrl
-        : 'https://pub.dartlang.org';
+    var validUrl =
+        envPubHostedUrl != null &&
+                (Uri.tryParse(envPubHostedUrl)?.isAbsolute ?? false)
+            ? envPubHostedUrl
+            : 'https://pub.dartlang.org';
 
     // Discard any trailing slashes, as all API paths start with them.
     return validUrl.endsWith('/')

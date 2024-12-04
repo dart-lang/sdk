@@ -54,8 +54,8 @@ class Sdk {
       ? path.absolute(
           sdkPath,
           Platform.isWindows
-              ? 'dart_precompiled_runtime_product.exe'
-              : 'dart_precompiled_runtime_product',
+              ? 'dartaotruntime_product.exe'
+              : 'dartaotruntime_product',
         )
       : path.absolute(
           sdkPath,
@@ -67,9 +67,29 @@ class Sdk {
         'analysis_server.dart.snapshot',
       );
 
+  String get ddcSnapshot => _snapshotPathFor(
+        'dartdevc.dart.snapshot',
+      );
+
+  String get ddcAotSnapshot => _runFromBuildRoot
+      ? _snapshotPathFor(
+          'dartdevc_aot_product.dart.snapshot',
+        )
+      : _snapshotPathFor(
+          'dartdevc_aot.dart.snapshot',
+        );
+
   String get dart2jsSnapshot => _snapshotPathFor(
         'dart2js.dart.snapshot',
       );
+
+  String get dart2jsAotSnapshot => _runFromBuildRoot
+      ? _snapshotPathFor(
+          'dart2js_aot_product.dart.snapshot',
+        )
+      : _snapshotPathFor(
+          'dart2js_aot.dart.snapshot',
+        );
 
   String get dart2wasmSnapshot => _snapshotPathFor(
         'dart2wasm_product.snapshot',
@@ -87,9 +107,13 @@ class Sdk {
         'frontend_server.dart.snapshot',
       );
 
-  String get frontendServerAotSnapshot => _snapshotPathFor(
-        'frontend_server_aot.dart.snapshot',
-      );
+  String get frontendServerAotSnapshot => _runFromBuildRoot
+      ? _snapshotPathFor(
+          'frontend_server_aot_product.dart.snapshot',
+        )
+      : _snapshotPathFor(
+          'frontend_server_aot.dart.snapshot',
+        );
 
   String get dtdSnapshot => _snapshotPathFor(
         'dart_tooling_daemon.dart.snapshot',

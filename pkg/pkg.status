@@ -138,6 +138,8 @@ vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/external_compilation_service_test: SkipByDesign # Spawns a secondary process.
 vm_service/test/field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/forward_compile_expression_error_from_external_client_with_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/forward_compile_expression_error_from_external_client_without_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_allocation_traces_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/get_instances_as_*: SkipByDesign # Debugger is disabled in AOT mode
 vm_service/test/get_instances_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -341,10 +343,6 @@ analysis_server/test/socket_server_test: Skip # Pass, Slow
 
 [ $mode == debug || $runtime != vm || $system == android ]
 vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir
-
-[ $mode != release || $runtime != vm ]
-front_end/test/fasta/*: Skip
-front_end/tool/_fasta/*: Skip
 
 [ $browser || $jscl ]
 compiler/test/*: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).

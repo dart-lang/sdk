@@ -66,6 +66,7 @@ autofocus
 automatic
 averaged
 averages
+avg
 ax
 axis
 ba
@@ -159,6 +160,7 @@ cnn
 coded
 codepath
 coincidences
+cold
 collisions
 columns
 commented
@@ -322,6 +324,7 @@ fac
 failsafe
 faking
 falling
+fasta
 faults
 favors
 fb
@@ -346,6 +349,7 @@ foos
 forbidden
 forces
 foreground
+forgot
 forrest
 forth
 forty
@@ -375,6 +379,7 @@ ge
 gesture
 gi
 gm
+golem
 goo
 google
 graphic
@@ -437,6 +442,7 @@ ing
 inhibit
 inlinable
 inlineable
+inoperable
 insights
 instrument
 instrumenter
@@ -452,6 +458,7 @@ introducer
 inv
 involves
 ioo
+irrespective
 ish
 it'll
 italic
@@ -561,6 +568,7 @@ nums
 ob
 obool
 observable
+october
 offers
 oh
 okay
@@ -571,6 +579,7 @@ oo
 oobar
 oocf
 ooo
+oops
 oovf
 opacity
 operate
@@ -597,6 +606,7 @@ paused
 pays
 pb
 pc
+percentile
 periodic
 periodically
 perm
@@ -616,6 +626,7 @@ population
 portions
 pp
 pr
+practise
 preliminary
 prematurely
 prerequisite
@@ -693,6 +704,7 @@ revisions
 risky
 rk
 rnone
+routines
 row
 rows
 rr
@@ -881,6 +893,7 @@ waited
 waits
 walt
 warmup
+warmups
 week
 weekly
 went

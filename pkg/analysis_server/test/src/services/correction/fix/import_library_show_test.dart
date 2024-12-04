@@ -17,7 +17,30 @@ void main() {
 @reflectiveTest
 class ImportLibraryShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_COMBINATOR;
+
+  Future<void> test_extension_aliased_notShown_method() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on String {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart' as lib show C;
+
+void f(String s, lib.C c) {
+  s.m();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib show C, E;
+
+void f(String s, lib.C c) {
+  s.m();
+}
+''');
+  }
 
   Future<void> test_extension_notShown_getter() async {
     newFile('$testPackageLibPath/lib.dart', '''

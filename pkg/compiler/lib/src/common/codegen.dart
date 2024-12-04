@@ -124,7 +124,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     });
     bool usesInterceptor = source.readBool();
     final asyncMarkersValue = source.readInt();
-    final asyncMarkers = EnumSet<AsyncMarker>(asyncMarkersValue);
+    final asyncMarkers = EnumSet<AsyncMarker>.fromRawBits(asyncMarkersValue);
     final genericInstantiations = source
         .readListOrNull(() => GenericInstantiation.readFromDataSource(source))
         ?.toSet();
@@ -169,7 +169,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     sink.writeStringsOrNull(_constSymbols);
     sink.writeListOrNull(_specializedGetInterceptors, sink.writeClasses);
     sink.writeBool(_usesInterceptor);
-    sink.writeInt(_asyncMarkers.mask);
+    sink.writeInt(_asyncMarkers.mask.bits);
     sink.writeListOrNull(
         _genericInstantiations,
         (GenericInstantiation instantiation) =>
@@ -218,7 +218,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    _asyncMarkers += asyncMarker;
+    _asyncMarkers = _asyncMarkers.add(asyncMarker);
   }
 
   @override

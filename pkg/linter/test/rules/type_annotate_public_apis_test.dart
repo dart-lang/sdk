@@ -34,11 +34,8 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(43, 1),
     ]);
   }
@@ -58,11 +55,8 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(46, 1),
     ]);
   }
@@ -78,11 +72,8 @@ part of 'a.dart';
 void f(x) { }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(26, 1),
     ]);
   }
@@ -98,11 +89,8 @@ part of 'a.dart';
 var x;
 ''');
 
-    result = await resolveFile(a.path);
-    await assertNoDiagnosticsIn(errors);
-
-    result = await resolveFile(b.path);
-    await assertDiagnosticsIn(errors, [
+    await assertNoDiagnosticsInFile(a.path);
+    await assertDiagnosticsInFile(b.path, [
       lint(23, 1),
     ]);
   }
@@ -124,13 +112,10 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(32, 1),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedMethod() async {
@@ -150,13 +135,10 @@ augment class A {
 }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(35, 1),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelFunction() async {
@@ -172,13 +154,10 @@ part of 'a.dart';
 augment void f(x) { }
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(23, 1),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_augmentedTopLevelVariable() async {
@@ -194,13 +173,10 @@ part of 'a.dart';
 augment var x;
 ''');
 
-    result = await resolveFile(a.path);
-    await assertDiagnosticsIn(errors, [
+    await assertDiagnosticsInFile(a.path, [
       lint(20, 1),
     ]);
-
-    result = await resolveFile(b.path);
-    await assertNoDiagnosticsIn(errors);
+    await assertNoDiagnosticsInFile(b.path);
   }
 
   test_instanceField_onClass_hasInitializer() async {

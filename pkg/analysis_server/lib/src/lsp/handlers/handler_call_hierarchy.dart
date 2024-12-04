@@ -18,8 +18,8 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 
-typedef StaticOptions
-    = Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>;
+typedef StaticOptions =
+    Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>;
 
 class CallHierarchyRegistrations extends FeatureRegistration
     with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
@@ -41,10 +41,14 @@ class CallHierarchyRegistrations extends FeatureRegistration
 
 /// A handler for `callHierarchy/incoming` that returns the incoming calls for
 /// the target supplied by the client.
-class IncomingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
-    CallHierarchyIncomingCallsParams,
-    CallHierarchyIncomingCallsResult,
-    CallHierarchyIncomingCall> with _CallHierarchyUtils {
+class IncomingCallHierarchyHandler
+    extends
+        _AbstractCallHierarchyCallsHandler<
+          CallHierarchyIncomingCallsParams,
+          CallHierarchyIncomingCallsResult,
+          CallHierarchyIncomingCall
+        >
+    with _CallHierarchyUtils {
   IncomingCallHierarchyHandler(super.server);
   @override
   Method get handlesMessage => Method.callHierarchy_incomingCalls;
@@ -64,16 +68,16 @@ class IncomingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
   Future<List<call_hierarchy.CallHierarchyCalls>> getCalls(
     call_hierarchy.DartCallHierarchyComputer computer,
     call_hierarchy.CallHierarchyItem target,
-  ) =>
-      computer.findIncomingCalls(target, server.searchEngine);
+  ) => computer.findIncomingCalls(target, server.searchEngine);
 
   /// Handles the request by passing the target item to a shared implementation
   /// in the superclass.
   @override
   Future<ErrorOr<CallHierarchyIncomingCallsResult>> handle(
-      CallHierarchyIncomingCallsParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    CallHierarchyIncomingCallsParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       return failure(serverNotInitializedError);
@@ -97,22 +101,27 @@ class IncomingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
         itemLineInfo,
         supportedSymbolKinds: supportedSymbolKinds,
       ),
-      fromRanges: calls.ranges
-          // For incoming calls, ranges are in the referenced item so we use
-          // itemLineInfo and not localLineInfo (which is for the original
-          // target we're collecting calls to).
-          .map((call) => sourceRangeToRange(itemLineInfo, call))
-          .toList(),
+      fromRanges:
+          calls.ranges
+              // For incoming calls, ranges are in the referenced item so we use
+              // itemLineInfo and not localLineInfo (which is for the original
+              // target we're collecting calls to).
+              .map((call) => sourceRangeToRange(itemLineInfo, call))
+              .toList(),
     );
   }
 }
 
 /// A handler for `callHierarchy/outgoing` that returns the outgoing calls for
 /// the target supplied by the client.
-class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
-    CallHierarchyOutgoingCallsParams,
-    CallHierarchyOutgoingCallsResult,
-    CallHierarchyOutgoingCall> with _CallHierarchyUtils {
+class OutgoingCallHierarchyHandler
+    extends
+        _AbstractCallHierarchyCallsHandler<
+          CallHierarchyOutgoingCallsParams,
+          CallHierarchyOutgoingCallsResult,
+          CallHierarchyOutgoingCall
+        >
+    with _CallHierarchyUtils {
   OutgoingCallHierarchyHandler(super.server);
   @override
   Method get handlesMessage => Method.callHierarchy_outgoingCalls;
@@ -132,16 +141,16 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
   Future<List<call_hierarchy.CallHierarchyCalls>> getCalls(
     call_hierarchy.DartCallHierarchyComputer computer,
     call_hierarchy.CallHierarchyItem target,
-  ) =>
-      computer.findOutgoingCalls(target);
+  ) => computer.findOutgoingCalls(target);
 
   /// Handles the request by passing the target item to a shared implementation
   /// in the superclass.
   @override
   Future<ErrorOr<CallHierarchyOutgoingCallsResult>> handle(
-      CallHierarchyOutgoingCallsParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    CallHierarchyOutgoingCallsParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var clientCapabilities = message.clientCapabilities;
     if (clientCapabilities == null) {
       return failure(serverNotInitializedError);
@@ -165,12 +174,13 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
         itemLineInfo,
         supportedSymbolKinds: supportedSymbolKinds,
       ),
-      fromRanges: calls.ranges
-          // For incoming calls, ranges are in original target so we use
-          // localLineInfo and not itemLineInfo (which is for call target
-          // the outbound call points to).
-          .map((call) => sourceRangeToRange(localLineInfo, call))
-          .toList(),
+      fromRanges:
+          calls.ranges
+              // For incoming calls, ranges are in original target so we use
+              // localLineInfo and not itemLineInfo (which is for call target
+              // the outbound call points to).
+              .map((call) => sourceRangeToRange(localLineInfo, call))
+              .toList(),
     );
   }
 }
@@ -185,9 +195,13 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
 /// The target returned by this handler will be sent back to the server for
 /// incoming/outgoing calls as the user navigates the call hierarchy in the
 /// client.
-class PrepareCallHierarchyHandler extends SharedMessageHandler<
-    CallHierarchyPrepareParams,
-    TextDocumentPrepareCallHierarchyResult> with _CallHierarchyUtils {
+class PrepareCallHierarchyHandler
+    extends
+        SharedMessageHandler<
+          CallHierarchyPrepareParams,
+          TextDocumentPrepareCallHierarchyResult
+        >
+    with _CallHierarchyUtils {
   PrepareCallHierarchyHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareCallHierarchy;
@@ -201,9 +215,10 @@ class PrepareCallHierarchyHandler extends SharedMessageHandler<
 
   @override
   Future<ErrorOr<TextDocumentPrepareCallHierarchyResult>> handle(
-      CallHierarchyPrepareParams params,
-      MessageInfo message,
-      CancellationToken token) async {
+    CallHierarchyPrepareParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -226,11 +241,7 @@ class PrepareCallHierarchyHandler extends SharedMessageHandler<
         return success(null);
       }
 
-      return await _convertTarget(
-        unit.session,
-        target,
-        supportedSymbolKinds,
-      );
+      return await _convertTarget(unit.session, target, supportedSymbolKinds);
     });
   }
 
@@ -266,19 +277,23 @@ class PrepareCallHierarchyHandler extends SharedMessageHandler<
 /// An abstract base class for incoming and outgoing CallHierarchy handlers
 /// which perform largely the same task using different LSP classes.
 abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
-    extends SharedMessageHandler<P, R> with _CallHierarchyUtils {
+    extends SharedMessageHandler<P, R>
+    with _CallHierarchyUtils {
   _AbstractCallHierarchyCallsHandler(super.server);
 
   /// Gets the appropriate types of calls for this handler.
   Future<List<call_hierarchy.CallHierarchyCalls>> getCalls(
-      call_hierarchy.DartCallHierarchyComputer computer,
-      call_hierarchy.CallHierarchyItem target);
+    call_hierarchy.DartCallHierarchyComputer computer,
+    call_hierarchy.CallHierarchyItem target,
+  );
 
   /// Handles a request for incoming or outgoing calls (handled by the concrete
   /// implementation) by delegating fetching and converting calls to the
   /// subclass.
   Future<ErrorOr<List<C>?>> handleCalls(
-      LspClientCapabilities clientCapabilities, CallHierarchyItem item) async {
+    LspClientCapabilities clientCapabilities,
+    CallHierarchyItem item,
+  ) async {
     if (!isDartUri(item.uri)) {
       return success(const []);
     }
@@ -305,11 +320,7 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
       }
 
       var calls = await getCalls(computer, target);
-      var results = _convertCalls(
-        unit,
-        calls,
-        supportedSymbolKinds,
-      );
+      var results = _convertCalls(unit, calls, supportedSymbolKinds);
       return success(results);
     });
   }
@@ -431,21 +442,25 @@ mixin _CallHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
     var codeRange = toSourceRange(lineInfo, item.range);
 
     return (nameRange, codeRange).mapResultsSync((nameRange, codeRange) {
-      return success(call_hierarchy.CallHierarchyItem(
-        displayName: item.name,
-        containerName: item.detail,
-        kind: fromSymbolKind(item.kind),
-        file: uriConverter.fromClientUri(item.uri),
-        nameRange: nameRange,
-        codeRange: codeRange,
-      ));
+      return success(
+        call_hierarchy.CallHierarchyItem(
+          displayName: item.name,
+          containerName: item.detail,
+          kind: fromSymbolKind(item.kind),
+          file: uriConverter.fromClientUri(item.uri),
+          nameRange: nameRange,
+          codeRange: codeRange,
+        ),
+      );
     }).resultOrNull;
   }
 
   /// Converts a server [call_hierarchy.CallHierarchyKind] to a [SymbolKind]
   /// used in the LSP Protocol.
-  SymbolKind toSymbolKind(Set<SymbolKind> supportedSymbolKinds,
-      call_hierarchy.CallHierarchyKind kind) {
+  SymbolKind toSymbolKind(
+    Set<SymbolKind> supportedSymbolKinds,
+    call_hierarchy.CallHierarchyKind kind,
+  ) {
     var result = toSymbolKindMapping[kind];
     assert(result != null);
 

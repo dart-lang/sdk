@@ -50,12 +50,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     // FunctionType properties
     expect(f.namedParameterTypes, namedParameterTypes,
         reason: 'namedParameterTypes');
-    expect(f.normalParameterNames, normalParameterNames,
-        reason: 'normalParameterNames');
     expect(f.normalParameterTypes, normalParameterTypes,
         reason: 'normalParameterTypes');
-    expect(f.optionalParameterNames, optionalParameterNames,
-        reason: 'optionalParameterNames');
     expect(f.optionalParameterTypes, optionalParameterTypes,
         reason: 'optionalParameterTypes');
     expect(f.parameters, parameters, reason: 'parameters');

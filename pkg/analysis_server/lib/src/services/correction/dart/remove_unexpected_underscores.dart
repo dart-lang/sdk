@@ -43,27 +43,30 @@ class RemoveUnexpectedUnderscores extends ResolvedCorrectionProducer {
       var lexeme = literal.lexeme;
       int? underscoresStart;
       var previousIsDigit = false;
-      var isHexNumber = literal.type == TokenType.HEXADECIMAL ||
+      var isHexNumber =
+          literal.type == TokenType.HEXADECIMAL ||
           literal.type == TokenType.HEXADECIMAL_WITH_SEPARATORS;
       for (var i = 0; i < lexeme.length; i++) {
         // Remove each sequence of '_' characters which is not surrounded by
         // '0-9' or 'a-f' or 'A-F' on both sides, or which are at the start or
         // end of the number.
         var ch = lexeme.codeUnitAt(i);
-        var isHexDigit = isHexNumber &&
-            ((ch >= 0x41 /* 'A' */ && ch <= 0x46 /* 'F' */) ||
-                (ch >= 0x61 /* 'a' */ && ch <= 0x66 /* 'f' */));
+        var isHexDigit =
+            isHexNumber &&
+            ((ch >= 0x41 /* 'A' */ && ch <= 0x46 /* 'F' */ ) ||
+                (ch >= 0x61 /* 'a' */ && ch <= 0x66 /* 'f' */ ));
         var isDigit =
-            isHexDigit || (ch >= 0x30 /* '0' */ && ch <= 0x39 /* '9' */);
+            isHexDigit || (ch >= 0x30 /* '0' */ && ch <= 0x39 /* '9' */ );
 
-        if (ch == 0x5F /* '_' */) {
+        if (ch == 0x5F /* '_' */ ) {
           underscoresStart ??= i;
         } else if (isDigit) {
           if (underscoresStart != null && !previousIsDigit) {
             // Unexpected underscores follow a non-digit.
             var length = i - underscoresStart;
             builder.addDeletion(
-                SourceRange(token.offset + underscoresStart, length));
+              SourceRange(token.offset + underscoresStart, length),
+            );
           }
           underscoresStart = null;
           previousIsDigit = true;
@@ -73,7 +76,8 @@ class RemoveUnexpectedUnderscores extends ResolvedCorrectionProducer {
             // Unexpected underscores are followed by a non-digit.
             var length = i - underscoresStart;
             builder.addDeletion(
-                SourceRange(token.offset + underscoresStart, length));
+              SourceRange(token.offset + underscoresStart, length),
+            );
           }
           underscoresStart = null;
           previousIsDigit = false;
@@ -82,8 +86,9 @@ class RemoveUnexpectedUnderscores extends ResolvedCorrectionProducer {
       if (underscoresStart != null) {
         // Unexpected trailing underscores.
         var length = lexeme.length - underscoresStart;
-        builder
-            .addDeletion(SourceRange(token.offset + underscoresStart, length));
+        builder.addDeletion(
+          SourceRange(token.offset + underscoresStart, length),
+        );
       }
     });
   }

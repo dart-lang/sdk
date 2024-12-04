@@ -5,7 +5,14 @@ library dart._compact_hash;
 
 import "dart:_internal" as internal;
 
-import "dart:_internal" show patch, IterableElementError, ClassID, TypeTest;
+import "dart:_internal"
+    show
+        patch,
+        EfficientLengthIterable,
+        HideEfficientLengthIterable,
+        IterableElementError,
+        ClassID,
+        TypeTest;
 
 import "dart:collection" show MapMixin, SetMixin, LinkedHashMap, LinkedHashSet;
 
@@ -246,8 +253,10 @@ mixin _HashBase on _HashAbstractBase {
   // as unsigned words.
   // Keep consistent with IndexSizeToHashMask in runtime/vm/object.h.
   static int _indexSizeToHashMask(int indexSize) {
-    assert(indexSize >= _INITIAL_INDEX_SIZE ||
-        indexSize == _UNINITIALIZED_INDEX_SIZE);
+    assert(
+      indexSize >= _INITIAL_INDEX_SIZE ||
+          indexSize == _UNINITIALIZED_INDEX_SIZE,
+    );
     if (indexSize == _UNINITIALIZED_INDEX_SIZE) {
       return _UNINITIALIZED_HASH_MASK;
     }
@@ -420,8 +429,9 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
   }
 
   void _createIndex() {
-    final size =
-        _roundUpToPowerOfTwo(max(_data.length, _HashBase._INITIAL_INDEX_SIZE));
+    final size = _roundUpToPowerOfTwo(
+      max(_data.length, _HashBase._INITIAL_INDEX_SIZE),
+    );
     final newIndex = new Uint32List(size);
     final hashMask = _HashBase._indexSizeToHashMask(size);
     assert(_hashMask == hashMask);
@@ -431,8 +441,13 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
 
       final fullHash = _hashCode(key);
       final hashPattern = _HashBase._hashPattern(fullHash, hashMask, size);
-      final d =
-          _findValueOrInsertPoint(key, fullHash, hashPattern, size, newIndex);
+      final d = _findValueOrInsertPoint(
+        key,
+        fullHash,
+        hashPattern,
+        size,
+        newIndex,
+      );
       // We just allocated the index, so we should not find this key in it yet.
       assert(d <= 0);
 
@@ -577,7 +592,12 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   // If key is present, returns the index of the value in _data, else returns
   // the negated insertion point in index.
   int _findValueOrInsertPoint(
-      K key, int fullHash, int hashPattern, int size, Uint32List index) {
+    K key,
+    int fullHash,
+    int hashPattern,
+    int size,
+    Uint32List index,
+  ) {
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     int i = _HashBase._firstProbe(fullHash, sizeMask);
@@ -611,8 +631,13 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   void _set(K key, V value, int fullHash) {
     final int size = _index.length;
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
-    final int d =
-        _findValueOrInsertPoint(key, fullHash, hashPattern, size, _index);
+    final int d = _findValueOrInsertPoint(
+      key,
+      fullHash,
+      hashPattern,
+      size,
+      _index,
+    );
     if (d > 0) {
       _data[d] = value;
     } else {
@@ -625,8 +650,13 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     final int size = _index.length;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
-    final int d =
-        _findValueOrInsertPoint(key, fullHash, hashPattern, size, _index);
+    final int d = _findValueOrInsertPoint(
+      key,
+      fullHash,
+      hashPattern,
+      size,
+      _index,
+    );
     if (d > 0) {
       return _data[d] as V;
     }
@@ -730,8 +760,9 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  Iterable<K> get keys => _CompactIterable<K>(this, -2, 2);
-  Iterable<V> get values => _CompactIterable<V>(this, -1, 2);
+  Iterable<K> get keys => _CompactKeysIterable<K>(this);
+  Iterable<V> get values => _CompactValuesIterable<V>(this);
+  Iterable<MapEntry<K, V>> get entries => _CompactEntriesIterable<K, V>(this);
 }
 
 base class CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
@@ -767,27 +798,44 @@ base class CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   V? remove(Object? o) => _validKey(o) ? super.remove(o) : null;
 
   CompactLinkedCustomHashMap(
-      this._equality, this._hasher, bool Function(Object?)? validKey)
-      : _validKey = validKey ?? TypeTest<K>().test;
+    this._equality,
+    this._hasher,
+    bool Function(Object?)? validKey,
+  ) : _validKey = validKey ?? TypeTest<K>().test;
 }
 
-// Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
-// and checks for concurrent modification.
-class _CompactIterable<E> extends Iterable<E> {
+class _CompactKeysIterable<E> extends Iterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
+  final _LinkedHashMapMixin _table;
+
+  _CompactKeysIterable(this._table);
+
+  Iterator<E> get iterator =>
+      _CompactIterator<E>(_table, _table._data, _table._usedData, -2, 2);
+
+  int get length => _table.length;
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => !isEmpty;
+
+  bool contains(Object? element) => _table.containsKey(element);
+}
+
+class _CompactValuesIterable<E> extends Iterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {
   final _HashBase _table;
-  final int _offset;
-  final int _step;
 
-  _CompactIterable(this._table, this._offset, this._step);
+  _CompactValuesIterable(this._table);
 
-  Iterator<E> get iterator => _CompactIterator<E>(
-      _table, _table._data, _table._usedData, _offset, _step);
+  Iterator<E> get iterator =>
+      _CompactIterator<E>(_table, _table._data, _table._usedData, -1, 2);
 
   int get length => _table.length;
   bool get isEmpty => length == 0;
   bool get isNotEmpty => !isEmpty;
 }
 
+// Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
+// and checks for concurrent modification.
 class _CompactIterator<E> implements Iterator<E> {
   final _HashBase _table;
   // dart:core#_List (sdk/lib/_internal/vm/lib/array.dart).
@@ -803,7 +851,7 @@ class _CompactIterator<E> implements Iterator<E> {
 
   bool moveNext() {
     if (_table._isModifiedSince(_data, _checkSum)) {
-      throw new ConcurrentModificationError(_table);
+      throw ConcurrentModificationError(_table);
     }
     do {
       _offset += _step;
@@ -820,6 +868,58 @@ class _CompactIterator<E> implements Iterator<E> {
   E get current => _current as E;
 }
 
+// Iterates through map creating a MapEntry for each key-value pair, and checks
+// for concurrent modification.
+class _CompactEntriesIterable<K, V> extends Iterable<MapEntry<K, V>>
+    implements
+        EfficientLengthIterable<MapEntry<K, V>>,
+        HideEfficientLengthIterable<MapEntry<K, V>> {
+  final _HashBase _table;
+
+  _CompactEntriesIterable(this._table);
+
+  Iterator<MapEntry<K, V>> get iterator =>
+      _CompactEntriesIterator<K, V>(_table, _table._data, _table._usedData);
+
+  int get length => _table.length;
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => !isEmpty;
+}
+
+class _CompactEntriesIterator<K, V> implements Iterator<MapEntry<K, V>> {
+  final _HashBase _table;
+  // dart:core#_List (sdk/lib/_internal/vm/lib/array.dart).
+  final List _data;
+  final int _len;
+  int _offset = -2;
+  final int _checkSum;
+  MapEntry<K, V>? _current;
+
+  _CompactEntriesIterator(this._table, this._data, this._len)
+      : _checkSum = _table._checkSum;
+
+  bool moveNext() {
+    if (_table._isModifiedSince(_data, _checkSum)) {
+      throw ConcurrentModificationError(_table);
+    }
+    do {
+      _offset += 2;
+    } while (_offset < _len && _HashBase._isDeleted(_data, _data[_offset]));
+    if (_offset < _len) {
+      final key = internal.unsafeCast<K>(_data[_offset]);
+      final value = internal.unsafeCast<V>(_data[_offset + 1]);
+      _current = MapEntry<K, V>(key, value);
+      return true;
+    } else {
+      _current = null;
+      return false;
+    }
+  }
+
+  MapEntry<K, V> get current =>
+      _current ?? (throw IterableElementError.noElement());
+}
+
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
 //
 // Does not check for concurrent modification since the table
@@ -834,7 +934,12 @@ class _CompactIterableImmutable<E> extends Iterable<E> {
   final int _step;
 
   _CompactIterableImmutable(
-      this._table, this._data, this._len, this._offset, this._step);
+    this._table,
+    this._data,
+    this._len,
+    this._offset,
+    this._step,
+  );
 
   Iterator<E> get iterator =>
       _CompactIteratorImmutable<E>(_table, _data, _len, _offset, _step);
@@ -855,7 +960,12 @@ class _CompactIteratorImmutable<E> implements Iterator<E> {
   E? _current;
 
   _CompactIteratorImmutable(
-      this._table, this._data, this._len, this._offset, this._step);
+    this._table,
+    this._data,
+    this._len,
+    this._offset,
+    this._step,
+  );
 
   bool moveNext() {
     _offset += _step;
@@ -1032,8 +1142,9 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
       _CompactIterator<E>(this, _data, _usedData, -1, 1);
 
   void _regenerateIndex() {
-    final size =
-        _roundUpToPowerOfTwo(max(_data.length, _HashBase._INITIAL_INDEX_SIZE));
+    final size = _roundUpToPowerOfTwo(
+      max(_data.length, _HashBase._INITIAL_INDEX_SIZE),
+    );
     _index = _data.length == 0 ? _uninitializedIndex : new Uint32List(size);
     assert(_hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
@@ -1115,7 +1226,8 @@ mixin _ImmutableLinkedHashSetMixin<E>
 
   void _createIndex() {
     final size = _roundUpToPowerOfTwo(
-        max(_data.length * 2, _HashBase._INITIAL_INDEX_SIZE));
+      max(_data.length * 2, _HashBase._INITIAL_INDEX_SIZE),
+    );
     final index = new Uint32List(size);
     final hashMask = _HashBase._indexSizeToHashMask(size);
     assert(_hashMask == hashMask);
@@ -1197,8 +1309,10 @@ base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
   bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
 
   CompactLinkedCustomHashSet(
-      this._equality, this._hasher, bool Function(Object?)? validKey)
-      : _validKey = validKey ?? TypeTest<E>().test;
+    this._equality,
+    this._hasher,
+    bool Function(Object?)? validKey,
+  ) : _validKey = validKey ?? TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
   Set<E> toSet() => CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)

@@ -1,0 +1,21 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/ambiguous_builder_04.dart:14:8: Error: 'x' is already declared in this scope.
+//   void x() { }
+//        ^
+// pkg/front_end/testcases/regress/ambiguous_builder_04.dart:6:8: Context: Previous declaration of 'x'.
+//   int? x;
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int? x;
+  synthetic constructor •() → self::Foo
+    ;
+  method foo() → void
+    ;
+}

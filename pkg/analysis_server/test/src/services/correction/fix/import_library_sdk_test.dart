@@ -11,8 +11,57 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ImportLibrarySdkPrefixedTest);
+    defineReflectiveTests(ImportLibrarySdkPrefixedWithShowTest);
     defineReflectiveTests(ImportLibrarySdkTest);
+    defineReflectiveTests(ImportLibrarySdkWithShowTest);
   });
+}
+
+@reflectiveTest
+class ImportLibrarySdkPrefixedTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED;
+
+  Future<void> test_prefixed_class_async() async {
+    await resolveTestCode('''
+void f() {
+  prefix.Completer? c;
+  print('\$c');
+}
+''');
+    await assertHasFix('''
+import 'dart:async' as prefix;
+
+void f() {
+  prefix.Completer? c;
+  print('\$c');
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibrarySdkPrefixedWithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED_SHOW;
+
+  Future<void> test_prefixed_class_async() async {
+    await resolveTestCode('''
+void f() {
+  prefix.Completer? c;
+  print('\$c');
+}
+''');
+    await assertHasFix('''
+import 'dart:async' as prefix show Completer;
+
+void f() {
+  prefix.Completer? c;
+  print('\$c');
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -106,7 +155,7 @@ class C {
   }
 
   Future<void>
-      test_withClass_instanceCreation_explicitNew_namedConstructor() async {
+  test_withClass_instanceCreation_explicitNew_namedConstructor() async {
     await resolveTestCode('''
 class C {
   foo() {
@@ -145,7 +194,7 @@ class C {
   }
 
   Future<void>
-      test_withClass_instanceCreation_implicitNew_namedConstructor() async {
+  test_withClass_instanceCreation_implicitNew_namedConstructor() async {
     await resolveTestCode('''
 class C {
   foo() {
@@ -219,7 +268,8 @@ class MyAnnotation {
 @MyAnnotation(int, const [Completer])
 void f() {}
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'dart:async';
 
 class MyAnnotation {
@@ -227,9 +277,11 @@ class MyAnnotation {
 }
 @MyAnnotation(int, const [Completer])
 void f() {}
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
+      },
+    );
   }
 
   Future<void> test_withClass_typeAnnotation() async {
@@ -318,6 +370,29 @@ import 'dart:math';
 
 @pi
 void f() {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibrarySdkWithShowTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_SHOW;
+
+  Future<void> test_prefixed_class_async() async {
+    await resolveTestCode('''
+void f() {
+  Completer? c;
+  print('\$c');
+}
+''');
+    await assertHasFix('''
+import 'dart:async' show Completer;
+
+void f() {
+  Completer? c;
+  print('\$c');
 }
 ''');
   }

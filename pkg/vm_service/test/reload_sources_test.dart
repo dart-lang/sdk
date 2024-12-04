@@ -44,8 +44,11 @@ final tests = <IsolateTest>[
   reloadSources(pause: true),
   // Ensure that we are still stopped at a breakpoint.
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_A),
   // Resume the isolate into the while loop.
   resumeIsolate,
+  // Verify that it is running.
+  isolateIsRunning,
   // Reload sources and request to pause post reload. The pause request will
   // be respected because we are not already paused.
   reloadSources(pause: true),

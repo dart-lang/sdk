@@ -18,9 +18,10 @@ void _checkValidWeakTarget(Object object) {
       (object is Struct) ||
       (object is Union)) {
     throw new ArgumentError.value(
-        object,
-        "A string, number, boolean, record, Pointer, Struct or Union "
-        "can't be a weak target");
+      object,
+      "A string, number, boolean, record, Pointer, Struct or Union "
+      "can't be a weak target",
+    );
   }
 }
 
@@ -36,8 +37,11 @@ class Expando<T> {
   @patch
   T? operator [](Object object) {
     _checkValidWeakTarget(object);
-    final result =
-        JS<WasmExternRef?>("(map, o) => map.get(o)", _jsWeakMap, object);
+    final result = JS<WasmExternRef?>(
+      "(map, o) => map.get(o)",
+      _jsWeakMap,
+      object,
+    );
     // Coerce to null if JavaScript returns undefined.
     if (isJSUndefined(result)) return null;
     return unsafeCast(result.internalize()?.toObject());
@@ -47,7 +51,11 @@ class Expando<T> {
   void operator []=(Object object, T? value) {
     _checkValidWeakTarget(object);
     JS<void>(
-        "(map, o, v) => map.set(o, v)", _jsWeakMap, object, value as Object?);
+      "(map, o, v) => map.set(o, v)",
+      _jsWeakMap,
+      object,
+      value as Object?,
+    );
   }
 }
 
@@ -79,7 +87,7 @@ class WeakReference<T extends Object> {
 class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
   final _JSWeakRef<T> _jsWeakRef;
   _WeakReferenceWrapper(T target)
-      : _jsWeakRef = _JSWeakRef(target.toExternalReference);
+    : _jsWeakRef = _JSWeakRef(target.toExternalReference);
   T? get target => _jsWeakRef.deref()?.toDartObject;
 }
 
@@ -96,10 +104,15 @@ final bool _supportsFinalizationRegistry = _jsFinalizationRegistry != null;
 extension type _JSFinalizationRegistry<T>._(JSObject _) implements JSObject {
   external _JSFinalizationRegistry(JSFunction callback);
   @js_interop.JS('register')
-  external void registerWithDetach(ExternalDartReference<Object> value,
-      ExternalDartReference<T> peer, ExternalDartReference<Object> detach);
+  external void registerWithDetach(
+    ExternalDartReference<Object> value,
+    ExternalDartReference<T> peer,
+    ExternalDartReference<Object> detach,
+  );
   external void register(
-      ExternalDartReference<Object> value, ExternalDartReference<T> peer);
+    ExternalDartReference<Object> value,
+    ExternalDartReference<T> peer,
+  );
   external void unregister(ExternalDartReference<Object> detach);
 }
 
@@ -133,20 +146,26 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
   final _JSFinalizationRegistry _jsFinalizationRegistry;
 
   _FinalizationRegistryWrapper(void Function(T) callback)
-      : _jsFinalizationRegistry =
-            _JSFinalizationRegistry(((ExternalDartReference<T> peer) {
+    : _jsFinalizationRegistry = _JSFinalizationRegistry(
+        ((ExternalDartReference<T> peer) {
           callback(peer.toDartObject);
-        }).toJS);
+        }).toJS,
+      );
 
   void attach(Object value, T peer, {Object? detach}) {
     _checkValidWeakTarget(value);
     if (detach != null) {
       _checkValidWeakTarget(detach);
-      _jsFinalizationRegistry.registerWithDetach(value.toExternalReference,
-          peer.toExternalReference, detach.toExternalReference);
+      _jsFinalizationRegistry.registerWithDetach(
+        value.toExternalReference,
+        peer.toExternalReference,
+        detach.toExternalReference,
+      );
     } else {
       _jsFinalizationRegistry.register(
-          value.toExternalReference, peer.toExternalReference);
+        value.toExternalReference,
+        peer.toExternalReference,
+      );
     }
   }
 

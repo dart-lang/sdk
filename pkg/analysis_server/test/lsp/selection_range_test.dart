@@ -46,19 +46,21 @@ class Foo {
         _getSelectionRangeText(lineInfo, content, regions[1]).toList();
 
     expect(
-        firstTexts,
-        equals([
-          '{ /*1*/ }',
-          'void a() { /*1*/ }',
-          content.trim(), // Whole content minus the trailing newline
-        ]));
+      firstTexts,
+      equals([
+        '{ /*1*/ }',
+        'void a() { /*1*/ }',
+        content.trim(), // Whole content minus the trailing newline
+      ]),
+    );
     expect(
-        secondTexts,
-        equals([
-          '{ /*2*/ }',
-          'void b() { /*2*/ }',
-          content.trim(), // Whole content minus the trailing newline
-        ]));
+      secondTexts,
+      equals([
+        '{ /*2*/ }',
+        'void b() { /*2*/ }',
+        content.trim(), // Whole content minus the trailing newline
+      ]),
+    );
   }
 
   Future<void> test_single() async {
@@ -77,29 +79,34 @@ class Foo<T> {
     // The returned List corresponds to the input list of positions, and not
     // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
-    var regions =
-        await getSelectionRanges(mainFileUri, [code.position.position]);
+    var regions = await getSelectionRanges(mainFileUri, [
+      code.position.position,
+    ]);
     expect(regions!.length, equals(1)); // Only one position was sent.
     var regionTexts =
         _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
 
     expect(
-        regionTexts,
-        equals([
-          '1 + 2',
-          '(1 + 2)',
-          '(1 + 2) * 3',
-          '((1 + 2) * 3)',
-          'print((1 + 2) * 3)',
-          'print((1 + 2) * 3);',
-          '{\n    print((1 + 2) * 3);\n  }',
-          'void a(String b) {\n    print((1 + 2) * 3);\n  }',
-          'class Foo<T> {\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
-        ]));
+      regionTexts,
+      equals([
+        '1 + 2',
+        '(1 + 2)',
+        '(1 + 2) * 3',
+        '((1 + 2) * 3)',
+        'print((1 + 2) * 3)',
+        'print((1 + 2) * 3);',
+        '{\n    print((1 + 2) * 3);\n  }',
+        'void a(String b) {\n    print((1 + 2) * 3);\n  }',
+        'class Foo<T> {\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
+      ]),
+    );
   }
 
   Iterable<String> _getSelectionRangeText(
-      LineInfo lineInfo, String content, SelectionRange range) sync* {
+    LineInfo lineInfo,
+    String content,
+    SelectionRange range,
+  ) sync* {
     yield _rangeOfText(lineInfo, content, range.range);
     var parent = range.parent;
     if (parent != null) {

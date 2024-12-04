@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.expression_generator_helper;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
@@ -43,11 +41,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   ConstantContext get constantContext;
 
-  /// Whether instance type variables can be accessed.
+  /// Whether instance type parameters can be accessed.
   ///
   /// This is used when creating [NamedTypeBuilder]s within
   /// [ExpressionGenerator]s.
-  InstanceTypeVariableAccessState get instanceTypeVariableAccessState;
+  InstanceTypeParameterAccessState get instanceTypeParameterAccessState;
 
   Forest get forest;
 
@@ -131,7 +129,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       TypeDeclarationBuilder? typeAliasBuilder,
       required UnresolvedKind unresolvedKind});
 
-  TypeBuilder validateTypeVariableUse(TypeBuilder typeBuilder,
+  TypeBuilder validateTypeParameterUse(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType});
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);

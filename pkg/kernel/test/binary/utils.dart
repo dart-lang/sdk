@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data' show BytesBuilder;
+import 'dart:typed_data' show BytesBuilder, Uint8List;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart';
@@ -16,12 +16,12 @@ List<Library> serializationRoundTrip(List<Library> libraries) {
   Component c = new Component(libraries: libraries)
     ..setMainMethodAndMode(
         null, false, libraries.first.nonNullableByDefaultCompiledMode);
-  List<int> bytes = serializeComponent(c);
+  Uint8List bytes = serializeComponent(c);
   Component c2 = loadComponentFromBytes(bytes);
   return c2.libraries;
 }
 
-List<int> serializeComponent(Component c) {
+Uint8List serializeComponent(Component c) {
   ByteSink byteSink = new ByteSink();
   BinaryPrinter printer = new BinaryPrinter(byteSink);
   printer.writeComponentFile(c);

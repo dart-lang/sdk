@@ -6,6 +6,7 @@
 // Check negative function subtyping tests.
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 typedef void Foo<T>(T t);
 typedef void Bar(int i);
@@ -22,7 +23,7 @@ void bar(int i) {}
 void main() {
   new Class<dynamic>().test(true, bar, "dynamic");
   new Class<Object>().test(true, bar, "Object");
-  new Class<Null>().test(hasSoundNullSafety, bar, "Null");
+  new Class<Null>().test(!unsoundNullSafety, bar, "Null");
   new Class<Never>().test(false, bar, "Never");
   new Class<int>().test(false, bar, "int");
   new Class<bool>().test(true, bar, "bool");

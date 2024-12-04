@@ -14,6 +14,9 @@ import 'types.dart';
 
 typedef CodeGenCallback = void Function(AstCodeGenerator);
 
+typedef InlineCodeGenCallback = void Function(
+    AstCodeGenerator, Expression receiver);
+
 /// Specialized code generation for external members.
 ///
 /// The code is generated either inlined at the call site, or as the body of
@@ -91,8 +94,78 @@ class Intrinsifier {
       'truncateToDouble': (c) {
         c.b.f64_trunc();
       },
-      '_toInt': (c) {
-        c.b.i64_trunc_sat_f64_s();
+    },
+  };
+
+  static final Map<w.ValueType, Map<String, InlineCodeGenCallback>>
+      _inlineUnaryOperatorMap = {
+    intType: {
+      'unary-': (c, receiver) {
+        final int? intValue = _extractIntValue(receiver);
+        if (intValue == null) {
+          c.translateExpression(receiver, intType);
+          c.b.i64_const(-1);
+          c.b.i64_mul();
+        } else {
+          c.b.i64_const(-intValue);
+        }
+      },
+      '~': (c, receiver) {
+        final int? intValue = _extractIntValue(receiver);
+        if (intValue == null) {
+          c.translateExpression(receiver, intType);
+          c.b.i64_const(-1);
+          c.b.i64_xor();
+        } else {
+          c.b.i64_const(~intValue);
+        }
+      },
+      'toDouble': (c, receiver) {
+        final int? intValue = _extractIntValue(receiver);
+        if (intValue == null) {
+          c.translateExpression(receiver, intType);
+          c.b.f64_convert_i64_s();
+        } else {
+          c.b.f64_const(intValue.toDouble());
+        }
+      },
+    },
+    doubleType: {
+      'unary-': (c, receiver) {
+        final double? doubleValue = _extractDoubleValue(receiver);
+        if (doubleValue == null) {
+          c.translateExpression(receiver, doubleType);
+          c.b.f64_neg();
+        } else {
+          c.b.f64_const(-doubleValue);
+        }
+      },
+      'floorToDouble': (c, receiver) {
+        final double? doubleValue = _extractDoubleValue(receiver);
+        if (doubleValue == null) {
+          c.translateExpression(receiver, doubleType);
+          c.b.f64_floor();
+        } else {
+          c.b.f64_const(doubleValue.floorToDouble());
+        }
+      },
+      'ceilToDouble': (c, receiver) {
+        final double? doubleValue = _extractDoubleValue(receiver);
+        if (doubleValue == null) {
+          c.translateExpression(receiver, doubleType);
+          c.b.f64_ceil();
+        } else {
+          c.b.f64_const(doubleValue.ceilToDouble());
+        }
+      },
+      'truncateToDouble': (c, receiver) {
+        final double? doubleValue = _extractDoubleValue(receiver);
+        if (doubleValue == null) {
+          c.translateExpression(receiver, doubleType);
+          c.b.f64_trunc();
+        } else {
+          c.b.f64_const(doubleValue.truncateToDouble());
+        }
       },
     },
   };
@@ -102,7 +175,6 @@ class Intrinsifier {
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
     'truncateToDouble': w.NumType.f64,
-    '_toInt': w.NumType.i64,
   };
 
   Translator get translator => codeGen.translator;
@@ -430,12 +502,11 @@ class Intrinsifier {
     } else if (node.arguments.positional.isEmpty) {
       // Unary operator
       Expression operand = node.receiver;
-      w.ValueType opType = translator.translateType(receiverType);
-      var code = _unaryOperatorMap[opType]?[name];
+      w.ValueType operandType = translator.translateType(receiverType);
+      var code = _inlineUnaryOperatorMap[operandType]?[name];
       if (code != null) {
-        codeGen.translateExpression(operand, opType);
-        code(codeGen);
-        return _unaryResultMap[name] ?? opType;
+        code(codeGen, operand);
+        return _unaryResultMap[name] ?? operandType;
       }
     }
 
@@ -576,14 +647,16 @@ class Intrinsifier {
       final (ext, extDescriptor) = translator.extensionOfMember(target);
       final memberName = extDescriptor.name.text;
 
-      // extension WasmArrayExt on WasmArray<T>
-      if (ext.name == 'WasmArrayExt') {
+      // extension {,Immutable}WasmArrayExt on {,Immutable}WasmArray<T>
+      if (ext.name.endsWith('WasmArrayExt')) {
         final dartWasmArrayType = dartTypeOf(node.arguments.positional.first);
         final dartElementType =
             (dartWasmArrayType as InterfaceType).typeArguments.single;
-        w.ArrayType arrayType =
-            translator.arrayTypeForDartType(dartElementType);
-        w.StorageType wasmType = arrayType.elementType.type;
+        final w.ArrayType arrayType =
+            (translator.translateType(dartWasmArrayType) as w.RefType).heapType
+                as w.ArrayType;
+        final w.FieldType fieldType = arrayType.elementType;
+        final w.StorageType wasmType = fieldType.type;
 
         switch (memberName) {
           case '[]':
@@ -600,6 +673,7 @@ class Intrinsifier {
             }
             return wasmType.unpacked;
           case '[]=':
+            assert(fieldType.mutable);
             final array = node.arguments.positional[0];
             final index = node.arguments.positional[1];
             final value = node.arguments.positional[2];
@@ -611,6 +685,7 @@ class Intrinsifier {
             b.array_set(arrayType);
             return codeGen.voidMarker;
           case 'copy':
+            assert(fieldType.mutable);
             final destArray = node.arguments.positional[0];
             final destOffset = node.arguments.positional[1];
             final sourceArray = node.arguments.positional[2];
@@ -630,6 +705,7 @@ class Intrinsifier {
             b.array_copy(arrayType, arrayType);
             return codeGen.voidMarker;
           case 'fill':
+            assert(fieldType.mutable);
             final array = node.arguments.positional[0];
             final offset = node.arguments.positional[1];
             final value = node.arguments.positional[2];
@@ -646,6 +722,7 @@ class Intrinsifier {
             b.array_fill(arrayType);
             return codeGen.voidMarker;
           case 'clone':
+            assert(fieldType.mutable);
             // Until `array.new_copy` we need a special case for empty arrays.
             // https://github.com/WebAssembly/gc/issues/367
             final sourceArray = node.arguments.positional[0];
@@ -693,14 +770,14 @@ class Intrinsifier {
         }
       }
 
-      // extension (I8|I16|I32|I64|F32|F64)ArrayExt on WasmArray<...>
+      // extension {,Immutable}(I8|I16|I32|I64|F32|F64)ArrayExt on {,Immutable}WasmArray<...>
       if (ext.name.endsWith('ArrayExt')) {
         final dartWasmArrayType = dartTypeOf(node.arguments.positional.first);
-        final dartElementType =
-            (dartWasmArrayType as InterfaceType).typeArguments.single;
-        w.ArrayType arrayType =
-            translator.arrayTypeForDartType(dartElementType);
-        w.StorageType wasmType = arrayType.elementType.type;
+        final w.ArrayType arrayType =
+            (translator.translateType(dartWasmArrayType) as w.RefType).heapType
+                as w.ArrayType;
+        final w.FieldType fieldType = arrayType.elementType;
+        final w.StorageType wasmType = fieldType.type;
 
         final innerExtend =
             wasmType == w.PackedType.i8 || wasmType == w.PackedType.i16;
@@ -744,6 +821,7 @@ class Intrinsifier {
             }
             return wasmType.unpacked;
           case 'write':
+            assert(fieldType.mutable);
             final array = node.arguments.positional[0];
             final index = node.arguments.positional[1];
             final value = node.arguments.positional[2];
@@ -1011,10 +1089,15 @@ class Intrinsifier {
 
     if (cls != null && translator.isWasmType(cls)) {
       // WasmArray constructors
-      if (cls == translator.wasmArrayClass) {
+      if (cls == translator.wasmArrayClass ||
+          cls == translator.immutableWasmArrayClass) {
+        final dartWasmArrayType =
+            InterfaceType(cls, Nullability.nonNullable, node.arguments.types);
         final dartElementType = node.arguments.types.single;
-        w.ArrayType arrayType =
-            translator.arrayTypeForDartType(dartElementType);
+        final w.ArrayType arrayType =
+            (translator.translateType(dartWasmArrayType) as w.RefType).heapType
+                as w.ArrayType;
+
         final elementType = arrayType.elementType.type;
         final isDefaultable = elementType is! w.RefType || elementType.nullable;
         if (!isDefaultable && node.arguments.positional.length == 1) {
@@ -1181,9 +1264,15 @@ class Intrinsifier {
 
     // WasmArray.literal
     final klass = node.target.enclosingClass;
-    if (klass == translator.wasmArrayClass && name == "literal") {
-      w.ArrayType arrayType =
-          translator.arrayTypeForDartType(node.arguments.types.single);
+    if ((klass == translator.wasmArrayClass ||
+            klass == translator.immutableWasmArrayClass) &&
+        name == "literal") {
+      final dartWasmArrayType = InterfaceType(node.target.enclosingClass,
+          Nullability.nonNullable, node.arguments.types);
+      final w.ArrayType arrayType =
+          (translator.translateType(dartWasmArrayType) as w.RefType).heapType
+              as w.ArrayType;
+
       w.ValueType elementType = arrayType.elementType.type.unpacked;
       Expression value = node.arguments.positional[0];
       List<Expression> elements = value is ListLiteral
@@ -1761,4 +1850,34 @@ class Intrinsifier {
 
     return false;
   }
+}
+
+int? _extractIntValue(Expression expr) {
+  if (expr is IntLiteral) {
+    return expr.value;
+  }
+
+  if (expr is ConstantExpression) {
+    final constant = expr.constant;
+    if (constant is IntConstant) {
+      return constant.value;
+    }
+  }
+
+  return null;
+}
+
+double? _extractDoubleValue(Expression expr) {
+  if (expr is DoubleLiteral) {
+    return expr.value;
+  }
+
+  if (expr is ConstantExpression) {
+    final constant = expr.constant;
+    if (constant is DoubleConstant) {
+      return constant.value;
+    }
+  }
+
+  return null;
 }

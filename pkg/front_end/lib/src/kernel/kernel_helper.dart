@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.kernel_target;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -101,7 +99,7 @@ class DelayedDefaultValueCloner {
   void cloneDefaultValues(TypeEnvironment typeEnvironment) {
     if (_hasCloned) return;
 
-    // TODO(ahe): It is unclear if it is legal to use type variables in
+    // TODO(ahe): It is unclear if it is legal to use type parameters in
     // default values, but Fasta is currently allowing it, and the VM
     // accepts it. If it isn't legal, the we can speed this up by using a
     // single cloner without substitution.

@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/dart/error/hint_codes.g.dart';
+library;
+
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -30,8 +34,7 @@ import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -61,7 +64,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final InheritanceManager3 _inheritanceManager;
 
   /// The current library.
-  final LibraryElement _currentLibrary;
+  final LibraryElementImpl _currentLibrary;
 
   final AnnotationVerifier _annotationVerifier;
 
@@ -99,8 +102,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required WorkspacePackage? workspacePackage,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
-        _strictInference =
-            (analysisOptions as AnalysisOptionsImpl).strictInference,
+        _strictInference = analysisOptions.strictInference,
         _inheritanceManager = inheritanceManager,
         _annotationVerifier = AnnotationVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
@@ -384,7 +386,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             Name name = Name(_currentLibrary.source.uri, element!.name);
             var enclosingElement = element.enclosingElement3!;
             var enclosingDeclaration = enclosingElement is InstanceElement
-                ? enclosingElement.augmented.declaration
+                ? enclosingElement.augmented.firstFragment
                 : enclosingElement;
             if (enclosingDeclaration is InterfaceElement) {
               var overridden = _inheritanceManager
@@ -570,7 +572,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredElement!;
     var enclosingElement = element.enclosingElement3;
     var enclosingDeclaration = enclosingElement is InstanceElement
-        ? enclosingElement.augmented.declaration
+        ? enclosingElement.augmented.firstFragment
         : enclosingElement;
 
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
@@ -1127,7 +1129,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// @param importElement the [LibraryImportElement] retrieved from the node
   /// @return `true` if and only if an error code is generated on the passed
   ///         node
-  /// See [CompileTimeErrorCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
+  /// See [HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION].
   bool _checkForLoadLibraryFunction(
       ImportDirective node, LibraryImportElement importElement) {
     var importedLibrary = importElement.importedLibrary;

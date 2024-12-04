@@ -30,7 +30,9 @@ class RemoveInterpolationBraces extends ResolvedCorrectionProducer {
       if (right != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(
-              range.startStart(node, node.expression), r'$');
+            range.startStart(node, node.expression),
+            r'$',
+          );
           builder.addDeletion(range.token(right));
         });
       }

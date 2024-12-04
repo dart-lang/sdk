@@ -5,7 +5,7 @@
 // Tests that field promotion of the representation variable works properly in
 // cascade expressions.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 extension type E(Object Function() _f) {
   testExplicitThisAccess() {

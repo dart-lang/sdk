@@ -5,14 +5,14 @@
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/flutter/class_description.dart';
 import 'package:analysis_server/src/services/flutter/property.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:dart_style/dart_style.dart';
 
 /// The result of [WidgetDescriptions.setPropertyValue] invocation.
@@ -69,16 +69,20 @@ class WidgetDescriptions {
     var property = _properties[id];
     if (property == null) {
       return SetPropertyValueResult._(
-        errorCode: protocol
-            .RequestErrorCode.FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
+        errorCode:
+            protocol
+                .RequestErrorCode
+                .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
       );
     }
 
     if (value == null) {
       if (property.protocolProperty.isRequired) {
         return SetPropertyValueResult._(
-          errorCode: protocol
-              .RequestErrorCode.FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
+          errorCode:
+              protocol
+                  .RequestErrorCode
+                  .FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
         );
       }
       var change = await property.removeValue();
@@ -89,8 +93,10 @@ class WidgetDescriptions {
         return SetPropertyValueResult._(change: change);
       } on FormatterException {
         return SetPropertyValueResult._(
-          errorCode: protocol.RequestErrorCode
-              .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
+          errorCode:
+              protocol
+                  .RequestErrorCode
+                  .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
         );
       }
     }
@@ -123,7 +129,7 @@ class _WidgetDescriptionComputer {
 
   /// The set of classes for which we are currently adding properties,
   /// used to prevent infinite recursion.
-  final Set<InterfaceElement> elementsBeingProcessed = {};
+  final Set<InterfaceElement2> elementsBeingProcessed = {};
 
   /// The resolved unit with the widget [InstanceCreationExpression].
   final ResolvedUnitResult resolvedUnit;
@@ -131,10 +137,10 @@ class _WidgetDescriptionComputer {
   /// The offset of the widget expression.
   final int widgetOffset;
 
-  ClassElement? _classAlignment;
-  ClassElement? _classAlignmentDirectional;
-  ClassElement? _classContainer;
-  ClassElement? _classEdgeInsets;
+  ClassElement2? _classAlignment;
+  ClassElement2? _classAlignmentDirectional;
+  ClassElement2? _classContainer;
+  ClassElement2? _classEdgeInsets;
 
   _WidgetDescriptionComputer(
     this.classRegistry,
@@ -152,7 +158,7 @@ class _WidgetDescriptionComputer {
       return null;
     }
 
-    var constructorElement = instanceCreation.constructorName.staticElement;
+    var constructorElement = instanceCreation.constructorName.element;
     if (constructorElement == null) {
       return null;
     }
@@ -160,10 +166,7 @@ class _WidgetDescriptionComputer {
     await _fetchClassElements();
 
     var properties = <PropertyDescription>[];
-    _addProperties(
-      properties: properties,
-      instanceCreation: instanceCreation,
-    );
+    _addProperties(properties: properties, instanceCreation: instanceCreation);
     _addContainerProperty(properties, instanceCreation);
 
     return _WidgetDescription(properties);
@@ -270,25 +273,25 @@ class _WidgetDescriptionComputer {
     PropertyDescription? parent,
     ClassDescription? classDescription,
     InstanceCreationExpression? instanceCreation,
-    ConstructorElement? constructorElement,
+    ConstructorElement2? constructorElement,
   }) {
-    constructorElement ??= instanceCreation?.constructorName.staticElement;
+    constructorElement ??= instanceCreation?.constructorName.element;
     constructorElement ??= classDescription?.constructor;
     if (constructorElement == null) return;
 
-    var enclosingElement = constructorElement.enclosingElement3;
+    var enclosingElement = constructorElement.enclosingElement2;
     if (!elementsBeingProcessed.add(enclosingElement)) return;
 
     var existingNamed = <String>{};
     if (instanceCreation != null) {
       for (var argumentExpression in instanceCreation.argumentList.arguments) {
-        var parameter = argumentExpression.staticParameterElement;
+        var parameter = argumentExpression.correspondingParameter;
         if (parameter == null) continue;
 
         Expression valueExpression;
         if (argumentExpression is NamedExpression) {
           valueExpression = argumentExpression.expression;
-          existingNamed.add(parameter.name);
+          existingNamed.add(parameter.name3!);
         } else {
           valueExpression = argumentExpression;
         }
@@ -305,9 +308,9 @@ class _WidgetDescriptionComputer {
       }
     }
 
-    for (var parameter in constructorElement.parameters) {
+    for (var parameter in constructorElement.formalParameters) {
       if (!parameter.isNamed) continue;
-      if (existingNamed.contains(parameter.name)) continue;
+      if (existingNamed.contains(parameter.name3)) continue;
 
       _addProperty(
         properties: properties,
@@ -324,7 +327,7 @@ class _WidgetDescriptionComputer {
   void _addProperty({
     required List<PropertyDescription> properties,
     PropertyDescription? parent,
-    required ParameterElement parameter,
+    required FormalParameterElement parameter,
     ClassDescription? classDescription,
     InstanceCreationExpression? instanceCreation,
     Expression? argumentExpression,
@@ -361,7 +364,7 @@ class _WidgetDescriptionComputer {
         PropertyDescription.nextId(),
         parameter.isRequiredPositional,
         isSafeToUpdate,
-        parameter.name,
+        parameter.name3!,
         documentation: documentation,
         editor: _getEditor(parameter.type),
         expression: valueExpressionCode,
@@ -386,9 +389,7 @@ class _WidgetDescriptionComputer {
     } else if (valueExpression == null) {
       var type = parameter.type;
       if (type is InterfaceType) {
-        var classDescription = classRegistry.get(
-          type.element,
-        );
+        var classDescription = classRegistry.get(type.element3);
         if (classDescription != null) {
           _addProperties(
             properties: propertyDescription.children,
@@ -401,17 +402,18 @@ class _WidgetDescriptionComputer {
   }
 
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForEnum(
-    EnumElement element,
+    EnumElement2 element,
   ) {
-    return element.fields
+    return element.fields2
         .where((field) => field.isStatic && field.isEnumConstant)
         .map(_toEnumItem)
         .toList();
   }
 
   List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForStaticFields(
-      ClassElement classElement) {
-    return classElement.fields
+    ClassElement2 classElement,
+  ) {
+    return classElement.fields2
         .where((f) => f.isStatic)
         .map(_toEnumItem)
         .toList();
@@ -419,11 +421,12 @@ class _WidgetDescriptionComputer {
 
   Future<void> _fetchClassElements() async {
     var sessionHelper = AnalysisSessionHelper(resolvedUnit.session);
-    _classAlignment = await sessionHelper.getFlutterClass('Alignment');
-    _classAlignmentDirectional =
-        await sessionHelper.getFlutterClass('AlignmentDirectional');
-    _classContainer = await sessionHelper.getFlutterClass('Container');
-    _classEdgeInsets = await sessionHelper.getFlutterClass('EdgeInsets');
+    _classAlignment = await sessionHelper.getFlutterClass2('Alignment');
+    _classAlignmentDirectional = await sessionHelper.getFlutterClass2(
+      'AlignmentDirectional',
+    );
+    _classContainer = await sessionHelper.getFlutterClass2('Container');
+    _classEdgeInsets = await sessionHelper.getFlutterClass2('EdgeInsets');
   }
 
   protocol.FlutterWidgetPropertyEditor? _getEditor(DartType type) {
@@ -448,8 +451,8 @@ class _WidgetDescriptionComputer {
       );
     }
     if (type is InterfaceType) {
-      var classElement = type.element;
-      if (classElement is EnumElement) {
+      var classElement = type.element3;
+      if (classElement is EnumElement2) {
         return protocol.FlutterWidgetPropertyEditor(
           protocol.FlutterWidgetPropertyEditorKind.ENUM,
           enumItems: _enumItemsForEnum(classElement),
@@ -483,7 +486,7 @@ class _WidgetDescriptionComputer {
   ) {
     var argument = parentCreation.argumentList.byName(name);
     if (argument != null) {
-      var staticParameterElement = argument.staticParameterElement;
+      var staticParameterElement = argument.correspondingParameter;
       if (staticParameterElement != null) {
         var replacements = <PropertyDescription>[];
         _addProperty(
@@ -505,15 +508,15 @@ class _WidgetDescriptionComputer {
     }
   }
 
-  protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
-    var interfaceElement = field.enclosingElement3 as InterfaceElement;
-    var libraryUriStr = '${interfaceElement.library.source.uri}';
+  protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement2 field) {
+    var interfaceElement = field.enclosingElement2 as InterfaceElement2;
+    var libraryUriStr = '${interfaceElement.enclosingElement2.uri}';
     var documentation = getFieldDocumentation(field);
 
     return protocol.FlutterWidgetPropertyValueEnumItem(
       libraryUriStr,
-      interfaceElement.name,
-      field.name,
+      interfaceElement.name3!,
+      field.name3!,
       documentation: documentation,
     );
   }
@@ -528,11 +531,11 @@ class _WidgetDescriptionComputer {
         doubleValue: valueExpression.value,
       );
     } else if (valueExpression is Identifier) {
-      var element = valueExpression.staticElement;
-      if (element is PropertyAccessorElement && element.isGetter) {
-        var field = element.variable2;
-        if (field is FieldElement && field.isStatic) {
-          var enclosingClass = field.enclosingElement3 as InterfaceElement;
+      var element = valueExpression.element;
+      if (element is GetterElement) {
+        var field = element.variable3!;
+        if (field is FieldElement2 && field.isStatic) {
+          var enclosingClass = field.enclosingElement2 as InterfaceElement2;
           if (field.isEnumConstant ||
               enclosingClass.isExactAlignment ||
               enclosingClass.isExactAlignmentDirectional) {

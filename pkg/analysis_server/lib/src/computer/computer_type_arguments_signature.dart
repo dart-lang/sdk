@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
-import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -16,19 +16,20 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 /// the [TypeArgumentList] surrounding the specified offset of a Dart
 /// [CompilationUnit].
 class DartTypeArgumentsSignatureComputer {
-  final DartdocDirectiveInfo _dartdocInfo;
   final AstNode? _node;
   final Set<lsp.MarkupKind>? preferredFormats;
   late TypeArgumentList _argumentList;
   final DocumentationPreference documentationPreference;
+  final DartDocumentationComputer _documentationComputer;
 
   DartTypeArgumentsSignatureComputer(
-    this._dartdocInfo,
+    DartdocDirectiveInfo dartdocInfo,
     CompilationUnit unit,
     int offset,
     this.preferredFormats, {
     this.documentationPreference = DocumentationPreference.full,
-  }) : _node = NodeLocator(offset).searchWithin(unit);
+  }) : _documentationComputer = DartDocumentationComputer(dartdocInfo),
+       _node = NodeLocator(offset).searchWithin(unit);
 
   /// The [TypeArgumentList] node located by [compute].
   TypeArgumentList get argumentList => _argumentList;
@@ -42,27 +43,29 @@ class DartTypeArgumentsSignatureComputer {
       return null;
     }
     var parent = argumentList.parent;
-    Element? element;
+    Element2? element;
     if (parent is NamedType) {
-      element = parent.element;
+      element = parent.element2;
     } else if (parent is MethodInvocation) {
-      element = ElementLocator.locate(parent.methodName);
+      element = ElementLocator.locate2(parent.methodName);
     }
-    if (element is! TypeParameterizedElement ||
-        element.typeParameters.isEmpty) {
+    if (element is! TypeParameterizedElement2 ||
+        element.typeParameters2.isEmpty) {
       return null;
     }
 
     _argumentList = argumentList;
 
-    var label = element.getDisplayString();
-    var documentation = DartUnitHoverComputer.computePreferredDocumentation(
-        _dartdocInfo, element, documentationPreference);
+    var label = element.displayString2();
+    var documentation = _documentationComputer.computePreferred2(
+      element,
+      documentationPreference,
+    );
 
     return _toSignatureHelp(
       label,
       cleanDartdoc(documentation),
-      element.typeParameters,
+      element.typeParameters2,
     );
   }
 
@@ -84,31 +87,33 @@ class DartTypeArgumentsSignatureComputer {
   lsp.SignatureHelp? _toSignatureHelp(
     String label,
     String? documentation,
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElement2> typeParameters,
   ) {
-    var parameters = typeParameters
-        .map((param) => lsp.ParameterInformation(
-              label: param.getDisplayString(),
-            ))
-        .toList();
+    var parameters =
+        typeParameters
+            .map(
+              (param) =>
+                  lsp.ParameterInformation(label: param.displayString2()),
+            )
+            .toList();
 
-    var signatures = [
-      lsp.SignatureInformation(
-        label: label,
-        documentation: documentation != null
-            ? asMarkupContentOrString(preferredFormats, documentation)
-            : null,
-        parameters: parameters,
-      ),
-    ];
+    var signature = lsp.SignatureInformation(
+      label: label,
+      documentation:
+          documentation != null
+              ? asMarkupContentOrString(preferredFormats, documentation)
+              : null,
+      parameters: parameters,
+    );
 
     return lsp.SignatureHelp(
-      signatures: signatures,
+      signatures: [signature],
       activeSignature: 0,
-      // As with [toSignatureHelp], we don't currently use this, but need to set
-      // it to something that doesn't match a parameter to avoid one being
-      // selected.
-      activeParameter: -1,
+      // This must be a unsigned integer but can be out of range. Since we don't
+      // currently support this, just provide the first out-of-bounds value and
+      // allow the client to decide what to do (the LSP spec says it can be
+      // treated as 0, but VS Code will not highlight any, which is preferred).
+      activeParameter: signature.parameters?.length ?? 0,
     );
   }
 }

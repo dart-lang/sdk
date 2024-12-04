@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'binary/utils.dart';
@@ -9,7 +11,7 @@ import 'binary/utils.dart';
 void main() {
   final Uri libUri = Uri.parse('org-dartlang:///lib.dart');
 
-  List<int> writtenBytesField;
+  Uint8List writtenBytesField;
   {
     Library lib = new Library(libUri, fileUri: libUri);
     final Field field =
@@ -18,7 +20,7 @@ void main() {
 
     writtenBytesField = serialize(lib);
   }
-  List<int> writtenBytesProcedure;
+  Uint8List writtenBytesProcedure;
   {
     Library lib = new Library(libUri, fileUri: libUri);
     final Block libProcedureBody = new Block([]);
@@ -57,7 +59,7 @@ void expect(dynamic actual, dynamic expected) {
   }
 }
 
-List<int> serialize(Library lib1) {
+Uint8List serialize(Library lib1) {
   Component component = new Component(libraries: [lib1])
     ..setMainMethodAndMode(
         null, false, NonNullableByDefaultCompiledMode.Strong);

@@ -105,8 +105,9 @@ class InlineTypedef extends ResolvedCorrectionProducer {
             builder.write(utils.getNodeText(parameter));
           } else if (parameter is SimpleFormalParameter) {
             if (parameter.metadata.isNotEmpty) {
-              builder
-                  .write(utils.getRangeText(range.nodes(parameter.metadata)));
+              builder.write(
+                utils.getRangeText(range.nodes(parameter.metadata)),
+              );
             }
             if (parameter.requiredKeyword != null) {
               builder.write('required ');

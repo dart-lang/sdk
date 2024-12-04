@@ -34,13 +34,15 @@ void f() {
 
     assertOrder([
       suggestionWith(
-          completion: 'a1',
-          element: ElementKind.METHOD,
-          kind: CompletionSuggestionKind.INVOCATION),
+        completion: 'a1',
+        element: ElementKind.METHOD,
+        kind: CompletionSuggestionKind.INVOCATION,
+      ),
       suggestionWith(
-          completion: 'a2',
-          element: ElementKind.METHOD,
-          kind: CompletionSuggestionKind.INVOCATION),
+        completion: 'a2',
+        element: ElementKind.METHOD,
+        kind: CompletionSuggestionKind.INVOCATION,
+      ),
     ]);
   }
 }

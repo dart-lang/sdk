@@ -186,7 +186,9 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
             extensionTypeMemberMap: extensionTypeSetableMap);
       }
       if (extensionTypeDeclarationBuilder
-          is SourceExtensionTypeDeclarationBuilder) {
+              is SourceExtensionTypeDeclarationBuilder &&
+          // The check needs parents which aren't set on duplicates.
+          !extensionTypeDeclarationBuilder.isDuplicate) {
         if (getableMember != null &&
             setableMember != null &&
             getableMember.isProperty &&
@@ -977,7 +979,7 @@ class _SanitizedMember {
         extensionTypeDeclarationBuilder.addProblem(
             templateImplementNonExtensionTypeAndExtensionTypeMember
                 .withArguments(extensionTypeDeclarationBuilder.name, name.text),
-            extensionTypeDeclarationBuilder.charOffset,
+            extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
             context: context);
       } else if (extensionTypeMemberDeclarations.length > 1) {
@@ -989,7 +991,7 @@ class _SanitizedMember {
         extensionTypeDeclarationBuilder.addProblem(
             templateImplementMultipleExtensionTypeMembers.withArguments(
                 extensionTypeDeclarationBuilder.name, name.text),
-            extensionTypeDeclarationBuilder.charOffset,
+            extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
             context: context);
       }

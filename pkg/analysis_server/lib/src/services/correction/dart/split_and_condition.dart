@@ -16,8 +16,9 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.SPLIT_AND_CONDITION;
@@ -62,15 +63,18 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
     // prepare "rightCondition"
     String rightConditionSource;
     {
-      var rightConditionRange =
-          range.startEnd(binaryExpression.rightOperand, condition);
+      var rightConditionRange = range.startEnd(
+        binaryExpression.rightOperand,
+        condition,
+      );
       rightConditionSource = getRangeText(rightConditionRange);
     }
 
     await builder.addDartFileEdit(file, (builder) {
       // remove "&& rightCondition"
-      builder
-          .addDeletion(range.endEnd(binaryExpression.leftOperand, condition));
+      builder.addDeletion(
+        range.endEnd(binaryExpression.leftOperand, condition),
+      );
       // update "then" statement
       var thenStatement = ifStatement.thenStatement;
       if (thenStatement is Block) {
@@ -78,8 +82,10 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
         var thenBlockRange = range.node(thenBlock);
         // insert inner "if" with right part of "condition"
         var thenBlockInsideOffset = thenBlockRange.offset + 1;
-        builder.addSimpleInsertion(thenBlockInsideOffset,
-            '$eol$prefix${indent}if ($rightConditionSource) {');
+        builder.addSimpleInsertion(
+          thenBlockInsideOffset,
+          '$eol$prefix${indent}if ($rightConditionSource) {',
+        );
         // insert closing "}" for inner "if"
         var thenBlockEnd = thenBlockRange.end;
         // insert before outer "then" block "}"
@@ -88,7 +94,9 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
         // insert inner "if" with right part of "condition"
         var source = '$eol$prefix${indent}if ($rightConditionSource)';
         builder.addSimpleInsertion(
-            ifStatement.rightParenthesis.offset + 1, source);
+          ifStatement.rightParenthesis.offset + 1,
+          source,
+        );
       }
       // indent "then" statements to correspond inner "if"
       {
@@ -97,10 +105,15 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
         var thenIndentOld = '$prefix$indent';
         var thenIndentNew = '$thenIndentOld$indent';
         builder.addSimpleReplacement(
+          linesRange,
+          utils.replaceSourceRangeIndent(
             linesRange,
-            utils.replaceSourceRangeIndent(
-                linesRange, thenIndentOld, thenIndentNew,
-                includeLeading: true, ensureTrailingNewline: true));
+            thenIndentOld,
+            thenIndentNew,
+            includeLeading: true,
+            ensureTrailingNewline: true,
+          ),
+        );
       }
     });
   }

@@ -37,8 +37,7 @@ dev_dependencies:
 ''');
     var binFile =
         newFile('$testPackageRootPath/bin/bin.dart', sourceReferencingMeta);
-    result = await resolveFile(binFile.path);
-    await assertDiagnosticsIn(result.errors, [
+    await assertDiagnosticsInFile(binFile.path, [
       lint(7, 24),
     ]);
   }
@@ -53,8 +52,7 @@ dependencies:
 ''');
     var hookFile =
         newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
-    result = await resolveFile(hookFile.path);
-    await assertNoDiagnosticsIn(result.errors);
+    await assertNoDiagnosticsInFile(hookFile.path);
   }
 
   void test_referencedInBuildHook_listedInDevDeps() async {
@@ -67,8 +65,7 @@ dev_dependencies:
 ''');
     var hookFile =
         newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
-    result = await resolveFile(hookFile.path);
-    await assertDiagnosticsIn(result.errors, [
+    await assertDiagnosticsInFile(hookFile.path, [
       lint(7, 24),
     ]);
   }
@@ -80,8 +77,7 @@ version: 1.1.1
 ''');
     var hookFile =
         newFile('$testPackageRootPath/hook/build.dart', sourceReferencingMeta);
-    result = await resolveFile(hookFile.path);
-    await assertDiagnosticsIn(result.errors, [
+    await assertDiagnosticsInFile(hookFile.path, [
       lint(7, 24),
     ]);
   }
@@ -162,8 +158,7 @@ dev_dependencies:
 ''');
     var hookFile =
         newFile('$testPackageRootPath/hook/link.dart', sourceReferencingMeta);
-    result = await resolveFile(hookFile.path);
-    await assertDiagnosticsIn(result.errors, [
+    await assertDiagnosticsInFile(hookFile.path, [
       lint(7, 24),
     ]);
   }
@@ -178,7 +173,6 @@ dev_dependencies:
 ''');
     var testFile =
         newFile('$testPackageRootPath/test/test.dart', sourceReferencingMeta);
-    result = await resolveFile(testFile.path);
-    await assertNoDiagnosticsIn(result.errors);
+    await assertNoDiagnosticsInFile(testFile.path);
   }
 }

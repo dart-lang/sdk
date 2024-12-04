@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class UnsupportedStaticTest extends AbstractTransformSetParserTest {
   void test_class() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -26,9 +27,9 @@ transforms:
     class: 'C'
     static: true
   changes: []
-''', [
-      error(TransformSetErrorCode.unsupportedStatic, 108, 6),
-    ]);
+''',
+      [error(TransformSetErrorCode.unsupportedStatic, 108, 6)],
+    );
   }
 
   void test_getter_inClass() {
@@ -47,7 +48,8 @@ transforms:
   }
 
   void test_getter_topLevel() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
 - title: ''
@@ -57,8 +59,8 @@ transforms:
     getter: 'g'
     static: true
   changes: []
-''', [
-      error(TransformSetErrorCode.unsupportedStatic, 109, 6),
-    ]);
+''',
+      [error(TransformSetErrorCode.unsupportedStatic, 109, 6)],
+    );
   }
 }

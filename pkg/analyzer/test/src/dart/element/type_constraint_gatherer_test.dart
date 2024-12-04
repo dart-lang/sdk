@@ -1267,15 +1267,15 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     List<String> expected,
   ) {
     var gatherer = TypeConstraintGatherer(
-      typeSystem: typeSystem,
       typeParameters: typeParameters,
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      inferenceUsingBoundsIsEnabled: false,
       dataForTesting: null,
     );
 
-    var isMatch =
-        gatherer.trySubtypeMatch(P, Q, leftSchema, nodeForTesting: null);
+    var isMatch = gatherer.performSubtypeConstraintGenerationInternal(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: null);
     expect(isMatch, isTrue);
 
     var constraints = gatherer.computeConstraints();
@@ -1295,15 +1295,15 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     bool leftSchema,
   ) {
     var gatherer = TypeConstraintGatherer(
-      typeSystem: typeSystem,
       typeParameters: typeParameters,
       typeSystemOperations:
           TypeSystemOperations(typeSystem, strictCasts: false),
+      inferenceUsingBoundsIsEnabled: false,
       dataForTesting: null,
     );
 
-    var isMatch =
-        gatherer.trySubtypeMatch(P, Q, leftSchema, nodeForTesting: null);
+    var isMatch = gatherer.performSubtypeConstraintGenerationInternal(P, Q,
+        leftSchema: leftSchema, astNodeForTesting: null);
     expect(isMatch, isFalse);
     expect(gatherer.isConstraintSetEmpty, isTrue);
   }

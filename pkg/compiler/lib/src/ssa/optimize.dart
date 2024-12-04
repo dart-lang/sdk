@@ -33,8 +33,9 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/side_effects.dart' show SideEffects, SideEffectsFlags;
+import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show StaticUse;
+import '../util/bitset.dart';
 import '../util/util.dart';
 import 'interceptor_simplifier.dart';
 import 'interceptor_finalizer.dart';
@@ -132,7 +133,7 @@ class SsaOptimizerTask extends CompilerTask {
         SsaTypeConversionInserter(closedWorld),
         SsaTypePropagator(globalInferenceResults, closedWorld.commonElements,
             closedWorld, log),
-        SsaValueRangeAnalyzer(closedWorld, this),
+        SsaValueRangeAnalyzer(closedWorld, this, codegen.tracer),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
         SsaInstructionSimplifier(globalInferenceResults, _options, closedWorld,
@@ -156,7 +157,7 @@ class SsaOptimizerTask extends CompilerTask {
               closedWorld, log),
           SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           SsaCodeMotion(closedWorld.abstractValueDomain),
-          SsaValueRangeAnalyzer(closedWorld, this),
+          SsaValueRangeAnalyzer(closedWorld, this, codegen.tracer),
           SsaInstructionSimplifier(globalInferenceResults, _options,
               closedWorld, typeRecipeDomain, registry, log, metrics),
           SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
@@ -3368,8 +3369,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
   final String name = "SsaGlobalValueNumberer";
   final Set<int> visited = {};
 
-  late final List<SideEffectsFlags> blockChangesFlags;
-  late final List<SideEffectsFlags> loopChangesFlags;
+  late final List<Bitset> blockChangesFlags;
+  late final List<Bitset> loopChangesFlags;
 
   SsaGlobalValueNumberer(this._abstractValueDomain);
 
@@ -3406,8 +3407,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     }
   }
 
-  void moveLoopInvariantCodeFromBlock(HBasicBlock block, HBasicBlock loopHeader,
-      SideEffectsFlags changesFlags) {
+  void moveLoopInvariantCodeFromBlock(
+      HBasicBlock block, HBasicBlock loopHeader, Bitset changesFlags) {
     assert(block.parentLoopHeader == loopHeader || block == loopHeader);
     HBasicBlock preheader = loopHeader.predecessors[0];
     var dependsFlags = SideEffects.computeDependsOnFlags(changesFlags);
@@ -3506,7 +3507,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       if (!successorValues.isEmpty && block.id + 1 < dominated.id) {
         visited.clear();
         List<HBasicBlock> workQueue = <HBasicBlock>[dominated];
-        var changesFlags = SideEffectsFlags.empty();
+        var changesFlags = Bitset.empty();
         do {
           HBasicBlock current = workQueue.removeLast();
           changesFlags = changesFlags.union(
@@ -3523,10 +3524,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     // loop changes flags list to zero so we can use bitwise-or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags =
-        List<SideEffectsFlags>.filled(length, SideEffects.allChanges);
-    loopChangesFlags =
-        List<SideEffectsFlags>.filled(length, SideEffectsFlags.empty());
+    blockChangesFlags = List<Bitset>.filled(length, SideEffects.allChanges);
+    loopChangesFlags = List<Bitset>.filled(length, Bitset.empty());
 
     // Run through all the basic blocks in the graph and fill in the
     // changes flags lists.
@@ -3535,7 +3534,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       final int id = block.id;
 
       // Compute block changes flags for the block.
-      var changesFlags = SideEffectsFlags.empty();
+      var changesFlags = Bitset.empty();
       HInstruction? instruction = block.first;
       while (instruction != null) {
         changesFlags =
@@ -3561,9 +3560,9 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     }
   }
 
-  SideEffectsFlags getChangesFlagsForDominatedBlock(HBasicBlock dominator,
+  Bitset getChangesFlagsForDominatedBlock(HBasicBlock dominator,
       HBasicBlock dominated, List<HBasicBlock> workQueue) {
-    var changesFlags = SideEffectsFlags.empty();
+    var changesFlags = Bitset.empty();
     List<HBasicBlock> predecessors = dominated.predecessors;
     for (int i = 0, length = predecessors.length; i < length; i++) {
       HBasicBlock block = predecessors[i];
@@ -3666,7 +3665,7 @@ class SsaCodeMotion extends HBaseVisitor<void> implements OptimizationPhase {
     // which instructions can be moved to a dominator block.
     ValueSet set_ = values[block.id];
     HInstruction? instruction = block.first;
-    var flags = SideEffectsFlags.empty();
+    var flags = Bitset.empty();
     while (instruction != null) {
       final dependsFlags = SideEffects.computeDependsOnFlags(flags);
       flags = flags.union(instruction.sideEffects.getChangesFlags());

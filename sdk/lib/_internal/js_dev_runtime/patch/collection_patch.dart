@@ -24,10 +24,11 @@ import 'dart:_js_helper'
 @patch
 class HashMap<K, V> {
   @patch
-  factory HashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey}) {
+  factory HashMap({
+    bool Function(K, K)? equals,
+    int Function(K)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -44,7 +45,10 @@ class HashMap<K, V> {
       return CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
     }
     return CustomKeyHashMap<K, V>(
-        equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
+      equals ?? dart.equals,
+      hashCode ?? dart.hashCode,
+      isValidKey,
+    );
   }
 
   @patch
@@ -54,10 +58,11 @@ class HashMap<K, V> {
 @patch
 class LinkedHashMap<K, V> {
   @patch
-  factory LinkedHashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey}) {
+  factory LinkedHashMap({
+    bool Function(K, K)? equals,
+    int Function(K)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -74,7 +79,10 @@ class LinkedHashMap<K, V> {
       return CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
     }
     return CustomKeyHashMap<K, V>(
-        equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
+      equals ?? dart.equals,
+      hashCode ?? dart.hashCode,
+      isValidKey,
+    );
   }
 
   @patch
@@ -84,10 +92,11 @@ class LinkedHashMap<K, V> {
 @patch
 class HashSet<E> {
   @patch
-  factory HashSet(
-      {bool Function(E, E)? equals,
-      int Function(E)? hashCode,
-      bool Function(dynamic)? isValidKey}) {
+  factory HashSet({
+    bool Function(E, E)? equals,
+    int Function(E)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -103,7 +112,10 @@ class HashSet<E> {
       return CustomHashSet<E>(equals ?? dart.equals, hashCode ?? dart.hashCode);
     }
     return CustomKeyHashSet<E>(
-        equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
+      equals ?? dart.equals,
+      hashCode ?? dart.hashCode,
+      isValidKey,
+    );
   }
 
   @patch
@@ -113,10 +125,11 @@ class HashSet<E> {
 @patch
 class LinkedHashSet<E> {
   @patch
-  factory LinkedHashSet(
-      {bool Function(E, E)? equals,
-      int Function(E)? hashCode,
-      bool Function(dynamic)? isValidKey}) {
+  factory LinkedHashSet({
+    bool Function(E, E)? equals,
+    int Function(E)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -133,7 +146,10 @@ class LinkedHashSet<E> {
       return CustomHashSet<E>(equals ?? dart.equals, hashCode);
     }
     return CustomKeyHashSet<E>(
-        equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
+      equals ?? dart.equals,
+      hashCode ?? dart.hashCode,
+      isValidKey,
+    );
   }
 
   @patch

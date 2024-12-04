@@ -15,6 +15,8 @@ void main() {
     defineReflectiveTests(OmitLocalVariableTypesLintTest);
     defineReflectiveTests(OmitObviousLocalVariableTypesLintBulkTest);
     defineReflectiveTests(OmitObviousLocalVariableTypesLintTest);
+    defineReflectiveTests(OmitObviousPropertyTypesLintBulkTest);
+    defineReflectiveTests(OmitObviousPropertyTypesLintTest);
   });
 }
 
@@ -651,6 +653,190 @@ String f() {
   var r = (3.5, '');
   return r.$2;
 }
+''');
+  }
+}
+
+@reflectiveTest
+class OmitObviousPropertyTypesLintBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.omit_obvious_property_types;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+List<String> l = ['a'];
+
+class A {
+  static List<String> l = ['a'];
+}
+''');
+    await assertHasFix('''
+var l = <String>['a'];
+
+class A {
+  static var l = <String>['a'];
+}
+''');
+  }
+}
+
+@reflectiveTest
+class OmitObviousPropertyTypesLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REPLACE_WITH_VAR;
+
+  @override
+  String get lintCode => LintNames.omit_obvious_property_types;
+
+  Future<void> test_generic_instanceCreation_cascade() async {
+    await resolveTestCode('''
+Set<String> s = Set<String>()..addAll([]);
+''');
+    await assertHasFix('''
+var s = Set<String>()..addAll([]);
+''');
+  }
+
+  Future<void> test_generic_instanceCreation_withArguments() async {
+    await resolveTestCode('''
+final C<int> c = C<int>();
+
+class C<T> {}
+''');
+    await assertHasFix('''
+final c = C<int>();
+
+class C<T> {}
+''');
+  }
+
+  Future<void> test_generic_listLiteral() async {
+    await resolveTestCode('''
+List<num> l = <num>[x];
+
+int x = 2 + 'Not obvious'.length;
+''');
+    await assertHasFix('''
+var l = <num>[x];
+
+int x = 2 + 'Not obvious'.length;
+''');
+  }
+
+  Future<void> test_generic_listLiteral_const() async {
+    await resolveTestCode('''
+const List<String> values = const ['a'];
+''');
+    await assertHasFix('''
+const values = const <String>['a'];
+''');
+  }
+
+  Future<void> test_generic_mapLiteral() async {
+    await resolveTestCode('''
+Map<String, double> m = {'a': 1.5};
+''');
+    await assertHasFix('''
+var m = <String, double>{'a': 1.5};
+''');
+  }
+
+  Future<void> test_generic_mapLiteral_const() async {
+    await resolveTestCode('''
+const Map<String, double> m = {'a': 1.5};
+''');
+    await assertHasFix('''
+const m = <String, double>{'a': 1.5};
+''');
+  }
+
+  Future<void> test_generic_setLiteral() async {
+    await resolveTestCode('''
+Set<double> s = {1.5};
+''');
+    await assertHasFix('''
+var s = <double>{1.5};
+''');
+  }
+
+  Future<void> test_generic_setLiteral_cascade() async {
+    await resolveTestCode('''
+Set<String> s = {'a'}..addAll([]);
+''');
+    await assertHasFix('''
+var s = <String>{'a'}..addAll([]);
+''');
+  }
+
+  Future<void> test_generic_setLiteral_const() async {
+    await resolveTestCode('''
+const Set<String> s = const {'a'};
+''');
+    await assertHasFix('''
+const s = const <String>{'a'};
+''');
+  }
+
+  Future<void> test_generic_setLiteral_recordType() async {
+    await resolveTestCode('''
+Set<(double, double)> s = {(1.5, 2.5)};
+''');
+    await assertHasFix('''
+var s = <(double, double)>{(1.5, 2.5)};
+''');
+  }
+
+  Future<void> test_simple() async {
+    await resolveTestCode('''
+String s = '';
+''');
+    await assertHasFix('''
+var s = '';
+''');
+  }
+
+  Future<void> test_simple_const() async {
+    await resolveTestCode('''
+const String s = '';
+''');
+    await assertHasFix('''
+const s = '';
+''');
+  }
+
+  Future<void> test_simple_final() async {
+    await resolveTestCode('''
+final String s = '';
+''');
+    await assertHasFix('''
+final s = '';
+''');
+  }
+
+  Future<void> test_simple_recordType() async {
+    await resolveTestCode(r'''
+(double, String) r = (3.5, '');
+''');
+    await assertHasFix(r'''
+var r = (3.5, '');
+''');
+  }
+
+  Future<void> test_top_level() async {
+    await resolveTestCode('''
+List<String> list = ['a'];
+''');
+    await assertHasFix('''
+var list = <String>['a'];
+''');
+  }
+
+  Future<void> test_top_level_final() async {
+    await resolveTestCode('''
+final List<String> list = ['a'];
+''');
+    await assertHasFix('''
+final list = <String>['a'];
 ''');
   }
 }

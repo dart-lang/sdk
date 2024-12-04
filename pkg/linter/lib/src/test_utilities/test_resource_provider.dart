@@ -12,11 +12,12 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import 'linter_options.dart';
 import 'test_linter.dart';
 
 /// Builds the [TestLinter] with appropriate mock SDK, resource providers, and
 /// package config path.
-TestLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
+TestLinter buildDriver(LintRule rule, File file) {
   var memoryResourceProvider = MemoryResourceProvider(
       context: PhysicalResourceProvider.INSTANCE.pathContext);
   var resourceProvider = TestResourceProvider(memoryResourceProvider);
@@ -29,9 +30,7 @@ TestLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
     root: sdkRoot,
   );
 
-  var options =
-      LinterOptions(enabledRules: [rule], analysisOptions: analysisOptions)
-        ..dartSdkPath = sdkRoot.path;
+  var options = LinterOptions(enabledRules: [rule])..dartSdkPath = sdkRoot.path;
 
   return TestLinter(options, resourceProvider: resourceProvider);
 }

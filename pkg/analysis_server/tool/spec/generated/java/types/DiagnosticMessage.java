@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * A message associated with a diagnostic.
@@ -34,9 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class DiagnosticMessage {
 
-  public static final DiagnosticMessage[] EMPTY_ARRAY = new DiagnosticMessage[0];
-
-  public static final List<DiagnosticMessage> EMPTY_LIST = Lists.newArrayList();
+  public static final List<DiagnosticMessage> EMPTY_LIST = List.of();
 
   /**
    * The message to be displayed to the user.
@@ -59,11 +54,10 @@ public class DiagnosticMessage {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof DiagnosticMessage) {
-      DiagnosticMessage other = (DiagnosticMessage) obj;
+    if (obj instanceof DiagnosticMessage other) {
       return
-        ObjectUtilities.equals(other.message, message) &&
-        ObjectUtilities.equals(other.location, location);
+        Objects.equals(other.message, message) &&
+        Objects.equals(other.location, location);
     }
     return false;
   }
@@ -78,10 +72,9 @@ public class DiagnosticMessage {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<DiagnosticMessage> list = new ArrayList<DiagnosticMessage>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<DiagnosticMessage> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -103,10 +96,10 @@ public class DiagnosticMessage {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(message);
-    builder.append(location);
-    return builder.toHashCode();
+    return Objects.hash(
+      message,
+      location
+    );
   }
 
   public JsonObject toJson() {
@@ -121,7 +114,8 @@ public class DiagnosticMessage {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("message=");
-    builder.append(message + ", ");
+    builder.append(message);
+    builder.append(", ");
     builder.append("location=");
     builder.append(location);
     builder.append("]");

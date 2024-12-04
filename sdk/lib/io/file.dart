@@ -629,8 +629,11 @@ abstract interface class File implements FileSystemEntity {
   ///
   /// If the argument [flush] is set to `true`, the data written will be
   /// flushed to the file system before the returned future completes.
-  Future<File> writeAsBytes(List<int> bytes,
-      {FileMode mode = FileMode.write, bool flush = false});
+  Future<File> writeAsBytes(
+    List<int> bytes, {
+    FileMode mode = FileMode.write,
+    bool flush = false,
+  });
 
   /// Synchronously writes a list of bytes to a file.
   ///
@@ -649,8 +652,11 @@ abstract interface class File implements FileSystemEntity {
   /// flushed to the file system before returning.
   ///
   /// Throws a [FileSystemException] if the operation fails.
-  void writeAsBytesSync(List<int> bytes,
-      {FileMode mode = FileMode.write, bool flush = false});
+  void writeAsBytesSync(
+    List<int> bytes, {
+    FileMode mode = FileMode.write,
+    bool flush = false,
+  });
 
   /// Writes a string to a file.
   ///
@@ -669,10 +675,12 @@ abstract interface class File implements FileSystemEntity {
   /// platform conventional line ending (e.g. `"\r\n"` on Windows). Use
   /// [Platform.lineTerminator] to separate lines in [contents] if platform
   /// conventional line endings are needed.
-  Future<File> writeAsString(String contents,
-      {FileMode mode = FileMode.write,
-      Encoding encoding = utf8,
-      bool flush = false});
+  Future<File> writeAsString(
+    String contents, {
+    FileMode mode = FileMode.write,
+    Encoding encoding = utf8,
+    bool flush = false,
+  });
 
   /// Synchronously writes a string to a file.
   ///
@@ -693,10 +701,12 @@ abstract interface class File implements FileSystemEntity {
   /// conventional line endings are needed.
   ///
   /// Throws a [FileSystemException] if the operation fails.
-  void writeAsStringSync(String contents,
-      {FileMode mode = FileMode.write,
-      Encoding encoding = utf8,
-      bool flush = false});
+  void writeAsStringSync(
+    String contents, {
+    FileMode mode = FileMode.write,
+    Encoding encoding = utf8,
+    bool flush = false,
+  });
 
   /// Get the path of the file.
   String get path;
@@ -815,8 +825,11 @@ abstract interface class RandomAccessFile {
   ///
   /// Returns a `Future<RandomAccessFile>` that completes with this
   /// [RandomAccessFile] when the write completes.
-  Future<RandomAccessFile> writeFrom(List<int> buffer,
-      [int start = 0, int? end]);
+  Future<RandomAccessFile> writeFrom(
+    List<int> buffer, [
+    int start = 0,
+    int? end,
+  ]);
 
   /// Synchronously writes from a [buffer] to the file.
   ///
@@ -833,8 +846,10 @@ abstract interface class RandomAccessFile {
   ///
   /// Returns a `Future<RandomAccessFile>` that completes with this
   /// random access file when the write completes.
-  Future<RandomAccessFile> writeString(String string,
-      {Encoding encoding = utf8});
+  Future<RandomAccessFile> writeString(
+    String string, {
+    Encoding encoding = utf8,
+  });
 
   /// Synchronously writes a single string to the file using the given
   /// [Encoding].
@@ -935,8 +950,11 @@ abstract interface class RandomAccessFile {
   /// locked region using the new handle will fail. To ensure successful writes
   /// after locking, use the same [RandomAccessFile] object that acquired the
   /// lock for subsequent write operations.
-  Future<RandomAccessFile> lock(
-      [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]);
+  Future<RandomAccessFile> lock([
+    FileLock mode = FileLock.exclusive,
+    int start = 0,
+    int end = -1,
+  ]);
 
   /// Synchronously locks the file or part of the file.
   ///
@@ -978,8 +996,11 @@ abstract interface class RandomAccessFile {
   /// locked region using the new handle will fail. To ensure successful writes
   /// after locking, use the same [RandomAccessFile] object that acquired the
   /// lock for subsequent write operations.
-  void lockSync(
-      [FileLock mode = FileLock.exclusive, int start = 0, int end = -1]);
+  void lockSync([
+    FileLock mode = FileLock.exclusive,
+    int start = 0,
+    int end = -1,
+  ]);
 
   /// Unlocks the file or part of the file.
   ///
@@ -1052,7 +1073,10 @@ class FileSystemException implements IOException {
   /// will be returned.
   @pragma("vm:entry-point")
   factory FileSystemException._fromOSError(
-      OSError err, String message, String path) {
+    OSError err,
+    String message,
+    String path,
+  ) {
     if (Platform.isWindows) {
       switch (err.errorCode) {
         case _errorAccessDenied:
@@ -1127,7 +1151,7 @@ class FileSystemException implements IOException {
 @Since("2.19")
 class PathAccessException extends FileSystemException {
   const PathAccessException(String path, OSError osError, [String message = ""])
-      : super(message, path, osError);
+    : super(message, path, osError);
 
   String toString() => _toStringHelper("PathAccessException");
 }
@@ -1137,7 +1161,7 @@ class PathAccessException extends FileSystemException {
 @Since("2.19")
 class PathExistsException extends FileSystemException {
   const PathExistsException(String path, OSError osError, [String message = ""])
-      : super(message, path, osError);
+    : super(message, path, osError);
 
   String toString() => _toStringHelper("PathExistsException");
 }
@@ -1146,9 +1170,11 @@ class PathExistsException extends FileSystemException {
 /// directory does not exist.
 @Since("2.19")
 class PathNotFoundException extends FileSystemException {
-  const PathNotFoundException(String path, OSError osError,
-      [String message = ""])
-      : super(message, path, osError);
+  const PathNotFoundException(
+    String path,
+    OSError osError, [
+    String message = "",
+  ]) : super(message, path, osError);
 
   String toString() => _toStringHelper("PathNotFoundException");
 }

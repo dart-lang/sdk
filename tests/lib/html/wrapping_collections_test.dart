@@ -6,7 +6,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:js' as js;
 
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 /// Test that if we access objects through JS-interop we get the
 /// appropriate objects, even if dart:html maps them.

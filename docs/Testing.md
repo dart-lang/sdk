@@ -495,12 +495,12 @@ some failed way that the test runner can detect and determine that a runtime
 error occurred.
 
 If you are writing asynchronous tests, there is a separate tiny
-["async_helper"][async pkg] package that talks to the test runner to ensure all
+["async_helper"][async helper] library that talks to the test runner to ensure all
 asynchronous operations performed by the test have a chance to complete.
 
-[async pkg]: https://github.com/dart-lang/sdk/tree/main/pkg/async_helper
+[async helper]: https://github.com/dart-lang/sdk/tree/main/pkg/expect/lib/async_helper.dart
 
-With these two packages, it's straightforward to write tests of expected correct
+With these two libraries, it's straightforward to write tests of expected correct
 runtime behavior. You can also write tests for validating runtime *failures* by
 using the helper functions for checking that certain exceptions are thrown:
 

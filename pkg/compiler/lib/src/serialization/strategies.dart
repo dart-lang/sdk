@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir
     show serializeComponent, ByteSink;
@@ -22,7 +23,7 @@ import 'task.dart';
 abstract class SerializationStrategy<T> {
   const SerializationStrategy();
 
-  List<int> unpackAndSerializeComponent(GlobalTypeInferenceResults results) {
+  Uint8List unpackAndSerializeComponent(GlobalTypeInferenceResults results) {
     JClosedWorld closedWorld = results.closedWorld;
     ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
     return serializeComponent(component);
@@ -33,11 +34,11 @@ abstract class SerializationStrategy<T> {
       CompilerOptions options,
       SerializationIndices indices);
 
-  List<int> serializeComponent(ir.Component component) {
+  Uint8List serializeComponent(ir.Component component) {
     return ir.serializeComponent(component);
   }
 
-  ir.Component deserializeComponent(List<int> data) {
+  ir.Component deserializeComponent(Uint8List data) {
     ir.Component component = ir.Component();
     BinaryBuilder(data).readComponent(component);
     return component;

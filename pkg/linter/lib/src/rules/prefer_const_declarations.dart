@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Prefer `const` over `final` for declarations.';
 

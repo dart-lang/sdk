@@ -29,8 +29,10 @@ class RequestConverterTest extends ProtocolTestUtilities {
       plugin.AnalysisService.OCCURRENCES: server.AnalysisService.OCCURRENCES,
       plugin.AnalysisService.OUTLINE: server.AnalysisService.OUTLINE,
     };
-    kindMap.forEach(
-        (plugin.AnalysisService pluginKind, server.AnalysisService serverKind) {
+    kindMap.forEach((
+      plugin.AnalysisService pluginKind,
+      server.AnalysisService serverKind,
+    ) {
       expect(converter.convertAnalysisService(serverKind), pluginKind);
     });
   }
@@ -38,7 +40,8 @@ class RequestConverterTest extends ProtocolTestUtilities {
   void test_convertAnalysisSetPriorityFilesParams() {
     var files = <String>['a', 'b', 'c'];
     var result = converter.convertAnalysisSetPriorityFilesParams(
-        server.AnalysisSetPriorityFilesParams(files));
+      server.AnalysisSetPriorityFilesParams(files),
+    );
     expect(result, isNotNull);
     expect(result.files, files);
   }
@@ -47,15 +50,18 @@ class RequestConverterTest extends ProtocolTestUtilities {
     var serverSubscriptions = <server.AnalysisService, List<String>>{
       server.AnalysisService.HIGHLIGHTS: <String>['a', 'b'],
       server.AnalysisService.OUTLINE: <String>['c'],
-      server.AnalysisService.OVERRIDES: <String>['d', 'e']
+      server.AnalysisService.OVERRIDES: <String>['d', 'e'],
     };
     var result = converter.convertAnalysisSetSubscriptionsParams(
-        server.AnalysisSetSubscriptionsParams(serverSubscriptions));
+      server.AnalysisSetSubscriptionsParams(serverSubscriptions),
+    );
     expect(result, isNotNull);
     var pluginSubscriptions = result.subscriptions;
     expect(pluginSubscriptions, hasLength(2));
     expect(
-        pluginSubscriptions[plugin.AnalysisService.HIGHLIGHTS], hasLength(2));
+      pluginSubscriptions[plugin.AnalysisService.HIGHLIGHTS],
+      hasLength(2),
+    );
     expect(pluginSubscriptions[plugin.AnalysisService.OUTLINE], hasLength(1));
   }
 
@@ -65,7 +71,8 @@ class RequestConverterTest extends ProtocolTestUtilities {
       'file2': AddContentOverlay('content2'),
     };
     var result = converter.convertAnalysisUpdateContentParams(
-        server.AnalysisUpdateContentParams(serverFiles));
+      server.AnalysisUpdateContentParams(serverFiles),
+    );
     expect(result, isNotNull);
     var pluginFiles = result.files;
     expect(pluginFiles, hasLength(2));

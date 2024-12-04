@@ -24,63 +24,147 @@ expectQuotient(aString, bString, expectedString) {
 }
 
 main() {
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e", "1");
-  expectQuotient("d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092", "0");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "a13fac3ee22b996ff6856c27c1f6d88aef0e", "157b1");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3fac3ee22b996ff6856c27c1f6d88aef0e", "36662bd");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "ac3ee22b996ff6856c27c1f6d88aef0e", "141bfd63e");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3ee22b996ff6856c27c1f6d88aef0e", "3714fb67de7");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092", "1",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092");
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "1",
+  );
+  expectQuotient(
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "0",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "157b1",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "36662bd",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "ac3ee22b996ff6856c27c1f6d88aef0e",
+    "141bfd63e",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3ee22b996ff6856c27c1f6d88aef0e",
+    "3714fb67de7",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "1",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+  );
 
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e", "-1");
-  expectQuotient("-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092", "0");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "a13fac3ee22b996ff6856c27c1f6d88aef0e", "-157b1");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3fac3ee22b996ff6856c27c1f6d88aef0e", "-36662bd");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "ac3ee22b996ff6856c27c1f6d88aef0e", "-141bfd63e");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "3ee22b996ff6856c27c1f6d88aef0e", "-3714fb67de7");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092", "1",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092");
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-1",
+  );
+  expectQuotient(
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "0",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-157b1",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-36662bd",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "ac3ee22b996ff6856c27c1f6d88aef0e",
+    "-141bfd63e",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "3ee22b996ff6856c27c1f6d88aef0e",
+    "-3714fb67de7",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "1",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+  );
 
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e", "-1");
-  expectQuotient("d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092", "0");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-a13fac3ee22b996ff6856c27c1f6d88aef0e", "-157b1");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3fac3ee22b996ff6856c27c1f6d88aef0e", "-36662bd");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-ac3ee22b996ff6856c27c1f6d88aef0e", "-141bfd63e");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3ee22b996ff6856c27c1f6d88aef0e", "-3714fb67de7");
-  expectQuotient("d87becaa3701c97b31b5b8084f2b5b34e7857092", "-1",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092");
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-1",
+  );
+  expectQuotient(
+    "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "0",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-157b1",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-36662bd",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-ac3ee22b996ff6856c27c1f6d88aef0e",
+    "-141bfd63e",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3ee22b996ff6856c27c1f6d88aef0e",
+    "-3714fb67de7",
+  );
+  expectQuotient(
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-1",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+  );
 
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e", "1");
-  expectQuotient("-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
-      "-d87becaa3701c97b31b5b8084f2b5b34e7857092", "0");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-a13fac3ee22b996ff6856c27c1f6d88aef0e", "157b1");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3fac3ee22b996ff6856c27c1f6d88aef0e", "36662bd");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-ac3ee22b996ff6856c27c1f6d88aef0e", "141bfd63e");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092",
-      "-3ee22b996ff6856c27c1f6d88aef0e", "3714fb67de7");
-  expectQuotient("-d87becaa3701c97b31b5b8084f2b5b34e7857092", "-1",
-      "d87becaa3701c97b31b5b8084f2b5b34e7857092");
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "1",
+  );
+  expectQuotient(
+    "-d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "0",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-a13fac3ee22b996ff6856c27c1f6d88aef0e",
+    "157b1",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3fac3ee22b996ff6856c27c1f6d88aef0e",
+    "36662bd",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-ac3ee22b996ff6856c27c1f6d88aef0e",
+    "141bfd63e",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-3ee22b996ff6856c27c1f6d88aef0e",
+    "3714fb67de7",
+  );
+  expectQuotient(
+    "-d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    "-1",
+    "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+  );
 }

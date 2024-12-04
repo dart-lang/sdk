@@ -19,5 +19,4 @@ dependencies:
 dev_dependencies:
   async: any
   lints: any
-  mockito: any
   test: any

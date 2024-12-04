@@ -16,18 +16,21 @@ abstract class DartAssistContext {
   /// fix from being composed.
   InstrumentationService get instrumentationService;
 
+  /// The resolved library result in which assist operates.
+  ResolvedLibraryResult get libraryResult;
+
   /// A mapping of [ProducerGenerator]s to the set of lint names with which they
   /// are associated (can fix).
   Map<ProducerGenerator, Set<LintCode>> get producerGeneratorsForLintRules;
-
-  /// The resolution result in which assist operates.
-  ResolvedUnitResult get resolveResult;
 
   /// The length of the selection.
   int get selectionLength;
 
   /// The start of the selection.
   int get selectionOffset;
+
+  /// The unit result in which assist operates.
+  ResolvedUnitResult get unitResult;
 
   /// The workspace in which the fix contributor operates.
   ChangeWorkspace get workspace;

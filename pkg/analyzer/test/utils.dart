@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/source/source.dart';
@@ -36,7 +36,7 @@ class AstFinder {
         return unitMember;
       }
     }
-    Source source = unit.declaredElement!.source;
+    Source source = unit.declaredFragment!.source;
     fail('No class named $className in $source');
   }
 
@@ -76,14 +76,6 @@ class AstFinder {
     fail('No field named $fieldName in $className');
   }
 
-  /// Return the element of the field with the given [fieldName] in the class
-  /// with the given [className] in the given compilation [unit].
-  static FieldElement? getFieldInClassElement(
-      CompilationUnit unit, String className, String fieldName) {
-    return getFieldInClass(unit, className, fieldName).declaredElement
-        as FieldElement;
-  }
-
   /// Return the declaration of the method with the given [methodName] in the
   /// class with the given [className] in the given compilation [unit].
   static MethodDeclaration getMethodInClass(
@@ -98,16 +90,6 @@ class AstFinder {
       }
     }
     fail('No method named $methodName in $className');
-  }
-
-  /// Return the statements in the body of a the method with the given
-  /// [methodName] in the class with the given [className] in the given
-  /// compilation [unit].
-  static List<Statement> getStatementsInMethod(
-      CompilationUnit unit, String className, String methodName) {
-    MethodDeclaration method = getMethodInClass(unit, className, methodName);
-    var body = method.body as BlockFunctionBody;
-    return body.block.statements;
   }
 
   /// Return the statements in the body of the top-level function with the given
@@ -133,32 +115,6 @@ class AstFinder {
     }
     fail('No toplevel function named $functionName found');
   }
-
-  /// Return the declaration of the top-level variable with the given
-  /// [variableName] in the given compilation [unit].
-  static VariableDeclaration getTopLevelVariable(
-      CompilationUnit unit, String variableName) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
-      if (unitMember is TopLevelVariableDeclaration) {
-        NodeList<VariableDeclaration> variables =
-            unitMember.variables.variables;
-        for (VariableDeclaration variable in variables) {
-          if (variable.name.lexeme == variableName) {
-            return variable;
-          }
-        }
-      }
-    }
-    fail('No toplevel variable named $variableName found');
-  }
-
-  /// Return the top-level variable element with the given [name].
-  static TopLevelVariableElement getTopLevelVariableElement(
-      CompilationUnit unit, String name) {
-    return getTopLevelVariable(unit, name).declaredElement
-        as TopLevelVariableElement;
-  }
 }
 
 /// Class for compositionally building up assertions on types
@@ -181,10 +137,10 @@ class TypeAssertions {
   Asserter<DartType> get isInvalidType => isType(InvalidTypeImpl.instance);
 
   /// Primitive assertion for the list type.
-  Asserter<DartType> get isList => hasElement(_typeProvider.listElement);
+  Asserter<DartType> get isList => hasElement(_typeProvider.listElement2);
 
   /// Primitive assertion for the map type.
-  Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement);
+  Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement2);
 
   /// Primitive assertion for the Never type.
   Asserter<DartType> get isNever => isType(_typeProvider.neverType);
@@ -202,8 +158,8 @@ class TypeAssertions {
   Asserter<DartType> get isString => isType(_typeProvider.stringType);
 
   /// Assert that a type has the element that is equal to the [expected].
-  Asserter<DartType> hasElement(Element expected) =>
-      (DartType type) => expect(expected, (type as InterfaceType).element);
+  Asserter<DartType> hasElement(Element2 expected) =>
+      (DartType type) => expect(expected, (type as InterfaceType).element3);
 
   /// Given assertions for the argument and return types, produce an
   /// assertion over unary function types.

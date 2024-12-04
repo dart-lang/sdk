@@ -45,11 +45,7 @@ Future<void> main(List<String> args) async {
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   var parser = ArgParser();
-  parser.addOption(
-    'help',
-    abbr: 'h',
-    help: 'Print this help message.',
-  );
+  parser.addOption('help', abbr: 'h', help: 'Print this help message.');
   parser.addFlag(
     'verbose',
     abbr: 'v',
@@ -67,8 +63,10 @@ void printUsage(ArgParser parser, {String? error}) {
   }
   print('usage: dart implicit_type_declarations.dart [options] packagePath');
   print('');
-  print('Compute implicit types in field declaration locations without a '
-      'specified type.');
+  print(
+    'Compute implicit types in field declaration locations without a '
+    'specified type.',
+  );
   print('');
   print(parser.usage);
 }
@@ -110,10 +108,7 @@ class ImpliedTypeCollector extends RecursiveAstVisitor<void> {
       var rhsType = node.initializer?.staticType;
       if (rhsType != null && rhsType is! DynamicType) {
         // Record the name with the type.
-        data.recordImpliedType(
-          node.name.lexeme,
-          rhsType.getDisplayString(),
-        );
+        data.recordImpliedType(node.name.lexeme, rhsType.getDisplayString());
       }
     }
   }
@@ -171,8 +166,10 @@ class ImpliedTypeComputer {
   /// should be captured in the [collector]. Include additional details in the
   /// output if [verbose] is `true`.
   Future<void> _computeInContext(
-      ContextRoot root, ImpliedTypeCollector collector,
-      {required bool verbose}) async {
+    ContextRoot root,
+    ImpliedTypeCollector collector, {
+    required bool verbose,
+  }) async {
     // Create a new collection to avoid consuming large quantities of memory.
     var collection = AnalysisContextCollection(
       includedPaths: root.includedPaths.toList(),
@@ -184,8 +181,9 @@ class ImpliedTypeComputer {
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          var resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+          var resolvedUnitResult = await context.currentSession.getResolvedUnit(
+            filePath,
+          );
           //
           // Check for errors that cause the file to be skipped.
           //
@@ -198,8 +196,9 @@ class ImpliedTypeComputer {
           } else if (hasError(resolvedUnitResult)) {
             if (verbose) {
               print('File $filePath skipped due to errors:');
-              for (var error in resolvedUnitResult.errors
-                  .where((e) => e.severity == Severity.error)) {
+              for (var error in resolvedUnitResult.errors.where(
+                (e) => e.severity == Severity.error,
+              )) {
                 print('  ${error.toString()}');
               }
               print('');

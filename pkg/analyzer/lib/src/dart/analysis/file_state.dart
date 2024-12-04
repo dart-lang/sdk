@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/dart/analysis/analysis_options.dart';
+library;
+
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -16,6 +20,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
@@ -29,8 +34,8 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -398,9 +403,15 @@ abstract class FileKind {
       return;
     }
 
-    for (var reference in file.referencingFiles) {
+    // Take referencing files, stop potential recursion.
+    var referencingFiles = file.referencingFiles;
+    file.referencingFiles = {};
+
+    // Iterate and restore.
+    for (var reference in referencingFiles) {
       reference.kind.disposeLibraryCycle();
     }
+    file.referencingFiles = referencingFiles;
   }
 
   bool hasPart(PartFileKind partKind) {
@@ -524,7 +535,7 @@ class FileState {
   bool isMacroPart = false;
 
   /// Files that reference this file.
-  final Set<FileState> referencingFiles = {};
+  Set<FileState> referencingFiles = {};
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
@@ -670,19 +681,20 @@ class FileState {
         );
       Token token = scanner.tokenize(reportScannerErrors: false);
       LineInfo lineInfo = LineInfo(scanner.lineStarts);
+      var languageVersion = LibraryLanguageVersion(
+        package: packageLanguageVersion,
+        override: scanner.overrideVersion,
+      );
 
       Parser parser = Parser(
         source,
         errorListener,
         featureSet: scanner.featureSet,
         lineInfo: lineInfo,
+        languageVersion: languageVersion,
       );
 
       var unit = parser.parseCompilationUnit(token);
-      unit.languageVersion = LibraryLanguageVersion(
-        package: packageLanguageVersion,
-        override: scanner.overrideVersion,
-      );
 
       // Ensure the string canonicalization cache size is reasonable.
       pruneStringCanonicalizationCache();
@@ -740,6 +752,13 @@ class FileState {
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
     _prefetchDirectReferences();
+
+    for (var template in unlinked2.dartdocTemplates) {
+      _fsState.dartdocDirectiveInfo.addTemplate(
+        template.name,
+        template.value,
+      );
+    }
 
     // Prepare API signature.
     var newApiSignature = _unlinked2!.apiSignature;
@@ -1062,7 +1081,7 @@ class FileState {
         var libraryName = directive.libraryName;
         var uri = directive.uri;
         if (libraryName != null) {
-          partOfNameDirective = UnlinkedPartOfNameDirective(
+          partOfNameDirective ??= UnlinkedPartOfNameDirective(
             docImports: buildDocImports(directive),
             name: libraryName.name,
             nameRange: UnlinkedSourceRange(
@@ -1071,7 +1090,7 @@ class FileState {
             ),
           );
         } else if (uri != null) {
-          partOfUriDirective = UnlinkedPartOfUriDirective(
+          partOfUriDirective ??= UnlinkedPartOfUriDirective(
             docImports: buildDocImports(directive),
             uri: uri.stringValue,
             uriRange: UnlinkedSourceRange(
@@ -1124,6 +1143,15 @@ class FileState {
       }
     }
 
+    var dartdocDirectiveInfo = DartdocDirectiveInfo.extractFromUnit(unit);
+    var dartdocTemplates =
+        dartdocDirectiveInfo.templateMap.entries.map((entry) {
+      return UnlinkedDartdocTemplate(
+        name: entry.key,
+        value: entry.value,
+      );
+    }).toList();
+
     var apiSignature = performance.run('apiSignature', (performance) {
       var signatureBuilder = ApiSignature();
       signatureBuilder.addBytes(computeUnlinkedApiSignature(unit));
@@ -1145,6 +1173,7 @@ class FileState {
       partOfNameDirective: partOfNameDirective,
       partOfUriDirective: partOfUriDirective,
       topLevelDeclarations: topLevelDeclarations,
+      dartdocTemplates: dartdocTemplates,
     );
   }
 
@@ -1219,11 +1248,19 @@ class FileState {
     UnlinkedLibraryImportPrefix? unlinkedPrefix;
     var prefix = node.prefix;
     if (prefix != null) {
+      UnlinkedLibraryImportPrefixName? name;
+      if (!prefix.isSynthetic) {
+        name = UnlinkedLibraryImportPrefixName(
+          name: prefix.name,
+          nameOffset: prefix.offset,
+        );
+      }
+
       unlinkedPrefix = UnlinkedLibraryImportPrefix(
         deferredOffset: node.deferredKeyword?.offset,
         asOffset: node.asKeyword!.offset,
-        name: prefix.name,
         nameOffset: prefix.offset,
+        name: name,
       );
     }
 
@@ -1304,6 +1341,9 @@ class FileSystemState {
 
   final FileContentStrategy fileContentStrategy;
   final UnlinkedUnitStore unlinkedUnitStore;
+
+  /// The dartdoc directives in this context.
+  final DartdocDirectiveInfo dartdocDirectiveInfo = DartdocDirectiveInfo();
 
   /// A function that fetches the given list of files. This function can be used
   /// to batch file reads in systems where file fetches are expensive.

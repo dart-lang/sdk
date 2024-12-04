@@ -7,14 +7,12 @@ void main() {
 }
 
 class SomeClass {
-  @ResourceIdentifier('id')
+  @RecordUse()
   static someStaticMethod(int i) {
     return i + 1;
   }
 }
 
-class ResourceIdentifier {
-  final Object? metadata;
-
-  const ResourceIdentifier([this.metadata]);
+class RecordUse {
+  const RecordUse();
 }

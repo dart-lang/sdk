@@ -60,7 +60,7 @@ void f() {
           {'file': testFile.path, 'offset': 21},
         ],
         'length': 10,
-        'suggestions': []
+        'suggestions': [],
       },
       // value
       {
@@ -68,7 +68,7 @@ void f() {
           {'file': testFile.path, 'offset': 44},
         ],
         'length': 5,
-        'suggestions': []
+        'suggestions': [],
       },
     ]);
   }
@@ -110,7 +110,7 @@ void f() {
           {'file': testFile.path, 'offset': 37},
         ],
         'length': 10,
-        'suggestions': []
+        'suggestions': [],
       },
       // value
       {
@@ -118,7 +118,7 @@ void f() {
           {'file': testFile.path, 'offset': 62},
         ],
         'length': 5,
-        'suggestions': []
+        'suggestions': [],
       },
     ]);
   }

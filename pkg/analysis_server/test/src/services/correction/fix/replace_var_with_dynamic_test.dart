@@ -26,12 +26,15 @@ class A {
   Map<String, var> m;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   Map<String, dynamic> m;
 }
-''', errorFilter: (error) {
-      return error.errorCode == ParserErrorCode.VAR_AS_TYPE_NAME;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == ParserErrorCode.VAR_AS_TYPE_NAME;
+      },
+    );
   }
 }

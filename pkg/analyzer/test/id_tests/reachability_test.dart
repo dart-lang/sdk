@@ -40,10 +40,9 @@ class _ReachabilityDataComputer
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap) {
-    var unitElement = unit.declaredElement!;
-    var flowResult = testingData.uriToFlowAnalysisData[unitElement.source.uri]!;
-    _ReachabilityDataExtractor(unitElement.source.uri, actualMap, flowResult)
-        .run(unit);
+    var unitUri = unit.declaredFragment!.source.uri;
+    var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
+    _ReachabilityDataExtractor(unitUri, actualMap, flowResult).run(unit);
   }
 }
 

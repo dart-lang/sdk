@@ -4,7 +4,7 @@
 
 import 'package:testing/testing.dart' show Chain;
 
-import 'fasta/suite_utils.dart';
+import 'utils/suite_utils.dart';
 import 'spell_checking_utils.dart' as spell;
 import 'spelling_test_base.dart';
 import 'testing_utils.dart' show checkEnvironment;
@@ -15,13 +15,14 @@ void main([List<String> arguments = const []]) => internalMain(createContext,
     configurationPath: "../testing.json");
 
 Future<SpellContext> createContext(
-    Chain suite, Map<String, String> environment) async {
+    Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {"interactive", "onlyInGit"};
   checkEnvironment(environment, knownEnvironmentKeys);
 
   bool interactive = environment["interactive"] == "true";
   bool onlyInGit = environment["onlyInGit"] != "false";
-  return new SpellContextTest(interactive: interactive, onlyInGit: onlyInGit);
+  return new Future.value(
+      new SpellContextTest(interactive: interactive, onlyInGit: onlyInGit));
 }
 
 class SpellContextTest extends SpellContext {

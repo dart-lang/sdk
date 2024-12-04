@@ -9,7 +9,9 @@ import 'package:kernel/ast.dart'
         DynamicType,
         InterfaceType,
         Library,
+        NamedType,
         Nullability,
+        RecordType,
         TypeParameter;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 
@@ -91,8 +93,8 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
   int i = 0;
   List<ParsedType> argumentReceivers = [];
   while (i < definitionTypes.length) {
-    String uriOrNullString = definitionTypes[i];
-    if (uriOrNullString == "null") {
+    String uriOrSpecialString = definitionTypes[i];
+    if (uriOrSpecialString == "null") {
       if (argumentReceivers.isEmpty) {
         result.add(new ParsedType.nullType());
       } else {
@@ -103,6 +105,30 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
       }
       i++;
       continue;
+    } else if (uriOrSpecialString == "record") {
+      // Record.
+      // We expect at least 4 elements: "record", nullability, num fields,
+      // num positional fields.
+      if (i + 4 > definitionTypes.length) throw "invalid input";
+      int nullability = int.parse(definitionTypes[i + 1]);
+      int numFields = int.parse(definitionTypes[i + 2]);
+      int numPositionalFields = int.parse(definitionTypes[i + 3]);
+      i += 4;
+
+      List<String?> fieldNames = new List<String?>.filled(numFields, null);
+      for (int j = numPositionalFields; j < numFields; j++) {
+        fieldNames[j] = definitionTypes[i++];
+      }
+
+      ParsedType type = new ParsedType.record(nullability, fieldNames);
+      if (argumentReceivers.isEmpty) {
+        result.add(type);
+      } else {
+        argumentReceivers.removeLast().arguments!.add(type);
+      }
+      for (int j = 0; j < numFields; j++) {
+        argumentReceivers.add(type);
+      }
     } else {
       // We expect at least 4 elements: Uri, class name, nullability,
       // number of type arguments.
@@ -110,7 +136,8 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
       String className = definitionTypes[i + 1];
       int nullability = int.parse(definitionTypes[i + 2]);
       int typeArgumentsCount = int.parse(definitionTypes[i + 3]);
-      ParsedType type = new ParsedType(uriOrNullString, className, nullability);
+      ParsedType type =
+          new ParsedType.interface(uriOrSpecialString, className, nullability);
       if (argumentReceivers.isEmpty) {
         result.add(type);
       } else {
@@ -128,26 +155,44 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
   return result;
 }
 
+enum ParsedTypeKind {
+  Null,
+  Interface,
+  Record,
+}
+
 // Coverage-ignore(suite): Not run.
 class ParsedType {
+  final ParsedTypeKind type;
   final String? uri;
   final String? className;
   final int? nullability;
   final List<ParsedType>? arguments;
+  final List<String?>? recordFieldNames;
 
-  bool get isNullType => uri == null;
+  ParsedType.interface(this.uri, this.className, this.nullability)
+      : type = ParsedTypeKind.Interface,
+        arguments = [],
+        recordFieldNames = null;
 
-  ParsedType(this.uri, this.className, this.nullability) : arguments = [];
+  ParsedType.record(this.nullability, this.recordFieldNames)
+      : type = ParsedTypeKind.Record,
+        uri = null,
+        className = null,
+        arguments = [];
 
   ParsedType.nullType()
-      : uri = null,
+      : type = ParsedTypeKind.Null,
+        uri = null,
         className = null,
         nullability = null,
-        arguments = null;
+        arguments = null,
+        recordFieldNames = null;
 
   @override
   bool operator ==(Object other) {
     if (other is! ParsedType) return false;
+    if (type != other.type) return false;
     if (uri != other.uri) return false;
     if (className != other.className) return false;
     if (nullability != other.nullability) return false;
@@ -157,42 +202,81 @@ class ParsedType {
         if (arguments![i] != other.arguments![i]) return false;
       }
     }
+    if (recordFieldNames?.length != other.recordFieldNames?.length) {
+      return false;
+    }
+    if (recordFieldNames != null) {
+      for (int i = 0; i < recordFieldNames!.length; i++) {
+        if (recordFieldNames![i] != other.recordFieldNames![i]) return false;
+      }
+    }
     return true;
   }
 
   @override
   int get hashCode {
-    if (isNullType) return 0;
+    if (type == ParsedTypeKind.Null) return 0;
     int hash = 0x3fffffff & uri.hashCode;
     hash = 0x3fffffff & (hash * 31 + (hash ^ className.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullability.hashCode));
     for (ParsedType argument in arguments!) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ argument.hashCode));
     }
+    if (recordFieldNames != null) {
+      for (String? name in recordFieldNames!) {
+        hash = 0x3fffffff & (hash * 31 + (hash ^ name.hashCode));
+      }
+    }
     return hash;
   }
 
   @override
   String toString() {
-    if (isNullType) return "null-type";
-    return "$uri[$className] ($nullability) <$arguments>";
+    switch (type) {
+      case ParsedTypeKind.Null:
+        return "null-type";
+      case ParsedTypeKind.Interface:
+        return "Record[$recordFieldNames] ($nullability) ($arguments)";
+      case ParsedTypeKind.Record:
+        if (arguments?.isEmpty ?? true) {
+          return "$uri[$className] ($nullability)";
+        }
+        return "$uri[$className] ($nullability) <$arguments>";
+    }
   }
 
   DartType createDartType(LibraryIndex libraryIndex) {
-    if (isNullType) return new DynamicType();
-    Class? classNode = libraryIndex.tryGetClass(uri!, className!);
-    if (classNode == null) return new DynamicType();
+    switch (type) {
+      case ParsedTypeKind.Null:
+        return new DynamicType();
+      case ParsedTypeKind.Record:
+        List<DartType> positional = [];
+        List<NamedType> named = [];
+        for (int i = 0; i < arguments!.length; i++) {
+          String? name = recordFieldNames![i];
+          DartType type = arguments![i].createDartType(libraryIndex);
+          if (name == null) {
+            positional.add(type);
+          } else {
+            named.add(new NamedType(name, type));
+          }
+        }
+        return new RecordType(positional, named, _getDartNullability());
+      case ParsedTypeKind.Interface:
+        Class? classNode = libraryIndex.tryGetClass(uri!, className!);
+        if (classNode == null) return new DynamicType();
 
-    return new InterfaceType(
-        classNode,
-        _getDartNullability(),
-        arguments
-            ?.map((e) => e.createDartType(libraryIndex))
-            .toList(growable: false));
+        return new InterfaceType(
+            classNode,
+            _getDartNullability(),
+            arguments
+                ?.map((e) => e.createDartType(libraryIndex))
+                .toList(growable: false));
+    }
   }
 
   Nullability _getDartNullability() {
-    if (isNullType) throw "No nullability on the null type";
+    if (type == ParsedTypeKind.Null) throw "No nullability on the null type";
     if (nullability == 0) return Nullability.nullable;
     if (nullability == 1) return Nullability.nonNullable;
     if (nullability == 2) return Nullability.legacy;
@@ -206,9 +290,14 @@ Set<String> collectParsedTypeUris(List<ParsedType> parsedTypes) {
   List<ParsedType> workList = new List.from(parsedTypes);
   while (workList.isNotEmpty) {
     ParsedType type = workList.removeLast();
-    if (type.isNullType) continue;
-    result.add(type.uri!);
-    workList.addAll(type.arguments!);
+    if (type.arguments != null) workList.addAll(type.arguments!);
+    switch (type.type) {
+      case ParsedTypeKind.Null:
+      case ParsedTypeKind.Record:
+        continue;
+      case ParsedTypeKind.Interface:
+        result.add(type.uri!);
+    }
   }
   return result;
 }

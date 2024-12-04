@@ -30,7 +30,7 @@ void _sdk() {
   });
 
   test('dart2js snapshot', () {
-    expectFileExists(Sdk().dart2jsSnapshot);
+    expectSnapshotExists(Sdk().dart2jsAotSnapshot, Sdk().dart2jsSnapshot);
   });
 }
 

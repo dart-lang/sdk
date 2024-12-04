@@ -7,6 +7,7 @@ library;
 
 import 'dart:async';
 import 'dart:io' show File, IOSink;
+import 'dart:typed_data';
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
@@ -999,7 +1000,7 @@ class CompilerResultLoadedFromKernel implements CompilerResult {
   CompilerResultLoadedFromKernel(this.component);
 
   @override
-  List<int>? get summary => null;
+  Uint8List? get summary => null;
 
   @override
   List<Component> get loadedComponents => const <Component>[];

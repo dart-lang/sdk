@@ -19,7 +19,7 @@ class Bar extends core::Object {
 class IndexTester extends core::Object {
   synthetic constructor •() → self::IndexTester
     ;
-  operator [](dynamic _) → dynamic
+  operator [](wildcard dynamic _#wc0#formal) → dynamic
     ;
   operator []=(dynamic _a, dynamic _b) → void
     ;

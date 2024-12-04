@@ -199,7 +199,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: void
 ''');
   }
@@ -270,7 +270,7 @@ AugmentedInvocation
         staticType: int
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: int
 ''');
   }
@@ -282,15 +282,13 @@ part 'test.dart';
 T foo<T extends num>(T a) => throw 0;
 ''');
 
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 part of 'a.dart';
 
 augment void foo<T2 extends num>(T2 a) {
   augmented('');
 }
-''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 62, 9),
-    ]);
+''');
 
     var node = findNode.singleAugmentedInvocation;
     assertResolvedNodeText(node, r'''
@@ -303,8 +301,8 @@ AugmentedInvocation
         literal: ''
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
-  staticType: String
+  element2: package:test/a.dart::@function::foo
+  staticType: num
 ''');
   }
 
@@ -357,7 +355,7 @@ AugmentedInvocation
         staticType: String Function(int)
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: String
 ''');
   }
@@ -387,7 +385,7 @@ AugmentedInvocation
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: int
 ''');
   }
@@ -417,14 +415,14 @@ AugmentedInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: int
 ''');
   }
@@ -456,14 +454,14 @@ AugmentedInvocation
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: String
 ''');
   }
@@ -495,19 +493,19 @@ AugmentedInvocation
       NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       NamedType
         name: String
         element: dart:core::<fragment>::@class::String
-        element2: dart:core::<fragment>::@class::String#element
+        element2: dart:core::@class::String
         type: String
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
   element: package:test/a.dart::<fragment>::@function::foo
-  element2: package:test/a.dart::<fragment>::@function::foo#element
+  element2: package:test/a.dart::@function::foo
   staticType: dynamic
 ''');
   }

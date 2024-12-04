@@ -40,8 +40,11 @@ SimpleDiff computeSimpleDiff(String oldStr, String newStr) {
     var oldReplaceLength = oldStr.length - prefixLength - suffixLength;
     var newReplaceLength = newStr.length - prefixLength - suffixLength;
     if (oldReplaceLength >= 0 && newReplaceLength >= 0) {
-      return SimpleDiff(prefixLength, oldReplaceLength,
-          newStr.substring(prefixLength, newStr.length - suffixLength));
+      return SimpleDiff(
+        prefixLength,
+        oldReplaceLength,
+        newStr.substring(prefixLength, newStr.length - suffixLength),
+      );
     }
     prefixLength--;
   }
@@ -124,16 +127,6 @@ String? removeEnd(String? str, String? remove) {
     return str.substring(0, str.length - remove.length);
   }
   return str;
-}
-
-/// If the [text] length is above the [limit], replace the middle with `...`.
-String shorten(String text, int limit) {
-  if (text.length > limit) {
-    var headLength = limit ~/ 2 - 1;
-    var tailLength = limit - headLength - 3;
-    return '${text.substring(0, headLength)}...${text.substring(text.length - tailLength)}';
-  }
-  return text;
 }
 
 /// Information about a single replacement that should be made to convert the

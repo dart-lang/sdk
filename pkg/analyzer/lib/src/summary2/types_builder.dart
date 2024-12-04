@@ -149,6 +149,8 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
+    _updatedAugmented(element, withClause: node.withClause);
+
     _toInferMixins[element] = _ToInferMixins(element, node.withClause);
   }
 
@@ -370,77 +372,77 @@ class TypesBuilder {
   }
 
   void _updatedAugmented(
-    InstanceElementImpl element, {
+    InstanceElementImpl fragment, {
     WithClause? withClause,
   }) {
     // Always schedule mixin inference for the declaration.
-    if (element.augmentationTarget == null) {
-      if (element is InterfaceElementImpl) {
-        _toInferMixins[element] = _ToInferMixins(element, withClause);
+    if (fragment.augmentationTarget == null) {
+      if (fragment is InterfaceElementImpl) {
+        _toInferMixins[fragment] = _ToInferMixins(fragment, withClause);
       }
     }
 
     // Here we merge declaration and augmentations.
     // If there are no augmentations, nothing to do.
-    var augmented = element.augmented;
-    if (augmented is! AugmentedInstanceElementImpl) {
+    var element = fragment.element;
+    if (element is! InstanceElementImpl2) {
       return;
     }
 
-    var declaration = augmented.declaration;
-    var declarationTypeParameters = declaration.typeParameters;
+    var firstFragment = element.firstFragment;
+    var firstTypeParameters = firstFragment.typeParameters;
 
-    var augmentationTypeParameters = element.typeParameters;
-    if (augmentationTypeParameters.length != declarationTypeParameters.length) {
+    var fragmentTypeParameters = fragment.typeParameters;
+    if (fragmentTypeParameters.length != firstTypeParameters.length) {
       return;
     }
 
-    var toDeclaration = Substitution.fromPairs(
-      augmentationTypeParameters,
-      declarationTypeParameters.instantiateNone(),
+    var toFirst = Substitution.fromPairs(
+      fragmentTypeParameters,
+      firstTypeParameters.instantiateNone(),
     );
 
-    var fromDeclaration = Substitution.fromPairs(
-      declarationTypeParameters,
-      augmentationTypeParameters.instantiateNone(),
+    var fromFirst = Substitution.fromPairs(
+      firstTypeParameters,
+      fragmentTypeParameters.instantiateNone(),
     );
 
     // Schedule mixing inference for augmentations.
-    if (element.augmentationTarget != null) {
-      if (element is InterfaceElementImpl && withClause != null) {
-        var toInferMixins = _toInferMixins[declaration];
+    if (fragment.augmentationTarget != null) {
+      if (fragment is InterfaceElementImpl && withClause != null) {
+        var toInferMixins = _toInferMixins[firstFragment];
         if (toInferMixins != null) {
           toInferMixins.augmentations.add(
             _ToInferMixinsAugmentation(
-              element: element,
+              element: fragment,
               withClause: withClause,
-              toDeclaration: toDeclaration,
-              fromDeclaration: fromDeclaration,
+              toDeclaration: toFirst,
+              fromDeclaration: fromFirst,
             ),
           );
         }
       }
     }
 
-    if (element is InterfaceElementImpl &&
-        declaration is InterfaceElementImpl &&
-        augmented is AugmentedInterfaceElementImpl) {
-      if (declaration.supertype == null) {
-        var elementSuperType = element.supertype;
-        if (elementSuperType != null) {
-          var superType = toDeclaration.mapInterfaceType(elementSuperType);
-          declaration.supertype = superType;
+    if (fragment is InterfaceElementImpl &&
+        firstFragment is InterfaceElementImpl &&
+        element is InterfaceElementImpl2) {
+      if (firstFragment.supertype == null) {
+        var fragmentSuperType = fragment.supertype;
+        if (fragmentSuperType != null) {
+          var superType = toFirst.mapInterfaceType(fragmentSuperType);
+          firstFragment.supertype = superType;
         }
       }
 
-      augmented.interfaces.addAll(
-        toDeclaration.mapInterfaceTypes(element.interfaces),
+      element.interfaces.addAll(
+        toFirst.mapInterfaceTypes(fragment.interfaces),
       );
     }
 
-    if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
-      augmented.superclassConstraints.addAll(
-        toDeclaration.mapInterfaceTypes(element.superclassConstraints),
+    if (fragment is MixinElementImpl && element is MixinElementImpl2) {
+      element.superclassConstraints.addAll(
+        toFirst.mapInterfaceTypes(fragment.superclassConstraints),
       );
     }
   }
@@ -690,7 +692,7 @@ class _MixinsInference {
     } finally {
       element.mixinInferenceCallback = null;
       switch (element.augmented) {
-        case AugmentedInterfaceElementImpl augmented:
+        case InterfaceElementImpl2 augmented:
           augmented.mixins.addAll(declarationMixins);
       }
     }

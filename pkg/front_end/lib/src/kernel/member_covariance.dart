@@ -41,7 +41,7 @@ class Covariance {
     if ((covariance & Covariant) != 0) {
       field.isCovariantByDeclaration = true;
     }
-    if ((covariance & GenericCovariantImpl) != 0) {
+    if (((covariance & GenericCovariantImpl) != 0) && field.hasSetter) {
       field.isCovariantByClass = true;
     }
   }

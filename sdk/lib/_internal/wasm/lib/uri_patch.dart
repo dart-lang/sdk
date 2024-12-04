@@ -8,13 +8,15 @@ part of "core_patch.dart";
 class Uri {
   @patch
   static Uri get base {
-    final currentUri = JSStringImpl(JS<WasmExternRef?>("""() => {
+    final currentUri = JSStringImpl(
+      JS<WasmExternRef?>("""() => {
       // On browsers return `globalThis.location.href`
       if (globalThis.location != null) {
         return globalThis.location.href;
       }
       return null;
-    }"""));
+    }"""),
+    );
     if (currentUri != null) {
       return Uri.parse(jsStringToDartString(currentUri));
     }
@@ -44,8 +46,12 @@ class _Uri {
    * that appear in [canonicalTable], and returns the escaped string.
    */
   @patch
-  static String _uriEncode(List<int> canonicalTable, String text,
-      Encoding encoding, bool spaceToPlus) {
+  static String _uriEncode(
+    List<int> canonicalTable,
+    String text,
+    Encoding encoding,
+    bool spaceToPlus,
+  ) {
     if (identical(encoding, utf8) && _needsNoEncoding.hasMatch(text)) {
       return text;
     }
@@ -73,7 +79,8 @@ class _Uri {
 
   @patch
   static String _makeQueryFromParameters(
-      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
+    Map<String, dynamic /*String?|Iterable<String>*/> queryParameters,
+  ) {
     return _makeQueryFromParametersDefault(queryParameters);
   }
 }

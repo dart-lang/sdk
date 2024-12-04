@@ -34,34 +34,35 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
 
     properties['name'] = _getName(node);
     if (node is ArgumentListImpl) {
-      properties['static parameter types'] = node.correspondingStaticParameters;
+      properties['corresponding static parameters'] =
+          node.correspondingStaticParameters2;
     } else if (node is Annotation) {
-      properties['element'] = node.element;
+      properties['element'] = node.element2;
       properties['element annotation'] = node.elementAnnotation;
     } else if (node is BinaryExpression) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
       properties['static type'] = node.staticType;
     } else if (node is ClassDeclaration) {
-      properties['declaredElement'] = node.declaredElement;
+      properties['declared fragment'] = node.declaredFragment;
       properties['abstract keyword'] = node.abstractKeyword;
     } else if (node is ClassTypeAlias) {
-      properties['declaredElement'] = node.declaredElement;
+      properties['declared fragment'] = node.declaredFragment;
       properties['abstract keyword'] = node.abstractKeyword;
     } else if (node is CompilationUnit) {
-      properties['declaredElement'] = node.declaredElement;
+      properties['declared fragment'] = node.declaredFragment;
     } else if (node is Configuration) {
       properties['uriSource'] = node.resolvedUri;
     } else if (node is ConstructorName) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
     } else if (node is DeclaredIdentifier) {
-      properties['element'] = node.declaredElement;
+      properties['element'] = node.declaredElement2;
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
-      properties['element'] = node.element;
+      properties['library export'] = node.libraryExport;
     } else if (node is FieldDeclaration) {
       properties['static keyword'] = node.staticKeyword;
     } else if (node is FormalParameter) {
-      properties['declaredElement'] = node.declaredElement;
+      properties['declared fragment'] = node.declaredFragment;
       if (node.isRequiredPositional) {
         properties['kind'] = 'required-positional';
       } else if (node.isRequiredNamed) {
@@ -74,26 +75,26 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
         properties['kind'] = 'unknown kind';
       }
     } else if (node is FunctionDeclaration) {
-      properties['declaredElement'] = node.declaredElement;
+      properties['declared fragment'] = node.declaredFragment;
       properties['external keyword'] = node.externalKeyword;
       properties['property keyword'] = node.propertyKeyword;
     } else if (node is FunctionExpressionInvocation) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
       properties['static invoke type'] = node.staticInvokeType;
       properties['static type'] = node.staticType;
     } else if (node is GenericFunctionType) {
       properties['type'] = node.type;
     } else if (node is ImportDirective) {
-      properties['element'] = node.element;
+      properties['library import'] = node.libraryImport;
     } else if (node is IndexExpression) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
       properties['static type'] = node.staticType;
     } else if (node is InstanceCreationExpression) {
       properties['static type'] = node.staticType;
     } else if (node is LibraryDirective) {
-      properties['element'] = node.element;
+      properties['element'] = node.element2;
     } else if (node is MethodDeclaration) {
-      properties['declaredElement'] = node.declaredElement;
+      properties['declared fragment'] = node.declaredFragment;
       properties['external keyword'] = node.externalKeyword;
       properties['modifier keyword'] = node.modifierKeyword;
       properties['operator keyword'] = node.operatorKeyword;
@@ -102,37 +103,35 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
       properties['static invoke type'] = node.staticInvokeType;
       properties['static type'] = node.staticType;
     } else if (node is PartDirective) {
-      properties['element'] = node.element;
-    } else if (node is PartOfDirective) {
-      properties['element'] = node.element;
+      properties['fragment include'] = node.partInclude;
     } else if (node is PostfixExpression) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
       properties['static type'] = node.staticType;
     } else if (node is PrefixExpression) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
       properties['static type'] = node.staticType;
     } else if (node is RedirectingConstructorInvocation) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
     } else if (node is SimpleIdentifier) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
       properties['static type'] = node.staticType;
     } else if (node is SimpleStringLiteral) {
       properties['value'] = node.value;
     } else if (node is SuperConstructorInvocation) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
     } else if (node is TypeAnnotation) {
       properties['type'] = node.type;
     } else if (node is VariableDeclarationList) {
       properties['keyword'] = node.keyword;
     } else if (node is Declaration) {
-      properties['declaredElement'] = node.declaredElement;
+      properties['declared fragment'] = node.declaredFragment;
     } else if (node is Expression) {
       properties['static type'] = node.staticType;
     } else if (node is FunctionBody) {
-      properties['isAsynchronous'] = node.isAsynchronous;
-      properties['isGenerator'] = node.isGenerator;
+      properties['is asynchronous'] = node.isAsynchronous;
+      properties['is generator'] = node.isGenerator;
     } else if (node is Identifier) {
-      properties['static element'] = node.staticElement;
+      properties['element'] = node.element;
       properties['static type'] = node.staticType;
     }
 

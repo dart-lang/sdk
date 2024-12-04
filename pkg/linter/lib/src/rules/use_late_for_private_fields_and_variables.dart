@@ -10,7 +10,6 @@ import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
 

@@ -68,9 +68,10 @@ final class JSNumber extends Interceptor
   JSNumber abs() => JS<JSNumber>('!', r'Math.abs(#)', this);
 
   @notNull
-  JSNumber get sign => this > 0
-      ? JS<JSNumber>('!', '1')
-      : this < 0
+  JSNumber get sign =>
+      this > 0
+          ? JS<JSNumber>('!', '1')
+          : this < 0
           ? JS<JSNumber>('!', '-1')
           : this;
 
@@ -86,7 +87,10 @@ final class JSNumber extends Interceptor
     }
     if (JS<bool>('!', r'isFinite(#)', this)) {
       return JS<int>(
-          '!', r'# + 0', truncateToDouble()); // Converts -0.0 to +0.0.
+        '!',
+        r'# + 0',
+        truncateToDouble(),
+      ); // Converts -0.0 to +0.0.
     }
     // This is either NaN, Infinity or -Infinity.
     throw UnsupportedError(JS("String", '"" + #', this));
@@ -207,7 +211,10 @@ final class JSNumber extends Interceptor
     // Result is probably IE's untraditional format for large numbers,
     // e.g., "8.0000000000008(e+15)" for 0x8000000000000800.toString(16).
     var match = JS<List?>(
-        '', r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)', result);
+      '',
+      r'/^([\da-z]+)(?:\.([\da-z]+))?\(e\+(\d+)\)$/.exec(#)',
+      result,
+    );
     if (match == null) {
       // Then we don't know how to handle it at all.
       throw UnsupportedError("Unexpected toString result: $result");
@@ -466,7 +473,11 @@ final class JSNumber extends Interceptor
     // represented precisely as a Number (double).
     if (this < -maxPreciseInteger || this > maxPreciseInteger) {
       throw RangeError.range(
-          this, -maxPreciseInteger, maxPreciseInteger, 'receiver');
+        this,
+        -maxPreciseInteger,
+        maxPreciseInteger,
+        'receiver',
+      );
     }
     if (e > maxPreciseInteger) {
       throw RangeError.range(e, 0, maxPreciseInteger, 'exponent');

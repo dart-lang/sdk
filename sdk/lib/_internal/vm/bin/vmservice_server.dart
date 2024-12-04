@@ -83,19 +83,22 @@ class WebSocketClient extends Client {
   }
 
   Map<String, dynamic> toJson() => {
-        ...super.toJson(),
-        'type': 'WebSocketClient',
-        'socket': '$socket',
-      };
+    ...super.toJson(),
+    'type': 'WebSocketClient',
+    'socket': '$socket',
+  };
 }
 
 class HttpRequestClient extends Client {
-  static final jsonContentType =
-      ContentType('application', 'json', charset: 'utf-8');
+  static final jsonContentType = ContentType(
+    'application',
+    'json',
+    charset: 'utf-8',
+  );
   final HttpRequest request;
 
   HttpRequestClient(this.request, VMService service)
-      : super(service, sendEvents: false);
+    : super(service, sendEvents: false);
 
   Future<void> disconnect() async {
     await request.response.close();
@@ -148,10 +151,7 @@ class _DebuggingSession {
   ) async {
     final dartDir = File(Platform.executable).parent.path;
     final dart = 'dart${Platform.isWindows ? '.exe' : ''}';
-    var executable = [
-      dartDir,
-      dart,
-    ].join(Platform.pathSeparator);
+    var executable = [dartDir, dart].join(Platform.pathSeparator);
 
     // If the directory of dart is '.' it's likely that dart is on the user's
     // PATH. If so, './dart' might not exist and we should be using 'dart'
@@ -161,33 +161,25 @@ class _DebuggingSession {
             FileSystemEntityType.notFound) {
       executable = dart;
     }
-    _process = await Process.start(
-      executable,
-      [
-        'development-service',
-        '--vm-service-uri=$serverAddress',
-        '--bind-address=$host',
-        '--bind-port=$port',
-        if (disableServiceAuthCodes) '--disable-service-auth-codes',
-        if (enableDevTools) '--serve-devtools',
-        if (_enableServicePortFallback) '--enable-service-port-fallback',
-      ],
-      mode: ProcessStartMode.detachedWithStdio,
-    );
+    _process = await Process.start(executable, [
+      'development-service',
+      '--vm-service-uri=$serverAddress',
+      '--bind-address=$host',
+      '--bind-port=$port',
+      if (disableServiceAuthCodes) '--disable-service-auth-codes',
+      if (enableDevTools) '--serve-devtools',
+      if (_enableServicePortFallback) '--enable-service-port-fallback',
+    ], mode: ProcessStartMode.detachedWithStdio);
 
     // DDS will close stderr once it's finished launching.
     final launchResult = await _process!.stderr.transform(utf8.decoder).join();
 
-    void printError(String details) => stderr.writeln(
-          'Could not start the VM service:\n$details',
-        );
+    void printError(String details) =>
+        stderr.writeln('Could not start the VM service:\n$details');
 
     try {
       final result = json.decode(launchResult) as Map<String, dynamic>;
-      if (result
-          case {
-            'state': 'started',
-          }) {
+      if (result case {'state': 'started'}) {
         if (result case {'devToolsUri': String devToolsUri}) {
           // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
           // is changed to ensure consistency.
@@ -195,12 +187,7 @@ class _DebuggingSession {
               'The Dart DevTools debugger and profiler is available at:';
           serverPrint('$devToolsMessagePrefix $devToolsUri');
         }
-        if (result
-            case {
-              'dtd': {
-                'uri': String dtdUri,
-              }
-            } when _printDtd) {
+        if (result case {'dtd': {'uri': String dtdUri}} when _printDtd) {
           serverPrint('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
         }
       } else {
@@ -264,14 +251,14 @@ class Server {
   // On Fuchsia, authentication codes are disabled by default. To enable, the authentication token
   // would have to be written into the hub alongside the port number.
   Server(
-      this._service,
-      this._ip,
-      this._port,
-      this._originCheckDisabled,
-      bool authCodesDisabled,
-      this._serviceInfoFilename,
-      this._enableServicePortFallback)
-      : _authCodesDisabled = (authCodesDisabled || Platform.isFuchsia);
+    this._service,
+    this._ip,
+    this._port,
+    this._originCheckDisabled,
+    bool authCodesDisabled,
+    this._serviceInfoFilename,
+    this._enableServicePortFallback,
+  ) : _authCodesDisabled = (authCodesDisabled || Platform.isFuchsia);
 
   Future<void> startup() async {
     if (running) {
@@ -305,13 +292,16 @@ class Server {
       } catch (e, st) {
         if (_port != 0 && _enableServicePortFallback) {
           serverPrint(
-              'Failed to bind Dart VM service HTTP server to port $_port. '
-              'Falling back to automatic port selection');
+            'Failed to bind Dart VM service HTTP server to port $_port. '
+            'Falling back to automatic port selection',
+          );
           _port = 0;
           return await startServer();
         } else {
-          serverPrint('Could not start Dart VM service HTTP server:\n'
-              '$e\n$st');
+          serverPrint(
+            'Could not start Dart VM service HTTP server:\n'
+            '$e\n$st',
+          );
           _notifyServerState('');
           onServerAddressChange(null);
           return false;
@@ -325,8 +315,10 @@ class Server {
       return;
     }
     if (_service.isExiting) {
-      serverPrint('Dart VM service HTTP server exiting before listening as '
-          'vm service has received exit request\n');
+      serverPrint(
+        'Dart VM service HTTP server exiting before listening as '
+        'vm service has received exit request\n',
+      );
       startingCompleter.complete(true);
       await shutdown(true);
       return;
@@ -551,9 +543,11 @@ class Server {
     final ddsUri = _service.ddsUri;
     if (ddsUri == null) {
       request.response.headers.contentType = ContentType.text;
-      request.response.write('This VM does not have a registered Dart '
-          'Development Service (DDS) instance and is not currently serving '
-          'Dart DevTools.');
+      request.response.write(
+        'This VM does not have a registered Dart '
+        'Development Service (DDS) instance and is not currently serving '
+        'Dart DevTools.',
+      );
       request.response.close();
       return;
     }
@@ -574,13 +568,8 @@ class Server {
     final queryComponent = Uri.encodeQueryComponent(
       ddsUri.replace(scheme: 'ws', path: '${path}ws').toString(),
     );
-    path.writeAll([
-      'devtools/',
-      '?uri=$queryComponent',
-    ]);
-    final redirectUri = Uri.parse(
-      'http://${ddsUri.host}:${ddsUri.port}/$path',
-    );
+    path.writeAll(['devtools/', '?uri=$queryComponent']);
+    final redirectUri = Uri.parse('http://${ddsUri.host}:${ddsUri.port}/$path');
     request.response.redirect(redirectUri);
     return;
   }
@@ -657,17 +646,16 @@ class Server {
   }
 
   Future<File> _dumpServiceInfoToFile(String serviceInfoFilenameLocal) async {
-    final serviceInfo = <String, dynamic>{
-      'uri': serverAddress.toString(),
-    };
+    final serviceInfo = <String, dynamic>{'uri': serverAddress.toString()};
     const kFileScheme = 'file://';
     // There's lots of URI parsing weirdness as Uri.parse doesn't do the right
     // thing with Windows drive letters. Only use Uri.parse with known file
     // URIs, and use Uri.file otherwise to properly handle drive letters in
     // paths.
-    final uri = serviceInfoFilenameLocal.startsWith(kFileScheme)
-        ? Uri.parse(serviceInfoFilenameLocal)
-        : Uri.file(serviceInfoFilenameLocal);
+    final uri =
+        serviceInfoFilenameLocal.startsWith(kFileScheme)
+            ? Uri.parse(serviceInfoFilenameLocal)
+            : Uri.file(serviceInfoFilenameLocal);
     final file = File.fromUri(uri);
     return file.writeAsString(json.encode(serviceInfo));
   }

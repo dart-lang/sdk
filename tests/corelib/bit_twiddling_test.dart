@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing int.bitLength, int.toUnsigned and int.toSigned.
 
+// Formatting can break multitests, so don't format them.
+// dart format off
+
 library bit_twiddling_test;
 
 import "package:expect/expect.dart";

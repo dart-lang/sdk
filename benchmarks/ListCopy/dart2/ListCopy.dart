@@ -33,7 +33,7 @@ class Benchmark extends BenchmarkBase {
   final List<Iterable<num>> inputs = [];
 
   Benchmark(String name, this.length, this.copy)
-      : super('ListCopy.$name.$length');
+    : super('ListCopy.$name.$length');
 
   @override
   void setup() {
@@ -59,8 +59,10 @@ class Benchmark extends BenchmarkBase {
     while (totalLength < elements) {
       final variants = makeVariants();
       inputs.addAll(variants);
-      totalLength +=
-          variants.fold<int>(0, (sum, iterable) => sum + iterable.length);
+      totalLength += variants.fold<int>(
+        0,
+        (sum, iterable) => sum + iterable.length,
+      );
     }
 
     // Sanity checks.
@@ -99,52 +101,52 @@ Iterable<num> input = const [];
 var output;
 
 List<Benchmark> makeBenchmarks(int length) => [
-      Benchmark('toList', length, () {
-        output = input.toList();
-      }),
-      Benchmark('toList.fixed', length, () {
-        output = input.toList(growable: false);
-      }),
-      Benchmark('List.of', length, () {
-        output = List<num>.of(input);
-      }),
-      Benchmark('List.of.fixed', length, () {
-        output = List<num>.of(input, growable: false);
-      }),
-      Benchmark('List.num.from', length, () {
-        output = List<num>.from(input);
-      }),
-      Benchmark('List.int.from', length, () {
-        output = List<int>.from(input);
-      }),
-      Benchmark('List.num.from.fixed', length, () {
-        output = List<num>.from(input, growable: false);
-      }),
-      Benchmark('List.int.from.fixed', length, () {
-        output = List<int>.from(input, growable: false);
-      }),
-      Benchmark('List.num.unmodifiable', length, () {
-        output = List<num>.unmodifiable(input);
-      }),
-      Benchmark('List.int.unmodifiable', length, () {
-        output = List<int>.unmodifiable(input);
-      }),
-      Benchmark('spread.num', length, () {
-        output = <num>[...input];
-      }),
-      Benchmark('spread.int', length, () {
-        output = <int>[...input];
-      }),
-      Benchmark('spread.int.cast', length, () {
-        output = <int>[...input.cast<int>()];
-      }),
-      Benchmark('spread.int.map', length, () {
-        output = <int>[...input.map((x) => x as int)];
-      }),
-      Benchmark('for.int', length, () {
-        output = <int>[for (var n in input) n as int];
-      }),
-    ];
+  Benchmark('toList', length, () {
+    output = input.toList();
+  }),
+  Benchmark('toList.fixed', length, () {
+    output = input.toList(growable: false);
+  }),
+  Benchmark('List.of', length, () {
+    output = List<num>.of(input);
+  }),
+  Benchmark('List.of.fixed', length, () {
+    output = List<num>.of(input, growable: false);
+  }),
+  Benchmark('List.num.from', length, () {
+    output = List<num>.from(input);
+  }),
+  Benchmark('List.int.from', length, () {
+    output = List<int>.from(input);
+  }),
+  Benchmark('List.num.from.fixed', length, () {
+    output = List<num>.from(input, growable: false);
+  }),
+  Benchmark('List.int.from.fixed', length, () {
+    output = List<int>.from(input, growable: false);
+  }),
+  Benchmark('List.num.unmodifiable', length, () {
+    output = List<num>.unmodifiable(input);
+  }),
+  Benchmark('List.int.unmodifiable', length, () {
+    output = List<int>.unmodifiable(input);
+  }),
+  Benchmark('spread.num', length, () {
+    output = <num>[...input];
+  }),
+  Benchmark('spread.int', length, () {
+    output = <int>[...input];
+  }),
+  Benchmark('spread.int.cast', length, () {
+    output = <int>[...input.cast<int>()];
+  }),
+  Benchmark('spread.int.map', length, () {
+    output = <int>[...input.map((x) => x as int)];
+  }),
+  Benchmark('for.int', length, () {
+    output = <int>[for (var n in input) n as int];
+  }),
+];
 
 void main() {
   final benchmarks = [...makeBenchmarks(2), ...makeBenchmarks(100)];

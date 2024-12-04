@@ -31,10 +31,12 @@ class ImportElementsComputer {
   /// Create the edits that will cause the list of [importedElements] to be
   /// imported into the library at the given [path].
   Future<SourceChange> createEdits(
-      List<ImportedElements> importedElementsList) async {
+    List<ImportedElements> importedElementsList,
+  ) async {
     var unit = libraryResult.unit;
-    var filteredImportedElements =
-        _filterImportedElements(importedElementsList);
+    var filteredImportedElements = _filterImportedElements(
+      importedElementsList,
+    );
     var libraryElement = libraryResult.libraryElement;
     var uriConverter = libraryResult.session.uriConverter;
     var existingImports = <ImportDirective>[];
@@ -48,11 +50,14 @@ class ImportElementsComputer {
     await builder.addDartFileEdit(libraryResult.path, (builder) {
       var analysisOptions = libraryResult.session.analysisContext
           .getAnalysisOptionsForFile(libraryResult.file);
-      var quote = analysisOptions.codeStyleOptions
-          .preferredQuoteForUris(existingImports);
+      var quote = analysisOptions.codeStyleOptions.preferredQuoteForUris(
+        existingImports,
+      );
       for (var importedElements in filteredImportedElements) {
-        var matchingImports =
-            _findMatchingImports(existingImports, importedElements);
+        var matchingImports = _findMatchingImports(
+          existingImports,
+          importedElements,
+        );
         if (matchingImports.isEmpty) {
           //
           // The required library is not being imported with a matching prefix,
@@ -102,9 +107,11 @@ class ImportElementsComputer {
             namesToShow.sort();
             var combinators = directive.combinators;
             var combinatorCount = combinators.length;
-            for (var combinatorIndex = 0;
-                combinatorIndex < combinatorCount;
-                combinatorIndex++) {
+            for (
+              var combinatorIndex = 0;
+              combinatorIndex < combinatorCount;
+              combinatorIndex++
+            ) {
               var combinator = combinators[combinatorIndex];
               if (combinator is HideCombinator && namesToUnhide.isNotEmpty) {
                 var hiddenNames = combinator.hiddenNames;
@@ -118,8 +125,12 @@ class ImportElementsComputer {
                   } else {
                     if (first >= 0) {
                       // Remove a range of names.
-                      builder.addDeletion(range.startStart(
-                          hiddenNames[first], hiddenNames[nameIndex]));
+                      builder.addDeletion(
+                        range.startStart(
+                          hiddenNames[first],
+                          hiddenNames[nameIndex],
+                        ),
+                      );
                       first = -1;
                     }
                   }
@@ -128,23 +139,37 @@ class ImportElementsComputer {
                   // Remove the whole combinator.
                   if (combinatorIndex == 0) {
                     if (combinatorCount > 1) {
-                      builder.addDeletion(range.startStart(
-                          combinator, combinators[combinatorIndex + 1]));
+                      builder.addDeletion(
+                        range.startStart(
+                          combinator,
+                          combinators[combinatorIndex + 1],
+                        ),
+                      );
                     } else {
-                      var precedingNode = directive.prefix ??
+                      var precedingNode =
+                          directive.prefix ??
                           directive.deferredKeyword ??
                           directive.uri;
-                      builder
-                          .addDeletion(range.endEnd(precedingNode, combinator));
+                      builder.addDeletion(
+                        range.endEnd(precedingNode, combinator),
+                      );
                     }
                   } else {
-                    builder.addDeletion(range.endEnd(
-                        combinators[combinatorIndex - 1], combinator));
+                    builder.addDeletion(
+                      range.endEnd(
+                        combinators[combinatorIndex - 1],
+                        combinator,
+                      ),
+                    );
                   }
                 } else if (first > 0) {
                   // Remove a range of names that includes the last name.
-                  builder.addDeletion(range.endEnd(
-                      hiddenNames[first - 1], hiddenNames[nameCount - 1]));
+                  builder.addDeletion(
+                    range.endEnd(
+                      hiddenNames[first - 1],
+                      hiddenNames[nameCount - 1],
+                    ),
+                  );
                 }
               } else if (combinator is ShowCombinator &&
                   namesToShow.isNotEmpty) {
@@ -175,8 +200,11 @@ class ImportElementsComputer {
   ///   name,
   /// - there is an import that shows the name and doesn't subsequently hide the
   ///   name.
-  void _computeUpdate(Map<ImportDirective, _ImportUpdate> updateMap,
-      List<ImportDirective> matchingImports, String requiredName) {
+  void _computeUpdate(
+    Map<ImportDirective, _ImportUpdate> updateMap,
+    List<ImportDirective> matchingImports,
+    String requiredName,
+  ) {
     /// Return `true` if the [requiredName] is in the given list of [names].
     bool nameIn(NodeList<SimpleIdentifier> names) {
       for (var name in names) {
@@ -224,7 +252,9 @@ class ImportElementsComputer {
     }
 
     var update = updateMap.putIfAbsent(
-        preferredDirective, () => _ImportUpdate(preferredDirective));
+      preferredDirective,
+      () => _ImportUpdate(preferredDirective),
+    );
     if (deleteHide) {
       update.unhide(requiredName);
     }
@@ -238,7 +268,8 @@ class ImportElementsComputer {
   /// already defined are removed even if they might not resolve to the same
   /// name as in the original source.
   List<ImportedElements> _filterImportedElements(
-      List<ImportedElements> originalList) {
+    List<ImportedElements> originalList,
+  ) {
     var filteredList = <ImportedElements>[];
     for (var elements in originalList) {
       var originalElements = elements.elements;
@@ -252,7 +283,8 @@ class ImportElementsComputer {
         filteredList.add(elements);
       } else if (filteredElements.isNotEmpty) {
         filteredList.add(
-            ImportedElements(elements.path, elements.prefix, filteredElements));
+          ImportedElements(elements.path, elements.prefix, filteredElements),
+        );
       }
     }
     return filteredList;
@@ -262,8 +294,9 @@ class ImportElementsComputer {
   /// match the given specification of [importedElements], or an empty list if
   /// there are no such imports.
   List<ImportDirective> _findMatchingImports(
-      List<ImportDirective> existingImports,
-      ImportedElements importedElements) {
+    List<ImportDirective> existingImports,
+    ImportedElements importedElements,
+  ) {
     var matchingImports = <ImportDirective>[];
     for (var existingImport in existingImports) {
       if (_matches(existingImport, importedElements)) {
@@ -388,6 +421,6 @@ class _InsertionDescription {
   final int newLinesAfter;
 
   _InsertionDescription(this.offset, {int before = 0, int after = 0})
-      : newLinesBefore = before,
-        newLinesAfter = after;
+    : newLinesBefore = before,
+      newLinesAfter = after;
 }

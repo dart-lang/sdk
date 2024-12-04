@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.prefix_builder;
-
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/combinator.dart';
@@ -35,7 +33,7 @@ class PrefixBuilder extends BuilderImpl {
   final Uri fileUri;
 
   @override
-  final int charOffset;
+  final int fileOffset;
 
   final LoadLibraryBuilder? loadLibraryBuilder;
 
@@ -45,7 +43,7 @@ class PrefixBuilder extends BuilderImpl {
       {required this.fileUri,
       required int prefixOffset,
       required int importOffset})
-      : charOffset = prefixOffset,
+      : fileOffset = prefixOffset,
         isWildcard = name == '_' {
     assert(deferred == (loadLibraryBuilder != null),
         "LoadLibraryBuilder must be provided iff prefix is deferred.");
@@ -128,7 +126,7 @@ class PrefixFragment {
           imported!,
           name,
           importOffset,
-          toKernelCombinators(combinators));
+          toCombinators(combinators));
     }
 
     return builder = new PrefixBuilder(

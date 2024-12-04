@@ -31,8 +31,10 @@ int minified(int x, int y) => min(x, y);
     var result = await sendEditOrganizeDirectives(pathname);
     var edit = result.edit;
     expect(edit.edits, hasLength(1));
-    expect(edit.edits.first.replacement,
-        "import 'dart:async';\nimport 'dart:math");
+    expect(
+      edit.edits.first.replacement,
+      "import 'dart:async';\nimport 'dart:math",
+    );
   }
 
   Future<void> test_organize_directives_no_changes() async {

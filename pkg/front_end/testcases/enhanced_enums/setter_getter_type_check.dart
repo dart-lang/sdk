@@ -7,7 +7,7 @@ enum E<T> {
   element2<int>();
 
   static void set element(E<int> val) {} // Ok.
-  static void set element2(E<String> val) {} // Error.
+  static void set element2(E<String> val) {} // Ok.
 }
 
 main() {}

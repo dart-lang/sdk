@@ -13,7 +13,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 String getFilename(String path) => Platform.script.resolve(path).toFilePath();

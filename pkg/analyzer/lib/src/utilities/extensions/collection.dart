@@ -107,6 +107,13 @@ extension MapExtension<K, V> on Map<K, V> {
   K? get firstKey {
     return keys.firstOrNull;
   }
+
+  Map<K, V2> mapValue<V2>(V2 Function(V) convert) {
+    return map((key, value) {
+      var value2 = convert(value);
+      return MapEntry(key, value2);
+    });
+  }
 }
 
 extension MapOfListExtension<K, V> on Map<K, List<V>> {

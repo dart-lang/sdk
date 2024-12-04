@@ -24,24 +24,24 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 class ExecuteCommandHandler
     extends LspMessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler<ExecuteCommandParams, Object>>
-      commandHandlers;
+  commandHandlers;
 
   ExecuteCommandHandler(super.server)
-      : commandHandlers = {
-          Commands.sortMembers: SortMembersCommandHandler(server),
-          Commands.organizeImports: OrganizeImportsCommandHandler(server),
-          Commands.fixAll: FixAllCommandHandler(server),
-          Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
-          Commands.previewFixAllInWorkspace:
-              PreviewFixAllInWorkspaceCommandHandler(server),
-          Commands.performRefactor: PerformRefactorCommandHandler(server),
-          Commands.validateRefactor: ValidateRefactorCommandHandler(server),
-          Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
-          Commands.logAction: LogActionCommandHandler(server),
-          // Add commands for each of the refactorings.
-          for (var entry in RefactoringProcessor.generators.entries)
-            entry.key: RefactorCommandHandler(server, entry.key, entry.value),
-        } {
+    : commandHandlers = {
+        Commands.sortMembers: SortMembersCommandHandler(server),
+        Commands.organizeImports: OrganizeImportsCommandHandler(server),
+        Commands.fixAll: FixAllCommandHandler(server),
+        Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
+        Commands.previewFixAllInWorkspace:
+            PreviewFixAllInWorkspaceCommandHandler(server),
+        Commands.performRefactor: PerformRefactorCommandHandler(server),
+        Commands.validateRefactor: ValidateRefactorCommandHandler(server),
+        Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
+        Commands.logAction: LogActionCommandHandler(server),
+        // Add commands for each of the refactorings.
+        for (var entry in RefactoringProcessor.generators.entries)
+          entry.key: RefactorCommandHandler(server, entry.key, entry.value),
+      } {
     server.executeCommandHandler = this;
   }
 
@@ -53,23 +53,29 @@ class ExecuteCommandHandler
       ExecuteCommandParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Object?>> handle(ExecuteCommandParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<Object?>> handle(
+    ExecuteCommandParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var handler = commandHandlers[params.command];
     if (handler == null) {
-      return error(ServerErrorCodes.UnknownCommand,
-          '${params.command} is not a valid command identifier');
+      return error(
+        ServerErrorCodes.UnknownCommand,
+        '${params.command} is not a valid command identifier',
+      );
     }
 
     if (!handler.recordsOwnAnalytics) {
       server.analyticsManager.executedCommand(params.command);
     }
     var workDoneToken = params.workDoneToken;
-    var progress = workDoneToken != null
-        ? ProgressReporter.clientProvided(server, workDoneToken)
-        // Use editor client capabilities, as that's who gets progress
-        // notifications, not the caller.
-        : server.editorClientCapabilities?.workDoneProgress ?? false
+    var progress =
+        workDoneToken != null
+            ? ProgressReporter.clientProvided(server, workDoneToken)
+            // Use editor client capabilities, as that's who gets progress
+            // notifications, not the caller.
+            : server.editorClientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
 
@@ -87,10 +93,12 @@ class ExecuteCommandHandler
     } else if (arguments.length == 1 && arguments[0] is Map<String, Object?>) {
       commandParams = arguments.single as Map<String, Object?>;
     } else {
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.InvalidCommandArguments,
-        message: '${params.command} requires a single Map argument',
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidCommandArguments,
+          message: '${params.command} requires a single Map argument',
+        ),
+      );
     }
 
     return handler.handle(message, commandParams, progress, token);
@@ -106,9 +114,9 @@ class ExecuteCommandRegistrations extends FeatureRegistration
 
   @override
   ExecuteCommandOptions get staticOptions => ExecuteCommandOptions(
-        commands: Commands.serverSupportedCommands,
-        workDoneProgress: true,
-      );
+    commands: Commands.serverSupportedCommands,
+    workDoneProgress: true,
+  );
 
   @override
   bool get supportsDynamic => false;

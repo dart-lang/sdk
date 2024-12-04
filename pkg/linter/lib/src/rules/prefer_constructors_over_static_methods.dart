@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer defining constructors instead of static methods to create '
@@ -81,10 +80,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on AstNode? {
   InterfaceType? typeToCheckOrNull() => switch (this) {
-        ExtensionTypeDeclaration e =>
-          e.typeParameters == null ? e.declaredElement?.thisType : null,
-        ClassDeclaration c =>
-          c.typeParameters == null ? c.declaredElement?.thisType : null,
+        ExtensionTypeDeclaration e => e.typeParameters == null
+            ? e.declaredFragment?.element.thisType
+            : null,
+        ClassDeclaration c => c.typeParameters == null
+            ? c.declaredFragment?.element.thisType
+            : null,
         _ => null
       };
 }

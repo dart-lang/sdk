@@ -2,48 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:21:12: Error: The type 'int?' of the getter 'A.property3' is not a subtype of the type 'int' of the setter 'A.property3'.
-//   int? get property3; // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:22:12: Context: This is the declaration of the setter 'A.property3'.
-//   void set property3(int i);
-//            ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:38:19: Error: The type 'int?' of the getter 'A.property9' is not a subtype of the type 'int' of the setter 'A.property9'.
-//   static int? get property9 => 0; // error
-//                   ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:39:19: Context: This is the declaration of the setter 'A.property9'.
-//   static void set property9(int value) {}
-//                   ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:63:12: Error: The type 'int?' of the inherited getter 'B1.property3' is not a subtype of the type 'int' of the setter 'B2.property3'.
-//   void set property3(int i); // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:47:12: Context: This is the declaration of the getter 'B1.property3'.
-//   int? get property3;
-//            ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:69:12: Error: The type 'int?' of the inherited field 'B1.property6' is not a subtype of the type 'int' of the setter 'B2.property6'.
-//   void set property6(int i); // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:53:14: Context: This is the declaration of the field 'B1.property6'.
-//   final int? property6;
-//              ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:93:12: Error: The type 'int?' of the getter 'C2.property3' is not a subtype of the type 'int' of the inherited setter 'C1.property3'.
-//   int? get property3; // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:77:12: Context: This is the declaration of the setter 'C1.property3'.
-//   void set property3(int i);
-//            ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:101:12: Error: The type 'int?' of the getter 'C2.property6' is not a subtype of the type 'int' of the inherited setter 'C1.property6'.
-//   int? get property6; // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:83:7: Context: This is the declaration of the setter 'C1.property6'.
-//   int property6;
-//       ^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:101:12: Error: The return type of the method 'C2.property6' is 'int?', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
 // Change to a subtype of 'int'.
 //   int? get property6; // error
@@ -51,54 +9,6 @@ library;
 // pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:83:7: Context: This is the overridden method ('property6').
 //   int property6;
 //       ^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:120:16: Error: The type 'int?' of the inherited getter 'D1.property3' is not a subtype of the type 'int' of the inherited setter 'D2.property3'.
-// abstract class D3 implements D1, D2 /* error on property3 */ {}
-//                ^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:109:12: Context: This is the declaration of the getter 'D1.property3'.
-//   int? get property3;
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:117:12: Context: This is the declaration of the setter 'D2.property3'.
-//   void set property3(int i);
-//            ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:122:16: Error: The type 'int?' of the inherited getter 'D1.property3' is not a subtype of the type 'int' of the inherited setter 'D2.property3'.
-// abstract class D4 implements D3 /* no need for error on property3 */ {}
-//                ^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:109:12: Context: This is the declaration of the getter 'D1.property3'.
-//   int? get property3;
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:117:12: Context: This is the declaration of the setter 'D2.property3'.
-//   void set property3(int i);
-//            ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:11:10: Error: The type 'int?' of the getter 'property3' is not a subtype of the type 'int' of the setter 'property3'.
-// int? get property3 => 0; // error
-//          ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:12:10: Context: This is the declaration of the setter 'property3'.
-// void set property3(int value) {}
-//          ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:131:12: Error: The type 'int?' of the getter 'property3' is not a subtype of the type 'int' of the setter 'property3'.
-//   int? get property3 => 0; // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:132:12: Context: This is the declaration of the setter 'property3'.
-//   void set property3(int i) {}
-//            ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:143:10: Error: The type 'T?' of the getter 'property6' is not a subtype of the type 'T' of the setter 'property6'.
-//   T? get property6 => 0; // error
-//          ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:144:12: Context: This is the declaration of the setter 'property6'.
-//   void set property6(T i) {}
-//            ^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:152:19: Error: The type 'int?' of the getter 'property9' is not a subtype of the type 'int' of the setter 'property9'.
-//   static int? get property9 => 0; // error
-//                   ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:153:19: Context: This is the declaration of the setter 'property9'.
-//   static void set property9(int value) {}
-//                   ^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:134:23: Error: A value of type 'int' can't be returned from a function with return type 'T'.
 //   T get property4a => 0; // ok

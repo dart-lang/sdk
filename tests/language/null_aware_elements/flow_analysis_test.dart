@@ -8,6 +8,8 @@ import '../static_type_helper.dart';
 
 test1(String a, num x) {
   <dynamic, dynamic>{?a: (x as int)};
+  //                 ^
+  // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   x..expectStaticType<Exactly<int>>();
 }
 
@@ -21,6 +23,9 @@ test3(String a, bool b, num x) {
     x as int;
   } else {
     <dynamic, dynamic>{?a: (throw 0)};
+    //                 ^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
+
     // Unreachable.
   }
   x..expectStaticType<Exactly<int>>();

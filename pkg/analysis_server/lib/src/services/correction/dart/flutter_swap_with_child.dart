@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -15,14 +15,16 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   Future<void> swapParentAndChild(
-      ChangeBuilder builder,
-      InstanceCreationExpression parent,
-      InstanceCreationExpression child,
-      bool parentHadSingleChild) async {
+    ChangeBuilder builder,
+    InstanceCreationExpression parent,
+    InstanceCreationExpression child,
+    bool parentHadSingleChild,
+  ) async {
     // The child must have its own single child.
     AstNode stableChild;
     if (_singleChildInChildren(child) case var first?) {
@@ -38,8 +40,9 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         var childArgs = child.argumentList;
         var parentArgs = parent.argumentList;
         var childText = utils.getRangeText(range.startStart(child, childArgs));
-        var parentText =
-            utils.getRangeText(range.startStart(parent, parentArgs));
+        var parentText = utils.getRangeText(
+          range.startStart(parent, parentArgs),
+        );
 
         var parentIndent = utils.getLinePrefix(parent.offset);
         var childIndent = '$parentIndent  ';
@@ -53,11 +56,7 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         for (var argument in childArgs.arguments) {
           if (argument != stableChild) {
             var text = utils.getNodeText(argument);
-            text = utils.replaceSourceIndent(
-              text,
-              childIndent,
-              parentIndent,
-            );
+            text = utils.replaceSourceIndent(text, childIndent, parentIndent);
             builder.write(parentIndent);
             builder.write('  ');
             builder.write(text);
@@ -77,11 +76,7 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         for (var argument in parentArgs.arguments) {
           if (!argument.isChildArgument && !argument.isChildrenArgument) {
             var text = utils.getNodeText(argument);
-            text = utils.replaceSourceIndent(
-              text,
-              parentIndent,
-              childIndent,
-            );
+            text = utils.replaceSourceIndent(text, parentIndent, childIndent);
             builder.write(childIndent);
             builder.write('  ');
             builder.write(text);
@@ -129,7 +124,8 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
   }
 
   InstanceCreationExpression? _singleChildInChildren(
-      InstanceCreationExpression parent) {
+    InstanceCreationExpression parent,
+  ) {
     if (parent.childrenArgument case var childrenArgument?) {
       if (childrenArgument.expression case ListLiteral list) {
         if (list.elements case NodeList(length: 1, first: var first)) {

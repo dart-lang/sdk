@@ -99,8 +99,7 @@ class BinaryExpressionResolver {
     ExpressionInfo<SharedTypeView<DartType>>? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      leftInfo =
-          flow?.equalityOperand_end(left, SharedTypeView(left.typeOrThrow));
+      leftInfo = flow?.equalityOperand_end(left);
     }
 
     _resolver.analyzeExpression(
@@ -109,8 +108,12 @@ class BinaryExpressionResolver {
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
-      flow?.equalityOperation_end(node, leftInfo,
-          flow.equalityOperand_end(right, SharedTypeView(right.typeOrThrow)),
+      flow?.equalityOperation_end(
+          node,
+          leftInfo,
+          SharedTypeView(left.typeOrThrow),
+          flow.equalityOperand_end(right),
+          SharedTypeView(right.typeOrThrow),
           notEqual: notEqual);
     }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/nullability_suffix.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:checks/checks.dart';
@@ -62,7 +61,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('int Function(int)'), Type('String Function(int)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -71,7 +70,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('void Function(int)'), Type('void Function(String)'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -80,7 +79,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('void Function()'), Type('void Function([int])'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -89,7 +88,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('void Function(int)'), Type('void Function([int])'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
     });
@@ -146,7 +145,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('int Function({int x})'), Type('String Function({int x})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -157,7 +156,7 @@ main() {
                 Type('void Function({String x})'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -168,7 +167,7 @@ main() {
                 Type('void Function()'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -177,7 +176,7 @@ main() {
         check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
                 Type('void Function()'), Type('void Function({int x})'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -189,7 +188,7 @@ main() {
                 Type('void Function({int z})'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
     });
@@ -215,7 +214,7 @@ main() {
                 Type('void Function(int, [String])'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
 
@@ -226,7 +225,156 @@ main() {
                 Type('void Function(int, String)'),
                 leftSchema: false,
                 astNodeForTesting: Node.placeholder()))
-            .equals(null);
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+    });
+  });
+
+  group('performSubtypeConstraintGenerationForRecordTypes:', () {
+    test('Matching empty records', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+              Type('()'), Type('()'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .equals(true);
+      check(tcg._constraints).isEmpty();
+    });
+
+    group('Matching records:', () {
+      test('Without named parameters', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(int, String)'), Type('(T, U)'),
+                leftSchema: true, astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+      });
+
+      test('With named parameters', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(int, {String foo})'), Type('(T, {U foo})'),
+                leftSchema: true, astNodeForTesting: Node.placeholder()))
+            .equals(true);
+        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+      });
+    });
+
+    group('Non-matching records without named parameters:', () {
+      test('Non-matching due to positional types', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(int,)'), Type('(String,)'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to parameter numbers', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('()'), Type('(int,)'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to more parameters on LHS', () {
+        var tcg = _TypeConstraintGatherer({});
+        check(tcg.performSubtypeConstraintGenerationForFunctionTypes(
+                Type('(int,)'), Type('()'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+    });
+
+    group('Matching records with named parameters:', () {
+      test('No type parameter occurrences', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({int x, String y})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals([]);
+      });
+
+      test('Type parameters in RHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({int x, String y})'), Type('({T x, U y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+      });
+
+      test('Type parameters in LHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({T x, U y})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      });
+    });
+
+    group('Matching records with named parameters:', () {
+      test('No type parameter occurrences', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({int x, String y})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals([]);
+      });
+
+      test('Type parameters in RHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({int x, String y})'), Type('({T x, U y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals(['int <: T', 'String <: U']);
+      });
+
+      test('Type parameters in LHS', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({T x, U y})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isTrue();
+        check(tcg._constraints).unorderedEquals(['T <: int', 'U <: String']);
+      });
+    });
+
+    group('Non-matching records with named parameters:', () {
+      test('Non-matching due to positional parameter numbers', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(num, num, {T x, U y})'),
+                Type('(num, {int x, String y})'),
+                leftSchema: false,
+                astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to named parameter numbers', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('({T x, U y, num z})'), Type('({int x, String y})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
+        check(tcg._constraints).isEmpty();
+      });
+
+      test('Non-matching due to named parameter names', () {
+        var tcg = _TypeConstraintGatherer({'T', 'U'});
+        check(tcg.performSubtypeConstraintGenerationForRecordTypes(
+                Type('(num, {T x, U y})'), Type('(num, {int x, String x2})'),
+                leftSchema: false, astNodeForTesting: Node.placeholder()))
+            .isFalse();
         check(tcg._constraints).isEmpty();
       });
     });
@@ -236,7 +384,7 @@ main() {
     test('FutureOr matches FutureOr with constraints based on arguments', () {
       // `FutureOr<T> <# FutureOr<int>` reduces to `T <# int`
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('FutureOr<T>'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -247,7 +395,7 @@ main() {
         () {
       // `FutureOr<int> <# FutureOr<String>` reduces to `int <# String`
       var tcg = _TypeConstraintGatherer({});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('FutureOr<int>'), Type('FutureOr<String>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isFalse();
@@ -263,7 +411,7 @@ main() {
       // In cases where both branches produce a constraint, the "Future" branch
       // is favored.
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('Future<int>'), Type('FutureOr<T>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -279,7 +427,7 @@ main() {
       // In cases where only one branch produces a constraint, that branch is
       // favored.
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('Future<_>'), Type('FutureOr<T>'),
               leftSchema: true, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -295,18 +443,48 @@ main() {
       // In cases where both branches produce a constraint, the "Future" branch
       // is favored.
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('T'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
       check(tcg._constraints).deepEquals(['T <: Future<int>']);
     });
 
+    test('Testing FutureOr as the lower bound of the constraint', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftFutureOr(
+              Type('FutureOr<T>'), Type('dynamic'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: dynamic']);
+    });
+
+    test('FutureOr does not match Future in general', () {
+      // `FutureOr<P0> <# Q` if `Future<P0> <# Q` and `P0 <# Q`. This test case
+      // verifies that if `Future<P0> <# Q` matches but `P0 <# Q` does not, then
+      // the match fails.
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftFutureOr(
+              Type('FutureOr<(T,)>'), Type('Future<(int,)>'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isFalse();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('Testing nested FutureOr as the lower bound of the constraint', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftFutureOr(
+              Type('FutureOr<FutureOr<T>>'), Type('FutureOr<dynamic>'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: dynamic', 'T <: dynamic']);
+    });
+
     test('Future matches FutureOr with no constraints', () {
       // `Future<int> <# FutureOr<int>` matches (taking the "Future" branch of
       // the FutureOr) without generating any constraints.
       var tcg = _TypeConstraintGatherer({});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('Future<int>'), Type('FutureOr<int>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -318,7 +496,7 @@ main() {
       // "non-Future" branch of the FutureOr, so the constraint `T <: int` is
       // produced.
       var tcg = _TypeConstraintGatherer({'T'});
-      check(tcg.performSubtypeConstraintGenerationForFutureOr(
+      check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
               Type('List<T>'), Type('FutureOr<List<int>>'),
               leftSchema: false, astNodeForTesting: Node.placeholder()))
           .isTrue();
@@ -328,7 +506,7 @@ main() {
     group('Nullable FutureOr on RHS:', () {
       test('Does not match, according to spec', () {
         var tcg = _TypeConstraintGatherer({'T'});
-        check(tcg.performSubtypeConstraintGenerationForFutureOr(
+        check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
                 Type('FutureOr<T>'), Type('FutureOr<int>?'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
@@ -338,7 +516,7 @@ main() {
       test('Matches, according to CFE discrepancy', () {
         var tcg = _TypeConstraintGatherer({'T'},
             enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr: true);
-        check(tcg.performSubtypeConstraintGenerationForFutureOr(
+        check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
                 Type('FutureOr<T>'), Type('FutureOr<int>?'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
@@ -349,7 +527,7 @@ main() {
     group('Nullable FutureOr on LHS:', () {
       test('Does not match, according to spec', () {
         var tcg = _TypeConstraintGatherer({'T'});
-        check(tcg.performSubtypeConstraintGenerationForFutureOr(
+        check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
                 Type('FutureOr<T>?'), Type('FutureOr<int>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isFalse();
@@ -359,12 +537,135 @@ main() {
       test('Matches, according to CFE discrepancy', () {
         var tcg = _TypeConstraintGatherer({'T'},
             enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr: true);
-        check(tcg.performSubtypeConstraintGenerationForFutureOr(
+        check(tcg.performSubtypeConstraintGenerationForRightFutureOr(
                 Type('FutureOr<T>?'), Type('FutureOr<int>'),
                 leftSchema: false, astNodeForTesting: Node.placeholder()))
             .isTrue();
         check(tcg._constraints).deepEquals(['T <: int']);
       });
+    });
+  });
+
+  group('performSubtypeConstraintGenerationForLeftNullableType:', () {
+    test('Nullable matches nullable with constraints based on base types', () {
+      // `T? <# int?` reduces to `T <# int?`
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftNullableType(
+              Type('T?'), Type('Null'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: Null']);
+    });
+
+    test('Nullable does not match Nullable because base types fail to match',
+        () {
+      // `int? <# String?` reduces to `int <# String`
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForLeftNullableType(
+              Type('int?'), Type('String?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isFalse();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('Nullable does not match non-nullable', () {
+      // `(int, T)? <# (int, String)` does not match
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForLeftNullableType(
+              Type('(int, T)?'), Type('(int, String)'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isFalse();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('Both LHS and RHS nullable, matching', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('T?'), Type('int?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: int']);
+    });
+
+    test('Both LHS and RHS nullable, not matching', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('(T, int)?'), Type('(int, String)?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isFalse();
+      check(tcg._constraints).isEmpty();
+    });
+  });
+
+  group('performSubtypeConstraintGenerationForRightNullableType:', () {
+    test('Null matches Nullable favoring non-Null branch', () {
+      // `Null <# T?` could match in two possible ways:
+      // - `Null <# Null` (taking the "Null" branch of the FutureOr), producing
+      //   the empty constraint set.
+      // - `Null <# T` (taking the "non-Null" branch of the FutureOr),
+      //   producing `Null <: T`
+      // In cases where both branches produce a constraint, the "non-Null"
+      // branch is favored.
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('Null'), Type('T?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['Null <: T']);
+    });
+
+    test('Type matches Nullable favoring the non-Null branch', () {
+      // `T <# int?` could match in two possible ways:
+      // - `T <# Null` (taking the "Null" branch of the Nullable),
+      //   producing `T <: Null`
+      // - `T <# int` (taking the "non-Null" branch of the Nullable),
+      //   producing `T <: int`
+      // In cases where both branches produce a constraint, the "non-Null"
+      // branch is favored.
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('T'), Type('int?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).deepEquals(['T <: int']);
+    });
+
+    test('Null matches Nullable with no constraints', () {
+      // `Null <# int?` matches (taking the "Null" branch of
+      // the Nullable) without generating any constraints.
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('Null'), Type('int?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('Dynamic matches Object?', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('dynamic'), Type('Object?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('void matches Object?', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('void'), Type('Object?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).isEmpty();
+    });
+
+    test('LHS not nullable, matches with no constraints', () {
+      var tcg = _TypeConstraintGatherer({});
+      check(tcg.performSubtypeConstraintGenerationForRightNullableType(
+              Type('int'), Type('int?'),
+              leftSchema: false, astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).isEmpty();
     });
   });
 
@@ -526,6 +827,34 @@ main() {
       check(tcg._constraints).isEmpty();
     });
   });
+
+  group('matchTypeParameterBoundInternal', () {
+    test('Non-promoted parameter on LHS', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationInternal(
+              TypeParameterType(TypeRegistry.addTypeParameter('X')
+                ..explicitBound = Type('Future<String>')),
+              Type('Future<T>'),
+              leftSchema: false,
+              astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).unorderedEquals(['String <: T']);
+    });
+
+    test('Promoted parameter on LHS', () {
+      var tcg = _TypeConstraintGatherer({'T'});
+      check(tcg.performSubtypeConstraintGenerationInternal(
+              TypeParameterType(
+                  TypeRegistry.addTypeParameter('X')
+                    ..explicitBound = Type('Object'),
+                  promotion: Type('Future<num>')),
+              Type('Future<T>'),
+              leftSchema: false,
+              astNodeForTesting: Node.placeholder()))
+          .isTrue();
+      check(tcg._constraints).unorderedEquals(['num <: T']);
+    });
+  });
 }
 
 class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
@@ -533,7 +862,8 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
     with
         TypeConstraintGeneratorMixin<Type, NamedFunctionParameter, Var,
             TypeParameter, Type, String, Node> {
-  final _typeVariablesBeingConstrained = <TypeParameter>{};
+  @override
+  final Set<TypeParameter> typeParametersToConstrain = <TypeParameter>{};
 
   @override
   final bool enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr;
@@ -544,10 +874,10 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
   final _constraints = <String>[];
 
   _TypeConstraintGatherer(Set<String> typeVariablesBeingConstrained,
-      {this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr =
-          false}) {
+      {this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr = false})
+      : super(inferenceUsingBoundsIsEnabled: false) {
     for (var typeVariableName in typeVariablesBeingConstrained) {
-      _typeVariablesBeingConstrained
+      typeParametersToConstrain
           .add(TypeRegistry.addTypeParameter(typeVariableName));
     }
   }
@@ -572,6 +902,7 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
       case (PrimaryType(name: 'int'), 'String'):
       case (PrimaryType(name: 'List'), 'Future'):
       case (PrimaryType(name: 'String'), 'int'):
+      case (PrimaryType(name: 'Future'), 'String'):
         // Unrelated types
         return null;
       default:
@@ -581,58 +912,41 @@ class _TypeConstraintGatherer extends TypeConstraintGenerator<Type,
   }
 
   @override
-  bool performSubtypeConstraintGenerationInternal(Type p, Type q,
-      {required bool leftSchema, required Node? astNodeForTesting}) {
-    // If `P` is `_` then the match holds with no constraints.
-    if (p is SharedUnknownTypeStructure) {
-      return true;
-    }
-
-    // If `Q` is `_` then the match holds with no constraints.
-    if (q is SharedUnknownTypeStructure) {
-      return true;
-    }
-
-    // If T is a type variable being constrained, then `T <# Q` matches,
-    // generating the constraint `T <: Q`.
-    if (typeAnalyzerOperations.matchInferableParameter(SharedTypeView(p))
-        case var typeVar?
-        when p.nullabilitySuffix == NullabilitySuffix.none &&
-            _typeVariablesBeingConstrained.contains(typeVar)) {
-      _constraints.add('$typeVar <: $q');
-      return true;
-    }
-
-    // If T is a type variable being constrained, then `P <# T` matches,
-    // generating the constraint `P <: T`.
-    if (typeAnalyzerOperations.matchInferableParameter(SharedTypeView(q))
-        case var typeVar?
-        when q.nullabilitySuffix == NullabilitySuffix.none &&
-            _typeVariablesBeingConstrained.contains(typeVar)) {
-      _constraints.add('$p <: $typeVar');
-      return true;
-    }
-
-    // If `P` and `Q` are identical types, then the subtype match holds
-    // under no constraints.
-    if (p == q) {
-      return true;
-    }
-
-    bool? result = performSubtypeConstraintGenerationForTypeDeclarationTypes(
-        p, q,
-        leftSchema: leftSchema, astNodeForTesting: astNodeForTesting);
-    if (result != null) {
-      return result;
-    }
-
-    // Assume for the moment that nothing else matches.
-    // TODO(paulberry): expand this as needed.
-    return false;
+  void restoreState(TypeConstraintGeneratorState state) {
+    _constraints.length = state.count;
   }
 
   @override
-  void restoreState(TypeConstraintGeneratorState state) {
-    _constraints.length = state.count;
+  void addUpperConstraintForParameter(TypeParameter typeParameter, Type upper,
+      {required Node? astNodeForTesting}) {
+    _constraints.add('$typeParameter <: $upper');
+  }
+
+  @override
+  void addLowerConstraintForParameter(TypeParameter typeParameter, Type lower,
+      {required Node? astNodeForTesting}) {
+    _constraints.add('$lower <: $typeParameter');
+  }
+
+  @override
+  void eliminateTypeParametersInGeneratedConstraints(
+      Object eliminator, TypeConstraintGeneratorState eliminationStartState,
+      {required Node? astNodeForTesting}) {
+    // TODO(paulberry): implement eliminateTypeParametersInGeneratedConstraints
+  }
+
+  @override
+  (
+    Type,
+    Type, {
+    List<TypeParameter> typeParametersToEliminate
+  }) instantiateFunctionTypesAndProvideFreshTypeParameters(
+      SharedFunctionTypeStructure<Type, TypeParameter, NamedFunctionParameter>
+          p,
+      SharedFunctionTypeStructure<Type, TypeParameter, NamedFunctionParameter>
+          q,
+      {required bool leftSchema}) {
+    // TODO(paulberry): implement instantiateFunctionTypesAndProvideEliminator
+    throw UnimplementedError();
   }
 }

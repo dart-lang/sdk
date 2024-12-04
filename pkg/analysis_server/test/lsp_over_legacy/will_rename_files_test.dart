@@ -35,12 +35,13 @@ class WillRenameFilesTest extends LspOverLegacyTest {
       ),
     ]);
 
-    var cancelRequest =
-        createLegacyRequest(ServerCancelRequestParams(lastSentLegacyRequestId));
-    await handleRequest(cancelRequest);
-
+    var cancelRequest = createLegacyRequest(
+      ServerCancelRequestParams(lastSentLegacyRequestId),
+    );
+    var req1 = handleRequest(cancelRequest);
     // Expect the cancellation was forwarded and handled by the LSP handler.
-    expect(editFuture, throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    await expectLater(editFuture, throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    await req1;
   }
 
   Future<void> test_inconsistentAnalysis() async {
@@ -62,15 +63,10 @@ class WillRenameFilesTest extends LspOverLegacyTest {
       ]);
       // Allow the refactor time to start before sending the update. We know the
       // refactor won't complete because it's waiting for the future we control.
-      await pumpEventQueue(times: 5000);
-      await updateOverlay(testFilePath, SourceEdit(0, 0, 'inserted'));
-
-      // Allow time for the overlay to be applied and analyzed before allowing
-      // the refactor to continue.
-      await pumpEventQueue(times: 5000);
+      var request = updateOverlay(testFilePath, SourceEdit(0, 0, 'inserted'));
       completer.complete();
-
-      expect(editFuture, throwsA(isResponseError(ErrorCodes.ContentModified)));
+      await expectLater(editFuture, throwsA(isResponseError(ErrorCodes.ContentModified)));
+      await request;
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
       WillRenameFilesHandler.delayDuringComputeForTests = null;

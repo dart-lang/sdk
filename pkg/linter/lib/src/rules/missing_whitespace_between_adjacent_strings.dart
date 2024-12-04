@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Missing whitespace between adjacent strings.';
 
@@ -67,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static bool _isRegExpInstanceCreation(AstNode? node) {
     if (node is InstanceCreationExpression) {
       var constructorElement = node.constructorName.element;
-      return constructorElement?.enclosingElement2?.name == 'RegExp';
+      return constructorElement?.enclosingElement2.name3 == 'RegExp';
     }
     return false;
   }

@@ -7,16 +7,16 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
 //
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
+
+/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+/// @docImport 'package:analyzer/src/task/inference_error.dart';
+library;
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
@@ -182,8 +182,7 @@ class FfiCode extends AnalyzerErrorCode {
 
   ///  No parameters.
   static const FfiCode
-      FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER =
-      FfiCode(
+  FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER = FfiCode(
     'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
     "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
     correctionMessage: "Pass as Handle instead.",
@@ -204,7 +203,7 @@ class FfiCode extends AnalyzerErrorCode {
   ///  0: the expected number of parameters
   ///  1: the actual number of parameters
   static const FfiCode
-      FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
+  FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
     "Unexpected number of Native annotation parameters. Expected {0} but has "
         "{1}. Native instance method annotation must have receiver as first "
@@ -513,10 +512,10 @@ class FfiCode extends AnalyzerErrorCode {
     super.isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'FfiCode.${uniqueName ?? name}',
-        );
+         name: name,
+         problemMessage: problemMessage,
+         uniqueName: 'FfiCode.${uniqueName ?? name}',
+       );
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;

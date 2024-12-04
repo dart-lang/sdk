@@ -20,7 +20,8 @@ void main() {
     defineReflectiveTests(AddConst_PreferConstConstructorsBulkTest);
     defineReflectiveTests(AddConst_PreferConstConstructorsTest);
     defineReflectiveTests(
-        AddConst_PreferConstLiteralsToCreateImmutablesBulkTest);
+      AddConst_PreferConstLiteralsToCreateImmutablesBulkTest,
+    );
     defineReflectiveTests(AddConst_PreferConstLiteralsToCreateImmutablesTest);
   });
 }
@@ -425,6 +426,94 @@ class AddConst_PreferConstConstructorsBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.prefer_const_constructors;
 
+  Future<void> test_final() async {
+    writeTestPackageConfig(meta: true);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode(r'''
+class C {
+  const C([C? c]);
+}
+final c = C(C());
+''');
+    await assertHasFix(r'''
+class C {
+  const C([C? c]);
+}
+const c = C(C());
+''');
+  }
+
+  Future<void> test_final_variableDeclarationList_const() async {
+    writeTestPackageConfig(meta: true);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode(r'''
+class C {
+  const C([C? c]);
+}
+final c1 = C(C()), c2 = C();
+''');
+    await assertHasFix(r'''
+class C {
+  const C([C? c]);
+}
+const c1 = C(C()), c2 = C();
+''');
+  }
+
+  Future<void> test_final_variableDeclarationList_nonConst_first() async {
+    writeTestPackageConfig(meta: true);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode(r'''
+class C {
+  const C([C? c]);
+}
+final f = Future.value(7), c = C(C());
+''');
+    await assertHasFix(r'''
+class C {
+  const C([C? c]);
+}
+final f = Future.value(7), c = const C(C());
+''');
+  }
+
+  Future<void> test_final_variableDeclarationList_nonConst_last() async {
+    writeTestPackageConfig(meta: true);
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode(r'''
+class C {
+  const C([C? c]);
+}
+final c = C(C()), f = Future.value(7);
+''');
+    await assertHasFix(r'''
+class C {
+  const C([C? c]);
+}
+final c = const C(C()), f = Future.value(7);
+''');
+  }
+
   Future<void> test_noKeyword() async {
     writeTestPackageConfig(meta: true);
     await resolveTestCode(r'''
@@ -485,9 +574,7 @@ class AddConst_PreferConstConstructorsInImmutablesTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      meta: true,
-    );
+    writeTestPackageConfig(meta: true);
   }
 
   Future<void> test_default() async {
@@ -538,6 +625,33 @@ class AddConst_PreferConstConstructorsTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.prefer_const_constructors;
+
+  Future<void> test_final_variable() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode('''
+class C {
+  const C();
+}
+void f() {
+  final c = C();
+  print(c);
+}
+''');
+    await assertHasFix('''
+class C {
+  const C();
+}
+void f() {
+  const c = C();
+  print(c);
+}
+''');
+  }
 
   Future<void> test_new() async {
     await resolveTestCode('''
@@ -605,9 +719,7 @@ class AddConst_PreferConstLiteralsToCreateImmutablesBulkTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      meta: true,
-    );
+    writeTestPackageConfig(meta: true);
   }
 
   Future<void> test_map() async {
@@ -655,9 +767,7 @@ class AddConst_PreferConstLiteralsToCreateImmutablesTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      meta: true,
-    );
+    writeTestPackageConfig(meta: true);
   }
 
   Future<void> test_list() async {

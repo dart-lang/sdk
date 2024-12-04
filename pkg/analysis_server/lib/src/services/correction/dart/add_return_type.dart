@@ -43,7 +43,8 @@ class AddReturnType extends ResolvedCorrectionProducer {
       if (executable.isSetter) {
         return;
       }
-      insertBeforeEntity = executable.operatorKeyword ??
+      insertBeforeEntity =
+          executable.operatorKeyword ??
           executable.propertyKeyword ??
           executable.name;
       body = executable.body;

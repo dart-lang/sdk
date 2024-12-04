@@ -19,7 +19,11 @@ import 'package:language_server_protocol/protocol_special.dart';
 /// The handler for the `lsp.handle` request.
 class LspOverLegacyHandler extends LegacyHandler {
   LspOverLegacyHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   bool get recordsOwnAnalytics => true;
@@ -28,26 +32,32 @@ class LspOverLegacyHandler extends LegacyHandler {
   Future<void> handle() async {
     server.initializeLspOverLegacy();
 
-    var params = LspHandleParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = LspHandleParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var lspMessageJson = params.lspMessage;
     var reporter = LspJsonReporter();
-    var lspMessage = lspMessageJson is Map<String, Object?> &&
-            RequestMessage.canParse(lspMessageJson, reporter)
-        ? RequestMessage.fromJson({
-            // Pass across any clientRequestTime from the envelope so that we
-            // can record latency for LSP-over-Legacy requests.
-            'clientRequestTime': request.clientRequestTime,
-            ...lspMessageJson,
-          })
-        : null;
+    var lspMessage =
+        lspMessageJson is Map<String, Object?> &&
+                RequestMessage.canParse(lspMessageJson, reporter)
+            ? RequestMessage.fromJson({
+              // Pass across any clientRequestTime from the envelope so that we
+              // can record latency for LSP-over-Legacy requests.
+              'clientRequestTime': request.clientRequestTime,
+              ...lspMessageJson,
+            })
+            : null;
 
     if (lspMessage != null) {
       server.analyticsManager.startedRequestMessage(
-          request: lspMessage, startTime: DateTime.now());
+        request: lspMessage,
+        startTime: DateTime.now(),
+      );
       await handleRequest(lspMessage);
     } else {
-      var message = "The 'lspMessage' parameter was not a valid LSP request:\n"
+      var message =
+          "The 'lspMessage' parameter was not a valid LSP request:\n"
           "${reporter.errors.join('\n')}";
       var error = RequestError(RequestErrorCode.INVALID_PARAMETER, message);
       sendResponse(Response(request.id, error: error));
@@ -65,8 +75,11 @@ class LspOverLegacyHandler extends LegacyHandler {
     try {
       // Since this (legacy) request was already scheduled, we immediately
       // execute the wrapped LSP request without additional scheduling.
-      result = await server.immediatelyHandleLspMessage(message, messageInfo,
-          cancellationToken: cancellationToken);
+      result = await server.immediatelyHandleLspMessage(
+        message,
+        messageInfo,
+        cancellationToken: cancellationToken,
+      );
     } on InconsistentAnalysisException {
       result = error(
         ErrorCodes.ContentModified,

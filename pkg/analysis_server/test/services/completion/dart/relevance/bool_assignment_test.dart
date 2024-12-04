@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class BoolAssignmentTest extends CompletionRelevanceTest
     with BoolAssignmentTestCases {
-  @FailingTest(reason: r'''
+  @FailingTest(
+    reason: r'''
 The actual relevances are:
 [completion: bool.fromEnvironment][relevance: 591]
 [completion: bool.hasEnvironment][relevance: 591]
@@ -28,7 +29,8 @@ The actual relevances are:
   for (var e in result) {
     print('[completion: ${e.completion}][relevance: ${e.relevance}]');
   }
-''')
+''',
+  )
   @override
   Future<void> test_boolLiterals_imported() {
     // TODO(scheglov): implement test_boolLiterals_imported
@@ -46,15 +48,20 @@ foo() {
 ''');
 
     var trueSuggestion = suggestionWith(
-        completion: 'true', kind: CompletionSuggestionKind.KEYWORD);
+      completion: 'true',
+      kind: CompletionSuggestionKind.KEYWORD,
+    );
 
     var falseSuggestion = suggestionWith(
-        completion: 'false', kind: CompletionSuggestionKind.KEYWORD);
+      completion: 'false',
+      kind: CompletionSuggestionKind.KEYWORD,
+    );
 
     var boolFromEnvironment = suggestionWith(
-        completion: 'bool.fromEnvironment',
-        element: ElementKind.CONSTRUCTOR,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'bool.fromEnvironment',
+      element: ElementKind.CONSTRUCTOR,
+      kind: CompletionSuggestionKind.INVOCATION,
+    );
 
     assertOrder([trueSuggestion, falseSuggestion, boolFromEnvironment]);
   }
@@ -68,15 +75,20 @@ foo() {
 ''');
 
     var trueSuggestion = suggestionWith(
-        completion: 'true', kind: CompletionSuggestionKind.KEYWORD);
+      completion: 'true',
+      kind: CompletionSuggestionKind.KEYWORD,
+    );
 
     var falseSuggestion = suggestionWith(
-        completion: 'false', kind: CompletionSuggestionKind.KEYWORD);
+      completion: 'false',
+      kind: CompletionSuggestionKind.KEYWORD,
+    );
 
     var bLocalVar = suggestionWith(
-        completion: 'b',
-        element: ElementKind.LOCAL_VARIABLE,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+      completion: 'b',
+      element: ElementKind.LOCAL_VARIABLE,
+      kind: CompletionSuggestionKind.IDENTIFIER,
+    );
 
     assertOrder([bLocalVar, trueSuggestion, falseSuggestion]);
   }

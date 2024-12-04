@@ -15,7 +15,6 @@ linter:
     - comment_references
     - directives_ordering
     - omit_local_variable_types
-    - package_api_docs
     - prefer_const_constructors
     - throw_in_finally
     - unnecessary_lambdas

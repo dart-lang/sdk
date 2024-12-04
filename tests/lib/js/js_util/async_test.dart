@@ -9,8 +9,8 @@ import 'dart:async';
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
-import 'package:expect/minitest.dart'; // ignore: deprecated_member_use_from_same_package
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/async_helper.dart';
 
 @JS()
 external void eval(String code);

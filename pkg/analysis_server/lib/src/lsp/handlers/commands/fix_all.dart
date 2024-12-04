@@ -15,10 +15,8 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/utilities/source_change_merger.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 
-class FixAllCommandHandler extends SimpleEditCommandHandler
-    with LspHandlerHelperMixin {
+class FixAllCommandHandler extends SimpleEditCommandHandler {
   FixAllCommandHandler(super.server);
 
   @override
@@ -32,10 +30,12 @@ class FixAllCommandHandler extends SimpleEditCommandHandler
     CancellationToken cancellationToken,
   ) async {
     if (parameters['path'] is! String) {
-      return ErrorOr.error(ResponseError(
-        code: ServerErrorCodes.InvalidCommandArguments,
-        message: '$commandName requires a Map argument containing a "path"',
-      ));
+      return ErrorOr.error(
+        ResponseError(
+          code: ServerErrorCodes.InvalidCommandArguments,
+          message: '$commandName requires a Map argument containing a "path"',
+        ),
+      );
     }
 
     // Get the version of the doc before we calculate edits so we can send it
@@ -62,7 +62,7 @@ class FixAllCommandHandler extends SimpleEditCommandHandler
       // Before we send an edit back, ensure the original file didn't change
       // (or the request cancelled) while we were computing changes.
       if (cancellationToken.isCancellationRequested) {
-        return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+        return cancelled(cancellationToken);
       }
       // If the client modified the file, it's possible (though unlikely since
       // we only just unlocked the queue and having had many 'await's) that the
@@ -101,16 +101,12 @@ class _FixAllOperation extends TemporaryOverlayOperation
   }) : super(server);
 
   Future<ErrorOr<WorkspaceEdit?>> computeEdits() async {
-    return await lockRequestsWithTemporaryOverlays(() async {
-      var result = await requireResolvedUnit(path);
-      return result.mapResult(_computeEditsImpl);
-    });
+    return await lockRequestsWithTemporaryOverlays(_computeEditsImpl);
   }
 
-  Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl(
-      ResolvedUnitResult result) async {
+  Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl() async {
     if (cancellationToken.isCancellationRequested) {
-      return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+      return cancelled(cancellationToken);
     }
 
     var context = server.contextManager.getContextFor(path);
@@ -126,8 +122,11 @@ class _FixAllOperation extends TemporaryOverlayOperation
       cancellationToken: cancellationToken,
     );
 
-    var changes = await processor.fixErrorsForFile(message.performance, path,
-        autoTriggered: autoTriggered);
+    var changes = await processor.fixErrorsForFile(
+      message.performance,
+      path,
+      autoTriggered: autoTriggered,
+    );
     if (changes.isEmpty) {
       return success(null);
     }
@@ -145,7 +144,10 @@ class _FixAllOperation extends TemporaryOverlayOperation
     await revertOverlays();
 
     var edit = createPlainWorkspaceEdit(
-        server, server.editorClientCapabilities!, changes);
+      server,
+      server.editorClientCapabilities!,
+      changes,
+    );
 
     return success(edit);
   }

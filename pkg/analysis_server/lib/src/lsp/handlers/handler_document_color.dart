@@ -11,8 +11,8 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
-typedef StaticOptions
-    = Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>;
+typedef StaticOptions =
+    Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>;
 
 /// Handles textDocument/documentColor requests.
 ///
@@ -35,8 +35,11 @@ class DocumentColorHandler
   bool get requiresTrustedCaller => false;
 
   @override
-  Future<ErrorOr<List<ColorInformation>>> handle(DocumentColorParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<ColorInformation>>> handle(
+    DocumentColorParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success([]);
     }

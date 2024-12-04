@@ -151,7 +151,9 @@ CompileTimeErrorCode.AMBIGUOUS_EXPORT:
   status: needsFix
   notes: |-
     For each exported name, add a fix to hide the name.
-CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
+CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE:
+  status: hasFix
+CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO:
   status: hasFix
 CompileTimeErrorCode.AMBIGUOUS_IMPORT:
   status: needsFix
@@ -2196,6 +2198,8 @@ LintCode.omit_local_variable_types:
   status: hasFix
 LintCode.omit_obvious_local_variable_types:
   status: hasFix
+LintCode.omit_obvious_property_types:
+  status: hasFix
 LintCode.one_member_abstracts:
   status: noFix
   notes: |-
@@ -2204,8 +2208,6 @@ LintCode.one_member_abstracts:
 LintCode.only_throw_errors:
   status: noFix
 LintCode.overridden_fields:
-  status: noFix
-LintCode.package_api_docs:
   status: noFix
 LintCode.package_names:
   status: noFix
@@ -2359,6 +2361,8 @@ LintCode.sort_unnamed_constructors_first:
   status: hasFix
 LintCode.specify_nonobvious_local_variable_types:
   status: hasFix
+LintCode.specify_nonobvious_property_types:
+  status: hasFix
 LintCode.test_types_in_equals:
   status: noFix
 LintCode.throw_in_finally:
@@ -2437,12 +2441,13 @@ LintCode.unrelated_type_equality_checks_in_expression:
   status: needsEvaluation
 LintCode.unrelated_type_equality_checks_in_pattern:
   status: needsEvaluation
-LintCode.unsafe_html_attribute:
+LintCode.unsafe_variance:
   status: noFix
-LintCode.unsafe_html_method:
-  status: noFix
-LintCode.unsafe_html_constructor:
-  status: noFix
+  notes: |-
+    A type like `X Function([X])` could be replaced by `X Function()`,
+    or by `X Function([Never])`, or by `Function`, depending on the
+    situation and the preferences of the developer. There is no
+    universally applicable fix.
 LintCode.use_build_context_synchronously_async_use:
   status: noFix
 LintCode.use_build_context_synchronously_wrong_mounted:
@@ -3371,6 +3376,12 @@ StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
   status: hasFix
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
+StaticWarningCode.INVALID_NULL_AWARE_ELEMENT:
+  status: needsEvaluation
+StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY:
+  status: needsEvaluation
+StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE:
+  status: needsEvaluation
 StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
   status: hasFix
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:

@@ -6,7 +6,7 @@
 // should be nullable compared to context type schema for a non-null-aware
 // spread).
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 main() {
   {

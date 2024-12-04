@@ -15,8 +15,9 @@ class MakeClassAbstract extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_className];
@@ -34,7 +35,9 @@ class MakeClassAbstract extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
-          enclosingClass.firstTokenAfterCommentAndMetadata.offset, 'abstract ');
+        enclosingClass.firstTokenAfterCommentAndMetadata.offset,
+        'abstract ',
+      );
     });
   }
 }

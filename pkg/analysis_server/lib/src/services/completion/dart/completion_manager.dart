@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
@@ -9,6 +10,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_state.da
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_completion_pass.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -18,6 +20,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
@@ -32,6 +35,7 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/completion_matcher.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -76,6 +80,11 @@ class DartCompletionManager {
   /// with the import index property updated.
   final NotImportedSuggestions? notImportedSuggestions;
 
+  /// Whether the number of suggestions initallly computed was
+  /// greater than the [maxSuggestions] for a given request, and they were
+  /// truncated to fit.
+  bool isTruncated = false;
+
   DartCompletionManager({
     required this.budget,
     this.listener,
@@ -95,6 +104,12 @@ class DartCompletionManager {
     request.checkAborted();
 
     var collector = SuggestionCollector(maxSuggestions: maxSuggestions);
+
+    // Don't suggest in comments.
+    if (request.target.isCommentText) {
+      return collector;
+    }
+
     try {
       var selection = request.unit.select(offset: request.offset, length: 0);
       if (selection == null) {
@@ -105,38 +120,59 @@ class DartCompletionManager {
       var matcher =
           targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
       var state = CompletionState(request, selection, budget, matcher);
-      var operations = performance.run(
-        'InScopeCompletionPass',
-        (performance) {
-          var pass = InScopeCompletionPass(
-            state: state,
-            collector: collector,
-            skipImports: skipImports,
-            suggestOverrides: suggestOverrides,
-            suggestUris: suggestUris,
-          );
-          pass.computeSuggestions();
-          state.request.collectorLocationName = collector.completionLocation;
-          return pass.notImportedOperations;
-        },
-      );
+      var operations = performance.run('InScopeCompletionPass', (performance) {
+        var pass = InScopeCompletionPass(
+          state: state,
+          collector: collector,
+          skipImports: skipImports,
+          suggestOverrides: suggestOverrides,
+          suggestUris: suggestUris,
+        );
+        pass.computeSuggestions();
+        state.request.collectorLocationName = collector.completionLocation;
+        return pass.notImportedOperations;
+      });
 
       request.checkAborted();
       if (operations.isNotEmpty && notImportedSuggestions != null) {
-        await performance.runAsync(
-          'NotImportedCompletionPass',
-          (performance) async {
-            await NotImportedCompletionPass(
-                    state: state, collector: collector, operations: operations)
-                .computeSuggestions(performance: performance);
-          },
-        );
+        await performance.runAsync('NotImportedCompletionPass', (
+          performance,
+        ) async {
+          await NotImportedCompletionPass(
+            state: state,
+            collector: collector,
+            operations: operations,
+          ).computeSuggestions(performance: performance);
+        });
       }
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
       // to be inconsistent. Just abort the operation.
       throw AbortCompletion();
     }
+    return collector;
+  }
+
+  /// Return a suggestion collector containing a finalized list of suggestions.
+  Future<SuggestionCollector> computeFinalizedCandidateSuggestions({
+    required int maxSuggestions,
+    required OperationPerformanceImpl performance,
+    required DartCompletionRequest request,
+  }) async {
+    var collector = await computeCandidateSuggestions(
+      maxSuggestions: maxSuggestions,
+      performance: performance,
+      request: request,
+    );
+
+    var notImportedSuggestions = this.notImportedSuggestions;
+
+    if (notImportedSuggestions != null && collector.isIncomplete) {
+      notImportedSuggestions.isIncomplete = true;
+    }
+    // Compute relevance, sort and truncate list.
+    isTruncated = collector.suggestions.length > maxSuggestions;
+    collector.finalize(RelevanceComputer(request, listener));
     return collector;
   }
 
@@ -160,16 +196,23 @@ class DartCompletionManager {
     }
 
     var collector = await computeCandidateSuggestions(
-        maxSuggestions: maxSuggestions,
-        performance: performance,
-        request: request,
-        suggestOverrides: enableOverrideContributor,
-        suggestUris: enableUriContributor);
+      maxSuggestions: maxSuggestions,
+      performance: performance,
+      request: request,
+      suggestOverrides: enableOverrideContributor,
+      suggestUris: enableUriContributor,
+    );
 
-    var builder =
-        SuggestionBuilder(request, useFilter: useFilter, listener: listener);
-    await builder.suggestFromCandidates(collector.suggestions,
-        collector.preferConstants, collector.completionLocation);
+    var builder = SuggestionBuilder(
+      request,
+      useFilter: useFilter,
+      listener: listener,
+    );
+    await builder.suggestFromCandidates(
+      collector.suggestions,
+      collector.preferConstants,
+      collector.completionLocation,
+    );
 
     var notImportedSuggestions = this.notImportedSuggestions;
 
@@ -195,8 +238,9 @@ class DartCompletionRequest {
   /// context, or `null` if the context does not impose any type.
   final DartType? contextType;
 
-  /// Return the object used to resolve macros in Dartdoc comments.
-  final DartdocDirectiveInfo dartdocDirectiveInfo;
+  /// Return the object used to compute documentation for elements and resolve
+  /// macros in Dartdoc comments.
+  final DartDocumentationComputer documentationComputer;
 
   /// Return the object used to compute the values of the features used to
   /// compute relevance scores for suggestions.
@@ -284,7 +328,9 @@ class DartCompletionRequest {
       completionPreference: completionPreference,
       content: fileContent,
       contextType: contextType,
-      dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      documentationComputer: DartDocumentationComputer(
+        dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
+      ),
       featureComputer: featureComputer,
       libraryElement: libraryElement,
       libraryFragment: unitElement,
@@ -325,7 +371,7 @@ class DartCompletionRequest {
     required this.completionPreference,
     required this.content,
     required this.contextType,
-    required this.dartdocDirectiveInfo,
+    required this.documentationComputer,
     required this.featureComputer,
     required this.libraryElement,
     required this.libraryFragment,
@@ -356,6 +402,9 @@ class DartCompletionRequest {
   InheritanceManager3 get inheritanceManager {
     return analysisSession.inheritanceManager;
   }
+
+  /// Getter for the [Element2] representation of [libraryElement].
+  LibraryElement2 get libraryElement2 => libraryElement.asElement2;
 
   /// Answer the [DartType] for Object in dart:core
   InterfaceType get objectType => libraryElement.typeProvider.objectType;

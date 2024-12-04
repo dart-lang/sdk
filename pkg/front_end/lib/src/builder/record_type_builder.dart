@@ -303,14 +303,14 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 
   @override
   Nullability computeNullability(
-      {required Map<TypeVariableBuilder, TraversalState>
-          typeVariablesTraversalState}) {
+      {required Map<TypeParameterBuilder, TraversalState>
+          typeParametersTraversalState}) {
     return nullabilityBuilder.build();
   }
 
   @override
-  VarianceCalculationValue computeTypeVariableBuilderVariance(
-      NominalVariableBuilder variable,
+  VarianceCalculationValue computeTypeParameterBuilderVariance(
+      NominalParameterBuilder variable,
       {required SourceLoader sourceLoader}) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
@@ -318,7 +318,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     if (positionalFields != null) {
       for (RecordTypeFieldBuilder field in positionalFields) {
         result = result.meet(field.type
-            .computeTypeVariableBuilderVariance(variable,
+            .computeTypeParameterBuilderVariance(variable,
                 sourceLoader: sourceLoader)
             .variance!);
       }
@@ -326,7 +326,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     if (namedFields != null) {
       for (RecordTypeFieldBuilder field in namedFields) {
         result = result.meet(field.type
-            .computeTypeVariableBuilderVariance(variable,
+            .computeTypeParameterBuilderVariance(variable,
                 sourceLoader: sourceLoader)
             .variance!);
       }
@@ -340,27 +340,27 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       null;
 
   @override
-  void collectReferencesFrom(Map<TypeVariableBuilder, int> variableIndices,
+  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
       List<List<int>> edges, int index) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
     if (positionalFields != null) {
       for (RecordTypeFieldBuilder field in positionalFields) {
-        field.type.collectReferencesFrom(variableIndices, edges, index);
+        field.type.collectReferencesFrom(parameterIndices, edges, index);
       }
     }
     if (namedFields != null) {
       for (RecordTypeFieldBuilder field in namedFields) {
-        field.type.collectReferencesFrom(variableIndices, edges, index);
+        field.type.collectReferencesFrom(parameterIndices, edges, index);
       }
     }
   }
 
   @override
   TypeBuilder? substituteRange(
-      Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralVariableBuilder> unboundTypeVariables,
+      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+      List<StructuralParameterBuilder> unboundTypeParameters,
       {final Variance variance = Variance.covariant}) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
@@ -372,7 +372,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         RecordTypeFieldBuilder positionalFieldBuilder = positionalFields[i];
         TypeBuilder? positionalFieldType = positionalFieldBuilder.type
             .substituteRange(
-                upperSubstitution, lowerSubstitution, unboundTypeVariables,
+                upperSubstitution, lowerSubstitution, unboundTypeParameters,
                 variance: variance);
         if (positionalFieldType != null) {
           newPositionalFields ??= positionalFields.toList();
@@ -388,7 +388,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       for (int i = 0; i < namedFields.length; i++) {
         RecordTypeFieldBuilder namedFieldBuilder = namedFields[i];
         TypeBuilder? namedFieldType = namedFieldBuilder.type.substituteRange(
-            upperSubstitution, lowerSubstitution, unboundTypeVariables,
+            upperSubstitution, lowerSubstitution, unboundTypeParameters,
             variance: variance);
         if (namedFieldType != null) {
           newNamedFields ??= namedFields.toList();
@@ -416,10 +416,10 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   TypeBuilder? unaliasAndErase() => this;
 
   @override
-  bool usesTypeVariables(Set<String> typeVariableNames) {
+  bool usesTypeParameters(Set<String> typeParameterNames) {
     if (positionalFields != null) {
       for (RecordTypeFieldBuilder fieldBuilder in positionalFields!) {
-        if (fieldBuilder.type.usesTypeVariables(typeVariableNames)) {
+        if (fieldBuilder.type.usesTypeParameters(typeParameterNames)) {
           return true;
         }
       }
@@ -427,7 +427,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     // Coverage-ignore(suite): Not run.
     if (namedFields != null) {
       for (RecordTypeFieldBuilder fieldBuilder in namedFields!) {
-        if (fieldBuilder.type.usesTypeVariables(typeVariableNames)) {
+        if (fieldBuilder.type.usesTypeParameters(typeParameterNames)) {
           return true;
         }
       }

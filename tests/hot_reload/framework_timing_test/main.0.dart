@@ -9,7 +9,7 @@ import 'package:reload_test/reload_test_utils.dart';
 
 var x = 'Hello World';
 
-void main() {
+Future<void> main() async {
   Expect.equals('Hello World', x);
   Expect.equals(0, hotRestartGeneration);
 
@@ -29,5 +29,5 @@ void main() {
         'This should never run.');
   });
 
-  hotRestart();
+  await hotRestart();
 }

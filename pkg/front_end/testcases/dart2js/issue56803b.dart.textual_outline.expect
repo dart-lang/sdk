@@ -2,9 +2,7 @@ const String? maybe = bool.fromEnvironment("not there") ? "string" : null;
 
 class Ext {
   final String _;
-  const Ext()
-      : assert(maybe != null, "Must not be null"),
-        _ = "OK";
+  const Ext() : assert(maybe != null, "Must not be null"), _ = "OK";
 }
 
 void main() {}

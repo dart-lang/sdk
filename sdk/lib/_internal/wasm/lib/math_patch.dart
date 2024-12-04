@@ -190,7 +190,12 @@ class _Random implements Random {
   int nextInt(int max) {
     if (max <= 0 || max > _POW2_32) {
       throw new RangeError.range(
-          max, 1, _POW2_32, "max", "Must be positive and <= 2^32");
+        max,
+        1,
+        _POW2_32,
+        "max",
+        "Must be positive and <= 2^32",
+      );
     }
     if ((max & -max) == max) {
       // Fast case for powers of two.
@@ -273,8 +278,11 @@ class _SecureRandom implements Random {
 
   // Return count bytes of entropy as an integer; count <= 8.
   int _getBytes(int count) {
-    final JSUint8ArrayImpl bufferView =
-        JSUint8ArrayImpl.view(_buffer.buffer, 0, count);
+    final JSUint8ArrayImpl bufferView = JSUint8ArrayImpl.view(
+      _buffer.buffer,
+      0,
+      count,
+    );
 
     final JSUint8Array bufferViewJS = bufferView.toJS;
     _jsCrypto.getRandomValues(bufferViewJS);
@@ -289,7 +297,12 @@ class _SecureRandom implements Random {
 
   int nextInt(int max) {
     RangeError.checkValueInInterval(
-        max, 1, _POW2_32, "max", "Must be positive and <= 2^32");
+      max,
+      1,
+      _POW2_32,
+      "max",
+      "Must be positive and <= 2^32",
+    );
     final byteCount =
         ((max - 1).bitLength + 7) >> 3; // Divide number of bits by 8, round up.
     if (byteCount == 0) {

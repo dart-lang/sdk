@@ -1674,13 +1674,15 @@ class Harness {
 
   bool? _inferenceUpdate3Enabled;
 
+  bool? _inferenceUpdate4Enabled;
+
   bool? _patternsEnabled;
 
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
     for (var entry in _coreMemberTypes.entries)
-      entry.key: _PropertyElement(entry.value,
+      entry.key: _PropertyElement(entry.value, entry.key.split('.').last,
           isPromotable: false, whyNotPromotable: null)
   };
 
@@ -1702,6 +1704,9 @@ class Harness {
 
   bool get inferenceUpdate3Enabled =>
       _inferenceUpdate3Enabled ?? !operations.legacy;
+
+  bool get inferenceUpdate4Enabled =>
+      _inferenceUpdate4Enabled ?? !operations.legacy;
 
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
@@ -1764,7 +1769,7 @@ class Harness {
       _members[query] = null;
       return;
     }
-    _members[query] = _PropertyElement(Type(type),
+    _members[query] = _PropertyElement(Type(type), memberName,
         isPromotable: promotable, whyNotPromotable: whyNotPromotable);
   }
 
@@ -1785,6 +1790,11 @@ class Harness {
   void disableInferenceUpdate3() {
     assert(!_started);
     _inferenceUpdate3Enabled = false;
+  }
+
+  void disableInferenceUpdate4() {
+    assert(!_started);
+    _inferenceUpdate4Enabled = false;
   }
 
   void disablePatterns() {
@@ -1879,10 +1889,14 @@ class Harness {
                   SharedTypeView<Type>>.legacy(
               operations, visitor._assignedVariables)
           : FlowAnalysis<Node, Statement, Expression, Var,
-                  SharedTypeView<Type>>(operations, visitor._assignedVariables,
+              SharedTypeView<Type>>(
+              operations,
+              visitor._assignedVariables,
               respectImplicitlyTypedVarInitializers:
                   _respectImplicitlyTypedVarInitializers,
-              fieldPromotionEnabled: _fieldPromotionEnabled);
+              fieldPromotionEnabled: _fieldPromotionEnabled,
+              inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+            );
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
@@ -2515,6 +2529,9 @@ abstract class LValue extends Expression {
         location: location);
   }
 
+  void _visitPostIncDec(
+      Harness h, Expression postIncDecExpression, Type writtenType);
+
   void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
       Expression? rhs);
 }
@@ -2880,9 +2897,9 @@ class MiniAstOperations
 
   @override
   TypeDeclarationKind? getTypeDeclarationKindInternal(Type type) {
-    if (isInterfaceType(SharedTypeView(type))) {
+    if (isInterfaceTypeInternal(type)) {
       return TypeDeclarationKind.interfaceDeclaration;
-    } else if (isExtensionType(SharedTypeView(type))) {
+    } else if (isExtensionTypeInternal(type)) {
       return TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
@@ -2913,6 +2930,13 @@ class MiniAstOperations
   }
 
   @override
+  Type greatestClosureOfTypeInternal(Type type,
+      List<SharedTypeParameterStructure<Type>> typeParametersToEliminate) {
+    // TODO(paulberry): Implement greatest closure of types in mini ast.
+    throw UnimplementedError();
+  }
+
+  @override
   bool isAlwaysExhaustiveType(SharedTypeView<Type> type) {
     var query = type.unwrapTypeView().type;
     return _exhaustiveness[query] ??
@@ -2934,25 +2958,36 @@ class MiniAstOperations
   }
 
   @override
-  bool isDartCoreFunction(SharedTypeView<Type> type) {
-    Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is PrimaryType &&
-        unwrappedType.nullabilitySuffix == NullabilitySuffix.none &&
-        unwrappedType.name == 'Function' &&
-        unwrappedType.args.isEmpty;
+  bool isDartCoreFunctionInternal(Type type) {
+    return type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Function' &&
+        type.args.isEmpty;
   }
 
   @override
-  bool isExtensionType(SharedTypeView<Type> type) {
+  bool isDartCoreRecordInternal(Type type) {
+    return type is PrimaryType &&
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        type.name == 'Record' &&
+        type.args.isEmpty;
+  }
+
+  @override
+  bool isExtensionTypeInternal(Type type) {
     // TODO(cstefantsova): Add the support for extension types in the mini ast
     // testing framework.
     return false;
   }
 
   @override
-  bool isInterfaceType(SharedTypeView<Type> type) {
-    Type unwrappedType = type.unwrapTypeView();
-    return unwrappedType is PrimaryType && unwrappedType.isInterfaceType;
+  bool isFinal(Var variable) {
+    return variable.isFinal;
+  }
+
+  @override
+  bool isInterfaceTypeInternal(Type type) {
+    return type is PrimaryType && type.isInterfaceType;
   }
 
   @override
@@ -2963,34 +2998,50 @@ class MiniAstOperations
   }
 
   @override
-  bool isNonNullable(SharedTypeSchemaView<Type> type) {
-    Type unwrappedType = type.unwrapTypeSchemaView();
+  bool isNonNullableInternal(Type type) {
+    Type unwrappedType = type;
     if (unwrappedType is DynamicType ||
         unwrappedType is SharedUnknownTypeStructure ||
         unwrappedType is VoidType ||
-        unwrappedType is NullType) {
+        unwrappedType is NullType ||
+        unwrappedType is InvalidType) {
       return false;
     } else if (unwrappedType
         case TypeParameterType(
           :var promotion,
+          :var typeParameter,
           nullabilitySuffix: NullabilitySuffix.none
         )) {
-      return promotion != null &&
-          isNonNullable(SharedTypeSchemaView(promotion));
+      if (promotion != null) {
+        return isNonNullableInternal(promotion);
+      } else {
+        return isNonNullableInternal(typeParameter.bound);
+      }
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
-      return isNonNullable(SharedTypeSchemaView(typeArgument));
+      return isNonNullableInternal(typeArgument);
+    }
+    return true;
+  }
+
+  @override
+  bool isNullableInternal(Type type) {
+    Type unwrappedType = type;
+    if (unwrappedType is DynamicType ||
+        unwrappedType is SharedUnknownTypeStructure ||
+        unwrappedType is VoidType ||
+        unwrappedType is NullType) {
+      return true;
+    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return false;
+    } else if (matchFutureOrInternal(unwrappedType) case Type typeArgument?) {
+      return isNullableInternal(typeArgument);
     }
     // TODO(cstefantsova): Update to a fast-pass implementation when the
     // mini-ast testing framework supports looking up superinterfaces of
     // extension types or looking up bounds of type parameters.
     return _typeSystem.isSubtype(NullType.instance, unwrappedType);
-  }
-
-  @override
-  bool isNull(SharedTypeView<Type> type) {
-    return type.unwrapTypeView() is NullType;
   }
 
   @override
@@ -3036,6 +3087,13 @@ class MiniAstOperations
       SharedTypeSchemaView<Type> elementTypeSchema) {
     return SharedTypeSchemaView(PrimaryType(TypeRegistry.iterable,
         args: [elementTypeSchema.unwrapTypeSchemaView()]));
+  }
+
+  @override
+  Type leastClosureOfTypeInternal(Type type,
+      List<SharedTypeParameterStructure<Type>> typeParametersToEliminate) {
+    // TODO(paulberry): Implement greatest closure of types in mini ast.
+    throw UnimplementedError();
   }
 
   @override
@@ -3095,8 +3153,8 @@ class MiniAstOperations
   }
 
   @override
-  TypeParameter? matchInferableParameter(SharedTypeView<Type> type) {
-    if (type.unwrapTypeView()
+  TypeParameter? matchInferableParameterInternal(Type type) {
+    if (type
         case TypeParameterType(
           :var typeParameter,
           nullabilitySuffix: NullabilitySuffix.none
@@ -3161,23 +3219,36 @@ class MiniAstOperations
   }
 
   @override
-  TypeDeclarationMatchResult<Type, String, Type>? matchTypeDeclarationType(
-      SharedTypeView<Type> type) {
-    Type unwrappedType = type.unwrapTypeView();
-    if (unwrappedType is! PrimaryType) return null;
+  TypeDeclarationMatchResult<Type, String, Type>?
+      matchTypeDeclarationTypeInternal(Type type) {
+    if (type is! PrimaryType) return null;
     TypeDeclarationKind typeDeclarationKind;
-    if (unwrappedType.isInterfaceType) {
+    if (type.isInterfaceType) {
       typeDeclarationKind = TypeDeclarationKind.interfaceDeclaration;
-    } else if (isExtensionType(type)) {
+    } else if (isExtensionTypeInternal(type)) {
       typeDeclarationKind = TypeDeclarationKind.extensionTypeDeclaration;
     } else {
       return null;
     }
     return new TypeDeclarationMatchResult(
         typeDeclarationKind: typeDeclarationKind,
-        typeDeclaration: unwrappedType.name,
-        typeDeclarationType: unwrappedType,
-        typeArguments: unwrappedType.args);
+        typeDeclaration: type.name,
+        typeDeclarationType: type,
+        typeArguments: type.args);
+  }
+
+  @override
+  Type? matchTypeParameterBoundInternal(Type type) {
+    if (type
+        case TypeParameterType(
+          :var promotion,
+          :var typeParameter,
+          nullabilitySuffix: NullabilitySuffix.none
+        )) {
+      return promotion ?? typeParameter.bound;
+    } else {
+      return null;
+    }
   }
 
   @override
@@ -3248,9 +3319,8 @@ class MiniAstOperations
       property.whyNotPromotable;
 
   @override
-  SharedTypeView<Type> withNullabilitySuffix(
-      SharedTypeView<Type> type, NullabilitySuffix modifier) {
-    return SharedTypeView(type.unwrapTypeView().withNullability(modifier));
+  Type withNullabilitySuffixInternal(Type type, NullabilitySuffix modifier) {
+    return type.withNullability(modifier);
   }
 }
 
@@ -3825,6 +3895,31 @@ mixin PossiblyGuardedPattern on Node implements ProtoSwitchHead {
   }
 }
 
+/// Representation of a postfix increment or decrement operation.
+class PostIncDec extends Expression {
+  final LValue lhs;
+
+  PostIncDec(this.lhs, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    lhs.preVisit(visitor, disposition: _LValueDisposition.readWrite);
+  }
+
+  @override
+  String toString() => '$lhs++';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(
+      Harness h, SharedTypeSchemaView<Type> schema) {
+    Type type = h.typeAnalyzer
+        .analyzeExpression(lhs, h.operations.unknownType)
+        .unwrapTypeView();
+    lhs._visitPostIncDec(h, this, type);
+    return new SimpleTypeAnalysisResult<Type>(type: SharedTypeView(type));
+  }
+}
+
 /// Data structure holding information needed during the "pre-visit" phase of
 /// type analysis.
 class PreVisitor {
@@ -3888,6 +3983,12 @@ class Property extends PromotableLValue {
         .promotedPropertyType(ExpressionPropertyTarget(target), propertyName,
             member, SharedTypeView(member!._type))
         ?.unwrapTypeView();
+  }
+
+  @override
+  void _visitPostIncDec(
+      Harness h, Expression postIncDecExpression, Type writtenType) {
+    // No flow analysis impact
   }
 
   @override
@@ -4648,6 +4749,12 @@ class ThisOrSuperProperty extends PromotableLValue {
   }
 
   @override
+  void _visitPostIncDec(
+      Harness h, Expression postIncDecExpression, Type writtenType) {
+    // No flow analysis impact
+  }
+
+  @override
   void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
       Expression? rhs) {
     // No flow analysis impact
@@ -4827,6 +4934,16 @@ class Var extends Node
           type == null ? null : Type(type), this, expectInferredType,
           location: computeLocation());
 
+  /// Creates an expression representing a postfix increment or decrement
+  /// operation applied to this variable.
+  Expression postIncDec() {
+    var location = computeLocation();
+    return new PostIncDec(
+      new VariableReference._(this, null, location: location),
+      location: location,
+    );
+  }
+
   @override
   void preVisit(PreVisitor visitor) {}
 
@@ -4950,6 +5067,16 @@ class VariableReference extends LValue {
     var result = h.typeAnalyzer.analyzeVariableGet(this, variable, callback);
     h.irBuilder.atom(variable.name, Kind.expression, location: location);
     return result;
+  }
+
+  @override
+  void _visitPostIncDec(
+      Harness h, Expression postIncDecExpression, Type writtenType) {
+    h.flow.postIncDec(
+      postIncDecExpression,
+      variable,
+      SharedTypeView(writtenType),
+    );
   }
 
   @override
@@ -5503,14 +5630,14 @@ class _MiniAstTypeAnalyzer
     var leftType = analyzeExpression(lhs, operations.unknownType);
     ExpressionInfo<SharedTypeView<Type>>? leftInfo;
     if (isEquals) {
-      leftInfo = flow.equalityOperand_end(lhs, leftType);
+      leftInfo = flow.equalityOperand_end(lhs);
     } else if (isLogical) {
       flow.logicalBinaryOp_rightBegin(lhs, node, isAnd: isAnd);
     }
     var rightType = analyzeExpression(rhs, operations.unknownType);
     if (isEquals) {
       flow.equalityOperation_end(
-          node, leftInfo, flow.equalityOperand_end(rhs, rightType),
+          node, leftInfo, leftType, flow.equalityOperand_end(rhs), rightType,
           notEqual: isNot);
     } else if (isLogical) {
       flow.logicalBinaryOp_end(node, rhs, isAnd: isAnd);
@@ -6195,6 +6322,9 @@ class _PropertyElement {
   /// The type of the property.
   final Type _type;
 
+  /// The name of the property (used by toString)
+  final String _name;
+
   /// Whether the property is promotable.
   final bool isPromotable;
 
@@ -6209,12 +6339,15 @@ class _PropertyElement {
   /// to the test.
   final PropertyNonPromotabilityReason? whyNotPromotable;
 
-  _PropertyElement(this._type,
+  _PropertyElement(this._type, this._name,
       {required this.isPromotable, required this.whyNotPromotable}) {
     if (isPromotable) {
       assert(whyNotPromotable == null);
     }
   }
+
+  @override
+  String toString() => '$_type.$_name';
 }
 
 class _VariableBinder extends VariableBinder<Node, Var> {

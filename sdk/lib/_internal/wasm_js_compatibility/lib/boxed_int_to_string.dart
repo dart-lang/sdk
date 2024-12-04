@@ -25,7 +25,10 @@ class BoxedInt {
 }
 
 @pragma("wasm:prefer-inline")
-String _jsBigIntToString(int i, int radix) => JSStringImpl(JS<WasmExternRef?>(
+String _jsBigIntToString(int i, int radix) => JSStringImpl(
+  JS<WasmExternRef?>(
     'Function.prototype.call.bind(BigInt.prototype.toString)',
     WasmI64.fromInt(i),
-    WasmI32.fromInt(radix)));
+    WasmI32.fromInt(radix),
+  ),
+);

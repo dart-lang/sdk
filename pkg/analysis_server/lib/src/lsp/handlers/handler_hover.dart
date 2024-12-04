@@ -31,8 +31,11 @@ class HoverHandler
   bool get requiresTrustedCaller => false;
 
   @override
-  Future<ErrorOr<Hover?>> handle(TextDocumentPositionParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<Hover?>> handle(
+    TextDocumentPositionParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -46,8 +49,11 @@ class HoverHandler
     var path = pathOfDoc(params.textDocument);
     var unit = await path.mapResult(requireResolvedUnit);
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-    return (success(clientCapabilities), unit, offset)
-        .mapResultsSync(_getHover);
+    return (
+      success(clientCapabilities),
+      unit,
+      offset,
+    ).mapResultsSync(_getHover);
   }
 
   Hover? toHover(
@@ -56,12 +62,6 @@ class HoverHandler
     HoverInformation? hover,
   ) {
     if (hover == null) {
-      return null;
-    }
-
-    // Import prefix tooltips are not useful currently.
-    // https://github.com/dart-lang/sdk/issues/32735
-    if (hover.elementKind == 'import prefix') {
       return null;
     }
 
@@ -105,14 +105,19 @@ class HoverHandler
 
     var formats = clientCapabilities.hoverContentFormats;
     return Hover(
-      contents:
-          asMarkupContentOrString(formats, content.toString().trimRight()),
+      contents: asMarkupContentOrString(
+        formats,
+        content.toString().trimRight(),
+      ),
       range: toRange(lineInfo, hover.offset, hover.length),
     );
   }
 
-  ErrorOr<Hover?> _getHover(LspClientCapabilities clientCapabilities,
-      ResolvedUnitResult unit, int offset) {
+  ErrorOr<Hover?> _getHover(
+    LspClientCapabilities clientCapabilities,
+    ResolvedUnitResult unit,
+    int offset,
+  ) {
     var compilationUnit = unit.unit;
     var computer = DartUnitHoverComputer(
       server.getDartdocDirectiveInfoFor(unit),

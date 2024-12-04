@@ -489,14 +489,30 @@ void runNullSafeSharedTests(
             expression: 'Flow.begin(id: 0) is Flow',
             libraryUri: Uri.parse('dart:developer'),
             expectedResult: 'true');
-      });
+      },
+          // The new module format requires a per-library compiler. Since we
+          // loaded the SDK from a summary/dill, we've never actually created a
+          // compiler for it, and therefore can't execute library-level
+          // expression evaluation in the SDK. Currently, no real workflow can
+          // meaningfully use this anyways. See
+          // https://github.com/flutter/devtools/issues/7766 for the initial
+          // motivation.
+          skip: setup.emitLibraryBundle);
 
       test('tearoff an SDK method', () async {
         await driver.check(
             expression: 'postEvent',
             libraryUri: Uri.parse('dart:developer'),
             expectedResult: contains('function postEvent(eventKind'));
-      });
+      },
+          // The new module format requires a per-library compiler. Since we
+          // loaded the SDK from a summary/dill, we've never actually created a
+          // compiler for it, and therefore can't execute library-level
+          // expression evaluation in the SDK. Currently, no real workflow can
+          // meaningfully use this anyways. See
+          // https://github.com/flutter/devtools/issues/7766 for the initial
+          // motivation.
+          skip: setup.emitLibraryBundle);
     });
 
     group('method level', () {

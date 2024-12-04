@@ -10,3 +10,4 @@ The documentation covers the following topics:
 
 - [Implementing a new language feature](new_language_feature.md)
 - [Running/Debugging analysis_server from source in VS Code](running_in_vs_code.md)
+- [Profiling the analysis server hosted by VS Code](profiling_for_vs_code)

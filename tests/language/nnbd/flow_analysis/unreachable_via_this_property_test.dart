@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=3.1
+
 /// This test verifies that `is` and `==` tests performed on a property get of
 /// `this` do not lead to code being considered unreachable.  (In principle, we
 /// could soundly mark some such code as unreachable, but we have decided not to
@@ -11,7 +13,7 @@
 /// Null, and we are performing an `== null` test, then we do mark the non-null
 /// branch as unreachable.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class B {
   Null get nullProperty => null;

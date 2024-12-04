@@ -13,7 +13,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
-/// Ensure that the [FileState.libraryCycle] for the [file] and anything it
+/// Ensure that the `FileState._libraryCycle` for the [file] and anything it
 /// depends on is computed.
 void computeLibraryCycle(Uint32List salt, LibraryFileKind file) {
   var libraryWalker = _LibraryWalker(salt);

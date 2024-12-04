@@ -13,7 +13,8 @@ import 'package:dartdev/src/utils.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:native_assets_builder/native_assets_builder.dart';
-import 'package:native_assets_cli/native_assets_cli_internal.dart';
+import 'package:native_assets_cli/code_assets_builder.dart';
+import 'package:native_assets_cli/data_assets_builder.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
@@ -141,13 +142,25 @@ class BuildCommand extends DartdevCommand {
       dartExecutable: Uri.file(sdk.dart),
       logger: logger(verbose),
     );
+
+    final cCompilerConfig = getCCompilerConfig();
+
     final buildResult = await nativeAssetsBuildRunner.build(
+      configCreator: () => BuildConfigBuilder()
+        ..setupCodeConfig(
+          linkModePreference: LinkModePreference.dynamic,
+          targetArchitecture: target.architecture,
+          targetMacOSVersion: targetMacOSVersion,
+          cCompilerConfig: cCompilerConfig,
+        ),
+      configValidator: (config) async => [
+        ...await validateDataAssetBuildConfig(config),
+        ...await validateCodeAssetBuildConfig(config),
+      ],
       workingDirectory: workingDirectory,
-      target: target,
-      linkModePreference: LinkModePreference.dynamic,
+      targetOS: target.os,
       buildMode: BuildMode.release,
       includeParentEnvironment: true,
-      targetMacOSVersion: targetMacOSVersion,
       linkingEnabled: true,
       supportedAssetTypes: [
         CodeAsset.type,
@@ -157,10 +170,10 @@ class BuildCommand extends DartdevCommand {
         ...await validateCodeAssetBuildOutput(config, output),
       ],
       applicationAssetValidator: (assets) async => [
-        ...await validateCodeAssetsInApplication(assets),
+        ...await validateCodeAssetInApplication(assets),
       ],
     );
-    if (!buildResult.success) {
+    if (buildResult == null) {
       stderr.writeln('Native assets build failed.');
       return 255;
     }
@@ -192,15 +205,24 @@ class BuildCommand extends DartdevCommand {
 
       // Start linking here.
       final linkResult = await nativeAssetsBuildRunner.link(
+        configCreator: () => LinkConfigBuilder()
+          ..setupCodeConfig(
+            targetArchitecture: target.architecture,
+            linkModePreference: LinkModePreference.dynamic,
+            targetMacOSVersion: targetMacOSVersion,
+            cCompilerConfig: cCompilerConfig,
+          ),
+        configValidator: (config) async => [
+          ...await validateDataAssetLinkConfig(config),
+          ...await validateCodeAssetLinkConfig(config),
+        ],
         resourceIdentifiers:
             recordUseEnabled ? Uri.file(recordedUsagesPath!) : null,
         workingDirectory: workingDirectory,
-        target: target,
-        linkModePreference: LinkModePreference.dynamic,
+        targetOS: target.os,
         buildMode: BuildMode.release,
         includeParentEnvironment: true,
         buildResult: buildResult,
-        targetMacOSVersion: targetMacOSVersion,
         supportedAssetTypes: [
           CodeAsset.type,
         ],
@@ -209,11 +231,11 @@ class BuildCommand extends DartdevCommand {
           ...await validateCodeAssetLinkOutput(config, output),
         ],
         applicationAssetValidator: (assets) async => [
-          ...await validateCodeAssetsInApplication(assets),
+          ...await validateCodeAssetInApplication(assets),
         ],
       );
 
-      if (!linkResult.success) {
+      if (linkResult == null) {
         stderr.writeln('Native assets link failed.');
         return 255;
       }

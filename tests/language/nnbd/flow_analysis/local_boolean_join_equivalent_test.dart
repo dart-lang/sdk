@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 // This test verifies that when control flow paths are joined, flow analysis
 // does not recognize and coalesce distinct but equivalent assignments of test

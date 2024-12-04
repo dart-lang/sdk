@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -50,6 +51,29 @@ GenericTypeAlias
   equals: =
   type: NamedType
     name: int
+''');
+  }
+
+  test_modern_missingName() {
+    // Does not look good.
+    // https://github.com/dart-lang/sdk/issues/56912
+    var parseResult = parseStringWithErrors(r'''
+typedef = int;
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
+    ]);
+
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: int
 ''');
   }
 }

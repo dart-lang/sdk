@@ -6,21 +6,21 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
-/// Returns `true` if type contains a promoted type variable.
-bool hasPromotedTypeVariable(DartType type) {
-  return type.accept(const _HasPromotedTypeVariableVisitor());
+/// Returns `true` if type contains a promoted type parameter.
+bool hasPromotedTypeParameter(DartType type) {
+  return type.accept(const _HasPromotedTypeParameterVisitor());
 }
 
-/// Visitor that returns `true` if a type contains a promoted type variable.
-class _HasPromotedTypeVariableVisitor extends FindTypeVisitor {
-  const _HasPromotedTypeVariableVisitor();
+/// Visitor that returns `true` if a type contains a promoted type parameter.
+class _HasPromotedTypeParameterVisitor extends FindTypeVisitor {
+  const _HasPromotedTypeParameterVisitor();
 
   @override
   // Coverage-ignore(suite): Not run.
   bool visitIntersectionType(IntersectionType node) => true;
 }
 
-/// Returns [type] in which all promoted type variables have been replace with
+/// Returns [type] in which all promoted type parameters have been replace with
 /// their unpromoted equivalents, and where all nullabilities have been
 /// normalized to the default nullability of [library].
 ///
@@ -33,7 +33,7 @@ DartType demoteTypeInLibrary(DartType type) {
       type;
 }
 
-/// Visitor that replaces all promoted type variables the type variable itself
+/// Visitor that replaces all promoted type parameters the type parameter itself
 /// and normalizes the type nullabilities.
 ///
 /// The visitor returns `null` if the type wasn't changed.

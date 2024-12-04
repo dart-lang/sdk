@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,6 +15,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -35,11 +37,12 @@ import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptions, AnalysisOptionsImpl;
+    show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -73,7 +76,7 @@ import 'package:meta/meta.dart';
 /// "analysis state" be either "working" or "idle".
 ///
 /// (These are theoretical constructs; they may not necessarily reflect data
-/// structures maintained explicitly by the driver).
+/// structures maintained explicitly by the driver.)
 ///
 /// Then we make the following guarantees:
 ///
@@ -96,7 +99,7 @@ import 'package:meta/meta.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 391;
+  static const int DATA_VERSION = 424;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -127,7 +130,7 @@ class AnalysisDriver {
   /// file analysis.
   final SummaryDataStore? _externalSummaries;
 
-  /// This [ContentCache] is consulted for a file content before reading
+  /// This [FileContentCache] is consulted for a file content before reading
   /// the content from the file.
   final FileContentCache _fileContentCache;
 
@@ -155,7 +158,7 @@ class AnalysisDriver {
   final DeclaredVariables declaredVariables;
 
   /// The analysis context that created this driver / session.
-  DriverBasedAnalysisContext? analysisContext;
+  final DriverBasedAnalysisContext? analysisContext;
 
   /// The salt to mix into all hashes used as keys for unlinked data.
   Uint32List _saltForUnlinked = Uint32List(0);
@@ -171,10 +174,6 @@ class AnalysisDriver {
 
   /// The file changes that should be applied before processing requests.
   final List<_FileChange> _pendingFileChanges = [];
-
-  /// When [_applyFileChangesSynchronously] is `true`, affected files are
-  /// accumulated here.
-  Set<String> _accumulatedAffected = {};
 
   /// The completers to complete after [_pendingFileChanges] are applied.
   final _pendingFileChangesCompleters = <Completer<List<String>>>[];
@@ -237,7 +236,7 @@ class AnalysisDriver {
 
   final AnalysisDriverTestView? testView;
 
-  late FileSystemState _fsState;
+  late final FileSystemState _fsState;
 
   /// The [FileTracker] used by this driver.
   late FileTracker _fileTracker;
@@ -266,7 +265,10 @@ class AnalysisDriver {
   bool _disposed = false;
 
   /// A map that associates files to corresponding analysis options.
-  late final AnalysisOptionsMap analysisOptionsMap;
+  final AnalysisOptionsMap analysisOptionsMap;
+
+  /// Whether timing data should be gathered during lint rule execution.
+  final bool _enableLintRuleTiming;
 
   /// Create a new instance of [AnalysisDriver].
   ///
@@ -294,6 +296,7 @@ class AnalysisDriver {
     DeclaredVariables? declaredVariables,
     bool retainDataForTesting = false,
     this.testView,
+    bool enableLintRuleTiming = false,
   })  : _scheduler = scheduler,
         _resourceProvider = resourceProvider,
         _byteStore = byteStore,
@@ -307,24 +310,21 @@ class AnalysisDriver {
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         declaredVariables = declaredVariables ?? DeclaredVariables(),
-        testingData = retainDataForTesting ? TestingData() : null {
+        testingData = retainDataForTesting ? TestingData() : null,
+        _enableLintRuleTiming = enableLintRuleTiming,
+        // This extra work is temporary and will get simplified when the
+        // deprecated support for passing in an `analysisOptions` is removed.
+        assert(
+          analysisOptionsMap == null || analysisOptions == null,
+          'An analysisOptionsMap or analysisOptions can be specified, but not both',
+        ),
+        // This '!' is temporary. The analysisOptionsMap is effectively
+        // required but can't be until Google3 is updated.
+        analysisOptionsMap = analysisOptions == null
+            ? analysisOptionsMap!
+            : AnalysisOptionsMap.forSharedOptions(analysisOptions) {
     analysisContext?.driver = this;
     testView?.driver = this;
-
-    // Setup the options map.
-    // This extra work is temporary and will get simplified when the deprecated support for
-    // passing in a single analysisOptions is removed.
-    if (analysisOptionsMap != null && analysisOptions != null) {
-      throw AssertionError(
-          'An analysisOptionsMap or analysisOptions can be specified, but not both');
-    }
-    if (analysisOptions != null) {
-      this.analysisOptionsMap =
-          AnalysisOptionsMap.forSharedOptions(analysisOptions);
-    } else {
-      // This '!' is temporary. The analysisOptionsMap is effectively required but can't be until Google3 is updated.
-      this.analysisOptionsMap = analysisOptionsMap!;
-    }
 
     _fileContentStrategy = StoredFileContentStrategy(_fileContentCache);
 
@@ -348,6 +348,11 @@ class AnalysisDriver {
   /// Return the current analysis session.
   AnalysisSessionImpl get currentSession {
     return libraryContext.elementFactory.analysisSession;
+  }
+
+  /// The dartdoc directives in this context.
+  DartdocDirectiveInfo get dartdocDirectiveInfo {
+    return _fsState.dartdocDirectiveInfo;
   }
 
   /// The set of legacy plugin names enabled in analysis options in this driver.
@@ -558,9 +563,7 @@ class AnalysisDriver {
       _pendingFileChangesCompleters.add(completer);
       return completer.future;
     } else {
-      var accumulatedAffected = _accumulatedAffected.toList();
-      _accumulatedAffected = {};
-      return Future.value(accumulatedAffected);
+      return Future.value([]);
     }
   }
 
@@ -743,7 +746,7 @@ class AnalysisDriver {
   /// NOTE: this API is experimental and subject to change in a future
   /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
   @experimental
-  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
+  AnalysisOptions getAnalysisOptionsForFile(File file) =>
       analysisOptionsMap.getOptions(file);
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
@@ -966,14 +969,11 @@ class AnalysisDriver {
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
   SomeParsedLibraryResult getParsedLibraryByUri(Uri uri) {
     var fileOr = _fsState.getFileForUri(uri);
-    switch (fileOr) {
-      case null:
-        return CannotResolveUriResult();
-      case UriResolutionFile(:var file):
-        return getParsedLibrary(file.path);
-      case UriResolutionExternalLibrary():
-        return UriOfExternalLibraryResult();
-    }
+    return switch (fileOr) {
+      null => CannotResolveUriResult(),
+      UriResolutionFile(:var file) => getParsedLibrary(file.path),
+      UriResolutionExternalLibrary() => UriOfExternalLibraryResult(),
+    };
   }
 
   /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
@@ -1161,7 +1161,9 @@ class AnalysisDriver {
       return InvalidPathResult();
     }
 
-    FileState file = _fsState.getFileForPath(path);
+    _applyPendingFileChanges();
+
+    var file = _fsState.getFileForPath(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(
       errorListener: listener,
@@ -1398,6 +1400,7 @@ class AnalysisDriver {
           library,
           testingData: testingData,
           typeSystemOperations: typeSystemOperations,
+          enableLintRuleTiming: _enableLintRuleTiming,
         ).analyze();
 
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
@@ -1588,8 +1591,7 @@ class AnalysisDriver {
 
   /// Creates new [FileSystemState] and [FileTracker] objects.
   ///
-  /// This is used both on initial construction and whenever the configuration
-  /// changes.
+  /// This is used on initial construction.
   void _createFileTracker() {
     _fillSalt();
 
@@ -1856,7 +1858,7 @@ class AnalysisDriver {
     await scheduler.accumulatedPerformance.runAsync(
       'getUnitElement',
       (performance) async {
-        FileState file = _fsState.getFileForPath(path);
+        var file = _fsState.getFileForPath(path);
 
         // Prepare the library - the file itself, or the known library.
         var kind = file.kind;
@@ -2117,7 +2119,7 @@ class AnalysisDriver {
           strictCasts: analysisOptions.strictCasts);
 
       var analysisResult = LibraryAnalyzer(
-        analysisOptions,
+        analysisOptions as AnalysisOptionsImpl,
         declaredVariables,
         libraryElement,
         libraryContext.elementFactory.analysisSession.inheritanceManager,
@@ -2272,12 +2274,6 @@ class AnalysisDriverScheduler {
 
   bool _started = false;
 
-  /// The optional worker that is invoked when its work priority is higher
-  /// than work priorities in drivers.
-  ///
-  /// Don't use outside of Analyzer and Analysis Server.
-  SchedulerWorker? outOfBandWorker;
-
   /// The operations performance accumulated so far.
   ///
   /// It is expected that the consumer of this performance operation will
@@ -2416,17 +2412,6 @@ class AnalysisDriverScheduler {
         if (priority.index > bestPriority.index) {
           bestDriver = driver;
           bestPriority = priority;
-        }
-      }
-
-      if (outOfBandWorker != null) {
-        var workerPriority = outOfBandWorker!.workPriority;
-        if (workerPriority != AnalysisDriverPriority.nothing) {
-          if (workerPriority.index > bestPriority.index) {
-            await outOfBandWorker!.performWork();
-            _hasWork.notify();
-            continue;
-          }
         }
       }
 

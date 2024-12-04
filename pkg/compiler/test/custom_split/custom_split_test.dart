@@ -5,8 +5,8 @@
 import 'dart:io' hide Link;
 import 'dart:isolate';
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 

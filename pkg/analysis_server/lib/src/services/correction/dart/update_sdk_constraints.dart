@@ -18,7 +18,7 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
   /// Initializes a newly created instance that will update the SDK constraints
   /// to '2.14.0'.
   UpdateSdkConstraints.version_2_14_0({required super.context})
-      : _minimumVersion = '2.14.0';
+    : _minimumVersion = '2.14.0';
 
   @override
   // Too nuanced to do unattended to apply in bulk.

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -33,6 +35,29 @@ class FixesTest extends PubPackageAnalysisServerTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
+  Future<void> test_concurrentModifications() async {
+    var file = server.resourceProvider.getFile(testFile.path);
+    var futures = <Future<void>>[];
+
+    // Send many requests to modify files and get fixes.
+    for (var i = 1; i < 100; i++) {
+      futures.add(_addOverlay(testFile.path, 'var i = $i;'));
+      await pumpEventQueue();
+      futures.add(
+        handleSuccessfulRequest(
+          EditGetFixesParams(
+            file.path,
+            0,
+          ).toRequest('$i', clientUriConverter: server.uriConverter),
+        ),
+      );
+      await pumpEventQueue();
+    }
+
+    // Except all to complete.
+    await Future.wait(futures);
+  }
+
   Future<void> test_fileOutsideRoot() async {
     var outsideFile = '/foo/test.dart';
     newFile(outsideFile, 'bad code to create error');
@@ -41,8 +66,10 @@ class FixesTest extends PubPackageAnalysisServerTest {
     // if there are no contexts.
     await waitForTasksFinished();
 
-    var request = EditGetFixesParams(convertPath(outsideFile), 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetFixesParams(
+      convertPath(outsideFile),
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -62,25 +89,34 @@ void f() {
     var errorFixes = await _getFixesAt(testFile, 'Completer<String>');
     expect(errorFixes, hasLength(1));
     var fixes = errorFixes[0].fixes;
-    expect(fixes, hasLength(3));
+    expect(fixes, hasLength(4));
     expect(fixes[0].message, matches('Import library'));
-    expect(fixes[1].message, matches('Create class'));
-    expect(fixes[2].message, matches('Create mixin'));
+    expect(fixes[1].message, matches("Import library .+ with 'show'"));
+    expect(fixes[2].message, matches('Create class'));
+    expect(fixes[3].message, matches('Create mixin'));
   }
 
   Future<void> test_fromPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
-    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c',
-        TestNotificationManager(), InstrumentationService.NULL_SERVICE);
-    var fixes = plugin.AnalysisErrorFixes(AnalysisError(
+    PluginInfo info = DiscoveredPluginInfo(
+      'a',
+      'b',
+      'c',
+      TestNotificationManager(),
+      InstrumentationService.NULL_SERVICE,
+    );
+    var fixes = plugin.AnalysisErrorFixes(
+      AnalysisError(
         AnalysisErrorSeverity.ERROR,
         AnalysisErrorType.HINT,
         Location('', 0, 0, 0, 0, endLine: 0, endColumn: 0),
         'message',
-        'code'));
+        'code',
+      ),
+    );
     var result = plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: Future.value(result.toResponse('-', 1))
+      info: Future.value(result.toResponse('-', 1)),
     };
 
     addTestFile('void f() {}');
@@ -115,8 +151,10 @@ bar() {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditGetFixesParams('test.dart', 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetFixesParams(
+      'test.dart',
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -126,8 +164,10 @@ bar() {
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
-    var request = EditGetFixesParams(convertPath('/foo/../bar/test.dart'), 0)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetFixesParams(
+      convertPath('/foo/../bar/test.dart'),
+      0,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -155,41 +195,50 @@ print(1)
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
     writePackageConfig(
       convertPath('$workspaceRootPath/aaa'),
-      config: (PackageConfigFileBuilder()
-        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
+      config:
+          (PackageConfigFileBuilder()
+            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
     );
     newPubspecYamlFile('$workspaceRootPath/aaa', r'''
 dependencies:
   bbb: any
 ''');
 
-    writePackageConfig(
-      convertPath('$workspaceRootPath/bbb'),
-    );
+    writePackageConfig(convertPath('$workspaceRootPath/bbb'));
     newFile('$workspaceRootPath/bbb/lib/target.dart', 'class Foo() {}');
     newFile(
-        '$workspaceRootPath/bbb/lib/target.generated.dart', 'class Foo() {}');
+      '$workspaceRootPath/bbb/lib/target.generated.dart',
+      'class Foo() {}',
+    );
     newFile(
-        '$workspaceRootPath/bbb/lib/target.template.dart', 'class Foo() {}');
+      '$workspaceRootPath/bbb/lib/target.template.dart',
+      'class Foo() {}',
+    );
 
     // Configure the test file.
-    var file =
-        newFile('$workspaceRootPath/aaa/main.dart', 'void f() { Foo(); }');
+    var file = newFile(
+      '$workspaceRootPath/aaa/main.dart',
+      'void f() { Foo(); }',
+    );
 
     await waitForTasksFinished();
 
-    var fixes = (await _getFixesAt(file, 'Foo()'))
-        .single
-        .fixes
-        .map((f) => f.message)
-        .toList();
+    var fixes =
+        (await _getFixesAt(
+          file,
+          'Foo()',
+        )).single.fixes.map((f) => f.message).toList();
     expect(fixes, contains("Import library 'package:bbb/target.dart'"));
     expect(
-        fixes, contains("Import library 'package:bbb/target.generated.dart'"));
+      fixes,
+      contains("Import library 'package:bbb/target.generated.dart'"),
+    );
 
     // Context: http://dartbug.com/39401
-    expect(fixes.contains("Import library 'package:bbb/target.template.dart'"),
-        isFalse);
+    expect(
+      fixes.contains("Import library 'package:bbb/target.template.dart'"),
+      isFalse,
+    );
   }
 
   Future<void> _addOverlay(String name, String contents) async {
@@ -201,11 +250,15 @@ dependencies:
   }
 
   Future<List<AnalysisErrorFixes>> _getFixes(File file, int offset) async {
-    var request = EditGetFixesParams(file.path, offset)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditGetFixesParams(
+      file.path,
+      offset,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = EditGetFixesResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditGetFixesResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     return result.fixes;
   }
 

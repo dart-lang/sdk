@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -15,8 +15,9 @@ class FlutterWrapBuilder extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_BUILDER;
@@ -32,14 +33,14 @@ class FlutterWrapBuilder extends ResolvedCorrectionProducer {
     }
     var widgetSrc = utils.getNodeText(widgetExpr);
 
-    var builderElement = await sessionHelper.getFlutterClass('Builder');
+    var builderElement = await sessionHelper.getFlutterClass2('Builder');
     if (builderElement == null) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
-        builder.writeReference(builderElement);
+        builder.writeReference2(builderElement);
 
         builder.writeln('(');
 
@@ -50,11 +51,7 @@ class FlutterWrapBuilder extends ResolvedCorrectionProducer {
         builder.write(indentNew1);
         builder.writeln('builder: (context) {');
 
-        widgetSrc = utils.replaceSourceIndent(
-          widgetSrc,
-          indentOld,
-          indentNew2,
-        );
+        widgetSrc = utils.replaceSourceIndent(widgetSrc, indentOld, indentNew2);
         builder.write(indentNew2);
         builder.write('return $widgetSrc');
         builder.writeln(';');

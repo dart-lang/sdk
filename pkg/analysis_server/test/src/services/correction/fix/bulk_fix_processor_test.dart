@@ -23,10 +23,10 @@ void main() {
 @reflectiveTest
 class ChangeMapTest extends BulkFixProcessorTest {
   Future<void> test_changeMap() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: [
-      LintNames.annotate_overrides,
-      LintNames.unnecessary_new,
-    ]);
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.annotate_overrides, LintNames.unnecessary_new],
+    );
 
     await resolveTestCode('''
 class A { }
@@ -43,9 +43,10 @@ var aa = new A();
   }
 
   Future<void> test_changeMap_cancelled() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: [
-      LintNames.unnecessary_new,
-    ]);
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.unnecessary_new],
+    );
 
     await resolveTestCode('''
 class A { }
@@ -57,8 +58,10 @@ var a = new A();
     var changeWorkspace = await workspace;
     var token = CancelableToken();
     var processor = BulkFixProcessor(
-        TestInstrumentationService(), changeWorkspace,
-        cancellationToken: token);
+      TestInstrumentationService(),
+      changeWorkspace,
+      cancellationToken: token,
+    );
 
     // Begin computing fixes, then immediately cancel.
     var fixErrorsFuture = processor.fixErrors([analysisContext]);
@@ -74,10 +77,10 @@ var a = new A();
 @reflectiveTest
 class HasFixesTest extends BulkFixProcessorTest {
   Future<void> test_hasFixes() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: [
-      LintNames.annotate_overrides,
-      LintNames.unnecessary_new,
-    ]);
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.annotate_overrides, LintNames.unnecessary_new],
+    );
 
     await resolveTestCode('''
 class A { }
@@ -89,9 +92,10 @@ var a = new A();
   }
 
   Future<void> test_hasFixes_in_part() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: [
-      LintNames.unnecessary_new,
-    ]);
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.unnecessary_new],
+    );
 
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
@@ -109,9 +113,10 @@ part 'a.dart';
   }
 
   Future<void> test_hasFixes_in_part_and_library() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: [
-      LintNames.unnecessary_new,
-    ]);
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.unnecessary_new],
+    );
 
     newFile('$testPackageLibPath/a.dart', '''
 part of 'test.dart';
@@ -142,10 +147,10 @@ var c = new C();
   }
 
   Future<void> test_hasFixes_stoppedAfterFirst() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: [
-      LintNames.annotate_overrides,
-      LintNames.unnecessary_new,
-    ]);
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.annotate_overrides, LintNames.unnecessary_new],
+    );
 
     await resolveTestCode('''
 class A { String a => ''; }
@@ -161,9 +166,12 @@ var a = new A();
   }
 
   Future<void> test_noFixes() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: [
-      'avoid_catching_errors', // NOTE: not in lintProducerMap
-    ]);
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [
+        'avoid_catching_errors', // NOTE: not in lintProducerMap
+      ],
+    );
 
     await resolveTestCode('''
 void bad() {
@@ -182,9 +190,12 @@ void bad() {
 class NoFixTest extends BulkFixProcessorTest {
   /// See: https://github.com/dart-lang/sdk/issues/45177
   Future<void> test_noFix() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: [
-      'avoid_catching_errors', // NOTE: not in lintProducerMap
-    ]);
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [
+        'avoid_catching_errors', // NOTE: not in lintProducerMap
+      ],
+    );
 
     await resolveTestCode('''
 void bad() {
@@ -355,12 +366,17 @@ name: test2
 deps:
   d: any
 ''';
-    var test2Pubspec =
-        newFile('$workspaceRootPath/test2/pubspec.yaml', test2PubspecContent);
+    var test2Pubspec = newFile(
+      '$workspaceRootPath/test2/pubspec.yaml',
+      test2PubspecContent,
+    );
     await getResolvedUnit(testFile);
     await assertFixPubspec(content, expected);
-    await assertFixPubspec(test2PubspecContent, test2PubspecContent,
-        file: test2Pubspec);
+    await assertFixPubspec(
+      test2PubspecContent,
+      test2PubspecContent,
+      file: test2Pubspec,
+    );
   }
 
   Future<void> test_no_exception() async {

@@ -18,10 +18,7 @@ class ThrowStatement {
   final ExpressionStatement statement;
   final ThrowExpression expression;
 
-  ThrowStatement({
-    required this.statement,
-    required this.expression,
-  });
+  ThrowStatement({required this.statement, required this.expression});
 }
 
 class _ReferencedUnprefixedNamesCollector extends RecursiveAstVisitor<void> {
@@ -189,7 +186,7 @@ extension AstNodeExtension on AstNode {
   /// The [Token]s contained within `this`.
   List<Token> get tokens {
     var result = <Token>[];
-    for (var token = beginToken;; token = token.next!) {
+    for (var token = beginToken; ; token = token.next!) {
       result.add(token);
       if (token == endToken) {
         break;
@@ -421,10 +418,7 @@ extension StatementExtension on Statement {
       if (next is ExpressionStatement) {
         var throwExpression = next.expression;
         if (throwExpression is ThrowExpression) {
-          return ThrowStatement(
-            statement: next,
-            expression: throwExpression,
-          );
+          return ThrowStatement(statement: next, expression: throwExpression);
         }
       }
     }

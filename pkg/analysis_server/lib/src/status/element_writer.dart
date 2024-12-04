@@ -5,12 +5,11 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/status/tree_writer.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// A visitor that will produce an HTML representation of an element structure.
-class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
+class ElementWriter with TreeWriter {
   @override
   final StringBuffer buffer;
 
@@ -18,13 +17,15 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
   /// of visited elements on the given [buffer].
   ElementWriter(this.buffer);
 
-  @override
-  void visitElement(Element element) {
+  void write(Element2 element) {
     _writeElement(element);
     writeProperties(_computeProperties(element));
+    _writeFragments(element);
     indentLevel++;
     try {
-      element.visitChildren(this);
+      for (var child in element.children2) {
+        write(child);
+      }
     } finally {
       indentLevel--;
     }
@@ -32,28 +33,23 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
 
   /// Write a representation of the properties of the given [node] to the
   /// buffer.
-  Map<String, Object?> _computeProperties(Element element) {
+  Map<String, Object?> _computeProperties(Element2 element) {
     var properties = <String, Object?>{};
 
-    properties['metadata'] = element.metadata;
-    properties['nameOffset'] = element.nameOffset;
-    if (element is InterfaceElement) {
+    if (element case Annotatable element) {
+      properties['annotations'] = element.metadata2.annotations;
+    }
+    if (element is InterfaceElement2) {
       properties['interfaces'] = element.interfaces;
-      properties['isEnum'] = element is EnumElement;
+      properties['isEnum'] = element is EnumElement2;
       properties['mixins'] = element.mixins;
       properties['supertype'] = element.supertype;
-      if (element is ClassElement) {
+      if (element is ClassElement2) {
         properties['hasNonFinalField'] = element.hasNonFinalField;
         properties['isAbstract'] = element.isAbstract;
         properties['isMixinApplication'] = element.isMixinApplication;
         properties['isValidMixin'] = element.isValidMixin;
       }
-    }
-    if (element is ClassMemberElement) {
-      properties['isStatic'] = element.isStatic;
-    }
-    if (element is CompilationUnitElement) {
-      properties['source'] = element.source;
     }
     if (element is ConstFieldElementImpl) {
       properties['evaluationResult'] = element.evaluationResult;
@@ -64,54 +60,43 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
     if (element is ConstTopLevelVariableElementImpl) {
       properties['evaluationResult'] = element.evaluationResult;
     }
-    if (element is ConstructorElement) {
+    if (element is ConstructorElement2) {
       properties['isConst'] = element.isConst;
       properties['isDefaultConstructor'] = element.isDefaultConstructor;
       properties['isFactory'] = element.isFactory;
-      properties['redirectedConstructor'] = element.redirectedConstructor;
+      properties['redirectedConstructor'] = element.redirectedConstructor2;
     }
-    if (element is ExecutableElement) {
+    if (element is ExecutableElement2) {
       properties['hasImplicitReturnType'] = element.hasImplicitReturnType;
       properties['isAbstract'] = element.isAbstract;
-      properties['isAsynchronous'] = element.isAsynchronous;
       properties['isExternal'] = element.isExternal;
-      properties['isGenerator'] = element.isGenerator;
-      properties['isOperator'] = element.isOperator;
+      if (element is MethodElement2) {
+        properties['isOperator'] = element.isOperator;
+      }
       properties['isStatic'] = element.isStatic;
-      properties['isSynchronous'] = element.isSynchronous;
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is LibraryExportElement) {
-      properties['combinators'] = element.combinators;
-      properties['library'] = element.exportedLibrary;
-    }
-    if (element is FieldElement) {
+    if (element is FieldElement2) {
       properties['isEnumConstant'] = element.isEnumConstant;
     }
-    if (element is FieldFormalParameterElement) {
-      properties['field'] = element.field;
+    if (element is FieldFormalParameterElement2) {
+      properties['field'] = element.field2;
     }
-    if (element is FunctionElement) {
+    if (element is TopLevelFunctionElement) {
       properties['isEntryPoint'] = element.isEntryPoint;
     }
-    if (element is FunctionTypedElement) {
+    if (element is FunctionTypedElement2) {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is LibraryImportElement) {
-      properties['combinators'] = element.combinators;
-      properties['isDeferred'] = element.prefix is DeferredImportElementPrefix;
-      properties['library'] = element.importedLibrary;
-    }
-    if (element is LibraryElement) {
-      properties['definingCompilationUnit'] = element.definingCompilationUnit;
-      properties['entryPoint'] = element.entryPoint;
+    if (element is LibraryElement2) {
+      properties['entryPoint'] = element.entryPoint2;
       properties['isDartAsync'] = element.isDartAsync;
       properties['isDartCore'] = element.isDartCore;
       properties['isInSdk'] = element.isInSdk;
     }
-    if (element is ParameterElement) {
+    if (element is FormalParameterElement) {
       properties['defaultValueCode'] = element.defaultValueCode;
       properties['isInitializingFormal'] = element.isInitializingFormal;
       if (element.isRequiredPositional) {
@@ -126,20 +111,16 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
         properties['parameterKind'] = 'unknown kind';
       }
     }
-    if (element is PropertyAccessorElement) {
-      properties['isGetter'] = element.isGetter;
-      properties['isSetter'] = element.isSetter;
-    }
-    if (element is PropertyInducingElement) {
+    if (element is PropertyInducingElement2) {
       properties['isStatic'] = element.isStatic;
     }
-    if (element is TypeParameterElement) {
+    if (element is TypeParameterElement2) {
       properties['bound'] = element.bound;
     }
-    if (element is TypeParameterizedElement) {
-      properties['typeParameters'] = element.typeParameters;
+    if (element is TypeParameterizedElement2) {
+      properties['typeParameters'] = element.typeParameters2;
     }
-    if (element is VariableElement) {
+    if (element is VariableElement2) {
       properties['hasImplicitType'] = element.hasImplicitType;
       properties['isConst'] = element.isConst;
       properties['isFinal'] = element.isFinal;
@@ -150,8 +131,8 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
     return properties;
   }
 
-  /// Write a representation of the given [node] to the buffer.
-  void _writeElement(Element element) {
+  /// Write a representation of the given [element] to the buffer.
+  void _writeElement(Element2 element) {
     indent();
     if (element.isSynthetic) {
       buffer.write('<i>');
@@ -164,5 +145,59 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
     buffer.write(element.runtimeType);
     buffer.write(')</span>');
     buffer.write('<br>');
+  }
+
+  /// Write a representation of the given [fragment] to the buffer.
+  void _writeFragment(Fragment fragment, int index) {
+    indent();
+    buffer.write('fragments[$index]: ');
+    buffer.write(fragment.name2);
+    buffer.write(' <span style="color:gray">(');
+    buffer.write(fragment.runtimeType);
+    buffer.write(')</span>');
+    buffer.write('<br>');
+    var properties = <String, Object?>{};
+    if (fragment is LibraryFragment) {
+      properties['source'] = fragment.source;
+      properties['imports'] = {
+        for (var import in fragment.libraryImports2)
+          {
+            // ignore: analyzer_use_new_elements
+            'combinators': import.combinators,
+            if (import.prefix2 != null) 'prefix': import.prefix2?.name2,
+            'isDeferred': import.prefix2?.isDeferred ?? false,
+            'library': import.importedLibrary2,
+          },
+      };
+      properties['imports'] = {
+        for (var export in fragment.libraryExports2)
+          {
+            // ignore: analyzer_use_new_elements
+            'combinators': export.combinators,
+            'library': export.exportedLibrary2,
+          },
+      };
+    }
+    properties['nameOffset'] = fragment.nameOffset2;
+    if (fragment is ExecutableFragment) {
+      properties['isAsynchronous'] = fragment.isAsynchronous;
+      properties['isGenerator'] = fragment.isGenerator;
+      properties['isSynchronous'] = fragment.isSynchronous;
+    }
+    writeProperties(properties);
+  }
+
+  void _writeFragments(Element2 element) {
+    indentLevel++;
+    try {
+      var index = 0;
+      Fragment? fragment = element.firstFragment;
+      while (fragment != null) {
+        _writeFragment(fragment, index++);
+        fragment = fragment.nextFragment;
+      }
+    } finally {
+      indentLevel--;
+    }
   }
 }

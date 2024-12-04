@@ -13,54 +13,58 @@ main() {
 }
 
 defineTests() {
-  const src = """
-files:
-  include: foo # un-quoted
-  exclude:
-    - 'test/**'       # file globs can be scalars or lists
-    - '**/_data.dart' # unquoted stars treated by YAML as aliases
-rules:
-  style_guide:
-    unnecessary_getters: false #disable
-    camel_case_types: true #enable
-  pub:
-    package_names: false
-""";
+  /// Process the given option [fileContents] and produce a corresponding
+  /// [LintConfig]. Return `null` if [fileContents] is not a YAML map, or
+  /// does not have the `linter` child map.
+  Map<String, RuleConfig>? processAnalysisOptionsFile(String fileContents) {
+    var yaml = loadYamlNode(fileContents);
+    if (yaml is YamlMap) {
+      return parseLinterSection(yaml);
+    }
+    return null;
+  }
 
-// In the future, options might be marshaled in maps and passed to rules.
-//  acme:
-//    some_rule:
-//      some_option: # Note this nesting might be arbitrarily complex?
-//        - param1
-//        - param2
-
-  var config = LintConfig.parse(src);
+  // In the future, options might be marshaled in maps and passed to rules.
+  //  acme:
+  //    some_rule:
+  //      some_option: # Note this nesting might be arbitrarily complex?
+  //        - param1
+  //        - param2
 
   group('lint config', () {
-    group('file', () {
-      test('includes', () {
-        expect(config.fileIncludes, unorderedEquals(['foo']));
-      });
-      test('excludes', () {
-        expect(
-            config.fileExcludes, unorderedEquals(['test/**', '**/_data.dart']));
-      });
-    });
     group('rule', () {
       test('configs', () {
-        expect(config.ruleConfigs, hasLength(3));
+        var ruleConfigs = parseLinterSection(loadYamlNode('''
+linter:
+  # Unsupported sections here to check that no exceptions are thrown when
+  # YAML includes unknown sections.
+  files:
+    include: foo # un-quoted
+    exclude:
+      - 'test/**'       # file globs can be scalars or lists
+      - '**/_data.dart' # unquoted stars treated by YAML as aliases
+  rules:
+    style_guide:
+      unnecessary_getters: false #disable
+      camel_case_types: true #enable
+    pub:
+      package_names: false
+''') as YamlMap);
+        expect(ruleConfigs, hasLength(3));
       });
 
       test('config', () {
-        config = LintConfig.parse('''
-rules:
-  style_guide:
-    unnecessary_getters: false''');
-        expect(config.ruleConfigs, hasLength(1));
-        var ruleConfig = config.ruleConfigs[0];
+        var ruleConfigs = parseLinterSection(loadYamlNode('''
+linter:
+  rules:
+    style_guide:
+      unnecessary_getters: false
+''') as YamlMap)!;
+        expect(ruleConfigs, hasLength(1));
+        var ruleConfig = ruleConfigs.values.first;
         expect(ruleConfig.group, 'style_guide');
         expect(ruleConfig.name, 'unnecessary_getters');
-        expect(ruleConfig.args, {'enabled': false});
+        expect(ruleConfig.isEnabled, isFalse);
         expect(ruleConfig.disables('unnecessary_getters'), isTrue);
       });
     });
@@ -81,8 +85,8 @@ linter:
       unnecessary_getters: false #disable
       camel_case_types: true #enable
 ''';
-          var config = processAnalysisOptionsFile(src)!;
-          var ruleNames = config.ruleConfigs.map((rc) => rc.name);
+          var ruleConfigs = processAnalysisOptionsFile(src)!;
+          var ruleNames = ruleConfigs.values.map((rc) => rc.name);
           expect(ruleNames, hasLength(2));
           expect(ruleNames, contains('unnecessary_getters'));
           expect(ruleNames, contains('camel_case_types'));
@@ -100,10 +104,10 @@ linter:
   rules:
     - camel_case_types
 ''';
-          var config = processAnalysisOptionsFile(src)!;
-          expect(config.ruleConfigs.length, 1);
+          var ruleConfigs = processAnalysisOptionsFile(src)!;
+          expect(ruleConfigs, hasLength(1));
           // Verify that defaults are enabled.
-          expect(config.ruleConfigs[0].args['enabled'], isTrue);
+          expect(ruleConfigs.values.first.isEnabled, isTrue);
         });
 
         test('rule map (bools)', () {
@@ -117,15 +121,14 @@ linter:
     camel_case_types: true #enable
     unnecessary_getters: false #disable
 ''';
-          var config = processAnalysisOptionsFile(src)!;
-          var ruleConfigs = config.ruleConfigs.toList();
-          ruleConfigs.sort((RuleConfig rc1, RuleConfig rc2) =>
-              rc1.name!.compareTo(rc2.name!));
+          var ruleConfigs = processAnalysisOptionsFile(src)!.values.toList();
+          ruleConfigs.sort(
+              (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name));
           expect(ruleConfigs, hasLength(2));
           expect(ruleConfigs[0].name, 'camel_case_types');
-          expect(ruleConfigs[0].args['enabled'], isTrue);
+          expect(ruleConfigs[0].isEnabled, isTrue);
           expect(ruleConfigs[1].name, 'unnecessary_getters');
-          expect(ruleConfigs[1].args['enabled'], isFalse);
+          expect(ruleConfigs[1].isEnabled, isFalse);
         });
       });
     });
@@ -141,8 +144,8 @@ linter:
 
   group('options processing', () {
     group('raw maps', () {
-      LintConfig parseMap(Map<Object, Object?> map) {
-        return parseConfig(wrap(map) as YamlMap)!;
+      Map<String, RuleConfig> parseMap(Map<Object, Object?> map) {
+        return parseLinterSection(wrap(map) as YamlMap)!;
       }
 
       test('rule list', () {
@@ -152,9 +155,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
 
       test('rule map (bool)', () {
@@ -164,21 +167,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
-      });
-
-      test('rule map (string)', () {
-        var options = <Object, Object?>{};
-        var lintOptions = {
-          'rules': {'camel_case_types': 'true'}
-        };
-        options['linter'] = lintOptions;
-
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
 
       test('nested rule map (bool)', () {
@@ -190,9 +181,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
 
       test('nested rule map (string)', () {
@@ -204,9 +195,9 @@ linter:
         };
         options['linter'] = lintOptions;
 
-        var config = parseMap(options);
-        expect(config, isNotNull);
-        expect(config.ruleConfigs, hasLength(1));
+        var ruleConfigs = parseMap(options);
+        expect(ruleConfigs, isNotNull);
+        expect(ruleConfigs, hasLength(1));
       });
     });
   });

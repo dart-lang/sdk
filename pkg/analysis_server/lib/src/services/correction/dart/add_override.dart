@@ -43,7 +43,9 @@ class AddOverride extends ResolvedCorrectionProducer {
     var indent = utils.oneIndent;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.startLength(token, 0), '@override$eol$indent');
+        range.startLength(token, 0),
+        '@override$eol$indent',
+      );
     });
     builder.setSelection(exitPosition);
   }

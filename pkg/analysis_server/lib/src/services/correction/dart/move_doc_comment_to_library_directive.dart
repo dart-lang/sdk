@@ -45,21 +45,28 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
     // a new library directive; we don't know what to name it.
   }
 
-  Future<void> _moveToExistingLibraryDirective(ChangeBuilder builder,
-      Comment comment, LibraryDirective libraryDirective) async {
+  Future<void> _moveToExistingLibraryDirective(
+    ChangeBuilder builder,
+    Comment comment,
+    LibraryDirective libraryDirective,
+  ) async {
     // Just move the annotation to the existing library directive.
     var commentRange = utils.getLinesRange(range.node(comment));
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(commentRange);
       var commentText = utils.getRangeText(commentRange);
       builder.addSimpleInsertion(
-          libraryDirective.firstTokenAfterCommentAndMetadata.offset,
-          commentText);
+        libraryDirective.firstTokenAfterCommentAndMetadata.offset,
+        commentText,
+      );
     });
   }
 
-  Future<void> _moveToNewLibraryDirective(ChangeBuilder builder,
-      Comment comment, CompilationUnit compilationUnit) async {
+  Future<void> _moveToNewLibraryDirective(
+    ChangeBuilder builder,
+    Comment comment,
+    CompilationUnit compilationUnit,
+  ) async {
     var commentRange = _rangeOfFirstBlock(comment, compilationUnit.lineInfo);
 
     // Create a new, unnamed library directive, and move the comment to just
@@ -107,7 +114,9 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
       builder.addDeletion(commentRange);
       var commentText = utils.getRangeText(commentRange);
       builder.addSimpleInsertion(
-          insertionOffset, '$prefix${commentText}library;$eol$eol');
+        insertionOffset,
+        '$prefix${commentText}library;$eol$eol',
+      );
     });
   }
 

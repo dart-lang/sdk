@@ -46,7 +46,7 @@ ForStatement
       type: NamedType
         name: int
         element: dart:core::<fragment>::@class::int
-        element2: dart:core::<fragment>::@class::int#element
+        element2: dart:core::@class::int
         type: int
       name: v
       declaredElement: v@56
@@ -56,7 +56,7 @@ ForStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -199,7 +199,7 @@ ForStatement
       type: NamedType
         name: dynamic
         element: dynamic@-1
-        element2: dynamic@-1
+        element2: dynamic
         type: dynamic
       name: v
       declaredElement: v@42
@@ -251,7 +251,7 @@ ForStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -731,7 +731,7 @@ ForStatement
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@27
@@ -744,7 +744,7 @@ ForStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -791,7 +791,7 @@ ForStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -873,7 +873,7 @@ ForStatement
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@38
@@ -1070,7 +1070,7 @@ ForStatement
         type: NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
         name: a
         declaredElement: a@39
@@ -1083,7 +1083,7 @@ ForStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1139,7 +1139,7 @@ ForStatement
       methodName: SimpleIdentifier
         token: g
         staticElement: <testLibraryFragment>::@function::g
-        element: <testLibraryFragment>::@function::g#element
+        element: <testLibrary>::@function::g
         staticType: T Function<T>()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1231,7 +1231,7 @@ ForStatement
         type: NamedType
           name: num
           element: dart:core::<fragment>::@class::num
-          element2: dart:core::<fragment>::@class::num#element
+          element2: dart:core::@class::num
           type: num
         name: a
         declaredElement: a@52

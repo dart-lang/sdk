@@ -14,22 +14,28 @@ class OrganizeImports extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // Bulk application is supported by a distinct import cleanup fix phase.
-      CorrectionApplicability.singleLocation;
+          // Bulk application is supported by a distinct import cleanup fix phase.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.ORGANIZE_IMPORTS;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var organizer =
-        ImportOrganizer(unitResult.content, unit, unitResult.errors);
+    var organizer = ImportOrganizer(
+      unitResult.content,
+      unit,
+      unitResult.errors,
+    );
     // TODO(pq): consider restructuring organizer to allow a passed-in change
     //  builder
     for (var edit in organizer.organize()) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
-            SourceRange(edit.offset, edit.length), edit.replacement);
+          SourceRange(edit.offset, edit.length),
+          edit.replacement,
+        );
       });
     }
   }

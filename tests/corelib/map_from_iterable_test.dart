@@ -61,8 +61,11 @@ void defaultValueFunctionTest() {
 }
 
 void noDefaultValuesTest() {
-  var map = new HashMap.fromIterable([1, 2, 3],
-      key: (x) => x + 1, value: (x) => x - 1);
+  var map = new HashMap.fromIterable(
+    [1, 2, 3],
+    key: (x) => x + 1,
+    value: (x) => x - 1,
+  );
 
   Expect.isTrue(map is Map);
   Expect.isTrue(map is HashMap);
@@ -101,8 +104,11 @@ void equalElementsTest() {
 }
 
 void genericTypeTest() {
-  var map = new HashMap<String, String>.fromIterable(<int>[1, 2, 3],
-      key: (x) => '$x', value: (x) => '$x');
+  var map = new HashMap<String, String>.fromIterable(
+    <int>[1, 2, 3],
+    key: (x) => '$x',
+    value: (x) => '$x',
+  );
   Expect.isTrue(map is Map<String, String>);
 
   // Make sure it is not just Map<dynamic, dynamic>.

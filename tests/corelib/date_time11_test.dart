@@ -67,13 +67,17 @@ void runTests() {
         // Check that microseconds are taken into account.
         var dtMillisecond = new DateTime(year, month, day, hour, minute, 0, 1);
         var dtSecond = new DateTime(year, month, day, hour, minute, 1);
-        Expect.equals(const Duration(milliseconds: 999),
-            dtSecond.difference(dtMillisecond));
+        Expect.equals(
+          const Duration(milliseconds: 999),
+          dtSecond.difference(dtMillisecond),
+        );
 
         dtMillisecond = new DateTime(year, month, day, hour, minute, 0, -1);
         dtSecond = new DateTime(year, month, day, hour, minute, -1);
-        Expect.equals(const Duration(milliseconds: 999),
-            dtMillisecond.difference(dtSecond));
+        Expect.equals(
+          const Duration(milliseconds: 999),
+          dtMillisecond.difference(dtSecond),
+        );
       }
 
       var dt1 = new DateTime(year, month, day, hour);
@@ -110,8 +114,10 @@ void runTests() {
         var dt4 = dt1.add(const Duration(minutes: -1));
         Expect.isFalse(dt4.day == earlierDay && dt4.hour == earlierHour);
         Expect.isTrue(dt4.isBefore(dt1));
-        Expect.isTrue(dt4.day < earlierDay ||
-            (dt4.day == earlierDay && dt4.hour < earlierHour));
+        Expect.isTrue(
+          dt4.day < earlierDay ||
+              (dt4.day == earlierDay && dt4.hour < earlierHour),
+        );
         continue;
       }
 

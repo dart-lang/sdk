@@ -15,8 +15,12 @@ import '../../../tool/lsp_spec/meta_model.dart';
 void main() {
   var serverPkgPath = _getAnalysisServerPkgPath();
   var readmeFile = File(path.join(serverPkgPath, 'tool/lsp_spec/README.md'));
-  var metaModelJsonFile = File(path.join(serverPkgPath,
-      '../../third_party/pkg/language_server_protocol/lsp_meta_model.json'));
+  var metaModelJsonFile = File(
+    path.join(
+      serverPkgPath,
+      '../../third_party/pkg/language_server_protocol/lsp_meta_model.json',
+    ),
+  );
 
   group('LSP readme', () {
     test('contains all methods', () {
@@ -56,7 +60,9 @@ void main() {
         var handler = generator(_MockServer());
         var method = handler.handlesMessage.toString();
 
-        if (method.startsWith('dart')) {
+        if (method.startsWith('experimental/')) {
+          // Experimental handlers may change frequently, exclude them.
+        } else if (method.startsWith('dart')) {
           // Dart methods are included under their own heading.
           var expectedHeading = '### $method Method';
           if (!readmeContent.contains(expectedHeading)) {

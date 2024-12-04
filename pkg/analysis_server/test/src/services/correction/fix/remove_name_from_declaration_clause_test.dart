@@ -207,12 +207,10 @@ class SubtypeOfFfiClassInExtendsTest extends FixProcessorTest {
 import 'dart:ffi';
 final class C extends Double {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:ffi';
 final class C {}
-''',
-    );
+''');
   }
 }
 
@@ -226,12 +224,10 @@ class SubtypeOfFfiClassInImplementsTest extends FixProcessorTest {
 import 'dart:ffi';
 final class C implements Double {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:ffi';
 final class C {}
-''',
-    );
+''');
   }
 }
 
@@ -275,8 +271,8 @@ import 'dart:ffi';
 final class S extends Struct {}
 final class C {}
 ''',
-      errorFilter: (error) =>
-          error.errorCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
+      errorFilter:
+          (error) => error.errorCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
     );
   }
 }

@@ -7,7 +7,7 @@
 // representation type, the promotability is inherited from the underlying
 // representation type member.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 class C {
   final int? _promotable = 0;

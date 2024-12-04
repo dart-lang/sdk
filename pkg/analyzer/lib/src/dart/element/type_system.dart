@@ -697,28 +697,6 @@ class TypeSystemImpl implements TypeSystem {
     return instantiateType(type, arguments);
   }
 
-  @Deprecated('Use instantiateInterface/TypeAliasToBounds() instead')
-  @override
-  DartType instantiateToBounds2({
-    ClassElement? classElement,
-    TypeAliasElement? typeAliasElement,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    if (classElement != null) {
-      return instantiateInterfaceToBounds(
-        element: classElement,
-        nullabilitySuffix: nullabilitySuffix,
-      );
-    } else if (typeAliasElement != null) {
-      return instantiateTypeAliasToBounds(
-        element: typeAliasElement,
-        nullabilitySuffix: nullabilitySuffix,
-      );
-    } else {
-      throw ArgumentError('Missing element');
-    }
-  }
-
   /// Given a [DartType] [type] and a list of types
   /// [typeArguments], instantiate the type formals with the
   /// provided actuals.  If [type] is not a parameterized type,
@@ -1106,15 +1084,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return false;
-  }
-
-  /// Return `true` if the [leftType] is more specific than the [rightType]
-  /// (that is, if leftType << rightType), as defined in the Dart language spec.
-  ///
-  /// In strong mode, this is equivalent to [isSubtypeOf].
-  @Deprecated('Use isSubtypeOf() instead.')
-  bool isMoreSpecificThan(DartType leftType, DartType rightType) {
-    return isSubtypeOf(leftType, rightType);
   }
 
   /// Defines a total order on top and Object types.

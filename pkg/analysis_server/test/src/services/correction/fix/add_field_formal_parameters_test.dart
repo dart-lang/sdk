@@ -20,9 +20,7 @@ class AddFieldFormalParametersTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
 
   Future<void> test_flutter_nullable() async {
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
 
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -51,9 +49,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_potentiallyNullable() async {
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
 
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';

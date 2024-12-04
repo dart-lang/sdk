@@ -26,8 +26,10 @@ class AnalysisGetImportElementsIntegrationTest
   /// Check that an edit.importElements request with the given list of
   /// [elements] produces the [expected] list of edits.
   Future<void> checkEdits(
-      List<ImportedElements> elements, List<SourceEdit> expected,
-      {String? expectedFile}) async {
+    List<ImportedElements> elements,
+    List<SourceEdit> expected, {
+    String? expectedFile,
+  }) async {
     bool equals(SourceEdit actualEdit, SourceEdit expectedEdit) {
       return actualEdit.offset == expectedEdit.offset &&
           actualEdit.length == expectedEdit.length &&
@@ -83,14 +85,19 @@ class AnalysisGetImportElementsIntegrationTest
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
     var sdkPath = getSdkPath();
-    var mathPath =
-        provider.pathContext.join(sdkPath, 'lib', 'math', 'math.dart');
+    var mathPath = provider.pathContext.join(
+      sdkPath,
+      'lib',
+      'math',
+      'math.dart',
+    );
 
-    await checkEdits(<ImportedElements>[
-      ImportedElements(mathPath, '', <String>['Random'])
-    ], [
-      SourceEdit(0, 0, "import 'dart:math';\n\n")
-    ]);
+    await checkEdits(
+      <ImportedElements>[
+        ImportedElements(mathPath, '', <String>['Random']),
+      ],
+      [SourceEdit(0, 0, "import 'dart:math';\n\n")],
+    );
   }
 
   Future<void> test_importElements_noEdits() async {
@@ -116,13 +123,19 @@ class C {}
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
     var sdkPath = getSdkPath();
-    var mathPath =
-        provider.pathContext.join(sdkPath, 'lib', 'math', 'math.dart');
+    var mathPath = provider.pathContext.join(
+      sdkPath,
+      'lib',
+      'math',
+      'math.dart',
+    );
 
-    await checkEdits(<ImportedElements>[
-      ImportedElements(mathPath, '', <String>['Random'])
-    ], [
-      SourceEdit(0, 0, "import 'dart:math';\n\n")
-    ], expectedFile: libName);
+    await checkEdits(
+      <ImportedElements>[
+        ImportedElements(mathPath, '', <String>['Random']),
+      ],
+      [SourceEdit(0, 0, "import 'dart:math';\n\n")],
+      expectedFile: libName,
+    );
   }
 }

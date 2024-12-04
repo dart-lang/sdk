@@ -440,6 +440,16 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           ir.Node target = definition.node;
           if (target is ir.Procedure) {
             if (target.isExternal) {
+              // Skip interop extension type object literal constructors as
+              // that's handled within `visitStaticInvocation`.
+              // TODO(54968): We should handle the lowering for object literal
+              // constructors in the interop transformer somehow instead and
+              // avoid assuming all such members are object literal constructors
+              // or otherwise paying the cost to verify by indexing extension
+              // types.
+              final isObjectLiteralConstructor = target.isExtensionTypeMember &&
+                  target.function.namedParameters.isNotEmpty;
+              if (isObjectLiteralConstructor) return null;
               _buildExternalFunctionNode(targetElement as FunctionEntity,
                   _ensureDefaultArgumentValues(target.function));
             } else {

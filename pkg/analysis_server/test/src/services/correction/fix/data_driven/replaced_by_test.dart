@@ -911,11 +911,14 @@ var x = C().oldMethod(1);
     );
   }
 
-  Future<void> _assertReplacement(_Element oldElement, _Element newElement,
-      {bool isAssignment = false,
-      bool isInvocation = false,
-      bool isPrefixed = false,
-      bool isOldRemoved = false}) async {
+  Future<void> _assertReplacement(
+    _Element oldElement,
+    _Element newElement, {
+    bool isAssignment = false,
+    bool isInvocation = false,
+    bool isPrefixed = false,
+    bool isOldRemoved = false,
+  }) async {
     assert(!(isAssignment && isInvocation));
     setPackageContent('''
 ${isOldRemoved ? '' : oldElement.declaration}
@@ -955,9 +958,10 @@ void g() {
 
     var import = "import '$importUri'$prefixDeclaration;";
     // TODO(asashour): inserting imports should remove initial blank lines
-    var oldImport = isOldRemoved
-        ? ''
-        : '''
+    var oldImport =
+        isOldRemoved
+            ? ''
+            : '''
 $import
 ''';
     var newImport = '''
@@ -972,27 +976,35 @@ ${newImport}var x = $prefixReference${newElement.reference}$invocation;
 ''');
   }
 
-  Transform _replacedBy(ElementKind oldKind, List<String> oldComponents,
-      ElementKind newKind, List<String> newComponents,
-      {bool isStatic = false, Uri? oldUri}) {
+  Transform _replacedBy(
+    ElementKind oldKind,
+    List<String> oldComponents,
+    ElementKind newKind,
+    List<String> newComponents, {
+    bool isStatic = false,
+    Uri? oldUri,
+  }) {
     var oldElement = ElementDescriptor(
-        libraryUris: [oldUri ?? Uri.parse(importUri)],
-        kind: oldKind,
-        isStatic: isStatic,
-        components: oldComponents);
+      libraryUris: [oldUri ?? Uri.parse(importUri)],
+      kind: oldKind,
+      isStatic: isStatic,
+      components: oldComponents,
+    );
     var newElement = ElementDescriptor(
-        libraryUris: [Uri.parse(importUri)],
-        kind: newKind,
-        isStatic: isStatic,
-        components: newComponents);
+      libraryUris: [Uri.parse(importUri)],
+      kind: newKind,
+      isStatic: isStatic,
+      components: newComponents,
+    );
     return Transform(
-        title: 'title',
-        date: DateTime.now(),
-        element: oldElement,
-        bulkApply: true,
-        changesSelector: UnconditionalChangesSelector([
-          ReplacedBy(newElement: newElement, replaceTarget: false),
-        ]));
+      title: 'title',
+      date: DateTime.now(),
+      element: oldElement,
+      bulkApply: true,
+      changesSelector: UnconditionalChangesSelector([
+        ReplacedBy(newElement: newElement, replaceTarget: false),
+      ]),
+    );
   }
 }
 
@@ -1139,8 +1151,10 @@ enum $enumName {
     );
   }
 
-  factory _Element.defaultConstructor(
-      {bool isDeprecated = false, bool isOld = false}) {
+  factory _Element.defaultConstructor({
+    bool isDeprecated = false,
+    bool isOld = false,
+  }) {
     var className = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
     return _Element(
@@ -1166,8 +1180,11 @@ ${annotation}enum $enumName { $constantName }''',
     );
   }
 
-  factory _Element.field(
-      {bool isDeprecated = false, bool isOld = false, bool isStatic = false}) {
+  factory _Element.field({
+    bool isDeprecated = false,
+    bool isOld = false,
+    bool isStatic = false,
+  }) {
     var fieldName = isOld ? 'sf_old' : 'sf_new';
     var className = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
@@ -1182,8 +1199,11 @@ class $className {
     );
   }
 
-  factory _Element.getter(
-      {bool isDeprecated = false, bool isOld = false, bool isStatic = false}) {
+  factory _Element.getter({
+    bool isDeprecated = false,
+    bool isOld = false,
+    bool isStatic = false,
+  }) {
     var getterName = isOld ? 'g_old' : 'g_new';
     var className = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
@@ -1198,8 +1218,11 @@ class $className {
     );
   }
 
-  factory _Element.method(
-      {bool isDeprecated = false, bool isOld = false, bool isStatic = false}) {
+  factory _Element.method({
+    bool isDeprecated = false,
+    bool isOld = false,
+    bool isStatic = false,
+  }) {
     var methodName = isOld ? 'm_old' : 'm_new';
     var className = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
@@ -1214,8 +1237,10 @@ class $className {
     );
   }
 
-  factory _Element.namedConstructor(
-      {bool isDeprecated = false, bool isOld = false}) {
+  factory _Element.namedConstructor({
+    bool isDeprecated = false,
+    bool isOld = false,
+  }) {
     var constructorName = isOld ? 'c_old' : 'c_new';
     var className = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
@@ -1229,8 +1254,11 @@ class $className {
     );
   }
 
-  factory _Element.setter(
-      {bool isDeprecated = false, bool isOld = false, bool isStatic = false}) {
+  factory _Element.setter({
+    bool isDeprecated = false,
+    bool isOld = false,
+    bool isStatic = false,
+  }) {
     var setterName = isOld ? 's_old' : 's_new';
     var className = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
@@ -1245,8 +1273,10 @@ class $className {
     );
   }
 
-  factory _Element.topLevelFunction(
-      {bool isDeprecated = false, bool isOld = false}) {
+  factory _Element.topLevelFunction({
+    bool isDeprecated = false,
+    bool isOld = false,
+  }) {
     var name = isOld ? 'f_old' : 'f_new';
     var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
     return _Element(
@@ -1257,8 +1287,10 @@ ${annotation}int $name() => 0;''',
     );
   }
 
-  factory _Element.topLevelGetter(
-      {bool isDeprecated = false, bool isOld = false}) {
+  factory _Element.topLevelGetter({
+    bool isDeprecated = false,
+    bool isOld = false,
+  }) {
     var getterName = isOld ? 'g_old' : 'g_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
     return _Element(
@@ -1269,8 +1301,10 @@ ${annotation}int get $getterName => 0;''',
     );
   }
 
-  factory _Element.topLevelSetter(
-      {bool isDeprecated = false, bool isOld = false}) {
+  factory _Element.topLevelSetter({
+    bool isDeprecated = false,
+    bool isOld = false,
+  }) {
     var setterName = isOld ? 's_old' : 's_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
     return _Element(
@@ -1281,8 +1315,10 @@ ${annotation}set $setterName(int v) {}''',
     );
   }
 
-  factory _Element.topLevelVariable(
-      {bool isDeprecated = false, bool isOld = false}) {
+  factory _Element.topLevelVariable({
+    bool isDeprecated = false,
+    bool isOld = false,
+  }) {
     var name = isOld ? 'v_old' : 'v_new';
     var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
     return _Element(
@@ -1312,8 +1348,10 @@ ${annotation}typedef $name = int Function();''',
     return components.reversed.join('.');
   }
 
-  static String _annotation(
-      {required bool isDeprecated, bool isTopLevel = false}) {
+  static String _annotation({
+    required bool isDeprecated,
+    bool isTopLevel = false,
+  }) {
     var indent = isTopLevel ? '' : '  ';
     return isDeprecated ? '@deprecated\n$indent' : '';
   }

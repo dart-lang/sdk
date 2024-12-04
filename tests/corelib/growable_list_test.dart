@@ -26,14 +26,14 @@ class TestIterableBase extends Iterable<int> {
 
 class TestIterable extends TestIterableBase {
   TestIterable(count, [callbackIndex = -1, callback])
-      : super(-1, count, callbackIndex, callback);
+    : super(-1, count, callbackIndex, callback);
   int get length => throw "SHOULD NOT BE CALLED";
 }
 
 // Implement Set for private EfficientLengthIterable interface.
 class EfficientTestIterable extends TestIterableBase implements Set<int> {
   EfficientTestIterable(length, count, [callbackIndex = -1, callback])
-      : super(length, count, callbackIndex, callback);
+    : super(length, count, callbackIndex, callback);
   // Avoid warnings because we don't actually implement Set.
   noSuchMethod(i) => super.noSuchMethod(i);
   Set<R> cast<R>() => throw "not used by test";
@@ -91,11 +91,15 @@ void testConstructor() {
   testGrowable(new List<int?>.filled(5, null, growable: true));
   Expect.throwsArgumentError(() => new List<int?>.filled(-1, null), "-1");
   // There must be limits. Fix this test if we ever allow 2^63 elements.
-  Expect.throws(() => new List<int?>.filled(0x7ffffffffffff000, null),
-      (e) => e is OutOfMemoryError || e is ArgumentError, "bignum");
+  Expect.throws(
+    () => new List<int?>.filled(0x7ffffffffffff000, null),
+    (e) => e is OutOfMemoryError || e is ArgumentError,
+    "bignum",
+  );
   testThrowsOrTypeError(
-      () => new List.filled([] as dynamic, null), // Cast to avoid warning.
-      'list');
+    () => new List.filled([] as dynamic, null), // Cast to avoid warning.
+    'list',
+  );
   testThrowsOrTypeError(() => new List.filled([42] as dynamic, null), "list2");
 }
 
@@ -107,9 +111,13 @@ void testConcurrentModification() {
     var ci = new TestIterable(257, 200, () {
       l.add("X");
     });
-    Expect.throws(() {
-      l.addAll(ci);
-    }, (e) => e is ConcurrentModificationError, "cm1");
+    Expect.throws(
+      () {
+        l.addAll(ci);
+      },
+      (e) => e is ConcurrentModificationError,
+      "cm1",
+    );
   }
 
   {
@@ -118,9 +126,13 @@ void testConcurrentModification() {
     var ci = new TestIterable(257, 200, () {
       l.length = 0;
     });
-    Expect.throws(() {
-      l.addAll(ci);
-    }, (e) => e is ConcurrentModificationError, "cm2");
+    Expect.throws(
+      () {
+        l.addAll(ci);
+      },
+      (e) => e is ConcurrentModificationError,
+      "cm2",
+    );
   }
 
   // With EfficientLengthIterable interface (uses length).
@@ -130,9 +142,13 @@ void testConcurrentModification() {
     var ci = new EfficientTestIterable(257, 257, 20, () {
       l.add("X");
     });
-    Expect.throws(() {
-      l.addAll(ci);
-    }, (e) => e is ConcurrentModificationError, "cm3");
+    Expect.throws(
+      () {
+        l.addAll(ci);
+      },
+      (e) => e is ConcurrentModificationError,
+      "cm3",
+    );
   }
 
   {
@@ -140,9 +156,13 @@ void testConcurrentModification() {
     var ci = new EfficientTestIterable(257, 257, 20, () {
       l.length = 0;
     });
-    Expect.throws(() {
-      l.addAll(ci);
-    }, (e) => e is ConcurrentModificationError, "cm4");
+    Expect.throws(
+      () {
+        l.addAll(ci);
+      },
+      (e) => e is ConcurrentModificationError,
+      "cm4",
+    );
   }
 
   {

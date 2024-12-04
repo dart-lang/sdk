@@ -59,8 +59,8 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
     required this.multiFixKind,
     required BinaryExpression? binary,
     required _Replacement? replacement,
-  })  : _binary = binary,
-        _replacement = replacement;
+  }) : _binary = binary,
+       _replacement = replacement;
 
   @override
   CorrectionApplicability get applicability =>
@@ -180,20 +180,20 @@ class _Replacement {
   final Expression lengthTarget;
 
   _Replacement.isEmpty(Expression lengthTarget)
-      : this._(
-          fixKind: DartFixKind.REPLACE_WITH_IS_EMPTY,
-          multiFixKind: DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI,
-          getter: 'isEmpty',
-          lengthTarget: lengthTarget,
-        );
+    : this._(
+        fixKind: DartFixKind.REPLACE_WITH_IS_EMPTY,
+        multiFixKind: DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI,
+        getter: 'isEmpty',
+        lengthTarget: lengthTarget,
+      );
 
   _Replacement.isNotEmpty(Expression lengthTarget)
-      : this._(
-          fixKind: DartFixKind.REPLACE_WITH_IS_NOT_EMPTY,
-          multiFixKind: DartFixKind.REPLACE_WITH_IS_NOT_EMPTY_MULTI,
-          getter: 'isNotEmpty',
-          lengthTarget: lengthTarget,
-        );
+    : this._(
+        fixKind: DartFixKind.REPLACE_WITH_IS_NOT_EMPTY,
+        multiFixKind: DartFixKind.REPLACE_WITH_IS_NOT_EMPTY_MULTI,
+        getter: 'isNotEmpty',
+        lengthTarget: lengthTarget,
+      );
 
   _Replacement._({
     required this.fixKind,

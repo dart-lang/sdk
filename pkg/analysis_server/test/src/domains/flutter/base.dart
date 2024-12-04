@@ -24,8 +24,10 @@ class FlutterBase extends PubPackageAnalysisServerTest {
   ) async {
     var response = await getWidgetDescriptionResponse(search);
     expect(response.error, isNull);
-    return FlutterGetWidgetDescriptionResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    return FlutterGetWidgetDescriptionResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
   }
 
   Future<Response> getWidgetDescriptionResponse(String search) async {
@@ -42,10 +44,7 @@ class FlutterBase extends PubPackageAnalysisServerTest {
 
     newPubspecYamlFile(testPackageRootPath, '');
 
-    writeTestPackageConfig(
-      meta: true,
-      flutter: true,
-    );
+    writeTestPackageConfig(meta: true, flutter: true);
 
     await setRoots(included: [workspaceRootPath], excluded: []);
   }

@@ -5,7 +5,7 @@
 library deferred_in_isolate2_test;
 
 import 'dart:isolate';
-import 'package:async_helper/async_minitest.dart';
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 import 'deferred_in_isolate2_lib.dart' deferred as lib;
 

@@ -58,7 +58,8 @@ enum E<T extends int> {
   const E(T t);
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 26, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 28, 2),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 28, 2),
     ]);
   }
 
@@ -541,8 +542,7 @@ void main() {}
           contextMessages: [message(testFile, 65, 3)]),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
-    assertType(result.unit.declaredElement!.getClass('Baz')!.supertype,
-        'Bar<Foo<dynamic>>');
+    assertType(findElement2.class_('Baz').supertype, 'Bar<Foo<dynamic>>');
   }
 
   test_notRegularBounded_notSuperBounded_parameter_invariant() async {

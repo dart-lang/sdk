@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import '../tool/_fasta/entry_points.dart' show compilePlatformEntryPoint;
+import '../tool/entry_points.dart' show compilePlatformEntryPoint;
 import 'coverage_helper.dart';
 
 Future<void> main(List<String> arguments) async {

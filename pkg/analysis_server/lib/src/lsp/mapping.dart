@@ -6,7 +6,8 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/computer/computer_documentation.dart';
+import 'package:analysis_server/src/computer/computer_signature.dart' as server;
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -15,18 +16,21 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
-import 'package:analysis_server/src/protocol_server.dart' as server
+import 'package:analysis_server/src/protocol_server.dart'
+    as server
     hide AnalysisError;
 import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart' as server;
-import 'package:analyzer/src/dart/analysis/search.dart' as server
+import 'package:analyzer/src/dart/analysis/search.dart'
+    as server
     show DeclarationKind;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -36,36 +40,36 @@ import 'package:path/path.dart' as path;
 
 const languageSourceName = 'dart';
 
+/// A regex used for splitting the display text in a completion so that
+/// filterText only includes the symbol name and not any additional text (such
+/// as parens, ` => `). Match `=>` but not `==` (which may appear in overrides).
+final completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
+
+/// A regex to extract the type name from the parameter string of a setter
+/// completion item.
+final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
+
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   _errorCode(WarningCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
-    lsp.DiagnosticTag.Deprecated
+    lsp.DiagnosticTag.Deprecated,
   ],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE): [
-    lsp.DiagnosticTag.Deprecated
+    lsp.DiagnosticTag.Deprecated,
   ],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [
-    lsp.DiagnosticTag.Deprecated
+    lsp.DiagnosticTag.Deprecated,
   ],
   _errorCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
-    lsp.DiagnosticTag.Deprecated
+    lsp.DiagnosticTag.Deprecated,
   ],
 };
 
 /// The value to subtract relevance from to get the correct sortText for a
 /// completion item.
 final sortTextMaxValue = int.parse('9' * maximumRelevance.toString().length);
-
-/// A regex used for splitting the display text in a completion so that
-/// filterText only includes the symbol name and not any additional text (such
-/// as parens, ` => `). Match `=>` but not `==` (which may appear in overrides).
-final _completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
-
-/// A regex to extract the type name from the parameter string of a setter
-/// completion item.
-final _completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 /// Pattern for docComplete text on completion items that can be upgraded to
 /// the "detail" field so that it can be shown more prominently by clients.
@@ -74,14 +78,75 @@ final _completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 /// the pubspec version items. These go into docComplete so that they appear
 /// reasonably for non-LSP clients where there is no equivalent of the detail
 /// field.
-final _upgradableDocCompletePattern = RegExp(r'^_([\w ]{0,20})_$');
+final upgradableDocCompletePattern = RegExp(r'^_([\w ]{0,20})_$');
 
 lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
-    Set<lsp.MarkupKind>? preferredFormats, String content) {
+  Set<lsp.MarkupKind>? preferredFormats,
+  String content,
+) {
   return preferredFormats != null
       ? lsp.Either2<lsp.MarkupContent, String>.t1(
-          _asMarkup(preferredFormats, content))
+        _asMarkup(preferredFormats, content),
+      )
       : lsp.Either2<lsp.MarkupContent, String>.t2(content);
+}
+
+({String text, lsp.InsertTextFormat format}) buildInsertText({
+  required bool supportsSnippets,
+  required bool commitCharactersEnabled,
+  required bool completeFunctionCalls,
+  required String? requiredArgumentListString,
+  required List<int>? requiredArgumentListTextRanges,
+  required bool hasOptionalParameters,
+  required String completion,
+  required int selectionOffset,
+  required int selectionLength,
+}) {
+  var insertText = completion;
+  var insertTextFormat = lsp.InsertTextFormat.PlainText;
+
+  // SuggestionBuilder already does the equiv of completeFunctionCalls for
+  // some methods (for example Flutter's setState). If the completion already
+  // includes any `(` then disable our own insertion as the special-cased code
+  // will likely provide better code.
+  if (completion.contains('(')) {
+    completeFunctionCalls = false;
+  }
+
+  // If the client supports snippets, we can support completeFunctionCalls or
+  // setting a selection.
+  if (supportsSnippets) {
+    // completeFunctionCalls should only work if commit characters are disabled
+    // otherwise the editor may insert parens that we're also inserting.
+    if (!commitCharactersEnabled && completeFunctionCalls) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      var hasRequiredParameters =
+          requiredArgumentListTextRanges?.isNotEmpty ?? false;
+      var functionCallSuffix =
+          hasRequiredParameters && requiredArgumentListString != null
+              ? buildSnippetStringWithTabStops(
+                requiredArgumentListString,
+                requiredArgumentListTextRanges,
+              )
+              // Optional params still gets a final tab stop in the parens.
+              : hasOptionalParameters
+              ? SnippetBuilder.finalTabStop
+              // And no parameters at all we skip the tabstop in the parens.
+              : '';
+      insertText =
+          '${SnippetBuilder.escapeSnippetPlainText(insertText)}($functionCallSuffix)';
+    } else if (selectionOffset != 0 &&
+        // We don't need a tab stop if the selection is the end of the string.
+        selectionOffset != completion.length) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      insertText = buildSnippetStringWithTabStops(completion, [
+        selectionOffset,
+        selectionLength,
+      ]);
+    }
+  }
+
+  return (text: insertText, format: insertTextFormat);
 }
 
 /// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
@@ -104,26 +169,32 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
 }) {
   return toWorkspaceEdit(
-      annotateChanges: annotateChanges,
-      clientCapabilities,
-      edits
-          .map((e) => FileEditInformation(
-                server.getVersionedDocumentIdentifier(e.file),
-                // If we expect to create the file, server.getLineInfo() won't
-                // provide a LineInfo so create one from empty contents.
-                e.fileStamp == -1
-                    ? LineInfo.fromContent('')
-                    : server.getLineInfo(e.file)!,
-                e.edits,
-                // fileStamp == 1 is used by the server to indicate the file needs creating.
-                newFile: e.fileStamp == -1,
-              ))
-          .toList());
+    annotateChanges: annotateChanges,
+    clientCapabilities,
+    edits
+        .map(
+          (e) => FileEditInformation(
+            server.getVersionedDocumentIdentifier(e.file),
+            // If we expect to create the file, server.getLineInfo() won't
+            // provide a LineInfo so create one from empty contents.
+            e.fileStamp == -1
+                ? LineInfo.fromContent('')
+                : server.getLineInfo(e.file)!,
+            e.edits,
+            // fileStamp == 1 is used by the server to indicate the file needs creating.
+            newFile: e.fileStamp == -1,
+          ),
+        )
+        .toList(),
+  );
 }
 
 /// Create a [WorkspaceEdit] that renames [oldPath] to [newPath].
 WorkspaceEdit createRenameEdit(
-    ClientUriConverter uriConverter, String oldPath, String newPath) {
+  ClientUriConverter uriConverter,
+  String oldPath,
+  String newPath,
+) {
   var changes =
       <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
@@ -181,8 +252,12 @@ lsp.WorkspaceEdit createWorkspaceEdit(
       change.edits.single.file != filePath ||
       change.edits.single.edits.length != 1 ||
       (change.selection == null && change.linkedEditGroups.isEmpty)) {
-    return createPlainWorkspaceEdit(server, clientCapabilities, change.edits,
-        annotateChanges: annotateChanges);
+    return createPlainWorkspaceEdit(
+      server,
+      clientCapabilities,
+      change.edits,
+      annotateChanges: annotateChanges,
+    );
   }
 
   var fileEdit = change.edits.single;
@@ -198,15 +273,25 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   // Compile the edits into a TextDocumentEdit for this file.
   var textDocumentEdit = lsp.TextDocumentEdit(
     textDocument: server.getVersionedDocumentIdentifier(fileEdit.file),
-    edits: snippetEdits
-        .map((e) => Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit,
-            lsp.TextEdit>.t2(e))
-        .toList(),
+    edits:
+        snippetEdits
+            .map(
+              (e) => Either3<
+                lsp.AnnotatedTextEdit,
+                lsp.SnippetTextEdit,
+                lsp.TextEdit
+              >.t2(e),
+            )
+            .toList(),
   );
 
   // Convert to the union that documentChanges require.
-  var textDocumentEditsAsUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
-      lsp.RenameFile, lsp.TextDocumentEdit>.t4(textDocumentEdit);
+  var textDocumentEditsAsUnion = Either4<
+    lsp.CreateFile,
+    lsp.DeleteFile,
+    lsp.RenameFile,
+    lsp.TextDocumentEdit
+  >.t4(textDocumentEdit);
 
   /// Add the textDocumentEdit to a WorkspaceEdit.
   return lsp.WorkspaceEdit(documentChanges: [textDocumentEditsAsUnion]);
@@ -261,8 +346,10 @@ lsp.SymbolKind declarationKindToSymbolKind(
 
   // LSP requires we specify *some* kind, so in the case where the above code doesn't
   // match we'll just have to send a value to avoid a crash.
-  return getKindPreferences()
-      .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
+  return getKindPreferences().firstWhere(
+    isSupported,
+    orElse: () => lsp.SymbolKind.Obj,
+  );
 }
 
 lsp.CompletionItemKind? elementKindToCompletionItemKind(
@@ -392,10 +479,7 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.TOP_LEVEL_VARIABLE:
         return const [lsp.SymbolKind.Variable];
       case server.ElementKind.TYPE_PARAMETER:
-        return const [
-          lsp.SymbolKind.TypeParameter,
-          lsp.SymbolKind.Variable,
-        ];
+        return const [lsp.SymbolKind.TypeParameter, lsp.SymbolKind.Variable];
       case server.ElementKind.UNIT_TEST_GROUP:
       case server.ElementKind.UNIT_TEST_TEST:
         return const [lsp.SymbolKind.Method];
@@ -409,8 +493,41 @@ lsp.SymbolKind elementKindToSymbolKind(
 
   // LSP requires we specify *some* kind, so in the case where the above code doesn't
   // match we'll just have to send a value to avoid a crash.
-  return getKindPreferences()
-      .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
+  return getKindPreferences().firstWhere(
+    isSupported,
+    orElse: () => lsp.SymbolKind.Obj,
+  );
+}
+
+lsp.Location? fragmentToLocation(
+  ClientUriConverter uriConverter,
+  Fragment? fragment,
+) {
+  if (fragment == null) {
+    return null;
+  }
+
+  var libraryFragment = fragment.libraryFragment!;
+  var sourcePath = libraryFragment.source.fullName;
+
+  var nameOffset = fragment.nameOffset2;
+  var nameLength = fragment.name2?.length;
+
+  // For unnamed constructors, use the type name as the target location.
+  if (nameOffset == null && fragment is ConstructorFragment) {
+    nameOffset = fragment.typeNameOffset;
+    nameLength = fragment.typeName?.length;
+  }
+
+  if (nameOffset == null || nameLength == null) {
+    // This is some kind of synthetic fragment we can't navigate to.
+    return null;
+  }
+
+  return lsp.Location(
+    uri: uriConverter.toClientUri(sourcePath),
+    range: toRange(libraryFragment.lineInfo, nameOffset, nameLength),
+  );
 }
 
 /// Returns additional details to be shown against a completion.
@@ -431,7 +548,7 @@ CompletionDetail getCompletionDetail(
   if (returnType == null &&
       element?.kind == server.ElementKind.SETTER &&
       parameters != null) {
-    returnType = _completionSetterTypePattern.firstMatch(parameters)?.group(1);
+    returnType = completionSetterTypePattern.firstMatch(parameters)?.group(1);
     parameters = null;
   }
 
@@ -464,9 +581,10 @@ CompletionDetail getCompletionDetail(
   }
 
   var libraryUri = suggestion.libraryUri;
-  var autoImportUri = (suggestion.isNotImported ?? false) && libraryUri != null
-      ? Uri.parse(libraryUri)
-      : null;
+  var autoImportUri =
+      (suggestion.isNotImported ?? false) && libraryUri != null
+          ? Uri.parse(libraryUri)
+          : null;
 
   return (
     detail: detail,
@@ -495,23 +613,28 @@ String? getCompletionDisplayUriString({
       // Compute the relative path and then put into a URI so the display
       // always uses forward slashes (as a URI) regardless of platform.
       ? uriConverter
-          .toClientUri(pathContext.relative(
-            uriConverter.fromClientUri(elementLibraryUri),
-            from: pathContext.dirname(completionFilePath),
-          ))
+          .toClientUri(
+            pathContext.relative(
+              uriConverter.fromClientUri(elementLibraryUri),
+              from: pathContext.dirname(completionFilePath),
+            ),
+          )
           .toString()
       : elementLibraryUri.toString();
 }
 
 List<lsp.DiagnosticTag>? getDiagnosticTags(
-    Set<lsp.DiagnosticTag>? supportedTags, plugin.AnalysisError error) {
+  Set<lsp.DiagnosticTag>? supportedTags,
+  plugin.AnalysisError error,
+) {
   if (supportedTags == null) {
     return null;
   }
 
-  var tags = diagnosticTagsForErrorCode[error.code]
-      ?.where(supportedTags.contains)
-      .toList();
+  var tags =
+      diagnosticTagsForErrorCode[error.code]
+          ?.where(supportedTags.contains)
+          .toList();
 
   return tags != null && tags.isNotEmpty ? tags : null;
 }
@@ -526,8 +649,9 @@ bool isDartUri(Uri uri) => uri.path.endsWith('.dart');
 /// This function ignores any line/column info on the
 /// [server.Location] assuming it is either not available not unreliable.
 lsp.Range locationOffsetLenToRange(
-        server.LineInfo lineInfo, server.Location location) =>
-    toRange(lineInfo, location.offset, location.length);
+  server.LineInfo lineInfo,
+  server.Location location,
+) => toRange(lineInfo, location.offset, location.length);
 
 /// Converts a [server.Location] to an [lsp.Range] if all line and column
 /// values are available.
@@ -546,8 +670,9 @@ lsp.Range? locationToRange(server.Location location) {
   }
   // LSP positions are 0-based but Location is 1-based.
   return Range(
-      start: Position(line: startLine - 1, character: startColumn - 1),
-      end: Position(line: endLine - 1, character: endColumn - 1));
+    start: Position(line: startLine - 1, character: startColumn - 1),
+    end: Position(line: endLine - 1, character: endColumn - 1),
+  );
 }
 
 /// Merges two [WorkspaceEdit]s into a single one.
@@ -587,9 +712,10 @@ lsp.LocationLink? navigationTargetToLocationLink(
   var nameRange = toRange(targetLineInfo, target.offset, target.length);
   var codeOffset = target.codeOffset;
   var codeLength = target.codeLength;
-  var codeRange = codeOffset != null && codeLength != null
-      ? toRange(targetLineInfo, codeOffset, codeLength)
-      : nameRange;
+  var codeRange =
+      codeOffset != null && codeLength != null
+          ? toRange(targetLineInfo, codeOffset, codeLength)
+          : nameRange;
 
   return lsp.LocationLink(
     originSelectionRange: toRange(regionLineInfo, region.offset, region.length),
@@ -609,11 +735,17 @@ lsp.Diagnostic pluginToDiagnostic(
   List<lsp.DiagnosticRelatedInformation>? relatedInformation;
   var contextMessages = error.contextMessages;
   if (contextMessages != null && contextMessages.isNotEmpty) {
-    relatedInformation = contextMessages
-        .map((message) => pluginToDiagnosticRelatedInformation(
-            uriConverter, getLineInfo, message))
-        .nonNulls
-        .toList();
+    relatedInformation =
+        contextMessages
+            .map(
+              (message) => pluginToDiagnosticRelatedInformation(
+                uriConverter,
+                getLineInfo,
+                message,
+              ),
+            )
+            .nonNulls
+            .toList();
   }
 
   var message = error.message;
@@ -621,7 +753,8 @@ lsp.Diagnostic pluginToDiagnostic(
     message = '$message\n${error.correction}';
   }
 
-  var range = locationToRange(error.location) ??
+  var range =
+      locationToRange(error.location) ??
       locationOffsetLenToRange(
         // TODO(dantup): This null assertion is not sound and can lead to
         //   errors (for example during a large rename where files may be
@@ -642,16 +775,18 @@ lsp.Diagnostic pluginToDiagnostic(
     relatedInformation: relatedInformation,
     // Only include codeDescription if the client explicitly supports it
     // (a minor optimization to avoid unnecessary payload/(de)serialization).
-    codeDescription: clientSupportsCodeDescription && documentationUrl != null
-        ? CodeDescription(href: Uri.parse(documentationUrl))
-        : null,
+    codeDescription:
+        clientSupportsCodeDescription && documentationUrl != null
+            ? CodeDescription(href: Uri.parse(documentationUrl))
+            : null,
   );
 }
 
 lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
-    ClientUriConverter uriConverter,
-    server.LineInfo? Function(String) getLineInfo,
-    plugin.DiagnosticMessage message) {
+  ClientUriConverter uriConverter,
+  server.LineInfo? Function(String) getLineInfo,
+  plugin.DiagnosticMessage message,
+) {
   var file = message.location.file;
   var uri = uriConverter.toClientUri(file);
   var lineInfo = getLineInfo(file);
@@ -661,31 +796,28 @@ lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
     return null;
   }
   return lsp.DiagnosticRelatedInformation(
-      location: lsp.Location(
-        uri: uri,
-        // TODO(dantup): Switch to using line/col information from the context
-        // message once confirmed that AnalyzerConverter is not using the wrong
-        // LineInfo.
-        range: toRange(
-          lineInfo,
-          message.location.offset,
-          message.location.length,
-        ),
+    location: lsp.Location(
+      uri: uri,
+      // TODO(dantup): Switch to using line/col information from the context
+      // message once confirmed that AnalyzerConverter is not using the wrong
+      // LineInfo.
+      range: toRange(
+        lineInfo,
+        message.location.offset,
+        message.location.length,
       ),
-      message: message.message);
+    ),
+    message: message.message,
+  );
 }
 
 lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
-    plugin.AnalysisErrorSeverity severity) {
+  plugin.AnalysisErrorSeverity severity,
+) {
   return switch (severity) {
     plugin.AnalysisErrorSeverity.ERROR => lsp.DiagnosticSeverity.Error,
     plugin.AnalysisErrorSeverity.WARNING => lsp.DiagnosticSeverity.Warning,
     plugin.AnalysisErrorSeverity.INFO => lsp.DiagnosticSeverity.Information,
-    // Note: LSP also supports "Hint", but they won't render in things like the
-    // VS Code errors list as they're apparently intended to communicate
-    // non-visible diagnostics back (for example, if you wanted to grey out
-    // unreachable code without producing an item in the error list).
-    _ => throw 'Unknown AnalysisErrorSeverity: $severity'
   };
 }
 
@@ -778,10 +910,10 @@ lsp.SnippetTextEdit snippetTextEditWithSelection(
   return lsp.SnippetTextEdit(
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     range: toRange(lineInfo, edit.offset, edit.length),
-    newText: buildSnippetStringWithTabStops(
-      edit.replacement,
-      [selectionOffsetRelative, selectionLength ?? 0],
-    ),
+    newText: buildSnippetStringWithTabStops(edit.replacement, [
+      selectionOffsetRelative,
+      selectionLength ?? 0,
+    ]),
   );
 }
 
@@ -792,14 +924,15 @@ lsp.CompletionItem snippetToCompletionItem(
   LineInfo lineInfo,
   Position position,
   Snippet snippet,
-  CompletionListItemDefaults? defaults,
+  CompletionItemDefaults? defaults,
 ) {
   assert(capabilities.completionSnippets);
 
   var formats = capabilities.completionDocumentationFormats;
   var documentation = snippet.documentation;
-  var supportsAsIsInsertMode =
-      capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
+  var supportsAsIsInsertMode = capabilities.completionInsertTextModes.contains(
+    InsertTextMode.asIs,
+  );
   var changes = snippet.change;
 
   // We must only get one change for this file to be able to apply snippets.
@@ -811,14 +944,18 @@ lsp.CompletionItem snippetToCompletionItem(
   // LSP Completions can only provide simple edits for the current file.
   Command? command;
   if (otherFilesChanges.isNotEmpty) {
-    var workspaceEdit =
-        createPlainWorkspaceEdit(server, capabilities, otherFilesChanges);
+    var workspaceEdit = createPlainWorkspaceEdit(
+      server,
+      capabilities,
+      otherFilesChanges,
+    );
     command = Command(
-        title: 'Add import',
-        command: Commands.sendWorkspaceEdit,
-        arguments: [
-          {'edit': workspaceEdit}
-        ]);
+      title: 'Add import',
+      command: Commands.sendWorkspaceEdit,
+      arguments: [
+        {'edit': workspaceEdit},
+      ],
+    );
   }
 
   /// Convert the changes to TextEdits using snippet tokens for linked edit
@@ -839,15 +976,18 @@ lsp.CompletionItem snippetToCompletionItem(
   // more than one, take the first one since imports are usually added as later
   // edits (so when applied sequentially they will be inserted at the start of
   // the file after the other edits).
-  var mainEdit = mainFileEdits
-      .firstWhere((edit) => edit.range.start.line == position.line);
+  var mainEdit = mainFileEdits.firstWhere(
+    (edit) => edit.range.start.line == position.line,
+  );
   var nonMainEdits = mainFileEdits.where((edit) => edit != mainEdit).toList();
 
   // Capture any default combined range. If there are different insert/replace
   // ranges just take `null` because snippets always use the same ranges and
   // if defaults are different ours can't possibly be redundant.
-  var defaultRange =
-      defaults?.editRange?.map((ranges) => null, (range) => range);
+  var defaultRange = defaults?.editRange?.map(
+    (ranges) => null,
+    (range) => range,
+  );
   var hasDefaultEditRange = mainEdit.range == defaultRange;
 
   return lsp.CompletionItem(
@@ -855,9 +995,10 @@ lsp.CompletionItem snippetToCompletionItem(
     filterText: snippet.prefix.orNullIfSameAs(snippet.label),
     kind: lsp.CompletionItemKind.Snippet,
     command: command,
-    documentation: documentation != null
-        ? asMarkupContentOrString(formats, documentation)
-        : null,
+    documentation:
+        documentation != null
+            ? asMarkupContentOrString(formats, documentation)
+            : null,
     // Force snippets to be sorted at the bottom of the list.
     // TODO(dantup): Consider if we can rank these better. Client-side
     //   snippets have always been forced to the bottom partly because they
@@ -867,12 +1008,14 @@ lsp.CompletionItem snippetToCompletionItem(
     insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
     // Set textEdit or textEditText depending on whether we need to specify
     // a range or not.
-    textEdit: hasDefaultEditRange
-        ? null
-        : Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
-    textEditText: hasDefaultEditRange
-        ? mainEdit.newText.orNullIfSameAs(snippet.label)
-        : null,
+    textEdit:
+        hasDefaultEditRange
+            ? null
+            : Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
+    textEditText:
+        hasDefaultEditRange
+            ? mainEdit.newText.orNullIfSameAs(snippet.label)
+            : null,
     additionalTextEdits: nonMainEdits.nullIfEmpty,
   );
 }
@@ -906,13 +1049,13 @@ lsp.CompletionItemKind? suggestionKindToCompletionItemKind(
         if (!label.startsWith('dart:')) {
           return label.endsWith('.dart')
               ? const [
-                  lsp.CompletionItemKind.File,
-                  lsp.CompletionItemKind.Module,
-                ]
+                lsp.CompletionItemKind.File,
+                lsp.CompletionItemKind.Module,
+              ]
               : const [
-                  lsp.CompletionItemKind.Folder,
-                  lsp.CompletionItemKind.Module,
-                ];
+                lsp.CompletionItemKind.Folder,
+                lsp.CompletionItemKind.Module,
+              ];
         }
         return const [lsp.CompletionItemKind.Module];
       case server.CompletionSuggestionKind.IDENTIFIER:
@@ -938,15 +1081,19 @@ lsp.CompletionItemKind? suggestionKindToCompletionItemKind(
 }
 
 lsp.ClosingLabel toClosingLabel(
-        server.LineInfo lineInfo, server.ClosingLabel label) =>
-    lsp.ClosingLabel(
-        range: toRange(lineInfo, label.offset, label.length),
-        label: label.label);
+  server.LineInfo lineInfo,
+  server.ClosingLabel label,
+) => lsp.ClosingLabel(
+  range: toRange(lineInfo, label.offset, label.length),
+  label: label.label,
+);
 
 /// Converts [id] to a [CodeActionKind] using [fallbackOrPrefix] as a fallback
 /// or a prefix if the ID is not already a fix/refactor.
 lsp.CodeActionKind toCodeActionKind(
-    String? id, lsp.CodeActionKind fallbackOrPrefix) {
+  String? id,
+  lsp.CodeActionKind fallbackOrPrefix,
+) {
   if (id == null) {
     return fallbackOrPrefix;
   }
@@ -956,7 +1103,9 @@ lsp.CodeActionKind toCodeActionKind(
       .replaceAll('dart.assist', lsp.CodeActionKind.Refactor.toString())
       .replaceAll('dart.fix', lsp.CodeActionKind.QuickFix.toString())
       .replaceAll(
-          'analysisOptions.assist', lsp.CodeActionKind.Refactor.toString())
+        'analysisOptions.assist',
+        lsp.CodeActionKind.Refactor.toString(),
+      )
       .replaceAll('analysisOptions.fix', lsp.CodeActionKind.QuickFix.toString())
       .replaceAll('pubspec.assist', lsp.CodeActionKind.Refactor.toString())
       .replaceAll('pubspec.fix', lsp.CodeActionKind.QuickFix.toString());
@@ -997,7 +1146,8 @@ lsp.CompletionItem toCompletionItem(
   // In the case of show combinators, the parens will still be shown to indicate
   // functions but they should not be included in the completions.
   var elementKind = suggestion.element?.kind;
-  var isCallable = elementKind == server.ElementKind.CONSTRUCTOR ||
+  var isCallable =
+      elementKind == server.ElementKind.CONSTRUCTOR ||
       elementKind == server.ElementKind.FUNCTION ||
       elementKind == server.ElementKind.METHOD;
   var isInvocation =
@@ -1007,13 +1157,15 @@ lsp.CompletionItem toCompletionItem(
   }
 
   var supportsCompletionDeprecatedFlag = capabilities.completionDeprecatedFlag;
-  var supportsDeprecatedTag = capabilities.completionItemTags
-      .contains(lsp.CompletionItemTag.Deprecated);
+  var supportsDeprecatedTag = capabilities.completionItemTags.contains(
+    lsp.CompletionItemTag.Deprecated,
+  );
   var formats = capabilities.completionDocumentationFormats;
   var supportsSnippets = capabilities.completionSnippets;
   var supportsInsertReplace = capabilities.insertReplaceCompletionRanges;
-  var supportsAsIsInsertMode =
-      capabilities.completionInsertTextModes.contains(InsertTextMode.asIs);
+  var supportsAsIsInsertMode = capabilities.completionInsertTextModes.contains(
+    InsertTextMode.asIs,
+  );
   var useLabelDetails = capabilities.completionLabelDetails;
 
   var label = suggestion.displayText ?? suggestion.completion;
@@ -1029,9 +1181,10 @@ lsp.CompletionItem toCompletionItem(
 
   // TODO(dantup): Consider including more of these raw fields in the original
   //  suggestion to avoid needing to manipulate them in this way here.
-  var filterText = !label.startsWith(_completionFilterTextSplitPattern)
-      ? label.split(_completionFilterTextSplitPattern).first.trim()
-      : label;
+  var filterText =
+      !label.startsWith(completionFilterTextSplitPattern)
+          ? label.split(completionFilterTextSplitPattern).first.trim()
+          : label;
 
   // If we're using label details, we also don't want the label to include any
   // additional symbols as noted above, because they will appear in the extra
@@ -1051,13 +1204,19 @@ lsp.CompletionItem toCompletionItem(
               suggestion is DartCompletionSuggestion
           ? suggestion.colorHex
           : null;
-  var completionKind = colorPreviewHex != null
-      ? CompletionItemKind.Color
-      : element != null
+  var completionKind =
+      colorPreviewHex != null
+          ? CompletionItemKind.Color
+          : element != null
           ? elementKindToCompletionItemKind(
-              capabilities.completionItemKinds, element.kind)
+            capabilities.completionItemKinds,
+            element.kind,
+          )
           : suggestionKindToCompletionItemKind(
-              capabilities.completionItemKinds, suggestion.kind, label);
+            capabilities.completionItemKinds,
+            suggestion.kind,
+            label,
+          );
 
   var labelDetails = getCompletionDetail(
     suggestion,
@@ -1072,7 +1231,7 @@ lsp.CompletionItem toCompletionItem(
     label += labelDetails.truncatedParams;
   }
 
-  var insertTextInfo = _buildInsertText(
+  var insertTextInfo = buildInsertText(
     supportsSnippets: supportsSnippets,
     commitCharactersEnabled: commitCharactersEnabled,
     completeFunctionCalls: completeFunctionCalls,
@@ -1087,9 +1246,10 @@ lsp.CompletionItem toCompletionItem(
   var insertTextFormat = insertTextInfo.format;
   var isMultilineCompletion = insertText.contains('\n');
 
-  var rawDoc = includeDocumentation == DocumentationPreference.full
-      ? suggestion.docComplete
-      : includeDocumentation == DocumentationPreference.summary
+  var rawDoc =
+      includeDocumentation == DocumentationPreference.full
+          ? suggestion.docComplete
+          : includeDocumentation == DocumentationPreference.summary
           ? suggestion.docSummary
           : null;
   var cleanedDoc = cleanDartdoc(rawDoc);
@@ -1097,9 +1257,10 @@ lsp.CompletionItem toCompletionItem(
   // To improve the display of some items (like pubspec version numbers),
   // short labels in the format `_foo_` in docComplete are "upgraded" to the
   // detail field.
-  var labelMatch = cleanedDoc != null
-      ? _upgradableDocCompletePattern.firstMatch(cleanedDoc)
-      : null;
+  var labelMatch =
+      cleanedDoc != null
+          ? upgradableDocCompletePattern.firstMatch(cleanedDoc)
+          : null;
   if (labelMatch != null) {
     cleanedDoc = null;
     labelDetails = (
@@ -1125,54 +1286,57 @@ lsp.CompletionItem toCompletionItem(
     kind: completionKind,
     tags: nullIfEmpty([
       if (supportsDeprecatedTag && suggestion.isDeprecated)
-        lsp.CompletionItemTag.Deprecated
+        lsp.CompletionItemTag.Deprecated,
     ]),
     data: resolutionData,
     detail: labelDetails.detail.nullIfEmpty,
-    labelDetails: useLabelDetails
-        ? CompletionItemLabelDetails(
-            detail: labelDetails.truncatedSignature.nullIfEmpty,
-            description: getCompletionDisplayUriString(
-              uriConverter: uriConverter,
-              pathContext: pathContext,
-              elementLibraryUri: labelDetails.autoImportUri,
-              completionFilePath: completionFilePath,
-            ),
-          ).nullIfEmpty
-        : null,
-    documentation: cleanedDoc != null
-        ? asMarkupContentOrString(formats, cleanedDoc)
-        : null,
-    deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated
-        ? true
-        : null,
+    labelDetails:
+        useLabelDetails
+            ? CompletionItemLabelDetails(
+              detail: labelDetails.truncatedSignature.nullIfEmpty,
+              description: getCompletionDisplayUriString(
+                uriConverter: uriConverter,
+                pathContext: pathContext,
+                elementLibraryUri: labelDetails.autoImportUri,
+                completionFilePath: completionFilePath,
+              ),
+            ).nullIfEmpty
+            : null,
+    documentation:
+        cleanedDoc != null
+            ? asMarkupContentOrString(formats, cleanedDoc)
+            : null,
+    deprecated:
+        supportsCompletionDeprecatedFlag && suggestion.isDeprecated
+            ? true
+            : null,
     sortText: relevanceToSortText(suggestion.relevance),
-    filterText:
-        filterText.orNullIfSameAs(label), // filterText uses label if not set
-    insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
-        ? insertTextFormat
-        : null, // Defaults to PlainText if not supplied
+    filterText: filterText.orNullIfSameAs(
+      label,
+    ), // filterText uses label if not set
+    insertTextFormat:
+        insertTextFormat != lsp.InsertTextFormat.PlainText
+            ? insertTextFormat
+            : null, // Defaults to PlainText if not supplied
     insertTextMode:
         !hasDefaultTextMode && supportsAsIsInsertMode && isMultilineCompletion
             ? InsertTextMode.asIs
             : null,
     // When using defaults for edit range, don't use textEdit.
-    textEdit: hasDefaultEditRange
-        ? null
-        : supportsInsertReplace && insertionRange != replacementRange
+    textEdit:
+        hasDefaultEditRange
+            ? null
+            : supportsInsertReplace && insertionRange != replacementRange
             ? Either2<InsertReplaceEdit, TextEdit>.t1(
-                InsertReplaceEdit(
-                  insert: insertionRange,
-                  replace: replacementRange,
-                  newText: insertText,
-                ),
-              )
-            : Either2<InsertReplaceEdit, TextEdit>.t2(
-                TextEdit(
-                  range: replacementRange,
-                  newText: insertText,
-                ),
+              InsertReplaceEdit(
+                insert: insertionRange,
+                replace: replacementRange,
+                newText: insertText,
               ),
+            )
+            : Either2<InsertReplaceEdit, TextEdit>.t2(
+              TextEdit(range: replacementRange, newText: insertText),
+            ),
     // When using defaults for edit range, use textEditText.
     textEditText: hasDefaultEditRange ? insertText.orNullIfSameAs(label) : null,
   );
@@ -1197,9 +1361,10 @@ lsp.Diagnostic toDiagnostic(
 lsp.Element toElement(server.LineInfo lineInfo, server.Element element) {
   var location = element.location;
   return lsp.Element(
-    range: location != null
-        ? toRange(lineInfo, location.offset, location.length)
-        : null,
+    range:
+        location != null
+            ? toRange(lineInfo, location.offset, location.length)
+            : null,
     name: toElementName(element),
     kind: element.kind.name,
     parameters: element.parameters,
@@ -1217,7 +1382,9 @@ String toElementName(server.Element element) {
 }
 
 lsp.FlutterOutline toFlutterOutline(
-    server.LineInfo lineInfo, server.FlutterOutline outline) {
+  server.LineInfo lineInfo,
+  server.FlutterOutline outline,
+) {
   var attributes = outline.attributes;
   var dartElement = outline.dartElement;
   var children = outline.children;
@@ -1227,9 +1394,10 @@ lsp.FlutterOutline toFlutterOutline(
     label: outline.label,
     className: outline.className,
     variableName: outline.variableName,
-    attributes: attributes
-        ?.map((attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
-        .toList(),
+    attributes:
+        attributes
+            ?.map((attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
+            .toList(),
     dartElement: dartElement != null ? toElement(lineInfo, dartElement) : null,
     range: toRange(lineInfo, outline.offset, outline.length),
     codeRange: toRange(lineInfo, outline.codeOffset, outline.codeLength),
@@ -1238,14 +1406,18 @@ lsp.FlutterOutline toFlutterOutline(
 }
 
 lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
-    server.LineInfo lineInfo, server.FlutterOutlineAttribute attribute) {
+  server.LineInfo lineInfo,
+  server.FlutterOutlineAttribute attribute,
+) {
   var valueLocation = attribute.valueLocation;
   return lsp.FlutterOutlineAttribute(
-      name: attribute.name,
-      label: attribute.label,
-      valueRange: valueLocation != null
-          ? toRange(lineInfo, valueLocation.offset, valueLocation.length)
-          : null);
+    name: attribute.name,
+    label: attribute.label,
+    valueRange:
+        valueLocation != null
+            ? toRange(lineInfo, valueLocation.offset, valueLocation.length)
+            : null,
+  );
 }
 
 lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
@@ -1265,25 +1437,29 @@ lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
 }
 
 List<lsp.DocumentHighlight> toHighlights(
-    server.LineInfo lineInfo, List<server.Occurrences> occurrences) {
+  server.LineInfo lineInfo,
+  List<server.Occurrences> occurrences,
+) {
   return occurrences
-      .map((occurrence) => occurrence.offsets.map((offset) =>
-          lsp.DocumentHighlight(
-              range: toRange(lineInfo, offset, occurrence.length))))
+      .map(
+        (occurrence) => occurrence.offsets.map(
+          (offset) => lsp.DocumentHighlight(
+            range: toRange(lineInfo, offset, occurrence.length),
+          ),
+        ),
+      )
       .flattenedToSet
       .toList();
 }
 
-lsp.Location toLocation(ClientUriConverter uriConverter,
-        server.Location location, server.LineInfo lineInfo) =>
-    lsp.Location(
-      uri: uriConverter.toClientUri(location.file),
-      range: toRange(
-        lineInfo,
-        location.offset,
-        location.length,
-      ),
-    );
+lsp.Location toLocation(
+  ClientUriConverter uriConverter,
+  server.Location location,
+  server.LineInfo lineInfo,
+) => lsp.Location(
+  uri: uriConverter.toClientUri(location.file),
+  range: toRange(lineInfo, location.offset, location.length),
+);
 
 ErrorOr<int> toOffset(
   server.LineInfo lineInfo,
@@ -1292,18 +1468,23 @@ ErrorOr<int> toOffset(
 }) {
   // line is zero-based so cannot equal lineCount
   if (pos.line >= lineInfo.lineCount) {
-    return ErrorOr<int>.error(lsp.ResponseError(
-        code: failureIsCritical
-            ? lsp.ServerErrorCodes.ClientServerInconsistentState
-            : lsp.ServerErrorCodes.InvalidFileLineCol,
+    return ErrorOr<int>.error(
+      lsp.ResponseError(
+        code:
+            failureIsCritical
+                ? lsp.ServerErrorCodes.ClientServerInconsistentState
+                : lsp.ServerErrorCodes.InvalidFileLineCol,
         message: 'Invalid line number',
-        data: pos.line.toString()));
+        data: pos.line.toString(),
+      ),
+    );
   }
   // TODO(dantup): Is there any way to validate the character? We could ensure
   // it's less than the offset of the next line, but that would only work for
   // all lines except the last one.
   return ErrorOr<int>.success(
-      lineInfo.getOffsetOfLine(pos.line) + pos.character);
+    lineInfo.getOffsetOfLine(pos.line) + pos.character,
+  );
 }
 
 lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) {
@@ -1319,7 +1500,9 @@ lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) {
 lsp.Position toPosition(server.CharacterLocation location) {
   // LSP is zero-based, but analysis server is 1-based.
   return lsp.Position(
-      line: location.lineNumber - 1, character: location.columnNumber - 1);
+    line: location.lineNumber - 1,
+    character: location.columnNumber - 1,
+  );
 }
 
 lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
@@ -1328,41 +1511,34 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
   var start = lineInfo.getLocation(offset);
   var end = lineInfo.getLocation(offset + length);
 
-  return lsp.Range(
-    start: toPosition(start),
-    end: toPosition(end),
-  );
+  return lsp.Range(start: toPosition(start), end: toPosition(end));
 }
 
-lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
-    server.AnalysisGetSignatureResult signature) {
+lsp.SignatureHelp toSignatureHelp(
+  Set<lsp.MarkupKind>? preferredFormats,
+  server.SignatureInformation signature,
+) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
   // is at the end ready to provide another argument).
 
   /// Gets the label for an individual parameter in the form
   ///     String s = 'foo'
-  String getParamLabel(server.ParameterInfo p) {
-    var def = p.defaultValue != null ? ' = ${p.defaultValue}' : '';
-    var prefix =
-        p.kind == server.ParameterKind.REQUIRED_NAMED ? 'required ' : '';
-    return '$prefix${p.type} ${p.name}$def';
+  String getParamLabel(FormalParameterElement p) {
+    var defaultCodeSuffix =
+        p.defaultValueCode != null ? ' = ${p.defaultValueCode}' : '';
+    var requiredPrefix = p.isRequiredNamed ? 'required ' : '';
+    return '$requiredPrefix${p.type} ${p.displayName}$defaultCodeSuffix';
   }
 
   /// Gets the full signature label in the form
   ///     foo(String s, int i, bool a = true)
-  String getSignatureLabel(server.AnalysisGetSignatureResult resp) {
-    var positionalRequired = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.REQUIRED_POSITIONAL)
-        .toList();
-    var positionalOptional = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.OPTIONAL_POSITIONAL)
-        .toList();
-    var named = signature.parameters
-        .where((p) =>
-            p.kind == server.ParameterKind.OPTIONAL_NAMED ||
-            p.kind == server.ParameterKind.REQUIRED_NAMED)
-        .toList();
+  String getSignatureLabel(server.SignatureInformation resp) {
+    var positionalRequired =
+        signature.parameters.where((p) => p.isRequiredPositional).toList();
+    var positionalOptional =
+        signature.parameters.where((p) => p.isOptionalPositional).toList();
+    var named = signature.parameters.where((p) => p.isNamed).toList();
     var params = [];
     if (positionalRequired.isNotEmpty) {
       params.add(positionalRequired.map(getParamLabel).join(', '));
@@ -1376,7 +1552,7 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
     return '${resp.name}(${params.join(", ")})';
   }
 
-  lsp.ParameterInformation toParameterInfo(server.ParameterInfo param) {
+  lsp.ParameterInformation toParameterInfo(FormalParameterElement param) {
     // LSP 3.14.0 supports providing label offsets (to avoid clients having
     // to guess based on substrings). We should check the
     // signatureHelp.signatureInformation.parameterInformation.labelOffsetSupport
@@ -1390,22 +1566,23 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind>? preferredFormats,
     signatures: [
       lsp.SignatureInformation(
         label: getSignatureLabel(signature),
-        documentation: cleanedDoc != null
-            ? asMarkupContentOrString(preferredFormats, cleanedDoc)
-            : null,
+        documentation:
+            cleanedDoc != null
+                ? asMarkupContentOrString(preferredFormats, cleanedDoc)
+                : null,
         parameters: signature.parameters.map(toParameterInfo).toList(),
       ),
     ],
     activeSignature: 0, // activeSignature
-    // TODO(dantup): The LSP spec says this value will default to 0 if it's
-    // not supplied or outside of the value range. However, setting -1 results
-    // in no parameters being selected in VS Code, whereas null/0 will select the first.
-    // We'd like for none to be selected (since we don't support this yet) so
-    // we send -1. I've made a request for LSP to support not selecting a parameter
-    // (because you could also be on param 5 of an invalid call to a function
-    // taking only 3 arguments) here:
-    // https://github.com/Microsoft/language-server-protocol/issues/456#issuecomment-452318297
-    activeParameter: -1, // activeParameter
+    // We must provide a unsigned integer here but it's possible there isn't
+    // a valid value (because the user might be in the 10th argument of an
+    // invocation that only takes 1). The LSP spec allows us to send an
+    // out-of-bounds value so send the first out-of-bound value (`.length`). The
+    // spec says this may be treated as 0, however VS Code will not highlight
+    // any parameter in this case (which is preferred and hopefully other
+    // clients may copy).
+    activeParameter:
+        signature.activeParameterIndex ?? signature.parameters.length,
   );
 }
 
@@ -1429,15 +1606,17 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
 
   var offsetDelta = 0;
   for (var edit in change.edits.reversed) {
-    snippetEdits.add(snippetTextEditFromEditGroups(
-      filePath,
-      lineInfo,
-      edit,
-      editGroups: editGroups,
-      editOffset: edit.offset + offsetDelta,
-      selectionOffset: selectionOffset,
-      selectionLength: selectionLength,
-    ));
+    snippetEdits.add(
+      snippetTextEditFromEditGroups(
+        filePath,
+        lineInfo,
+        edit,
+        editGroups: editGroups,
+        editOffset: edit.offset + offsetDelta,
+        selectionOffset: selectionOffset,
+        selectionLength: selectionLength,
+      ),
+    );
 
     offsetDelta += edit.replacement.length - edit.length;
   }
@@ -1446,19 +1625,23 @@ List<lsp.SnippetTextEdit> toSnippetTextEdits(
 }
 
 ErrorOr<server.SourceRange> toSourceRange(
-    server.LineInfo lineInfo, Range range) {
+  server.LineInfo lineInfo,
+  Range range,
+) {
   // If there is a range, convert to offsets because that's what
   // the tokens are computed using initially.
   var start = toOffset(lineInfo, range.start);
   var end = toOffset(lineInfo, range.end);
 
   return (start, end).mapResultsSync(
-      (start, end) => success(server.SourceRange(start, end - start)));
+    (start, end) => success(server.SourceRange(start, end - start)),
+  );
 }
 
 ErrorOr<server.SourceRange?> toSourceRangeNullable(
-        server.LineInfo lineInfo, Range? range) =>
-    range != null ? toSourceRange(lineInfo, range) : success(null);
+  server.LineInfo lineInfo,
+  Range? range,
+) => range != null ? toSourceRange(lineInfo, range) : success(null);
 
 /// Creates an [lsp.TextDocumentEdit] for [fileEdit].
 ///
@@ -1474,27 +1657,29 @@ lsp.TextDocumentEdit toTextDocumentEdit(
     (annotateChanges == ChangeAnnotations.none) == (changeAnnotations == null),
   );
   return lsp.TextDocumentEdit(
-      textDocument: fileEdit.doc,
-      edits: sortSourceEditsForLsp(fileEdit.edits).map((edit) {
-        var annotation = recordEditAnnotation(
-          fileEdit.doc.uri,
-          edit,
-          annotateChanges: annotateChanges,
-          changeAnnotations: changeAnnotations,
-        );
-        return toTextDocumentEditEdit(
-          capabilities,
-          fileEdit.lineInfo,
-          edit,
-          selectionOffsetRelative: fileEdit.selectionOffsetRelative,
-          selectionLength: fileEdit.selectionLength,
-          annotationIdentifier: annotation?.label,
-        );
-      }).toList());
+    textDocument: fileEdit.doc,
+    edits:
+        sortSourceEditsForLsp(fileEdit.edits).map((edit) {
+          var annotation = recordEditAnnotation(
+            fileEdit.doc.uri,
+            edit,
+            annotateChanges: annotateChanges,
+            changeAnnotations: changeAnnotations,
+          );
+          return toTextDocumentEditEdit(
+            capabilities,
+            fileEdit.lineInfo,
+            edit,
+            selectionOffsetRelative: fileEdit.selectionOffsetRelative,
+            selectionLength: fileEdit.selectionLength,
+            annotationIdentifier: annotation?.label,
+          );
+        }).toList(),
+  );
 }
 
 Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>
-    toTextDocumentEditEdit(
+toTextDocumentEditEdit(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   server.SourceEdit edit, {
@@ -1504,21 +1689,27 @@ Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>
 }) {
   if (annotationIdentifier != null) {
     return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t1(
-        lsp.AnnotatedTextEdit(
-      annotationId: annotationIdentifier,
-      range: toRange(lineInfo, edit.offset, edit.length),
-      newText: edit.replacement,
-    ));
+      lsp.AnnotatedTextEdit(
+        annotationId: annotationIdentifier,
+        range: toRange(lineInfo, edit.offset, edit.length),
+        newText: edit.replacement,
+      ),
+    );
   }
   if (!capabilities.experimentalSnippetTextEdit ||
       selectionOffsetRelative == null) {
     return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t3(
-        toTextEdit(lineInfo, edit));
+      toTextEdit(lineInfo, edit),
+    );
   }
   return Either3<lsp.AnnotatedTextEdit, lsp.SnippetTextEdit, lsp.TextEdit>.t2(
-      snippetTextEditWithSelection(lineInfo, edit,
-          selectionOffsetRelative: selectionOffsetRelative,
-          selectionLength: selectionLength));
+    snippetTextEditWithSelection(
+      lineInfo,
+      edit,
+      selectionOffsetRelative: selectionOffsetRelative,
+      selectionLength: selectionLength,
+    ),
+  );
 }
 
 lsp.TextEdit toTextEdit(
@@ -1528,14 +1719,14 @@ lsp.TextEdit toTextEdit(
 }) {
   return annotation != null
       ? lsp.AnnotatedTextEdit(
-          range: toRange(lineInfo, edit.offset, edit.length),
-          newText: edit.replacement,
-          annotationId: annotation.label,
-        )
+        range: toRange(lineInfo, edit.offset, edit.length),
+        newText: edit.replacement,
+        annotationId: annotation.label,
+      )
       : lsp.TextEdit(
-          range: toRange(lineInfo, edit.offset, edit.length),
-          newText: edit.replacement,
-        );
+        range: toRange(lineInfo, edit.offset, edit.length),
+        newText: edit.replacement,
+      );
 }
 
 /// Creates an [lsp.WorkspaceEdit] for [edits].
@@ -1553,14 +1744,22 @@ lsp.WorkspaceEdit toWorkspaceEdit(
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
 }) {
   var supportsDocumentChanges = clientCapabilities.documentChanges;
-  var changeAnnotations = annotateChanges != ChangeAnnotations.none
-      ? <lsp.ChangeAnnotationIdentifier, ChangeAnnotation>{}
-      : null;
+  var changeAnnotations =
+      annotateChanges != ChangeAnnotations.none
+          ? <lsp.ChangeAnnotationIdentifier, ChangeAnnotation>{}
+          : null;
 
   if (supportsDocumentChanges) {
     var supportsCreate = clientCapabilities.createResourceOperations;
-    var changes = <Either4<lsp.CreateFile, lsp.DeleteFile, lsp.RenameFile,
-        lsp.TextDocumentEdit>>[];
+    var changes =
+        <
+          Either4<
+            lsp.CreateFile,
+            lsp.DeleteFile,
+            lsp.RenameFile,
+            lsp.TextDocumentEdit
+          >
+        >[];
 
     // Convert each SourceEdit to either a TextDocumentEdit or a
     // CreateFile + a TextDocumentEdit depending on whether it's a new
@@ -1568,16 +1767,27 @@ lsp.WorkspaceEdit toWorkspaceEdit(
     for (var fileEdit in edits) {
       if (supportsCreate && fileEdit.newFile) {
         var create = lsp.CreateFile(uri: fileEdit.doc.uri);
-        var createUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
-            lsp.RenameFile, lsp.TextDocumentEdit>.t1(create);
+        var createUnion = Either4<
+          lsp.CreateFile,
+          lsp.DeleteFile,
+          lsp.RenameFile,
+          lsp.TextDocumentEdit
+        >.t1(create);
         changes.add(createUnion);
       }
 
-      var textDocEdit = toTextDocumentEdit(clientCapabilities, fileEdit,
-          annotateChanges: annotateChanges,
-          changeAnnotations: changeAnnotations);
-      var textDocEditUnion = Either4<lsp.CreateFile, lsp.DeleteFile,
-          lsp.RenameFile, lsp.TextDocumentEdit>.t4(textDocEdit);
+      var textDocEdit = toTextDocumentEdit(
+        clientCapabilities,
+        fileEdit,
+        annotateChanges: annotateChanges,
+        changeAnnotations: changeAnnotations,
+      );
+      var textDocEditUnion = Either4<
+        lsp.CreateFile,
+        lsp.DeleteFile,
+        lsp.RenameFile,
+        lsp.TextDocumentEdit
+      >.t4(textDocEdit);
       changes.add(textDocEditUnion);
     }
 
@@ -1587,9 +1797,11 @@ lsp.WorkspaceEdit toWorkspaceEdit(
     );
   } else {
     return lsp.WorkspaceEdit(
-      changes: toWorkspaceEditChanges(edits,
-          annotateChanges: annotateChanges,
-          changeAnnotations: changeAnnotations),
+      changes: toWorkspaceEditChanges(
+        edits,
+        annotateChanges: annotateChanges,
+        changeAnnotations: changeAnnotations,
+      ),
       changeAnnotations: changeAnnotations,
     );
   }
@@ -1601,15 +1813,16 @@ Map<Uri, List<lsp.TextEdit>> toWorkspaceEditChanges(
   Map<ChangeAnnotationIdentifier, ChangeAnnotation>? changeAnnotations,
 }) {
   MapEntry<Uri, List<lsp.TextEdit>> createEdit(FileEditInformation file) {
-    var edits = sortSourceEditsForLsp(file.edits).map((edit) {
-      var annotation = recordEditAnnotation(
-        file.doc.uri,
-        edit,
-        annotateChanges: annotateChanges,
-        changeAnnotations: changeAnnotations,
-      );
-      return toTextEdit(file.lineInfo, edit, annotation: annotation);
-    }).toList();
+    var edits =
+        sortSourceEditsForLsp(file.edits).map((edit) {
+          var annotation = recordEditAnnotation(
+            file.doc.uri,
+            edit,
+            annotateChanges: annotateChanges,
+            changeAnnotations: changeAnnotations,
+          );
+          return toTextEdit(file.lineInfo, edit, annotation: annotation);
+        }).toList();
     return MapEntry(file.doc.uri, edits);
   }
 
@@ -1617,7 +1830,9 @@ Map<Uri, List<lsp.TextEdit>> toWorkspaceEditChanges(
 }
 
 lsp.MarkupContent _asMarkup(
-    Set<lsp.MarkupKind> preferredFormats, String content) {
+  Set<lsp.MarkupKind> preferredFormats,
+  String content,
+) {
   if (preferredFormats.isEmpty) {
     preferredFormats.add(lsp.MarkupKind.Markdown);
   }
@@ -1626,106 +1841,49 @@ lsp.MarkupContent _asMarkup(
   var supportsPlain = preferredFormats.contains(lsp.MarkupKind.PlainText);
   // Since our PlainText version is actually just Markdown, only advertise it
   // as PlainText if the client explicitly supports PlainText and not Markdown.
-  var format = supportsPlain && !supportsMarkdown
-      ? lsp.MarkupKind.PlainText
-      : lsp.MarkupKind.Markdown;
+  var format =
+      supportsPlain && !supportsMarkdown
+          ? lsp.MarkupKind.PlainText
+          : lsp.MarkupKind.Markdown;
 
   return lsp.MarkupContent(kind: format, value: content);
-}
-
-({String text, lsp.InsertTextFormat format}) _buildInsertText({
-  required bool supportsSnippets,
-  required bool commitCharactersEnabled,
-  required bool completeFunctionCalls,
-  required String? requiredArgumentListString,
-  required List<int>? requiredArgumentListTextRanges,
-  required bool hasOptionalParameters,
-  required String completion,
-  required int selectionOffset,
-  required int selectionLength,
-}) {
-  var insertText = completion;
-  var insertTextFormat = lsp.InsertTextFormat.PlainText;
-
-  // SuggestionBuilder already does the equiv of completeFunctionCalls for
-  // some methods (for example Flutter's setState). If the completion already
-  // includes any `(` then disable our own insertion as the special-cased code
-  // will likely provide better code.
-  if (completion.contains('(')) {
-    completeFunctionCalls = false;
-  }
-
-  // If the client supports snippets, we can support completeFunctionCalls or
-  // setting a selection.
-  if (supportsSnippets) {
-    // completeFunctionCalls should only work if commit characters are disabled
-    // otherwise the editor may insert parens that we're also inserting.
-    if (!commitCharactersEnabled && completeFunctionCalls) {
-      insertTextFormat = lsp.InsertTextFormat.Snippet;
-      var hasRequiredParameters =
-          requiredArgumentListTextRanges?.isNotEmpty ?? false;
-      var functionCallSuffix =
-          hasRequiredParameters && requiredArgumentListString != null
-              ? buildSnippetStringWithTabStops(
-                  requiredArgumentListString, requiredArgumentListTextRanges)
-              // Optional params still gets a final tab stop in the parens.
-              : hasOptionalParameters
-                  ? SnippetBuilder.finalTabStop
-                  // And no parameters at all we skip the tabstop in the parens.
-                  : '';
-      insertText =
-          '${SnippetBuilder.escapeSnippetPlainText(insertText)}($functionCallSuffix)';
-    } else if (selectionOffset != 0 &&
-        // We don't need a tab stop if the selection is the end of the string.
-        selectionOffset != completion.length) {
-      insertTextFormat = lsp.InsertTextFormat.Snippet;
-      insertText = buildSnippetStringWithTabStops(
-          completion, [selectionOffset, selectionLength]);
-    }
-  }
-
-  return (text: insertText, format: insertTextFormat);
 }
 
 String _errorCode(server.ErrorCode code) => code.name.toLowerCase();
 
 /// Additional details about a completion that may be formatted differently
 /// depending on the client capabilities.
-typedef CompletionDetail = ({
-  /// Additional details to go in the details popup.
-  ///
-  /// This is usually a full signature (with full parameters) and may also
-  /// include whether the item is deprecated if the client did not support the
-  /// native deprecated tag.
-  String detail,
+typedef CompletionDetail =
+    ({
+      /// Additional details to go in the details popup.
+      ///
+      /// This is usually a full signature (with full parameters) and may also
+      /// include whether the item is deprecated if the client did not support the
+      /// native deprecated tag.
+      String detail,
 
-  /// Truncated parameters. Similar to [truncatedSignature] but does not
-  /// include return types. Used in clients that cannot format signatures
-  /// differently and is appended immediately after the completion label. The
-  /// return type is omitted to reduce noise because this text is not subtle.
-  String truncatedParams,
+      /// Truncated parameters. Similar to [truncatedSignature] but does not
+      /// include return types. Used in clients that cannot format signatures
+      /// differently and is appended immediately after the completion label. The
+      /// return type is omitted to reduce noise because this text is not subtle.
+      String truncatedParams,
 
-  /// A signature with truncated params. Used for showing immediately after
-  /// the completion label when it can be formatted differently.
-  ///
-  /// () → String
-  String truncatedSignature,
+      /// A signature with truncated params. Used for showing immediately after
+      /// the completion label when it can be formatted differently.
+      ///
+      /// () → String
+      String truncatedSignature,
 
-  /// The URI that will be auto-imported if this item is selected in a
-  /// user-friendly string format (for example a relative path if for a `file:/`
-  /// URI).
-  Uri? autoImportUri,
-});
+      /// The URI that will be auto-imported if this item is selected in a
+      /// user-friendly string format (for example a relative path if for a `file:/`
+      /// URI).
+      Uri? autoImportUri,
+    });
 
-extension on CompletionItemLabelDetails {
+extension CompletionLabelExtension on CompletionItemLabelDetails {
   /// Returns `null` if no fields are set, otherwise `this`.
   CompletionItemLabelDetails? get nullIfEmpty =>
       detail != null || description != null ? this : null;
-}
-
-extension on String? {
-  /// Returns `null` if this string is the same as [other], otherwise `this`.
-  String? orNullIfSameAs(String other) => this == other ? null : this;
 }
 
 extension _ListExtensions<T> on List<T> {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.kernel_target;
-
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -78,6 +76,7 @@ import 'constant_evaluator.dart' as constants
         ConstantCoverage,
         ConstantEvaluationData;
 import 'constructor_tearoff_lowering.dart';
+import 'dynamic_module_validator.dart' as dynamic_module_validator;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
 import 'macro/macro.dart';
@@ -102,31 +101,31 @@ class KernelTarget {
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("dynamic"), const NullabilityBuilder.inherent(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
   final NamedTypeBuilder nullType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Null"), const NullabilityBuilder.inherent(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder bottomType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Never"), const NullabilityBuilder.omitted(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("Enum"), const NullabilityBuilder.omitted(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
-      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected);
 
   bool get excludeSource => !context.options.embedSourceText;
 
@@ -433,7 +432,7 @@ class KernelTarget {
     benchmarker?.enterPhase(BenchmarkPhases.outline_computeVariances);
     loader.computeVariances(augmentationLibraries);
 
-    loader.finishTypeVariables(
+    loader.finishTypeParameters(
         augmentationLibraries, objectClassBuilder, dynamicType);
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
       augmentationLibrary.buildOutlineNodes(loader.coreLibrary);
@@ -555,8 +554,8 @@ class KernelTarget {
 
       benchmarker
           // Coverage-ignore(suite): Not run.
-          ?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
-      loader.finishTypeVariables(
+          ?.enterPhase(BenchmarkPhases.outline_finishTypeParameters);
+      loader.finishTypeParameters(
           loader.sourceLibraryBuilders, objectClassBuilder, dynamicType);
 
       benchmarker
@@ -803,6 +802,11 @@ class KernelTarget {
           // Coverage-ignore(suite): Not run.
           ?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
       finishAllConstructors(sourceClasses, extensionTypeDeclarations);
+
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.enterPhase(BenchmarkPhases.body_validateDynamicModule);
+      await validateDynamicModule();
 
       benchmarker
           // Coverage-ignore(suite): Not run.
@@ -1103,7 +1107,7 @@ class KernelTarget {
         while (iterator.moveNext()) {
           String name = iterator.name;
           MemberBuilder memberBuilder = iterator.current;
-          if (memberBuilder.member is Constructor) {
+          if (memberBuilder.invokeTarget is Constructor) {
             substitutionMap ??=
                 builder.getSubstitutionMap(superclassBuilder.cls);
             Reference? constructorReference;
@@ -1125,7 +1129,7 @@ class KernelTarget {
                   //
                   // Here `super._()` in `Subclass` targets the forwarding stub
                   // added to `Class` whose name is `_` private to `lib1`.
-                  .lookupConstructorReference(memberBuilder.member.name);
+                  .lookupConstructorReference(memberBuilder.invokeTarget!.name);
               tearOffReference = indexedClass.lookupGetterReference(
                   new Name(constructorTearOffName(name), indexedClass.library));
             }
@@ -1146,8 +1150,8 @@ class KernelTarget {
               builder, constructorReference, tearOffReference));
         }
       case TypeAliasBuilder():
-      case NominalVariableBuilder():
-      case StructuralVariableBuilder():
+      case NominalParameterBuilder():
+      case StructuralParameterBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():
@@ -1189,7 +1193,7 @@ class KernelTarget {
     SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class cls = classBuilder.cls;
     Constructor superConstructor =
-        superConstructorBuilder.member as Constructor;
+        superConstructorBuilder.invokeTarget as Constructor;
     bool isConst = superConstructor.isConst;
     if (isConst && mixin.fields.isNotEmpty) {
       for (Field field in mixin.fields) {
@@ -1269,7 +1273,7 @@ class KernelTarget {
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
-            classBuilder, constructor, constructorTearOff,
+            libraryBuilder, classBuilder, constructor, constructorTearOff,
             // We pass on the original constructor and the cloned function nodes
             // to ensure that the default values are computed and cloned for the
             // outline. It is needed to make the default values a part of the
@@ -1351,7 +1355,7 @@ class KernelTarget {
       registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
     return new SyntheticSourceConstructorBuilder(
-        classBuilder, constructor, constructorTearOff);
+        libraryBuilder, classBuilder, constructor, constructorTearOff);
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
@@ -1564,10 +1568,10 @@ class KernelTarget {
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.addProblem(messageConstConstructorNonFinalField,
-            constructor.charOffset, noLength,
+            constructor.fileOffset, noLength,
             context: nonFinalFields
                 .map((field) => messageConstConstructorNonFinalFieldCause
-                    .withLocation(field.fileUri, field.charOffset, noLength))
+                    .withLocation(field.fileUri, field.fileOffset, noLength))
                 .toList());
         nonFinalFields.clear();
       }
@@ -1575,11 +1579,11 @@ class KernelTarget {
         for (FieldBuilder field in lateFinalFields) {
           classDeclaration.addProblem(
               messageConstConstructorLateFinalFieldError,
-              field.charOffset,
+              field.fileOffset,
               noLength,
               context: [
                 messageConstConstructorLateFinalFieldCause.withLocation(
-                    constructor.fileUri!, constructor.charOffset, noLength)
+                    constructor.fileUri!, constructor.fileOffset, noLength)
               ]);
         }
         lateFinalFields.clear();
@@ -1605,6 +1609,7 @@ class KernelTarget {
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
     for (SourceFieldBuilder fieldBuilder in uninitializedFields) {
+      if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
       if (initializedFieldBuilders == null ||
           !initializedFieldBuilders.contains(fieldBuilder)) {
         if (!fieldBuilder.isLate) {
@@ -1623,7 +1628,7 @@ class KernelTarget {
               libraryBuilder.addProblem(
                   templateFinalFieldNotInitialized
                       .withArguments(fieldBuilder.name),
-                  fieldBuilder.charOffset,
+                  fieldBuilder.fileOffset,
                   fieldBuilder.name.length,
                   fieldBuilder.fileUri);
             }
@@ -1632,7 +1637,7 @@ class KernelTarget {
             libraryBuilder.addProblem(
                 templateFieldNonNullableWithoutInitializerError.withArguments(
                     fieldBuilder.name, fieldBuilder.fieldType),
-                fieldBuilder.charOffset,
+                fieldBuilder.fileOffset,
                 fieldBuilder.name.length,
                 fieldBuilder.fileUri);
           }
@@ -1649,6 +1654,7 @@ class KernelTarget {
       Set<FieldBuilder> fieldBuilders = entry.value;
       for (SourceFieldBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
+        if (fieldBuilder.isExtensionTypeDeclaredInstanceField) continue;
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
           Initializer initializer = fieldBuilder.buildImplicitInitializer();
           constructorBuilder.prependInitializer(initializer);
@@ -1656,14 +1662,14 @@ class KernelTarget {
             libraryBuilder.addProblem(
                 templateFinalFieldNotInitializedByConstructor
                     .withArguments(fieldBuilder.name),
-                constructorBuilder.charOffset,
+                constructorBuilder.fileOffset,
                 constructorBuilder.name.length,
                 constructorBuilder.fileUri,
                 context: [
                   templateMissingImplementationCause
                       .withArguments(fieldBuilder.name)
                       .withLocation(fieldBuilder.fileUri,
-                          fieldBuilder.charOffset, fieldBuilder.name.length)
+                          fieldBuilder.fileOffset, fieldBuilder.name.length)
                 ]);
           } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
@@ -1671,17 +1677,35 @@ class KernelTarget {
             libraryBuilder.addProblem(
                 templateFieldNonNullableNotInitializedByConstructorError
                     .withArguments(fieldBuilder.name, fieldBuilder.field.type),
-                constructorBuilder.charOffset,
+                constructorBuilder.fileOffset,
                 noLength,
                 constructorBuilder.fileUri,
                 context: [
                   templateMissingImplementationCause
                       .withArguments(fieldBuilder.name)
                       .withLocation(fieldBuilder.fileUri,
-                          fieldBuilder.charOffset, fieldBuilder.name.length)
+                          fieldBuilder.fileOffset, fieldBuilder.name.length)
                 ]);
           }
         }
+      }
+    }
+  }
+
+  Future<void> validateDynamicModule() async {
+    final Uri? dynamicInterfaceSpecificationUri =
+        _options.dynamicInterfaceSpecificationUri;
+    if (dynamicInterfaceSpecificationUri != null) {
+      final String? dynamicInterfaceSpecification =
+          await _options.loadDynamicInterfaceSpecification();
+      if (dynamicInterfaceSpecification != null) {
+        dynamic_module_validator.validateDynamicModule(
+            dynamicInterfaceSpecification,
+            dynamicInterfaceSpecificationUri,
+            component!,
+            loader.hierarchy,
+            loader.libraries,
+            loader);
       }
     }
   }
@@ -1798,7 +1822,10 @@ class KernelTarget {
     List<LocatedMessage> errors = verifyComponent(
         context, VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
-    assert(allowVerificationErrorForTesting || errors.isEmpty,
+    assert(
+        allowVerificationErrorForTesting ||
+            // Coverage-ignore(suite): Not run.
+            errors.isEmpty,
         "Verification errors found: $errors");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),

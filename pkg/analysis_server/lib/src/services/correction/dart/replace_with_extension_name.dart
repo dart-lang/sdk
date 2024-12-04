@@ -16,8 +16,9 @@ class ReplaceWithExtensionName extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   List<String> get fixArguments => [_extensionName];
@@ -33,9 +34,10 @@ class ReplaceWithExtensionName extends ResolvedCorrectionProducer {
     var target = _getTarget(node.parent);
     if (target is ExtensionOverride) {
       var importPrefix = target.importPrefix;
-      var prefixedName = importPrefix != null
-          ? '${importPrefix.name.lexeme}.${target.name.lexeme}'
-          : target.name.lexeme;
+      var prefixedName =
+          importPrefix != null
+              ? '${importPrefix.name.lexeme}.${target.name.lexeme}'
+              : target.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(target), prefixedName);
       });

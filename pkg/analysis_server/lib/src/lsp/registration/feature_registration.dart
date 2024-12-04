@@ -5,12 +5,12 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_dart_text_document_content_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_lens.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_dart_text_document_content_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
@@ -57,7 +57,7 @@ abstract class FeatureRegistration {
   ClientDynamicRegistrations get clientDynamic => _context.clientDynamic;
 
   /// A set of filters for the currently supported Dart files.
-  List<TextDocumentFilterWithScheme> get dartFiles => _context.dartFilters;
+  List<TextDocumentFilterScheme> get dartFiles => _context.dartFilters;
 
   /// Gets all dynamic registrations for this feature.
   ///
@@ -69,15 +69,12 @@ abstract class FeatureRegistration {
   /// File types like pubspec.yaml, analysis_options.yaml and fix_data files are
   /// not included here as their support is very limited and do not provide
   /// functionality in most handlers.
-  List<TextDocumentFilterWithScheme> get fullySupportedTypes {
-    return {
-      ...dartFiles,
-      ...pluginTypes,
-    }.toList();
+  List<TextDocumentFilterScheme> get fullySupportedTypes {
+    return {...dartFiles, ...pluginTypes}.toList();
   }
 
   /// Types of documents that loaded plugins are interested in.
-  List<TextDocumentFilterWithScheme> get pluginTypes => _context.pluginTypes;
+  List<TextDocumentFilterScheme> get pluginTypes => _context.pluginTypes;
 
   /// Whether both the client, and this feature, support dynamic registration.
   bool get supportsDynamic;
@@ -113,76 +110,76 @@ class LspFeatures {
   final TypeHierarchyRegistrations typeHierarchy;
   final WillRenameFilesRegistrations willRename;
   final WorkspaceDidChangeConfigurationRegistrations
-      workspaceDidChangeConfiguration;
+  workspaceDidChangeConfiguration;
   final WorkspaceSymbolRegistrations workspaceSymbol;
   final DartTextDocumentContentProviderRegistrations
-      dartTextDocumentContentProvider;
+  dartTextDocumentContentProvider;
 
   LspFeatures(RegistrationContext context)
-      : callHierarchy = CallHierarchyRegistrations(context),
-        changeNotifications = ChangeWorkspaceFoldersRegistrations(context),
-        codeActions = CodeActionRegistrations(context),
-        codeLens = CodeLensRegistrations(context),
-        colors = DocumentColorRegistrations(context),
-        completion = CompletionRegistrations(context),
-        definition = DefinitionRegistrations(context),
-        documentLink = DocumentLinkRegistrations(context),
-        format = FormattingRegistrations(context),
-        documentHighlight = DocumentHighlightsRegistrations(context),
-        formatOnType = FormatOnTypeRegistrations(context),
-        formatRange = FormatRangeRegistrations(context),
-        documentSymbol = DocumentSymbolsRegistrations(context),
-        executeCommand = ExecuteCommandRegistrations(context),
-        foldingRange = FoldingRegistrations(context),
-        hover = HoverRegistrations(context),
-        implementation = ImplementationRegistrations(context),
-        inlayHint = InlayHintRegistrations(context),
-        references = ReferencesRegistrations(context),
-        rename = RenameRegistrations(context),
-        selectionRange = SelectionRangeRegistrations(context),
-        semanticTokens = SemanticTokensRegistrations(context),
-        signatureHelp = SignatureHelpRegistrations(context),
-        textDocumentSync = TextDocumentRegistrations(context),
-        typeDefinition = TypeDefinitionRegistrations(context),
-        typeHierarchy = TypeHierarchyRegistrations(context),
-        willRename = WillRenameFilesRegistrations(context),
-        workspaceDidChangeConfiguration =
-            WorkspaceDidChangeConfigurationRegistrations(context),
-        workspaceSymbol = WorkspaceSymbolRegistrations(context),
-        dartTextDocumentContentProvider =
-            DartTextDocumentContentProviderRegistrations(context);
+    : callHierarchy = CallHierarchyRegistrations(context),
+      changeNotifications = ChangeWorkspaceFoldersRegistrations(context),
+      codeActions = CodeActionRegistrations(context),
+      codeLens = CodeLensRegistrations(context),
+      colors = DocumentColorRegistrations(context),
+      completion = CompletionRegistrations(context),
+      definition = DefinitionRegistrations(context),
+      documentLink = DocumentLinkRegistrations(context),
+      format = FormattingRegistrations(context),
+      documentHighlight = DocumentHighlightsRegistrations(context),
+      formatOnType = FormatOnTypeRegistrations(context),
+      formatRange = FormatRangeRegistrations(context),
+      documentSymbol = DocumentSymbolsRegistrations(context),
+      executeCommand = ExecuteCommandRegistrations(context),
+      foldingRange = FoldingRegistrations(context),
+      hover = HoverRegistrations(context),
+      implementation = ImplementationRegistrations(context),
+      inlayHint = InlayHintRegistrations(context),
+      references = ReferencesRegistrations(context),
+      rename = RenameRegistrations(context),
+      selectionRange = SelectionRangeRegistrations(context),
+      semanticTokens = SemanticTokensRegistrations(context),
+      signatureHelp = SignatureHelpRegistrations(context),
+      textDocumentSync = TextDocumentRegistrations(context),
+      typeDefinition = TypeDefinitionRegistrations(context),
+      typeHierarchy = TypeHierarchyRegistrations(context),
+      willRename = WillRenameFilesRegistrations(context),
+      workspaceDidChangeConfiguration =
+          WorkspaceDidChangeConfigurationRegistrations(context),
+      workspaceSymbol = WorkspaceSymbolRegistrations(context),
+      dartTextDocumentContentProvider =
+          DartTextDocumentContentProviderRegistrations(context);
 
   List<FeatureRegistration> get allFeatures => [
-        callHierarchy,
-        changeNotifications,
-        codeActions,
-        codeLens,
-        completion,
-        definition,
-        documentLink,
-        colors,
-        documentHighlight,
-        documentSymbol,
-        executeCommand,
-        foldingRange,
-        formatOnType,
-        formatRange,
-        format,
-        hover,
-        implementation,
-        inlayHint,
-        references,
-        rename,
-        selectionRange,
-        semanticTokens,
-        signatureHelp,
-        textDocumentSync,
-        typeDefinition,
-        typeHierarchy,
-        willRename,
-        workspaceDidChangeConfiguration,
-        workspaceSymbol,
-      ];
+    callHierarchy,
+    changeNotifications,
+    codeActions,
+    codeLens,
+    completion,
+    definition,
+    documentLink,
+    colors,
+    documentHighlight,
+    documentSymbol,
+    executeCommand,
+    foldingRange,
+    formatOnType,
+    formatRange,
+    format,
+    hover,
+    implementation,
+    inlayHint,
+    references,
+    rename,
+    selectionRange,
+    semanticTokens,
+    signatureHelp,
+    textDocumentSync,
+    typeDefinition,
+    typeHierarchy,
+    willRename,
+    workspaceDidChangeConfiguration,
+    workspaceSymbol,
+  ];
 }
 
 class RegistrationContext {
@@ -191,7 +188,7 @@ class RegistrationContext {
   final ClientDynamicRegistrations clientDynamic;
 
   /// Types of documents that loaded plugins are interested in.
-  final List<TextDocumentFilterWithScheme> pluginTypes;
+  final List<TextDocumentFilterScheme> pluginTypes;
 
   /// The capabilities of the client.
   final LspClientCapabilities clientCapabilities;
@@ -200,7 +197,7 @@ class RegistrationContext {
   final LspClientConfiguration clientConfiguration;
 
   /// Filters for all Dart files supported by the current server.
-  final List<TextDocumentFilterWithScheme> dartFilters;
+  final List<TextDocumentFilterScheme> dartFilters;
 
   /// Custom schemes supported for Dart files by the current server.
   ///

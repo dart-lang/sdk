@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../extensions.dart';
 
@@ -87,6 +89,20 @@ extension DartTypeExtensions on DartType? {
     }
     return null;
   }
+
+  ({DartType? key, DartType? value})? get keyValueTypeOfMap {
+    var self = this; // Enable promotion.
+    if (self == null) return null;
+    if (self is InterfaceType) {
+      var mapInterfaces =
+          self.implementedInterfaces.where((type) => type.isDartCoreMap);
+      if (mapInterfaces.length == 1) {
+        var [key, value] = mapInterfaces.first.typeArguments;
+        return (key: key, value: value);
+      }
+    }
+    return null;
+  }
 }
 
 extension ExpressionExtensions on Expression {
@@ -118,8 +134,17 @@ extension ExpressionExtensions on Expression {
             return false;
           }
         }
-        var theSelfElementType = self.staticType.elementTypeOfIterable;
-        return theSelfElementType == theObviousType;
+        if (theObviousType != null) {
+          var theSelfElementType = self.staticType.elementTypeOfIterable;
+          return theSelfElementType == theObviousType;
+        } else if (theObviousKeyType != null && theObviousValueType != null) {
+          var keyValueTypes = self.staticType.keyValueTypeOfMap;
+          if (keyValueTypes == null) return false;
+          return theObviousKeyType == keyValueTypes.key &&
+              theObviousValueType == keyValueTypes.value;
+        } else {
+          return false;
+        }
       case RecordLiteral():
         for (var expression in self.fields) {
           if (!expression.hasObviousType) return false;
@@ -127,16 +152,16 @@ extension ExpressionExtensions on Expression {
         return true;
       case Literal():
         // An atomic literal: `Literal` and not `TypedLiteral`.
-        if (self is IntegerLiteral) {
-          // An integer literal with type `double` is clearly not trivial,
-          // but even an `int` integer literal may be considered ambiguous.
+        if (self is IntegerLiteral &&
+            (self.staticType?.isDartCoreDouble ?? true)) {
+          // An integer literal with static type `double` is not trivial.
           return false;
         }
         return true;
       case SimpleIdentifier():
         if (self.isQualified) return false;
-        var declaration = self.staticElement?.declaration;
-        if (declaration is! LocalVariableElement) return false;
+        var declaration = self.element;
+        if (declaration is! LocalVariableElement2) return false;
         return self.staticType == declaration.type;
       case InstanceCreationExpression():
         var createdType = self.constructorName.type;
@@ -144,19 +169,14 @@ extension ExpressionExtensions on Expression {
           // Explicit type arguments provided.
           return true;
         } else {
-          DartType? dartType = createdType.type;
-          if (dartType != null) {
-            if (dartType is InterfaceType &&
-                dartType.element.typeParameters.isNotEmpty) {
-              // A raw type is not trivial.
-              return false;
-            }
-            // A non-generic class or extension type.
-            return true;
-          } else {
-            // An unknown type is not trivial.
+          DartType? dartType = createdType.typeOrThrow;
+          if (dartType is InterfaceType &&
+              dartType.element3.typeParameters2.isNotEmpty) {
+            // A raw type is not trivial.
             return false;
           }
+          // A non-generic class or extension type.
+          return true;
         }
       case CascadeExpression():
         return self.target.hasObviousType;

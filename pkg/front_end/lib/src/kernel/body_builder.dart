@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.body_builder;
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
@@ -14,10 +12,12 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         IdentifierContext,
         MemberKind,
         Parser,
+        boolFromToken,
+        doubleFromToken,
+        intFromToken,
         lengthForToken,
         lengthOfSpan,
-        optional,
-        optional2;
+        stripSeparators;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -28,9 +28,8 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
         unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
-import 'package:_fe_analyzer_shared/src/parser/util.dart' show stripSeparators;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show Token, TokenType;
+    show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
@@ -60,8 +59,7 @@ import '../base/identifiers.dart'
         SimpleIdentifier;
 import '../base/label_scope.dart';
 import '../base/local_scope.dart';
-import '../base/modifier.dart'
-    show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
+import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem, unhandled, unsupported;
 import '../base/scope.dart';
 import '../builder/builder.dart';
@@ -91,7 +89,7 @@ import '../codes/cfe_codes.dart'
         templateExperimentNotEnabledOffByDefault,
         templateLocalVariableUsedBeforeDeclared,
         templateLocalVariableUsedBeforeDeclaredContext;
-import '../codes/cfe_codes.dart' as fasta;
+import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../source/diet_parser.dart';
 import '../source/source_field_builder.dart';
@@ -247,7 +245,7 @@ class BodyBuilder extends StackListenerImpl
   ///
   /// This variable is needed to distinguish between the type of a formal
   /// parameter and its initializer because in those two regions of code the
-  /// type variables should be interpreted differently: as structural and
+  /// type parameters should be interpreted differently: as structural and
   /// nominal correspondingly.
   bool _insideOfFormalParameterType = false;
 
@@ -281,9 +279,9 @@ class BodyBuilder extends StackListenerImpl
 
   DartType? currentLocalVariableType;
 
-  // Using non-null value to initialize this field based on performance advice
-  // from VM engineers. TODO(ahe): Does this still apply?
-  int currentLocalVariableModifiers = -1;
+  static const Modifiers noCurrentLocalVariableModifiers = const Modifiers(-1);
+
+  Modifiers currentLocalVariableModifiers = noCurrentLocalVariableModifiers;
 
   /// If non-null, records instance fields which have already been initialized
   /// and where that was.
@@ -579,8 +577,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
-    return _context.instanceTypeVariableAccessState;
+  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
+    return _context.instanceTypeParameterAccessState;
   }
 
   @override
@@ -636,9 +634,9 @@ class BodyBuilder extends StackListenerImpl
       return node;
     } else if (node is SuperInitializer) {
       return buildProblem(
-          fasta.messageSuperAsExpression, node.fileOffset, noLength);
+          cfe.messageSuperAsExpression, node.fileOffset, noLength);
     } else if (node is ProblemBuilder) {
-      return buildProblem(node.message, node.charOffset, noLength);
+      return buildProblem(node.message, node.fileOffset, noLength);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -660,7 +658,7 @@ class BodyBuilder extends StackListenerImpl
     // Coverage-ignore(suite): Not run.
     else if (node is ProblemBuilder) {
       Expression expression =
-          buildProblem(node.message, node.charOffset, noLength);
+          buildProblem(node.message, node.fileOffset, noLength);
       return forest.createConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
@@ -694,11 +692,42 @@ class BodyBuilder extends StackListenerImpl
             <Statement>[]);
   }
 
-  Statement? popStatementIfNotNull(Object? value) {
-    return value == null ? null : popStatement();
+  Statement? popStatementIfNotNull(Token? token) {
+    return token == null ? null : popStatement(token);
   }
 
-  Statement popStatement() => forest.wrapVariables(pop() as Statement);
+  Statement popStatement(Token token) {
+    Object? element = pop();
+    if (element is Statement) {
+      return forest.wrapVariables(element);
+    } else {
+      return _handleStatementNotStatement(element, token);
+    }
+  }
+
+  Statement _handleStatementNotStatement(Object? element, Token? token) {
+    if (element is ParserRecovery) {
+      return new Block(<Statement>[
+        forest.createExpressionStatement(
+            element.charOffset,
+            ParserErrorGenerator.buildProblemExpression(
+                this, cfe.messageSyntheticToken, element.charOffset))
+      ])
+        ..fileOffset = element.charOffset;
+    } else {
+      unhandled("expected statement is ${element.runtimeType}: $element",
+          "popStatement", token?.charOffset ?? -1, uri);
+    }
+  }
+
+  Statement popStatementNoWrap([Token? token]) {
+    Object? element = pop();
+    if (element is Statement) {
+      return element;
+    } else {
+      return _handleStatementNotStatement(element, token);
+    }
+  }
 
   Statement? popNullableStatement() {
     Statement? statement = pop(NullValues.Block) as Statement?;
@@ -723,8 +752,8 @@ class BodyBuilder extends StackListenerImpl
           for (Statement statement in declaration.users) {
             statement.parent!.replaceChild(
                 statement,
-                wrapInProblemStatement(statement,
-                    fasta.templateLabelNotFound.withArguments(name)));
+                wrapInProblemStatement(
+                    statement, cfe.templateLabelNotFound.withArguments(name)));
           }
         } else {
           outerSwitchScope.forwardDeclareLabel(name, declaration);
@@ -760,10 +789,10 @@ class BodyBuilder extends StackListenerImpl
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
       wrapVariableInitializerInError(
-          variable, fasta.templateDuplicatedDeclaration, <LocatedMessage>[
-        fasta.templateDuplicatedDeclarationCause
+          variable, cfe.templateDuplicatedDeclaration, <LocatedMessage>[
+        cfe.templateDuplicatedDeclarationCause
             .withArguments(name)
-            .withLocation(uri, existing.charOffset, name.length)
+            .withLocation(uri, existing.fileOffset, name.length)
       ]);
       return;
     }
@@ -856,9 +885,10 @@ class BodyBuilder extends StackListenerImpl
             new Name(identifier.name, libraryBuilder.nameOrigin),
             unresolvedReadKind: UnresolvedKind.Unknown);
       }
-      if (name?.isNotEmpty ?? false) {
+
+      if ((name?.isNotEmpty ?? false) && expression is Generator) {
         Token period = periodBeforeName ?? beginToken.next!.next!;
-        Generator generator = expression as Generator;
+        Generator generator = expression;
         expression = generator.buildSelectorAccess(
             new PropertySelector(
                 this, period.next!, new Name(name!, libraryBuilder.nameOrigin)),
@@ -878,7 +908,7 @@ class BodyBuilder extends StackListenerImpl
               // Coverage-ignore(suite): Not run.
               expression is ParenthesizedExpressionGenerator)) {
         Expression value = toValue(expression);
-        push(wrapInProblem(value, fasta.messageExpressionNotMetadata,
+        push(wrapInProblem(value, cfe.messageExpressionNotMetadata,
             value.fileOffset, noLength));
       } else {
         push(toValue(expression));
@@ -952,12 +982,12 @@ class BodyBuilder extends StackListenerImpl
       while (declaration.next != null) {
         // If we have duplicates, we try to find the right declaration.
         if (declaration.fileUri == uri &&
-            declaration.charOffset == fileOffset) {
+            declaration.fileOffset == fileOffset) {
           break;
         }
         declaration = declaration.next!;
       }
-      if (declaration.fileUri != uri || declaration.charOffset != fileOffset) {
+      if (declaration.fileUri != uri || declaration.fileOffset != fileOffset) {
         // If we don't have the right declaration, skip the initializer.
         continue;
       }
@@ -1046,16 +1076,16 @@ class BodyBuilder extends StackListenerImpl
               initializers = <Initializer>[
                 buildInvalidInitializer(
                     buildProblem(
-                        fasta.messageExternalConstructorWithFieldInitializers,
-                        formal.charOffset,
+                        cfe.messageExternalConstructorWithFieldInitializers,
+                        formal.fileOffset,
                         formal.name.length),
-                    formal.charOffset)
+                    formal.fileOffset)
               ];
             } else {
               initializers = buildFieldInitializer(
                   formal.name,
-                  formal.charOffset,
-                  formal.charOffset,
+                  formal.fileOffset,
+                  formal.fileOffset,
                   new VariableGet(formal.variable!),
                   formal: formal);
             }
@@ -1139,7 +1169,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       Expression value = toValue(node);
       if (!forest.isThrow(node)) {
-        value = wrapInProblem(value, fasta.messageExpectedAnInitializer,
+        value = wrapInProblem(value, cfe.messageExpectedAnInitializer,
             value.fileOffset, noLength);
       }
       initializers = <Initializer>[
@@ -1162,12 +1192,12 @@ class BodyBuilder extends StackListenerImpl
         if (formal.isNamed) {
           (superParametersAsArguments ??= <Object>[]).add(new NamedExpression(
               formal.name,
-              createVariableGet(formal.variable!, formal.charOffset,
+              createVariableGet(formal.variable!, formal.fileOffset,
                   forNullGuardedAccess: false))
-            ..fileOffset = formal.charOffset);
+            ..fileOffset = formal.fileOffset);
         } else {
           (superParametersAsArguments ??= <Object>[]).add(createVariableGet(
-              formal.variable!, formal.charOffset,
+              formal.variable!, formal.fileOffset,
               forNullGuardedAccess: false));
         }
       }
@@ -1259,7 +1289,7 @@ class BodyBuilder extends StackListenerImpl
     if (body != null) {
       inferredFunctionBody = typeInferrer.inferFunctionBody(
           this,
-          _context.memberCharOffset,
+          _context.memberNameOffset,
           _context.returnTypeContext,
           asyncModifier,
           body);
@@ -1271,7 +1301,7 @@ class BodyBuilder extends StackListenerImpl
 
     if (_context.returnType is! OmittedTypeBuilder) {
       checkAsyncReturnType(asyncModifier, function.returnType,
-          _context.memberCharOffset, _context.memberName.length);
+          _context.memberNameOffset, _context.memberNameLength);
     }
 
     if (_context.isSetter) {
@@ -1282,7 +1312,7 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             body?.fileOffset ??
             // Coverage-ignore(suite): Not run.
-            _context.memberCharOffset;
+            _context.memberNameOffset;
         if (body == null) {
           body = new EmptyStatement()..fileOffset = charOffset;
         }
@@ -1290,7 +1320,14 @@ class BodyBuilder extends StackListenerImpl
           // Illegal parameters were removed by the function builder.
           // Add them as local variable to put them in scope of the body.
           List<Statement> statements = <Statement>[];
-          for (FormalParameterBuilder parameter in _context.formals!) {
+          List<FormalParameterBuilder> formals = _context.formals!;
+          for (int i = 0; i < formals.length; i++) {
+            FormalParameterBuilder parameter = formals[i];
+            VariableDeclaration variable = parameter.variable!;
+            // #this should not be redeclared.
+            if (i == 0 && identical(variable, thisVariable)) {
+              continue;
+            }
             statements.add(parameter.variable!);
           }
           statements.add(body);
@@ -1301,7 +1338,7 @@ class BodyBuilder extends StackListenerImpl
               noLocation,
               // This error is added after type inference is done, so we
               // don't need to wrap errors in SyntheticExpressionJudgment.
-              buildProblem(fasta.messageSetterWithWrongNumberOfFormals,
+              buildProblem(cfe.messageSetterWithWrongNumberOfFormals,
                   charOffset, noLength)),
           body,
         ]);
@@ -1315,7 +1352,7 @@ class BodyBuilder extends StackListenerImpl
       if (_context.isExternalFunction || isNoSuchMethodForwarder) {
         body = new Block(<Statement>[
           new ExpressionStatement(buildProblem(
-              fasta.messageExternalMethodWithBody, body.fileOffset, noLength))
+              cfe.messageExternalMethodWithBody, body.fileOffset, noLength))
             ..fileOffset = body.fileOffset,
           body,
         ])
@@ -1343,27 +1380,27 @@ class BodyBuilder extends StackListenerImpl
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
         if (!typeEnvironment.isSubtypeOf(
             futureBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
-          problem = fasta.messageIllegalAsyncReturnType;
+          problem = cfe.messageIllegalAsyncReturnType;
         }
         break;
 
       case AsyncMarker.AsyncStar:
         DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
         if (returnType is VoidType) {
-          problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
+          problem = cfe.messageIllegalAsyncGeneratorVoidReturnType;
         } else if (!typeEnvironment.isSubtypeOf(
             streamBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
-          problem = fasta.messageIllegalAsyncGeneratorReturnType;
+          problem = cfe.messageIllegalAsyncGeneratorReturnType;
         }
         break;
 
       case AsyncMarker.SyncStar:
         DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
         if (returnType is VoidType) {
-          problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
+          problem = cfe.messageIllegalSyncGeneratorVoidReturnType;
         } else if (!typeEnvironment.isSubtypeOf(iterableBottomType, returnType,
             SubtypeCheckMode.withNullabilities)) {
-          problem = fasta.messageIllegalSyncGeneratorReturnType;
+          problem = cfe.messageIllegalSyncGeneratorReturnType;
         }
         break;
 
@@ -1593,10 +1630,10 @@ class BodyBuilder extends StackListenerImpl
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
     int fileOffset = offsetForToken(token);
-    List<NominalVariableBuilder>? typeParameterBuilders;
+    List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
-      typeParameterBuilders ??= <NominalVariableBuilder>[];
-      typeParameterBuilders.add(new NominalVariableBuilder.fromKernel(
+      typeParameterBuilders ??= <NominalParameterBuilder>[];
+      typeParameterBuilders.add(new NominalParameterBuilder.fromKernel(
           typeParameter,
           loader: libraryBuilder.loader));
     }
@@ -1618,7 +1655,7 @@ class BodyBuilder extends StackListenerImpl
                 }
                 return new FormalParameterBuilder(
                     FormalParameterKind.requiredPositional,
-                    /* modifiers = */ 0,
+                    Modifiers.empty,
                     const ImplicitTypeBuilder(),
                     formalName,
                     formal.fileOffset,
@@ -1649,7 +1686,7 @@ class BodyBuilder extends StackListenerImpl
     if (!eof.isEof) {
       expression = wrapInLocatedProblem(
           expression,
-          fasta.messageExpectedOneExpression
+          cfe.messageExpectedOneExpression
               .withLocation(uri, eof.charOffset, eof.length));
     }
 
@@ -1818,9 +1855,9 @@ class BodyBuilder extends StackListenerImpl
           if (formal.isNamed) {
             NamedExpression superParameterAsArgument = new NamedExpression(
                 formal.name,
-                createVariableGet(formal.variable!, formal.charOffset,
+                createVariableGet(formal.variable!, formal.fileOffset,
                     forNullGuardedAccess: false))
-              ..fileOffset = formal.charOffset;
+              ..fileOffset = formal.fileOffset;
             (namedSuperParametersAsArguments ??= <NamedExpression>[])
                 .add(superParameterAsArgument);
             (namedSuperParameterNames ??= <String>{}).add(formal.name);
@@ -1828,7 +1865,7 @@ class BodyBuilder extends StackListenerImpl
                 .add(superParameterAsArgument);
           } else {
             Expression superParameterAsArgument = createVariableGet(
-                formal.variable!, formal.charOffset,
+                formal.variable!, formal.fileOffset,
                 forNullGuardedAccess: false);
             (positionalSuperParametersAsArguments ??= <Expression>[])
                 .add(superParameterAsArgument);
@@ -1845,9 +1882,9 @@ class BodyBuilder extends StackListenerImpl
         // Report an error if a mixin class has a constructor with an
         // initializer.
         buildProblem(
-            fasta.templateIllegalMixinDueToConstructors
+            cfe.templateIllegalMixinDueToConstructors
                 .withArguments(_context.className),
-            _context.memberCharOffset,
+            _context.memberNameOffset,
             noLength);
       }
       if (initializers.last is SuperInitializer) {
@@ -1855,7 +1892,7 @@ class BodyBuilder extends StackListenerImpl
             initializers.last as SuperInitializer;
         if (_context.isEnumClass) {
           initializers[initializers.length - 1] = buildInvalidInitializer(
-              buildProblem(fasta.messageEnumConstructorSuperInitializer,
+              buildProblem(cfe.messageEnumConstructorSuperInitializer,
                   superInitializer.fileOffset, noLength))
             ..parent = superInitializer.parent;
         } else if (libraryFeatures.superParameters.isEnabled) {
@@ -1863,10 +1900,10 @@ class BodyBuilder extends StackListenerImpl
 
           if (positionalSuperParametersAsArguments != null) {
             if (arguments.positional.isNotEmpty) {
-              addProblem(fasta.messagePositionalSuperParametersAndArguments,
+              addProblem(cfe.messagePositionalSuperParametersAndArguments,
                   arguments.fileOffset, noLength,
                   context: <LocatedMessage>[
-                    fasta.messageSuperInitializerParameter.withLocation(
+                    cfe.messageSuperInitializerParameter.withLocation(
                         uri,
                         (positionalSuperParametersAsArguments.first
                                 as VariableGet)
@@ -1929,7 +1966,7 @@ class BodyBuilder extends StackListenerImpl
     if (asyncModifier != AsyncMarker.Sync) {
       _context.addInitializer(
           buildInvalidInitializer(buildProblem(
-              fasta.messageConstructorNotSync, body!.fileOffset, noLength)),
+              cfe.messageConstructorNotSync, body!.fileOffset, noLength)),
           this,
           inferenceResult: null);
     }
@@ -1982,7 +2019,7 @@ class BodyBuilder extends StackListenerImpl
         explicitSuperInitializer = superInitializer;
       }
       if (argumentsOffset == -1) {
-        argumentsOffset = _context.memberCharOffset;
+        argumentsOffset = _context.memberNameOffset;
       }
 
       if (positionalArguments != null || namedArguments != null) {
@@ -1999,19 +2036,19 @@ class BodyBuilder extends StackListenerImpl
 
       if (superTarget == null) {
         String superclass = _context.superClassName;
-        int length = _context.memberName.length;
+        int length = _context.memberNameLength;
         if (length == 0) {
           length = _context.className.length;
         }
         initializer = buildInvalidInitializer(
             buildProblem(
-                fasta.templateSuperclassHasNoDefaultConstructor
+                cfe.templateSuperclassHasNoDefaultConstructor
                     .withArguments(superclass),
-                _context.memberCharOffset,
+                _context.memberNameOffset,
                 length),
-            _context.memberCharOffset);
+            _context.memberNameOffset);
       } else if (checkArgumentsForFunction(superTarget.function, arguments,
-              _context.memberCharOffset, const <TypeParameter>[])
+              _context.memberNameOffset, const <TypeParameter>[])
           case LocatedMessage argumentIssue) {
         List<int>? positionalSuperParametersIssueOffsets;
         if (positionalSuperParametersAsArguments != null) {
@@ -2052,7 +2089,7 @@ class BodyBuilder extends StackListenerImpl
         if (positionalSuperParametersIssueOffsets != null) {
           for (int issueOffset in positionalSuperParametersIssueOffsets) {
             Expression errorMessageExpression = buildProblem(
-                fasta.messageMissingPositionalSuperConstructorParameter,
+                cfe.messageMissingPositionalSuperConstructorParameter,
                 issueOffset,
                 noLength);
             errorMessageInitializer ??=
@@ -2062,7 +2099,7 @@ class BodyBuilder extends StackListenerImpl
         if (namedSuperParametersIssueOffsets != null) {
           for (int issueOffset in namedSuperParametersIssueOffsets) {
             Expression errorMessageExpression = buildProblem(
-                fasta.messageMissingNamedSuperConstructorParameter,
+                cfe.messageMissingNamedSuperConstructorParameter,
                 issueOffset,
                 noLength);
             errorMessageInitializer ??=
@@ -2071,7 +2108,7 @@ class BodyBuilder extends StackListenerImpl
         }
         if (explicitSuperInitializer == null) {
           errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
-              fasta.templateImplicitSuperInitializerMissingArguments
+              cfe.templateImplicitSuperInitializerMissingArguments
                   .withArguments(superTarget.enclosingClass.name),
               argumentIssue.charOffset,
               argumentIssue.length));
@@ -2084,7 +2121,7 @@ class BodyBuilder extends StackListenerImpl
         initializer = errorMessageInitializer;
       } else {
         initializer = buildSuperInitializer(
-            true, superTarget, arguments, _context.memberCharOffset);
+            true, superTarget, arguments, _context.memberNameOffset);
       }
       if (libraryFeatures.superParameters.isEnabled) {
         InitializerInferenceResult inferenceResult =
@@ -2104,9 +2141,9 @@ class BodyBuilder extends StackListenerImpl
       // Report an error if a mixin class has a non-factory constructor with a
       // body.
       buildProblem(
-          fasta.templateIllegalMixinDueToConstructors
+          cfe.templateIllegalMixinDueToConstructors
               .withArguments(_context.className),
-          _context.memberCharOffset,
+          _context.memberNameOffset,
           noLength);
     }
   }
@@ -2157,7 +2194,7 @@ class BodyBuilder extends StackListenerImpl
           if (!libraryFeatures.namedArgumentsAnywhere.isEnabled) {
             arguments[i] = new NamedExpression(
                 "#$i",
-                buildProblem(fasta.messageExpectedNamedArgument,
+                buildProblem(cfe.messageExpectedNamedArgument,
                     argument.fileOffset, noLength))
               ..fileOffset = beginToken.charOffset;
           }
@@ -2360,7 +2397,7 @@ class BodyBuilder extends StackListenerImpl
     }
     if (receiver is ParserRecovery || arguments is ParserRecovery) {
       push(new ParserErrorGenerator(
-          this, beginToken, fasta.messageSyntheticToken));
+          this, beginToken, cfe.messageSyntheticToken));
     } else if (receiver is Identifier) {
       Name name = new Name(receiver.name, libraryBuilder.nameOrigin);
       if (arguments == null) {
@@ -2416,7 +2453,7 @@ class BodyBuilder extends StackListenerImpl
       push(_createReadOnlyVariableAccess(expression.variable, token,
           expression.fileOffset, null, ReadOnlyAccessKind.LetVariable));
     } else {
-      bool isNullAware = optional('?..', token);
+      bool isNullAware = token.isA(TokenType.QUESTION_PERIOD_PERIOD);
       VariableDeclaration variable =
           createVariableDeclarationForValue(expression);
       push(new Cascade(variable, isNullAware: isNullAware)
@@ -2519,8 +2556,8 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
       ]),
     ]));
-    bool isAnd = optional("&&", token);
-    if (isAnd || optional("||", token)) {
+    bool isAnd = token.isA(TokenType.AMPERSAND_AMPERSAND);
+    if (isAnd || token.isA(TokenType.BAR_BAR)) {
       Expression lhs = popForValue();
       // This is matched by the call to [endNode] in
       // [doLogicalExpression].
@@ -2549,15 +2586,16 @@ class BodyBuilder extends StackListenerImpl
       ]),
     ]));
     debugEvent("BinaryExpression");
-    if (optional2(TokenType.PERIOD, token) ||
-        optional("..", token) ||
-        optional("?..", token)) {
+    if (token.isA(TokenType.PERIOD) ||
+        token.isA(TokenType.PERIOD_PERIOD) ||
+        token.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
       doDotOrCascadeExpression(token);
-    } else if (optional("&&", token) || optional("||", token)) {
+    } else if (token.isA(TokenType.AMPERSAND_AMPERSAND) ||
+        token.isA(TokenType.BAR_BAR)) {
       doLogicalExpression(token);
-    } else if (optional("??", token)) {
+    } else if (token.isA(TokenType.QUESTION_QUESTION)) {
       doIfNull(token);
-    } else if (optional("?.", token)) {
+    } else if (token.isA(TokenType.QUESTION_PERIOD)) {
       doIfNotNull(token);
     } else {
       doBinaryExpression(token);
@@ -2692,7 +2730,7 @@ class BodyBuilder extends StackListenerImpl
         for (VariableDeclaration rightVariable in right.declaredVariables) {
           if (!leftVariablesByName.containsKey(rightVariable.name)) {
             addProblem(
-                fasta.templateMissingVariablePattern
+                cfe.templateMissingVariablePattern
                     .withArguments(rightVariable.name!),
                 left.fileOffset,
                 noLength);
@@ -2705,7 +2743,7 @@ class BodyBuilder extends StackListenerImpl
         for (VariableDeclaration leftVariable in left.declaredVariables) {
           if (!rightVariablesByName.containsKey(leftVariable.name)) {
             addProblem(
-                fasta.templateMissingVariablePattern
+                cfe.templateMissingVariablePattern
                     .withArguments(leftVariable.name!),
                 right.fileOffset,
                 noLength);
@@ -2726,7 +2764,7 @@ class BodyBuilder extends StackListenerImpl
       // Coverage-ignore(suite): Not run.
       default:
         internalProblem(
-            fasta.templateInternalProblemUnhandled
+            cfe.templateInternalProblemUnhandled
                 .withArguments(operator, 'endBinaryPattern'),
             token.charOffset,
             uri);
@@ -2757,7 +2795,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         if (left is ProblemBuilder) {
           ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.charOffset, noLength);
+          left = buildProblem(problem.message, problem.fileOffset, noLength);
         }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left as Expression, right,
@@ -2767,12 +2805,10 @@ class BodyBuilder extends StackListenerImpl
       Name name = new Name(operator);
       if (!isBinaryOperator(operator) && !isMinusOperator(operator)) {
         if (isUserDefinableOperator(operator)) {
-          push(buildProblem(
-              fasta.templateNotBinaryOperator.withArguments(token),
-              token.charOffset,
-              token.length));
+          push(buildProblem(cfe.templateNotBinaryOperator.withArguments(token),
+              token.charOffset, token.length));
         } else {
-          push(buildProblem(fasta.templateInvalidOperator.withArguments(token),
+          push(buildProblem(cfe.templateInvalidOperator.withArguments(token),
               token.charOffset, token.length));
         }
       } else if (left is Generator) {
@@ -2780,7 +2816,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         if (left is ProblemBuilder) {
           ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.charOffset, noLength);
+          left = buildProblem(problem.message, problem.fileOffset, noLength);
         }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left as Expression, name, right));
@@ -2810,7 +2846,7 @@ class BodyBuilder extends StackListenerImpl
     Expression logicalExpression = forest.createLogicalExpression(
         offsetForToken(token), receiver, token.stringValue!, argument);
     push(logicalExpression);
-    if (optional("&&", token)) {
+    if (token.isA(TokenType.AMPERSAND_AMPERSAND)) {
       // This is matched by the call to [beginNode] in
       // [beginBinaryExpression].
       typeInferrer.assignedVariables.endNode(logicalExpression);
@@ -2863,7 +2899,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       pop();
       token = token.next!;
-      push(buildProblem(fasta.templateExpectedIdentifier.withArguments(token),
+      push(buildProblem(cfe.templateExpectedIdentifier.withArguments(token),
           offsetForToken(token), lengthForToken(token)));
     }
     assert(checkState(token, <ValueKind>[
@@ -2891,8 +2927,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? send = pop();
     if (send is Selector) {
-      Object? receiver =
-          optional2(TokenType.PERIOD, token) ? pop() : popForValue();
+      Object? receiver = token.isA(TokenType.PERIOD) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
     } else if (send is IncompleteErrorGenerator) {
       // Pop the "receiver" and push the error.
@@ -2902,7 +2937,7 @@ class BodyBuilder extends StackListenerImpl
       // Pop the "receiver" and push the error.
       pop();
       token = token.next!;
-      push(buildProblem(fasta.templateExpectedIdentifier.withArguments(token),
+      push(buildProblem(cfe.templateExpectedIdentifier.withArguments(token),
           offsetForToken(token), lengthForToken(token)));
     }
     assert(checkState(token, <ValueKind>[
@@ -2942,7 +2977,7 @@ class BodyBuilder extends StackListenerImpl
       int length = noLength;
       if (candidate is Constructor && candidate.isSynthetic) {
         offset = candidate.enclosingClass.fileOffset;
-        contextMessage = fasta.templateCandidateFoundIsDefaultConstructor
+        contextMessage = cfe.templateCandidateFoundIsDefaultConstructor
             .withArguments(candidate.enclosingClass.name);
       } else {
         if (candidate is Constructor) {
@@ -2956,7 +2991,7 @@ class BodyBuilder extends StackListenerImpl
         } else {
           length = name.length;
         }
-        contextMessage = fasta.messageCandidateFound;
+        contextMessage = cfe.messageCandidateFound;
       }
       context = [contextMessage.withLocation(uri, offset, length)];
     }
@@ -2964,7 +2999,7 @@ class BodyBuilder extends StackListenerImpl
       switch (kind) {
         case UnresolvedKind.Unknown:
           assert(!isSuper);
-          message = fasta.templateNameNotFound
+          message = cfe.templateNameNotFound
               .withArguments(name)
               .withLocation(uri, charOffset, length);
           break;
@@ -3006,8 +3041,8 @@ class BodyBuilder extends StackListenerImpl
     Message message = isSuper
         ?
         // Coverage-ignore(suite): Not run.
-        fasta.templateSuperclassHasNoMember.withArguments(name.text)
-        : fasta.templateMemberNotFound.withArguments(name.text);
+        cfe.templateSuperclassHasNoMember.withArguments(name.text)
+        : cfe.templateMemberNotFound.withArguments(name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, name.text.length,
@@ -3021,8 +3056,8 @@ class BodyBuilder extends StackListenerImpl
       bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
-        ? fasta.templateSuperclassHasNoGetter.withArguments(name.text)
-        : fasta.templateGetterNotFound.withArguments(name.text);
+        ? cfe.templateSuperclassHasNoGetter.withArguments(name.text)
+        : cfe.templateGetterNotFound.withArguments(name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, name.text.length,
@@ -3036,8 +3071,8 @@ class BodyBuilder extends StackListenerImpl
       bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
-        ? fasta.templateSuperclassHasNoSetter.withArguments(name.text)
-        : fasta.templateSetterNotFound.withArguments(name.text);
+        ? cfe.templateSuperclassHasNoSetter.withArguments(name.text)
+        : cfe.templateSetterNotFound.withArguments(name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, name.text.length,
@@ -3063,8 +3098,8 @@ class BodyBuilder extends StackListenerImpl
       length = 1;
     }
     Message message = isSuper
-        ? fasta.templateSuperclassHasNoMethod.withArguments(name.text)
-        : fasta.templateMethodNotFound.withArguments(name.text);
+        ? cfe.templateSuperclassHasNoMethod.withArguments(name.text)
+        : cfe.templateMethodNotFound.withArguments(name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, length, context: context);
@@ -3076,8 +3111,8 @@ class BodyBuilder extends StackListenerImpl
     Message message = isSuper
         ?
         // Coverage-ignore(suite): Not run.
-        fasta.templateSuperclassHasNoConstructor.withArguments(name.text)
-        : fasta.templateConstructorNotFound.withArguments(name.text);
+        cfe.templateSuperclassHasNoConstructor.withArguments(name.text)
+        : cfe.templateConstructorNotFound.withArguments(name.text);
     return message;
   }
 
@@ -3107,8 +3142,8 @@ class BodyBuilder extends StackListenerImpl
           constantContext != ConstantContext.none &&
           !context.allowedInConstantExpression) {
         // Coverage-ignore-block(suite): Not run.
-        addProblem(fasta.messageNotAConstantExpression, token.charOffset,
-            token.length);
+        addProblem(
+            cfe.messageNotAConstantExpression, token.charOffset, token.length);
       }
       if (token.isSynthetic) {
         push(new ParserRecovery(offsetForToken(token)));
@@ -3173,7 +3208,7 @@ class BodyBuilder extends StackListenerImpl
     int nameOffset = nameToken.charOffset;
     if (nameToken.isSynthetic) {
       return new ParserErrorGenerator(
-          this, nameToken, fasta.messageSyntheticToken);
+          this, nameToken, cfe.messageSyntheticToken);
     }
     bool isQualified = prefixToken != null;
     Builder? declaration = scope.lookupGetable(name, nameOffset, uri);
@@ -3183,7 +3218,10 @@ class BodyBuilder extends StackListenerImpl
     }
     if (declaration != null &&
         declaration.isDeclarationInstanceMember &&
-        (inFieldInitializer && !inLateFieldInitializer) &&
+        (inFieldInitializer &&
+            (!inLateFieldInitializer ||
+                _context.isExtensionDeclaration ||
+                _context.isExtensionTypeDeclaration)) &&
         !inInitializerLeftHandSide) {
       // We cannot access a class instance member in an initializer of a
       // field.
@@ -3195,8 +3233,10 @@ class BodyBuilder extends StackListenerImpl
       //       int bar;
       //     }
       //
+      // We can if it's late, but not if we're in an extension (type), even if
+      // it's late.
       return new IncompleteErrorGenerator(this, nameToken,
-          fasta.templateThisAccessInFieldInitializer.withArguments(name));
+          cfe.templateThisAccessInFieldInitializer.withArguments(name));
     }
     if (declaration == null ||
         (!isDeclarationInstanceContext &&
@@ -3217,6 +3257,11 @@ class BodyBuilder extends StackListenerImpl
           // implicit access on the 'this' parameter.
           return PropertyAccessGenerator.make(this, nameToken,
               createVariableGet(thisVariable!, nameOffset), n, false);
+        } else if (_context.isExtensionDeclaration ||
+            _context.isExtensionTypeDeclaration) {
+          // In an extension (type) without a this variable.
+          return new UnresolvedNameGenerator(this, nameToken, n,
+              unresolvedReadKind: UnresolvedKind.Unknown);
         } else {
           // This is an implicit access on 'this'.
           return new ThisPropertyAccessGenerator(this, nameToken, n,
@@ -3243,10 +3288,10 @@ class BodyBuilder extends StackListenerImpl
       VariableBuilder variableBuilder = declaration as VariableBuilder;
       if (constantContext != ConstantContext.none &&
           !variableBuilder.isConst &&
-          !_context.isConstructor &&
+           !(_context.isConstructor && inFieldInitializer) &&
           !libraryFeatures.constFunctions.isEnabled) {
         return new IncompleteErrorGenerator(
-            this, nameToken, fasta.messageNotAConstantExpression);
+            this, nameToken, cfe.messageNotAConstantExpression);
       }
       VariableDeclaration variable = variableBuilder.variable!;
       if (scope.kind == ScopeKind.forStatement &&
@@ -3276,19 +3321,35 @@ class BodyBuilder extends StackListenerImpl
           // "this.field" parameters according to old semantics. Under the new
           // semantics, such parameters introduces a new parameter with that
           // name that should be resolved here.
-          !_context.isConstructor) {
+          (!_context.isConstructor ||
+              declaration.isExtensionTypeInstanceMember)) {
+        if (declaration.isExtensionTypeInstanceMember) {
+          return new IncompleteErrorGenerator(
+              this, nameToken, cfe.messageNotAConstantExpression);
+        }
         addProblem(
-            fasta.messageNotAConstantExpression, nameOffset, nameToken.length);
+            cfe.messageNotAConstantExpression, nameOffset, nameToken.length);
       }
       Name n = new Name(name, libraryBuilder.nameOrigin);
       return new ThisPropertyAccessGenerator(this, nameToken, n,
           thisVariable: inConstructorInitializer ? null : thisVariable);
     } else if (declaration.isExtensionInstanceMember) {
+      // TODO(johnniwinther): Better check for constantContext like below/above?
+      // Possibly if the is a non-none constant context it's just a no without
+      // additional checks?
+      if (constantContext != ConstantContext.none && thisVariable == null) {
+        return new IncompleteErrorGenerator(
+            this, nameToken, cfe.messageNotAConstantExpression);
+      } else if (constantContext != ConstantContext.none &&
+          !inInitializerLeftHandSide &&
+          !_context.isConstructor) {
+        return new IncompleteErrorGenerator(
+            this, nameToken, cfe.messageNotAConstantExpression);
+      }
       ExtensionBuilder extensionBuilder =
           declaration.parent as ExtensionBuilder;
       MemberBuilder? setterBuilder =
           _getCorrespondingSetterBuilder(scope, declaration, name, nameOffset);
-      // TODO(johnniwinther): Check for constantContext like below?
       if (declaration.isField) {
         declaration = null;
       }
@@ -3296,7 +3357,8 @@ class BodyBuilder extends StackListenerImpl
           (setterBuilder.isField || setterBuilder.isStatic)) {
         setterBuilder = null;
       }
-      if (declaration == null && setterBuilder == null) {
+      if ((declaration == null && setterBuilder == null) ||
+          thisVariable == null) {
         return new UnresolvedNameGenerator(
             this, nameToken, new Name(name, libraryBuilder.nameOrigin),
             unresolvedReadKind: UnresolvedKind.Unknown);
@@ -3316,7 +3378,12 @@ class BodyBuilder extends StackListenerImpl
       assert(declaration.isStatic || declaration.isTopLevel);
       MemberBuilder memberBuilder = declaration as MemberBuilder;
       return new StaticAccessGenerator(
-          this, nameToken, name, memberBuilder.member, null);
+          this,
+          nameToken,
+          name,
+          memberBuilder.readTarget,
+          memberBuilder.invokeTarget,
+          memberBuilder.writeTarget);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
       // Wildcard import prefixes are non-binding and cannot be used.
@@ -3345,8 +3412,8 @@ class BodyBuilder extends StackListenerImpl
         if (!(readTarget is Field && readTarget.isConst ||
             // Static tear-offs are also compile time constants.
             readTarget is Procedure)) {
-          addProblem(fasta.messageNotAConstantExpression, nameOffset,
-              nameToken.length);
+          addProblem(
+              cfe.messageNotAConstantExpression, nameOffset, nameToken.length);
         }
       }
       return generator;
@@ -3497,8 +3564,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleStringJuxtaposition(Token startToken, int literalCount) {
-    debugEvent("StringJuxtaposition");
+  void handleAdjacentStringLiterals(Token startToken, int literalCount) {
+    debugEvent("AdjacentStringLiterals");
     List<Expression> parts = popListForValue(literalCount);
     List<Expression>? expressions;
     // Flatten string juxtapositions of string interpolation.
@@ -3524,7 +3591,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
-    int? value = int.tryParse(token.lexeme);
+    int? value = intFromToken(token, hasSeparators: false);
     // Postpone parsing of literals resulting in a negative value
     // (hex literals >= 2^63). These are only allowed when not negated.
     if (value == null || value < 0) {
@@ -3578,7 +3645,7 @@ class BodyBuilder extends StackListenerImpl
     Expression? expression = hasExpression ? popForValue() : null;
     if (expression != null && inConstructor) {
       push(buildProblemStatement(
-          fasta.messageConstructorWithReturnType, beginToken.charOffset));
+          cfe.messageConstructorWithReturnType, beginToken.charOffset));
     } else {
       push(forest.createReturnStatement(offsetForToken(beginToken), expression,
           isArrow: !identical(beginToken.lexeme, "return")));
@@ -3661,15 +3728,17 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endIfStatement(Token ifToken, Token? elseToken, Token endToken) {
     assert(checkState(ifToken, [
-      /* else = */ if (elseToken != null) ValueKinds.Statement,
+      /* else = */ if (elseToken != null)
+        unionOfKinds([ValueKinds.Statement, ValueKinds.ParserRecovery]),
       ValueKinds.AssignedVariablesNodeInfo,
-      /* then = */ ValueKinds.Statement,
+      /* then = */ unionOfKinds(
+          [ValueKinds.Statement, ValueKinds.ParserRecovery]),
       /* condition = */ ValueKinds.Condition,
     ]));
     Statement? elsePart = popStatementIfNotNull(elseToken);
     AssignedVariablesNodeInfo assignedVariablesInfo =
         pop() as AssignedVariablesNodeInfo;
-    Statement thenPart = popStatement();
+    Statement thenPart = popStatement(ifToken);
     Condition condition = pop() as Condition;
     PatternGuard? patternGuard = condition.patternGuard;
     Expression expression = condition.expression;
@@ -3689,7 +3758,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void beginVariableInitializer(Token token) {
-    if ((currentLocalVariableModifiers & lateMask) != 0) {
+    if (currentLocalVariableModifiers.isLate) {
       // This is matched by the call to [endNode] in [endVariableInitializer].
       typeInferrer.assignedVariables.beginNode();
     }
@@ -3700,7 +3769,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
     AssignedVariablesNodeInfo? assignedVariablesInfo;
-    bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
+    bool isLate = currentLocalVariableModifiers.isLate;
     Expression initializer = popForValue();
     if (isLate) {
       assignedVariablesInfo = typeInferrer.assignedVariables
@@ -3718,9 +3787,9 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleNoVariableInitializer(Token token) {
     debugEvent("NoVariableInitializer");
-    bool isConst = (currentLocalVariableModifiers & constMask) != 0;
+    bool isConst = currentLocalVariableModifiers.isConst;
     Expression? initializer;
-    if (!optional("in", token.next!)) {
+    if (!token.next!.isA(Keyword.IN)) {
       // A for-in loop-variable can't have an initializer. So let's remain
       // silent if the next token is `in`. Since a for-in loop can only have
       // one variable it must be followed by `in`.
@@ -3728,7 +3797,7 @@ class BodyBuilder extends StackListenerImpl
         // If [token] is synthetic it is created from error recovery.
         if (isConst) {
           initializer = buildProblem(
-              fasta.templateConstFieldWithoutInitializer
+              cfe.templateConstFieldWithoutInitializer
                   .withArguments(token.lexeme),
               token.charOffset,
               token.length);
@@ -3745,11 +3814,11 @@ class BodyBuilder extends StackListenerImpl
       return;
     }
     Identifier identifier = node as Identifier;
-    assert(currentLocalVariableModifiers != -1);
-    bool isConst = (currentLocalVariableModifiers & constMask) != 0;
-    bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
-    bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
-    bool isRequired = (currentLocalVariableModifiers & requiredMask) != 0;
+    assert(currentLocalVariableModifiers != noCurrentLocalVariableModifiers);
+    bool isConst = currentLocalVariableModifiers.isConst;
+    bool isFinal = currentLocalVariableModifiers.isFinal;
+    bool isLate = currentLocalVariableModifiers.isLate;
+    bool isRequired = currentLocalVariableModifiers.isRequired;
     assert(isConst == (constantContext == ConstantContext.inferred));
     String name = identifier.name;
     bool isWildcard =
@@ -3782,10 +3851,10 @@ class BodyBuilder extends StackListenerImpl
     inLateFieldInitializer = _context.isLateField;
     if (_context.isAbstractField) {
       addProblem(
-          fasta.messageAbstractFieldInitializer, token.charOffset, noLength);
+          cfe.messageAbstractFieldInitializer, token.charOffset, noLength);
     } else if (_context.isExternalField) {
       addProblem(
-          fasta.messageExternalFieldInitializer, token.charOffset, noLength);
+          cfe.messageExternalFieldInitializer, token.charOffset, noLength);
     }
   }
 
@@ -3842,17 +3911,16 @@ class BodyBuilder extends StackListenerImpl
         ? buildDartType(unresolvedType, TypeUse.variableType,
             allowPotentiallyConstantType: false)
         : null;
-    int modifiers = (lateToken != null ? lateMask : 0) |
-        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
+    Modifiers modifiers =
+        Modifiers.from(lateToken: lateToken, varFinalOrConst: varFinalOrConst);
     _enterLocalState(inLateLocalInitializer: lateToken != null);
     super.push(currentLocalVariableModifiers);
     super.push(currentLocalVariableType ?? NullValues.Type);
     currentLocalVariableType = type;
     currentLocalVariableModifiers = modifiers;
     super.push(constantContext);
-    constantContext = ((modifiers & constMask) != 0)
-        ? ConstantContext.inferred
-        : ConstantContext.none;
+    constantContext =
+        modifiers.isConst ? ConstantContext.inferred : ConstantContext.none;
   }
 
   @override
@@ -3862,7 +3930,7 @@ class BodyBuilder extends StackListenerImpl
       Object? node = pop();
       constantContext = pop() as ConstantContext;
       currentLocalVariableType = pop(NullValues.Type) as DartType?;
-      currentLocalVariableModifiers = pop() as int;
+      currentLocalVariableModifiers = pop() as Modifiers;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (node is ParserRecovery) {
         push(node);
@@ -3882,7 +3950,7 @@ class BodyBuilder extends StackListenerImpl
               .popNonNullable(stack, count, dummyVariableDeclaration);
       constantContext = pop() as ConstantContext;
       currentLocalVariableType = pop(NullValues.Type) as DartType?;
-      currentLocalVariableModifiers = pop() as int;
+      currentLocalVariableModifiers = pop() as Modifiers;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (variables == null) {
         push(new ParserRecovery(offsetForToken(endToken)));
@@ -3966,7 +4034,7 @@ class BodyBuilder extends StackListenerImpl
     Expression value = popForValue();
     Object? generator = pop();
     if (generator is! Generator) {
-      push(buildProblem(fasta.messageNotAnLvalue, offsetForToken(token),
+      push(buildProblem(cfe.messageNotAnLvalue, offsetForToken(token),
           lengthForToken(token)));
     } else {
       push(new DelayedAssignment(
@@ -4175,7 +4243,7 @@ class BodyBuilder extends StackListenerImpl
       /* condition = */ ValueKinds.Statement,
     ]));
     List<Expression> updates = popListForEffect(updateExpressionCount);
-    Statement conditionStatement = popStatement(); // condition
+    Statement conditionStatement = popStatement(forToken); // condition
 
     if (constantContext != ConstantContext.none) {
       pop(); // Pop variable or expression.
@@ -4183,7 +4251,7 @@ class BodyBuilder extends StackListenerImpl
       typeInferrer.assignedVariables.discardNode();
 
       push(buildProblem(
-          fasta.templateCantUseControlFlowOrSpreadAsConstant
+          cfe.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
           forToken.charOffset,
           forToken.charCount));
@@ -4254,14 +4322,15 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endForStatement(Token endToken) {
     assert(checkState(endToken, <ValueKind>[
-      /* body */ ValueKinds.Statement,
+      /* body */ unionOfKinds(
+          [ValueKinds.Statement, ValueKinds.ParserRecovery]),
       /* expression count */ ValueKinds.Integer,
       /* left separator */ ValueKinds.Token,
       /* left parenthesis */ ValueKinds.Token,
       /* for keyword */ ValueKinds.Token,
     ]));
     debugEvent("ForStatement");
-    Statement body = popStatement();
+    Statement body = popStatement(endToken);
 
     int updateExpressionCount = pop() as int;
     pop(); // Left separator.
@@ -4284,7 +4353,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
 
     List<Expression> updates = popListForEffect(updateExpressionCount);
-    Statement conditionStatement = popStatement();
+    Statement conditionStatement = popStatement(forKeyword);
     // This is matched by the call to [beginNode] in
     // [handleForInitializerEmptyStatement],
     // [handleForInitializerPatternVariableAssignment],
@@ -4339,7 +4408,7 @@ class BodyBuilder extends StackListenerImpl
     }
     if (variableOrExpression is ParserRecovery) {
       problemInLoopOrSwitch ??= buildProblemStatement(
-          fasta.messageSyntheticToken, variableOrExpression.charOffset,
+          cfe.messageSyntheticToken, variableOrExpression.charOffset,
           suppressMessage: true);
     }
     exitLoopOrSwitch(result);
@@ -4351,7 +4420,7 @@ class BodyBuilder extends StackListenerImpl
     int fileOffset = offsetForToken(keyword);
     Expression value = popForValue();
     if (inLateLocalInitializer) {
-      push(buildProblem(fasta.messageAwaitInLateLocalInitializer, fileOffset,
+      push(buildProblem(cfe.messageAwaitInLateLocalInitializer, fileOffset,
           keyword.charCount));
     } else {
       push(forest.createAwaitExpression(fileOffset, value));
@@ -4360,7 +4429,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endInvalidAwaitExpression(
-      Token keyword, Token endToken, fasta.MessageCode errorCode) {
+      Token keyword, Token endToken, cfe.MessageCode errorCode) {
     debugEvent("AwaitExpression");
     popForValue();
     push(buildProblem(errorCode, keyword.offset, keyword.length));
@@ -4368,7 +4437,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void endInvalidYieldStatement(Token keyword, Token? starToken, Token endToken,
-      fasta.MessageCode errorCode) {
+      cfe.MessageCode errorCode) {
     debugEvent("YieldStatement");
     popForValue();
     push(buildProblemStatement(errorCode, keyword.offset));
@@ -4396,7 +4465,7 @@ class BodyBuilder extends StackListenerImpl
     ]));
 
     if (constantContext == ConstantContext.required && constKeyword == null) {
-      addProblem(fasta.messageMissingExplicitConst, offsetForToken(leftBracket),
+      addProblem(cfe.messageMissingExplicitConst, offsetForToken(leftBracket),
           noLength);
     }
 
@@ -4408,7 +4477,7 @@ class BodyBuilder extends StackListenerImpl
     if (typeArguments != null) {
       if (typeArguments.length > 1) {
         addProblem(
-            fasta.messageListLiteralTooManyTypeArguments,
+            cfe.messageListLiteralTooManyTypeArguments,
             offsetForToken(leftBracket),
             lengthOfSpan(leftBracket, leftBracket.endGroup));
         typeArgument = const InvalidType();
@@ -4461,7 +4530,7 @@ class BodyBuilder extends StackListenerImpl
     if (typeArguments != null) {
       if (typeArguments.length > 1) {
         addProblem(
-            fasta.messageListPatternTooManyTypeArguments,
+            cfe.messageListPatternTooManyTypeArguments,
             offsetForToken(leftBracket),
             lengthOfSpan(leftBracket, leftBracket.endGroup));
         typeArgument = const InvalidType();
@@ -4514,13 +4583,13 @@ class BodyBuilder extends StackListenerImpl
         if (element is NamedExpression) {
           if (forbiddenObjectMemberNames.contains(element.name)) {
             libraryBuilder.addProblem(
-                fasta.messageObjectMemberNameUsedForRecordField,
+                cfe.messageObjectMemberNameUsedForRecordField,
                 element.fileOffset,
                 element.name.length,
                 uri);
           }
           if (element.name.startsWith("_")) {
-            libraryBuilder.addProblem(fasta.messageRecordFieldsCantBePrivate,
+            libraryBuilder.addProblem(cfe.messageRecordFieldsCantBePrivate,
                 element.fileOffset, element.name.length, uri);
           }
           namedElements ??= {};
@@ -4613,7 +4682,7 @@ class BodyBuilder extends StackListenerImpl
       for (dynamic entry in setOrMapEntries) {
         if (entry is MapLiteralEntry) {
           // TODO(danrubel): report the error on the colon
-          addProblem(fasta.templateExpectedButGot.withArguments(','),
+          addProblem(cfe.templateExpectedButGot.withArguments(','),
               entry.fileOffset, 1);
         } else {
           // TODO(danrubel): Revise once control flow and spread
@@ -4658,8 +4727,8 @@ class BodyBuilder extends StackListenerImpl
     ]));
 
     if (constantContext == ConstantContext.required && constKeyword == null) {
-      addProblem(fasta.messageMissingExplicitConst, offsetForToken(leftBrace),
-          noLength);
+      addProblem(
+          cfe.messageMissingExplicitConst, offsetForToken(leftBrace), noLength);
     }
 
     List<dynamic> setOrMapEntries =
@@ -4775,7 +4844,7 @@ class BodyBuilder extends StackListenerImpl
       if (typeArguments.length != 2) {
         keyType = const InvalidType();
         valueType = const InvalidType();
-        addProblem(fasta.messageMapPatternTypeArgumentMismatch,
+        addProblem(cfe.messageMapPatternTypeArgumentMismatch,
             leftBrace.charOffset, noLength);
       } else {
         keyType = buildDartType(typeArguments[0], TypeUse.literalTypeArgument,
@@ -4794,8 +4863,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
-    bool value = optional("true", token);
-    assert(value || optional("false", token));
+    bool value = boolFromToken(token);
     push(forest.createBoolLiteral(offsetForToken(token), value));
   }
 
@@ -4803,7 +4871,7 @@ class BodyBuilder extends StackListenerImpl
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
     push(forest.createDoubleLiteral(
-        offsetForToken(token), double.parse(token.lexeme)));
+        offsetForToken(token), doubleFromToken(token, hasSeparators: false)));
   }
 
   @override
@@ -4818,8 +4886,7 @@ class BodyBuilder extends StackListenerImpl
           token.length);
     }
 
-    String source = stripSeparators(token.lexeme);
-    double value = double.parse(source);
+    double value = doubleFromToken(token, hasSeparators: true);
     push(forest.createDoubleLiteral(offsetForToken(token), value));
   }
 
@@ -4904,7 +4971,7 @@ class BodyBuilder extends StackListenerImpl
       Object? part = pop();
       if (part is ParserRecovery) {
         push(new ParserErrorGenerator(
-            this, hashToken, fasta.messageSyntheticToken));
+            this, hashToken, cfe.messageSyntheticToken));
       } else {
         push(forest.createSymbolLiteral(
             offsetForToken(hashToken), symbolPartToString(part)));
@@ -4915,7 +4982,7 @@ class BodyBuilder extends StackListenerImpl
       if (parts == null) {
         // Coverage-ignore-block(suite): Not run.
         push(new ParserErrorGenerator(
-            this, hashToken, fasta.messageSyntheticToken));
+            this, hashToken, cfe.messageSyntheticToken));
         return;
       }
       String value = symbolPartToString(parts.first);
@@ -4960,7 +5027,7 @@ class BodyBuilder extends StackListenerImpl
     void errorCase(String name, Token suffix) {
       String displayName = debugName(name, suffix.lexeme);
       int offset = offsetForToken(beginToken);
-      Message message = fasta.templateNotAType.withArguments(displayName);
+      Message message = cfe.templateNotAType.withArguments(displayName);
       libraryBuilder.addProblem(
           message, offset, lengthOfSpan(beginToken, suffix), uri);
       push(new NamedTypeBuilderImpl.forInvalidType(
@@ -5014,14 +5081,14 @@ class BodyBuilder extends StackListenerImpl
     } else if (name is ProblemBuilder) {
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
-          name.message, name.charOffset, name.name.length, name.fileUri);
+          name.message, name.fileOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilderImpl.forInvalidType(
           name.name,
           isMarkedAsNullable
               ? const NullabilityBuilder.nullable()
               : const NullabilityBuilder.omitted(),
           name.message
-              .withLocation(name.fileUri, name.charOffset, name.name.length));
+              .withLocation(name.fileUri, name.fileOffset, name.name.length));
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
@@ -5036,12 +5103,12 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void enterNominalVariablesScope(
-      List<NominalVariableBuilder>? nominalVariableBuilders) {
+      List<NominalParameterBuilder>? nominalVariableBuilders) {
     debugEvent("enterNominalVariableScope");
     enterLocalScope(_localScope.createNestedScope(
         debugName: "function-type scope", kind: ScopeKind.typeParameters));
     if (nominalVariableBuilders != null) {
-      for (NominalVariableBuilder builder in nominalVariableBuilders) {
+      for (NominalParameterBuilder builder in nominalVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
         Builder? existing = _localScope.lookupLocalVariable(name);
@@ -5049,19 +5116,19 @@ class BodyBuilder extends StackListenerImpl
           _localScope.addLocalVariable(name, builder);
         } else {
           // Coverage-ignore-block(suite): Not run.
-          reportDuplicatedDeclaration(existing, name, builder.charOffset);
+          reportDuplicatedDeclaration(existing, name, builder.fileOffset);
         }
       }
     }
   }
 
   void enterStructuralVariablesScope(
-      List<StructuralVariableBuilder>? structuralVariableBuilders) {
+      List<StructuralParameterBuilder>? structuralVariableBuilders) {
     debugEvent("enterStructuralVariableScope");
     enterLocalScope(_localScope.createNestedScope(
         debugName: "function-type scope", kind: ScopeKind.typeParameters));
     if (structuralVariableBuilders != null) {
-      for (StructuralVariableBuilder builder in structuralVariableBuilders) {
+      for (StructuralParameterBuilder builder in structuralVariableBuilders) {
         if (builder.isWildcard) continue;
         String name = builder.name;
         Builder? existing = _localScope.lookupLocalVariable(name);
@@ -5069,7 +5136,7 @@ class BodyBuilder extends StackListenerImpl
           _localScope.addLocalVariable(name, builder);
         } else {
           // Coverage-ignore-block(suite): Not run.
-          reportDuplicatedDeclaration(existing, name, builder.charOffset);
+          reportDuplicatedDeclaration(existing, name, builder.fileOffset);
         }
       }
     }
@@ -5165,14 +5232,14 @@ class BodyBuilder extends StackListenerImpl
     _structuralParameterDepthLevel--;
     FunctionTypeParameters parameters = pop() as FunctionTypeParameters;
     TypeBuilder? returnType = pop() as TypeBuilder?;
-    List<StructuralVariableBuilder>? typeVariables =
-        pop() as List<StructuralVariableBuilder>?;
+    List<StructuralParameterBuilder>? typeParameters =
+        pop() as List<StructuralParameterBuilder>?;
     TypeBuilder type = parameters.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         questionMark != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
-        structuralVariableBuilders: typeVariables,
+        structuralVariableBuilders: typeParameters,
         hasFunctionFormalParameterSyntax: false);
     exitLocalScope();
     push(type);
@@ -5311,7 +5378,7 @@ class BodyBuilder extends StackListenerImpl
     Expression expression = popForValue();
     if (constantContext != ConstantContext.none) {
       push(buildProblem(
-          fasta.templateNotConstantExpression.withArguments('Throw'),
+          cfe.templateNotConstantExpression.withArguments('Throw'),
           throwToken.offset,
           throwToken.length));
     } else {
@@ -5323,9 +5390,10 @@ class BodyBuilder extends StackListenerImpl
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     _insideOfFormalParameterType = true;
-    push((covariantToken != null ? covariantMask : 0) |
-        (requiredToken != null ? requiredMask : 0) |
-        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
+    push(Modifiers.from(
+        requiredToken: requiredToken,
+        covariantToken: covariantToken,
+        varFinalOrConst: varFinalOrConst));
     push(varFinalOrConst ?? NullValues.Token);
   }
 
@@ -5345,7 +5413,7 @@ class BodyBuilder extends StackListenerImpl
 
     if (thisKeyword != null) {
       if (!inConstructor) {
-        handleRecoverableError(fasta.messageFieldInitializerOutsideConstructor,
+        handleRecoverableError(cfe.messageFieldInitializerOutsideConstructor,
             thisKeyword, thisKeyword);
         thisKeyword = null;
       }
@@ -5353,7 +5421,7 @@ class BodyBuilder extends StackListenerImpl
     if (superKeyword != null) {
       if (!inConstructor) {
         handleRecoverableError(
-            fasta.messageSuperParameterInitializerOutsideConstructor,
+            cfe.messageSuperParameterInitializerOutsideConstructor,
             superKeyword,
             superKeyword);
         superKeyword = null;
@@ -5364,15 +5432,15 @@ class BodyBuilder extends StackListenerImpl
     Token? varOrFinalOrConst = pop(NullValues.Token) as Token?;
     if (superKeyword != null &&
         varOrFinalOrConst != null &&
-        optional('var', varOrFinalOrConst)) {
+        varOrFinalOrConst.isA(Keyword.VAR)) {
       handleRecoverableError(
-          fasta.templateExtraneousModifier.withArguments(varOrFinalOrConst),
+          cfe.templateExtraneousModifier.withArguments(varOrFinalOrConst),
           varOrFinalOrConst,
           varOrFinalOrConst);
     }
-    int modifiers = pop() as int;
+    Modifiers modifiers = pop() as Modifiers;
     if (inCatchClause) {
-      modifiers |= finalMask;
+      modifiers |= Modifiers.Final;
     }
     List<Expression>? annotations = pop() as List<Expression>?;
     if (nameNode is ParserRecovery) {
@@ -5422,7 +5490,7 @@ class BodyBuilder extends StackListenerImpl
     if (initializer != null) {
       if (_context.isRedirectingFactory) {
         addProblem(
-            fasta.templateDefaultValueInRedirectingFactoryConstructor
+            cfe.templateDefaultValueInRedirectingFactoryConstructor
                 .withArguments(_context.redirectingFactoryTargetName),
             initializer.fileOffset,
             noLength);
@@ -5495,14 +5563,14 @@ class BodyBuilder extends StackListenerImpl
     }
     FunctionTypeParameters parameters = pop() as FunctionTypeParameters;
     TypeBuilder? returnType = pop() as TypeBuilder?;
-    List<StructuralVariableBuilder>? typeVariables =
-        pop() as List<StructuralVariableBuilder>?;
+    List<StructuralParameterBuilder>? typeParameters =
+        pop() as List<StructuralParameterBuilder>?;
     TypeBuilder type = parameters.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         question != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
-        structuralVariableBuilders: typeVariables,
+        structuralVariableBuilders: typeParameters,
         hasFunctionFormalParameterSyntax: true);
     push(type);
     functionNestingLevel--;
@@ -5538,7 +5606,7 @@ class BodyBuilder extends StackListenerImpl
             kind == FormalParameterKind.requiredNamed) &&
         equals.lexeme == ':' &&
         libraryBuilder.languageVersion.major >= 3) {
-      addProblem(fasta.messageObsoleteColonForDefaultValue, equals.charOffset,
+      addProblem(cfe.messageObsoleteColonForDefaultValue, equals.charOffset,
           equals.charCount);
     }
   }
@@ -5705,7 +5773,7 @@ class BodyBuilder extends StackListenerImpl
             FormalParameterBuilder parameter = catchParameters.parameters![i];
             compileTimeErrors ??= <Statement>[];
             compileTimeErrors.add(buildProblemStatement(
-                fasta.messageCatchSyntaxExtraParameters, parameter.charOffset,
+                cfe.messageCatchSyntaxExtraParameters, parameter.fileOffset,
                 length: parameter.name.length));
           }
         }
@@ -5758,7 +5826,7 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
-    Statement tryBlock = popStatement();
+    Statement tryBlock = popStatement(tryKeyword);
     int fileOffset = offsetForToken(tryKeyword);
     Statement result = forest.createTryStatement(
         fileOffset, tryBlock, catchBlocks, finallyBlock);
@@ -5811,27 +5879,29 @@ class BodyBuilder extends StackListenerImpl
     ]));
     debugEvent("UnaryPrefixExpression");
     Object? receiver = pop();
-    if (optional("!", token)) {
+    if (token.isA(TokenType.BANG)) {
       push(forest.createNot(offsetForToken(token), toValue(receiver)));
     } else {
       String operator = token.stringValue!;
-      if (optional("-", token)) {
+      if (token.isA(TokenType.MINUS)) {
         operator = "unary-";
       }
       int fileOffset = offsetForToken(token);
       Name name = new Name(operator);
       if (receiver is Generator) {
         push(receiver.buildUnaryOperation(token, name));
+      } else if (receiver is Expression) {
+        push(forest.createUnary(fileOffset, name, receiver));
       } else {
-        assert(receiver is Expression);
-        push(forest.createUnary(fileOffset, name, receiver as Expression));
+        Expression value = toValue(receiver);
+        push(forest.createUnary(fileOffset, name, value));
       }
     }
   }
 
   Name incrementOperator(Token token) {
-    if (optional("++", token)) return plusName;
-    if (optional("--", token)) return minusName;
+    if (token.isA(TokenType.PLUS_PLUS)) return plusName;
+    if (token.isA(TokenType.MINUS_MINUS)) return minusName;
     return unhandled(token.lexeme, "incrementOperator", token.charOffset, uri);
   }
 
@@ -5845,7 +5915,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       Expression value = toValue(generator);
       push(wrapInProblem(
-          value, fasta.messageNotAnLvalue, value.fileOffset, noLength));
+          value, cfe.messageNotAnLvalue, value.fileOffset, noLength));
     }
   }
 
@@ -5859,7 +5929,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       Expression value = toValue(generator);
       push(wrapInProblem(
-          value, fasta.messageNotAnLvalue, value.fileOffset, noLength));
+          value, cfe.messageNotAnLvalue, value.fileOffset, noLength));
     }
   }
 
@@ -5944,7 +6014,7 @@ class BodyBuilder extends StackListenerImpl
             type = qualifier;
             if (typeArguments != null) {
               // TODO(ahe): Point to the type arguments instead.
-              addProblem(fasta.messageConstructorWithTypeArguments,
+              addProblem(cfe.messageConstructorWithTypeArguments,
                   identifier.nameOffset, identifier.name.length);
             }
           } else {
@@ -6035,11 +6105,11 @@ class BodyBuilder extends StackListenerImpl
     if (target is Constructor) {
       if (constantContext == ConstantContext.required &&
           constness == Constness.implicit) {
-        addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
+        addProblem(cfe.messageMissingExplicitConst, charOffset, charLength);
       }
       if (isConst && !target.isConst) {
         return buildProblem(
-            fasta.messageNonConstConstructor, charOffset, charLength);
+            cfe.messageNonConstConstructor, charOffset, charLength);
       }
       ConstructorInvocation node;
       if (typeAliasBuilder == null) {
@@ -6062,7 +6132,7 @@ class BodyBuilder extends StackListenerImpl
         if (constantContext == ConstantContext.required &&
             constness == Constness.implicit) {
           // Coverage-ignore-block(suite): Not run.
-          addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
+          addProblem(cfe.messageMissingExplicitConst, charOffset, charLength);
         }
         if (isConst && !procedure.isConst) {
           if (procedure.isExtensionTypeMember) {
@@ -6070,10 +6140,10 @@ class BodyBuilder extends StackListenerImpl
             // extension type declarations are encoded as procedures so we use
             // the message for non-const constructors here.
             return buildProblem(
-                fasta.messageNonConstConstructor, charOffset, charLength);
+                cfe.messageNonConstConstructor, charOffset, charLength);
           } else {
             return buildProblem(
-                fasta.messageNonConstFactory, charOffset, charLength);
+                cfe.messageNonConstFactory, charOffset, charLength);
           }
         }
         StaticInvocation node;
@@ -6149,14 +6219,14 @@ class BodyBuilder extends StackListenerImpl
     }
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
-      return fasta.templateTooFewArguments
+      return cfe.templateTooFewArguments
           .withArguments(requiredPositionalParameterCountToReport,
               positionalArgumentCountToReport)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
     if (forest.argumentsPositional(arguments).length >
         function.positionalParameters.length) {
-      return fasta.templateTooManyArguments
+      return cfe.templateTooManyArguments
           .withArguments(
               positionalParameterCountToReport, positionalArgumentCountToReport)
           .withLocation(uri, arguments.fileOffset, noLength);
@@ -6167,7 +6237,7 @@ class BodyBuilder extends StackListenerImpl
           new Set.of(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
         if (!parameterNames.contains(argument.name)) {
-          return fasta.templateNoSuchNamedParameter
+          return cfe.templateNoSuchNamedParameter
               .withArguments(argument.name)
               .withLocation(uri, argument.fileOffset, argument.name.length);
         }
@@ -6177,9 +6247,9 @@ class BodyBuilder extends StackListenerImpl
       Set<String> argumentNames = new Set.of(named.map((a) => a.name));
       for (VariableDeclaration parameter in function.namedParameters) {
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-          return fasta.templateValueForRequiredParameterNotProvidedError
+          return cfe.templateValueForRequiredParameterNotProvidedError
               .withArguments(parameter.name!)
-              .withLocation(uri, arguments.fileOffset, fasta.noLength);
+              .withLocation(uri, arguments.fileOffset, cfe.noLength);
         }
       }
     }
@@ -6192,7 +6262,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         // A wrong (non-zero) amount of type arguments given. That's an error.
         // TODO(jensj): Position should be on type arguments instead.
-        return fasta.templateTypeArgumentMismatch
+        return cfe.templateTypeArgumentMismatch
             .withArguments(typeParameters.length)
             .withLocation(uri, offset, noLength);
       }
@@ -6219,14 +6289,14 @@ class BodyBuilder extends StackListenerImpl
     }
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
-      return fasta.templateTooFewArguments
+      return cfe.templateTooFewArguments
           .withArguments(requiredPositionalParameterCountToReport,
               positionalArgumentCountToReport)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
     if (forest.argumentsPositional(arguments).length >
         function.positionalParameters.length) {
-      return fasta.templateTooManyArguments
+      return cfe.templateTooManyArguments
           .withArguments(
               positionalParameterCountToReport, positionalArgumentCountToReport)
           .withLocation(uri, arguments.fileOffset, noLength);
@@ -6237,7 +6307,7 @@ class BodyBuilder extends StackListenerImpl
           new Set.of(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
         if (!names.contains(argument.name)) {
-          return fasta.templateNoSuchNamedParameter
+          return cfe.templateNoSuchNamedParameter
               .withArguments(argument.name)
               .withLocation(uri, argument.fileOffset, argument.name.length);
         }
@@ -6247,9 +6317,9 @@ class BodyBuilder extends StackListenerImpl
       Set<String> argumentNames = new Set.of(named.map((a) => a.name));
       for (NamedType parameter in function.namedParameters) {
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-          return fasta.templateValueForRequiredParameterNotProvidedError
+          return cfe.templateValueForRequiredParameterNotProvidedError
               .withArguments(parameter.name)
-              .withLocation(uri, arguments.fileOffset, fasta.noLength);
+              .withLocation(uri, arguments.fileOffset, cfe.noLength);
         }
       }
     }
@@ -6258,7 +6328,7 @@ class BodyBuilder extends StackListenerImpl
     if (typeParameters.length != types.length && types.length != 0) {
       // A wrong (non-zero) amount of type arguments given. That's an error.
       // TODO(jensj): Position should be on type arguments instead.
-      return fasta.templateTypeArgumentMismatch
+      return cfe.templateTypeArgumentMismatch
           .withArguments(typeParameters.length)
           .withLocation(uri, offset, noLength);
     }
@@ -6272,7 +6342,7 @@ class BodyBuilder extends StackListenerImpl
     super.push(constantContext);
     if (constantContext != ConstantContext.none) {
       addProblem(
-          fasta.templateNotConstantExpression.withArguments('New expression'),
+          cfe.templateNotConstantExpression.withArguments('New expression'),
           token.charOffset,
           token.length);
     }
@@ -6339,7 +6409,7 @@ class BodyBuilder extends StackListenerImpl
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
     if (inMetadata && typeArguments != null) {
       if (!libraryFeatures.genericMetadata.isEnabled) {
-        handleRecoverableError(fasta.messageMetadataTypeArguments,
+        handleRecoverableError(cfe.messageMetadataTypeArguments,
             nameLastToken.next!, nameLastToken.next!);
       }
     }
@@ -6349,16 +6419,16 @@ class BodyBuilder extends StackListenerImpl
     ConstantContext savedConstantContext = pop() as ConstantContext;
 
     if (arguments is! Arguments) {
-      push(new ParserErrorGenerator(
-          this, nameToken, fasta.messageSyntheticToken));
+      push(
+          new ParserErrorGenerator(this, nameToken, cfe.messageSyntheticToken));
       arguments = forest.createArguments(offset, []);
     } else if (type is Generator) {
       push(type.invokeConstructor(
           typeArguments, name, arguments, nameToken, nameLastToken, constness,
           inImplicitCreationContext: inImplicitCreationContext));
     } else if (type is ParserRecovery) {
-      push(new ParserErrorGenerator(
-          this, nameToken, fasta.messageSyntheticToken));
+      push(
+          new ParserErrorGenerator(this, nameToken, cfe.messageSyntheticToken));
     } else if (type is InvalidExpression) {
       push(type);
     } else if (type is Expression) {
@@ -6404,7 +6474,7 @@ class BodyBuilder extends StackListenerImpl
                     isTearOffLowering(receiver.target)) ||
             receiver is ConstructorTearOff ||
             receiver is RedirectingFactoryTearOff) {
-          return buildProblem(fasta.messageConstructorTearOffWithTypeArguments,
+          return buildProblem(cfe.messageConstructorTearOffWithTypeArguments,
               instantiationOffset, noLength);
         }
         receiver = forest.createInstantiation(
@@ -6455,13 +6525,13 @@ class BodyBuilder extends StackListenerImpl
       required UnresolvedKind unresolvedKind}) {
     if (arguments == null) {
       // Coverage-ignore-block(suite): Not run.
-      return buildProblem(fasta.messageMissingArgumentList,
-          nameToken.charOffset, nameToken.length);
+      return buildProblem(cfe.messageMissingArgumentList, nameToken.charOffset,
+          nameToken.length);
     }
     if (name.isNotEmpty && arguments.types.isNotEmpty) {
       // TODO(ahe): Point to the type arguments instead.
-      addProblem(fasta.messageConstructorWithTypeArguments,
-          nameToken.charOffset, nameToken.length);
+      addProblem(cfe.messageConstructorWithTypeArguments, nameToken.charOffset,
+          nameToken.length);
     }
 
     String? errorName;
@@ -6470,7 +6540,7 @@ class BodyBuilder extends StackListenerImpl
     if (typeDeclarationBuilder is TypeAliasBuilder) {
       errorName = debugName(typeDeclarationBuilder.name, name);
       TypeAliasBuilder aliasBuilder = typeDeclarationBuilder;
-      int numberOfTypeParameters = aliasBuilder.typeVariablesCount;
+      int numberOfTypeParameters = aliasBuilder.typeParametersCount;
       int numberOfTypeArguments = typeArguments?.length ?? 0;
       if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
@@ -6478,7 +6548,7 @@ class BodyBuilder extends StackListenerImpl
         return evaluateArgumentsBefore(
             arguments,
             buildProblem(
-                fasta.templateTypeArgumentMismatch
+                cfe.templateTypeArgumentMismatch
                     .withArguments(numberOfTypeParameters),
                 charOffset,
                 noLength));
@@ -6493,7 +6563,7 @@ class BodyBuilder extends StackListenerImpl
           typeArgumentBuilders.add(typeBuilder);
         }
       } else {
-        if (aliasBuilder.typeVariablesCount > 0) {
+        if (aliasBuilder.typeParametersCount > 0) {
           // Raw generic type alias used for instance creation, needs inference.
           switch (typeDeclarationBuilder) {
             case ClassBuilder():
@@ -6513,14 +6583,14 @@ class BodyBuilder extends StackListenerImpl
                   return evaluateArgumentsBefore(
                       arguments,
                       buildAbstractClassInstantiationError(
-                          fasta.templateAbstractClassInstantiation
+                          cfe.templateAbstractClassInstantiation
                               .withArguments(typeDeclarationBuilder.name),
                           typeDeclarationBuilder.name,
                           nameToken.charOffset));
                 }
-                target = constructorBuilder.member;
+                target = constructorBuilder.invokeTarget;
               } else {
-                target = constructorBuilder.member;
+                target = constructorBuilder.invokeTarget;
               }
               if (target is Constructor ||
                   (target is Procedure &&
@@ -6574,9 +6644,9 @@ class BodyBuilder extends StackListenerImpl
                       nameToken.lexeme.length));
             case TypeAliasBuilder():
             // Coverage-ignore(suite): Not run.
-            case NominalVariableBuilder():
+            case NominalParameterBuilder():
             // Coverage-ignore(suite): Not run.
-            case StructuralVariableBuilder():
+            case StructuralParameterBuilder():
             // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
@@ -6605,7 +6675,7 @@ class BodyBuilder extends StackListenerImpl
                 return evaluateArgumentsBefore(
                     arguments,
                     buildProblem(
-                        fasta.templateTypeArgumentMismatch
+                        cfe.templateTypeArgumentMismatch
                             .withArguments(numberOfTypeParameters),
                         nameToken.charOffset,
                         nameToken.length,
@@ -6620,9 +6690,9 @@ class BodyBuilder extends StackListenerImpl
               forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
             case TypeAliasBuilder():
             // Coverage-ignore(suite): Not run.
-            case NominalVariableBuilder():
+            case NominalParameterBuilder():
             // Coverage-ignore(suite): Not run.
-            case StructuralVariableBuilder():
+            case StructuralParameterBuilder():
             // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
@@ -6658,14 +6728,14 @@ class BodyBuilder extends StackListenerImpl
         case ExtensionTypeDeclarationBuilder():
           if (typeArguments != null) {
             int numberOfTypeParameters =
-                aliasBuilder.typeVariables?.length ?? 0;
+                aliasBuilder.typeParameters?.length ?? 0;
             if (numberOfTypeParameters != typeArgumentBuilders.length) {
               // Coverage-ignore-block(suite): Not run.
               // TODO(eernst): Use position of type arguments, not nameToken.
               return evaluateArgumentsBefore(
                   arguments,
                   buildProblem(
-                      fasta.templateTypeArgumentMismatch
+                      cfe.templateTypeArgumentMismatch
                           .withArguments(numberOfTypeParameters),
                       nameToken.charOffset,
                       nameToken.length));
@@ -6679,7 +6749,7 @@ class BodyBuilder extends StackListenerImpl
               return evaluateArgumentsBefore(
                   arguments,
                   buildProblem(
-                      fasta.templateTypeArgumentMismatch
+                      cfe.templateTypeArgumentMismatch
                           .withArguments(numberOfTypeParameters),
                       nameToken.charOffset,
                       nameToken.length,
@@ -6694,26 +6764,26 @@ class BodyBuilder extends StackListenerImpl
             forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
           } else {
             LibraryBuilder libraryBuilder;
-            List<NominalVariableBuilder>? typeVariables;
+            List<NominalParameterBuilder>? typeParameters;
             // TODO(johnniwinther): Add a shared interface for [ClassBuilder]
             // and [ExtensionTypeDeclarationBuilder].
             if (typeDeclarationBuilder is ClassBuilder) {
               libraryBuilder = typeDeclarationBuilder.libraryBuilder;
-              typeVariables = typeDeclarationBuilder.typeVariables;
+              typeParameters = typeDeclarationBuilder.typeParameters;
             } else {
               typeDeclarationBuilder as ExtensionTypeDeclarationBuilder;
               libraryBuilder = typeDeclarationBuilder.libraryBuilder;
-              typeVariables = typeDeclarationBuilder.typeParameters;
+              typeParameters = typeDeclarationBuilder.typeParameters;
             }
-            if (typeVariables == null || typeVariables.isEmpty) {
+            if (typeParameters == null || typeParameters.isEmpty) {
               assert(forest.argumentsTypeArguments(arguments).isEmpty);
               forest.argumentsSetTypeArguments(arguments, []);
             } else {
               if (forest.argumentsTypeArguments(arguments).isEmpty) {
                 // No type arguments provided to unaliased class, use defaults.
                 List<DartType> result = new List<DartType>.generate(
-                    typeVariables.length,
-                    (int i) => typeVariables![i]
+                    typeParameters.length,
+                    (int i) => typeParameters![i]
                         .defaultType!
                         .build(libraryBuilder, TypeUse.constructorTypeArgument),
                     growable: true);
@@ -6722,8 +6792,8 @@ class BodyBuilder extends StackListenerImpl
             }
           }
         case TypeAliasBuilder():
-        case NominalVariableBuilder():
-        case StructuralVariableBuilder():
+        case NominalParameterBuilder():
+        case StructuralParameterBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
         // Coverage-ignore(suite): Not run.
@@ -6758,20 +6828,20 @@ class BodyBuilder extends StackListenerImpl
             return evaluateArgumentsBefore(
                 arguments,
                 buildAbstractClassInstantiationError(
-                    fasta.templateAbstractClassInstantiation
+                    cfe.templateAbstractClassInstantiation
                         .withArguments(typeDeclarationBuilder.name),
                     typeDeclarationBuilder.name,
                     nameToken.charOffset));
           }
-          target = constructorBuilder.member;
+          target = constructorBuilder.invokeTarget;
         } else {
-          target = constructorBuilder.member;
+          target = constructorBuilder.invokeTarget;
         }
         if (typeDeclarationBuilder.isEnum &&
             !(libraryFeatures.enhancedEnums.isEnabled &&
                 target is Procedure &&
                 target.kind == ProcedureKind.Factory)) {
-          return buildProblem(fasta.messageEnumInstantiation,
+          return buildProblem(cfe.messageEnumInstantiation,
               nameToken.charOffset, nameToken.length);
         }
         if (target is Constructor ||
@@ -6799,7 +6869,7 @@ class BodyBuilder extends StackListenerImpl
           message = constructorBuilder.message
               .withLocation(uri, charOffset, noLength);
         } else {
-          target = constructorBuilder.member;
+          target = constructorBuilder.invokeTarget;
         }
         if (target != null) {
           return buildStaticInvocation(target, arguments,
@@ -6818,8 +6888,8 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(message.messageObject, nameToken.charOffset,
                 nameToken.lexeme.length));
       case TypeAliasBuilder():
-      case NominalVariableBuilder():
-      case StructuralVariableBuilder():
+      case NominalParameterBuilder():
+      case StructuralParameterBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
       // Coverage-ignore(suite): Not run.
@@ -6847,7 +6917,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("ConstFactory");
     if (!libraryFeatures.constFunctions.isEnabled) {
       handleRecoverableError(
-          fasta.messageConstFactory, constKeyword, constKeyword);
+          cfe.messageConstFactory, constKeyword, constKeyword);
     }
   }
 
@@ -7034,7 +7104,7 @@ class BodyBuilder extends StackListenerImpl
           int offset = elseEntry.fileOffset;
           node = new MapLiteralEntry(
               buildProblem(
-                  fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
+                  cfe.messageCantDisambiguateAmbiguousInformation, offset, 1),
               new NullLiteral())
             ..fileOffset = offsetForToken(ifToken);
         }
@@ -7045,8 +7115,8 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             offsetForToken(ifToken);
         node = new MapLiteralEntry(
-            buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
-                offset, 1),
+            buildProblem(
+                cfe.templateExpectedAfterButGot.withArguments(':'), offset, 1),
             new NullLiteral())
           ..fileOffset = offsetForToken(ifToken);
       }
@@ -7071,7 +7141,7 @@ class BodyBuilder extends StackListenerImpl
           int offset = thenEntry.fileOffset;
           node = new MapLiteralEntry(
               buildProblem(
-                  fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
+                  cfe.messageCantDisambiguateAmbiguousInformation, offset, 1),
               new NullLiteral())
             ..fileOffset = offsetForToken(ifToken);
         }
@@ -7082,8 +7152,8 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             offsetForToken(ifToken);
         node = new MapLiteralEntry(
-            buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
-                offset, 1),
+            buildProblem(
+                cfe.templateExpectedAfterButGot.withArguments(':'), offset, 1),
             new NullLiteral())
           ..fileOffset = offsetForToken(ifToken);
       }
@@ -7151,15 +7221,26 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("ThisExpression");
     if (context.isScopeReference && isDeclarationInstanceContext) {
       if (thisVariable != null && !inConstructorInitializer) {
-        push(_createReadOnlyVariableAccess(thisVariable!, token,
-            offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
+        if (constantContext != ConstantContext.none) {
+          push(new IncompleteErrorGenerator(
+              this, token, cfe.messageThisAsIdentifier));
+        } else {
+          push(_createReadOnlyVariableAccess(thisVariable!, token,
+              offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
+        }
+      } else if ((!inConstructorInitializer || !inInitializerLeftHandSide) &&
+          (_context.isExtensionDeclaration ||
+              _context.isExtensionTypeDeclaration)) {
+        // In an extension (type) where we don't (here) have a "this" variable.
+        push(new IncompleteErrorGenerator(
+            this, token, cfe.messageThisAsIdentifier));
       } else {
         push(new ThisAccessGenerator(this, token, inInitializerLeftHandSide,
             inFieldInitializer, inLateFieldInitializer));
       }
     } else {
       push(new IncompleteErrorGenerator(
-          this, token, fasta.messageThisAsIdentifier));
+          this, token, cfe.messageThisAsIdentifier));
     }
   }
 
@@ -7175,7 +7256,7 @@ class BodyBuilder extends StackListenerImpl
           isSuper: true));
     } else {
       push(new IncompleteErrorGenerator(
-          this, token, fasta.messageSuperAsIdentifier));
+          this, token, cfe.messageSuperAsIdentifier));
     }
   }
 
@@ -7190,7 +7271,7 @@ class BodyBuilder extends StackListenerImpl
       return;
     }
     push(new IncompleteErrorGenerator(
-        this, augmentToken, fasta.messageInvalidAugmentSuper));
+        this, augmentToken, cfe.messageInvalidAugmentSuper));
   }
 
   @override
@@ -7277,16 +7358,16 @@ class BodyBuilder extends StackListenerImpl
   void exitFunction() {
     assert(checkState(null, [
       /* inCatchBlock */ ValueKinds.Bool,
-      /* function type variables */ ValueKinds.NominalVariableListOrNull,
+      /* nominal parameters */ ValueKinds.NominalVariableListOrNull,
     ]));
     debugEvent("exitFunction");
     functionNestingLevel--;
     inCatchBlock = pop() as bool;
     _switchScopes.pop();
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     exitLocalScope();
-    push(typeVariables ?? NullValues.NominalVariables);
+    push(typeParameters ?? NullValues.NominalParameters);
     _exitLocalState();
     assert(checkState(null, [
       ValueKinds.NominalVariableListOrNull,
@@ -7302,13 +7383,13 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginNamedFunctionExpression(Token token) {
     debugEvent("beginNamedFunctionExpression");
-    List<NominalVariableBuilder>? typeVariables =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     // Create an additional scope in which the named function expression is
     // declared.
     createAndEnterLocalScope(
         debugName: "named function", kind: ScopeKind.namedFunctionExpression);
-    push(typeVariables ?? NullValues.NominalVariables);
+    push(typeParameters ?? NullValues.NominalParameters);
     enterFunction();
   }
 
@@ -7319,7 +7400,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void pushNamedFunction(Token token, bool isFunctionExpression) {
-    Statement body = popStatement();
+    Statement body = popStatement(token);
     AsyncMarker asyncModifier = pop() as AsyncMarker;
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
@@ -7327,8 +7408,8 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder? returnType = pop() as TypeBuilder?;
     bool hasImplicitReturnType = returnType == null;
     exitFunction();
-    List<NominalVariableBuilder>? typeParameters =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     List<Expression>? annotations;
     if (!isFunctionExpression) {
       annotations = pop() as List<Expression>?; // Metadata.
@@ -7378,7 +7459,7 @@ class BodyBuilder extends StackListenerImpl
         exitLocalScope();
         push(new BlockExpression(
             forest.createBlock(declaration.fileOffset, noLocation, [statement]),
-            buildProblem(fasta.messageNamedFunctionExpression,
+            buildProblem(cfe.messageNamedFunctionExpression,
                 declaration.fileOffset, noLength,
                 // Error has already been reported by the parser.
                 suppressMessage: true))
@@ -7412,7 +7493,7 @@ class BodyBuilder extends StackListenerImpl
       /* async marker */ ValueKinds.AsyncMarker,
       /* formal parameters */ ValueKinds.FormalParameters,
       /* inCatchBlock */ ValueKinds.Bool,
-      /* function type variables */ ValueKinds.NominalVariableListOrNull,
+      /* nominal parameters */ ValueKinds.NominalVariableListOrNull,
     ]));
     Statement body = popNullableStatement() ??
         // In erroneous cases, there might not be function body. In such cases
@@ -7423,8 +7504,8 @@ class BodyBuilder extends StackListenerImpl
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
     exitFunction();
-    List<NominalVariableBuilder>? typeParameters =
-        pop() as List<NominalVariableBuilder>?;
+    List<NominalParameterBuilder>? typeParameters =
+        pop() as List<NominalParameterBuilder>?;
     FunctionNode function = formals.buildFunctionNode(
         libraryBuilder,
         null,
@@ -7437,7 +7518,7 @@ class BodyBuilder extends StackListenerImpl
 
     Expression result;
     if (constantContext != ConstantContext.none) {
-      result = buildProblem(fasta.messageNotAConstantExpression,
+      result = buildProblem(cfe.messageNotAConstantExpression,
           formals.charOffset, formals.length);
     } else {
       result = new FunctionExpression(function)
@@ -7474,7 +7555,7 @@ class BodyBuilder extends StackListenerImpl
     assert(condition.patternGuard == null,
         "Unexpected pattern in do statement: ${condition.patternGuard}.");
     Expression expression = condition.expression;
-    Statement body = popStatement();
+    Statement body = popStatement(doKeyword);
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
     List<BreakStatementImpl>? continueStatements;
@@ -7576,7 +7657,7 @@ class BodyBuilder extends StackListenerImpl
       typeInferrer.assignedVariables.discardNode();
 
       push(buildProblem(
-          fasta.templateCantUseControlFlowOrSpreadAsConstant
+          cfe.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
           forToken.charOffset,
           forToken.charCount));
@@ -7633,7 +7714,7 @@ class BodyBuilder extends StackListenerImpl
       elements.explicitVariableDeclaration = lvalue;
       if (lvalue.isConst) {
         elements.expressionProblem = buildProblem(
-            fasta.messageForInLoopWithConstVariable,
+            cfe.messageForInLoopWithConstVariable,
             lvalue.fileOffset,
             lvalue.name!.length);
         // As a recovery step, remove the const flag, to not confuse the
@@ -7676,10 +7757,12 @@ class BodyBuilder extends StackListenerImpl
             lvalue,
             new VariableGetImpl(variable, forNullGuardedAccess: false),
             isFinal: false);
+      } else if (lvalue is AmbiguousBuilder) {
+        elements.expressionProblem = toValue(lvalue);
       } else {
         Message message = forest.isVariablesDeclaration(lvalue)
-            ? fasta.messageForInLoopExactlyOneVariable
-            : fasta.messageForInLoopNotAssignable;
+            ? cfe.messageForInLoopExactlyOneVariable
+            : cfe.messageForInLoopNotAssignable;
         Token token = forToken.next!.next!;
         elements.expressionProblem =
             buildProblem(message, offsetForToken(token), lengthForToken(token));
@@ -7710,7 +7793,8 @@ class BodyBuilder extends StackListenerImpl
   void endForIn(Token endToken) {
     debugEvent("ForIn");
     assert(checkState(endToken, [
-      /* body= */ ValueKinds.Statement,
+      /* body= */ unionOfKinds(
+          [ValueKinds.Statement, ValueKinds.ParserRecovery]),
       /* inKeyword = */ ValueKinds.Token,
       /* forToken = */ ValueKinds.Token,
       /* awaitToken = */ ValueKinds.AwaitTokenOrNull,
@@ -7727,7 +7811,7 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Statement,
       ]),
     ]));
-    Statement body = popStatement();
+    Statement body = popStatement(endToken);
 
     Token inKeyword = pop() as Token;
     Token forToken = pop() as Token;
@@ -7817,14 +7901,14 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endLabeledStatement(int labelCount) {
     debugEvent("LabeledStatement");
-    Statement statement = pop() as Statement;
+    Statement statement = popStatementNoWrap();
     LabelTarget target = pop() as LabelTarget;
     _labelScopes.pop();
     // TODO(johnniwinther): Split the handling of breaks and continue.
     if (target.breakTarget.hasUsers || target.continueTarget.hasUsers) {
       if (forest.isVariablesDeclaration(statement)) {
         internalProblem(
-            fasta.messageInternalProblemLabelUsageInVariablesDeclaration,
+            cfe.messageInternalProblemLabelUsageInVariablesDeclaration,
             statement.fileOffset,
             uri);
       }
@@ -7849,7 +7933,7 @@ class BodyBuilder extends StackListenerImpl
             }
           } else {
             push(buildProblemStatement(
-                fasta.messageContinueLabelInvalid, continueStatement.fileOffset,
+                cfe.messageContinueLabelInvalid, continueStatement.fileOffset,
                 length: 8));
             return;
           }
@@ -7866,7 +7950,7 @@ class BodyBuilder extends StackListenerImpl
       push(forest.createRethrowStatement(
           offsetForToken(rethrowToken), offsetForToken(endToken)));
     } else {
-      push(new ExpressionStatement(buildProblem(fasta.messageRethrowNotCatch,
+      push(new ExpressionStatement(buildProblem(cfe.messageRethrowNotCatch,
           offsetForToken(rethrowToken), lengthForToken(rethrowToken)))
         ..fileOffset = offsetForToken(rethrowToken));
     }
@@ -7890,12 +7974,13 @@ class BodyBuilder extends StackListenerImpl
   void endWhileStatement(Token whileKeyword, Token endToken) {
     debugEvent("WhileStatement");
     assert(checkState(whileKeyword, [
-      /* body = */ ValueKinds.Statement,
+      /* body = */ unionOfKinds(
+          [ValueKinds.Statement, ValueKinds.ParserRecovery]),
       /* condition = */ ValueKinds.Condition,
       /* continue target = */ ValueKinds.ContinueTarget,
       /* break target = */ ValueKinds.BreakTarget,
     ]));
-    Statement body = popStatement();
+    Statement body = popStatement(whileKeyword);
     Condition condition = pop() as Condition;
     assert(condition.patternGuard == null,
         "Unexpected pattern in while statement: ${condition.patternGuard}.");
@@ -7971,7 +8056,7 @@ class BodyBuilder extends StackListenerImpl
         Token nextToken = conditionLastToken.next!;
         if (nextToken == conditionBoundary) {
           break;
-        } else if (optional(',', nextToken) &&
+        } else if (nextToken.isA(TokenType.COMMA) &&
             nextToken.next == conditionBoundary) {
           // The next token is trailing comma, which means current token is
           // the last token of the condition.
@@ -7999,7 +8084,7 @@ class BodyBuilder extends StackListenerImpl
         // The parser has already reported an error indicating that assert
         // cannot be used in an expression.
         push(buildProblem(
-            fasta.messageAssertAsExpression, fileOffset, assertKeyword.length));
+            cfe.messageAssertAsExpression, fileOffset, assertKeyword.length));
         break;
 
       case Assert.Initializer:
@@ -8090,7 +8175,7 @@ class BodyBuilder extends StackListenerImpl
           // TODO(ahe): Should validate this is a goto target.
           if (!_labelScope.claimLabel(labelName)) {
             addProblem(
-                fasta.templateDuplicateLabelInSwitchStatement
+                cfe.templateDuplicateLabelInSwitchStatement
                     .withArguments(labelName),
                 label.charOffset,
                 labelName.length);
@@ -8335,7 +8420,7 @@ class BodyBuilder extends StackListenerImpl
               false) {
             String jointVariableName = jointVariable.name!;
             addProblem(
-                fasta.templateJointPatternVariablesMismatch
+                cfe.templateJointPatternVariablesMismatch
                     .withArguments(jointVariableName),
                 firstUseOffsets[jointVariable]!,
                 jointVariableName.length);
@@ -8343,7 +8428,7 @@ class BodyBuilder extends StackListenerImpl
           if (jointPatternVariablesNotInAll?.contains(jointVariable) ?? false) {
             String jointVariableName = jointVariable.name!;
             addProblem(
-                fasta.templateJointPatternVariableNotInAll
+                cfe.templateJointPatternVariableNotInAll
                     .withArguments(jointVariableName),
                 firstUseOffsets[jointVariable]!,
                 jointVariableName.length);
@@ -8351,7 +8436,7 @@ class BodyBuilder extends StackListenerImpl
           if (hasDefaultOrLabels) {
             String jointVariableName = jointVariable.name!;
             addProblem(
-                fasta.templateJointPatternVariableWithLabelDefault
+                cfe.templateJointPatternVariableWithLabelDefault
                     .withArguments(jointVariableName),
                 firstUseOffsets[jointVariable]!,
                 jointVariableName.length);
@@ -8388,7 +8473,7 @@ class BodyBuilder extends StackListenerImpl
           String variableName = variable.name!;
           if (usedNamesOffsets[variableName] case [int offset, ...]) {
             addProblem(
-                fasta.templateJointPatternVariableWithLabelDefault
+                cfe.templateJointPatternVariableWithLabelDefault
                     .withArguments(variableName),
                 offset,
                 variableName.length);
@@ -8689,11 +8774,11 @@ class BodyBuilder extends StackListenerImpl
     }
     if (target == null && name == null) {
       push(problemInLoopOrSwitch = buildProblemStatement(
-          fasta.messageBreakOutsideOfLoop, breakKeyword.charOffset));
+          cfe.messageBreakOutsideOfLoop, breakKeyword.charOffset));
     } else if (target == null || !target.isBreakTarget) {
       Token labelToken = breakKeyword.next!;
       push(problemInLoopOrSwitch = buildProblemStatement(
-          fasta.templateInvalidBreakTarget.withArguments(name!),
+          cfe.templateInvalidBreakTarget.withArguments(name!),
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
@@ -8709,18 +8794,18 @@ class BodyBuilder extends StackListenerImpl
   Statement buildProblemTargetOutsideLocalFunction(
       String? name, Token keyword) {
     Statement problem;
-    bool isBreak = optional("break", keyword);
+    bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
       Template<Message Function(String)> template = isBreak
-          ? fasta.templateBreakTargetOutsideFunction
-          : fasta.templateContinueTargetOutsideFunction;
+          ? cfe.templateBreakTargetOutsideFunction
+          : cfe.templateContinueTargetOutsideFunction;
       problem = buildProblemStatement(
           template.withArguments(name), offsetForToken(keyword),
           length: lengthOfSpan(keyword, keyword.next));
     } else {
       Message message = isBreak
-          ? fasta.messageAnonymousBreakTargetOutsideFunction
-          : fasta.messageAnonymousContinueTargetOutsideFunction;
+          ? cfe.messageAnonymousBreakTargetOutsideFunction
+          : cfe.messageAnonymousContinueTargetOutsideFunction;
       problem = buildProblemStatement(message, offsetForToken(keyword),
           length: lengthForToken(keyword));
     }
@@ -8742,7 +8827,7 @@ class BodyBuilder extends StackListenerImpl
       if (target == null) {
         if (_switchScope == null) {
           push(buildProblemStatement(
-              fasta.templateLabelNotFound.withArguments(name),
+              cfe.templateLabelNotFound.withArguments(name),
               continueKeyword.next!.charOffset));
           return;
         }
@@ -8761,12 +8846,12 @@ class BodyBuilder extends StackListenerImpl
     }
     if (target == null) {
       push(problemInLoopOrSwitch = buildProblemStatement(
-          fasta.messageContinueWithoutLabelInCase, continueKeyword.charOffset,
+          cfe.messageContinueWithoutLabelInCase, continueKeyword.charOffset,
           length: continueKeyword.length));
     } else if (!target.isContinueTarget) {
       Token labelToken = continueKeyword.next!;
       push(problemInLoopOrSwitch = buildProblemStatement(
-          fasta.templateInvalidContinueTarget.withArguments(name!),
+          cfe.templateInvalidContinueTarget.withArguments(name!),
           labelToken.charOffset,
           length: labelToken.length));
     } else if (target.functionNestingLevel != functionNestingLevel) {
@@ -8788,42 +8873,43 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? name = pop();
     List<Expression>? annotations = pop() as List<Expression>?;
-    String? typeVariableName;
-    int typeVariableCharOffset;
+    String? typeParameterName;
+    int typeParameterNameOffset;
     if (name is Identifier) {
-      typeVariableName = name.name;
-      typeVariableCharOffset = name.nameOffset;
+      typeParameterName = name.name;
+      typeParameterNameOffset = name.nameOffset;
     } else if (name is ParserRecovery) {
-      typeVariableName = inFunctionType
-          ? StructuralVariableBuilder.noNameSentinel
-          : NominalVariableBuilder.noNameSentinel;
-      typeVariableCharOffset = name.charOffset;
+      typeParameterName = inFunctionType
+          ? StructuralParameterBuilder.noNameSentinel
+          : NominalParameterBuilder.noNameSentinel;
+      typeParameterNameOffset = name.charOffset;
     } else {
       unhandled("${name.runtimeType}", "beginTypeVariable.name",
           token.charOffset, uri);
     }
     bool isWildcard =
-        libraryFeatures.wildcardVariables.isEnabled && typeVariableName == '_';
+        libraryFeatures.wildcardVariables.isEnabled && typeParameterName == '_';
     if (isWildcard) {
-      typeVariableName = createWildcardTypeVariableName(wildcardVariableIndex);
+      typeParameterName =
+          createWildcardTypeParameterName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    TypeVariableBuilder variable = inFunctionType
-        ? new StructuralVariableBuilder(
-            typeVariableName, typeVariableCharOffset, uri,
+    TypeParameterBuilder variable = inFunctionType
+        ? new StructuralParameterBuilder(
+            typeParameterName, typeParameterNameOffset, uri,
             isWildcard: isWildcard)
-        : new NominalVariableBuilder(
-            typeVariableName, typeVariableCharOffset, uri,
-            kind: TypeVariableKind.function, isWildcard: isWildcard);
+        : new NominalParameterBuilder(
+            typeParameterName, typeParameterNameOffset, uri,
+            kind: TypeParameterKind.function, isWildcard: isWildcard);
     if (annotations != null) {
       switch (variable) {
-        case StructuralVariableBuilder():
+        case StructuralParameterBuilder():
           if (!libraryFeatures.genericMetadata.isEnabled) {
-            addProblem(fasta.messageAnnotationOnFunctionTypeTypeVariable,
-                variable.charOffset, variable.name.length);
+            addProblem(cfe.messageAnnotationOnFunctionTypeTypeParameter,
+                variable.fileOffset, variable.name.length);
           }
           break;
-        case NominalVariableBuilder():
+        case NominalParameterBuilder():
           inferAnnotations(variable.parameter, annotations);
           for (Expression annotation in annotations) {
             variable.parameter.addAnnotation(annotation);
@@ -8839,14 +8925,14 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
     if (inFunctionType) {
-      List<StructuralVariableBuilder>? structuralVariableBuilders =
-          const FixedNullableList<StructuralVariableBuilder>()
+      List<StructuralParameterBuilder>? structuralVariableBuilders =
+          const FixedNullableList<StructuralParameterBuilder>()
               .popNonNullable(stack, count, dummyStructuralVariableBuilder);
       enterStructuralVariablesScope(structuralVariableBuilders);
       push(structuralVariableBuilders);
     } else {
-      List<NominalVariableBuilder>? nominalVariableBuilders =
-          const FixedNullableList<NominalVariableBuilder>()
+      List<NominalParameterBuilder>? nominalVariableBuilders =
+          const FixedNullableList<NominalParameterBuilder>()
               .popNonNullable(stack, count, dummyNominalVariableBuilder);
       enterNominalVariablesScope(nominalVariableBuilders);
       push(nominalVariableBuilders);
@@ -8859,17 +8945,17 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("TypeVariable");
     TypeBuilder? bound = pop() as TypeBuilder?;
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilder> typeVariables =
-        peek() as List<TypeVariableBuilder>;
+    List<TypeParameterBuilder> typeParameters =
+        peek() as List<TypeParameterBuilder>;
 
-    TypeVariableBuilder variable = typeVariables[index];
-    variable.bound = bound;
+    TypeParameterBuilder typeParameter = typeParameters[index];
+    typeParameter.bound = bound;
     if (variance != null) {
       // Coverage-ignore-block(suite): Not run.
       if (!libraryFeatures.variance.isEnabled) {
         reportVarianceModifierNotEnabled(variance);
       }
-      variable.variance = new Variance.fromKeywordString(variance.lexeme);
+      typeParameter.variance = new Variance.fromKeywordString(variance.lexeme);
     }
   }
 
@@ -8877,29 +8963,29 @@ class BodyBuilder extends StackListenerImpl
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilder> typeVariables =
-        peek() as List<TypeVariableBuilder>;
-    libraryBuilder.checkTypeVariableDependencies(typeVariables);
+    List<TypeParameterBuilder> typeParameters =
+        peek() as List<TypeParameterBuilder>;
+    libraryBuilder.checkTypeParameterDependencies(typeParameters);
 
-    List<StructuralVariableBuilder> unboundTypeVariables = [];
+    List<StructuralParameterBuilder> unboundTypeParameters = [];
     List<TypeBuilder> calculatedBounds = calculateBounds(
-        typeVariables,
+        typeParameters,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        unboundTypeVariables: unboundTypeVariables);
-    for (int i = 0; i < typeVariables.length; ++i) {
-      typeVariables[i].defaultType = calculatedBounds[i];
-      typeVariables[i].finish(
+        unboundTypeParameters: unboundTypeParameters);
+    for (int i = 0; i < typeParameters.length; ++i) {
+      typeParameters[i].defaultType = calculatedBounds[i];
+      typeParameters[i].finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
     for (int i = 0;
-        i < unboundTypeVariables.length;
+        i < unboundTypeParameters.length;
         // Coverage-ignore(suite): Not run.
         ++i) {
       // Coverage-ignore-block(suite): Not run.
-      unboundTypeVariables[i].finish(
+      unboundTypeParameters[i].finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
@@ -8911,10 +8997,10 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("NoTypeVariables");
     if (inFunctionType) {
       enterStructuralVariablesScope(null);
-      push(NullValues.StructuralVariables);
+      push(NullValues.StructuralParameters);
     } else {
       enterNominalVariablesScope(null);
-      push(NullValues.NominalVariables);
+      push(NullValues.NominalParameters);
     }
   }
 
@@ -9009,7 +9095,7 @@ class BodyBuilder extends StackListenerImpl
       int previousInitializerOffset) {
     return fieldBuilder.buildErroneousInitializer(
         buildProblem(
-            fasta.templateConstructorInitializeSameInstanceVariableSeveralTimes
+            cfe.templateConstructorInitializeSameInstanceVariableSeveralTimes
                 .withArguments(name),
             offset,
             noLength),
@@ -9046,7 +9132,7 @@ class BodyBuilder extends StackListenerImpl
       return <Initializer>[
         buildInvalidInitializer(
             buildProblem(
-              fasta.templateDuplicatedDeclarationUse.withArguments(name),
+              cfe.templateDuplicatedDeclarationUse.withArguments(name),
               fieldNameOffset,
               name.length,
               // Avoid reporting two errors.
@@ -9056,6 +9142,14 @@ class BodyBuilder extends StackListenerImpl
       ];
     } else if (builder is SourceFieldBuilder &&
         builder.isDeclarationInstanceMember) {
+      if (builder.isExtensionTypeDeclaredInstanceField) {
+        // Operating on an invalid field. Don't report anything though
+        // as we've already reported that the field isn't valid.
+        return <Initializer>[
+          buildInvalidInitializer(new InvalidExpression(null), fieldNameOffset)
+        ];
+      }
+
       initializedFields ??= <String, int>{};
       if (initializedFields!.containsKey(name)) {
         return <Initializer>[
@@ -9067,32 +9161,32 @@ class BodyBuilder extends StackListenerImpl
       if (builder.isAbstract) {
         return <Initializer>[
           buildInvalidInitializer(
-              buildProblem(fasta.messageAbstractFieldConstructorInitializer,
+              buildProblem(cfe.messageAbstractFieldConstructorInitializer,
                   fieldNameOffset, name.length),
               fieldNameOffset)
         ];
       } else if (builder.isExternal) {
         return <Initializer>[
           buildInvalidInitializer(
-              buildProblem(fasta.messageExternalFieldConstructorInitializer,
+              buildProblem(cfe.messageExternalFieldConstructorInitializer,
                   fieldNameOffset, name.length),
               fieldNameOffset)
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
         addProblem(
-            fasta.templateFieldAlreadyInitializedAtDeclaration
+            cfe.templateFieldAlreadyInitializedAtDeclaration
                 .withArguments(name),
             assignmentOffset,
             noLength,
             context: [
-              fasta.templateFieldAlreadyInitializedAtDeclarationCause
+              cfe.templateFieldAlreadyInitializedAtDeclarationCause
                   .withArguments(name)
-                  .withLocation(uri, builder.charOffset, name.length)
+                  .withLocation(uri, builder.fileOffset, name.length)
             ]);
         MemberBuilder constructor =
             libraryBuilder.loader.getDuplicatedFieldInitializerError();
         Expression invocation = buildStaticInvocation(
-            constructor.member,
+            constructor.invokeTarget!,
             forest.createArguments(assignmentOffset, <Expression>[
               forest.createStringLiteral(assignmentOffset, name)
             ]),
@@ -9111,14 +9205,14 @@ class BodyBuilder extends StackListenerImpl
           if (!typeEnvironment.isSubtypeOf(
               formalType, fieldType, SubtypeCheckMode.withNullabilities)) {
             libraryBuilder.addProblem(
-                fasta.templateInitializingFormalTypeMismatch
+                cfe.templateInitializingFormalTypeMismatch
                     .withArguments(name, formalType, builder.fieldType),
                 assignmentOffset,
                 noLength,
                 uri,
                 context: [
-                  fasta.messageInitializingFormalTypeMismatchField.withLocation(
-                      builder.fileUri, builder.charOffset, noLength)
+                  cfe.messageInitializingFormalTypeMismatchField.withLocation(
+                      builder.fileUri, builder.fileOffset, noLength)
                 ]);
           }
         }
@@ -9130,7 +9224,7 @@ class BodyBuilder extends StackListenerImpl
       return <Initializer>[
         buildInvalidInitializer(
             buildProblem(
-                fasta.templateInitializerForStaticField.withArguments(name),
+                cfe.templateInitializerForStaticField.withArguments(name),
                 fieldNameOffset,
                 name.length),
             fieldNameOffset)
@@ -9143,7 +9237,7 @@ class BodyBuilder extends StackListenerImpl
       bool isSynthetic, Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     if (_context.isConstConstructor && !constructor.isConst) {
-      addProblem(fasta.messageConstConstructorWithNonConstSuper, charOffset,
+      addProblem(cfe.messageConstConstructorWithNonConstSuper, charOffset,
           constructor.name.text.length);
     }
     needsImplicitSuperInitializer = false;
@@ -9163,7 +9257,7 @@ class BodyBuilder extends StackListenerImpl
         length = "this".length;
       }
       String fullName = constructorNameForDiagnostics(name.text);
-      LocatedMessage message = fasta.templateConstructorNotFound
+      LocatedMessage message = cfe.templateConstructorNotFound
           .withArguments(fullName)
           .withLocation(uri, fileOffset, length);
       return buildInvalidInitializer(
@@ -9177,15 +9271,15 @@ class BodyBuilder extends StackListenerImpl
       if (_context.isConstructorCyclic(name.text)) {
         int length = name.text.length;
         if (length == 0) length = "this".length;
-        addProblem(fasta.messageConstructorCyclic, fileOffset, length);
+        addProblem(cfe.messageConstructorCyclic, fileOffset, length);
         // TODO(askesc): Produce invalid initializer.
       }
       if (_context.formals != null) {
         for (FormalParameterBuilder formal in _context.formals!) {
           if (formal.isSuperInitializingFormal) {
             addProblem(
-                fasta.messageUnexpectedSuperParametersInGenerativeConstructors,
-                formal.charOffset,
+                cfe.messageUnexpectedSuperParametersInGenerativeConstructors,
+                formal.fileOffset,
                 noLength);
           }
         }
@@ -9216,7 +9310,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       push(forest.createBlock(offsetForToken(token), noLocation, <Statement>[
         buildProblemStatement(
-            fasta.templateExpectedFunctionBody.withArguments(token),
+            cfe.templateExpectedFunctionBody.withArguments(token),
             token.charOffset,
             length: token.length)
       ]));
@@ -9240,7 +9334,7 @@ class BodyBuilder extends StackListenerImpl
               (operand.target.isFactory || isTearOffLowering(operand.target)) ||
           operand is ConstructorTearOff ||
           operand is RedirectingFactoryTearOff) {
-        push(buildProblem(fasta.messageConstructorTearOffWithTypeArguments,
+        push(buildProblem(cfe.messageConstructorTearOffWithTypeArguments,
             openAngleBracket.charOffset, noLength));
       } else {
         push(new Instantiation(
@@ -9259,34 +9353,32 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  TypeBuilder validateTypeVariableUse(TypeBuilder typeBuilder,
+  TypeBuilder validateTypeParameterUse(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType}) {
-    _validateTypeVariableUseInternal(typeBuilder,
+    _validateTypeParameterUseInternal(typeBuilder,
         allowPotentiallyConstantType: allowPotentiallyConstantType);
     return typeBuilder;
   }
 
-  void _validateTypeVariableUseInternal(TypeBuilder? builder,
+  void _validateTypeParameterUseInternal(TypeBuilder? builder,
       {required bool allowPotentiallyConstantType}) {
     switch (builder) {
       case NamedTypeBuilder(
           :TypeDeclarationBuilder? declaration,
           typeArguments: List<TypeBuilder>? arguments
         ):
-        if (declaration!.isTypeVariable &&
-            builder.declaration is NominalVariableBuilder) {
-          NominalVariableBuilder typeParameterBuilder =
-              declaration as NominalVariableBuilder;
+        if (declaration!.isTypeParameter &&
+            builder.declaration is NominalParameterBuilder) {
+          NominalParameterBuilder typeParameterBuilder =
+              declaration as NominalParameterBuilder;
           TypeParameter typeParameter = typeParameterBuilder.parameter;
           if (typeParameter.declaration is Class ||
               typeParameter.declaration is Extension ||
               typeParameter.declaration is ExtensionTypeDeclaration) {
             if (constantContext != ConstantContext.none &&
                 (!inConstructorInitializer || !allowPotentiallyConstantType)) {
-              LocatedMessage message =
-                  fasta.messageTypeVariableInConstantContext.withLocation(
-                      builder.fileUri!,
-                      builder.charOffset!,
+              LocatedMessage message = cfe.messageTypeVariableInConstantContext
+                  .withLocation(builder.fileUri!, builder.charOffset!,
                       typeParameter.name!.length);
               builder.bind(
                   libraryBuilder,
@@ -9299,28 +9391,28 @@ class BodyBuilder extends StackListenerImpl
         }
         if (arguments != null) {
           for (TypeBuilder typeBuilder in arguments) {
-            _validateTypeVariableUseInternal(typeBuilder,
+            _validateTypeParameterUseInternal(typeBuilder,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
       case FunctionTypeBuilder(
-          :List<StructuralVariableBuilder>? typeVariables,
+          typeParameters: List<StructuralParameterBuilder>? typeParameters,
           :List<ParameterBuilder>? formals,
           :TypeBuilder returnType
         ):
-        if (typeVariables != null) {
-          for (StructuralVariableBuilder typeVariable in typeVariables) {
-            _validateTypeVariableUseInternal(typeVariable.bound,
+        if (typeParameters != null) {
+          for (StructuralParameterBuilder typeParameter in typeParameters) {
+            _validateTypeParameterUseInternal(typeParameter.bound,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
-            _validateTypeVariableUseInternal(typeVariable.defaultType,
+            _validateTypeParameterUseInternal(typeParameter.defaultType,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
-        _validateTypeVariableUseInternal(returnType,
+        _validateTypeParameterUseInternal(returnType,
             allowPotentiallyConstantType: allowPotentiallyConstantType);
         if (formals != null) {
           for (ParameterBuilder formalParameterBuilder in formals) {
-            _validateTypeVariableUseInternal(formalParameterBuilder.type,
+            _validateTypeParameterUseInternal(formalParameterBuilder.type,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
@@ -9330,13 +9422,13 @@ class BodyBuilder extends StackListenerImpl
         ):
         if (positionalFields != null) {
           for (RecordTypeFieldBuilder field in positionalFields) {
-            _validateTypeVariableUseInternal(field.type,
+            _validateTypeParameterUseInternal(field.type,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
         if (namedFields != null) {
           for (RecordTypeFieldBuilder field in namedFields) {
-            _validateTypeVariableUseInternal(field.type,
+            _validateTypeParameterUseInternal(field.type,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
           }
         }
@@ -9378,8 +9470,7 @@ class BodyBuilder extends StackListenerImpl
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
-          fasta.templateNotConstantExpression
-              .withArguments('Method invocation'),
+          cfe.templateNotConstantExpression.withArguments('Method invocation'),
           offset,
           name.text.length);
     }
@@ -9408,8 +9499,7 @@ class BodyBuilder extends StackListenerImpl
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
-          fasta.templateNotConstantExpression
-              .withArguments('Method invocation'),
+          cfe.templateNotConstantExpression.withArguments('Method invocation'),
           offset,
           name.text.length);
     }
@@ -9424,7 +9514,7 @@ class BodyBuilder extends StackListenerImpl
     }
     if (isImplicitCall) {
       return buildProblem(
-          fasta.messageImplicitSuperCallOfNonMethod, offset, noLength);
+          cfe.messageImplicitSuperCallOfNonMethod, offset, noLength);
     } else {
       Expression receiver = new SuperPropertyGet(name, target)
         ..fileOffset = offset;
@@ -9476,12 +9566,12 @@ class BodyBuilder extends StackListenerImpl
     List<LocatedMessage>? context = existing.isSynthetic
         ? null
         : <LocatedMessage>[
-            fasta.templateDuplicatedDeclarationCause
+            cfe.templateDuplicatedDeclarationCause
                 .withArguments(name)
                 .withLocation(
-                    existing.fileUri!, existing.charOffset, name.length)
+                    existing.fileUri!, existing.fileOffset, name.length)
           ];
-    addProblem(fasta.templateDuplicatedDeclaration.withArguments(name),
+    addProblem(cfe.templateDuplicatedDeclaration.withArguments(name),
         charOffset, name.length,
         context: context);
   }
@@ -9507,7 +9597,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   DartType buildDartType(TypeBuilder typeBuilder, TypeUse typeUse,
       {required bool allowPotentiallyConstantType}) {
-    return validateTypeVariableUse(typeBuilder,
+    return validateTypeParameterUse(typeBuilder,
             allowPotentiallyConstantType: allowPotentiallyConstantType)
         .build(libraryBuilder, typeUse);
   }
@@ -9591,7 +9681,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         Pattern pattern = toPattern(field);
         if (pattern is! InvalidPattern) {
-          addProblem(fasta.messageUnnamedObjectPatternField, pattern.fileOffset,
+          addProblem(cfe.messageUnnamedObjectPatternField, pattern.fileOffset,
               noLength);
         }
       }
@@ -9697,7 +9787,7 @@ class BodyBuilder extends StackListenerImpl
       // Coverage-ignore(suite): Not run.
       default:
         internalProblem(
-            fasta.templateInternalProblemUnhandled
+            cfe.templateInternalProblemUnhandled
                 .withArguments(operator, 'handleRelationalPattern'),
             token.charOffset,
             uri);
@@ -9755,7 +9845,7 @@ class BodyBuilder extends StackListenerImpl
           variable.charOffset, variableDeclaration);
       registerVariableAssignment(variableDeclaration);
     } else {
-      addProblem(fasta.messagePatternAssignmentNotLocalVariable,
+      addProblem(cfe.messagePatternAssignmentNotLocalVariable,
           variable.charOffset, variable.charCount);
       // Recover by using [WildcardPattern] instead.
       pattern = forest.createWildcardPattern(variable.charOffset, null);
@@ -9786,8 +9876,7 @@ class BodyBuilder extends StackListenerImpl
       VariableDeclaration declaredVariable = forest.createVariableDeclaration(
           variable.charOffset, variable.lexeme,
           type: patternType,
-          isFinal:
-              Modifier.validateVarFinalOrConst(keyword?.lexeme) == finalMask);
+          isFinal: Modifiers.from(varFinalOrConst: keyword).isFinal);
       pattern = forest.createVariablePattern(
           variable.charOffset, patternType, declaredVariable);
       declareVariable(declaredVariable, _localScope);
@@ -9833,8 +9922,7 @@ class BodyBuilder extends StackListenerImpl
     if (colon != null) {
       Object? identifier = pop();
       if (identifier is ParserRecovery) {
-        push(
-            new ParserErrorGenerator(this, colon, fasta.messageSyntheticToken));
+        push(new ParserErrorGenerator(this, colon, cfe.messageSyntheticToken));
       } else {
         String? name;
         if (identifier is Identifier) {
@@ -9844,7 +9932,7 @@ class BodyBuilder extends StackListenerImpl
         }
         if (name == null) {
           push(forest.createInvalidPattern(
-              buildProblem(fasta.messageUnspecifiedGetterNameInObjectPattern,
+              buildProblem(cfe.messageUnspecifiedGetterNameInObjectPattern,
                   colon.charOffset, noLength),
               declaredVariables: const []));
         } else {
@@ -10090,7 +10178,7 @@ class FunctionTypeParameters {
 
   TypeBuilder toFunctionType(
       TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
-      {List<StructuralVariableBuilder>? structuralVariableBuilders,
+      {List<StructuralParameterBuilder>? structuralVariableBuilders,
       required bool hasFunctionFormalParameterSyntax}) {
     return new FunctionTypeBuilderImpl(returnType, structuralVariableBuilders,
         parameters, nullabilityBuilder, uri, charOffset,
@@ -10118,7 +10206,7 @@ class FormalParameters {
   FunctionNode buildFunctionNode(
       SourceLibraryBuilder library,
       TypeBuilder? returnTypeBuilder,
-      List<NominalVariableBuilder>? typeVariableBuilders,
+      List<NominalParameterBuilder>? typeParameterBuilders,
       AsyncMarker asyncModifier,
       Statement body,
       int fileEndOffset) {
@@ -10146,9 +10234,9 @@ class FormalParameters {
     }
 
     List<TypeParameter>? typeParameters;
-    if (typeVariableBuilders != null) {
+    if (typeParameterBuilders != null) {
       typeParameters = <TypeParameter>[];
-      for (NominalVariableBuilder t in typeVariableBuilders) {
+      for (NominalParameterBuilder t in typeParameterBuilders) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
         t.bound?.build(library, TypeUse.typeParameterBound);
@@ -10178,7 +10266,7 @@ class FormalParameters {
       Builder? existing = local[parameter.name];
       if (existing != null) {
         helper.reportDuplicatedDeclaration(
-            existing, parameter.name, parameter.charOffset);
+            existing, parameter.name, parameter.fileOffset);
       } else {
         local[parameter.name] = parameter;
       }

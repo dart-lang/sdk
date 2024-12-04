@@ -24,7 +24,7 @@ class CatchBlockEntryInstr;
 struct CidRangeValue;
 class Cids;
 class Code;
-class ComparisonInstr;
+class ConditionInstr;
 class CompileType;
 class Definition;
 class Environment;
@@ -82,7 +82,7 @@ class NativeCallingConvention;
   V(const Cids&)                                                               \
   V(const Class&)                                                              \
   V(const Code&)                                                               \
-  V(ComparisonInstr*)                                                          \
+  V(ConditionInstr*)                                                           \
   V(CompileType*)                                                              \
   V(ConstantInstr*)                                                            \
   V(Definition*)                                                               \

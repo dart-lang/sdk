@@ -5,7 +5,7 @@
 /// Test the rules for record literal type inference specified in
 /// https://github.com/dart-lang/language/blob/main/accepted/3.0/records/feature-specification.md#type-inference.
 
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 /// When invoked without explicit type parameters, causes its argument to be
 /// analyzed with a context of `(_,)`.

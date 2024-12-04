@@ -16,8 +16,10 @@ import 'dart:typed_data';
 ///
 /// Runs [numberOfTicks] times before completing with [EventLoopLatencyStats].
 Future<EventLoopLatencyStats> measureEventLoopLatency(
-    Duration tickDuration, int numberOfTicks,
-    {void Function() work}) {
+  Duration tickDuration,
+  int numberOfTicks, {
+  void Function() work,
+}) {
   final completer = Completer<EventLoopLatencyStats>();
 
   final tickDurationInUs = tickDuration.inMicroseconds;
@@ -77,13 +79,14 @@ class EventLoopLatencyStats {
   final double percentile99th;
 
   EventLoopLatencyStats(
-      this.minLatency,
-      this.avgLatency,
-      this.maxLatency,
-      this.percentile50th,
-      this.percentile90th,
-      this.percentile95th,
-      this.percentile99th);
+    this.minLatency,
+    this.avgLatency,
+    this.maxLatency,
+    this.percentile50th,
+    this.percentile90th,
+    this.percentile95th,
+    this.percentile99th,
+  );
 
   void report(String name) {
     print('$name.Min(RunTimeRaw): $minLatency ms.');
@@ -125,12 +128,13 @@ class _TickLatencies {
     final percentile99th = _timestamps[99 * length ~/ 100];
 
     return EventLoopLatencyStats(
-        min / 1000,
-        avg / 1000,
-        max / 1000,
-        percentile50th / 1000,
-        percentile90th / 1000,
-        percentile95th / 1000,
-        percentile99th / 1000);
+      min / 1000,
+      avg / 1000,
+      max / 1000,
+      percentile50th / 1000,
+      percentile90th / 1000,
+      percentile95th / 1000,
+      percentile99th / 1000,
+    );
   }
 }

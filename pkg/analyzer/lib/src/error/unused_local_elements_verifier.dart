@@ -946,7 +946,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   Iterable<ExecutableElement> _overriddenElements(Element element) {
     var fragment = element.enclosingElement3;
     if (fragment is InterfaceElement) {
-      var enclosingElement = fragment.augmented.declaration;
+      var enclosingElement = fragment.augmented.firstFragment;
       Name name = Name(_libraryUri, element.name!);
       var overridden =
           _inheritanceManager.getOverridden2(enclosingElement, name);

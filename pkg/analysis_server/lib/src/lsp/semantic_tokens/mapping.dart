@@ -7,62 +7,64 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A mapping from [HighlightRegionType] to a set of [SemanticTokenModifiers].
-final highlightRegionTokenModifiers =
-    <HighlightRegionType, Set<SemanticTokenModifiers>>{
+final highlightRegionTokenModifiers = <
+  HighlightRegionType,
+  Set<SemanticTokenModifiers>
+>{
   HighlightRegionType.COMMENT_DOCUMENTATION: {
-    SemanticTokenModifiers.documentation
+    SemanticTokenModifiers.documentation,
   },
   HighlightRegionType.CONSTRUCTOR_TEAR_OFF: {
-    CustomSemanticTokenModifiers.constructor
+    CustomSemanticTokenModifiers.constructor,
   },
   HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
   },
   HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
   },
   HighlightRegionType.IMPORT_PREFIX: {
     CustomSemanticTokenModifiers.importPrefix,
   },
   HighlightRegionType.INSTANCE_FIELD_DECLARATION: {
     SemanticTokenModifiers.declaration,
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.INSTANCE_FIELD_REFERENCE: {
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.INSTANCE_GETTER_DECLARATION: {
     SemanticTokenModifiers.declaration,
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.INSTANCE_GETTER_REFERENCE: {
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.INSTANCE_METHOD_DECLARATION: {
     SemanticTokenModifiers.declaration,
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.INSTANCE_METHOD_REFERENCE: {
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.INSTANCE_METHOD_TEAR_OFF: {
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.INSTANCE_SETTER_DECLARATION: {
     SemanticTokenModifiers.declaration,
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.INSTANCE_SETTER_REFERENCE: {
-    CustomSemanticTokenModifiers.instance
+    CustomSemanticTokenModifiers.instance,
   },
   HighlightRegionType.LOCAL_FUNCTION_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
   },
   HighlightRegionType.LOCAL_VARIABLE_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
   },
   HighlightRegionType.PARAMETER_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
   },
   HighlightRegionType.STATIC_FIELD_DECLARATION: {
     SemanticTokenModifiers.declaration,
@@ -89,16 +91,16 @@ final highlightRegionTokenModifiers =
     SemanticTokenModifiers.static,
   },
   HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
   },
   HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
   },
   HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
   },
   HighlightRegionType.VALID_STRING_ESCAPE: {
-    CustomSemanticTokenModifiers.escape
+    CustomSemanticTokenModifiers.escape,
   },
 };
 

@@ -620,11 +620,15 @@ bool FlowGraph::ShouldOmitCheckBoundsIn(const Function& caller) {
 static Definition* CreateCheckBound(Zone* zone,
                                     Definition* length,
                                     Definition* index,
-                                    intptr_t deopt_id) {
+                                    intptr_t deopt_id,
+                                    bool omit_check) {
   Value* val1 = new (zone) Value(length);
   Value* val2 = new (zone) Value(index);
   if (CompilerState::Current().is_aot()) {
-    return new (zone) GenericCheckBoundInstr(val1, val2, deopt_id);
+    return new (zone) GenericCheckBoundInstr(
+        val1, val2, deopt_id,
+        omit_check ? GenericCheckBoundInstr::Mode::kPhantom
+                   : GenericCheckBoundInstr::Mode::kReal);
   }
   return new (zone) CheckArrayBoundInstr(val1, val2, deopt_id);
 }
@@ -634,10 +638,9 @@ Instruction* FlowGraph::AppendCheckBound(Instruction* cursor,
                                          Definition** index,
                                          intptr_t deopt_id,
                                          Environment* env) {
-  if (!ShouldOmitCheckBoundsIn(env->function())) {
-    *index = CreateCheckBound(zone(), length, *index, deopt_id);
-    cursor = AppendTo(cursor, *index, env, FlowGraph::kValue);
-  }
+  *index = CreateCheckBound(zone(), length, *index, deopt_id,
+                            ShouldOmitCheckBoundsIn(env->function()));
+  cursor = AppendTo(cursor, *index, env, FlowGraph::kValue);
   return cursor;
 }
 
@@ -1968,34 +1971,18 @@ void FlowGraph::InsertConversion(Representation from,
   } else {
     insert_before = use->instruction();
   }
-  const Instruction::SpeculativeMode speculative_mode =
-      use->instruction()->SpeculativeModeOfInput(use->use_index());
-  Instruction* deopt_target = nullptr;
-  if (speculative_mode == Instruction::kGuardInputs || to == kUnboxedInt32) {
-    deopt_target = insert_before;
-  }
 
   Definition* converted = nullptr;
   if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
-    const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted =
-        new (Z) IntConverterInstr(from, to, use->CopyWithType(), deopt_id);
+    converted = new (Z) IntConverterInstr(from, to, use->CopyWithType());
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
     converted = new Int32ToDoubleInstr(use->CopyWithType());
   } else if ((from == kUnboxedInt64) && (to == kUnboxedDouble) &&
              CanConvertInt64ToDouble()) {
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted = new Int64ToDoubleInstr(use->CopyWithType(), deopt_id);
+    converted = new Int64ToDoubleInstr(use->CopyWithType(), DeoptId::kNone);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
-    converted =
-        UnboxInstr::Create(to, use->CopyWithType(), deopt_id, speculative_mode);
+    converted = UnboxInstr::Create(to, use->CopyWithType(), DeoptId::kNone,
+                                   UnboxInstr::ValueMode::kHasValidType);
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
   } else if ((to == kPairOfTagged) && (from == kTagged)) {
@@ -2039,23 +2026,16 @@ void FlowGraph::InsertConversion(Representation from,
     // trigger a deoptimization if executed. See #12417 for a discussion.
     // If the use is not speculative, then this code should be unreachable.
     // Insert Stop for a graceful error and aid unreachable code elimination.
-    if (speculative_mode == Instruction::kNotSpeculative) {
-      StopInstr* stop = new (Z) StopInstr("Incompatible conversion.");
-      InsertBefore(insert_before, stop, nullptr, FlowGraph::kEffect);
-    }
-    const intptr_t deopt_id = (deopt_target != nullptr)
-                                  ? deopt_target->DeoptimizationTarget()
-                                  : DeoptId::kNone;
+    StopInstr* stop = new (Z) StopInstr("Incompatible conversion.");
+    InsertBefore(insert_before, stop, nullptr, FlowGraph::kEffect);
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
     use->BindTo(boxed);
     InsertBefore(insert_before, boxed, nullptr, FlowGraph::kValue);
-    converted = UnboxInstr::Create(to, new (Z) Value(boxed), deopt_id,
-                                   speculative_mode);
+    converted = UnboxInstr::Create(to, new (Z) Value(boxed), DeoptId::kNone,
+                                   UnboxInstr::ValueMode::kHasValidType);
   }
   ASSERT(converted != nullptr);
-  InsertBefore(insert_before, converted,
-               (deopt_target != nullptr) ? deopt_target->env() : nullptr,
-               FlowGraph::kValue);
+  InsertBefore(insert_before, converted, nullptr, FlowGraph::kValue);
   if (is_environment_use) {
     use->BindToEnvironment(converted);
   } else {
@@ -2197,10 +2177,9 @@ class PhiUnboxingHeuristic : public ValueObject {
         // If all the inputs are unboxed integers but with different
         // representations, then pick a representation based on the range
         // of values that flow into the phi node.
-        new_representation =
-            RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
-                ? kUnboxedInt32
-                : kUnboxedInt64;
+        new_representation = Range::Fits(phi->range(), kUnboxedInt32)
+                                 ? kUnboxedInt32
+                                 : kUnboxedInt64;
       }
 
       // Decide if it is worth to unbox an boxed integer phi.
@@ -2222,10 +2201,9 @@ class PhiUnboxingHeuristic : public ValueObject {
         const bool flows_into_unboxed_use = FlowsIntoUnboxedUse(phi);
 
         if (has_unboxed_incoming_value && flows_into_unboxed_use) {
-          new_representation =
-              RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
-                  ? kUnboxedInt32
-                  : kUnboxedInt64;
+          new_representation = Range::Fits(phi->range(), kUnboxedInt32)
+                                   ? kUnboxedInt32
+                                   : kUnboxedInt64;
         }
 #endif
       }
@@ -2489,13 +2467,6 @@ bool FlowGraph::Canonicalize() {
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* current = it.Current();
-        if (current->HasUnmatchedInputRepresentations() &&
-            (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
-          // Can't canonicalize this instruction until all conversions for its
-          // speculative inputs are inserted.
-          continue;
-        }
-
         Definition* replacement = current->Canonicalize(this);
         ASSERT(replacement != nullptr);
         RELEASE_ASSERT(unmatched_representations_allowed() ||
@@ -2509,13 +2480,6 @@ bool FlowGraph::Canonicalize() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (current->HasUnmatchedInputRepresentations() &&
-          (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
-        // Can't canonicalize this instruction until all conversions for its
-        // speculative inputs are inserted.
-        continue;
-      }
-
       Instruction* replacement = current->Canonicalize(this);
 
       if (replacement != current) {
@@ -2675,7 +2639,8 @@ void FlowGraph::RenameUsesDominatedByRedefinitions() {
       Definition* definition = instr_it.Current()->AsDefinition();
       // CheckArrayBound instructions have their own mechanism for ensuring
       // proper dependencies, so we don't rewrite those here.
-      if (definition != nullptr && !definition->IsCheckArrayBound()) {
+      if (definition != nullptr && !definition->IsCheckArrayBound() &&
+          !definition->IsGenericCheckBound()) {
         Value* redefined = definition->RedefinedValue();
         if (redefined != nullptr) {
           if (!definition->HasSSATemp()) {
@@ -2797,9 +2762,10 @@ void FlowGraph::TryMergeTruncDivMod(
             kSmiCid);
 
         // Replace with TruncDivMod.
-        TruncDivModInstr* div_mod = new (Z) TruncDivModInstr(
-            curr_instr->left()->CopyWithType(),
-            curr_instr->right()->CopyWithType(), curr_instr->deopt_id());
+        TruncDivModInstr* div_mod =
+            new (Z) TruncDivModInstr(curr_instr->left()->CopyWithType(),
+                                     curr_instr->right()->CopyWithType(),
+                                     curr_instr->DeoptimizationTarget());
         curr_instr->ReplaceWith(div_mod, nullptr);
         other_binop->ReplaceUsesWith(div_mod);
         other_binop->RemoveFromGraph();
@@ -2851,9 +2817,9 @@ static GotoInstr* NewGoto(FlowGraph* graph,
 }
 
 static BranchInstr* NewBranch(FlowGraph* graph,
-                              ComparisonInstr* cmp,
+                              ConditionInstr* cond,
                               Instruction* inherit) {
-  BranchInstr* bra = new (graph->zone()) BranchInstr(cmp, DeoptId::kNone);
+  BranchInstr* bra = new (graph->zone()) BranchInstr(cond, DeoptId::kNone);
   bra->InheritDeoptTarget(graph->zone(), inherit);
   return bra;
 }
@@ -2874,7 +2840,7 @@ static BranchInstr* NewBranch(FlowGraph* graph,
 //
 JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
                                       Instruction* inherit,
-                                      ComparisonInstr* compare,
+                                      ConditionInstr* condition,
                                       TargetEntryInstr** b_true,
                                       TargetEntryInstr** b_false) {
   BlockEntryInstr* entry = instruction->GetBlock();
@@ -2884,7 +2850,7 @@ JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
   JoinEntryInstr* join = NewJoin(this, inherit);
   GotoInstr* gotot = NewGoto(this, join, inherit);
   GotoInstr* gotof = NewGoto(this, join, inherit);
-  BranchInstr* bra = NewBranch(this, compare, inherit);
+  BranchInstr* bra = NewBranch(this, condition, inherit);
 
   instruction->AppendInstruction(bra);
   entry->set_last_instruction(bra);

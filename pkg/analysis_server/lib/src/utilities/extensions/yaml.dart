@@ -26,9 +26,10 @@ extension YamlNodeExtensions on YamlNode {
       var entries = node.nodes.entries.toList();
       for (var i = 0; i < entries.length; i++) {
         var entry = entries[i];
-        var nextEntryOffset = i + 1 < entries.length
-            ? (entries[i + 1].key as YamlNode).span.start.offset
-            : null;
+        var nextEntryOffset =
+            i + 1 < entries.length
+                ? (entries[i + 1].key as YamlNode).span.start.offset
+                : null;
         var key = entry.key as YamlNode;
         if (key.containsOffset(offset)) {
           return key;

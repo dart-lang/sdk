@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.dill_class_builder;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/loader.dart';
-import '../base/modifier.dart' show abstractMask, namedMixinApplicationMask;
 import '../base/name_space.dart';
 import '../base/problems.dart' show unimplemented;
 import '../base/scope.dart';
@@ -50,6 +47,9 @@ mixin DillClassMemberAccessMixin implements ClassMemberAccess {
 class DillClassBuilder extends ClassBuilderImpl
     with DillClassMemberAccessMixin {
   @override
+  final DillLibraryBuilder parent;
+
+  @override
   final Class cls;
 
   late final LookupScope _scope;
@@ -58,22 +58,29 @@ class DillClassBuilder extends ClassBuilderImpl
 
   late final ConstructorScope _constructorScope;
 
-  List<NominalVariableBuilder>? _typeVariables;
+  List<NominalParameterBuilder>? _typeParameters;
 
   TypeBuilder? _supertypeBuilder;
 
   List<TypeBuilder>? _interfaceBuilders;
 
-  DillClassBuilder(this.cls, DillLibraryBuilder parent)
-      : _nameSpace = new DeclarationNameSpaceImpl(),
-        super(/*metadata builders*/ null, computeModifiers(cls), cls.name,
-            parent, cls.fileUri, cls.fileOffset) {
+  DillClassBuilder(this.cls, this.parent)
+      : _nameSpace = new DeclarationNameSpaceImpl() {
     _scope = new NameSpaceLookupScope(
         _nameSpace, ScopeKind.declaration, "class ${cls.name}",
         parent: parent.scope);
     _constructorScope =
         new DeclarationNameSpaceConstructorScope(cls.name, _nameSpace);
   }
+
+  @override
+  int get fileOffset => cls.fileOffset;
+
+  @override
+  String get name => cls.name;
+
+  @override
+  Uri get fileUri => cls.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -117,17 +124,20 @@ class DillClassBuilder extends ClassBuilderImpl
   bool get isFinal => cls.isFinal;
 
   @override
-  List<NominalVariableBuilder>? get typeVariables {
-    List<NominalVariableBuilder>? typeVariables = _typeVariables;
-    if (typeVariables == null && cls.typeParameters.isNotEmpty) {
-      typeVariables = _typeVariables = computeTypeVariableBuilders(
-          cls.typeParameters, libraryBuilder.loader);
-    }
-    return typeVariables;
-  }
+  bool get isAbstract => cls.isAbstract;
 
   @override
-  Uri get fileUri => cls.fileUri;
+  bool get isNamedMixinApplication => cls.isMixinApplication;
+
+  @override
+  List<NominalParameterBuilder>? get typeParameters {
+    List<NominalParameterBuilder>? typeParameters = _typeParameters;
+    if (typeParameters == null && cls.typeParameters.isNotEmpty) {
+      typeParameters = _typeParameters = computeTypeParameterBuilders(
+          cls.typeParameters, libraryBuilder.loader);
+    }
+    return typeParameters;
+  }
 
   @override
   TypeBuilder? get supertypeBuilder {
@@ -146,22 +156,23 @@ class DillClassBuilder extends ClassBuilderImpl
   List<TypeBuilder>? get onTypes => null;
 
   void addField(Field field) {
-    DillFieldBuilder builder = new DillFieldBuilder(field, this);
+    DillFieldBuilder builder =
+        new DillFieldBuilder(field, libraryBuilder, this);
     String name = field.name.text;
     nameSpace.addLocalMember(name, builder, setter: false);
   }
 
   void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
-    DillConstructorBuilder builder =
-        new DillConstructorBuilder(constructor, constructorTearOff, this);
+    DillConstructorBuilder builder = new DillConstructorBuilder(
+        constructor, constructorTearOff, libraryBuilder, this);
     String name = constructor.name.text;
     nameSpace.addConstructor(name, builder);
   }
 
   void addFactory(Procedure factory, Procedure? factoryTearOff) {
     String name = factory.name.text;
-    nameSpace.addConstructor(
-        name, new DillFactoryBuilder(factory, factoryTearOff, this));
+    nameSpace.addConstructor(name,
+        new DillFactoryBuilder(factory, factoryTearOff, libraryBuilder, this));
   }
 
   void addProcedure(Procedure procedure) {
@@ -171,31 +182,35 @@ class DillClassBuilder extends ClassBuilderImpl
         // Coverage-ignore(suite): Not run.
         throw new UnsupportedError("Use addFactory for adding factories");
       case ProcedureKind.Setter:
-        nameSpace.addLocalMember(name, new DillSetterBuilder(procedure, this),
+        nameSpace.addLocalMember(
+            name, new DillSetterBuilder(procedure, libraryBuilder, this),
             setter: true);
         break;
       case ProcedureKind.Getter:
-        nameSpace.addLocalMember(name, new DillGetterBuilder(procedure, this),
+        nameSpace.addLocalMember(
+            name, new DillGetterBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
       case ProcedureKind.Operator:
-        nameSpace.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+        nameSpace.addLocalMember(
+            name, new DillOperatorBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
       case ProcedureKind.Method:
-        nameSpace.addLocalMember(name, new DillMethodBuilder(procedure, this),
+        nameSpace.addLocalMember(
+            name, new DillMethodBuilder(procedure, libraryBuilder, this),
             setter: false);
         break;
     }
   }
 
   @override
-  int get typeVariablesCount => cls.typeParameters.length;
+  int get typeParametersCount => cls.typeParameters.length;
 
   @override
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    // For performance reasons, [typeVariables] aren't restored from [target].
+    // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
@@ -250,19 +265,8 @@ class DillClassBuilder extends ClassBuilderImpl
   void clearCachedValues() {
     _supertypeBuilder = null;
     _interfaceBuilders = null;
-    _typeVariables = null;
+    _typeParameters = null;
   }
-}
-
-int computeModifiers(Class cls) {
-  int modifiers = 0;
-  if (cls.isAbstract) {
-    modifiers |= abstractMask;
-  }
-  if (cls.isMixinApplication) {
-    modifiers |= namedMixinApplicationMask;
-  }
-  return modifiers;
 }
 
 TypeBuilder? computeTypeBuilder(
@@ -272,11 +276,11 @@ TypeBuilder? computeTypeBuilder(
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
 
-List<NominalVariableBuilder>? computeTypeVariableBuilders(
+List<NominalParameterBuilder>? computeTypeParameterBuilders(
     List<TypeParameter>? typeParameters, Loader loader) {
   if (typeParameters == null || typeParameters.length == 0) return null;
-  return <NominalVariableBuilder>[
+  return <NominalParameterBuilder>[
     for (TypeParameter typeParameter in typeParameters)
-      new NominalVariableBuilder.fromKernel(typeParameter, loader: loader)
+      new NominalParameterBuilder.fromKernel(typeParameter, loader: loader)
   ];
 }

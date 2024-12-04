@@ -42,7 +42,7 @@ FunctionExpressionInvocation
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   argumentList: ArgumentList
@@ -81,7 +81,7 @@ FunctionExpressionInvocation
         NamedType
           name: String
           element: dart:core::<fragment>::@class::String
-          element2: dart:core::<fragment>::@class::String#element
+          element2: dart:core::@class::String
           type: String
       rightBracket: >
     argumentList: ArgumentList
@@ -95,7 +95,7 @@ FunctionExpressionInvocation
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -150,7 +150,7 @@ FunctionExpressionInvocation
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::<fragment>::@extension::E
-    element2: package:test/lib.dart::<fragment>::@extension::E#element
+    element2: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   argumentList: ArgumentList
@@ -197,7 +197,7 @@ FunctionExpressionInvocation
         NamedType
           name: String
           element: dart:core::<fragment>::@class::String
-          element2: dart:core::<fragment>::@class::String#element
+          element2: dart:core::@class::String
           type: String
       rightBracket: >
     argumentList: ArgumentList
@@ -211,7 +211,7 @@ FunctionExpressionInvocation
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::<fragment>::@extension::E
-    element2: package:test/lib.dart::<fragment>::@extension::E#element
+    element2: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -258,7 +258,7 @@ PropertyAccess
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -301,7 +301,7 @@ FunctionExpressionInvocation
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -348,7 +348,7 @@ PropertyAccess
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -362,7 +362,7 @@ PropertyAccess
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -414,7 +414,7 @@ PropertyAccess
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::<fragment>::@extension::E
-    element2: package:test/lib.dart::<fragment>::@extension::E#element
+    element2: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -457,7 +457,7 @@ PropertyAccess
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -471,7 +471,7 @@ PropertyAccess
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::<fragment>::@extension::E
-    element2: package:test/lib.dart::<fragment>::@extension::E#element
+    element2: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -514,7 +514,7 @@ IndexExpression
           staticType: int?
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   leftBracket: [
@@ -556,7 +556,7 @@ AssignmentExpression
             staticType: int?
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: int
       staticType: null
     leftBracket: [
@@ -612,7 +612,7 @@ MethodInvocation
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -651,7 +651,7 @@ MethodInvocation
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -665,7 +665,7 @@ MethodInvocation
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -721,7 +721,7 @@ MethodInvocation
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::<fragment>::@extension::E
-    element2: package:test/lib.dart::<fragment>::@extension::E#element
+    element2: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -768,7 +768,7 @@ MethodInvocation
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -782,7 +782,7 @@ MethodInvocation
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::<fragment>::@extension::E
-    element2: package:test/lib.dart::<fragment>::@extension::E#element
+    element2: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -830,7 +830,7 @@ MethodInvocation
           staticType: int?
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: ?.
@@ -874,7 +874,7 @@ BinaryExpression
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: +
@@ -911,7 +911,7 @@ BinaryExpression
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -925,7 +925,7 @@ BinaryExpression
           staticType: A
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -971,7 +971,7 @@ PostfixExpression
             staticType: int
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: int
       staticType: null
     operator: .
@@ -1029,7 +1029,7 @@ BinaryExpression
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::<fragment>::@extension::E
-    element2: package:test/lib.dart::<fragment>::@extension::E#element
+    element2: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: +
@@ -1074,7 +1074,7 @@ BinaryExpression
         NamedType
           name: int
           element: dart:core::<fragment>::@class::int
-          element2: dart:core::<fragment>::@class::int#element
+          element2: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -1088,7 +1088,7 @@ BinaryExpression
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::<fragment>::@extension::E
-    element2: package:test/lib.dart::<fragment>::@extension::E#element
+    element2: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -1132,7 +1132,7 @@ PropertyAccess
           staticType: int?
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: ?.
@@ -1185,7 +1185,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1235,7 +1235,7 @@ AssignmentExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -1249,7 +1249,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -1318,7 +1318,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: package:test/lib.dart::<fragment>::@extension::E
-      element2: package:test/lib.dart::<fragment>::@extension::E#element
+      element2: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1376,7 +1376,7 @@ AssignmentExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -1390,7 +1390,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: package:test/lib.dart::<fragment>::@extension::E
-      element2: package:test/lib.dart::<fragment>::@extension::E#element
+      element2: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -1452,7 +1452,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1503,7 +1503,7 @@ AssignmentExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -1517,7 +1517,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: <testLibraryFragment>::@extension::E
-      element2: <testLibraryFragment>::@extension::E#element
+      element2: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -1587,7 +1587,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: package:test/lib.dart::<fragment>::@extension::E
-      element2: package:test/lib.dart::<fragment>::@extension::E#element
+      element2: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1646,7 +1646,7 @@ AssignmentExpression
           NamedType
             name: int
             element: dart:core::<fragment>::@class::int
-            element2: dart:core::<fragment>::@class::int#element
+            element2: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -1660,7 +1660,7 @@ AssignmentExpression
             staticType: A
         rightParenthesis: )
       element: package:test/lib.dart::<fragment>::@extension::E
-      element2: package:test/lib.dart::<fragment>::@extension::E#element
+      element2: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -1720,7 +1720,7 @@ PropertyAccess
           staticType: C
       rightParenthesis: )
     element: <testLibraryFragment>::@extension::E
-    element2: <testLibraryFragment>::@extension::E#element
+    element2: <testLibrary>::@extension::E
     extendedType: C
     staticType: null
   operator: .

@@ -308,9 +308,6 @@ class PageSpace {
   void PauseConcurrentMarking();
   void ResumeConcurrentMarking();
   void YieldConcurrentMarking();
-  void PushDependencyToConcurrentMarking() {
-    pause_concurrent_marking_.fetch_or(0);
-  }
 
   Monitor* tasks_lock() const { return &tasks_lock_; }
   intptr_t tasks() const { return tasks_; }
@@ -482,7 +479,7 @@ class PageSpace {
   intptr_t tasks_;
   intptr_t concurrent_marker_tasks_;
   intptr_t concurrent_marker_tasks_active_;
-  AcqRelAtomic<uword> pause_concurrent_marking_;
+  RelaxedAtomic<uword> pause_concurrent_marking_;
   Phase phase_;
 
 #if defined(DEBUG)

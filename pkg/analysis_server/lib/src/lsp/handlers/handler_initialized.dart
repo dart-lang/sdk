@@ -10,10 +10,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 class InitializedMessageHandler
     extends LspMessageHandler<InitializedParams, void> {
   final List<String> openWorkspacePaths;
-  InitializedMessageHandler(
-    super.server,
-    this.openWorkspacePaths,
-  );
+  InitializedMessageHandler(super.server, this.openWorkspacePaths);
   @override
   Method get handlesMessage => Method.initialized;
 
@@ -22,12 +19,13 @@ class InitializedMessageHandler
       InitializedParams.jsonHandler;
 
   @override
-  Future<ErrorOr<void>> handle(InitializedParams params, MessageInfo message,
-      CancellationToken token) async {
+  Future<ErrorOr<void>> handle(
+    InitializedParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     var initializedHandler =
-        server.messageHandler = InitializedLspStateMessageHandler(
-      server,
-    );
+        server.messageHandler = InitializedLspStateMessageHandler(server);
 
     server.analyticsManager.initialized(openWorkspacePaths: openWorkspacePaths);
 

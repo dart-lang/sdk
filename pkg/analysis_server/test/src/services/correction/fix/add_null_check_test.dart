@@ -177,7 +177,7 @@ void f(int x, int? y) {
   }
 
   Future<void>
-      test_assignment_differByMoreThanNullability_nonNullableRight() async {
+  test_assignment_differByMoreThanNullability_nonNullableRight() async {
     await resolveTestCode('''
 void f(int x, String y) {
   x = y;
@@ -187,7 +187,7 @@ void f(int x, String y) {
   }
 
   Future<void>
-      test_assignment_differByMoreThanNullability_nullableRight() async {
+  test_assignment_differByMoreThanNullability_nullableRight() async {
     await resolveTestCode('''
 void f(int x, String? y) {
   x = y;
@@ -266,7 +266,7 @@ void f (List<String>? args) {
   }
 
   Future<void>
-      test_forEachWithDeclarationCondition_differByMoreThanNullability() async {
+  test_forEachWithDeclarationCondition_differByMoreThanNullability() async {
     await resolveTestCode('''
 void f (List<int>? args) {
   for (String e in args) print(e);
@@ -291,7 +291,7 @@ void f (List<String>? args) {
   }
 
   Future<void>
-      test_forEachWithIdentifierCondition_differByMoreThanNullability() async {
+  test_forEachWithIdentifierCondition_differByMoreThanNullability() async {
     await resolveTestCode('''
 void f (List<int>? args) {
   String s = "";
@@ -389,14 +389,16 @@ void g(int i) {
   f(i ?? '');
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+      },
+    );
   }
 
   Future<void>
-      test_isNullThen_left_notAssignable_nullable_right_nonNullable() async {
+  test_isNullThen_left_notAssignable_nullable_right_nonNullable() async {
     await resolveTestCode('''
 void f(String s) {}
 void g(int? i) {
@@ -407,7 +409,7 @@ void g(int? i) {
   }
 
   Future<void>
-      test_isNullThen_left_notAssignable_nullable_right_nullable() async {
+  test_isNullThen_left_notAssignable_nullable_right_nullable() async {
     await resolveTestCode('''
 void f(String s) {}
 void g(int? i, String? s) {
@@ -424,15 +426,18 @@ void g(int i, int? x) {
   f(i ?? x);
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void f(int i) {}
 void g(int i, int? x) {
   f(i ?? x!);
 }
-''', errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+      },
+    );
   }
 
   Future<void> test_isNullThen_right_notAssignable_nonNullable() async {
@@ -442,10 +447,12 @@ void g(int i, int x) {
   f(i ?? x);
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+      },
+    );
   }
 
   Future<void> test_isNullThen_right_notAssignable_nullable() async {
@@ -455,10 +462,12 @@ void g(int i, int? x) {
   f(i ?? x);
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+      },
+    );
   }
 
   Future<void> test_methodInvocation() async {
@@ -542,9 +551,11 @@ void f (List<int>? args) {
 }
 ''');
     await assertNoFix(
-        errorFilter: (AnalysisError error) =>
-            error.errorCode !=
-            CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
+      errorFilter:
+          (AnalysisError error) =>
+              error.errorCode !=
+              CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+    );
   }
 
   Future<void> test_spreadMap() async {
@@ -582,7 +593,8 @@ f(List<String>? args) {
   });
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 g(Iterable<String> Function() cb) {}
 f(List<String>? args) {
   g(() sync* {
@@ -590,8 +602,11 @@ f(List<String>? args) {
   });
 }
 ''',
-        errorFilter: (AnalysisError error) =>
-            error.errorCode != CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE);
+      errorFilter:
+          (AnalysisError error) =>
+              error.errorCode !=
+              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+    );
   }
 
   Future<void> test_yieldEach_localFunction() async {
@@ -602,16 +617,20 @@ g() {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 g() {
   Iterable<String> f(List<String>? args) sync* {
     yield* args!;
   }
 }
 ''',
-        errorFilter: (AnalysisError error) =>
-            error.errorCode ==
-            CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH);
+      errorFilter:
+          (AnalysisError error) =>
+              error.errorCode ==
+              CompileTimeErrorCode
+                  .UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+    );
   }
 
   Future<void> test_yieldEach_method() async {
@@ -622,15 +641,19 @@ class C {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {
   Iterable<String> f(List<String>? args) sync* {
     yield* args!;
   }
 }
 ''',
-        errorFilter: (AnalysisError error) =>
-            error.errorCode != CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE);
+      errorFilter:
+          (AnalysisError error) =>
+              error.errorCode !=
+              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+    );
   }
 
   Future<void> test_yieldEach_topLevel() async {
@@ -639,13 +662,17 @@ Iterable<String> f(List<String>? args) sync* {
   yield* args;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 Iterable<String> f(List<String>? args) sync* {
   yield* args!;
 }
 ''',
-        errorFilter: (AnalysisError error) =>
-            error.errorCode != CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE);
+      errorFilter:
+          (AnalysisError error) =>
+              error.errorCode !=
+              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+    );
   }
 }
 

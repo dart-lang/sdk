@@ -19,12 +19,13 @@ class AnalysisBenchmark extends Benchmark {
   final AbstractBenchmarkTest Function() testConstructor;
 
   AnalysisBenchmark(ServerBenchmark benchmarkTest)
-      : testConstructor = benchmarkTest.testConstructor,
-        super(
-            benchmarkTest.id,
-            '${benchmarkTest.name} benchmarks of a large project, with an existing '
-            'driver cache.',
-            kind: 'group');
+    : testConstructor = benchmarkTest.testConstructor,
+      super(
+        benchmarkTest.id,
+        '${benchmarkTest.name} benchmarks of a large project, with an existing '
+        'driver cache.',
+        kind: 'group',
+      );
 
   @override
   Future<BenchMarkResult> run({
@@ -45,8 +46,10 @@ class AnalysisBenchmark extends Benchmark {
     var usedBytes = await test.getMemoryUsage();
 
     var result = CompoundBenchMarkResult(id);
-    result.add('warm-analysis',
-        BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
+    result.add(
+      'warm-analysis',
+      BenchMarkResult('micros', stopwatch.elapsedMicroseconds),
+    );
     result.add('warm-memory', BenchMarkResult('bytes', usedBytes));
 
     if (!quick) {
@@ -67,8 +70,12 @@ class AnalysisBenchmark extends Benchmark {
   Future<int> _calcCompletionTiming(AbstractBenchmarkTest test) async {
     const kGroupCount = 10;
 
-    var filePath =
-        path.join(analysisServerSrcPath, 'lib', 'src', 'analysis_server.dart');
+    var filePath = path.join(
+      analysisServerSrcPath,
+      'lib',
+      'src',
+      'analysis_server.dart',
+    );
     var contents = File(filePath).readAsStringSync();
 
     await test.openFile(filePath, contents);
@@ -84,8 +91,10 @@ class AnalysisBenchmark extends Benchmark {
     for (var i = 0; i < kGroupCount; i++) {
       var startIndex = i * (contents.length ~/ (kGroupCount + 2));
       // Look for a line with a period in it that ends with a semi-colon.
-      var index =
-          contents.indexOf(RegExp(r'\..*;$', multiLine: true), startIndex);
+      var index = contents.indexOf(
+        RegExp(r'\..*;$', multiLine: true),
+        startIndex,
+      );
 
       await complete(index - 10);
       await complete(index - 1);
@@ -112,8 +121,12 @@ class AnalysisBenchmark extends Benchmark {
   Future<int> _calcEditTiming(AbstractBenchmarkTest test) async {
     const kGroupCount = 5;
 
-    var filePath =
-        path.join(analysisServerSrcPath, 'lib', 'src', 'analysis_server.dart');
+    var filePath = path.join(
+      analysisServerSrcPath,
+      'lib',
+      'src',
+      'analysis_server.dart',
+    );
     var contents = File(filePath).readAsStringSync();
 
     // Get the future for `analysisFinished` *before* the call to [openFile]
@@ -150,12 +163,13 @@ class ColdAnalysisBenchmark extends Benchmark {
   final AbstractBenchmarkTest Function() testConstructor;
 
   ColdAnalysisBenchmark(ServerBenchmark benchmarkTest)
-      : testConstructor = benchmarkTest.testConstructor,
-        super(
-            '${benchmarkTest.id}-cold',
-            '${benchmarkTest.name} benchmarks of a large project on start-up, no '
-                'existing driver cache.',
-            kind: 'group');
+    : testConstructor = benchmarkTest.testConstructor,
+      super(
+        '${benchmarkTest.id}-cold',
+        '${benchmarkTest.name} benchmarks of a large project on start-up, no '
+            'existing driver cache.',
+        kind: 'group',
+      );
 
   @override
   int get maxIterations => 3;
@@ -181,7 +195,9 @@ class ColdAnalysisBenchmark extends Benchmark {
 
     var result = CompoundBenchMarkResult(id);
     result.add(
-        'analysis', BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
+      'analysis',
+      BenchMarkResult('micros', stopwatch.elapsedMicroseconds),
+    );
     result.add('memory', BenchMarkResult('bytes', usedBytes));
 
     await test.shutdown();
@@ -192,9 +208,15 @@ class ColdAnalysisBenchmark extends Benchmark {
 
 class ServerBenchmark {
   static final das = ServerBenchmark(
-      'analysis-server', 'Analysis Server', AnalysisServerBenchmarkTest.new);
-  static final lsp = ServerBenchmark('lsp-analysis-server',
-      'LSP Analysis Server', LspAnalysisServerBenchmarkTest.new);
+    'analysis-server',
+    'Analysis Server',
+    AnalysisServerBenchmarkTest.new,
+  );
+  static final lsp = ServerBenchmark(
+    'lsp-analysis-server',
+    'LSP Analysis Server',
+    LspAnalysisServerBenchmarkTest.new,
+  );
   final String id;
 
   final String name;

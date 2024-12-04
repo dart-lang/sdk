@@ -34,7 +34,8 @@ Element? _getContainer(Element element) {
     ElementKind.SETTER,
   };
   return element.thisOrAncestorMatching(
-      (ancestor) => containerKinds.contains(ancestor.kind));
+    (ancestor) => containerKinds.contains(ancestor.kind),
+  );
 }
 
 /// Gets a user-friendly display name for [element].
@@ -42,10 +43,10 @@ String _getDisplayName(Element element) {
   return element is CompilationUnitElement
       ? element.source.shortName
       : element is PropertyAccessorElement
-          ? element.isGetter
-              ? 'get ${element.displayName}'
-              : 'set ${element.displayName}'
-          : element.displayName;
+      ? element.isGetter
+          ? 'get ${element.displayName}'
+          : 'set ${element.displayName}'
+      : element.displayName;
 }
 
 /// A [CallHierarchyItem] and a set of ranges that call to or from it.
@@ -54,7 +55,7 @@ class CallHierarchyCalls {
   final List<SourceRange> ranges;
 
   CallHierarchyCalls(this.item, [List<SourceRange>? ranges])
-      : ranges = ranges ?? [];
+    : ranges = ranges ?? [];
 }
 
 /// An item that can appear in a Call Hierarchy.
@@ -101,11 +102,11 @@ class CallHierarchyItem {
   });
 
   CallHierarchyItem.forElement(Element element)
-      : displayName = _getDisplayName(element),
-        nameRange = _nameRangeForElement(element),
-        codeRange = _codeRangeForElement(element),
-        file = element.source!.fullName,
-        kind = CallHierarchyKind.forElement(element) {
+    : displayName = _getDisplayName(element),
+      nameRange = _nameRangeForElement(element),
+      codeRange = _codeRangeForElement(element),
+      file = element.source!.fullName,
+      kind = CallHierarchyKind.forElement(element) {
     var enclosingElement = element.enclosingElement3;
     var container =
         enclosingElement != null ? _getContainer(enclosingElement) : null;
@@ -207,7 +208,8 @@ class DartCallHierarchyComputer {
     // `constructor`, because we need to locate them using an `offset`, which
     // implicit constructors do not have.
     // Here, we map them back to the synthetic constructor element.
-    var isImplicitConstructor = element is InterfaceElement &&
+    var isImplicitConstructor =
+        element is InterfaceElement &&
         target.kind == CallHierarchyKind.constructor;
     if (isImplicitConstructor) {
       element = element.unnamedConstructor;
@@ -387,20 +389,14 @@ class DartCallHierarchyComputer {
   /// the argument list.
   SourceRange _rangeForNode(AstNode node) {
     if (node is MethodInvocation) {
-      return SourceRange(
-        node.methodName.offset,
-        node.methodName.length,
-      );
+      return SourceRange(node.methodName.offset, node.methodName.length);
     } else if (node is InstanceCreationExpression) {
       return SourceRange(
         node.constructorName.offset,
         node.constructorName.length,
       );
     } else if (node is PropertyAccess) {
-      return SourceRange(
-        node.propertyName.offset,
-        node.propertyName.length,
-      );
+      return SourceRange(node.propertyName.offset, node.propertyName.length);
     }
     return SourceRange(node.offset, node.length);
   }

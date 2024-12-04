@@ -4,7 +4,7 @@
 
 import "dart:async";
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 // TODO(rnystrom): Unify with assert_with_message_test.dart.

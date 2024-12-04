@@ -41,8 +41,14 @@ void main() {
   shouldBe(regexp4.firstMatch('abacadabe'), ['abe', 'ab', 'b', null]);
 
   var regexp5 = new RegExp(r"(a((b)|(c)|(d)))e");
-  shouldBe(
-      regexp5.firstMatch('abacadabe'), ['abe', 'ab', 'b', 'b', null, null]);
+  shouldBe(regexp5.firstMatch('abacadabe'), [
+    'abe',
+    'ab',
+    'b',
+    'b',
+    null,
+    null,
+  ]);
 
   var regexp6 = new RegExp(r"(a((b)|(c)|(d)))");
   shouldBe(regexp6.firstMatch('abcde'), ['ab', 'ab', 'b', 'b', null, null]);
@@ -54,15 +60,21 @@ void main() {
   shouldBe(regexp8.firstMatch('bcaddxqy'), ['qy', 'q', 'q', 'y']);
 
   var regexp9 = new RegExp(r"((t|b)?|a)$");
-  shouldBe(
-      regexp9.firstMatch('asdfjejgsdflaksdfjkeljghkjea'), ['a', 'a', null]);
+  shouldBe(regexp9.firstMatch('asdfjejgsdflaksdfjkeljghkjea'), [
+    'a',
+    'a',
+    null,
+  ]);
 
   var regexp10 = new RegExp(r"(?:h|e?(?:t|b)?|a?(?:t|b)?)(?:$)");
   shouldBe(regexp10.firstMatch('asdfjejgsdflaksdfjkeljghat'), ['at']);
 
   var regexp11 = new RegExp(r"([Jj]ava([Ss]cript)?)\sis\s(fun\w*)");
-  shouldBeNull(regexp11.firstMatch(
-      'Developing with JavaScript is dangerous, do not try it without assistance'));
+  shouldBeNull(
+    regexp11.firstMatch(
+      'Developing with JavaScript is dangerous, do not try it without assistance',
+    ),
+  );
 
   var regexp12 = new RegExp(r"(?:(.+), )?(.+), (..) to (?:(.+), )?(.+), (..)");
   shouldBe(regexp12.firstMatch('Seattle, WA to Buckley, WA'), [
@@ -72,12 +84,15 @@ void main() {
     'WA',
     null,
     'Buckley',
-    'WA'
+    'WA',
   ]);
 
   var regexp13 = new RegExp(r"(A)?(A.*)");
-  shouldBe(regexp13.firstMatch('zxcasd;fl\ ^AaaAAaaaf;lrlrzs'),
-      ['AaaAAaaaf;lrlrzs', null, 'AaaAAaaaf;lrlrzs']);
+  shouldBe(regexp13.firstMatch('zxcasd;fl\ ^AaaAAaaaf;lrlrzs'), [
+    'AaaAAaaaf;lrlrzs',
+    null,
+    'AaaAAaaaf;lrlrzs',
+  ]);
 
   var regexp14 = new RegExp(r"(a)|(b)");
   shouldBe(regexp14.firstMatch('b'), ['b', null, 'b']);
@@ -108,8 +123,10 @@ void main() {
   shouldBeNull(regexp22.firstMatch('abcdlskfgjdslkfg'));
 
   var regexp23 = new RegExp("\"[^<\"]*\"|'[^<']*'");
-  shouldBe(regexp23.firstMatch('<html xmlns=\"http://www.w3.org/1999/xhtml\"'),
-      ['\"http://www.w3.org/1999/xhtml\"']);
+  shouldBe(
+    regexp23.firstMatch('<html xmlns=\"http://www.w3.org/1999/xhtml\"'),
+    ['\"http://www.w3.org/1999/xhtml\"'],
+  );
 
   var regexp24 = new RegExp(r"^(?:(?=abc)\w{3}:|\d\d)$");
   shouldBeNull(regexp24.firstMatch('123'));
@@ -121,66 +138,69 @@ void main() {
   var regexp26 = new RegExp(r"a(b)(a*)|aaa");
   shouldBe(regexp26.firstMatch('aaa'), ['aaa', null, null]);
 
-  var regexp27 = new RegExp("^" +
-          "(?:" +
-          "([^:/?#]+):" + /* scheme */
-          ")?" +
-          "(?:" +
-          "(//)" + /* authorityRoot */
-          "(" + /* authority */
-          "(?:" +
-          "(" + /* userInfo */
-          "([^:@]*)" + /* user */
-          ":?" +
-          "([^:@]*)" + /* password */
-          ")?" +
-          "@" +
-          ")?" +
-          "([^:/?#]*)" + /* domain */
-          "(?::(\\d*))?" + /* port */
-          ")" +
-          ")?" +
-          "([^?#]*)" + /*path*/
-          "(?:\\?([^#]*))?" + /* queryString */
-          "(?:#(.*))?" /*fragment */
-      );
+  var regexp27 = new RegExp(
+    "^" +
+        "(?:" +
+        "([^:/?#]+):" + /* scheme */
+        ")?" +
+        "(?:" +
+        "(//)" + /* authorityRoot */
+        "(" + /* authority */
+        "(?:" +
+        "(" + /* userInfo */
+        "([^:@]*)" + /* user */
+        ":?" +
+        "([^:@]*)" + /* password */
+        ")?" +
+        "@" +
+        ")?" +
+        "([^:/?#]*)" + /* domain */
+        "(?::(\\d*))?" + /* port */
+        ")" +
+        ")?" +
+        "([^?#]*)" + /*path*/
+        "(?:\\?([^#]*))?" + /* queryString */
+        "(?:#(.*))?" /*fragment */,
+  );
   shouldBe(
-      regexp27
-          .firstMatch('file:///Users/Someone/Desktop/HelloWorld/index.html'),
-      [
-        'file:///Users/Someone/Desktop/HelloWorld/index.html',
-        'file',
-        '//',
-        '',
-        null,
-        null,
-        null,
-        '',
-        null,
-        '/Users/Someone/Desktop/HelloWorld/index.html',
-        null,
-        null
-      ]);
+    regexp27.firstMatch('file:///Users/Someone/Desktop/HelloWorld/index.html'),
+    [
+      'file:///Users/Someone/Desktop/HelloWorld/index.html',
+      'file',
+      '//',
+      '',
+      null,
+      null,
+      null,
+      '',
+      null,
+      '/Users/Someone/Desktop/HelloWorld/index.html',
+      null,
+      null,
+    ],
+  );
 
-  var regexp28 = new RegExp("^" +
-      "(?:" +
-      "([^:/?#]+):" + /* scheme */
-      ")?" +
-      "(?:" +
-      "(//)" + /* authorityRoot */
-      "(" + /* authority */
-      "(" + /* userInfo */
-      "([^:@]*)" + /* user */
-      ":?" +
-      "([^:@]*)" + /* password */
-      ")?" +
-      "@" +
-      ")" +
-      ")?");
+  var regexp28 = new RegExp(
+    "^" +
+        "(?:" +
+        "([^:/?#]+):" + /* scheme */
+        ")?" +
+        "(?:" +
+        "(//)" + /* authorityRoot */
+        "(" + /* authority */
+        "(" + /* userInfo */
+        "([^:@]*)" + /* user */
+        ":?" +
+        "([^:@]*)" + /* password */
+        ")?" +
+        "@" +
+        ")" +
+        ")?",
+  );
   shouldBe(
-      regexp28
-          .firstMatch('file:///Users/Someone/Desktop/HelloWorld/index.html'),
-      ['file:', 'file', null, null, null, null, null]);
+    regexp28.firstMatch('file:///Users/Someone/Desktop/HelloWorld/index.html'),
+    ['file:', 'file', null, null, null, null, null],
+  );
 
   var regexp29 = new RegExp(r'^\s*((\[[^\]]+\])|(u?)("[^"]+"))\s*');
   shouldBeNull(regexp29.firstMatch('Committer:'));
@@ -218,11 +238,26 @@ void main() {
   shouldBeNull(regexp36.firstMatch('/123'));
 
   var regexp37 = new RegExp(
-      r"^([1][0-2]|[0]\d|\d)(\/|\.|\-)([0-2]\d|[3][0-1]|\d)((\/|\.|\-)(\d\d|\d\d\d\d)|)$");
-  shouldBe(regexp37.firstMatch('7/4/1776'),
-      ['7/4/1776', '7', '/', '4', '/1776', '/', '1776']);
-  shouldBe(regexp37.firstMatch('07-04-1776'),
-      ['07-04-1776', '07', '-', '04', '-1776', '-', '1776']);
+    r"^([1][0-2]|[0]\d|\d)(\/|\.|\-)([0-2]\d|[3][0-1]|\d)((\/|\.|\-)(\d\d|\d\d\d\d)|)$",
+  );
+  shouldBe(regexp37.firstMatch('7/4/1776'), [
+    '7/4/1776',
+    '7',
+    '/',
+    '4',
+    '/1776',
+    '/',
+    '1776',
+  ]);
+  shouldBe(regexp37.firstMatch('07-04-1776'), [
+    '07-04-1776',
+    '07',
+    '-',
+    '04',
+    '-1776',
+    '-',
+    '1776',
+  ]);
 
   var regexp38 = new RegExp(r"^(z|(x|xx)|b|)$");
   shouldBe(regexp38.firstMatch('xx'), ['xx', 'xx', 'xx']);
@@ -244,25 +279,29 @@ void main() {
   shouldBe(regexp40.firstMatch('zPPPPz'), ['', null, null, null, '']);
 
   var regexp41 = new RegExp(
-      r"(([\w\-]+:\/\/?|www[.])[^\s()<>]+(?:([\w\d]+)|([^\[:punct:\]\s()<>\W]|\/)))");
+    r"(([\w\-]+:\/\/?|www[.])[^\s()<>]+(?:([\w\d]+)|([^\[:punct:\]\s()<>\W]|\/)))",
+  );
   shouldBe(
-      regexp41.firstMatch(
-          'Here is a link: http://www.acme.com/our_products/index.html. That is all we want!'),
-      [
-        'http://www.acme.com/our_products/index.html',
-        'http://www.acme.com/our_products/index.html',
-        'http://',
-        'l',
-        null
-      ]);
+    regexp41.firstMatch(
+      'Here is a link: http://www.acme.com/our_products/index.html. That is all we want!',
+    ),
+    [
+      'http://www.acme.com/our_products/index.html',
+      'http://www.acme.com/our_products/index.html',
+      'http://',
+      'l',
+      null,
+    ],
+  );
 
   var regexp42 = new RegExp(r"((?:(4)?))?");
   shouldBe(regexp42.firstMatch(''), ['', null, null]);
   shouldBe(regexp42.firstMatch('4'), ['4', '4', '4']);
   shouldBe(regexp42.firstMatch('4321'), ['4', '4', '4']);
 
-  shouldBeTrue(new RegExp(r"(?!(?=r{0}){2,})|((z)?)?", caseSensitive: false)
-      .hasMatch(''));
+  shouldBeTrue(
+    new RegExp(r"(?!(?=r{0}){2,})|((z)?)?", caseSensitive: false).hasMatch(''),
+  );
 
   var regexp43 = new RegExp(r"(?!(?:\1+s))");
   shouldBe(regexp43.firstMatch('SSS'), ['']);
@@ -283,11 +322,12 @@ void main() {
   shouldBe(regexp47.firstMatch('/www.acme.com/this/is/a/path/file.txt'), [
     '/www.acme.com/this/is/a/path/file.txt',
     '/www.acme.com/this/is/a/path/file.txt',
-    null
+    null,
   ]);
 
   var regexp48 = new RegExp(
-      r"^(?:(\w+):\/*([\w\.\-\d]+)(?::(\d+)|)(?=(?:\/|$))|)(?:$|\/?(.*?)(?:\?(.*?)?|)(?:#(.*)|)$)");
+    r"^(?:(\w+):\/*([\w\.\-\d]+)(?::(\d+)|)(?=(?:\/|$))|)(?:$|\/?(.*?)(?:\?(.*?)?|)(?:#(.*)|)$)",
+  );
   shouldBe(regexp48.firstMatch('http://www.acme.com/this/is/a/path/file.txt'), [
     'http://www.acme.com/this/is/a/path/file.txt',
     'http',
@@ -295,11 +335,12 @@ void main() {
     null,
     'this/is/a/path/file.txt',
     null,
-    null
+    null,
   ]);
 
   var regexp49 = new RegExp(
-      r"(?:([^:]*?)(?:(?:\?(.*?)?)?)(?:(?:#)?)$)|(?:^(?:(\w+):\/*([\w\.\-\d]+)(?::(\d+)|)(?=(?:\/|$))|)(?:$|\/?(.*?)(?:\?(.*?)?|)(?:#(.*)|)$))");
+    r"(?:([^:]*?)(?:(?:\?(.*?)?)?)(?:(?:#)?)$)|(?:^(?:(\w+):\/*([\w\.\-\d]+)(?::(\d+)|)(?=(?:\/|$))|)(?:$|\/?(.*?)(?:\?(.*?)?|)(?:#(.*)|)$))",
+  );
   shouldBe(regexp49.firstMatch('http://www.acme.com/this/is/a/path/file.txt'), [
     'http://www.acme.com/this/is/a/path/file.txt',
     null,
@@ -309,7 +350,7 @@ void main() {
     null,
     'this/is/a/path/file.txt',
     null,
-    null
+    null,
   ]);
 
   var regexp50 = new RegExp(r"((a)b{28,}c|d)x");
@@ -317,7 +358,7 @@ void main() {
   shouldBe(regexp50.firstMatch('abbbbbbbbbbbbbbbbbbbbbbbbbbbbcx'), [
     'abbbbbbbbbbbbbbbbbbbbbbbbbbbbcx',
     'abbbbbbbbbbbbbbbbbbbbbbbbbbbbc',
-    'a'
+    'a',
   ]);
   shouldBe(regexp50.firstMatch('dx'), ['dx', 'd', null]);
 
@@ -331,8 +372,9 @@ void main() {
 
   // Test cases discovered by fuzzing that crashed the compiler.
   var regexp53 = new RegExp(
-      r"(?=(?:(?:(gB)|(?!cs|<))((?=(?!v6){0,})))|(?=#)+?)",
-      multiLine: true);
+    r"(?=(?:(?:(gB)|(?!cs|<))((?=(?!v6){0,})))|(?=#)+?)",
+    multiLine: true,
+  );
   shouldBe(regexp53.firstMatch('#'), ['', null, '']);
   var regexp54 = new RegExp(r"((?:(?:()|(?!))((?=(?!))))|())", multiLine: true);
   shouldBe(regexp54.firstMatch('#'), ['', '', null, null, '']);
@@ -350,9 +392,10 @@ void main() {
   shouldBe(regexp58.firstMatch('badbc'), ['a']);
   var regexp59 = new RegExp(r"(X(?:.(?!X))*?Y)|(Y(?:.(?!Y))*?Z)");
   Expect.listEquals(
-      regexp59
-          .allMatches('Y aaa X Match1 Y aaa Y Match2 Z')
-          .map((m) => m.group(0))
-          .toList(),
-      ['X Match1 Y', 'Y Match2 Z']);
+    regexp59
+        .allMatches('Y aaa X Match1 Y aaa Y Match2 Z')
+        .map((m) => m.group(0))
+        .toList(),
+    ['X Match1 Y', 'Y Match2 Z'],
+  );
 }

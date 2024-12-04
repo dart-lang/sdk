@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc = r'Avoid using `forEach` with a function literal.';
 
@@ -67,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.argumentList.arguments.isNotEmpty &&
         node.argumentList.arguments.first is FunctionExpression &&
         _isIterable(target.staticType) &&
-        !node.containsNullAwareInvocationInChain() &&
+        !node.containsNullAwareInvocationInChain &&
         !_hasMethodChaining(node) &&
         !_isInsideCascade(node)) {
       rule.reportLint(node.function);

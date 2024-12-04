@@ -67,11 +67,10 @@ example(List<int> list) {
       await assertErrorsInCode(code, [
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
       ]);
-      assertType(findElement.localVar('a').type, 'int');
-      assertType(findElement.parameter('x').type, 'int');
-      assertType(findElement.parameter('y').type, 'int');
-      expect(findNode.binary('x + y').staticElement!.enclosingElement3.name,
-          'num');
+      assertType(findElement2.localVar('a').type, 'int');
+      assertType(findElement2.parameter('x').type, 'int');
+      assertType(findElement2.parameter('y').type, 'int');
+      expect(findNode.binary('x + y').element!.enclosingElement2!.name3, 'num');
     } else {
       await assertErrorsInCode(code, [
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
@@ -110,9 +109,10 @@ test() {
                 'List<int> Function(int Function()))'
             : 'List<InvalidType> Function(int Function(), '
                 'List<InvalidType> Function(int Function()))');
-    assertType(findNode.simpleParameter('h)').declaredElement!.type,
+    assertType(findNode.simpleParameter('h)').declaredFragment!.element.type,
         _isEnabled ? 'int Function()' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
+    assertType(
+        findNode.variableDeclaration('a =').declaredFragment!.element.type,
         _isEnabled ? 'List<int>' : 'List<InvalidType>');
   }
 
@@ -134,10 +134,11 @@ test(List<int> list) {
             1),
     ]);
     assertType(
-        findElement.localVar('a').type, _isEnabled ? 'int' : 'InvalidType');
-    assertType(findElement.parameter('x').type, _isEnabled ? 'int' : 'Object?');
-    assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement?.enclosingElement3.name,
+        findElement2.localVar('a').type, _isEnabled ? 'int' : 'InvalidType');
+    assertType(
+        findElement2.parameter('x').type, _isEnabled ? 'int' : 'Object?');
+    assertType(findElement2.parameter('y').type, 'int');
+    expect(findNode.binary('+ y').element?.enclosingElement2!.name3,
         _isEnabled ? 'num' : null);
   }
 
@@ -158,9 +159,10 @@ test() {
         _isEnabled
             ? 'List<int> Function(List<int> Function(int), int Function())'
             : 'List<Object?> Function(List<Object?> Function(int), int Function())');
-    assertType(findNode.simpleParameter('x)').declaredElement!.type,
+    assertType(findNode.simpleParameter('x)').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
+    assertType(
+        findNode.variableDeclaration('a =').declaredFragment!.element.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 
@@ -181,9 +183,10 @@ test() {
         _isEnabled
             ? 'List<int> Function(int Function(), List<int> Function(int))'
             : 'List<Object?> Function(int Function(), List<Object?> Function(int))');
-    assertType(findNode.simpleParameter('x)').declaredElement!.type,
+    assertType(findNode.simpleParameter('x)').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
+    assertType(
+        findNode.variableDeclaration('a =').declaredFragment!.element.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 
@@ -204,9 +207,10 @@ test() {
         _isEnabled
             ? 'List<int> Function(int, List<int> Function(int))'
             : 'List<Object?> Function(int, List<Object?> Function(int))');
-    assertType(findNode.simpleParameter('x)').declaredElement!.type,
+    assertType(findNode.simpleParameter('x)').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
+    assertType(
+        findNode.variableDeclaration('a =').declaredFragment!.element.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 
@@ -219,7 +223,7 @@ test() => f(0, (x) {});
         findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
     assertType(findNode.methodInvocation('f(').staticInvokeType,
         'void Function(int, void Function(int))');
-    assertType(findNode.simpleParameter('x').declaredElement!.type,
+    assertType(findNode.simpleParameter('x').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
   }
 
@@ -232,7 +236,7 @@ test() => f(t: 0, g: (x) {});
         findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
     assertType(findNode.methodInvocation('f(').staticInvokeType,
         'void Function({required void Function(int) g, required int t})');
-    assertType(findNode.simpleParameter('x').declaredElement!.type,
+    assertType(findNode.simpleParameter('x').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
   }
 
@@ -245,7 +249,7 @@ test() => f(0, ((x) {}));
         findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
     assertType(findNode.methodInvocation('f(').staticInvokeType,
         'void Function(int, void Function(int))');
-    assertType(findNode.simpleParameter('x').declaredElement!.type,
+    assertType(findNode.simpleParameter('x').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
   }
 
@@ -258,7 +262,7 @@ test() => f(t: 0, g: ((x) {}));
         findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
     assertType(findNode.methodInvocation('f(').staticInvokeType,
         'void Function({required void Function(int) g, required int t})');
-    assertType(findNode.simpleParameter('x').declaredElement!.type,
+    assertType(findNode.simpleParameter('x').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
   }
 
@@ -271,7 +275,7 @@ test() => f(0, (((x) {})));
         findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
     assertType(findNode.methodInvocation('f(').staticInvokeType,
         'void Function(int, void Function(int))');
-    assertType(findNode.simpleParameter('x').declaredElement!.type,
+    assertType(findNode.simpleParameter('x').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
   }
 
@@ -284,7 +288,7 @@ test() => f(t: 0, g: (((x) {})));
         findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
     assertType(findNode.methodInvocation('f(').staticInvokeType,
         'void Function({required void Function(int) g, required int t})');
-    assertType(findNode.simpleParameter('x').declaredElement!.type,
+    assertType(findNode.simpleParameter('x').declaredFragment!.element.type,
         _isEnabled ? 'int' : 'Object?');
   }
 
@@ -298,10 +302,10 @@ test(List<int> list) {
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
-    assertType(findElement.localVar('a').type, 'int?');
-    assertType(findElement.parameter('x').type, 'int?');
-    assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement!.enclosingElement3.name, 'num');
+    assertType(findElement2.localVar('a').type, 'int?');
+    assertType(findElement2.parameter('x').type, 'int?');
+    assertType(findElement2.parameter('y').type, 'int');
+    expect(findNode.binary('+ y').element!.enclosingElement2!.name3, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_explicit_parameter_type_named() async {
@@ -315,10 +319,10 @@ test() {
 ''', [
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 86, 1),
     ]);
-    assertType(findElement.localVar('a').type, 'int?');
-    assertType(findElement.parameter('x').type, 'int?');
-    assertType(findElement.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').staticElement!.enclosingElement3.name, 'num');
+    assertType(findElement2.localVar('a').type, 'int?');
+    assertType(findElement2.parameter('x').type, 'int?');
+    assertType(findElement2.parameter('y').type, 'int');
+    expect(findNode.binary('+ y').element!.enclosingElement2!.name3, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_no_dependency() async {

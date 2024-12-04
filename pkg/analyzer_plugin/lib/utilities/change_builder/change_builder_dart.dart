@@ -333,6 +333,13 @@ abstract class DartEditBuilder implements EditBuilder {
   /// the current library, imports will be updated.
   void writeReference(Element element);
 
+  /// Writes the code that references the [element].
+  ///
+  /// If the [element] is a top-level element that has not been imported into
+  /// the current library, imports will be updated.
+  @experimental
+  void writeReference2(Element2 element);
+
   /// Writes the code for a declaration of a setter with the given [name].
   ///
   /// If a [bodyWriter] is provided, it will be invoked to write the body of the

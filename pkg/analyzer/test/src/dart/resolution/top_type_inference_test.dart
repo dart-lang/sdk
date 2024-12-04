@@ -23,8 +23,8 @@ class A {
 final b = new A().a;
 ''');
 
-    assertType(findElement.field('a').type, 'int');
-    assertType(findElement.topVar('b').type, 'int');
+    assertType(findElement2.field('a').type, 'int');
+    assertType(findElement2.topVar('b').type, 'int');
   }
 
   test_referenceInstanceVariable_withoutDeclaredType() async {
@@ -38,7 +38,7 @@ final b = new A().a;
       error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 37, 1),
     ]);
 
-    assertTypeDynamic(findElement.field('a').type);
-    assertTypeDynamic(findElement.topVar('b').type);
+    assertTypeDynamic(findElement2.field('a').type);
+    assertTypeDynamic(findElement2.topVar('b').type);
   }
 }

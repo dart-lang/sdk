@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' hide Link;
-import 'package:async_helper/async_helper.dart';
+import 'package:expect/async_helper.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'deferred_loading_test_helper.dart';
 

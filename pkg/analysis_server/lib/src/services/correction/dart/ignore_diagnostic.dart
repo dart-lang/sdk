@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
@@ -20,8 +21,9 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.IGNORE_ERROR_ANALYSIS_FILE;
@@ -38,7 +40,7 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 
     if (_isCodeUnignorable) return;
 
-    var analysisOptionsFile = analysisOptions.file;
+    var analysisOptionsFile = (analysisOptions as AnalysisOptionsImpl).file;
 
     // TODO(osaxma): should an `analysis_options.yaml` be created when
     //               it doesn't exists?
@@ -60,15 +62,15 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
         path = [];
         value = {
           'analyzer': {
-            'errors': {_code: 'ignore'}
-          }
+            'errors': {_code: 'ignore'},
+          },
         };
       } else {
         var analyzerMap = options['analyzer'];
         if (analyzerMap is! YamlMap || !analyzerMap.containsKey('errors')) {
           path = ['analyzer'];
           value = {
-            'errors': {_code: 'ignore'}
+            'errors': {_code: 'ignore'},
           };
         } else {
           path = ['analyzer', 'errors', _code];
@@ -193,8 +195,9 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
         return;
       }
 
-      var previousLineStart =
-          unitResult.lineInfo.getOffsetOfLine(lineNumber - 1);
+      var previousLineStart = unitResult.lineInfo.getOffsetOfLine(
+        lineNumber - 1,
+      );
       var lineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber);
       var line =
           unitResult.content.substring(previousLineStart, lineStart).trim();
@@ -213,8 +216,9 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   AnalysisError get error => diagnostic as AnalysisError;
 
@@ -227,8 +231,8 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   /// - `error.code` is present in the `cannot-ignore` list.
   /// - `error.code` is already ignored in the `errors` list.
   bool get _isCodeUnignorable {
-    var cannotIgnore =
-        analysisOptions.unignorableNames.contains(error.errorCode.name);
+    var cannotIgnore = (analysisOptions as AnalysisOptionsImpl).unignorableNames
+        .contains(error.errorCode.name);
 
     if (cannotIgnore) {
       return true;
@@ -239,8 +243,10 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
     //
     // Note: both `ignore` and `false` severity are set to `null` when parsed.
     //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
-    return analysisOptions.errorProcessors.any((element) =>
-        element.severity == null && element.code == error.errorCode.name);
+    return analysisOptions.errorProcessors.any(
+      (element) =>
+          element.severity == null && element.code == error.errorCode.name,
+    );
   }
 }
 

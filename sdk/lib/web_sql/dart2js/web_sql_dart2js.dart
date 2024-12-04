@@ -40,7 +40,9 @@ import 'dart:_js_helper'
 // WARNING: Do not edit - generated code.
 
 typedef void SqlStatementCallback(
-    SqlTransaction transaction, SqlResultSet resultSet);
+  SqlTransaction transaction,
+  SqlResultSet resultSet,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -48,7 +50,9 @@ typedef void SqlStatementCallback(
 // WARNING: Do not edit - generated code.
 
 typedef void SqlStatementErrorCallback(
-    SqlTransaction transaction, SqlError error);
+  SqlTransaction transaction,
+  SqlError error,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -96,10 +100,13 @@ class SqlDatabase extends JavaScriptObject {
    *
    * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
    */
-  void _changeVersion(String oldVersion, String newVersion,
-      [SqlTransactionCallback? callback,
-      SqlTransactionErrorCallback? errorCallback,
-      VoidCallback? successCallback]) native;
+  void _changeVersion(
+    String oldVersion,
+    String newVersion, [
+    SqlTransactionCallback? callback,
+    SqlTransactionErrorCallback? errorCallback,
+    VoidCallback? successCallback,
+  ]) native;
 
   @JSName('changeVersion')
   /**
@@ -118,43 +125,58 @@ class SqlDatabase extends JavaScriptObject {
    */
   Future<SqlTransaction> changeVersion(String oldVersion, String newVersion) {
     var completer = new Completer<SqlTransaction>();
-    _changeVersion(oldVersion, newVersion, (value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _changeVersion(
+      oldVersion,
+      newVersion,
+      (value) {
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
   @JSName('readTransaction')
-  void _readTransaction(SqlTransactionCallback callback,
-      [SqlTransactionErrorCallback? errorCallback,
-      VoidCallback? successCallback]) native;
+  void _readTransaction(
+    SqlTransactionCallback callback, [
+    SqlTransactionErrorCallback? errorCallback,
+    VoidCallback? successCallback,
+  ]) native;
 
   @JSName('readTransaction')
   Future<SqlTransaction> readTransaction() {
     var completer = new Completer<SqlTransaction>();
-    _readTransaction((value) {
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    _readTransaction(
+      (value) {
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 
-  void transaction(SqlTransactionCallback callback,
-      [SqlTransactionErrorCallback? errorCallback,
-      VoidCallback? successCallback]) native;
+  void transaction(
+    SqlTransactionCallback callback, [
+    SqlTransactionErrorCallback? errorCallback,
+    VoidCallback? successCallback,
+  ]) native;
 
   @JSName('transaction')
   Future<SqlTransaction> transaction_future() {
     var completer = new Completer<SqlTransaction>();
-    transaction((value) {
-      applyExtension('SQLTransaction', value);
-      completer.complete(value);
-    }, (error) {
-      completer.completeError(error);
-    });
+    transaction(
+      (value) {
+        applyExtension('SQLTransaction', value);
+        completer.complete(value);
+      },
+      (error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 }
@@ -287,21 +309,28 @@ class SqlTransaction extends JavaScriptObject {
   }
 
   @JSName('executeSql')
-  void _executeSql(String sqlStatement,
-      [List? arguments,
-      SqlStatementCallback? callback,
-      SqlStatementErrorCallback? errorCallback]) native;
+  void _executeSql(
+    String sqlStatement, [
+    List? arguments,
+    SqlStatementCallback? callback,
+    SqlStatementErrorCallback? errorCallback,
+  ]) native;
 
   @JSName('executeSql')
   Future<SqlResultSet> executeSql(String sqlStatement, [List? arguments]) {
     var completer = new Completer<SqlResultSet>();
-    _executeSql(sqlStatement, arguments, (transaction, resultSet) {
-      applyExtension('SQLResultSet', resultSet);
-      applyExtension('SQLResultSetRowList', resultSet.rows);
-      completer.complete(resultSet);
-    }, (transaction, error) {
-      completer.completeError(error);
-    });
+    _executeSql(
+      sqlStatement,
+      arguments,
+      (transaction, resultSet) {
+        applyExtension('SQLResultSet', resultSet);
+        applyExtension('SQLResultSetRowList', resultSet.rows);
+        completer.complete(resultSet);
+      },
+      (transaction, error) {
+        completer.completeError(error);
+      },
+    );
     return completer.future;
   }
 }

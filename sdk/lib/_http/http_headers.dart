@@ -23,11 +23,12 @@ class _HttpHeaders implements HttpHeaders {
 
   final int _defaultPortForScheme;
 
-  _HttpHeaders(this.protocolVersion,
-      {int defaultPortForScheme = HttpClient.defaultHttpPort,
-      _HttpHeaders? initialHeaders})
-      : _headers = HashMap<String, List<String>>(),
-        _defaultPortForScheme = defaultPortForScheme {
+  _HttpHeaders(
+    this.protocolVersion, {
+    int defaultPortForScheme = HttpClient.defaultHttpPort,
+    _HttpHeaders? initialHeaders,
+  }) : _headers = HashMap<String, List<String>>(),
+       _defaultPortForScheme = defaultPortForScheme {
     if (initialHeaders != null) {
       initialHeaders._headers.forEach((name, value) => _headers[name] = value);
       _contentLength = initialHeaders._contentLength;
@@ -142,8 +143,9 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         if (_contentLength < 0) {
           throw HttpException(
-              "Trying to set 'Connection: Keep-Alive' on HTTP 1.0 headers with "
-              "no ContentLength");
+            "Trying to set 'Connection: Keep-Alive' on HTTP 1.0 headers with "
+            "no ContentLength",
+          );
         }
         add(originalName, "keep-alive", preserveHeaderCase: true);
       }
@@ -165,8 +167,9 @@ class _HttpHeaders implements HttpHeaders {
         persistentConnection &&
         contentLength == -1) {
       throw HttpException(
-          "Trying to clear ContentLength on HTTP 1.0 headers with "
-          "'Connection: Keep-Alive' set");
+        "Trying to clear ContentLength on HTTP 1.0 headers with "
+        "'Connection: Keep-Alive' set",
+      );
     }
     if (_contentLength == contentLength) return;
     _contentLength = contentLength;
@@ -187,7 +190,8 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     if (chunkedTransferEncoding && protocolVersion == "1.0") {
       throw HttpException(
-          "Trying to set 'Transfer-Encoding: Chunked' on HTTP 1.0 headers");
+        "Trying to set 'Transfer-Encoding: Chunked' on HTTP 1.0 headers",
+      );
     }
     if (chunkedTransferEncoding == _chunkedTransferEncoding) return;
     if (chunkedTransferEncoding) {
@@ -522,9 +526,10 @@ class _HttpHeaders implements HttpHeaders {
     // Content-Length header field when the request message does not
     // contain a payload body and the method semantics do not anticipate
     // such a body.
-    String? ignoreHeader = _contentLength == 0 && skipZeroContentLength
-        ? HttpHeaders.contentLengthHeader
-        : null;
+    String? ignoreHeader =
+        _contentLength == 0 && skipZeroContentLength
+            ? HttpHeaders.contentLengthHeader
+            : null;
     _headers.forEach((String name, List<String> values) {
       if (ignoreHeader == name) {
         return;
@@ -659,7 +664,10 @@ class _HttpHeaders implements HttpHeaders {
     for (var i = 0; i < field.length; i++) {
       if (!_HttpParser._isTokenChar(field.codeUnitAt(i))) {
         throw FormatException(
-            "Invalid HTTP header field name: ${json.encode(field)}", field, i);
+          "Invalid HTTP header field name: ${json.encode(field)}",
+          field,
+          i,
+        );
       }
     }
     return field.toLowerCase();
@@ -670,7 +678,10 @@ class _HttpHeaders implements HttpHeaders {
     for (var i = 0; i < (value).length; i++) {
       if (!_HttpParser._isValueChar((value).codeUnitAt(i))) {
         throw FormatException(
-            "Invalid HTTP header field value: ${json.encode(value)}", value, i);
+          "Invalid HTTP header field value: ${json.encode(value)}",
+          value,
+          i,
+        );
       }
     }
     return value;
@@ -694,10 +705,12 @@ class _HeaderValue implements HeaderValue {
     }
   }
 
-  static _HeaderValue parse(String value,
-      {String parameterSeparator = ";",
-      String? valueSeparator,
-      bool preserveBackslash = false}) {
+  static _HeaderValue parse(
+    String value, {
+    String parameterSeparator = ";",
+    String? valueSeparator,
+    bool preserveBackslash = false,
+  }) {
     // Parse the string.
     var result = _HeaderValue();
     result._parse(value, parameterSeparator, valueSeparator, preserveBackslash);
@@ -746,7 +759,7 @@ class _HeaderValue implements HeaderValue {
               // Can use codeUnitAt here instead.
               int codeUnit = value.codeUnitAt(i);
               if (codeUnit == 92 /* backslash */ ||
-                  codeUnit == 34 /* double quote */) {
+                  codeUnit == 34 /* double quote */ ) {
                 sb.write(value.substring(start, i));
                 sb.write(r'\');
                 start = i;
@@ -762,8 +775,12 @@ class _HeaderValue implements HeaderValue {
     return sb.toString();
   }
 
-  void _parse(String s, String parameterSeparator, String? valueSeparator,
-      bool preserveBackslash) {
+  void _parse(
+    String s,
+    String parameterSeparator,
+    String? valueSeparator,
+    bool preserveBackslash,
+  ) {
     int index = 0;
 
     bool done() => index == s.length;
@@ -782,7 +799,8 @@ class _HeaderValue implements HeaderValue {
         if (char == " " ||
             char == "\t" ||
             char == valueSeparator ||
-            char == parameterSeparator) break;
+            char == parameterSeparator)
+          break;
         index++;
       }
       return s.substring(start, index);
@@ -814,7 +832,8 @@ class _HeaderValue implements HeaderValue {
               char == "\t" ||
               char == "=" ||
               char == parameterSeparator ||
-              char == valueSeparator) break;
+              char == valueSeparator)
+            break;
           index++;
         }
         return s.substring(start, index).toLowerCase();
@@ -888,11 +907,14 @@ class _ContentType extends _HeaderValue implements ContentType {
   String _primaryType = "";
   String _subType = "";
 
-  _ContentType(String primaryType, String subType, String? charset,
-      Map<String, String?> parameters)
-      : _primaryType = primaryType,
-        _subType = subType,
-        super("") {
+  _ContentType(
+    String primaryType,
+    String subType,
+    String? charset,
+    Map<String, String?> parameters,
+  ) : _primaryType = primaryType,
+      _subType = subType,
+      super("") {
     // TODO(40614): Remove once non-nullability is sound.
     String emptyIfNull(String? string) => string ?? "";
     _primaryType = emptyIfNull(_primaryType);
@@ -952,9 +974,9 @@ class _Cookie implements Cookie {
   SameSite? sameSite;
 
   _Cookie(String name, String value)
-      : _name = _validateName(name),
-        _value = _validateValue(value),
-        httpOnly = true;
+    : _name = _validateName(name),
+      _value = _validateValue(value),
+      httpOnly = true;
 
   String get name => _name;
   String get value => _value;
@@ -976,9 +998,7 @@ class _Cookie implements Cookie {
     _value = newValue;
   }
 
-  _Cookie.fromSetCookieValue(String value)
-      : _name = "",
-        _value = "" {
+  _Cookie.fromSetCookieValue(String value) : _name = "", _value = "" {
     // Parse the 'set-cookie' header value.
     _parseSetCookieValue(value);
   }
@@ -1050,8 +1070,10 @@ class _Cookie implements Cookie {
             "lax" => SameSite.lax,
             "none" => SameSite.none,
             "strict" => SameSite.strict,
-            _ => throw HttpException(
-                'SameSite value should be one of Lax, Strict or None.')
+            _ =>
+              throw HttpException(
+                'SameSite value should be one of Lax, Strict or None.',
+              ),
           };
         }
         if (!done()) index++; // Skip the ; character
@@ -1121,7 +1143,7 @@ class _Cookie implements Cookie {
       "?",
       "=",
       "{",
-      "}"
+      "}",
     ];
     if (newName == null) throw ArgumentError.notNull("name");
     for (int i = 0; i < newName.length; i++) {
@@ -1130,9 +1152,10 @@ class _Cookie implements Cookie {
           codeUnit >= 127 ||
           separators.contains(newName[i])) {
         throw FormatException(
-            "Invalid character in cookie name, code unit: '$codeUnit'",
-            newName,
-            i);
+          "Invalid character in cookie name, code unit: '$codeUnit'",
+          newName,
+          i,
+        );
       }
     }
     return newName;
@@ -1159,9 +1182,10 @@ class _Cookie implements Cookie {
           (codeUnit >= 0x3C && codeUnit <= 0x5B) ||
           (codeUnit >= 0x5D && codeUnit <= 0x7E))) {
         throw FormatException(
-            "Invalid character in cookie value, code unit: '$codeUnit'",
-            newValue,
-            i);
+          "Invalid character in cookie value, code unit: '$codeUnit'",
+          newValue,
+          i,
+        );
       }
     }
     return newValue;
@@ -1175,9 +1199,10 @@ class _Cookie implements Cookie {
       // path.
       // path-value = <any CHAR except CTLs or ";">
       // CTLs = %x00-1F / %x7F
-      if (codeUnit < 0x20 || codeUnit >= 0x7f || codeUnit == 0x3b /*;*/) {
+      if (codeUnit < 0x20 || codeUnit >= 0x7f || codeUnit == 0x3b /*;*/ ) {
         throw FormatException(
-            "Invalid character in cookie path, code unit: '$codeUnit'");
+          "Invalid character in cookie path, code unit: '$codeUnit'",
+        );
       }
     }
   }

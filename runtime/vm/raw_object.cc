@@ -768,18 +768,6 @@ void UntaggedObject::RememberCard(CompressedObjectPtr const* slot) {
 }
 #endif
 
-DEFINE_LEAF_RUNTIME_ENTRY(void,
-                          RememberCard,
-                          2,
-                          uword /*ObjectPtr*/ object_in,
-                          ObjectPtr* slot) {
-  ObjectPtr object = static_cast<ObjectPtr>(object_in);
-  ASSERT(object->IsOldObject());
-  ASSERT(object->untag()->IsCardRemembered());
-  Page::Of(object)->RememberCard(slot);
-}
-END_LEAF_RUNTIME_ENTRY
-
 const char* UntaggedPcDescriptors::KindToCString(Kind k) {
   switch (k) {
 #define ENUM_CASE(name, init)                                                  \

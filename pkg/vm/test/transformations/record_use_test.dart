@@ -82,6 +82,7 @@ void main(List<String> args) {
         .reversed) {
       if (file.path.endsWith('.dart') &&
           !file.path.contains('helper') &&
+          !file.path.contains('instance_complex') &&
           (filter == null || file.path.contains(filter))) {
         test('${file.path} aot',
             () => runTestCaseAot(file.uri, file.path.contains('throws')));

@@ -17,8 +17,9 @@ class EncapsulateField extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.ENCAPSULATE_FIELD;
@@ -181,9 +182,10 @@ class EncapsulateField extends ResolvedCorrectionProducer {
             );
 
             var previous = constructor.separator ?? constructor.parameters;
-            var replacement = constructor.initializers.isEmpty
-                ? ' : _$name = $name'
-                : ' _$name = $name,';
+            var replacement =
+                constructor.initializers.isEmpty
+                    ? ' : _$name = $name'
+                    : ' _$name = $name,';
             builder.addSimpleInsertion(previous.end, replacement);
             break;
           }

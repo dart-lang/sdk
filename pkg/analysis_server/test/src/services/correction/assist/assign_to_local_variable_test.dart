@@ -64,10 +64,14 @@ void f() {
 List<int> readBytes() => <int>[];
 ''');
     assertLinkedGroup(
-        0,
-        ['readBytes = '],
-        expectedSuggestions(LinkedEditSuggestionKind.VARIABLE,
-            ['list', 'bytes2', 'readBytes']));
+      0,
+      ['readBytes = '],
+      expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, [
+        'list',
+        'bytes2',
+        'readBytes',
+      ]),
+    );
   }
 
   Future<void> test_invocationArgument() async {

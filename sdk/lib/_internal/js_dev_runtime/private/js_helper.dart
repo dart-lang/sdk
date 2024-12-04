@@ -148,10 +148,11 @@ class Primitives {
     // - a Dart double literal
     // We do allow leading or trailing whitespace.
     if (!JS(
-        'bool',
-        r'/^\s*[+-]?(?:Infinity|NaN|'
-            r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
-        source)) {
+      'bool',
+      r'/^\s*[+-]?(?:Infinity|NaN|'
+          r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
+      source,
+    )) {
       return null;
     }
     var result = JS<double>('!', r'parseFloat(#)', source);
@@ -166,15 +167,17 @@ class Primitives {
   }
 
   static bool? parseBool(
-      @nullCheck String source, @nullCheck bool caseSensitive) {
+    @nullCheck String source,
+    @nullCheck bool caseSensitive,
+  ) {
     if (caseSensitive) {
       return JS('bool', r'# == "true" || # != "false" && null', source, source);
     }
     return _compareIgnoreCase(source, "true")
         ? true
         : _compareIgnoreCase(source, "false")
-            ? false
-            : null;
+        ? false
+        : null;
   }
 
   /// Compares a string against an ASCII lower-case letter-only string.
@@ -232,14 +235,17 @@ class Primitives {
 
   static bool get isD8 {
     return JS(
-        'bool',
-        'typeof version == "function"'
-            ' && typeof os == "object" && "system" in os');
+      'bool',
+      'typeof version == "function"'
+          ' && typeof os == "object" && "system" in os',
+    );
   }
 
   static bool get isJsshell {
     return JS(
-        'bool', 'typeof version == "function" && typeof system == "function"');
+      'bool',
+      'typeof version == "function" && typeof system == "function"',
+    );
   }
 
   static String currentUri() {
@@ -266,12 +272,13 @@ class Primitives {
     for (int i = 0; i < end; i += kMaxApply) {
       int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
       result = JS(
-          'String',
-          r'# + String.fromCharCode.apply(null, #.slice(#, #))',
-          result,
-          array,
-          i,
-          chunkEnd);
+        'String',
+        r'# + String.fromCharCode.apply(null, #.slice(#, #))',
+        result,
+        array,
+        i,
+        chunkEnd,
+      );
     }
     return result;
   }
@@ -304,7 +311,10 @@ class Primitives {
   // [start] and [end] are validated.
   @notNull
   static String stringFromNativeUint8List(
-      NativeUint8List charCodes, @nullCheck int start, @nullCheck int end) {
+    NativeUint8List charCodes,
+    @nullCheck int start,
+    @nullCheck int end,
+  ) {
     const kMaxApply = 500;
     if (end <= kMaxApply && start == 0 && end == charCodes.length) {
       return JS<String>('!', r'String.fromCharCode.apply(null, #)', charCodes);
@@ -313,12 +323,13 @@ class Primitives {
     for (int i = start; i < end; i += kMaxApply) {
       int chunkEnd = (i + kMaxApply < end) ? i + kMaxApply : end;
       result = JS(
-          'String',
-          r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
-          result,
-          charCodes,
-          i,
-          chunkEnd);
+        'String',
+        r'# + String.fromCharCode.apply(null, #.subarray(#, #))',
+        result,
+        charCodes,
+        i,
+        chunkEnd,
+      );
     }
     return result;
   }
@@ -358,27 +369,31 @@ class Primitives {
     // Internet Explorer 10+ emits the zone name without parenthesis:
     // Example: Thu Oct 31 14:07:44 PDT 2013
     match = JS<List<String>?>(
-        '',
-        // Thu followed by a space.
-        r'/^[A-Z,a-z]{3}\s'
-            // Oct 31 followed by space.
-            r'[A-Z,a-z]{3}\s\d+\s'
-            // Time followed by a space.
-            r'\d{2}:\d{2}:\d{2}\s'
-            // The time zone name followed by a space.
-            r'([A-Z]{3,5})\s'
-            // The year.
-            r'\d{4}$/'
-            '.exec(#.toString())',
-        d);
+      '',
+      // Thu followed by a space.
+      r'/^[A-Z,a-z]{3}\s'
+          // Oct 31 followed by space.
+          r'[A-Z,a-z]{3}\s\d+\s'
+          // Time followed by a space.
+          r'\d{2}:\d{2}:\d{2}\s'
+          // The time zone name followed by a space.
+          r'([A-Z]{3,5})\s'
+          // The year.
+          r'\d{4}$/'
+          '.exec(#.toString())',
+      d,
+    );
     if (match != null) return match[1];
 
     // IE 9 and Opera don't provide the zone name. We fall back to emitting the
     // UTC/GMT offset.
     // Example (IE9): Wed Nov 20 09:51:00 UTC+0100 2013
     //       (Opera): Wed Nov 20 2013 11:03:38 GMT+0100
-    match =
-        JS<List<String>?>('', r'/(?:GMT|UTC)[+-]\d{4}/.exec(#.toString())', d);
+    match = JS<List<String>?>(
+      '',
+      r'/(?:GMT|UTC)[+-]\d{4}/.exec(#.toString())',
+      d,
+    );
     if (match != null) return match[0];
     return "";
   }
@@ -387,21 +402,25 @@ class Primitives {
     // Note that JavaScript's Date and and Dart's DateTime disagree on the sign
     // of the offset. Subtract to avoid -0.0. The offset in minutes could
     // contain 'seconds' as fractional minutes.
-    num offsetInMinutes =
-        JS('num', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    num offsetInMinutes = JS(
+      'num',
+      r'#.getTimezoneOffset()',
+      lazyAsJsDate(receiver),
+    );
     return (0 - offsetInMinutes * 60).toInt();
   }
 
   static int? valueFromDecomposedDate(
-      @nullCheck int years,
-      @nullCheck int month,
-      @nullCheck int day,
-      @nullCheck int hours,
-      @nullCheck int minutes,
-      @nullCheck int seconds,
-      @nullCheck int milliseconds,
-      @nullCheck int microseconds,
-      @nullCheck bool isUtc) {
+    @nullCheck int years,
+    @nullCheck int month,
+    @nullCheck int day,
+    @nullCheck int hours,
+    @nullCheck int minutes,
+    @nullCheck int seconds,
+    @nullCheck int milliseconds,
+    @nullCheck int microseconds,
+    @nullCheck bool isUtc,
+  ) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     var jsMonth = month - 1;
     // The JavaScript Date constructor 'corrects' year NN to 19NN. Sidestep that
@@ -419,11 +438,29 @@ class Primitives {
     microseconds = remainder;
     int value;
     if (isUtc) {
-      value = JS<int>('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth,
-          day, hours, minutes, seconds, milliseconds);
+      value = JS<int>(
+        '!',
+        r'Date.UTC(#, #, #, #, #, #, #)',
+        years,
+        jsMonth,
+        day,
+        hours,
+        minutes,
+        seconds,
+        milliseconds,
+      );
     } else {
-      value = JS<int>('!', r'new Date(#, #, #, #, #, #, #).valueOf()', years,
-          jsMonth, day, hours, minutes, seconds, milliseconds);
+      value = JS<int>(
+        '!',
+        r'new Date(#, #, #, #, #, #, #).valueOf()',
+        years,
+        jsMonth,
+        day,
+        hours,
+        minutes,
+        seconds,
+        milliseconds,
+      );
     }
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
@@ -437,8 +474,12 @@ class Primitives {
   // Lazily keep a JS Date stored in the JS object.
   static lazyAsJsDate(DateTime receiver) {
     if (JS<bool>('!', r'#.date === (void 0)', receiver)) {
-      JS('void', r'#.date = new Date(#)', receiver,
-          receiver.millisecondsSinceEpoch);
+      JS(
+        'void',
+        r'#.date = new Date(#)',
+        receiver,
+        receiver.millisecondsSinceEpoch,
+      );
     }
     return JS('var', r'#.date', receiver);
   }
@@ -490,9 +531,10 @@ class Primitives {
   }
 
   static int getWeekday(DateTime receiver) {
-    int weekday = (receiver.isUtc)
-        ? JS<int>('!', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
-        : JS<int>('!', r'#.getDay() + 0', lazyAsJsDate(receiver));
+    int weekday =
+        (receiver.isUtc)
+            ? JS<int>('!', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
+            : JS<int>('!', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
@@ -520,8 +562,12 @@ Error diagnoseIndexError(indexable, int index) {
   // [IndexError.check] with no optional parameters
   // provided.
   if (index < 0 || index >= length) {
-    return IndexError.withLength(index, length,
-        indexable: indexable, name: 'index');
+    return IndexError.withLength(
+      index,
+      length,
+      indexable: indexable,
+      name: 'index',
+    );
   }
   // The above should always match, but if it does not, use the following.
   return RangeError.value(index, 'index');
@@ -577,9 +623,8 @@ class JsNoSuchMethodError extends Error implements NoSuchMethodError {
   final String? _receiver;
 
   JsNoSuchMethodError(this._message, match)
-      : _method = match == null ? null : JS('String|Null', '#.method', match),
-        _receiver =
-            match == null ? null : JS('String|Null', '#.receiver', match);
+    : _method = match == null ? null : JS('String|Null', '#.method', match),
+      _receiver = match == null ? null : JS('String|Null', '#.receiver', match);
 
   String toString() {
     if (_method == null) return 'NoSuchMethodError: $_message';
@@ -739,9 +784,13 @@ class AssertionErrorImpl extends AssertionError {
   final int? _column;
   final String? _conditionSource;
 
-  AssertionErrorImpl(Object? message,
-      [this._fileUri, this._line, this._column, this._conditionSource])
-      : super(message);
+  AssertionErrorImpl(
+    Object? message, [
+    this._fileUri,
+    this._line,
+    this._column,
+    this._conditionSource,
+  ]) : super(message);
 
   String toString() {
     var failureMessage = "";
@@ -855,15 +904,25 @@ void Function(T)? wrapZoneUnaryCallback<T>(void Function(T)? callback) {
 /// [fieldRtis] contains the Rti type objects for each field in order of
 /// positionals followed by the sorted named elements.
 Object? createRecordTypePredicate(String partialShapeTag, JSArray fieldRtis) {
-  var shapeKey =
-      JS<String>('!', '#.length + ";" + #', fieldRtis, partialShapeTag);
+  var shapeKey = JS<String>(
+    '!',
+    '#.length + ";" + #',
+    fieldRtis,
+    partialShapeTag,
+  );
   return (obj) {
     return JS<bool>(
-            '!', '# instanceof #', obj, JS_CLASS_REF(dart.RecordImpl)) &&
+          '!',
+          '# instanceof #',
+          obj,
+          JS_CLASS_REF(dart.RecordImpl),
+        ) &&
         JS<dart.Shape>('!', '#[#]', obj, dart.shapeProperty) ==
             JS<dart.Shape?>('', '#.get(#)', dart.shapes, shapeKey) &&
         rti.pairwiseIsTest(
-            fieldRtis, JS<JSArray>('!', '#[#]', obj, dart.valuesProperty));
+          fieldRtis,
+          JS<JSArray>('!', '#[#]', obj, dart.valuesProperty),
+        );
   };
 }
 

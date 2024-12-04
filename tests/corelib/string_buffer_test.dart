@@ -57,9 +57,10 @@ void testWrite() {
   bf.write("\n");
   bf.write("thequickbrownfoxjumpsoverthelazydog");
   Expect.equals(
-      "abcdefghijklmnopqrstuvwxyz\n"
-      "thequickbrownfoxjumpsoverthelazydog",
-      bf.toString());
+    "abcdefghijklmnopqrstuvwxyz\n"
+    "thequickbrownfoxjumpsoverthelazydog",
+    bf.toString(),
+  );
 
   bf = new StringBuffer("");
   for (int i = 0; i < 100000; i++) {
@@ -161,7 +162,12 @@ void testChaining() {
   StringBuffer bf = new StringBuffer("");
   StringBuffer bf2 = new StringBuffer("");
   bf2.write("bf2");
-  bf..write("foo")..write("bar")..write(bf2)..write(bf2)..write("toto");
+  bf
+    ..write("foo")
+    ..write("bar")
+    ..write(bf2)
+    ..write(bf2)
+    ..write("toto");
   Expect.equals("foobarbf2bf2toto", bf.toString());
 }
 

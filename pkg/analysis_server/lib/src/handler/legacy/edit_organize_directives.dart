@@ -16,12 +16,18 @@ class EditOrganizeDirectivesHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditOrganizeDirectivesHandler(
-      super.server, super.request, super.cancellationToken, super.performance);
+    super.server,
+    super.request,
+    super.cancellationToken,
+    super.performance,
+  );
 
   @override
   Future<void> handle() async {
-    var params = EditOrganizeDirectivesParams.fromRequest(request,
-        clientUriConverter: server.uriConverter);
+    var params = EditOrganizeDirectivesParams.fromRequest(
+      request,
+      clientUriConverter: server.uriConverter,
+    );
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -47,8 +53,12 @@ class EditOrganizeDirectivesHandler extends LegacyHandler {
     // check if there are scan/parse errors in the file
     var numScanParseErrors = numberOfSyntacticErrors(errors);
     if (numScanParseErrors != 0) {
-      sendResponse(Response.organizeDirectivesError(
-          request, 'File has $numScanParseErrors scan/parse errors.'));
+      sendResponse(
+        Response.organizeDirectivesError(
+          request,
+          'File has $numScanParseErrors scan/parse errors.',
+        ),
+      );
       return;
     }
     // do organize

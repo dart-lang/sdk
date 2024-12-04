@@ -726,7 +726,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator<Property> visitProperty(Property node) {
     var makeName = visit(node.name) as Instantiator<Expression>;
     var makeValue = visit(node.value) as Instantiator<Expression>;
-    return (arguments) => Property(makeName(arguments), makeValue(arguments));
+    return (arguments) => Property(makeName(arguments), makeValue(arguments),
+        isStatic: node.isStatic, isClassProperty: node.isClassProperty);
   }
 
   @override
@@ -756,13 +757,13 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<ClassExpression> visitClassExpression(ClassExpression node) {
-    var makeMethods = node.methods.map(visitSplayableExpression).toList();
+    var makeProperties = node.properties.map(visitSplayableExpression).toList();
     var makeName = visit(node.name) as Instantiator<Identifier>;
     var makeHeritage =
         visitNullable(node.heritage) as Instantiator<Expression?>;
 
     return (arguments) => ClassExpression(makeName(arguments),
-        makeHeritage(arguments), splayNodes(makeMethods, arguments));
+        makeHeritage(arguments), splayNodes(makeProperties, arguments));
   }
 
   @override

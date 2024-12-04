@@ -18,7 +18,8 @@ void main() {
     defineReflectiveTests(AvoidTypesOnClosureParametersBulkTest);
     defineReflectiveTests(AvoidTypesOnClosureParametersTest);
     defineReflectiveTests(
-        SuperFormalParameterTypeIsNotSubtypeOfAssociatedBulkTest);
+      SuperFormalParameterTypeIsNotSubtypeOfAssociatedBulkTest,
+    );
     defineReflectiveTests(SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest);
     defineReflectiveTests(TypeInitFormalsBulkTest);
     defineReflectiveTests(TypeInitFormalsTest);

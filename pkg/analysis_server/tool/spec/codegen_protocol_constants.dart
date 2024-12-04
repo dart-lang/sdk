@@ -9,17 +9,20 @@ import 'codegen_dart.dart';
 import 'from_html.dart';
 
 final GeneratedFile clientTarget = GeneratedFile(
-    '../analysis_server_client/lib/src/protocol/protocol_constants.dart',
-    (String pkgPath) async {
-  var visitor = _CodegenVisitor(readApi(pkgPath));
-  return visitor.collectCode(visitor.visitApi);
-});
+  '../analysis_server_client/lib/src/protocol/protocol_constants.dart',
+  (String pkgPath) async {
+    var visitor = _CodegenVisitor(readApi(pkgPath));
+    return visitor.collectCode(visitor.visitApi);
+  },
+);
 
 final GeneratedFile serverTarget = GeneratedFile(
-    'lib/protocol/protocol_constants.dart', (String pkgPath) async {
-  var visitor = _CodegenVisitor(readApi(pkgPath));
-  return visitor.collectCode(visitor.visitApi);
-});
+  'lib/protocol/protocol_constants.dart',
+  (String pkgPath) async {
+    var visitor = _CodegenVisitor(readApi(pkgPath));
+    return visitor.collectCode(visitor.visitApi);
+  },
+);
 
 /// Generate a name from the [domainName], [kind] and [name] components.
 String generateConstName(String domainName, String kind, String name) {
@@ -131,8 +134,11 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
     constants.add(_Constant(requestConstantName, "'$domainName.$method'"));
     _addFieldConstants(requestConstantName, request.params);
 
-    var responseConstantName =
-        generateConstName(domainName, 'response', method);
+    var responseConstantName = generateConstName(
+      domainName,
+      'response',
+      method,
+    );
     _addFieldConstants(responseConstantName, request.result);
   }
 

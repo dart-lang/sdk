@@ -40,9 +40,11 @@ class Lists {
 
     // TODO(askesc): Intrinsify for efficient copying
     if (srcStart < dstStart) {
-      for (int i = srcStart + count - 1, j = dstStart + count - 1;
-          i >= srcStart;
-          i--, j--) {
+      for (
+        int i = srcStart + count - 1, j = dstStart + count - 1;
+        i >= srcStart;
+        i--, j--
+      ) {
         dst[j] = src[i];
       }
     } else {
@@ -163,9 +165,14 @@ void _invokeMain(WasmExternRef jsArrayRef) {
 @pragma("wasm:export", "\$listAdd")
 void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
 
-String jsonEncode(String object) =>
-    jsStringToDartString(JSStringImpl(JS<WasmExternRef>(
-        "s => JSON.stringify(s)", jsStringFromDartString(object).toExternRef)));
+String jsonEncode(String object) => jsStringToDartString(
+  JSStringImpl(
+    JS<WasmExternRef>(
+      "s => JSON.stringify(s)",
+      jsStringFromDartString(object).toExternRef,
+    ),
+  ),
+);
 
 /// Whether to check bounds in [indexCheck] and [indexCheckWithName], which are
 /// used in list and typed data implementations.
@@ -212,7 +219,15 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
 /// `nextCapacity` is the capacity to be used when growing the array. It can
 /// have any shape, and it will be evaluated only when the array is full.
 external void pushWasmArray<T>(
-    WasmArray<T> array, int length, T elem, int nextCapacity);
+  WasmArray<T> array,
+  int length,
+  T elem,
+  int nextCapacity,
+);
 
 /// Similar to `pushWasmArray`, but for popping.
-external T? popWasmArray<T>(WasmArray<T?> array, int length);
+///
+/// Note that when [T] is not nullable, this does not clear the popped element
+/// slot in the array, which may cause memory leaks. Callers should manually
+/// clear non-nullable reference element slots in the array when popping.
+external T popWasmArray<T>(WasmArray<T> array, int length);

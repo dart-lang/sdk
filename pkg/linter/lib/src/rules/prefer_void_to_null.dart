@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";
@@ -46,8 +45,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Make sure we're checking a return type.
     if (parent.returnType?.offset != node.offset) return false;
 
-    var member =
-        context.inheritanceManager.overriddenMember(parent.declaredElement);
+    var member = context.inheritanceManager
+        .overriddenMember2(parent.declaredFragment?.element);
     if (member == null) return false;
 
     var returnType = member.returnType;

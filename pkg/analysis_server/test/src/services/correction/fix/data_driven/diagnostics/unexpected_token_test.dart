@@ -16,7 +16,8 @@ void main() {
 @reflectiveTest
 class UnexpectedTokenTest extends AbstractTransformSetParserTest {
   void test_integer() {
-    assertErrors('''
+    assertErrors(
+      '''
 version: 1
 transforms:
   - title: 'Remove nullOk'
@@ -28,8 +29,8 @@ transforms:
     oneOf:
       - if: "'x' == 'y' 'z'"
         changes: []
-''', [
-      error(TransformSetErrorCode.unexpectedToken, 184, 3),
-    ]);
+''',
+      [error(TransformSetErrorCode.unexpectedToken, 184, 3)],
+    );
   }
 }

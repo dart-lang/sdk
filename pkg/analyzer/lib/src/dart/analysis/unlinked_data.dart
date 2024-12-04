@@ -130,6 +130,30 @@ abstract class UnlinkedConfigurableUriDirective {
   });
 }
 
+class UnlinkedDartdocTemplate {
+  final String name;
+  final String value;
+
+  UnlinkedDartdocTemplate({
+    required this.name,
+    required this.value,
+  });
+
+  factory UnlinkedDartdocTemplate.read(
+    SummaryDataReader reader,
+  ) {
+    return UnlinkedDartdocTemplate(
+      name: reader.readStringUtf8(),
+      value: reader.readStringUtf8(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeStringUtf8(name);
+    sink.writeStringUtf8(value);
+  }
+}
+
 class UnlinkedLibraryDirective {
   /// `@docImport` directives in the doc comment.
   final List<UnlinkedLibraryImportDirective> docImports;
@@ -260,28 +284,54 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
 class UnlinkedLibraryImportPrefix {
   final int? deferredOffset;
   final int asOffset;
-  final String name;
   final int nameOffset;
+  final UnlinkedLibraryImportPrefixName? name;
 
   UnlinkedLibraryImportPrefix({
     required this.deferredOffset,
     required this.asOffset,
-    required this.name,
     required this.nameOffset,
+    required this.name,
   });
 
   factory UnlinkedLibraryImportPrefix.read(SummaryDataReader reader) {
     return UnlinkedLibraryImportPrefix(
       deferredOffset: reader.readOptionalUInt30(),
       asOffset: reader.readUInt30(),
-      name: reader.readStringUtf8(),
       nameOffset: reader.readUInt30(),
+      name: reader.readOptionalObject((reader) {
+        return UnlinkedLibraryImportPrefixName.read(reader);
+      }),
     );
   }
 
   void write(BufferedSink sink) {
     sink.writeOptionalUInt30(deferredOffset);
     sink.writeUInt30(asOffset);
+    sink.writeUInt30(nameOffset);
+    sink.writeOptionalObject(name, (name) {
+      name.write(sink);
+    });
+  }
+}
+
+class UnlinkedLibraryImportPrefixName {
+  final String name;
+  final int nameOffset;
+
+  UnlinkedLibraryImportPrefixName({
+    required this.name,
+    required this.nameOffset,
+  });
+
+  factory UnlinkedLibraryImportPrefixName.read(SummaryDataReader reader) {
+    return UnlinkedLibraryImportPrefixName(
+      name: reader.readStringUtf8(),
+      nameOffset: reader.readUInt30(),
+    );
+  }
+
+  void write(BufferedSink sink) {
     sink.writeStringUtf8(name);
     sink.writeUInt30(nameOffset);
   }
@@ -505,6 +555,9 @@ class UnlinkedUnit {
   /// Top-level declarations of the unit.
   final Set<String> topLevelDeclarations;
 
+  /// The Dartdoc templates of the unit.
+  final List<UnlinkedDartdocTemplate> dartdocTemplates;
+
   UnlinkedUnit({
     required this.apiSignature,
     required this.exports,
@@ -519,6 +572,7 @@ class UnlinkedUnit {
     required this.partOfNameDirective,
     required this.partOfUriDirective,
     required this.topLevelDeclarations,
+    required this.dartdocTemplates,
   });
 
   factory UnlinkedUnit.read(SummaryDataReader reader) {
@@ -550,6 +604,9 @@ class UnlinkedUnit {
         UnlinkedPartOfUriDirective.read,
       ),
       topLevelDeclarations: reader.readStringUtf8Set(),
+      dartdocTemplates: reader.readTypedList(
+        () => UnlinkedDartdocTemplate.read(reader),
+      ),
     );
   }
 
@@ -584,5 +641,8 @@ class UnlinkedUnit {
       (x) => x.write(sink),
     );
     sink.writeStringUtf8Iterable(topLevelDeclarations);
+    sink.writeList(dartdocTemplates, (x) {
+      x.write(sink);
+    });
   }
 }

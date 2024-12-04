@@ -94,8 +94,9 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
 
     late _TestTemporaryOverlayOperation operation;
     operation = _TestTemporaryOverlayOperation(server, () async {
-      operation.applyTemporaryOverlayEdits(SourceFileEdit(mainFilePath, -1,
-          edits: [SourceEdit(3, 8, 'CHANGED')]));
+      operation.applyTemporaryOverlayEdits(
+        SourceFileEdit(mainFilePath, -1, edits: [SourceEdit(3, 8, 'CHANGED')]),
+      );
       expectOverlayContent(mainFilePath, '// CHANGED OVERLAY');
     });
     await operation.doWork();

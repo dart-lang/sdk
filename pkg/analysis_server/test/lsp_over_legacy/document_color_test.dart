@@ -53,7 +53,10 @@ const red = [!Colors.red!];
     var colorResult = colorResults.single;
 
     var colors = await getColorPresentation(
-        testFileUri, code.range.range, colorResult.color);
+      testFileUri,
+      code.range.range,
+      colorResult.color,
+    );
     expect(
       colors.map((c) => c.label),
       containsAll([

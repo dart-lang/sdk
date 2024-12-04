@@ -46,7 +46,8 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
         return;
       }
 
-      var parentheses = defaultExpression.precedence <
+      var parentheses =
+          defaultExpression.precedence <
           Precedence.forTokenType(TokenType.QUESTION_QUESTION);
 
       await builder.addDartFileEdit(file, (builder) {

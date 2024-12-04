@@ -44,7 +44,7 @@
 // sequences.
 
 import 'dart:async';
-import '../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 mixin class FakeFutureHelper<T> {
   Future<T> get _realFuture;

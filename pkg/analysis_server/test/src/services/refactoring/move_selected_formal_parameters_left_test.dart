@@ -51,12 +51,7 @@ void f() {
 
     await verifyRefactoring(r'''
 >>>>>>>>>> lib/main.dart
-void test({
-  required int b,
-  required int c,
-  required int a,
-  required int d,
-}) {}
+void test({required int b, required int c, required int a, required int d}) {}
 
 void f() {
   test(b: 1, c: 2, a: 0, d: 3);
@@ -129,11 +124,7 @@ void f() {
 
     await verifyRefactoring(r'''
 >>>>>>>>>> lib/main.dart
-void test({
-  int? b,
-  int? a,
-  int? c,
-}) {}
+void test({int? b, int? a, int? c}) {}
 
 void f() {
   test(b: 1, a: 0, c: 2);
@@ -156,11 +147,7 @@ void f() {
 
     await verifyRefactoring(r'''
 >>>>>>>>>> lib/main.dart
-void test({
-  int? b,
-  required int? a,
-  int? c,
-}) {}
+void test({int? b, required int? a, int? c}) {}
 
 void f() {
   test(b: 1, a: 0, c: 2);
@@ -245,11 +232,7 @@ void f() {
 
     await verifyRefactoring(r'''
 >>>>>>>>>> lib/main.dart
-void test({
-  required int a,
-  required int c,
-  required int b,
-}) {}
+void test({required int a, required int c, required int b}) {}
 
 void f() {
   test(a: 0, c: 2, b: 1);
@@ -273,12 +256,7 @@ void f() {
 
     await verifyRefactoring(r'''
 >>>>>>>>>> lib/main.dart
-void test({
-  required int a,
-  required int c,
-  required int b,
-  required int d,
-}) {}
+void test({required int a, required int c, required int b, required int d}) {}
 
 void f() {
   test(a: 0, c: 2, b: 1, d: 3);
@@ -301,11 +279,7 @@ void f() {
 
     await verifyRefactoring(r'''
 >>>>>>>>>> lib/main.dart
-void test({
-  required int b,
-  required int a,
-  required int c,
-}) {}
+void test({required int b, required int a, required int c}) {}
 
 void f() {
   test(b: 1, a: 0, c: 2);
@@ -376,8 +350,6 @@ void f() {
   Future<void> _assertNoRefactoring() async {
     await initializeServer();
 
-    await expectNoCodeAction(
-      MoveSelectedFormalParametersLeft.constTitle,
-    );
+    await expectNoCodeAction(MoveSelectedFormalParametersLeft.constTitle);
   }
 }

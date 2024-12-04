@@ -86,7 +86,8 @@ class C {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {
   late final String s;
   C() {
@@ -94,8 +95,10 @@ class C {
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
+      errorFilter:
+          (error) =>
+              error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+    );
   }
 
   Future<void> test_withFinalAssignedInDeclaration() async {
@@ -121,7 +124,8 @@ void f(C c) {
   c.s = '';
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {
   late final String s;
 }
@@ -130,8 +134,10 @@ void f(C c) {
   c.s = '';
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
+      errorFilter:
+          (error) =>
+              error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+    );
   }
 
   Future<void> test_withFinalStaticAssignedInConstructor() async {
@@ -143,7 +149,8 @@ class C {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {
   static late final String s;
   C() {
@@ -151,8 +158,10 @@ class C {
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL);
+      errorFilter:
+          (error) =>
+              error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+    );
   }
 
   Future<void> test_withLate() async {

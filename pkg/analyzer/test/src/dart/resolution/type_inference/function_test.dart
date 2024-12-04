@@ -30,7 +30,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -72,7 +72,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>({required T x, required T y})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -119,7 +119,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -155,7 +155,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -201,7 +201,7 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: <testLibraryFragment>::@function::foo
-    element: <testLibraryFragment>::@function::foo#element
+    element: <testLibrary>::@function::foo
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (

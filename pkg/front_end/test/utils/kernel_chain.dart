@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.testing.kernel_chain;
-
 import 'dart:async';
 import 'dart:io' show Directory, File, IOSink, Platform;
 import 'dart:typed_data';
@@ -52,7 +50,7 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
-import '../fasta/testing/suite.dart' show CompilationSetup, CompileMode;
+import '../testing/suite.dart' show CompilationSetup, CompileMode;
 import '../test_utils.dart';
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
@@ -488,7 +486,7 @@ class MatchExpectation
       }
       BinaryPrinter binaryPrinter = new BinaryPrinter(sink);
       binaryPrinter.writeComponentFile(writeMe);
-      List<int> bytes = sink.builder.takeBytes();
+      Uint8List bytes = sink.builder.takeBytes();
 
       BinaryBuilder binaryBuilder = new BinaryBuilder(bytes);
       componentToText = new Component(libraries: sdkLibraries);

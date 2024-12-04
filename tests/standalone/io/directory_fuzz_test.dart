@@ -8,7 +8,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 import 'fuzz_support.dart';
@@ -18,7 +18,8 @@ fuzzSyncMethods() {
   withTempDirSync('dart_directory_fuzz', (temp) {
     typeMapping.forEach((k, v) {
       doItSync(() {
-        Directory.systemTemp.createTempSync("${temp.path}/${v as String}")
+        Directory.systemTemp
+            .createTempSync("${temp.path}/${v as String}")
             .deleteSync();
       });
       Directory? directory;
@@ -51,7 +52,8 @@ fuzzAsyncMethods() async {
     final futures = <Future>[];
     typeMapping.forEach((k, v) {
       futures.add(doItAsync(() {
-        Directory.systemTemp.createTempSync("${temp.path}/${v as String}")
+        Directory.systemTemp
+            .createTempSync("${temp.path}/${v as String}")
             .deleteSync();
       }));
       if (v is! String) {

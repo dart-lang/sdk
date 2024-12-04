@@ -4,13 +4,13 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -21,8 +21,9 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind =>
@@ -43,7 +44,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
     }
 
     // Must be a StatelessWidget subclass.
-    var widgetClassElement = widgetClass.declaredElement!;
+    var widgetClassElement = widgetClass.declaredFragment!.element;
     var superType = widgetClassElement.supertype;
     if (superType == null || !superType.isExactlyStatelessWidgetType) {
       return;
@@ -55,9 +56,10 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
     }
 
     var widgetName = widgetClassElement.displayName;
-    var stateName = widgetClassElement.isPrivate
-        ? '${widgetName}State'
-        : '_${widgetName}State';
+    var stateName =
+        widgetClassElement.isPrivate
+            ? '${widgetName}State'
+            : '_${widgetName}State';
 
     // Find fields assigned in constructors.
     var visitor = _FieldFinder();
@@ -70,21 +72,22 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
     // Prepare nodes to move.
     var nodesToMove = <ClassMember>{};
-    var elementsToMove = <Element>{};
+    var elementsToMove = <Element2>{};
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var fieldNode in member.fields.variables) {
-          var fieldElement = fieldNode.declaredElement as FieldElement;
+          var fieldFragment = fieldNode.declaredFragment as FieldFragment;
+          var fieldElement = fieldFragment.element;
           if (!fieldsAssignedInConstructors.contains(fieldElement)) {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
 
-            var getter = fieldElement.getter;
+            var getter = fieldElement.getter2;
             if (getter != null) {
               elementsToMove.add(getter);
             }
 
-            var setter = fieldElement.setter;
+            var setter = fieldElement.setter2;
             if (setter != null) {
               elementsToMove.add(setter);
             }
@@ -92,7 +95,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
         }
       } else if (member is MethodDeclaration && !member.isStatic) {
         nodesToMove.add(member);
-        elementsToMove.add(member.declaredElement!);
+        elementsToMove.add(member.declaredFragment!.element);
       }
     }
 
@@ -106,21 +109,25 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
       // Insert `widget.` before references to the widget instance members.
       var visitor = _ReplacementEditBuilder(
-          widgetClassElement, elementsToMove, linesRange);
+        widgetClassElement,
+        elementsToMove,
+        linesRange,
+      );
       movedNode.accept(visitor);
       return SourceEdit.applySequence(text, visitor.edits.reversed);
     }
 
-    var statefulWidgetClass =
-        await sessionHelper.getFlutterClass('StatefulWidget');
-    var stateClass = await sessionHelper.getFlutterClass('State');
+    var statefulWidgetClass = await sessionHelper.getFlutterClass2(
+      'StatefulWidget',
+    );
+    var stateClass = await sessionHelper.getFlutterClass2('State');
     if (statefulWidgetClass == null || stateClass == null) {
       return;
     }
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(superclass), (builder) {
-        builder.writeReference(statefulWidgetClass);
+        builder.writeReference2(statefulWidgetClass);
       });
 
       var replaceOffset = 0;
@@ -134,32 +141,33 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
       /// Replace code between [replaceOffset] and [replaceEnd] with
       /// `createState()`, empty line, or nothing.
-      void replaceInterval(int replaceEnd,
-          {bool replaceWithEmptyLine = false,
-          bool hasEmptyLineBeforeCreateState = false,
-          bool hasEmptyLineAfterCreateState = true}) {
+      void replaceInterval(
+        int replaceEnd, {
+        bool replaceWithEmptyLine = false,
+        bool hasEmptyLineBeforeCreateState = false,
+        bool hasEmptyLineAfterCreateState = true,
+      }) {
         var replaceLength = replaceEnd - replaceOffset;
-        builder.addReplacement(
-          SourceRange(replaceOffset, replaceLength),
-          (builder) {
-            if (hasBuildMethod) {
-              if (hasEmptyLineBeforeCreateState) {
-                builder.writeln();
-              }
-              builder.writeln('  @override');
-              builder.write('  ');
-              builder.writeReference(stateClass);
-              builder.write('<${widgetClass.name.lexeme}$typeParams>');
-              builder.writeln(' createState() => $stateName$typeParams();');
-              if (hasEmptyLineAfterCreateState) {
-                builder.writeln();
-              }
-              hasBuildMethod = false;
-            } else if (replaceWithEmptyLine) {
+        builder.addReplacement(SourceRange(replaceOffset, replaceLength), (
+          builder,
+        ) {
+          if (hasBuildMethod) {
+            if (hasEmptyLineBeforeCreateState) {
               builder.writeln();
             }
-          },
-        );
+            builder.writeln('  @override');
+            builder.write('  ');
+            builder.writeReference2(stateClass);
+            builder.write('<${widgetClass.name.lexeme}$typeParams>');
+            builder.writeln(' createState() => $stateName$typeParams();');
+            if (hasEmptyLineAfterCreateState) {
+              builder.writeln();
+            }
+            hasBuildMethod = false;
+          } else if (replaceWithEmptyLine) {
+            builder.writeln();
+          }
+        });
         replaceOffset = 0;
       }
 
@@ -181,9 +189,11 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
           var linesRange = utils.getLinesRange(range.node(node));
           endOfLastNodeToKeep = linesRange.end;
           if (replaceOffset != 0) {
-            replaceInterval(linesRange.offset,
-                replaceWithEmptyLine:
-                    lastToRemoveIsField && node is! FieldDeclaration);
+            replaceInterval(
+              linesRange.offset,
+              replaceWithEmptyLine:
+                  lastToRemoveIsField && node is! FieldDeclaration,
+            );
           }
         }
       }
@@ -194,9 +204,11 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
         if (endOfLastNodeToKeep != 0) {
           replaceOffset = endOfLastNodeToKeep;
         }
-        replaceInterval(widgetClass.rightBracket.offset,
-            hasEmptyLineBeforeCreateState: endOfLastNodeToKeep != 0,
-            hasEmptyLineAfterCreateState: false);
+        replaceInterval(
+          widgetClass.rightBracket.offset,
+          hasEmptyLineBeforeCreateState: endOfLastNodeToKeep != 0,
+          hasEmptyLineAfterCreateState: false,
+        );
       }
 
       // Create the State subclass.
@@ -205,7 +217,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
         builder.writeln();
 
         builder.write('class $stateName$typeParams extends ');
-        builder.writeReference(stateClass);
+        builder.writeReference2(stateClass);
 
         // Write just param names (and not bounds, metadata and docs).
         builder.write('<${widgetClass.name.lexeme}');
@@ -262,13 +274,13 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 }
 
 class _FieldFinder extends RecursiveAstVisitor<void> {
-  Set<FieldElement> fieldsAssignedInConstructors = {};
+  Set<FieldElement2> fieldsAssignedInConstructors = {};
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    var element = node.declaredElement;
-    if (element is FieldFormalParameterElement) {
-      var field = element.field;
+    var element = node.declaredFragment?.element;
+    if (element is FieldFormalParameterElement2) {
+      var field = element.field2;
       if (field != null) {
         fieldsAssignedInConstructors.add(field);
       }
@@ -280,16 +292,16 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ConstructorFieldInitializer) {
-      var element = node.staticElement;
-      if (element is FieldElement) {
+      var element = node.element;
+      if (element is FieldElement2) {
         fieldsAssignedInConstructors.add(element);
       }
     }
     if (node.inSetterContext()) {
-      var element = node.writeOrReadElement;
-      if (element is PropertyAccessorElement) {
-        var field = element.variable2;
-        if (field is FieldElement) {
+      var element = node.writeOrReadElement2;
+      if (element is SetterElement) {
+        var field = element.variable3;
+        if (field is FieldElement2) {
           fieldsAssignedInConstructors.add(field);
         }
       }
@@ -298,25 +310,28 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
 }
 
 class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
-  final ClassElement widgetClassElement;
+  final ClassElement2 widgetClassElement;
 
-  final Set<Element> elementsToMove;
+  final Set<Element2> elementsToMove;
 
   final SourceRange linesRange;
 
   List<SourceEdit> edits = [];
 
   _ReplacementEditBuilder(
-      this.widgetClassElement, this.elementsToMove, this.linesRange);
+    this.widgetClassElement,
+    this.elementsToMove,
+    this.linesRange,
+  );
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
     }
-    var element = node.staticElement;
-    if (element is ExecutableElement &&
-        element.enclosingElement3 == widgetClassElement &&
+    var element = node.element;
+    if (element is ExecutableElement2 &&
+        element.enclosingElement2 == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var offset = node.offset - linesRange.offset;
       var qualifier =

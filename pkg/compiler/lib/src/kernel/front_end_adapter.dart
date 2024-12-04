@@ -68,7 +68,7 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
   }
 
   @override
-  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
+  Future<Uint8List> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<bool> exists() async {

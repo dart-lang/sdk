@@ -125,11 +125,19 @@ class DecoratedBox extends SingleChildRenderObjectWidget {
   });
 }
 
-class Expanded extends StatelessWidget {
+class Expanded extends Flexible {
   const Expanded({
+    super.key,
+    super.flex,
+    super.child,
+  });
+}
+
+class Flexible extends StatelessWidget {
+  const Flexible({
     Key? key,
     int flex = 1,
-    @required Widget child,
+    required Widget child,
   });
 }
 
@@ -167,6 +175,13 @@ class Row extends Flex {
     TextDirection textDirection,
     VerticalDirection verticalDirection = VerticalDirection.down,
     TextBaseline textBaseline,
+    List<Widget> children = const <Widget>[],
+  });
+}
+
+class Stack extends Widget {
+  Stack({
+    Key? key,
     List<Widget> children = const <Widget>[],
   });
 }

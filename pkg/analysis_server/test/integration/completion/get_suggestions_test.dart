@@ -35,7 +35,8 @@ class GetSuggestions2Test extends AbstractAnalysisServerIntegrationTest {
     var nextOffset = content.indexOf('^', completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
-    this.content = content.substring(0, completionOffset) +
+    this.content =
+        content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
   }
 
@@ -49,12 +50,16 @@ void f() {
     writeFile(path, content);
     await standardAnalysisSetup();
     await analysisFinished;
-    var result =
-        await sendCompletionGetSuggestions2(path, completionOffset, 100);
+    var result = await sendCompletionGetSuggestions2(
+      path,
+      completionOffset,
+      100,
+    );
     expect(result.replacementOffset, completionOffset);
     expect(result.replacementLength, 0);
     result.suggestions.firstWhere(
-        (CompletionSuggestion suggestion) => suggestion.completion == 'length');
+      (CompletionSuggestion suggestion) => suggestion.completion == 'length',
+    );
   }
 
   Future<void> test_getSuggestions_onlyOverlay() async {
@@ -69,12 +74,16 @@ void f() {
     await standardAnalysisSetup();
     await sendAnalysisUpdateContent({path: AddContentOverlay(content)});
     await analysisFinished;
-    var result =
-        await sendCompletionGetSuggestions2(path, completionOffset, 100);
+    var result = await sendCompletionGetSuggestions2(
+      path,
+      completionOffset,
+      100,
+    );
     expect(result.replacementOffset, completionOffset);
     expect(result.replacementLength, 0);
     result.suggestions.firstWhere(
-        (CompletionSuggestion suggestion) => suggestion.completion == 'length');
+      (CompletionSuggestion suggestion) => suggestion.completion == 'length',
+    );
   }
 
   Future<void> test_getSuggestions_onlyOverlay_noWait() async {
@@ -90,12 +99,16 @@ void f() {
     //   writeFile(pathname, text);
     // Don't wait for any results except the completion notifications
     await sendAnalysisUpdateContent({path: AddContentOverlay(content)});
-    var result =
-        await sendCompletionGetSuggestions2(path, completionOffset, 100);
+    var result = await sendCompletionGetSuggestions2(
+      path,
+      completionOffset,
+      100,
+    );
     expect(result.replacementOffset, completionOffset);
     expect(result.replacementLength, 0);
     result.suggestions.firstWhere(
-        (CompletionSuggestion suggestion) => suggestion.completion == 'length');
+      (CompletionSuggestion suggestion) => suggestion.completion == 'length',
+    );
   }
 
   Future<void> test_getSuggestions_sourceMissing_noWait() async {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
@@ -13,7 +14,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -25,7 +25,7 @@ class AstResolver {
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
-  final AnalysisOptionsImpl analysisOptions;
+  final AnalysisOptions analysisOptions;
   final InterfaceElement? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
   final AugmentableElement? enclosingAugmentation;

@@ -32,17 +32,15 @@ _base_libfuzzer_config = [ "$_dart_runtime:dart_libfuzzer_config" ]
 
 _libfuzzer_config = _base_config + _base_libfuzzer_config
 
-_precompiled_runtime_config =
-    _base_config + [
-      "$_dart_runtime:dart_maybe_product_config",
-      "$_dart_runtime:dart_precompiled_runtime_config",
-    ]
+_aotruntime_config = _base_config + [
+                       "$_dart_runtime:dart_maybe_product_config",
+                       "$_dart_runtime:dart_aotruntime_config",
+                     ]
 
-_precompiled_runtime_product_config =
-    _base_config + [
-      "$_dart_runtime:dart_precompiled_runtime_config",
-      "$_dart_runtime:dart_product_config",
-    ]
+_aotruntime_product_config = _base_config + [
+                               "$_dart_runtime:dart_aotruntime_config",
+                               "$_dart_runtime:dart_product_config",
+                             ]
 
 _precompiler_base = [ "$_dart_runtime:dart_precompiler_config" ]
 
@@ -81,15 +79,15 @@ _all_configs = [
     is_product = true
   },
   {
-    suffix = "_precompiled_runtime"
-    configs = _precompiled_runtime_config
+    suffix = "_aotruntime"
+    configs = _aotruntime_config
     snapshot = true
     compiler = false
     is_product = false
   },
   {
-    suffix = "_precompiled_runtime_product"
-    configs = _precompiled_runtime_product_config
+    suffix = "_aotruntime_product"
+    configs = _aotruntime_product_config
     snapshot = true
     compiler = false
     is_product = true

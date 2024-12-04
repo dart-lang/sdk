@@ -25,14 +25,13 @@ class AddDiagnosticPropertyReferenceBulkTest extends BulkFixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_multiple_no_debugFillPropertiesMethod() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.diagnostic_describe_all_properties]);
+      lints: [LintNames.diagnostic_describe_all_properties],
+    );
     await resolveTestCode(r'''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -65,7 +64,8 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_multiple_with_debugFillPropertiesMethod() async {
     createAnalysisOptionsFile(
-        lints: [LintNames.diagnostic_describe_all_properties]);
+      lints: [LintNames.diagnostic_describe_all_properties],
+    );
     await resolveTestCode(r'''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -166,9 +166,7 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      flutter: true,
-    );
+    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_boolField() async {
@@ -517,10 +515,7 @@ class C extends Widget with Diagnosticable {
   }
 
   Future<void> test_matrix4Field() async {
-    writeTestPackageConfig(
-      flutter: true,
-      vector_math: true,
-    );
+    writeTestPackageConfig(flutter: true, vector_math: true);
     await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -645,7 +640,8 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -659,8 +655,9 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS);
+      errorFilter:
+          (error) => error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS,
+    );
   }
 
   Future<void> test_typeOutOfScopeGetter() async {
@@ -677,7 +674,8 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -691,8 +689,9 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''',
-        errorFilter: (error) =>
-            error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS);
+      errorFilter:
+          (error) => error.errorCode != CompileTimeErrorCode.UNDEFINED_CLASS,
+    );
   }
 
   Future<void> test_varField() async {

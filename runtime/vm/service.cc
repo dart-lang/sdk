@@ -2991,8 +2991,35 @@ static void CollectStringifiedType(Thread* thread,
     return;
   }
   if (type.IsRecordType()) {
-    // _Record class is not useful for the CFE. We use null instead.
+    const auto& record = RecordType::Cast(type);
+    const intptr_t num_fields = record.NumFields();
+    const Array& field_names =
+        Array::Handle(zone, record.GetFieldNames(thread));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
+
+    // Records have their own encoding:
+    // "record" <nullability> <num fields> <num positional fields>
+    // <field names> <encoding of field>
+    instance ^= String::New("record");
     output.Add(instance);
+    instance ^= Smi::New((intptr_t)type.nullability());
+    output.Add(instance);
+    instance ^= Smi::New(num_fields);
+    output.Add(instance);
+    instance ^= Smi::New(num_positional_fields);
+    output.Add(instance);
+
+    String& name = String::Handle(zone);
+    for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
+      name ^= field_names.At(i);
+      output.Add(name);
+    }
+
+    AbstractType& field_type = AbstractType::Handle(zone);
+    for (intptr_t i = 0, n = num_fields; i < n; ++i) {
+      field_type = record.FieldTypeAt(i);
+      CollectStringifiedType(thread, zone, field_type, output);
+    }
     return;
   }
   if (type.IsDynamicType()) {
@@ -3975,10 +4002,15 @@ void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
 }
 
 ErrorPtr Service::MaybePause(Isolate* isolate, const Error& error) {
+  const bool should_pause_post_current_service_request =
+      isolate->should_pause_post_service_request();
+  if (should_pause_post_current_service_request) {
+    // Ensure that we do not accidentally pause post the next service request.
+    isolate->set_should_pause_post_service_request(false);
+  }
   // Don't pause twice.
   if (!isolate->IsPaused()) {
-    if (isolate->should_pause_post_service_request()) {
-      isolate->set_should_pause_post_service_request(false);
+    if (should_pause_post_current_service_request) {
       if (!error.IsNull()) {
         // Before pausing, restore the sticky error. The debugger will return it
         // from PausePostRequest.
@@ -4015,10 +4047,18 @@ static void AddBreakpointCommon(Thread* thread,
       Error::Handle(thread->isolate()->debugger()->SetBreakpointAtLineCol(
           script_uri, line, col, &bpt));
   if (!error.IsNull()) {
-    js->PrintError(kCannotAddBreakpoint,
-                   "%s: Cannot add breakpoint at line %s. Error occurred "
-                   "when resolving breakpoint location: %s.",
-                   js->method(), line_param, error.ToErrorCString());
+    if (col_param != nullptr) {
+      js->PrintError(
+          kCannotAddBreakpoint,
+          "%s: Cannot add breakpoint at %s:%s. Error occurred when resolving "
+          "breakpoint location: %s.",
+          js->method(), line_param, col_param, error.ToErrorCString());
+    } else {
+      js->PrintError(kCannotAddBreakpoint,
+                     "%s: Cannot add breakpoint at line %s. Error occurred "
+                     "when resolving breakpoint location: %s.",
+                     js->method(), line_param, error.ToErrorCString());
+    }
     return;
   }
   ASSERT(bpt != nullptr);

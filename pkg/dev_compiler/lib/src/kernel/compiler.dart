@@ -662,6 +662,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var universeClass =
         _rtiLibrary.classes.firstWhere((cls) => cls.name == '_Universe');
     var typeRules = _typeRecipeGenerator.liveInterfaceTypeRules;
+    var legacyJavaScriptObjectRecipe = _typeRecipeGenerator.interfaceTypeRecipe(
+        _coreTypes.index
+            .getClass('dart:_interceptors', 'LegacyJavaScriptObject'));
+    var legacyJavaScriptObjectRules =
+        typeRules.remove(legacyJavaScriptObjectRecipe);
     if (typeRules.isNotEmpty) {
       var template = '#._Universe.#(#, JSON.parse(#))';
       var addRulesStatement = js.call(template, [
@@ -671,6 +676,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js.string(jsonEncode(typeRules), "'")
       ]).toStatement();
       _moduleItems.add(addRulesStatement);
+    }
+    if (legacyJavaScriptObjectRules != null) {
+      var legacyJavaScriptObjectAddRules = {
+        legacyJavaScriptObjectRecipe: legacyJavaScriptObjectRules
+      };
+      // The recipe for 'LegacyJavaScriptObject' is updated during the lifetime
+      // of the program and should be emitted with 'addOrUpdateRules' to avoid
+      // clobbering its previous state.
+      var updateRulesStatement =
+          js.statement('#._Universe.#(#, JSON.parse(#))', [
+        _emitLibraryName(_rtiLibrary),
+        _emitMemberName('addOrUpdateRules', memberClass: universeClass),
+        _runtimeCall('typeUniverse'),
+        js.string(jsonEncode(legacyJavaScriptObjectAddRules), "'")
+      ]);
+      _moduleItems.add(updateRulesStatement);
     }
     // Update type rules for `LegacyJavaScriptObject` to add all interop
     // types in this module as a supertype.
@@ -763,10 +784,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     switch (component.mode) {
       case NonNullableByDefaultCompiledMode.Strong:
         soundNullSafety = js_ast.LiteralBool(true);
-        break;
       case NonNullableByDefaultCompiledMode.Weak:
         soundNullSafety = js_ast.LiteralBool(false);
-        break;
       default:
         throw StateError('Unsupported Null Safety mode ${component.mode}, '
             'in ${component.location?.file}.');
@@ -2952,7 +2971,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Reserved by JS, not a valid static member name.
       case 'prototype':
         name += '_';
-        break;
       default:
         // All trailing underscores static names are reserved for the compiler
         // or SDK libraries.
@@ -3656,7 +3674,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             wrapBody:
                 _emitTopLevelNameNoExternalInterop(_asyncWrapJsFunctionMember),
             bodyName: bodyName);
-        break;
       case AsyncMarker.SyncStar:
         asyncRewriter = SyncStarRewriter(
             makeSyncStarIterable:
@@ -3669,7 +3686,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             yieldStarSelector: _emitMemberName('_yieldStar',
                 member: _syncStarIteratorYieldStarMember),
             bodyName: bodyName);
-        break;
       case AsyncMarker.AsyncStar:
         asyncRewriter = AsyncStarRewriter(
             asyncStarHelper:
@@ -3686,7 +3702,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             wrapBody:
                 _emitTopLevelNameNoExternalInterop(_asyncWrapJsFunctionMember),
             bodyName: bodyName);
-        break;
     }
     if (asyncRewriter != null) {
       return asyncRewriter.rewrite(fun, functionBody, functionEnd,
@@ -4628,11 +4643,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var labelName = 'SL${_switchLabelStates.length}';
       _switchLabelStates[node] = _SwitchLabelState(labelName, labelState);
 
+      // Since we wrap the switch in a 'while (true)' loop the continue targets
+      // within the switch will no longer target the correct loop so we need
+      // explicit breaks.
+      final savedCurrentContinueTargets = _currentContinueTargets;
+      _currentContinueTargets = [];
+
       for (var c in node.cases) {
         var subcases =
             _visitSwitchCase(c, lastSwitchCase: c == node.cases.last);
         if (subcases.isNotEmpty) cases.addAll(subcases);
       }
+      _currentContinueTargets = savedCurrentContinueTargets;
 
       var switchExpr = _visitExpression(node.expression);
       var switchStmt = js_ast.Switch(labelState, cases);
@@ -6684,7 +6706,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             var rti = _emitType(mapType);
             return js.call('new #.new(#)', [mapClass, rti]);
           }
-          break;
         case 'Set':
         case 'HashSet':
         case 'LinkedHashSet':
@@ -6699,12 +6720,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             var rti = _emitType(setType);
             return js.call('new #.new(#)', [setClass, rti]);
           }
-          break;
         case 'List':
           if (ctor.name.text == '') {
             return _emitList(type.typeArguments[0], []);
           }
-          break;
       }
     }
     var rti = _requiresRtiForInstantiation(ctorClass)

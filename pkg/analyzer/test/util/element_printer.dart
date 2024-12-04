@@ -83,6 +83,10 @@ class ElementPrinter {
     switch (element) {
       case null:
         _sink.write('<null>');
+      case TypeAliasElementImpl2 element:
+        writeReference(element.reference);
+      case TopLevelVariableElementImpl2 element:
+        writeReference(element.reference);
       case TypeParameterElementImpl2():
         // TODO(scheglov): update when implemented
         _sink.write('<not-implemented>');
@@ -91,13 +95,15 @@ class ElementPrinter {
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.write('#element');
-      case DynamicElementImpl():
-        _sink.write('dynamic@-1');
+      case DynamicElementImpl2():
+        _sink.write('dynamic');
       case FormalParameterElementImpl():
         var firstFragment = element.firstFragment;
-        var referenceStr = _elementToReferenceString(firstFragment);
+        var referenceStr = _elementToReferenceString(firstFragment as Element);
         _sink.write(referenceStr);
         _sink.write('#element');
+      case TopLevelFunctionElementImpl element:
+        writeReference(element.reference);
       case FragmentedElementMixin element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference!;
@@ -111,29 +117,44 @@ class ElementPrinter {
       case LabelElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
       case LabelElementImpl2():
-        _sink.write('${element.name}@${element.nameOffset}');
+        // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LibraryElementImpl e:
         writeReference(e.reference!);
       case LocalFunctionElementImpl():
-        _sink.write('${element.name}@${element.nameOffset}');
+        // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
       case LocalVariableElementImpl():
         _sink.write('${element.name}@${element.nameOffset}');
       case LocalVariableElementImpl2():
-        _sink.write('${element.name}@${element.nameOffset}');
-      case MaybeAugmentedInstanceElementMixin element:
-        var firstFragment = element.firstFragment as ElementImpl;
-        var reference = firstFragment.reference!;
-        writeReference(reference);
-        _sink.write('#element');
+        // TODO(scheglov): nameOffset2 can be `null`
+        _sink.write('${element.name3}@${element.firstFragment.nameOffset2}');
+      case NeverElementImpl2():
+        _sink.write('Never');
+      case ClassElementImpl2 element:
+        writeReference(element.reference);
+      case EnumElementImpl2 element:
+        writeReference(element.reference);
+      case ExtensionElementImpl2 element:
+        writeReference(element.reference);
+      case ExtensionTypeElementImpl2 element:
+        writeReference(element.reference);
+      case MixinElementImpl2 element:
+        writeReference(element.reference);
       case MethodElement2 element:
         var firstFragment = element.firstFragment as ElementImpl;
         var reference = firstFragment.reference;
         writeReference(reference!);
         _sink.write('#element');
-      case MultiplyDefinedElementImpl():
+      case MultiplyDefinedElementImpl2():
         _sink.write('<null>');
       case NeverElementImpl():
         _sink.write('Never@-1');
+      case ParameterMember():
+        var firstFragment = element.firstFragment;
+        var referenceStr = _elementToReferenceString(firstFragment as Element);
+        _sink.write(referenceStr);
+        _sink.write('#element');
       case PrefixElementImpl2 element:
         writeReference(element.reference);
       case SetterElement element:
@@ -150,6 +171,14 @@ class ElementPrinter {
     _sink.writeElements(name, elements, (element) {
       _sink.writeIndent();
       writeElement(element);
+    });
+  }
+
+  void writeElementList2(String name, List<Element2> elements) {
+    _sink.writeElements(name, elements, (element) {
+      _sink.writeIndentedLine(() {
+        writeElement2(element);
+      });
     });
   }
 

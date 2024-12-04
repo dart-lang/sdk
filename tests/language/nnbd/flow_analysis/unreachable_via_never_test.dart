@@ -6,7 +6,7 @@
 /// `Never` are properly treated by flow analysis as belonging to unreachable
 /// code paths.
 
-import '../../static_type_helper.dart';
+import 'package:expect/static_type_helper.dart';
 
 void asExpression(int? x, int i) {
   if (x == null) {

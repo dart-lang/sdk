@@ -87,12 +87,13 @@ class DartFixPromptManager {
     var constraintMap = <String, List<String?>>{};
     for (var context in server.contextManager.analysisContexts) {
       var workspace = context.contextRoot.workspace;
-      var sdkConstraints = workspace is PackageConfigWorkspace
-          ? workspace.allPackages
-              .whereType<PubPackage>()
-              .map((p) => p.sdkVersionConstraint?.toString())
-              .toList()
-          : <String>[];
+      var sdkConstraints =
+          workspace is PackageConfigWorkspace
+              ? workspace.allPackages
+                  .whereType<PubPackage>()
+                  .map((p) => p.sdkVersionConstraint?.toString())
+                  .toList()
+              : <String>[];
       constraintMap[context.contextRoot.root.path] = sdkConstraints;
     }
     return constraintMap;
@@ -118,8 +119,11 @@ class DartFixPromptManager {
     }
 
     var workspace = DartChangeWorkspace(sessions);
-    var processor = BulkFixProcessor(server.instrumentationService, workspace,
-        cancellationToken: token);
+    var processor = BulkFixProcessor(
+      server.instrumentationService,
+      workspace,
+      cancellationToken: token,
+    );
 
     return processor.hasFixes(server.contextManager.analysisContexts);
   }
@@ -135,7 +139,8 @@ class DartFixPromptManager {
     var fixesAvailable = await bulkFixesAvailable(token);
     sw.stop();
     server.instrumentationService.logInfo(
-        'Checking whether to prompt about "dart fix" took ${sw.elapsed}');
+      'Checking whether to prompt about "dart fix" took ${sw.elapsed}',
+    );
 
     // If we were cancelled since the last cancellation check inside
     // bulkFixesAvailable, still return false because another check is now in
@@ -166,10 +171,7 @@ class DartFixPromptManager {
       ];
     } else {
       prompt = externalFixPromptText;
-      actions = [
-        learnMoreActionText,
-        doNotShowAgainActionText,
-      ];
+      actions = [learnMoreActionText, doNotShowAgainActionText];
     }
 
     // Note: It's possible the user never responds to this until we shut down
@@ -186,11 +188,18 @@ class DartFixPromptManager {
 
       case (previewFixesActionText, ExecuteCommandHandler execHandler):
       case (applyFixesActionText, ExecuteCommandHandler execHandler):
-        var command = response == applyFixesActionText
-            ? Commands.fixAllInWorkspace
-            : Commands.previewFixAllInWorkspace;
-        unawaited(_executeCommand(
-            clientCapabilities, execHandler, userPromptSender, command));
+        var command =
+            response == applyFixesActionText
+                ? Commands.fixAllInWorkspace
+                : Commands.previewFixAllInWorkspace;
+        unawaited(
+          _executeCommand(
+            clientCapabilities,
+            execHandler,
+            userPromptSender,
+            command,
+          ),
+        );
 
       case (doNotShowAgainActionText, _):
         preferences.showDartFixPrompts = false;
@@ -210,8 +219,9 @@ class DartFixPromptManager {
   void triggerCheck() {
     unawaited(
       _performCheckAndPrompt().catchError((e) {
-        server.instrumentationService
-            .logError('Failed to perform bulk "dart fix" check: $e');
+        server.instrumentationService.logError(
+          'Failed to perform bulk "dart fix" check: $e',
+        );
       }),
     );
   }
@@ -250,15 +260,15 @@ class DartFixPromptManager {
       NotCancelableToken(),
     );
 
-    result.ifError(
-      (error) {
-        unawaited(userPromptSender(
+    result.ifError((error) {
+      unawaited(
+        userPromptSender(
           MessageType.error,
           "Failed to execute '$command': ${error.message}",
           [],
-        ));
-      },
-    );
+        ),
+      );
+    });
   }
 
   /// Performs a check to see if "dart fix" may be able to fix diagnostics in
@@ -286,8 +296,10 @@ class DartFixPromptManager {
     // constraints have changed.
     var newConstraints = currentContextSdkConstraints;
     if (hasCheckedRecently &&
-        const MapEquality()
-            .equals(newConstraints, _lastContextSdkVersionConstraints)) {
+        const MapEquality().equals(
+          newConstraints,
+          _lastContextSdkVersionConstraints,
+        )) {
       return;
     }
     _lastContextSdkVersionConstraints = newConstraints;

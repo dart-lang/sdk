@@ -30,7 +30,7 @@ main() {
     iterable2,
     list2,
     iterable3,
-    iterable4
+    iterable4,
   ];
   for (var iterable in iterables) {
     Expect.isFalse(iterable.contains(new A()));

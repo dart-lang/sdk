@@ -12,7 +12,10 @@ apply(Function function, List? positional, Map<Symbol, dynamic>? named) {
 }
 
 void throwsNSME(
-    Function function, List? positional, Map<Symbol, dynamic>? named) {
+  Function function,
+  List? positional,
+  Map<Symbol, dynamic>? named,
+) {
   Expect.throwsNoSuchMethodError(() => apply(function, positional, named));
 }
 

@@ -60,8 +60,10 @@ void equalElementsTest() {
 }
 
 void genericTypeTest() {
-  var map =
-      new Map<int, String>.fromIterables([1, 2, 3], ["one", "two", "three"]);
+  var map = new Map<int, String>.fromIterables(
+    [1, 2, 3],
+    ["one", "two", "three"],
+  );
   Expect.isTrue(map is Map<int, String>);
 
   // Make sure it is not just Map<dynamic, dynamic>.

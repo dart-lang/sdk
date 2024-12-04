@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
@@ -20,7 +20,7 @@ void main() {
 }
 
 class AstImplData {
-  final List<ClassElement> instantiableInterfaces = [];
+  final List<ClassElement2> instantiableInterfaces = [];
 
   AstImplData();
 }
@@ -28,22 +28,25 @@ class AstImplData {
 class AstInterfaceData {
   /// A table mapping the element for a class to a list of the elements for the
   /// supertypes of that class.
-  final Map<ClassElement, List<ClassElement>> supertypes = {};
+  final Map<ClassElement2, List<ClassElement2>> supertypes = {};
 
   /// A table mapping class element to a list of the getters declared directly
   /// in that class that return a `NodeList`.
-  final Map<ClassElement, List<ExecutableElement>> declaredLists = {};
+  final Map<ClassElement2, List<ExecutableElement2>> declaredLists = {};
 
   AstInterfaceData();
 
-  List<ExecutableElement> nodeListsFor(ClassElement class_) {
-    var lists = <ExecutableElement>[];
-    _addListsFor(lists, class_, <ClassElement>{});
+  List<ExecutableElement2> nodeListsFor(ClassElement2 class_) {
+    var lists = <ExecutableElement2>[];
+    _addListsFor(lists, class_, <ClassElement2>{});
     return lists;
   }
 
-  void _addListsFor(List<ExecutableElement> lists, ClassElement class_,
-      Set<ClassElement> visited) {
+  void _addListsFor(
+    List<ExecutableElement2> lists,
+    ClassElement2 class_,
+    Set<ClassElement2> visited,
+  ) {
     if (!visited.add(class_)) {
       return;
     }
@@ -73,8 +76,8 @@ class SelectionCoverageTest {
         var implementsClause = declaration.implementsClause;
         if (implementsClause != null) {
           for (var type in implementsClause.interfaces) {
-            var element = type.type?.element;
-            if (element is ClassElement && element.name == interfaceName) {
+            var element = type.type?.element3;
+            if (element is ClassElement2 && element.name3 == interfaceName) {
               data.instantiableInterfaces.add(element);
             }
           }
@@ -91,12 +94,12 @@ class SelectionCoverageTest {
     for (var declaration in result.unit.declarations) {
       if (declaration is ClassDeclaration) {
         // Build the subtype map.
-        var subtypeElement = declaration.declaredElement!;
+        var subtypeElement = declaration.declaredFragment!.element;
         var implementsClause = declaration.implementsClause;
         if (implementsClause != null) {
           for (var supertype in implementsClause.interfaces) {
-            var supertypeElement = supertype.type?.element;
-            if (supertypeElement is ClassElement) {
+            var supertypeElement = supertype.type?.element3;
+            if (supertypeElement is ClassElement2) {
               data.supertypes
                   .putIfAbsent(subtypeElement, () => [])
                   .add(supertypeElement);
@@ -105,13 +108,13 @@ class SelectionCoverageTest {
         }
 
         // Build the node list map.
-        var nodeLists = <ExecutableElement>[];
+        var nodeLists = <ExecutableElement2>[];
         for (var member in declaration.members) {
           if (member is MethodDeclaration && member.isGetter) {
             var returnType = member.returnType;
             if (returnType != null &&
                 returnType.toSource().startsWith('NodeList<')) {
-              nodeLists.add(member.declaredElement!);
+              nodeLists.add(member.declaredFragment!.element);
             }
           }
         }
@@ -133,9 +136,16 @@ class SelectionCoverageTest {
         for (var member in declaration.members) {
           if (member is MethodDeclaration &&
               member.name.lexeme.startsWith('visit')) {
-            var visitedClass = member
-                .parameters?.parameters.first.declaredElement?.type.element;
-            if (visitedClass is ClassElement) {
+            var visitedClass =
+                member
+                    .parameters
+                    ?.parameters
+                    .first
+                    .declaredFragment
+                    ?.element
+                    .type
+                    .element3;
+            if (visitedClass is ClassElement2) {
               var visitor = VisitMethodVisitor();
               member.body.accept(visitor);
               data.visitedLists[visitedClass] = visitor.visitedLists;
@@ -154,24 +164,48 @@ class SelectionCoverageTest {
     var pathContext = provider.pathContext;
     var packageRoot = pathContext.normalize(package_root.packageRoot);
     var pathToAsInterface = pathContext.join(
-        packageRoot, 'analyzer', 'lib', 'dart', 'ast', 'ast.dart');
+      packageRoot,
+      'analyzer',
+      'lib',
+      'dart',
+      'ast',
+      'ast.dart',
+    );
     var pathToAsImpl = pathContext.join(
-        packageRoot, 'analyzer', 'lib', 'src', 'dart', 'ast', 'ast.dart');
-    var pathToSelection = pathContext.join(packageRoot, 'analysis_server',
-        'lib', 'src', 'utilities', 'selection.dart');
+      packageRoot,
+      'analyzer',
+      'lib',
+      'src',
+      'dart',
+      'ast',
+      'ast.dart',
+    );
+    var pathToSelection = pathContext.join(
+      packageRoot,
+      'analysis_server',
+      'lib',
+      'src',
+      'utilities',
+      'selection.dart',
+    );
 
-    var collection =
-        AnalysisContextCollection(includedPaths: [pathToSelection]);
+    var collection = AnalysisContextCollection(
+      includedPaths: [pathToSelection],
+    );
     var context = collection.contexts.first;
-    var astInterfaceResult =
-        await context.currentSession.getResolvedUnit(pathToAsInterface);
-    var astImplResult =
-        await context.currentSession.getResolvedUnit(pathToAsImpl);
-    var selectionResult =
-        await context.currentSession.getResolvedUnit(pathToSelection);
+    var astInterfaceResult = await context.currentSession.getResolvedUnit(
+      pathToAsInterface,
+    );
+    var astImplResult = await context.currentSession.getResolvedUnit(
+      pathToAsImpl,
+    );
+    var selectionResult = await context.currentSession.getResolvedUnit(
+      pathToSelection,
+    );
 
-    var astInterfaceData =
-        processAstInterface(astInterfaceResult as ResolvedUnitResult);
+    var astInterfaceData = processAstInterface(
+      astInterfaceResult as ResolvedUnitResult,
+    );
     var astImplData = processAstImpl(astImplResult as ResolvedUnitResult);
     var selectionData = processSelection(selectionResult as ResolvedUnitResult);
     var visitedLists = selectionData.visitedLists;
@@ -179,8 +213,8 @@ class SelectionCoverageTest {
 
     var buffer = StringBuffer();
     for (var interface in astImplData.instantiableInterfaces) {
-      if (interface.name == 'Comment' ||
-          interface.name == 'VariableDeclaration') {
+      if (interface.name3 == 'Comment' ||
+          interface.name3 == 'VariableDeclaration') {
         // The class `Comment` has references, but we don't support selecting a
         // portion of a comment in order to operate on it.
         //
@@ -196,13 +230,13 @@ class SelectionCoverageTest {
       }
       var visitedNodeLists = visitedLists[interface];
       if (visitedNodeLists == null) {
-        var interfaceName = interface.name;
+        var interfaceName = interface.name3;
         buffer.writeln('Missing implementation of visit$interfaceName:');
         buffer.writeln();
         buffer.writeln('@override');
         buffer.writeln('void visit$interfaceName($interfaceName node) {');
         for (var nodeList in declaredNodeLists) {
-          buffer.writeln('  _fromList(node.${nodeList.name});');
+          buffer.writeln('  _fromList(node.${nodeList.name3});');
         }
         buffer.writeln('}');
         buffer.writeln();
@@ -210,18 +244,22 @@ class SelectionCoverageTest {
         var unvisitedNodeLists = {...declaredNodeLists};
         for (var visitedNodeList in visitedNodeLists) {
           unvisitedNodeLists.remove(visitedNodeList);
-          var overridden = inheritanceManager.getOverridden2(
-              visitedNodeList.enclosingElement3 as InterfaceElement,
-              Name(visitedNodeList.library.source.uri, visitedNodeList.name));
+          var overridden = inheritanceManager.getOverridden4(
+            visitedNodeList.enclosingElement2 as InterfaceElement2,
+            Name(
+              visitedNodeList.library2!.uri,
+              visitedNodeList.name3!,
+            ),
+          );
           if (overridden != null) {
             unvisitedNodeLists.removeAll(overridden);
           }
         }
         if (unvisitedNodeLists.isNotEmpty) {
-          buffer.writeln('Missing lines in visit${interface.name}:');
+          buffer.writeln('Missing lines in visit${interface.name3}:');
           buffer.writeln();
           for (var nodeList in unvisitedNodeLists) {
-            buffer.writeln('  _fromList(node.${nodeList.name});');
+            buffer.writeln('  _fromList(node.${nodeList.name3});');
           }
           buffer.writeln();
         }
@@ -234,13 +272,13 @@ class SelectionCoverageTest {
 }
 
 class SelectionData {
-  final Map<ClassElement, List<ExecutableElement>> visitedLists = {};
+  final Map<ClassElement2, List<ExecutableElement2>> visitedLists = {};
 
   SelectionData();
 }
 
 class VisitMethodVisitor extends RecursiveAstVisitor<void> {
-  List<ExecutableElement> visitedLists = [];
+  List<ExecutableElement2> visitedLists = [];
 
   VisitMethodVisitor();
 
@@ -249,11 +287,9 @@ class VisitMethodVisitor extends RecursiveAstVisitor<void> {
     if (node.methodName.name == '_fromList') {
       var argument = node.argumentList.arguments.first;
       if (argument is PrefixedIdentifier) {
-        visitedLists
-            .add(argument.identifier.staticElement as ExecutableElement);
+        visitedLists.add(argument.identifier.element as ExecutableElement2);
       } else if (argument is PropertyAccess) {
-        visitedLists
-            .add(argument.propertyName.staticElement as ExecutableElement);
+        visitedLists.add(argument.propertyName.element as ExecutableElement2);
       }
     }
   }

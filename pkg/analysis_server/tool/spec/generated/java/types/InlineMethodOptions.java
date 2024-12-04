@@ -9,19 +9,16 @@
 package org.dartlang.analysis.server.protocol;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import com.google.dart.server.utilities.general.JsonUtilities;
-import com.google.dart.server.utilities.general.ObjectUtilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @coverage dart.server.generated.types
@@ -29,9 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("unused")
 public class InlineMethodOptions extends RefactoringOptions {
 
-  public static final InlineMethodOptions[] EMPTY_ARRAY = new InlineMethodOptions[0];
-
-  public static final List<InlineMethodOptions> EMPTY_LIST = Lists.newArrayList();
+  public static final List<InlineMethodOptions> EMPTY_LIST = List.of();
 
   /**
    * True if the method being inlined should be removed. It is an error if this field is true and
@@ -55,8 +50,7 @@ public class InlineMethodOptions extends RefactoringOptions {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof InlineMethodOptions) {
-      InlineMethodOptions other = (InlineMethodOptions) obj;
+    if (obj instanceof InlineMethodOptions other) {
       return
         other.deleteSource == deleteSource &&
         other.inlineAll == inlineAll;
@@ -74,10 +68,9 @@ public class InlineMethodOptions extends RefactoringOptions {
     if (jsonArray == null) {
       return EMPTY_LIST;
     }
-    ArrayList<InlineMethodOptions> list = new ArrayList<InlineMethodOptions>(jsonArray.size());
-    Iterator<JsonElement> iterator = jsonArray.iterator();
-    while (iterator.hasNext()) {
-      list.add(fromJson(iterator.next().getAsJsonObject()));
+    List<InlineMethodOptions> list = new ArrayList<>(jsonArray.size());
+    for (final JsonElement element : jsonArray) {
+      list.add(fromJson(element.getAsJsonObject()));
     }
     return list;
   }
@@ -100,10 +93,10 @@ public class InlineMethodOptions extends RefactoringOptions {
 
   @Override
   public int hashCode() {
-    HashCodeBuilder builder = new HashCodeBuilder();
-    builder.append(deleteSource);
-    builder.append(inlineAll);
-    return builder.toHashCode();
+    return Objects.hash(
+      deleteSource,
+      inlineAll
+    );
   }
 
   /**
@@ -122,6 +115,7 @@ public class InlineMethodOptions extends RefactoringOptions {
     this.inlineAll = inlineAll;
   }
 
+  @Override
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("deleteSource", deleteSource);
@@ -134,7 +128,8 @@ public class InlineMethodOptions extends RefactoringOptions {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
     builder.append("deleteSource=");
-    builder.append(deleteSource + ", ");
+    builder.append(deleteSource);
+    builder.append(", ");
     builder.append("inlineAll=");
     builder.append(inlineAll);
     builder.append("]");

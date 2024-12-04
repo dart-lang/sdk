@@ -25,7 +25,10 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
   factory ConvertAddAllToSpread({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
       return ConvertAddAllToSpread._(
-          context: context, invocation: null, isInlineInvocation: false);
+        context: context,
+        invocation: null,
+        isInlineInvocation: false,
+      );
     }
 
     var name = context.node;
@@ -39,7 +42,10 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
           !invocation.isCascaded ||
           invocation.argumentList.arguments.length != 1) {
         return ConvertAddAllToSpread._(
-            context: context, invocation: null, isInlineInvocation: false);
+          context: context,
+          invocation: null,
+          isInlineInvocation: false,
+        );
       }
 
       var argument = invocation.argumentList.arguments[0];
@@ -59,8 +65,8 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
     required super.context,
     required MethodInvocation? invocation,
     required bool isInlineInvocation,
-  })  : _invocation = invocation,
-        _isInlineInvocation = isInlineInvocation;
+  }) : _invocation = invocation,
+       _isInlineInvocation = isInlineInvocation;
 
   @override
   CorrectionApplicability get applicability =>
@@ -70,22 +76,25 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
   List<String> get assistArguments => _args;
 
   @override
-  AssistKind get assistKind => _isInlineInvocation
-      ? DartAssistKind.INLINE_INVOCATION
-      : DartAssistKind.CONVERT_TO_SPREAD;
+  AssistKind get assistKind =>
+      _isInlineInvocation
+          ? DartAssistKind.INLINE_INVOCATION
+          : DartAssistKind.CONVERT_TO_SPREAD;
 
   @override
   List<String> get fixArguments => _args;
 
   @override
-  FixKind get fixKind => _isInlineInvocation
-      ? DartFixKind.INLINE_INVOCATION
-      : DartFixKind.CONVERT_TO_SPREAD;
+  FixKind get fixKind =>
+      _isInlineInvocation
+          ? DartFixKind.INLINE_INVOCATION
+          : DartFixKind.CONVERT_TO_SPREAD;
 
   @override
-  FixKind get multiFixKind => _isInlineInvocation
-      ? DartFixKind.INLINE_INVOCATION_MULTI
-      : DartFixKind.CONVERT_TO_SPREAD_MULTI;
+  FixKind get multiFixKind =>
+      _isInlineInvocation
+          ? DartFixKind.INLINE_INVOCATION_MULTI
+          : DartFixKind.CONVERT_TO_SPREAD_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -9,9 +9,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/workspace/workspace.dart'; // ignore: implementation_imports
 import 'package:path/path.dart' as path;
 
@@ -21,9 +23,9 @@ import 'utils.dart';
 final List<String> reservedWords = _collectReservedWords();
 
 /// Returns direct children of [parent].
-List<Element> getChildren(Element parent, [String? name]) {
-  var children = <Element>[];
-  visitChildren(parent, (Element element) {
+List<Element2> getChildren(Element2 parent, [String? name]) {
+  var children = <Element2>[];
+  visitChildren(parent, (Element2 element) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
@@ -127,6 +129,12 @@ Element? getWriteOrReadElement(SimpleIdentifier node) {
   return node.staticElement;
 }
 
+/// If the [node] is the finishing identifier of an assignment, return its
+/// "writeElement", otherwise return its "element", which might be
+/// thought as the "readElement".
+Element2? getWriteOrReadElement2(SimpleIdentifier node) =>
+    _getWriteElement2(node) ?? node.element;
+
 bool hasConstantError(Expression node) =>
     node.computeConstantValue().errors.isNotEmpty;
 
@@ -149,7 +157,7 @@ bool isIndex(ClassMember element) => _hasFieldOrMethod(element, 'index');
 /// [package]'s `lib/` directory tree.
 bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
-  var cuPath = node.declaredElement?.library.source.fullName;
+  var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
   var libDir = path.join(package.root, 'lib');
   return path.isWithin(libDir, cuPath);
@@ -162,7 +170,7 @@ bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
 // TODO(jakemac): move into WorkspacePackage
 bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
-  var cuPath = node.declaredElement?.library.source.fullName;
+  var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
   var libDir = path.join(package.root, 'lib');
   var binDir = path.join(package.root, 'bin');
@@ -277,16 +285,11 @@ bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 
 /// Return the nearest enclosing pubspec file.
 File? locatePubspecFile(CompilationUnit compilationUnit) {
-  var fullName = compilationUnit.declaredElement?.source.fullName;
-  if (fullName == null) {
-    return null;
-  }
+  var declaredFragment = compilationUnit.declaredFragment;
+  if (declaredFragment == null) return null;
 
-  var resourceProvider =
-      compilationUnit.declaredElement?.session.resourceProvider;
-  if (resourceProvider == null) {
-    return null;
-  }
+  var fullName = declaredFragment.source.fullName;
+  var resourceProvider = declaredFragment.element.session.resourceProvider;
 
   var file = resourceProvider.getFile(fullName);
 
@@ -303,19 +306,19 @@ File? locatePubspecFile(CompilationUnit compilationUnit) {
 
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
-void visitChildren(Element element, ElementProcessor processor) {
-  element.visitChildren(_ElementVisitorAdapter(processor));
+void visitChildren(Element2 element, ElementProcessor processor) {
+  element.visitChildren2(_ElementVisitorAdapter(processor));
 }
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
   if (expression is SimpleIdentifier) {
-    var staticElement = expression.staticElement;
-    if (staticElement is PropertyAccessorElement) {
-      var enclosingElement = getter.declaredElement?.enclosingElement3;
+    var staticElement = expression.element;
+    if (staticElement is GetterElement) {
+      var enclosingElement = getter.declaredFragment?.element.enclosingElement2;
       // Skipping library level getters, test that the enclosing element is
       // the same
-      if (staticElement.enclosingElement3 == enclosingElement) {
-        var variable = staticElement.variable2;
+      if (staticElement.enclosingElement2 == enclosingElement) {
+        var variable = staticElement.variable3;
         if (variable != null) {
           return staticElement.isSynthetic && variable.isPrivate;
         }
@@ -336,8 +339,8 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var leftHandSide = expression.leftHandSide;
   var rightHandSide = expression.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
-    var leftElement = expression.writeElement;
-    if (leftElement is! PropertyAccessorElement || !leftElement.isSynthetic) {
+    var leftElement = expression.writeElement2;
+    if (leftElement is! SetterElement || !leftElement.isSynthetic) {
       return false;
     }
 
@@ -346,14 +349,14 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
       return false;
     }
 
-    var rightElement = rightHandSide.staticElement;
-    if (rightElement is! ParameterElement) {
+    var rightElement = rightHandSide.element;
+    if (rightElement is! FormalParameterElement) {
       return false;
     }
 
     var parameters = setter.parameters?.parameters;
     if (parameters != null && parameters.length == 1) {
-      return rightElement == parameters.first.declaredElement;
+      return rightElement == parameters.first.declaredFragment?.element;
     }
   }
 
@@ -410,25 +413,48 @@ Element? _getWriteElement(AstNode node) {
   return null;
 }
 
+Element2? _getWriteElement2(AstNode node) {
+  var parent = node.parent;
+  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    return parent.writeElement2;
+  }
+  if (parent is PostfixExpression) {
+    return parent.writeElement2;
+  }
+  if (parent is PrefixExpression) {
+    return parent.writeElement2;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _getWriteElement2(parent);
+  }
+
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _getWriteElement2(parent);
+  }
+
+  return null;
+}
+
 bool _hasFieldOrMethod(ClassMember element, String name) =>
     (element is MethodDeclaration && element.name.lexeme == name) ||
     (element is FieldDeclaration && getFieldName(element, name) != null);
 
-/// An [Element] processor function type.
+/// An [Element2] processor function type.
 /// If `true` is returned, children of [element] will be visited.
-typedef ElementProcessor = bool Function(Element element);
+typedef ElementProcessor = bool Function(Element2 element);
 
 /// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
-class _ElementVisitorAdapter extends GeneralizingElementVisitor<void> {
+class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   final ElementProcessor processor;
 
   _ElementVisitorAdapter(this.processor);
 
   @override
-  void visitElement(Element element) {
+  void visitElement(Element2 element) {
     var visitChildren = processor(element);
     if (visitChildren) {
-      element.visitChildren(this);
+      element.visitChildren2(this);
     }
   }
 }
@@ -439,15 +465,5 @@ extension AstNodeExtension on AstNode {
     return self is MethodInvocation &&
         self.methodName.name == 'toString' &&
         self.argumentList.arguments.isNotEmpty;
-  }
-}
-
-extension ElementExtension on Element? {
-  // TODO(srawlins): Move to extensions.dart.
-  bool get isDartCorePrint {
-    var self = this;
-    return self is FunctionElement &&
-        self.name == 'print' &&
-        self.library.isDartCore;
   }
 }

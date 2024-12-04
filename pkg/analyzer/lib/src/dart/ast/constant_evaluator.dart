@@ -92,6 +92,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// In addition, this class defines several values that can be returned to
 /// indicate various conditions encountered during evaluation. These are
 /// documented with the static fields that define those values.
+@Deprecated('This has no uses in package:analyzer and not exhaustive.')
 class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   /// The value returned for expressions (or non-expression nodes) that are not
   /// compile-time constant expressions.

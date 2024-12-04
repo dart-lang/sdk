@@ -34,17 +34,17 @@ class AnalysisNotificationAnalyzedFilesTest
   }
 
   Future<void> prepareAnalyzedFiles() async {
-    await addGeneralAnalysisSubscription(
-      GeneralAnalysisService.ANALYZED_FILES,
-    );
+    await addGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
     await pumpEventQueue(times: 5000);
   }
 
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ANALYZED_FILES) {
-      var params = AnalysisAnalyzedFilesParams.fromNotification(notification,
-          clientUriConverter: server.uriConverter);
+      var params = AnalysisAnalyzedFilesParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
       analyzedFilesReceived = true;
       analyzedFiles = params.directories;
     }
@@ -126,8 +126,6 @@ class A {}
   }
 
   void unsubscribeAnalyzedFiles() {
-    removeGeneralAnalysisSubscription(
-      GeneralAnalysisService.ANALYZED_FILES,
-    );
+    removeGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
   }
 }

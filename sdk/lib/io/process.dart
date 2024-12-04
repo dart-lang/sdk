@@ -54,7 +54,8 @@ Never exit(int code) {
   ArgumentError.checkNotNull(code, "code");
   if (!_EmbedderConfig._mayExit) {
     throw new UnsupportedError(
-        "This embedder disallows calling dart:io's exit()");
+      "This embedder disallows calling dart:io's exit()",
+    );
   }
   _ProcessUtils._exit(code);
 }
@@ -101,7 +102,8 @@ void sleep(Duration duration) {
   }
   if (!_EmbedderConfig._maySleep) {
     throw new UnsupportedError(
-        "This embedder disallows calling dart:io's sleep()");
+      "This embedder disallows calling dart:io's sleep()",
+    );
   }
   _ProcessUtils._sleep(milliseconds);
 }
@@ -145,11 +147,11 @@ final class ProcessStartMode {
   static const detachedWithStdio = const ProcessStartMode._internal(3);
 
   static List<ProcessStartMode> get values => const <ProcessStartMode>[
-        normal,
-        inheritStdio,
-        detached,
-        detachedWithStdio
-      ];
+    normal,
+    inheritStdio,
+    detached,
+    detachedWithStdio,
+  ];
   String toString() =>
       const ["normal", "inheritStdio", "detached", "detachedWithStdio"][_mode];
 
@@ -371,12 +373,14 @@ abstract interface class Process {
   ///
   /// The default value for `mode` is `ProcessStartMode.normal`.
   external static Future<Process> start(
-      String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      ProcessStartMode mode = ProcessStartMode.normal});
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    ProcessStartMode mode = ProcessStartMode.normal,
+  });
 
   /// Starts a process and runs it non-interactively to completion. The
   /// process run is [executable] with the specified [arguments].
@@ -436,13 +440,15 @@ abstract interface class Process {
   /// stderr.write(result.stderr);
   /// ```
   external static Future<ProcessResult> run(
-      String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      Encoding? stdoutEncoding = systemEncoding,
-      Encoding? stderrEncoding = systemEncoding});
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    Encoding? stdoutEncoding = systemEncoding,
+    Encoding? stderrEncoding = systemEncoding,
+  });
 
   /// Starts a process and runs it to completion. This is a synchronous
   /// call and will block until the child process terminates.
@@ -452,13 +458,15 @@ abstract interface class Process {
   /// Returns a [ProcessResult] with the result of running the process,
   /// i.e., exit code, standard out and standard in.
   external static ProcessResult runSync(
-      String executable, List<String> arguments,
-      {String? workingDirectory,
-      Map<String, String>? environment,
-      bool includeParentEnvironment = true,
-      bool runInShell = false,
-      Encoding? stdoutEncoding = systemEncoding,
-      Encoding? stderrEncoding = systemEncoding});
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    Encoding? stdoutEncoding = systemEncoding,
+    Encoding? stderrEncoding = systemEncoding,
+  });
 
   /// Kills the process with id [pid].
   ///
@@ -474,8 +482,10 @@ abstract interface class Process {
   /// Returns `true` if the signal is successfully delivered to the
   /// process. Otherwise the signal could not be sent, usually meaning
   /// that the process is already dead.
-  external static bool killPid(int pid,
-      [ProcessSignal signal = ProcessSignal.sigterm]);
+  external static bool killPid(
+    int pid, [
+    ProcessSignal signal = ProcessSignal.sigterm,
+  ]);
 
   /// The standard output stream of the process as a `Stream`.
   ///
@@ -671,8 +681,12 @@ class ProcessException implements IOException {
   /// The value is zero if no OS error code was available.
   final int errorCode;
 
-  const ProcessException(this.executable, this.arguments,
-      [this.message = "", this.errorCode = 0]);
+  const ProcessException(
+    this.executable,
+    this.arguments, [
+    this.message = "",
+    this.errorCode = 0,
+  ]);
   String toString() {
     var args = arguments.join(' ');
     return "ProcessException: $message\n  Command: $executable $args";

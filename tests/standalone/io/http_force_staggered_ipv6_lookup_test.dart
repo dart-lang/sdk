@@ -7,7 +7,7 @@
 
 import "dart:io";
 
-import "package:async_helper/async_helper.dart";
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
 const sampleData = <int>[1, 2, 3, 4, 5];

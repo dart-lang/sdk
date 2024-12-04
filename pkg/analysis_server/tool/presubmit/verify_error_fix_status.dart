@@ -29,8 +29,15 @@ PhysicalResourceProvider _resourceProvider = PhysicalResourceProvider.INSTANCE;
 String statusFilePath() {
   var pathContext = _resourceProvider.pathContext;
   var packageRoot = pathContext.normalize(package_root.packageRoot);
-  return pathContext.join(packageRoot, 'analysis_server', 'lib', 'src',
-      'services', 'correction', 'error_fix_status.yaml');
+  return pathContext.join(
+    packageRoot,
+    'analysis_server',
+    'lib',
+    'src',
+    'services',
+    'correction',
+    'error_fix_status.yaml',
+  );
 }
 
 /// Verifies that the "error fix status" file is up-to-date and returns an error
@@ -47,9 +54,7 @@ String? verifyErrorFixStatus() {
   var lintRuleCodes = {
     for (var rule in Registry.ruleRegistry.rules) ...rule.lintCodes,
   };
-  var lintRuleNames = {
-    for (var lintCode in lintRuleCodes) lintCode.uniqueName,
-  };
+  var lintRuleNames = {for (var lintCode in lintRuleCodes) lintCode.uniqueName};
 
   var errorData = ErrorData();
   for (var code in errorCodeValues) {
@@ -94,9 +99,7 @@ String? verifyErrorFixStatus() {
     }
   }
 
-  var errorCodeNames = {
-    for (var code in errorCodeValues) code.uniqueName,
-  };
+  var errorCodeNames = {for (var code in errorCodeValues) code.uniqueName};
   for (var key in statusInfo.keys) {
     if (key is String) {
       if (!errorCodeNames.contains(key) && !lintRuleNames.contains(key)) {

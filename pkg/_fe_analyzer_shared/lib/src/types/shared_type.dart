@@ -66,21 +66,30 @@ abstract interface class SharedNamedTypeStructure<
   TypeStructure get type;
 }
 
+/// Common interface for data structures used by implementations to represent
+/// the type `Null`.
+abstract interface class SharedNullTypeStructure<
+        TypeStructure extends SharedTypeStructure<TypeStructure>>
+    implements SharedTypeStructure<TypeStructure> {}
+
 /// Common interface for data structures used by the implementations to
 /// represent a record type.
 abstract interface class SharedRecordTypeStructure<
         TypeStructure extends SharedTypeStructure<TypeStructure>>
     implements SharedTypeStructure<TypeStructure> {
-  /// All the named fields, sorted by name.
-  List<SharedNamedTypeStructure<TypeStructure>> get namedTypes;
-
   List<TypeStructure> get positionalTypes;
+
+  /// All the named fields, sorted by name.
+  List<SharedNamedTypeStructure<TypeStructure>> get sortedNamedTypes;
 }
 
 /// Common interface for data structures used by the implementations to
 /// represent a generic type parameter.
 abstract interface class SharedTypeParameterStructure<
     TypeStructure extends SharedTypeStructure<TypeStructure>> {
+  /// The bound of the type parameter.
+  TypeStructure? get bound;
+
   /// The name of the type parameter, for display to the user.
   String get displayName;
 }
@@ -158,7 +167,7 @@ extension type SharedRecordTypeSchemaView<
         SharedRecordTypeStructure<TypeStructure> _typeStructure)
     implements SharedTypeSchemaView<TypeStructure> {
   List<SharedNamedTypeSchemaView<TypeStructure>> get namedTypes {
-    return _typeStructure.namedTypes
+    return _typeStructure.sortedNamedTypes
         as List<SharedNamedTypeSchemaView<TypeStructure>>;
   }
 
@@ -173,7 +182,7 @@ extension type SharedRecordTypeView<
         SharedRecordTypeStructure<TypeStructure> _typeStructure)
     implements SharedTypeView<TypeStructure> {
   List<SharedNamedTypeView<TypeStructure>> get namedTypes {
-    return _typeStructure.namedTypes
+    return _typeStructure.sortedNamedTypes
         as List<SharedNamedTypeView<TypeStructure>>;
   }
 

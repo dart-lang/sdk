@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.implicit_type;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -47,8 +45,8 @@ abstract class InferredType extends AuxiliaryType {
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType get nonTypeVariableBound {
-    throw unsupported("nonTypeVariableBound", charOffset ?? -1, fileUri);
+  DartType get nonTypeParameterBound {
+    throw unsupported("nonTypeParameterBound", charOffset ?? -1, fileUri);
   }
 
   @override
@@ -106,7 +104,7 @@ class _ImplicitFieldTypeRoot extends InferredType {
 
   @override
   // Coverage-ignore(suite): Not run.
-  int get charOffset => fieldBuilder.charOffset;
+  int get charOffset => fieldBuilder.fileOffset;
 
   @override
   DartType inferType(ClassHierarchyBase hierarchy) {
@@ -119,7 +117,7 @@ class _ImplicitFieldTypeRoot extends InferredType {
       fieldBuilder.libraryBuilder.addProblem(
           templateCantInferTypeDueToCircularity
               .withArguments(fieldBuilder.name),
-          fieldBuilder.charOffset,
+          fieldBuilder.fileOffset,
           fieldBuilder.name.length,
           fieldBuilder.fileUri);
       DartType type = const InvalidType();
@@ -150,10 +148,7 @@ class _ImplicitFieldTypeRoot extends InferredType {
                   // Coverage-ignore(suite): Not run.
                   ?.inferenceData);
       BodyBuilderContext bodyBuilderContext =
-          fieldBuilder.createBodyBuilderContext(
-              inOutlineBuildingPhase: false,
-              inMetadata: false,
-              inConstFields: false);
+          fieldBuilder.createBodyBuilderContext();
       BodyBuilder bodyBuilder = fieldBuilder.libraryBuilder.loader
           .createBodyBuilderForField(
               fieldBuilder.libraryBuilder,

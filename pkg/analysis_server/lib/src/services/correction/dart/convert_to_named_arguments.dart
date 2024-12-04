@@ -16,8 +16,9 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_NAMED_ARGUMENTS;
@@ -63,15 +64,20 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
 
       // Find named parameters for extra arguments.
       var argumentToParameter = <Expression, FormalParameterElement>{};
-      var extraArguments =
-          argumentList.arguments.skip(numberOfPositionalParameters);
+      var extraArguments = argumentList.arguments.skip(
+        numberOfPositionalParameters,
+      );
       for (var argument in extraArguments) {
         if (argument is! NamedExpression) {
           FormalParameterElement? uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
+            var namedParameterName = namedParameter.name3;
             if (typeSystem.isSubtypeOf(
-                    argument.typeOrThrow, namedParameter.type) &&
-                !_namedArgumentExists(extraArguments, namedParameter.name)) {
+                  argument.typeOrThrow,
+                  namedParameter.type,
+                ) &&
+                namedParameterName != null &&
+                !_namedArgumentExists(extraArguments, namedParameterName)) {
               if (uniqueNamedParameter == null) {
                 uniqueNamedParameter = namedParameter;
               } else {
@@ -94,7 +100,7 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
         for (var entry in argumentToParameter.entries) {
           var argument = entry.key;
           var parameter = entry.value;
-          builder.addSimpleInsertion(argument.offset, '${parameter.name}: ');
+          builder.addSimpleInsertion(argument.offset, '${parameter.name3}: ');
         }
       });
     }

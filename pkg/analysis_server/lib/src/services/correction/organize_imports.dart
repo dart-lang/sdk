@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
@@ -34,9 +35,12 @@ class ImportOrganizer {
 
   bool hasUnresolvedIdentifierError = false;
 
-  ImportOrganizer(this.initialCode, this.unit, this.errors,
-      {this.removeUnused = true})
-      : code = initialCode {
+  ImportOrganizer(
+    this.initialCode,
+    this.unit,
+    this.errors, {
+    this.removeUnused = true,
+  }) : code = initialCode {
     endOfLine = getEOL(code);
     hasUnresolvedIdentifierError = errors.any((error) {
       return error.errorCode.isUnresolvedIdentifier;
@@ -50,8 +54,11 @@ class ImportOrganizer {
     var edits = <SourceEdit>[];
     if (code != initialCode) {
       var suffixLength = findCommonSuffix(initialCode, code);
-      var edit = SourceEdit(0, initialCode.length - suffixLength,
-          code.substring(0, code.length - suffixLength));
+      var edit = SourceEdit(
+        0,
+        initialCode.length - suffixLength,
+        code.substring(0, code.length - suffixLength),
+      );
       edits.add(edit);
     }
     return edits;
@@ -63,6 +70,16 @@ class ImportOrganizer {
               error.errorCode == WarningCode.UNUSED_IMPORT ||
               error.errorCode == HintCode.UNNECESSARY_IMPORT) &&
           directive.uri.offset == error.offset) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isUnusedShowName(SimpleIdentifier name) {
+    for (var error in errors) {
+      if ((error.errorCode == WarningCode.UNUSED_SHOWN_NAME) &&
+          name.offset == error.offset) {
         return true;
       }
     }
@@ -88,12 +105,18 @@ class ImportOrganizer {
         int? libraryDocsAndAnnotationsEndOffset;
         var uriContent = directive.uri.stringValue ?? '';
         var priority = switch (directive) {
-          ImportDirective() =>
-            DirectiveSortPriority(uriContent, DirectiveSortKind.import),
-          ExportDirective() =>
-            DirectiveSortPriority(uriContent, DirectiveSortKind.export),
-          PartDirective() =>
-            DirectiveSortPriority(uriContent, DirectiveSortKind.part),
+          ImportDirective() => DirectiveSortPriority(
+            uriContent,
+            DirectiveSortKind.import,
+          ),
+          ExportDirective() => DirectiveSortPriority(
+            uriContent,
+            DirectiveSortKind.export,
+          ),
+          PartDirective() => DirectiveSortPriority(
+            uriContent,
+            DirectiveSortKind.part,
+          ),
         };
 
         var offset = directive.offset;
@@ -107,9 +130,10 @@ class ImportOrganizer {
           // after any non-library annotation. If there are already
           // non-library annotations before library annotations, we will not
           // try to correct those.
-          lastLibraryAnnotation = directive.metadata
-              .takeWhile(_isLibraryTargetAnnotation)
-              .lastOrNull;
+          lastLibraryAnnotation =
+              directive.metadata
+                  .takeWhile(_isLibraryTargetAnnotation)
+                  .lastOrNull;
 
           // If there is no annotation, use the end of the doc text (since the
           // doc text is considered library-level here).
@@ -118,15 +142,17 @@ class ImportOrganizer {
 
           // Fix up the offset to be after the line end.
           if (libraryDocsAndAnnotationsEndOffset != null) {
-            libraryDocsAndAnnotationsEndOffset = lineInfo
-                .getOffsetOfLineAfter(libraryDocsAndAnnotationsEndOffset);
+            libraryDocsAndAnnotationsEndOffset = lineInfo.getOffsetOfLineAfter(
+              libraryDocsAndAnnotationsEndOffset,
+            );
             // In the case of a blank line after the annotation/doc text
             // we should include that in the library part. Otherwise it will
             // be included in the top of the following directive and may
             // result in an extra blank line in the annotation block if it
             // is moved.
-            var nextLineOffset = lineInfo
-                .getOffsetOfLineAfter(libraryDocsAndAnnotationsEndOffset);
+            var nextLineOffset = lineInfo.getOffsetOfLineAfter(
+              libraryDocsAndAnnotationsEndOffset,
+            );
             if (code
                 .substring(libraryDocsAndAnnotationsEndOffset, nextLineOffset)
                 .trim()
@@ -141,17 +167,25 @@ class ImportOrganizer {
         // of that and should not also be included here.
         var leadingToken =
             lastLibraryAnnotation == null ? directive.beginToken : null;
-        var leadingComment = leadingToken != null
-            ? getLeadingComment(unit, leadingToken, lineInfo,
-                isPseudoLibraryDirective: isPseudoLibraryDirective)
-            : null;
+        var leadingComment =
+            leadingToken != null
+                ? getLeadingComment(
+                  unit,
+                  leadingToken,
+                  lineInfo,
+                  isPseudoLibraryDirective: isPseudoLibraryDirective,
+                )
+                : null;
         var trailingComment = getTrailingComment(unit, directive, lineInfo);
 
         if (leadingComment != null && leadingToken != null) {
-          offset = libraryDocsAndAnnotationsEndOffset != null
-              ? math.max(
-                  libraryDocsAndAnnotationsEndOffset, leadingComment.offset)
-              : leadingComment.offset;
+          offset =
+              libraryDocsAndAnnotationsEndOffset != null
+                  ? math.max(
+                    libraryDocsAndAnnotationsEndOffset,
+                    leadingComment.offset,
+                  )
+                  : leadingComment.offset;
         }
         if (trailingComment != null) {
           end = trailingComment.end;
@@ -178,12 +212,24 @@ class ImportOrganizer {
       var sb = StringBuffer();
       DirectiveSortPriority? currentPriority;
       var previousDirectiveText = '';
+      var showCombinators = <ImportDirective, List<SimpleIdentifier>>{};
       for (var directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
           var directive = directiveInfo.directive;
           if (removeUnused && _isUnusedImport(directive) ||
               (removeUnused && previousDirectiveText == directiveInfo.text)) {
             continue;
+          }
+          if (directive is ImportDirective) {
+            var combinators = directive.combinators;
+            if (combinators.isNotEmpty) {
+              var shownNames = combinators
+                  .whereType<ShowCombinator>()
+                  .map((combinator) => combinator.shownNames)
+                  .expand((names) => names);
+              var list = shownNames.where(_isUnusedShowName).toList();
+              showCombinators[directive] = list;
+            }
           }
         }
         if (currentPriority != directiveInfo.priority) {
@@ -192,9 +238,21 @@ class ImportOrganizer {
           }
           currentPriority = directiveInfo.priority;
         }
-        sb.write(directiveInfo.text);
+        var text = directiveInfo.text;
+        if (showCombinators.containsKey(directiveInfo.directive)) {
+          var showCombinatorList = showCombinators[directiveInfo.directive]!;
+          var showOffset = text.indexOf('show');
+          for (var name in showCombinatorList) {
+            if (text.contains('${name.name},')) {
+              text = text.replaceFirst('${name.name}, ', '', showOffset);
+            } else if (text.contains(', ${name.name}')) {
+              text = text.replaceFirst(', ${name.name}', '', showOffset);
+            }
+          }
+        }
+        sb.write(text);
         sb.write(endOfLine);
-        previousDirectiveText = directiveInfo.text;
+        previousDirectiveText = text;
       }
       directivesCode = sb.toString();
       directivesCode = directivesCode.trimRight();
@@ -225,8 +283,11 @@ class ImportOrganizer {
   /// or an '// ignore:' comment which should always be treated as attached to
   /// the import.
   static Token? getLeadingComment(
-      CompilationUnit unit, Token beginToken, LineInfo lineInfo,
-      {required bool isPseudoLibraryDirective}) {
+    CompilationUnit unit,
+    Token beginToken,
+    LineInfo lineInfo, {
+    required bool isPseudoLibraryDirective,
+  }) {
     if (beginToken.precedingComments == null) {
       return null;
     }
@@ -289,7 +350,10 @@ class ImportOrganizer {
   /// To be considered a trailing comment, the comment must be on the same line
   /// as the directive.
   static Token? getTrailingComment(
-      CompilationUnit unit, UriBasedDirective directive, LineInfo lineInfo) {
+    CompilationUnit unit,
+    UriBasedDirective directive,
+    LineInfo lineInfo,
+  ) {
     var line = lineInfo.getLocation(directive.end).lineNumber;
     Token? comment = directive.endToken.next!.precedingComments;
     while (comment != null) {
@@ -325,8 +389,14 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   /// The text excluding comments, documentation and annotations.
   final String text;
 
-  _DirectiveInfo(this.directive, this.priority, this.uri, this.offset, this.end,
-      this.text);
+  _DirectiveInfo(
+    this.directive,
+    this.priority,
+    this.uri,
+    this.offset,
+    this.end,
+    this.text,
+  );
 
   @override
   int compareTo(_DirectiveInfo other) {

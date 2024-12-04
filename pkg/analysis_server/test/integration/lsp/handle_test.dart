@@ -42,9 +42,10 @@ class LspOverLegacyRequestTest extends AbstractLspOverLegacyTest {
     } on ServerErrorMessage catch (message) {
       expect(message.error['code'], 'INVALID_PARAMETER');
       expect(
-          message.error['message'],
-          "The 'lspMessage' parameter was not a valid LSP request:\n"
-          'jsonrpc must not be undefined');
+        message.error['message'],
+        "The 'lspMessage' parameter was not a valid LSP request:\n"
+        'jsonrpc must not be undefined',
+      );
     }
   }
 
@@ -55,8 +56,12 @@ class LspOverLegacyRequestTest extends AbstractLspOverLegacyTest {
 
     await expectLater(
       getHover(testFileUri, Position(character: 0, line: 0)),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
-          message: 'File does not exist')),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.InvalidFilePath,
+          message: 'File does not exist',
+        ),
+      ),
     );
   }
 
@@ -85,9 +90,7 @@ class [!A^aa!] {}
     var result = await getHover(testFileUri, code.position.position);
 
     expect(result!.range, code.range.range);
-    expectMarkdown(
-      result.contents,
-      '''
+    expectMarkdown(result.contents, '''
 ```dart
 class Aaa
 ```
@@ -95,8 +98,7 @@ class Aaa
 
 ---
 This is my class.
-''',
-    );
+''');
   }
 
   /// Tests the protocol using JSON instead of helpers.
@@ -132,7 +134,7 @@ This is my class.''';
           'textDocument': {'uri': testFileUri.toString()},
           'position': code.position.position.toJson(),
         },
-      }
+      },
     });
 
     expect(response, {
@@ -141,9 +143,9 @@ This is my class.''';
         'jsonrpc': '2.0',
         'result': {
           'contents': {'kind': 'markdown', 'value': expectedHover},
-          'range': code.range.range.toJson()
-        }
-      }
+          'range': code.range.range.toJson(),
+        },
+      },
     });
   }
 }

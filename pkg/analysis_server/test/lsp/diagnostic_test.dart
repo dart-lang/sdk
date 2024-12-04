@@ -37,19 +37,35 @@ String b = "Test";
     var pluginError = plugin.AnalysisError(
       plugin.AnalysisErrorSeverity.ERROR,
       plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
-      plugin.Location(pluginAnalyzedFilePath, 0, 6, 1, 1,
-          endLine: 1, endColumn: 7),
+      plugin.Location(
+        pluginAnalyzedFilePath,
+        0,
+        6,
+        1,
+        1,
+        endLine: 1,
+        endColumn: 7,
+      ),
       'Test error from plugin',
       'ERR1',
       contextMessages: [
         plugin.DiagnosticMessage(
-            'Related error',
-            plugin.Location(pluginAnalyzedFilePath, 31, 4, 2, 13,
-                endLine: 2, endColumn: 17))
+          'Related error',
+          plugin.Location(
+            pluginAnalyzedFilePath,
+            31,
+            4,
+            2,
+            13,
+            endLine: 2,
+            endColumn: 17,
+          ),
+        ),
       ],
     );
-    var pluginResult =
-        plugin.AnalysisErrorsParams(pluginAnalyzedFilePath, [pluginError]);
+    var pluginResult = plugin.AnalysisErrorsParams(pluginAnalyzedFilePath, [
+      pluginError,
+    ]);
     configureTestPlugin(notification: pluginResult.toNotification());
 
     var diagnostics = await diagnosticsUpdate;
@@ -192,6 +208,29 @@ void f() {
     expect(diagnostic.message, contains('\nTry'));
   }
 
+  /// Verify that if a nonexistant file is imported, creating that file causes
+  /// the uri_does_not_exist error to go away.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/55318
+  Future<void> test_createAfterImport() async {
+    var fooFilePath = join(projectFolderPath, 'lib', 'foo.dart');
+
+    await initialize();
+    await openFile(mainFileUri, "import 'foo.dart';");
+    await pumpEventQueue(times: 5000);
+
+    expect(diagnostics[mainFileUri]!.single.code, 'uri_does_not_exist');
+
+    // Create the file.
+    await openFile(toUri(fooFilePath), '');
+
+    // Allow server to catch up.
+    await pumpEventQueue(times: 5000);
+
+    // Expect the diagnostic is now for an unused import instead.
+    expect(diagnostics[mainFileUri]!.single.code, 'unused_import');
+  }
+
   Future<void> test_deletedFile() async {
     newFile(mainFilePath, 'String a = 1;');
 
@@ -212,8 +251,9 @@ void f() {
 
     var onePackagePath = convertPath('/home/one');
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'one', rootPath: onePackagePath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'one', rootPath: onePackagePath),
     );
     newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
@@ -236,8 +276,9 @@ void f() {
   Future<void> test_diagnosticTag_notSupported() async {
     var onePackagePath = convertPath('/home/one');
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'one', rootPath: onePackagePath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'one', rootPath: onePackagePath),
     );
     newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
@@ -292,8 +333,11 @@ void f() {
     expect(diagnostic.code, equals('built_in_identifier_in_declaration'));
     expect(
       diagnostic.codeDescription!.href,
-      equals(Uri.parse(
-          'https://dart.dev/diagnostics/built_in_identifier_in_declaration')),
+      equals(
+        Uri.parse(
+          'https://dart.dev/diagnostics/built_in_identifier_in_declaration',
+        ),
+      ),
     );
   }
 
@@ -313,8 +357,11 @@ void f() {
   }
 
   Future<void> test_dotFilesExcluded() async {
-    var dotFolderFilePath =
-        join(projectFolderPath, '.dart_tool', 'tool_file.dart');
+    var dotFolderFilePath = join(
+      projectFolderPath,
+      '.dart_tool',
+      'tool_file.dart',
+    );
     var dotFolderFileUri = pathContext.toUri(dotFolderFilePath);
 
     newFile(dotFolderFilePath, 'String a = 1;');
@@ -323,7 +370,8 @@ void f() {
     // Record if diagnostics are received, but since we don't expect them
     // don't await them.
     unawaited(
-        waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d));
+      waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d),
+    );
 
     // Send a request for a hover.
     await initialize();
@@ -430,11 +478,9 @@ version: latest
 
     var pluginTriggeredDiagnostics = await pluginTriggeredDiagnosticFuture;
     expect(
-        pluginTriggeredDiagnostics!.map((error) => error.message),
-        containsAll([
-          pluginErrorMessage,
-          contains(serverErrorMessage),
-        ]));
+      pluginTriggeredDiagnostics!.map((error) => error.message),
+      containsAll([pluginErrorMessage, contains(serverErrorMessage)]),
+    );
   }
 
   /// Test that when server has produced diagnostics for a file and it is
@@ -454,8 +500,10 @@ version: latest
     await initialize();
 
     // Expect only the server diagnostic.
-    expect((await diagnosticsFuture)!.single.message,
-        contains(serverErrorMessage));
+    expect(
+      (await diagnosticsFuture)!.single.message,
+      contains(serverErrorMessage),
+    );
 
     // Delete the file, and expect diagnostics to be cleared.
     diagnosticsFuture = waitForDiagnostics(mainFileUri);
@@ -524,8 +572,9 @@ linter:
     var projectPackagePath = '$rootWorkspacePath/my_project';
     writePackageConfig(
       projectPackagePath,
-      config: PackageConfigFileBuilder()
-        ..add(name: 'my_lints', rootPath: lintsPackagePath),
+      config:
+          PackageConfigFileBuilder()
+            ..add(name: 'my_lints', rootPath: lintsPackagePath),
     );
     newFile('$projectPackagePath/analysis_options.yaml', '''
 include: package:my_lints/analysis_options.yaml
@@ -539,8 +588,9 @@ void f(dynamic a) => a.foo();
 ''');
 
     // Verify there's an error for the import.
-    var diagnosticsUpdate =
-        waitForDiagnostics(toUri('$projectPackagePath/main.dart'));
+    var diagnosticsUpdate = waitForDiagnostics(
+      toUri('$projectPackagePath/main.dart'),
+    );
     await initialize(workspaceFolders: [toUri(rootWorkspacePath)]);
     var diagnostics = await diagnosticsUpdate;
     expect(diagnostics!.single.code, contains('avoid_dynamic_calls'));
@@ -566,6 +616,40 @@ void f(dynamic a) => a.foo();
       var diagnostics = await diagnosticsUpdate;
       expect(diagnostics, hasLength(0));
     }
+  }
+
+  /// Verify that when a file is renamed, if references to the new file are
+  /// written into the documents before the new file is "created", it does not
+  /// result in uri_does_not_exist errors that hang around.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/5269
+  Future<void> test_rename_updatedImportsBeforeCreated() async {
+    var oldFilePath = join(projectFolderPath, 'lib', 'old.dart');
+    var newFilePath = join(projectFolderPath, 'lib', 'new.dart');
+    newFile(oldFilePath, '');
+    newFile(mainFilePath, '');
+
+    await initialize();
+    await pumpEventQueue(times: 5000);
+
+    // Create a valid reference to the old file.
+    await openFile(mainFileUri, "import 'old.dart';");
+    await openFile(toUri(oldFilePath), '');
+    await pumpEventQueue(times: 5000);
+
+    // Update the reference to the new file, update the overlays, and update
+    // the disk.
+    await replaceFile(2, mainFileUri, "import 'new.dart';");
+    await closeFile(toUri(oldFilePath));
+    await openFile(toUri(newFilePath), '');
+    deleteFile(oldFilePath);
+    newFile(newFilePath, '');
+
+    // Allow server to catch up.
+    await waitForAnalysisComplete();
+
+    // Expect unused_import, not uri_does_not_exist.
+    expect(diagnostics[mainFileUri]!.single.code, 'unused_import');
   }
 
   /// Tests that diagnostic ordering is stable when minor changes are made to
@@ -666,10 +750,7 @@ analyzer:
     ''';
     newFile(mainFilePath, contents);
 
-    await provideConfig(
-      initialize,
-      {'showTodos': true},
-    );
+    await provideConfig(initialize, {'showTodos': true});
     expect(diagnostics[mainFileUri], hasLength(2));
   }
 
@@ -712,14 +793,11 @@ analyzer:
     ''';
     newFile(mainFilePath, contents);
 
-    await provideConfig(
-      initialize,
-      {
-        // Include both casings, since this comes from the user we should handle
-        // either.
-        'showTodos': ['TODO', 'fixme']
-      },
-    );
+    await provideConfig(initialize, {
+      // Include both casings, since this comes from the user we should handle
+      // either.
+      'showTodos': ['TODO', 'fixme'],
+    });
     await initialAnalysis;
 
     var initialDiagnostics = diagnostics[mainFileUri]!;

@@ -4,12 +4,12 @@
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/utilities/extensions/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Computer for Flutter specific outlines.
 class FlutterOutlineComputer {
@@ -20,9 +20,7 @@ class FlutterOutlineComputer {
   FlutterOutlineComputer(this.resolvedUnit);
 
   protocol.FlutterOutline compute() {
-    var dartOutline = DartUnitOutlineComputer(
-      resolvedUnit,
-    ).compute();
+    var dartOutline = DartUnitOutlineComputer(resolvedUnit).compute();
 
     // Convert Dart outlines into Flutter outlines.
     var flutterDartOutline = _convert(dartOutline);
@@ -48,8 +46,11 @@ class FlutterOutlineComputer {
 
   /// If the given [argument] for the [parameter] can be represented as a
   /// Flutter attribute, add it to the [attributes].
-  void _addAttribute(List<protocol.FlutterOutlineAttribute> attributes,
-      Expression argument, ParameterElement? parameter) {
+  void _addAttribute(
+    List<protocol.FlutterOutlineAttribute> attributes,
+    Expression argument,
+    FormalParameterElement? parameter,
+  ) {
     if (parameter == null) {
       return;
     }
@@ -95,25 +96,28 @@ class FlutterOutlineComputer {
       }
     }
 
-    attributes.add(protocol.FlutterOutlineAttribute(
-      name,
-      label,
-      literalValueBoolean: literalValueBoolean,
-      literalValueInteger: literalValueInteger,
-      literalValueString: literalValueString,
-      nameLocation: nameLocation,
-      valueLocation: valueLocation,
-    ));
+    attributes.add(
+      protocol.FlutterOutlineAttribute(
+        name,
+        label,
+        literalValueBoolean: literalValueBoolean,
+        literalValueInteger: literalValueInteger,
+        literalValueString: literalValueString,
+        nameLocation: nameLocation,
+        valueLocation: valueLocation,
+      ),
+    );
   }
 
   protocol.FlutterOutline _convert(protocol.Outline dartOutline) {
     var flutterOutline = protocol.FlutterOutline(
-        protocol.FlutterOutlineKind.DART_ELEMENT,
-        dartOutline.offset,
-        dartOutline.length,
-        dartOutline.codeOffset,
-        dartOutline.codeLength,
-        dartElement: dartOutline.element);
+      protocol.FlutterOutlineKind.DART_ELEMENT,
+      dartOutline.offset,
+      dartOutline.length,
+      dartOutline.codeOffset,
+      dartOutline.codeLength,
+      dartElement: dartOutline.element,
+    );
     var children = dartOutline.children;
     if (children != null) {
       flutterOutline.children = children.map(_convert).toList();
@@ -132,7 +136,7 @@ class FlutterOutlineComputer {
     if (type is! InterfaceType || !type.isWidgetType) {
       return null;
     }
-    var className = type.element.displayName;
+    var className = type.element3.displayName;
 
     if (node is InstanceCreationExpression) {
       var attributes = <protocol.FlutterOutlineAttribute>[];
@@ -195,15 +199,22 @@ class FlutterOutlineComputer {
           if (visitor.outlines.isNotEmpty) {
             children.addAll(visitor.outlines);
           } else {
-            var parameter = argument.staticParameterElement;
+            var parameter = argument.correspondingParameter;
             _addAttribute(attributes, argument, parameter);
           }
         }
       }
 
-      return protocol.FlutterOutline(protocol.FlutterOutlineKind.NEW_INSTANCE,
-          node.offset, node.length, node.offset, node.length,
-          className: className, attributes: attributes, children: children);
+      return protocol.FlutterOutline(
+        protocol.FlutterOutlineKind.NEW_INSTANCE,
+        node.offset,
+        node.length,
+        node.offset,
+        node.length,
+        className: className,
+        attributes: attributes,
+        children: children,
+      );
     }
 
     // A generic Widget typed expression.
@@ -222,8 +233,15 @@ class FlutterOutlineComputer {
       }
 
       return protocol.FlutterOutline(
-          kind, node.offset, node.length, node.offset, node.length,
-          className: className, variableName: variableName, label: label);
+        kind,
+        node.offset,
+        node.length,
+        node.offset,
+        node.length,
+        className: className,
+        variableName: variableName,
+        label: label,
+      );
     }
 
     return null;

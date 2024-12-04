@@ -17,8 +17,9 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FOR_INDEX;
@@ -41,9 +42,10 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
       return;
     }
     // loop should declare variable
-    var loopVariable = forEachParts is ForEachPartsWithDeclaration
-        ? forEachParts.loopVariable
-        : null;
+    var loopVariable =
+        forEachParts is ForEachPartsWithDeclaration
+            ? forEachParts.loopVariable
+            : null;
     if (loopVariable == null) {
       return;
     }
@@ -71,8 +73,9 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     // prepare a name for the index variable
     String indexName;
     {
-      var conflicts =
-          unit.findPossibleLocalVariableConflicts(forStatement.offset);
+      var conflicts = unit.findPossibleLocalVariableConflicts(
+        forStatement.offset,
+      );
       if (!conflicts.contains('i')) {
         indexName = 'i';
       } else if (!conflicts.contains('j')) {
@@ -91,10 +94,13 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       // TODO(brianwilkerson): Create linked positions for the loop variable.
       builder.addSimpleReplacement(
-          range.startEnd(forStatement, forStatement.rightParenthesis),
-          'for (int $indexName = 0; $indexName < $listName.length; $indexName++)');
-      builder.addSimpleInsertion(firstBlockLine,
-          '$prefix$indent$loopVariable = $listName[$indexName];$eol');
+        range.startEnd(forStatement, forStatement.rightParenthesis),
+        'for (int $indexName = 0; $indexName < $listName.length; $indexName++)',
+      );
+      builder.addSimpleInsertion(
+        firstBlockLine,
+        '$prefix$indent$loopVariable = $listName[$indexName];$eol',
+      );
     });
   }
 }

@@ -17,6 +17,7 @@ import 'package:kernel/text/ast_to_text.dart';
 import '../base/combinator.dart';
 import '../base/configuration.dart';
 import '../base/identifiers.dart';
+import '../base/modifiers.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -225,16 +226,15 @@ int compareProcedures(Procedure a, Procedure b) {
   return a.fileOffset.compareTo(b.fileOffset);
 }
 
-List<Combinator>? toKernelCombinators(
-    List<CombinatorBuilder>? fastaCombinators) {
-  if (fastaCombinators == null) {
+List<Combinator>? toCombinators(List<CombinatorBuilder>? combinatorBuilders) {
+  if (combinatorBuilders == null) {
     // Note: it's safe to return null here as Kernel's LibraryDependency will
     // convert null to an empty list.
     return null;
   }
 
-  return new List<Combinator>.generate(fastaCombinators.length, (int i) {
-    CombinatorBuilder combinator = fastaCombinators[i];
+  return new List<Combinator>.generate(combinatorBuilders.length, (int i) {
+    CombinatorBuilder combinator = combinatorBuilders[i];
     List<String> nameList = combinator.names.toList();
     return combinator.isShow
         ? new Combinator.show(nameList)
@@ -250,18 +250,19 @@ final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
 final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
-    new FormalParameterBuilder(FormalParameterKind.requiredPositional, 0,
-        const ImplicitTypeBuilder(), '', -1,
+    new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+        Modifiers.empty, const ImplicitTypeBuilder(), '', -1,
         fileUri: dummyUri, hasImmediatelyDeclaredInitializer: false);
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(FormalParameterKind.requiredPositional,
         const ImplicitTypeBuilder(), '');
-final NominalVariableBuilder dummyNominalVariableBuilder =
-    new NominalVariableBuilder(NominalVariableBuilder.noNameSentinel, -1, null,
-        kind: TypeVariableKind.function);
-final StructuralVariableBuilder dummyStructuralVariableBuilder =
-    new StructuralVariableBuilder(
-        StructuralVariableBuilder.noNameSentinel, -1, null);
+final NominalParameterBuilder dummyNominalVariableBuilder =
+    new NominalParameterBuilder(
+        NominalParameterBuilder.noNameSentinel, -1, null,
+        kind: TypeParameterKind.function);
+final StructuralParameterBuilder dummyStructuralVariableBuilder =
+    new StructuralParameterBuilder(
+        StructuralParameterBuilder.noNameSentinel, -1, null);
 final Label dummyLabel = new Label('', -1);
 final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
     new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);

@@ -31,7 +31,7 @@ class PluginWatcher implements DriverWatcher {
 
   /// Initialize a newly created plugin watcher.
   PluginWatcher(this.resourceProvider, this.manager)
-      : _locator = PluginLocator(resourceProvider);
+    : _locator = PluginLocator(resourceProvider);
 
   /// The context manager has just added the given analysis [driver]. This
   /// method must be called before the driver has been allowed to perform any
@@ -39,10 +39,11 @@ class PluginWatcher implements DriverWatcher {
   @override
   void addedDriver(AnalysisDriver driver) {
     var contextRoot = driver.analysisContext!.contextRoot;
-    _driverInfo[driver] = _DriverInfo(
-        contextRoot, <String>[contextRoot.root.path, _getSdkPath(driver)]);
-    var enabledPlugins = driver.enabledLegacyPluginNames;
-    for (var hostPackageName in enabledPlugins) {
+    _driverInfo[driver] = _DriverInfo(contextRoot, <String>[
+      contextRoot.root.path,
+      _getSdkPath(driver),
+    ]);
+    for (var hostPackageName in driver.enabledLegacyPluginNames) {
       //
       // Determine whether the package exists and defines a plugin.
       //
@@ -64,8 +65,12 @@ class PluginWatcher implements DriverWatcher {
       // If we don't, then tests don't have any way to know when to expect
       // that the list of plugins has been updated.
       manager.addPluginToContextRoot(
-          driver.analysisContext!.contextRoot, pluginPath);
+        driver.analysisContext!.contextRoot,
+        pluginPath,
+      );
     }
+
+    // TODO(srawlins): Generate package for plugin configurations, with PluginPackageGenerator.
   }
 
   /// The context manager has just removed the given analysis [driver].

@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Prefer final for parameter declarations if they are not reassigned.';
@@ -72,11 +71,11 @@ class _Visitor extends SimpleAstVisitor<void> {
             param is SuperFormalParameter) {
           continue;
         }
-        var declaredElement = param.declaredElement;
+        var declaredElement = param.declaredFragment?.element;
         if (declaredElement != null &&
             !declaredElement.isInitializingFormal &&
             !declaredElement.isWildcardVariable &&
-            !body.isPotentiallyMutatedInScope(declaredElement)) {
+            !body.isPotentiallyMutatedInScope2(declaredElement)) {
           rule.reportLint(param, arguments: [param.name!.lexeme]);
         }
       }

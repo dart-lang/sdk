@@ -68,7 +68,13 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
   /// Sends a request to connect to DTD and captures all service methods that
   /// are registered/unregistered into [availableMethods] until the `ready`
   /// event is posted.
-  Future<void> sendConnectToDtdRequest([Uri? uri]) async {
+  ///
+  /// [registerExperimentalHandlers] controls whether experimental handlers are
+  /// registered.
+  Future<void> sendConnectToDtdRequest({
+    Uri? uri,
+    bool? registerExperimentalHandlers,
+  }) async {
     // Set up a completer to listen for the 'initialized' event on the Lsp
     // stream so that we know when the services have finished registering.
     var lspInitializedCompleter = Completer<void>();
@@ -81,7 +87,10 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await dtd.streamListen(lspStreamName);
 
     try {
-      await connectToDtd(uri ?? dtdUri);
+      await connectToDtd(
+        uri ?? dtdUri,
+        registerExperimentalHandlers: registerExperimentalHandlers,
+      );
 
       // Wait for the event.
       await lspInitializedCompleter.future;
@@ -135,22 +144,27 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     await sendConnectToDtdRequest();
     await expectLater(
       sendConnectToDtdRequest(),
-      throwsA(isResponseError(
-        ServerErrorCodes.StateError,
-        message: 'Server is already connected to DTD',
-      )),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.StateError,
+          message: 'Server is already connected to DTD',
+        ),
+      ),
     );
   }
 
   test_connectToDtd_failure_invalidUri() async {
     await initializeServer();
     await expectLater(
-      sendConnectToDtdRequest(invalidUri),
-      throwsA(isResponseError(
-        ErrorCodes.RequestFailed,
-        message: startsWith(
-            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:'),
-      )),
+      sendConnectToDtdRequest(uri: invalidUri),
+      throwsA(
+        isResponseError(
+          ErrorCodes.RequestFailed,
+          message: startsWith(
+            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:',
+          ),
+        ),
+      ),
     );
   }
 
@@ -159,12 +173,15 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
 
     // Perform a failed connection.
     await expectLater(
-      sendConnectToDtdRequest(invalidUri),
-      throwsA(isResponseError(
-        ErrorCodes.RequestFailed,
-        message: startsWith(
-            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:'),
-      )),
+      sendConnectToDtdRequest(uri: invalidUri),
+      throwsA(
+        isResponseError(
+          ErrorCodes.RequestFailed,
+          message: startsWith(
+            'Failed to connect to DTD at ws://invalid:345/invalid\nWebSocketChannelException:',
+          ),
+        ),
+      ),
     );
 
     // Expect complete with no error.
@@ -195,6 +212,13 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     expectMethod(CustomMethods.connectToDtd, available: false);
   }
 
+  test_connectToDtd_success_doesNotRegister_experimentalMethods() async {
+    await initializeServer();
+    await sendConnectToDtdRequest();
+
+    expectMethod(CustomMethods.experimentalEcho, available: false);
+  }
+
   test_connectToDtd_success_doesNotRegister_fileStateMethods() async {
     await initializeServer();
     await sendConnectToDtdRequest();
@@ -213,6 +237,13 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     // No initialization request/notifications should be available.
     expectMethod(Method.initialize, available: false);
     expectMethod(Method.initialized, available: false);
+  }
+
+  test_connectToDtd_success_registers_experimentalMethods() async {
+    await initializeServer();
+    await sendConnectToDtdRequest(registerExperimentalHandlers: true);
+
+    expectMethod(CustomMethods.experimentalEcho);
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')
@@ -239,20 +270,55 @@ mixin SharedDtdTests on LspRequestHelpersMixin {
     var call = dtd.call(
       lspServiceName,
       'textDocument/hover',
-      params: TextDocumentPositionParams(
-        textDocument:
-            TextDocumentIdentifier(uri: Uri.file(nonExistantFilePath)),
-        position: Position(line: 1, character: 1),
-      ).toJson(),
+      params:
+          TextDocumentPositionParams(
+            textDocument: TextDocumentIdentifier(
+              uri: Uri.file(nonExistantFilePath),
+            ),
+            position: Position(line: 1, character: 1),
+          ).toJson(),
     );
 
     // Expect a proper RPC Exception with the standard LSP error code/message.
     var expectedException = isA<RpcException>()
         .having(
-            (e) => e.code, 'code', ServerErrorCodes.InvalidFilePath.toJson())
+          (e) => e.code,
+          'code',
+          ServerErrorCodes.InvalidFilePath.toJson(),
+        )
         .having((e) => e.message, 'message', 'File does not exist')
         .having((e) => e.data, 'data', nonExistantFilePath);
     await expectLater(call, throwsA(expectedException));
+  }
+
+  test_service_success_echo() async {
+    await initializeServer();
+    await sendConnectToDtdRequest(registerExperimentalHandlers: true);
+
+    var response = await dtd.call(
+      lspServiceName,
+      CustomMethods.experimentalEcho.toString(),
+      params: {'a': 'b'},
+    );
+
+    var result = response.result['result'] as Map<String, Object?>?;
+
+    expect(result, equals({'a': 'b'}));
+  }
+
+  test_service_success_echo_nullResponse() async {
+    await initializeServer();
+    await sendConnectToDtdRequest(registerExperimentalHandlers: true);
+
+    var response = await dtd.call(
+      lspServiceName,
+      CustomMethods.experimentalEcho.toString(),
+    );
+
+    var result = response.result['result'] as Map<String, Object?>?;
+
+    expect(response.type, 'Null');
+    expect(result, isNull);
   }
 
   @SkippedTest(reason: 'Shared LSP methods are currently disabled')
@@ -271,10 +337,11 @@ void [!myFun^ction!]() {}
     var response = await dtd.call(
       lspServiceName,
       'textDocument/hover',
-      params: TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: testFileUri),
-        position: code.position.position,
-      ).toJson(),
+      params:
+          TextDocumentPositionParams(
+            textDocument: TextDocumentIdentifier(uri: testFileUri),
+            position: code.position.position,
+          ).toJson(),
     );
 
     expect(response.type, equals('Hover'));

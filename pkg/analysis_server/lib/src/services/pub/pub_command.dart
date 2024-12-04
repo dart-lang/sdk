@@ -42,7 +42,10 @@ class PubCommand {
   var _lastQueuedCommand = Future<void>.value();
 
   PubCommand(
-      this._instrumentationService, this._pathContext, this._processRunner) {
+    this._instrumentationService,
+    this._pathContext,
+    this._processRunner,
+  ) {
     // When calling the `pub` command, we must add an identifier to the
     // PUB_ENVIRONMENT environment variable (joined with colons).
     const pubEnvString = 'analysis_server.pub_api';
@@ -57,10 +60,14 @@ class PubCommand {
   ///
   /// If any error occurs executing the command, returns an empty list.
   Future<List<PubOutdatedPackageDetails>> outdatedVersions(
-      String pubspecPath) async {
+    String pubspecPath,
+  ) async {
     var packageDirectory = _pathContext.dirname(pubspecPath);
-    var result = await _runPubJsonCommand(['outdated', '--show-all', '--json'],
-        workingDirectory: packageDirectory);
+    var result = await _runPubJsonCommand([
+      'outdated',
+      '--show-all',
+      '--json',
+    ], workingDirectory: packageDirectory);
 
     if (result == null) {
       return [];
@@ -98,8 +105,10 @@ class PubCommand {
   /// Returns null if:
   ///   - exit code is non-zero
   ///   - returned text cannot be decoded as JSON
-  Future<Map<String, Object?>?> _runPubJsonCommand(List<String> args,
-      {required String workingDirectory}) async {
+  Future<Map<String, Object?>?> _runPubJsonCommand(
+    List<String> args, {
+    required String workingDirectory,
+  }) async {
     // Atomically replace the lastQueuedCommand future with our own to ensure
     // only one command waits on any previous commands future.
     var completer = Completer<void>();
@@ -111,9 +120,11 @@ class PubCommand {
     try {
       _instrumentationService.logInfo('Starting pub command $args');
       var process = await _processRunner.start(
-          Platform.resolvedExecutable, ['pub', ...args],
-          workingDirectory: workingDirectory,
-          environment: {_pubEnvironmentKey: _pubEnvironmentValue});
+        Platform.resolvedExecutable,
+        ['pub', ...args],
+        workingDirectory: workingDirectory,
+        environment: {_pubEnvironmentKey: _pubEnvironmentValue},
+      );
       _activeProcesses.add(process);
 
       var stdoutFuture = process.stdout.transform(utf8.decoder).join();
@@ -125,8 +136,9 @@ class PubCommand {
       var stderr = await stderrFuture;
 
       if (exitCode != 0) {
-        _instrumentationService
-            .logError('pub command returned $exitCode exit code: $stderr.');
+        _instrumentationService.logError(
+          'pub command returned $exitCode exit code: $stderr.',
+        );
         return null;
       }
 
@@ -135,8 +147,9 @@ class PubCommand {
         _instrumentationService.logInfo('pub command completed successfully');
         return results as Map<String, Object?>?;
       } catch (e) {
-        _instrumentationService
-            .logError('pub command returned invalid JSON: $e.');
+        _instrumentationService.logError(
+          'pub command returned invalid JSON: $e.',
+        );
         return null;
       }
     } catch (e) {

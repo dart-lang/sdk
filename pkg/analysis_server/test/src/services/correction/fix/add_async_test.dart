@@ -62,15 +62,19 @@ int f() {
   return 1;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 int get foo => null;
 Future<int> f() async {
   await foo;
   return 1;
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
+      },
+    );
   }
 
   Future<void> test_closure() async {
@@ -79,13 +83,17 @@ void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() => await 1);
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() async => await 1);
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
+      },
+    );
   }
 
   Future<void> test_expressionFunctionBody() async {
@@ -122,10 +130,12 @@ Future<int> f(bool b) {
   }
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+      },
+    );
   }
 
   Future<void> test_missingReturn_method_hasReturn() async {
@@ -138,10 +148,12 @@ class C {
   }
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+      },
+    );
   }
 
   Future<void> test_missingReturn_method_notVoid() async {
@@ -229,10 +241,12 @@ Future<int> f(bool b) {
   }
 }
 ''');
-    await assertNoFix(errorFilter: (error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
-    });
+    await assertNoFix(
+      errorFilter: (error) {
+        return error.errorCode ==
+            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+      },
+    );
   }
 
   Future<void> test_missingReturn_topLevel_notVoid() async {
@@ -285,15 +299,18 @@ Future<int> f() {
   return 42;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 foo() {}
 Future<int> f() async {
   await foo();
   return 42;
 }
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
-    });
+''',
+      errorFilter: (error) {
+        return error.errorCode == CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
+      },
+    );
   }
 
   Future<void> test_returnFuture_dynamic() async {

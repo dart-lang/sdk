@@ -4,6 +4,8 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:linter/src/lint_names.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,6 +23,7 @@ class SortMembersTest extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> setUp() async {
+    registerLintRules();
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
@@ -28,8 +31,9 @@ class SortMembersTest extends PubPackageAnalysisServerTest {
   @failingTest
   Future<void> test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
-    var request = EditSortMembersParams(convertPath('/no/such/file.dart'))
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(
+      convertPath('/no/such/file.dart'),
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -44,8 +48,9 @@ void f() {
   print()
 }
 ''');
-    var request = EditSortMembersParams(testFile.path)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(
+      testFile.path,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -67,8 +72,9 @@ void f() {
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditSortMembersParams('test.dart')
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(
+      'test.dart',
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -78,8 +84,9 @@ void f() {
   }
 
   Future<void> test_invalidFilePathFormat_notNormalized() async {
-    var request = EditSortMembersParams(convertPath('/foo/../bar/test.dart'))
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(
+      convertPath('/foo/../bar/test.dart'),
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -251,6 +258,26 @@ class Super {}
 ''');
   }
 
+  Future<void> test_OK_lint_sortConstructorsFirst() async {
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(rules: [LintNames.sort_constructors_first]),
+    );
+
+    addTestFile('''
+class Z {
+  var a = '';
+  Z();
+}
+''');
+    await waitForTasksFinished();
+    return _assertSorted(r'''
+class Z {
+  Z();
+  var a = '';
+}
+''');
+  }
+
   Future<void> test_OK_unitMembers_class() async {
     addTestFile('''
 class C {}
@@ -271,11 +298,14 @@ class C {}
   }
 
   Future<void> _requestSort() async {
-    var request = EditSortMembersParams(testFile.path)
-        .toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditSortMembersParams(
+      testFile.path,
+    ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    var result = EditSortMembersResult.fromResponse(response,
-        clientUriConverter: server.uriConverter);
+    var result = EditSortMembersResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    );
     fileEdit = result.edit;
   }
 }

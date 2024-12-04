@@ -2,13 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:67:12: Error: Conflicts with member 'method4'.
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:67:12: Error: The setter conflicts with declaration 'method4'.
 //   void set method4(int value) {} /* Error */
-//            ^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:66:8: Error: Conflicts with setter 'method4'.
+//            ^^^^^^^
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:66:8: Context: Conflicting declaration 'method4'.
 //   void method4() {} /* Error */
-//        ^
+//        ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/implements_conflicts.dart:7:16: Error: The extension type 'ExtensionType1a' can't inherit the member 'method1' as both an extension type member and a non-extension type member.
 // Try declaring a member 'method1' in 'ExtensionType1a' to resolve the conflict.
@@ -58,13 +57,6 @@ library;
 //        ^^^^^^^
 // pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:25:8: Context: This is one of the inherited extension type members.
 //   void method1() {
-//        ^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:67:12: Error: 'method4' is already declared in this scope.
-//   void set method4(int value) {} /* Error */
-//            ^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:66:8: Context: Previous declaration of 'method4'.
-//   void method4() {} /* Error */
 //        ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/implements_conflicts.dart:70:16: Error: Can't inherit members that conflict with each other.
@@ -163,13 +155,6 @@ library;
 // pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:49:5: Context: This is one of the inherited members.
 //   B method2() => new B();
 //     ^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:89:11: Error: The type 'int' of the getter 'property' is not a subtype of the type 'String' of the setter 'property'.
-//   int get property => 42; /* Error */
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts.dart:90:12: Context: This is the declaration of the setter 'property'.
-//   void set property(String value) {} /* Error */
-//            ^^^^^^^^
 //
 import self as self;
 import "implements_conflicts_lib.dart" as imp;
@@ -661,16 +646,6 @@ library;
 //            ^^^^^^^^
 // pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:111:12: Context: This is the inherited non-extension type member.
 //   void set property(int value) {}
-//            ^^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:100:16: Error: The type 'int' of the inherited getter 'ClassL.property' is not a subtype of the type 'String' of the inherited setter 'ClassM.property'.
-// abstract class ClassLM implements ClassL, ClassM {}
-//                ^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:93:11: Context: This is the declaration of the getter 'ClassL.property'.
-//   int get property => 42;
-//           ^^^^^^^^
-// pkg/front_end/testcases/extension_types/implements_conflicts_lib.dart:97:12: Context: This is the declaration of the setter 'ClassM.property'.
-//   void set property(String value) {}
 //            ^^^^^^^^
 //
 import self as imp;

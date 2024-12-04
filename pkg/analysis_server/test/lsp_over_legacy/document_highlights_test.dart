@@ -27,8 +27,10 @@ void f() {
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    var results =
-        await getDocumentHighlights(testFileUri, code.position.position);
+    var results = await getDocumentHighlights(
+      testFileUri,
+      code.position.position,
+    );
     expect(results, hasLength(3));
   }
 }

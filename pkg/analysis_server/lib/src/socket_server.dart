@@ -57,45 +57,51 @@ class SocketServer implements AbstractSocketServer {
   LegacyAnalysisServer? analysisServer;
 
   SocketServer(
-      this.analysisServerOptions,
-      this.sdkManager,
-      this.crashReportingAttachmentsBuilder,
-      this.instrumentationService,
-      this.requestStatistics,
-      this.diagnosticServer,
-      this.analyticsManager,
-      this.detachableFileSystemManager);
+    this.analysisServerOptions,
+    this.sdkManager,
+    this.crashReportingAttachmentsBuilder,
+    this.instrumentationService,
+    this.requestStatistics,
+    this.diagnosticServer,
+    this.analyticsManager,
+    this.detachableFileSystemManager,
+  );
 
   /// Create an analysis server which will communicate with the client using the
   /// given serverChannel.
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
       var error = RequestError(
-          RequestErrorCode.SERVER_ALREADY_STARTED, 'Server already started');
+        RequestErrorCode.SERVER_ALREADY_STARTED,
+        'Server already started',
+      );
       serverChannel.sendResponse(Response('', error: error));
       serverChannel.requests.listen((RequestOrResponse requestOrResponse) {
-        serverChannel
-            .sendResponse(Response(requestOrResponse.id, error: error));
+        serverChannel.sendResponse(
+          Response(requestOrResponse.id, error: error),
+        );
       });
       return;
     }
 
     var resourceProvider = PhysicalResourceProvider(
-        stateLocation: analysisServerOptions.cacheFolder);
-
-    var server = analysisServer = LegacyAnalysisServer(
-      serverChannel,
-      resourceProvider,
-      analysisServerOptions,
-      sdkManager,
-      analyticsManager,
-      crashReportingAttachmentsBuilder,
-      instrumentationService,
-      requestStatistics: requestStatistics,
-      diagnosticServer: diagnosticServer,
-      detachableFileSystemManager: detachableFileSystemManager,
-      enableBlazeWatcher: true,
+      stateLocation: analysisServerOptions.cacheFolder,
     );
+
+    var server =
+        analysisServer = LegacyAnalysisServer(
+          serverChannel,
+          resourceProvider,
+          analysisServerOptions,
+          sdkManager,
+          analyticsManager,
+          crashReportingAttachmentsBuilder,
+          instrumentationService,
+          requestStatistics: requestStatistics,
+          diagnosticServer: diagnosticServer,
+          detachableFileSystemManager: detachableFileSystemManager,
+          enableBlazeWatcher: true,
+        );
     detachableFileSystemManager?.setAnalysisServer(server);
   }
 }

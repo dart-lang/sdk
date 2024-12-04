@@ -5,12 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
-import '../linter_lint_codes.dart';
 
 const _desc =
     r'Use a setter for operations that conceptually change a property.';
@@ -51,10 +50,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     void checkExpression(Expression expression) {
       if (expression is AssignmentExpression &&
           expression.operator.type == TokenType.EQ) {
-        var leftOperand = expression.writeElement?.canonicalElement;
-        var rightOperand = expression.rightHandSide.canonicalElement;
-        var parameterElement = node.declaredElement?.parameters.first;
-        if (rightOperand == parameterElement && leftOperand is FieldElement) {
+        var leftOperand = expression.writeElement2?.canonicalElement2;
+        var rightOperand = expression.rightHandSide.canonicalElement2;
+        var parameterElement =
+            node.declaredFragment?.element.formalParameters.first;
+        if (rightOperand == parameterElement && leftOperand is FieldElement2) {
           rule.reportLintForToken(node.name);
         }
       }

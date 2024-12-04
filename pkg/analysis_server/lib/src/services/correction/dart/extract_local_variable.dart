@@ -19,8 +19,9 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+          // TODO(applicability): comment on why.
+          CorrectionApplicability
+          .singleLocation;
 
   @override
   FixKind get fixKind => DartFixKind.EXTRACT_LOCAL_VARIABLE;
@@ -35,24 +36,15 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
     var parent = node.parent;
 
     if (parent is MethodInvocation && parent.methodName == node) {
-      await _rewrite(
-        builder: builder,
-        target: parent.target,
-      );
+      await _rewrite(builder: builder, target: parent.target);
     }
 
     if (parent is PrefixedIdentifier && parent.identifier == node) {
-      await _rewrite(
-        builder: builder,
-        target: parent.prefix,
-      );
+      await _rewrite(builder: builder, target: parent.prefix);
     }
 
     if (parent is PropertyAccess && parent.propertyName == node) {
-      await _rewrite(
-        builder: builder,
-        target: parent.target,
-      );
+      await _rewrite(builder: builder, target: parent.target);
     }
   }
 
@@ -90,8 +82,16 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
     required Expression target,
     required Element2? targetProperty,
   }) async {
-    if (targetProperty is GetterElement &&
-        typeSystem.isPotentiallyNullable(targetProperty.returnType)) {
+    if (targetProperty is! GetterElement) {
+      return;
+    }
+
+    var propertyName = targetProperty.name3;
+    if (propertyName == null) {
+      return;
+    }
+
+    if (typeSystem.isPotentiallyNullable(targetProperty.returnType)) {
       AstNode? enclosingNode = target;
       while (true) {
         if (enclosingNode == null || enclosingNode is FunctionBody) {
@@ -121,7 +121,6 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
               }
 
               await builder.addDartFileEdit(file, (builder) {
-                var propertyName = targetProperty.name;
                 builder.addInsertion(ifLineOffset, (builder) {
                   builder.write(prefix);
                   builder.writeln('final $propertyName = $initializerCode;');
@@ -181,9 +180,7 @@ class _ExpressionEncoder {
 class _FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(SimpleIdentifier)? simpleIdentifier;
 
-  _FunctionAstVisitor({
-    this.simpleIdentifier,
-  });
+  _FunctionAstVisitor({this.simpleIdentifier});
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

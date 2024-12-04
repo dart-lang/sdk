@@ -23,8 +23,11 @@ class DocumentLinkHandler
       DocumentLinkParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<DocumentLink>?>> handle(DocumentLinkParams params,
-      MessageInfo message, CancellationToken token) async {
+  Future<ErrorOr<List<DocumentLink>?>> handle(
+    DocumentLinkParams params,
+    MessageInfo message,
+    CancellationToken token,
+  ) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -59,9 +62,9 @@ class DocumentLinkRegistrations extends FeatureRegistration
 
   @override
   ToJsonable? get options => DocumentLinkRegistrationOptions(
-        documentSelector: dartFiles,
-        resolveProvider: false,
-      );
+    documentSelector: dartFiles,
+    resolveProvider: false,
+  );
 
   @override
   Method get registrationMethod => Method.textDocument_documentLink;

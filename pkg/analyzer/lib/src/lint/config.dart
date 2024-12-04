@@ -2,176 +2,113 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
-/// Parse the given map into a lint config.
-/// Return `null` if [optionsMap] is `null` or does not have `linter` map.
-LintConfig? parseConfig(YamlMap? optionsMap) {
-  if (optionsMap != null) {
-    var options = optionsMap.valueAt('linter');
-    // Quick check of basic contract.
-    if (options is YamlMap) {
-      return LintConfig.parseMap(options);
-    }
-  }
-  return null;
-}
-
-/// Process the given option [fileContents] and produce a corresponding
-/// [LintConfig]. Return `null` if [fileContents] is not a YAML map, or
-/// does not have the `linter` child map.
-LintConfig? processAnalysisOptionsFile(String fileContents, {String? fileUrl}) {
-  var yaml = loadYamlNode(fileContents,
-      sourceUrl: fileUrl != null ? Uri.parse(fileUrl) : null);
-  if (yaml is YamlMap) {
-    return parseConfig(yaml);
-  }
-  return null;
-}
-
-/// The configuration of lint rules within an analysis options file.
-abstract class LintConfig {
-  factory LintConfig.parse(String source, {String? sourceUrl}) =>
-      _LintConfig().._parse(source, sourceUrl: sourceUrl);
-
-  factory LintConfig.parseMap(YamlMap map) => _LintConfig().._parseYaml(map);
-
-  List<String> get fileExcludes;
-  List<String> get fileIncludes;
-  List<RuleConfig> get ruleConfigs;
-}
-
-/// The configuration of a single lint rule within an analysis options file.
-abstract class RuleConfig {
-  Map<String, dynamic> args = <String, dynamic>{};
-  String? get group;
-  String? get name;
-
-  // Provisional
-  bool disables(String ruleName) =>
-      ruleName == name && args['enabled'] == false;
-
-  bool enables(String ruleName) => ruleName == name && args['enabled'] == true;
-}
-
-class _LintConfig implements LintConfig {
-  @override
-  final fileIncludes = <String>[];
-  @override
-  final fileExcludes = <String>[];
-  @override
-  final ruleConfigs = <RuleConfig>[];
-
-  void addAsListOrString(Object? value, List<String> list) {
-    if (value is List) {
-      for (var entry in value) {
-        list.add(entry as String);
-      }
-    } else if (value is String) {
-      list.add(value);
-    }
+/// Returns the [RuleConfig]s that are parsed from [value], which can be either
+/// a YAML list or a YAML map, mapped from each rule's name.
+Map<String, RuleConfig> parseDiagnosticsSection(YamlNode value) {
+  // For example:
+  //
+  // ```yaml
+  // - unnecessary_getters
+  // - camel_case_types
+  // ```
+  if (value is YamlList) {
+    return {
+      for (var ruleNode in value.nodes)
+        if (ruleNode case YamlScalar(value: String ruleName))
+          ruleName: RuleConfig._(name: ruleName, isEnabled: true),
+    };
   }
 
-  bool? asBool(Object scalar) {
-    var value = scalar is YamlScalar ? scalar.valueOrThrow : scalar;
-    if (value is bool) {
-      return value;
-    }
-    if (value is String) {
-      if (value == 'true') {
-        return true;
-      }
-      if (value == 'false') {
-        return false;
-      }
-    }
-    return null;
+  if (value is! YamlMap) {
+    return const {};
   }
 
-  String? asString(Object scalar) {
-    var value = scalar is YamlScalar ? scalar.value : scalar;
-    if (value is String) {
-      return value;
-    }
-    return null;
-  }
-
-  Map<String, dynamic>? parseArgs(Object args) {
-    var enabled = asBool(args);
-    if (enabled != null) {
-      return {'enabled': enabled};
-    }
-    return null;
-  }
-
-  void _parse(String src, {String? sourceUrl}) {
-    var yaml = loadYamlNode(src,
-        sourceUrl: sourceUrl != null ? Uri.parse(sourceUrl) : null);
-    if (yaml is YamlMap) {
-      _parseYaml(yaml);
-    }
-  }
-
-  void _parseYaml(YamlMap yaml) {
-    yaml.nodes.forEach((k, v) {
-      if (k is! YamlScalar) {
+  var ruleConfigs = <String, RuleConfig>{};
+  value.nodes.forEach((configKey, configValue) {
+    if (configKey case YamlScalar(value: String configName)) {
+      var ruleConfig = _parseRuleConfig(configKey, configValue);
+      if (ruleConfig != null) {
+        ruleConfigs[ruleConfig.name] = ruleConfig;
         return;
       }
-      YamlScalar key = k;
-      switch (key.toString()) {
-        case 'files':
-          if (v is YamlMap) {
-            addAsListOrString(v['include'], fileIncludes);
-            addAsListOrString(v['exclude'], fileExcludes);
-          }
 
-        case 'rules':
-
-          // - unnecessary_getters
-          // - camel_case_types
-          if (v is YamlList) {
-            for (var rule in v.nodes) {
-              var config = _RuleConfig();
-              config.name = asString(rule);
-              config.args = {'enabled': true};
-              ruleConfigs.add(config);
-            }
-          }
-
-          // style_guide: {unnecessary_getters: false, camel_case_types: true}
-          if (v is YamlMap) {
-            v.nodes.cast<Object, YamlNode>().forEach((key, value) {
-              //{unnecessary_getters: false}
-              if (asBool(value) != null) {
-                var config = _RuleConfig();
-                config.name = asString(key);
-                config.args = {'enabled': asBool(value)};
-                ruleConfigs.add(config);
-              }
-
-              // style_guide: {unnecessary_getters: false, camel_case_types: true}
-              if (value is YamlMap) {
-                value.nodes.cast<Object, YamlNode>().forEach((rule, args) {
-                  // TODO(brianwilkerson): verify format
-                  // unnecessary_getters: false
-                  var config = _RuleConfig();
-                  config.group = asString(key);
-                  config.name = asString(rule);
-                  config.args = parseArgs(args) ?? {};
-                  ruleConfigs.add(config);
-                });
-              }
-            });
-          }
+      if (configValue is! YamlMap) {
+        return;
       }
-    });
-  }
+      // For example:
+      //
+      // ```yaml
+      // style_guide: {unnecessary_getters: false, camel_case_types: true}
+      // ```
+      configValue.nodes.forEach((ruleName, ruleValue) {
+        var ruleConfig =
+            _parseRuleConfig(ruleName, ruleValue, group: configName);
+        if (ruleConfig != null) {
+          ruleConfigs[ruleConfig.name] = ruleConfig;
+          return;
+        }
+      });
+    }
+  });
+  return ruleConfigs;
 }
 
-class _RuleConfig extends RuleConfig {
-  @override
-  String? group;
-  @override
-  String? name;
+/// Parses [optionsMap] into [RuleConfig]s mapped from their names, returning
+/// them, or `null` if [optionsMap] does not have `linter` map.
+Map<String, RuleConfig>? parseLinterSection(YamlMap optionsMap) {
+  var options = optionsMap.valueAt('linter');
+  // Quick check of basic contract.
+  if (options is YamlMap) {
+    var rulesNode = options.valueAt(AnalysisOptionsFile.rules);
+    return {
+      if (rulesNode != null) ...parseDiagnosticsSection(rulesNode),
+    };
+  }
+
+  return null;
+}
+
+RuleConfig? _parseRuleConfig(dynamic configKey, YamlNode configNode,
+    {String? group}) {
+  // For example: `{unnecessary_getters: false}`.
+  if (configKey case YamlScalar(value: String ruleName)) {
+    if (configNode case YamlScalar(value: bool isEnabled)) {
+      return RuleConfig._(name: ruleName, isEnabled: isEnabled, group: group);
+    }
+  }
+
+  return null;
+}
+
+/// An alias for a [RuleConfig], but which is configured under a 'diagnostics'
+/// key in an analysis options file.
+///
+/// In an analyzer plugin, diagnostics are enabled and disabled via their name.
+/// (For the built-in lint diagnostics, which are configured in an analysis
+/// options file's top-level 'linter' key, diagnostics are enabled and disabled
+/// via the name of the lint rule that reports the diagnostic.)
+typedef DiagnosticConfig = RuleConfig;
+
+/// The configuration of a single analysis rule within an analysis options file.
+class RuleConfig {
+  /// Whether this rule is enabled or disabled in this configuration.
+  final bool isEnabled;
+
+  /// The name of the group under which this configuration is found.
+  final String? group;
+
+  /// The name of the rule.
+  final String name;
+
+  RuleConfig._({required this.name, required this.isEnabled, this.group});
+
+  /// Returns whether [ruleName] is disabled in this configuration.
+  bool disables(String ruleName) => ruleName == name && !isEnabled;
+
+  /// Returns whether [ruleName] is enabled in this configuration.
+  bool enables(String ruleName) => ruleName == name && isEnabled;
 }

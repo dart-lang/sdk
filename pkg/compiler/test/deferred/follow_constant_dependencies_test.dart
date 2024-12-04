@@ -4,10 +4,10 @@
 
 // Test that constants depended on by other constants are correctly deferred.
 
-import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/types.dart';
+import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 

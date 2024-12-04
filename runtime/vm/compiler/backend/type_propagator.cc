@@ -9,7 +9,7 @@
 #include "vm/bit_vector.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/object_store.h"
-#include "vm/regexp_assembler.h"
+#include "vm/regexp/regexp_assembler.h"
 #include "vm/resolver.h"
 #include "vm/timeline.h"
 
@@ -379,7 +379,7 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
 void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
 
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
-  StrictCompareInstr* comparison = instr->comparison()->AsStrictCompare();
+  StrictCompareInstr* comparison = instr->condition()->AsStrictCompare();
   if (comparison == nullptr) return;
   bool negated = comparison->kind() == Token::kNE_STRICT;
   LoadClassIdInstr* load_cid =
@@ -1776,7 +1776,7 @@ CompileType SimdOpInstr::ComputeType() const {
 }
 
 CompileType MathMinMaxInstr::ComputeType() const {
-  return CompileType::FromCid(result_cid_);
+  return CompileType::FromUnboxedRepresentation(representation());
 }
 
 CompileType CaseInsensitiveCompareInstr::ComputeType() const {
@@ -1822,7 +1822,9 @@ static AbstractTypePtr ExtractElementTypeFromArrayType(
   if (cid == kGrowableObjectArrayCid || cid == kArrayCid ||
       cid == kImmutableArrayCid ||
       array_type.type_class() ==
-          IsolateGroup::Current()->object_store()->list_class()) {
+          IsolateGroup::Current()->object_store()->list_class() ||
+      array_type.type_class() ==
+          IsolateGroup::Current()->object_store()->iterable_class()) {
     const auto& type_args =
         TypeArguments::Handle(Type::Cast(array_type).arguments());
     return type_args.TypeAtNullSafe(Array::kElementTypeTypeArgPos);
