@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
@@ -15,8 +15,8 @@ extension DartCompletionRequestExtensions on DartCompletionRequest {
   ///
   // TODO(scheglov): Validate that suggesting a tear-off instead of invocation
   // is statistically a good choice.
-  bool shouldSuggestTearOff(InterfaceElement element) {
-    if (!libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
+  bool shouldSuggestTearOff(InterfaceElement2 element) {
+    if (!libraryElement2.featureSet.isEnabled(Feature.constructor_tearoffs)) {
       return false;
     }
 
@@ -27,13 +27,13 @@ extension DartCompletionRequestExtensions on DartCompletionRequest {
 
     var bottomInstance = element.instantiate(
       typeArguments: List.filled(
-        element.typeParameters.length,
-        libraryElement.typeProvider.neverType,
+        element.typeParameters2.length,
+        libraryElement2.typeProvider.neverType,
       ),
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    return libraryElement.typeSystem.isSubtypeOf(
+    return libraryElement2.typeSystem.isSubtypeOf(
       bottomInstance,
       contextType.returnType,
     );

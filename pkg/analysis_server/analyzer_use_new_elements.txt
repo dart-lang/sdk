@@ -65,7 +65,6 @@ lib/src/services/search/hierarchy.dart
 lib/src/services/search/search_engine.dart
 lib/src/services/search/search_engine_internal.dart
 lib/src/utilities/extensions/ast.dart
-lib/src/utilities/extensions/completion_request.dart
 lib/src/utilities/extensions/element.dart
 test/abstract_single_unit.dart
 test/plugin/protocol_dart_test.dart

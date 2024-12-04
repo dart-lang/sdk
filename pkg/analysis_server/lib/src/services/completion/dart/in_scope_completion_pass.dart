@@ -23,6 +23,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -2248,22 +2249,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type != null) {
         _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       } else {
-        var element = target.staticElement;
+        var element = target.element;
         if (element != null) {
           var parent = node.parent;
           var mustBeAssignable =
               parent is AssignmentExpression && node == parent.leftHandSide;
-          if (element is PrefixElement) {
+          if (element is PrefixElement2) {
             declarationHelper(
               mustBeAssignable: mustBeAssignable,
-            ).addDeclarationsThroughImportPrefix(element);
+            ).addDeclarationsThroughImportPrefix(element.asElement);
           } else {
             declarationHelper(
               mustBeAssignable: mustBeAssignable,
               preferNonInvocation:
-                  element is InterfaceElement &&
+                  element is InterfaceElement2 &&
                   state.request.shouldSuggestTearOff(element),
-            ).addStaticMembersOfElement(element);
+            ).addStaticMembersOfElement(element.asElement!);
           }
         }
       }
