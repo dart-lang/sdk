@@ -124,11 +124,8 @@ FlowGraph* TestPipeline::RunPasses(
   // avoid running ComputeSSA on it (it will just crash).
   const bool is_ssa = (flow_graph_ != nullptr);
   if (flow_graph_ == nullptr) {
-    auto pipeline = CompilationPipeline::New(zone, function_);
-
     parsed_function_ = new (zone)
         ParsedFunction(thread, Function::ZoneHandle(zone, function_.ptr()));
-    pipeline->ParseFunction(parsed_function_);
 
     // Extract type feedback before the graph is built, as the graph
     // builder uses it to attach it to nodes.
@@ -137,7 +134,7 @@ FlowGraph* TestPipeline::RunPasses(
       function_.RestoreICDataMap(ic_data_array_, /*clone_ic_data=*/false);
     }
 
-    flow_graph_ = pipeline->BuildFlowGraph(zone, parsed_function_,
+    flow_graph_ = Compiler::BuildFlowGraph(zone, parsed_function_,
                                            ic_data_array_, osr_id, optimized);
   }
 
