@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 
 extension ClassElementExtensions on ClassElement2 {
@@ -43,12 +42,12 @@ extension Element2Extension on Element2 {
   /// the enclosing library, has been annotated with the `@deprecated`
   /// annotation.
   bool get hasOrInheritsDeprecated {
-    if (this is Annotatable && (this as Annotatable).metadata2.hasDeprecated) {
-      return true;
+    if (this case Annotatable annotatable) {
+      if (annotatable.metadata2.hasDeprecated) {
+        return true;
+      }
     }
-    if (this is FormalParameterElement) {
-      return false;
-    }
+
     var ancestor = enclosingElement2;
     if (ancestor is InterfaceElement2) {
       if (ancestor.metadata2.hasDeprecated) {
@@ -56,39 +55,16 @@ extension Element2Extension on Element2 {
       }
       ancestor = ancestor.enclosingElement2;
     }
-    return ancestor is LibraryFragment &&
-        (ancestor as LibraryFragment).metadata2.hasDeprecated;
-  }
-}
-
-extension ElementExtension on Element {
-  /// Return `true` if this element, the enclosing class (if there is one), or
-  /// the enclosing library, has been annotated with the `@deprecated`
-  /// annotation.
-  bool get hasOrInheritsDeprecated {
-    if (hasDeprecated) {
-      return true;
-    }
-    var ancestor = enclosingElement3;
-    if (ancestor is InterfaceElement) {
-      if (ancestor.hasDeprecated) {
-        return true;
-      }
-      ancestor = ancestor.enclosingElement3;
-    }
-    return ancestor is CompilationUnitElement && ancestor.library.hasDeprecated;
+    return ancestor is LibraryElement2 && ancestor.metadata2.hasDeprecated;
   }
 
   /// Return this element and all its enclosing elements.
-  Iterable<Element> get withAncestors sync* {
+  Iterable<Element2> get withAncestors sync* {
     var current = this;
     while (true) {
       yield current;
-      var enclosing = current.enclosingElement3;
+      var enclosing = current.enclosingElement2;
       if (enclosing == null) {
-        if (current is CompilationUnitElement) {
-          yield current.library;
-        }
         break;
       }
       current = enclosing;
@@ -96,17 +72,25 @@ extension ElementExtension on Element {
   }
 }
 
-extension LibraryElementExtensions on LibraryElement {
-  /// Return all extensions exported from this library.
-  Iterable<ExtensionElement> get exportedExtensions {
-    return exportNamespace.definedNames.values.whereType();
+extension FragmentExtension on Fragment {
+  /// Return this fragment and all its enclosing fragment.
+  Iterable<Fragment> get withAncestors sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      var enclosing = current.enclosingFragment;
+      if (enclosing == null) {
+        break;
+      }
+      current = enclosing;
+    }
   }
 }
 
 extension LibraryElementExtensions2 on LibraryElement2 {
   /// Return all extensions exported from this library.
-  Iterable<ExtensionElement> get exportedExtensions {
-    return exportNamespace.definedNames.values.whereType();
+  Iterable<ExtensionElement2> get exportedExtensions {
+    return exportNamespace.definedNames2.values.whereType();
   }
 }
 

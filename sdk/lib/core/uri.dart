@@ -4304,6 +4304,10 @@ final class UriData {
   static const _uricTable = _Uri._queryCharTable;
 }
 
+// --- URI PARSER TABLE --- start --- generated code, do not edit ---
+// Use tools/generate_uri_parser_tables.dart to generate this code
+// if necessary.
+
 // --------------------------------------------------------------------
 // Constants used to read the scanner result.
 // The indices points into the table filled by [_scan] which contains
@@ -4331,24 +4335,25 @@ const int _fragmentStartIndex = 6;
 /// Index of a position where the URI was determined to be "non-simple".
 const int _notSimpleIndex = 7;
 
-// Initial state for scanner.
-const int _uriStart = 00;
+/// Initial state for scanner.
+const int _uriStart = 0;
 
-// If scanning of a URI terminates in this state or above,
-// consider the URI non-simple
+/// If scanning of a URI terminates in this state or above,
+/// consider the URI non-simple
 const int _nonSimpleEndStates = 14;
 
-// Initial state for scheme validation.
+/// Initial state for scheme validation.
 const int _schemeStart = 20;
 
+// --------------------------------------------------------------------
 /// Transition tables are used to scan a URI to determine its structure.
 ///
 /// The tables represent a state machine with output.
 ///
 /// To scan the URI, start in the [_uriStart] state, then read each character
 /// of the URI in order, from start to end, and for each character perform a
-/// transition to a new state while writing the current position into the output
-/// buffer at a designated index.
+/// transition to a new state while writing the current position
+/// into the output buffer at a designated index.
 ///
 /// Each state, represented by an integer which is an index into
 /// [_scannerTables], has a set of transitions, one for each character.
@@ -4357,354 +4362,167 @@ const int _schemeStart = 20;
 ///
 /// For URI scanning, only characters in the range U+0020 through U+007E are
 /// interesting; all characters outside that range are treated the same.
-/// The tables only contain 96 entries, representing the characters in the
-/// interesting range, plus one more to represent all values outside the range.
-/// The character entries are stored in one `Uint8List` per state, with the
-/// transition for a character at position `character ^ 0x60`,
+/// The tables only contain 96 entries, representing the 95 characters in the
+/// interesting range, and one entry for all values outside the range.
+/// The character entries are stored in one `String` of 96 characters per state,
+/// with the transition for a character at position `character ^ 0x60`,
 /// which maps the range U+0020 .. U+007F into positions 0 .. 95.
-/// All remaining characters are mapped to position 31 (`0x7f ^ 0x60`), which
+/// All remaining characters are mapped to position 0x1f (`0x7f ^ 0x60`), which
 /// represents the transition for all remaining characters.
-final List<Uint8List> _scannerTables = _createTables();
-
-// ----------------------------------------------------------------------
-// Code to create the URI scanner table.
-
-/// Creates the tables for [_scannerTables] used by [Uri.parse].
-///
-/// See [_scannerTables] for the generated format.
-///
-/// The concrete tables are chosen as a trade-off between the number of states
-/// needed and the precision of the result.
-/// This allows definitely recognizing the general structure of the URI
-/// (presence and location of scheme, user-info, host, port, path, query and
-/// fragment) while at the same time detecting that some components are not
-/// in canonical form (anything containing a `%`, a host-name containing a
-/// capital letter). Since the scanner doesn't know whether something is a
-/// scheme or a path until it sees `:`, or user-info or host until it sees
-/// a `@`, a second pass is needed to validate the scheme and any user-info
-/// is considered non-canonical by default.
-///
-/// The states (starting from [_uriStart]) write positions while scanning
-/// a string from `start` to `end` as follows:
-///
-/// - [_schemeEndIndex]: Should be initialized to `start-1`.
-///   If the URI has a scheme, it is set to the position of the `:` after
-///   the scheme.
-/// - [_hostStartIndex]: Should be initialized to `start - 1`.
-///   If the URI has an authority, it is set to the character before the
-///   host name - either the second `/` in the `//` leading the authority,
-///   or the `@` after a user-info. Comparing this value to the scheme end
-///   position can be used to detect that there is a user-info component.
-/// - [_portStartIndex]: Should be initialized to `start`.
-///   Set to the position of the last `:` in an authority, and unchanged
-///   if there is no authority or no `:` in an authority.
-///   If this position is after the host start, there is a port, otherwise it
-///   is just marking a colon in the user-info component.
-/// - [_pathStartIndex]: Should be initialized to `start`.
-///   Is set to the first path character unless the path is empty.
-///   If the path is empty, the position is either unchanged (`start`) or
-///   the first slash of an authority. So, if the path start is before a
-///   host start or scheme end, the path is empty.
-/// - [_queryStartIndex]: Should be initialized to `end`.
-///   The position of the `?` leading a query if the URI contains a query.
-/// - [_fragmentStartIndex]: Should be initialized to `end`.
-///   The position of the `#` leading a fragment if the URI contains a fragment.
-/// - [_notSimpleIndex]: Should be initialized to `start - 1`.
-///   Set to another value if the URI is considered "not simple".
-///   This is elaborated below.
-///
-/// ### Simple URIs
-///
-/// A URI is considered "simple" if it is in a normalized form containing no
-/// escapes. This allows us to skip normalization and checking whether escapes
-/// are valid, and to extract components without worrying about unescaping.
-///
-/// The scanner computes a conservative approximation of being "simple".
-/// It rejects any URI with an escape, with a user-info component (mainly
-/// because they are rare and would increase the number of states in the
-/// scanner significantly), with an IPV6 host or with a capital letter in
-/// the scheme or host name (the scheme is handled in a second scan using
-/// a separate two-state table).
-/// Further, paths containing `..` or `.` path segments are considered
-/// non-simple except for pure relative paths (no scheme or authority) starting
-/// with a sequence of "../" segments.
-///
-/// The transition tables cannot detect a trailing ".." in the path,
-/// followed by a query or fragment, because the segment is not known to be
-/// complete until we are past it, and we then need to store the query/fragment
-/// start instead. This cast is checked manually post-scanning (such a path
-/// needs to be normalized to end in "../", so the URI shouldn't be considered
-/// simple).
-List<Uint8List> _createTables() {
-  // TODO(lrn): Use a precomputed table.
-
-  // Total number of states for the scanner.
-  const int stateCount = 22;
-
-  // States used to scan a URI from scratch.
-  const int schemeOrPath = 01;
-  const int authOrPath = 02;
-  const int authOrPathSlash = 03;
-  const int uinfoOrHost0 = 04;
-  const int uinfoOrHost = 05;
-  const int uinfoOrPort0 = 06;
-  const int uinfoOrPort = 07;
-  const int ipv6Host = 08;
-  const int relPathSeg = 09;
-  const int pathSeg = 10;
-  const int path = 11;
-  const int query = 12;
-  const int fragment = 13;
-  const int schemeOrPathDot = 14;
-  const int schemeOrPathDot2 = 15;
-  const int relPathSegDot = 16;
-  const int relPathSegDot2 = 17;
-  const int pathSegDot = 18;
-  const int pathSegDot2 = 19;
-
-  // States used to validate a scheme after its end position has been found.
-  const int scheme0 = _schemeStart;
-  const int scheme = 21;
-
-  // Constants encoding the write-index for the state transition into the top 5
-  // bits of a byte.
-  const int schemeEnd = _schemeEndIndex << 5;
-  const int hostStart = _hostStartIndex << 5;
-  const int portStart = _portStartIndex << 5;
-  const int pathStart = _pathStartIndex << 5;
-  const int queryStart = _queryStartIndex << 5;
-  const int fragmentStart = _fragmentStartIndex << 5;
-  const int notSimple = _notSimpleIndex << 5;
-
-  /// The `unreserved` characters of RFC 3986.
-  const unreserved =
-      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._~";
-
-  /// The `sub-delim` characters of RFC 3986.
-  const subDelims = r"!$&'()*+,;=";
-  // The `pchar` characters of RFC 3986: characters that may occur in a path,
-  // excluding escapes.
-  const pchar = "$unreserved$subDelims";
-
-  var tables = List<Uint8List>.generate(stateCount, (_) => Uint8List(96));
-
-  // Helper function which initialize the table for [state] with a default
-  // transition and returns the table.
-  Uint8List build(state, defaultTransition) =>
-      tables[state]..fillRange(0, 96, defaultTransition);
-
-  // Helper function which sets the transition for each character in [chars]
-  // to [transition] in the [target] table.
-  // The [chars] string must contain only characters in the U+0020 .. U+007E
-  // range.
-  void setChars(Uint8List target, String chars, int transition) {
-    for (int i = 0; i < chars.length; i++) {
-      var char = chars.codeUnitAt(i);
-      target[char ^ 0x60] = transition;
-    }
-  }
-
-  /// Helper function which sets the transition for all characters in the
-  /// range from `range[0]` to `range[1]` to [transition] in the [target] table.
-  ///
-  /// The [range] must be a two-character string where both characters are in
-  /// the U+0020 .. U+007E range and the former character must have a lower
-  /// code point than the latter.
-  void setRange(Uint8List target, String range, int transition) {
-    for (int i = range.codeUnitAt(0), n = range.codeUnitAt(1); i <= n; i++) {
-      target[i ^ 0x60] = transition;
-    }
-  }
-
-  // Create the transitions for each state.
-  Uint8List b;
-
-  // Validate as path, if it is a scheme, we handle it later.
-  b = build(_uriStart, schemeOrPath | notSimple);
-  setChars(b, pchar, schemeOrPath);
-  setChars(b, ".", schemeOrPathDot);
-  setChars(b, ":", authOrPath | schemeEnd); // Handle later.
-  setChars(b, "/", authOrPathSlash);
-  setChars(b, r"\", authOrPathSlash | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(schemeOrPathDot, schemeOrPath | notSimple);
-  setChars(b, pchar, schemeOrPath);
-  setChars(b, ".", schemeOrPathDot2);
-  setChars(b, ':', authOrPath | schemeEnd);
-  setChars(b, r"/\", pathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(schemeOrPathDot2, schemeOrPath | notSimple);
-  setChars(b, pchar, schemeOrPath);
-  setChars(b, "%", schemeOrPath | notSimple);
-  setChars(b, ':', authOrPath | schemeEnd);
-  setChars(b, "/", relPathSeg);
-  setChars(b, r"\", relPathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(schemeOrPath, schemeOrPath | notSimple);
-  setChars(b, pchar, schemeOrPath);
-  setChars(b, ':', authOrPath | schemeEnd);
-  setChars(b, "/", pathSeg);
-  setChars(b, r"\", pathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(authOrPath, path | notSimple);
-  setChars(b, pchar, path | pathStart);
-  setChars(b, "/", authOrPathSlash | pathStart);
-  setChars(b, r"\", authOrPathSlash | pathStart); // This should be non-simple.
-  setChars(b, ".", pathSegDot | pathStart);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(authOrPathSlash, path | notSimple);
-  setChars(b, pchar, path);
-  setChars(b, "/", uinfoOrHost0 | hostStart);
-  setChars(b, r"\", uinfoOrHost0 | hostStart); // This should be non-simple.
-  setChars(b, ".", pathSegDot);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(uinfoOrHost0, uinfoOrHost | notSimple);
-  setChars(b, pchar, uinfoOrHost);
-  setRange(b, "AZ", uinfoOrHost | notSimple);
-  setChars(b, ":", uinfoOrPort0 | portStart);
-  setChars(b, "@", uinfoOrHost0 | hostStart);
-  setChars(b, "[", ipv6Host | notSimple);
-  setChars(b, "/", pathSeg | pathStart);
-  setChars(b, r"\", pathSeg | pathStart); // This should be non-simple.
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(uinfoOrHost, uinfoOrHost | notSimple);
-  setChars(b, pchar, uinfoOrHost);
-  setRange(b, "AZ", uinfoOrHost | notSimple);
-  setChars(b, ":", uinfoOrPort0 | portStart);
-  setChars(b, "@", uinfoOrHost0 | hostStart);
-  setChars(b, "/", pathSeg | pathStart);
-  setChars(b, r"\", pathSeg | pathStart); // This should be non-simple.
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(uinfoOrPort0, uinfoOrPort | notSimple);
-  setRange(b, "19", uinfoOrPort);
-  setChars(b, "@", uinfoOrHost0 | hostStart);
-  setChars(b, "/", pathSeg | pathStart);
-  setChars(b, r"\", pathSeg | pathStart); // This should be non-simple.
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(uinfoOrPort, uinfoOrPort | notSimple);
-  setRange(b, "09", uinfoOrPort);
-  setChars(b, "@", uinfoOrHost0 | hostStart);
-  setChars(b, "/", pathSeg | pathStart);
-  setChars(b, r"\", pathSeg | pathStart); // This should be non-simple.
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(ipv6Host, ipv6Host);
-  setChars(b, "]", uinfoOrHost);
-
-  b = build(relPathSeg, path | notSimple);
-  setChars(b, pchar, path);
-  setChars(b, ".", relPathSegDot);
-  setChars(b, r"/\", pathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(relPathSegDot, path | notSimple);
-  setChars(b, pchar, path);
-  setChars(b, ".", relPathSegDot2);
-  setChars(b, r"/\", pathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(relPathSegDot2, path | notSimple);
-  setChars(b, pchar, path);
-  setChars(b, "/", relPathSeg);
-  setChars(b, r"\", relPathSeg | notSimple);
-  setChars(b, "?", query | queryStart); // This should be non-simple.
-  setChars(b, "#", fragment | fragmentStart); // This should be non-simple.
-
-  b = build(pathSeg, path | notSimple);
-  setChars(b, pchar, path);
-  setChars(b, ".", pathSegDot);
-  setChars(b, "/", pathSeg);
-  setChars(b, r"\", pathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(pathSegDot, path | notSimple);
-  setChars(b, pchar, path);
-  setChars(b, ".", pathSegDot2);
-  setChars(b, r"/\", pathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(pathSegDot2, path | notSimple);
-  setChars(b, pchar, path);
-  setChars(b, r"/\", pathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(path, path | notSimple);
-  setChars(b, pchar, path);
-  setChars(b, "/", pathSeg);
-  setChars(b, r"\", pathSeg | notSimple);
-  setChars(b, "?", query | queryStart);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(query, query | notSimple);
-  setChars(b, pchar, query);
-  setChars(b, "?", query);
-  setChars(b, "#", fragment | fragmentStart);
-
-  b = build(fragment, fragment | notSimple);
-  setChars(b, pchar, fragment);
-  setChars(b, "?", fragment);
-
-  // A separate two-state validator for lower-case scheme names.
-  // Any non-scheme character or upper-case letter is marked as non-simple.
-  b = build(scheme0, scheme | notSimple);
-  setRange(b, "az", scheme);
-
-  b = build(scheme, scheme | notSimple);
-  setRange(b, "az", scheme);
-  setRange(b, "09", scheme);
-  setChars(b, "+-.", scheme);
-
-  return tables;
-}
+const String _scannerTables = "\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\xE1\xE1\xE1"
+    "\x01\xE1\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\xE1\xE3\xE1\xE1\x01\xE1\x01"
+    "\xE1\xCD\x01\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x0E\x03\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x22\x01\xE1\x01\xE1\xAC\xE1\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\xE1\xE1\xE1\x01\xE1\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\xE1"
+    "\xEA\xE1\xE1\x01\xE1\x01\xE1\xCD\x01\xE1\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x0A\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x22\x01\xE1\x01\xE1\xAC"
+    "\xEB\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B"
+    "\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\xEB\xEB\xEB\x8B\xEB\xEB\x8B\x8B\x8B"
+    "\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B"
+    "\x8B\x8B\x8B\x8B\x8B\xEB\x83\xEB\xEB\x8B\xEB\x8B\xEB\xCD\x8B\xEB\x8B\x8B"
+    "\x8B\x8B\x8B\x8B\x8B\x8B\x92\x83\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B\x8B"
+    "\xEB\x8B\xEB\x8B\xEB\xAC\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\xEB\xEB"
+    "\x0B\xEB\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\x44\xEB\xEB\x0B\xEB\x0B"
+    "\xEB\xCD\x0B\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x12\x44\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\xEB\x0B\xEB\x0B\xEB\xAC\xE5\x05\x05\x05\x05\x05"
+    "\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05"
+    "\x05\x05\x05\xE5\xE5\xE5\x05\xE5\x44\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5"
+    "\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE8"
+    "\x8A\xE5\xE5\x05\xE5\x05\xE5\xCD\x05\xE5\x05\x05\x05\x05\x05\x05\x05\x05"
+    "\x05\x8A\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x66\x05\xE5\x05\xE5\xAC"
+    "\xE5\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05"
+    "\x05\x05\x05\x05\x05\x05\x05\x05\x05\xE5\xE5\xE5\x05\xE5\x44\xE5\xE5\xE5"
+    "\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5\xE5"
+    "\xE5\xE5\xE5\xE5\xE5\xE5\x8A\xE5\xE5\x05\xE5\x05\xE5\xCD\x05\xE5\x05\x05"
+    "\x05\x05\x05\x05\x05\x05\x05\x8A\x05\x05\x05\x05\x05\x05\x05\x05\x05\x05"
+    "\x66\x05\xE5\x05\xE5\xAC\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7"
+    "\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7"
+    "\xE7\xE7\x44\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7"
+    "\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\x8A\xE7\xE7\xE7\xE7\xE7"
+    "\xE7\xCD\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\x8A\xE7\x07\x07\x07"
+    "\x07\x07\x07\x07\x07\x07\xE7\xE7\xE7\xE7\xE7\xAC\xE7\xE7\xE7\xE7\xE7\xE7"
+    "\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7"
+    "\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\x44\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7"
+    "\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7"
+    "\x8A\xE7\xE7\xE7\xE7\xE7\xE7\xCD\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7\xE7"
+    "\xE7\x8A\x07\x07\x07\x07\x07\x07\x07\x07\x07\x07\xE7\xE7\xE7\xE7\xE7\xAC"
+    "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08"
+    "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08"
+    "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08"
+    "\x08\x08\x08\x08\x08\x08\x08\x05\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08"
+    "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08"
+    "\x08\x08\x08\x08\x08\x08\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\xEB\xEB"
+    "\x0B\xEB\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\xEA\xEB\xEB\x0B\xEB\x0B"
+    "\xEB\xCD\x0B\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x10\xEA\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\xEB\x0B\xEB\x0B\xEB\xAC\xEB\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\xEB\xEB\xEB\x0B\xEB\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB"
+    "\xEA\xEB\xEB\x0B\xEB\x0B\xEB\xCD\x0B\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x12\x0A\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\x0B\xEB\x0B\xEB\xAC"
+    "\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\xEB\xEB\x0B\xEB\xEB\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\xEB\xEA\xEB\xEB\x0B\xEB\x0B\xEB\xCD\x0B\xEB\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0A\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\xEB\x0B\xEB\x0B\xEB\xAC\xEC\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C"
+    "\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\xEC\xEC\xEC"
+    "\x0C\xEC\xEC\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C"
+    "\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\xEC\xEC\xEC\xEC\x0C\xEC\x0C"
+    "\xEC\xCD\x0C\xEC\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\x0C\xEC\x0C\x0C\x0C\x0C"
+    "\x0C\x0C\x0C\x0C\x0C\x0C\xEC\x0C\xEC\x0C\xEC\x0C\xED\x0D\x0D\x0D\x0D\x0D"
+    "\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D"
+    "\x0D\x0D\x0D\xED\xED\xED\x0D\xED\xED\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D"
+    "\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\xED"
+    "\xED\xED\xED\x0D\xED\x0D\xED\xED\x0D\xED\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D"
+    "\x0D\xED\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\x0D\xED\x0D\xED\x0D\xED\x0D"
+    "\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x01\x01\x01\xE1\xE1\xE1\x01\xE1\xE1\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\xE1\xEA\xE1\xE1\x01\xE1\x01\xE1\xCD\x01\xE1\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x0F\xEA\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x22\x01\xE1\x01\xE1\xAC\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\xE1\xE1\xE1"
+    "\x01\xE1\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\xE1\xE9\xE1\xE1\x01\xE1\x01"
+    "\xE1\xCD\x01\xE1\x01\x01\x01\x01\x01\x01\x01\x01\x01\x09\x01\x01\x01\x01"
+    "\x01\x01\x01\x01\x01\x01\x22\x01\xE1\x01\xE1\xAC\xEB\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\xEB\xEB\xEB\x0B\xEB\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB"
+    "\xEA\xEB\xEB\x0B\xEB\x0B\xEB\xCD\x0B\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x11\xEA\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\x0B\xEB\x0B\xEB\xAC"
+    "\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\xEB\xEB\x0B\xEB\xEB\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\xEB\xE9\xEB\xEB\x0B\xEB\x0B\xEB\xCD\x0B\xEB\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x09\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\xEB\x0B\xEB\x0B\xEB\xAC\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\xEB\xEB"
+    "\x0B\xEB\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\xEA\xEB\xEB\x0B\xEB\x0B"
+    "\xEB\xCD\x0B\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x13\xEA\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\xEB\x0B\xEB\x0B\xEB\xAC\xEB\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\xEB\xEB\xEB\x0B\xEB\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB"
+    "\xEA\xEB\xEB\x0B\xEB\x0B\xEB\xCD\x0B\xEB\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B"
+    "\x0B\xEA\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\x0B\xEB\x0B\xEB\x0B\xEB\xAC"
+    "\xF5\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15"
+    "\x15\x15\x15\x15\x15\x15\x15\x15\x15\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5"
+    "\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5"
+    "\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5"
+    "\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5"
+    "\xF5\xF5\xF5\xF5\xF5\xF5\xF5\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15"
+    "\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\x15\xF5\xF5\xF5"
+    "\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5"
+    "\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5"
+    "\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\xF5\x15\xF5\x15\x15\xF5\x15\x15\x15\x15"
+    "\x15\x15\x15\x15\x15\x15\xF5\xF5\xF5\xF5\xF5\xF5";
 
 // --------------------------------------------------------------------
-// Code that uses the URI scanner table.
-
 /// Scan a string using the [_scannerTables] state machine.
 ///
 /// Scans [uri] from [start] to [end], starting in state [state] and
 /// writing output into [indices].
 ///
-/// Returns the final state.
+/// Returns the final state. If that state is greater than or equal to
+/// [_nonSimpleEndStates], the general URI scan should consider the
+/// result non-simple, even if no position has been written to
+/// [_notSimpleIndex] of [indices].
 int _scan(String uri, int start, int end, int state, List<int> indices) {
-  var tables = _scannerTables;
+  // Number of characters in table for each state (range 0x20..0x60).
+  const int stateTableSize = 0x60;
+  // Value to xor input character with to make valid range start at zero.
+  const int _charXor = 96;
+  // Limit on valid values after doing xor.
+  const int _xorCharLimit = 95;
+  // Entry used for invalid input characters (not in the range 0x20-0x7f).
+  const int _invalidChar = 0x7F ^ _charXor;
+  // Shift to extract write position from transition table entry.
+  const int _writeIndexShift = 5;
+  // Mask for state part of transition table entry.
+  const int _stateMask = 31;
+
   assert(end <= uri.length);
   for (int i = start; i < end; i++) {
-    var table = tables[state];
-    // Xor with 0x60 to move range 0x20-0x7f into 0x00-0x5f
-    int char = uri.codeUnitAt(i) ^ 0x60;
-    // Use 0x1f (nee 0x7f) to represent all unhandled characters.
-    if (char > 0x5f) char = 0x1f;
-    int transition = table[char];
-    state = transition & 0x1f;
-    indices[transition >> 5] = i;
+    int char = uri.codeUnitAt(i) ^ _charXor;
+    if (char > _xorCharLimit) char = _invalidChar;
+    int transition = _scannerTables.codeUnitAt(state * stateTableSize + char);
+    state = transition & _stateMask;
+    indices[transition >> _writeIndexShift] = i;
   }
   return state;
 }
+// --- URI PARSER TABLE --- end --- generated code, do not edit ---
 
 final class _SimpleUri implements _PlatformUri {
   final String _uri;

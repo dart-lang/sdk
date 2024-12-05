@@ -19,6 +19,7 @@ import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart' as engine;
 import 'package:analyzer/source/source_range.dart' as engine;
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
@@ -409,9 +410,18 @@ List<Element> _computePath(engine.Element element) {
     element = element.enclosingElement3;
   }
 
-  for (var e in element.withAncestors) {
-    path.add(convertElement(e));
+  var element2 = element.asElement2;
+  if (element2 != null) {
+    for (var fragment in element2.firstFragment.withAncestors) {
+      if (fragment case engine.Element e) {
+        path.add(convertElement(e));
+        if (fragment is engine.LibraryFragment) {
+          path.add(convertElement2(fragment.element));
+        }
+      }
+    }
   }
+
   return path;
 }
 
@@ -428,9 +438,12 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
     return element.definingCompilationUnit;
   }
 
-  for (var e in element.withAncestors) {
-    if (e is engine.CompilationUnitElement) {
-      return e;
+  var element2 = element.asElement2;
+  if (element2 != null) {
+    for (var fragment in element2.firstFragment.withAncestors) {
+      if (fragment case engine.CompilationUnitElement unit) {
+        return unit;
+      }
     }
   }
 

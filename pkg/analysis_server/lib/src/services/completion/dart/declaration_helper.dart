@@ -173,6 +173,11 @@ class DeclarationHelper {
     }
   }
 
+  /// Add suggestions for all constructors of [element].
+  void addConstructorNamesForElement2({required InterfaceElement2 element}) {
+    addConstructorNamesForElement(element: element.asElement);
+  }
+
   /// Add suggestions for all of the named constructors in the [type]. If
   /// [exclude] is not `null` it is the name of a constructor that should be
   /// omitted from the list, typically because suggesting it would result in an
@@ -229,6 +234,11 @@ class DeclarationHelper {
     }
   }
 
+  /// Add suggestions for declarations through [prefixElement].
+  void addDeclarationsThroughImportPrefix2(PrefixElement2 prefixElement) {
+    addDeclarationsThroughImportPrefix(prefixElement.asElement);
+  }
+
   /// Add any fields that can be initialized in the initializer list of the
   /// given [constructor]. If a [fieldToInclude] is provided, then it should not
   /// be skipped because the cursor is inside that field's name.
@@ -277,10 +287,34 @@ class DeclarationHelper {
     }
   }
 
+  /// Add any fields that can be initialized in the initializer list of the
+  /// given [constructor]. If a [fieldToInclude] is provided, then it should not
+  /// be skipped because the cursor is inside that field's name.
+  void addFieldsForInitializers2(
+    ConstructorDeclaration constructor,
+    FieldElement2? fieldToInclude,
+  ) {
+    addFieldsForInitializers(
+      constructor,
+      fieldToInclude == null ? null : fieldToInclude.asElement as FieldElement,
+    );
+  }
+
   /// Add suggestions for all of the top-level declarations that are exported
   /// from the [library] except for those whose name is in the set of
   /// [excludedNames].
   void addFromLibrary(LibraryElement library, Set<String> excludedNames) {
+    for (var entry in library.exportNamespace.definedNames.entries) {
+      if (!excludedNames.contains(entry.key)) {
+        _addImportedElement(entry.value);
+      }
+    }
+  }
+
+  /// Add suggestions for all of the top-level declarations that are exported
+  /// from the [library] except for those whose name is in the set of
+  /// [excludedNames].
+  void addFromLibrary2(LibraryElement2 library, Set<String> excludedNames) {
     for (var entry in library.exportNamespace.definedNames.entries) {
       if (!excludedNames.contains(entry.key)) {
         _addImportedElement(entry.value);
@@ -457,6 +491,17 @@ class DeclarationHelper {
     }
   }
 
+  /// Add members from the given [ExtensionElement2].
+  void addMembersFromExtensionElement2(
+    ExtensionElement2 extension, {
+    ImportData? importData,
+  }) {
+    addMembersFromExtensionElement(
+      extension.asElement as ExtensionElement,
+      importData: importData,
+    );
+  }
+
   /// Adds suggestions for any constructors that are visible within the not yet
   /// imported [library].
   void addNotImportedConstructors(LibraryElement2 library) {
@@ -599,6 +644,18 @@ class DeclarationHelper {
     }
   }
 
+  /// Add suggestions for all of the constructor in the [library] that could be
+  /// a redirection target for the [redirectingConstructor].
+  void addPossibleRedirectionsInLibrary2(
+    ConstructorElement2 redirectingConstructor,
+    LibraryElement2 library,
+  ) {
+    addPossibleRedirectionsInLibrary(
+      redirectingConstructor.asElement,
+      library.asElement,
+    );
+  }
+
   /// Add any static members defined by the given [element].
   void addStaticMembersOfElement(Element element) {
     if (element is TypeAliasElement) {
@@ -636,6 +693,11 @@ class DeclarationHelper {
           methods: augmented.methods,
         );
     }
+  }
+
+  /// Add any static members defined by the given [element].
+  void addStaticMembersOfElement2(Element2 element) {
+    addStaticMembersOfElement(element.asElement!);
   }
 
   /// Adds suggestions for any constructors that are declared within the

@@ -828,6 +828,8 @@ bool Process::Wait(intptr_t pid,
   // Continue until all handles are closed.
   int alive = kHandles;
   while (alive > 0) {
+    LeaveIsolateScope leave_isolate;
+
     // Blocking call waiting for events from the child process.
     DWORD wait_result = WaitForMultipleObjects(alive, events, FALSE, INFINITE);
 

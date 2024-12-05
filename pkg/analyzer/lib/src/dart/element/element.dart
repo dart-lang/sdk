@@ -5024,13 +5024,15 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   Fragment? get enclosingFragment {
-    if (enclosingElement3 is CompilationUnitElement) {
-      // TODO(augmentations): Support the fragment chain.
-      return enclosingElement3 as LibraryFragment;
-    } else {
-      // Local functions cannot be augmented.
-      throw UnsupportedError('This is not a fragment');
+    switch (enclosingElement3) {
+      case LibraryFragment libraryFragment:
+        // TODO(augmentations): Support the fragment chain.
+        return libraryFragment;
+      case ExecutableFragment executableFragment:
+        return executableFragment;
     }
+    // Local functions cannot be augmented.
+    throw UnsupportedError('This is not a fragment');
   }
 
   @override
@@ -7322,8 +7324,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   LocalVariableElement2 get element => _element2;
 
   @override
-  ExecutableFragment get enclosingFragment =>
-      enclosingElement3 as ExecutableFragment;
+  Fragment get enclosingFragment => enclosingElement3 as Fragment;
 
   @override
   String get identifier {
