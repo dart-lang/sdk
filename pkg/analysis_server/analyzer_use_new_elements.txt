@@ -31,7 +31,6 @@ lib/src/services/completion/dart/completion_manager.dart
 lib/src/services/completion/dart/declaration_helper.dart
 lib/src/services/completion/dart/identifier_helper.dart
 lib/src/services/completion/dart/visibility_tracker.dart
-lib/src/services/correction/dart/import_library.dart
 lib/src/services/correction/namespace.dart
 lib/src/services/correction/util.dart
 lib/src/services/flutter/class_description.dart
