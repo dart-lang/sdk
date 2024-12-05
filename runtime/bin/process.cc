@@ -285,6 +285,8 @@ void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
   int64_t milliseconds = 0;
   // Ignore result if passing invalid argument and just set exit code to 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &milliseconds);
+
+  LeaveIsolateScope leave_isolate;
   TimerUtils::Sleep(milliseconds);
 }
 
