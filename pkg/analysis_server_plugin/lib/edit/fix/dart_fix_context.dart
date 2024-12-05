@@ -93,7 +93,11 @@ class DartFixContext implements FixContext {
   // TODO(srawlins): The documentation above is wrong; `memberName` is unused.
   Stream<LibraryElement2> librariesWithExtensions2(String memberName) async* {
     var analysisContext = unitResult.session.analysisContext;
-    var analysisDriver = (analysisContext as DriverBasedAnalysisContext).driver;
+    if (analysisContext is! DriverBasedAnalysisContext) {
+      return;
+    }
+
+    var analysisDriver = analysisContext.driver;
     await analysisDriver.discoverAvailableFiles();
 
     var fsState = analysisDriver.fsState;

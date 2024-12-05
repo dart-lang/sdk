@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -778,6 +779,18 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     String baseName,
   ) =>
       _context.dartFixContext!.getTopLevelDeclarations(baseName);
+
+  /// Returns the mapping from a library (that is available to this context) to
+  /// a top-level declaration that is exported (not necessary declared) by this
+  /// library, and has the requested base name.
+  ///
+  /// For getters and setters the corresponding top-level variable is returned.
+  Future<Map<LibraryElement2, Element2>> getTopLevelDeclarations2(
+    String baseName,
+  ) async {
+    var map = await _context.dartFixContext!.getTopLevelDeclarations(baseName);
+    return map.map((key, value) => MapEntry(key.asElement2, value.asElement2!));
+  }
 
   /// Returns whether the selection covers an operator of the given
   /// [binaryExpression].
