@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+foo(bar) {
+Map<int, *synthetic*> c = {};
+}
+
+
+foo[StringToken]([BeginToken]bar[StringToken])[SimpleToken] {[BeginToken]
+Map[StringToken]<[BeginToken]int[StringToken],[SimpleToken] [SyntheticStringToken]>[SimpleToken] c[StringToken] =[SimpleToken] {[BeginToken]}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

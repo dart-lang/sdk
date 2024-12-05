@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/pattern_with_partial_missing_type_argument.dart:6:24: Error: Expected a type, but got ','.
+//   var [Map</* missing*/, (void, void)> a] = bar;
+//                        ^
+//
+// pkg/front_end/testcases/regress/pattern_with_partial_missing_type_argument.dart:6:24: Error: This couldn't be parsed.
+//   var [Map</* missing*/, (void, void)> a] = bar;
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo(dynamic bar) → void {
+  hoisted has-declared-initializer core::Map<invalid-type, (void, void)> a;
+  {
+    final synthesized dynamic #0#0 = bar as{TypeError,ForDynamic} core::List<core::Map<invalid-type, (void, void)>>;
+    synthesized dynamic #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t1 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::Map<invalid-type, (void, void)> && (let final core::Map<invalid-type, (void, void)> #t2 = a = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final core::bool #t3 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::Map<invalid-type, (void, void)> in true))))
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+}
+
+constants  {
+  #C1 = 1
+}
