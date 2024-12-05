@@ -2451,9 +2451,8 @@ abstract class AstCodeGenerator
     Lambda lambda = closures.lambdas[decl.function]!;
     _pushContext(decl.function);
     Arguments arguments = node.arguments;
-    visitArgumentsLists(arguments.positional, lambda.function.type,
-        ParameterInfo.fromLocalFunction(decl.function), 1,
-        typeArguments: arguments.types, named: arguments.named);
+    _visitArguments(arguments, lambda.function.type,
+        ParameterInfo.fromLocalFunction(decl.function), 1);
     b.comment("Local call of ${decl.variable.name}");
     translator.callFunction(lambda.function, b);
     return translator.outputOrVoid(lambda.function.type.outputs);
@@ -2545,26 +2544,30 @@ abstract class AstCodeGenerator
     return nonNullOperandType;
   }
 
-  void visitArgumentsLists(List<Expression> positional,
-      w.FunctionType signature, ParameterInfo paramInfo, int signatureOffset,
-      {List<DartType> typeArguments = const [],
-      List<NamedExpression> named = const []}) {
-    for (int i = 0; i < typeArguments.length; i++) {
-      types.makeType(this, typeArguments[i]);
+  void _visitArguments(Arguments node, w.FunctionType signature,
+      ParameterInfo paramInfo, int signatureOffset) {
+    // Type arguments
+    for (int i = 0; i < node.types.length; i++) {
+      types.makeType(this, node.types[i]);
     }
-    signatureOffset += typeArguments.length;
-    for (int i = 0; i < positional.length; i++) {
-      translateExpression(positional[i], signature.inputs[signatureOffset + i]);
+    signatureOffset += node.types.length;
+
+    // Positional arguments
+    for (int i = 0; i < node.positional.length; i++) {
+      translateExpression(
+          node.positional[i], signature.inputs[signatureOffset + i]);
     }
-    // Default values for positional parameters
-    for (int i = positional.length; i < paramInfo.positional.length; i++) {
+    // Push default values for optional positional parameters.
+    for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
       translator.constants
           .instantiateConstant(b, paramInfo.positional[i]!, type);
     }
-    // Named arguments
+
+    // Named arguments. Store evaluated arguments in locals to be able to
+    // re-order them based on the `ParameterInfo`.
     final Map<String, w.Local> namedLocals = {};
-    for (var namedArg in named) {
+    for (var namedArg in node.named) {
       final w.ValueType type = signature
           .inputs[signatureOffset + paramInfo.nameIndex[namedArg.name]!];
       final w.Local namedLocal = addLocal(type);
@@ -2572,6 +2575,8 @@ abstract class AstCodeGenerator
       translateExpression(namedArg.value, namedLocal.type);
       b.local_set(namedLocal);
     }
+    // Re-order named arguments and push default values for optional named
+    // parameters.
     for (String name in paramInfo.names) {
       w.Local? namedLocal = namedLocals[name];
       final w.ValueType type =
@@ -2583,12 +2588,6 @@ abstract class AstCodeGenerator
             .instantiateConstant(b, paramInfo.named[name]!, type);
       }
     }
-  }
-
-  void _visitArguments(Arguments node, w.FunctionType signature,
-      ParameterInfo paramInfo, int signatureOffset) {
-    visitArgumentsLists(node.positional, signature, paramInfo, signatureOffset,
-        typeArguments: node.types, named: node.named);
   }
 
   @override
