@@ -350,6 +350,17 @@ Element getSyntheticAccessorVariable(Element element) {
   return element;
 }
 
+/// If the given [element] is a synthetic [PropertyAccessorElement2] returns
+/// its variable, otherwise returns [element].
+Element2 getSyntheticAccessorVariable2(Element2 element) {
+  if (element is PropertyAccessorElement2) {
+    if (element.isSynthetic) {
+      return element.variable3 ?? element;
+    }
+  }
+  return element;
+}
+
 String? _getBaseName(Element element) {
   if (element is PropertyAccessorElement && element.isSetter) {
     var name = element.name;

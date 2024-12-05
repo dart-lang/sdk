@@ -61,6 +61,6 @@ extension on Annotation {
     var element = element2;
     return element is GetterElement &&
         element.name3 == 'soloTest' &&
-        element.library2?.name3 == 'test_reflective_loader';
+        element.library2.name3 == 'test_reflective_loader';
   }
 }

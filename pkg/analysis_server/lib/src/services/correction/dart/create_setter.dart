@@ -71,7 +71,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
       }
     } else {
       targetElement =
-          node.enclosingInterfaceElement2 ?? node.enclosingExtensionElement2;
+          node.enclosingInterfaceElement ?? node.enclosingExtensionElement;
       if (targetElement == null) {
         return;
       }

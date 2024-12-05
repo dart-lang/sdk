@@ -514,6 +514,20 @@ List<LspEntity> getCustomClasses() {
       ),
       // TODO(dantup): field('properties', ...),
     ]),
+    interface('EditArgumentParams', [
+      field('textDocument', type: 'TextDocumentIdentifier'),
+      field('position', type: 'Position'),
+      field('edit', type: 'ArgumentEdit'),
+    ]),
+    interface('ArgumentEdit', [
+      field('name', type: 'string'),
+      Field(
+        name: 'newValue',
+        type: TypeReference.LspAny,
+        allowsNull: true,
+        allowsUndefined: false,
+      ),
+    ]),
     TypeAlias(
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(

@@ -5,22 +5,22 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element2.dart';
 
-extension ClassElementExtensions on ClassElement {
+extension ClassElementExtensions on ClassElement2 {
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
-  bool get isDartCoreIterable => name == 'Iterable' && library.isDartCore;
+  bool get isDartCoreIterable => name3 == 'Iterable' && library2.isDartCore;
 
   /// Return `true` if this element represents the class `List` from
   /// `dart:core`.
-  bool get isDartCoreList => name == 'List' && library.isDartCore;
+  bool get isDartCoreList => name3 == 'List' && library2.isDartCore;
 
   /// Return `true` if this element represents the class `Map` from
   /// `dart:core`.
-  bool get isDartCoreMap => name == 'Map' && library.isDartCore;
+  bool get isDartCoreMap => name3 == 'Map' && library2.isDartCore;
 
   /// Return `true` if this element represents the class `Set` from
   /// `dart:core`.
-  bool get isDartCoreSet => name == 'Set' && library.isDartCore;
+  bool get isDartCoreSet => name3 == 'Set' && library2.isDartCore;
 }
 
 extension Element2Extension on Element2 {
@@ -110,15 +110,15 @@ extension LibraryElementExtensions2 on LibraryElement2 {
   }
 }
 
-extension MethodElementExtensions on MethodElement {
+extension MethodElementExtensions on MethodElement2 {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.
   bool get isCastMethod {
-    if (name != 'cast') {
+    if (name3 != 'cast') {
       return false;
     }
-    var definingClass = enclosingElement3;
-    if (definingClass is! ClassElement) {
+    var definingClass = enclosingElement2;
+    if (definingClass is! ClassElement2) {
       return false;
     }
     return definingClass.isDartCoreIterable ||
@@ -130,11 +130,11 @@ extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `toList` from
   /// `Iterable`.
   bool get isToListMethod {
-    if (name != 'toList') {
+    if (name3 != 'toList') {
       return false;
     }
-    var definingClass = enclosingElement3;
-    if (definingClass is! ClassElement) {
+    var definingClass = enclosingElement2;
+    if (definingClass is! ClassElement2) {
       return false;
     }
     return definingClass.isDartCoreIterable;
@@ -143,11 +143,11 @@ extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `toSet` from
   /// `Iterable`.
   bool get isToSetMethod {
-    if (name != 'toSet') {
+    if (name3 != 'toSet') {
       return false;
     }
-    var definingClass = enclosingElement3;
-    if (definingClass is! ClassElement) {
+    var definingClass = enclosingElement2;
+    if (definingClass is! ClassElement2) {
       return false;
     }
     return definingClass.isDartCoreIterable;

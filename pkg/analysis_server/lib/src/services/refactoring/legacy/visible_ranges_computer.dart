@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
   final Map<LocalElement, SourceRange> _map = {};
 
-  final Map<PromotableElement2, SourceRange> _map2 = {};
+  final Map<LocalElement2, SourceRange> _map2 = {};
 
   @override
   void visitCatchClause(CatchClause node) {
@@ -74,6 +74,9 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     if (block is Block) {
       var element = node.declaredElement as FunctionElement;
       _map[element] = range.node(block);
+
+      var element2 = node.declaredFragment?.element as LocalFunctionElement;
+      _map2[element2] = range.node(block);
     }
 
     super.visitFunctionDeclaration(node);
@@ -118,7 +121,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
       //  appears to be missing parameter elements.
       _map[element] = range.node(scopeNode);
     }
-    if (element2 is PromotableElement2) {
+    if (element2 is LocalElement2) {
       _map2[element2] = range.node(scopeNode);
     }
   }
@@ -129,7 +132,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     return computer._map;
   }
 
-  static Map<PromotableElement2, SourceRange> forNode2(AstNode unit) {
+  static Map<LocalElement2, SourceRange> forNode2(AstNode unit) {
     var computer = VisibleRangesComputer();
     unit.accept(computer);
     return computer._map2;

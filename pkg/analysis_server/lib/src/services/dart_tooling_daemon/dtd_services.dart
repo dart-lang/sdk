@@ -48,6 +48,7 @@ class DtdServices {
     //  handlers being exposed over DTD while in dev.
     CustomMethods.experimentalEcho,
     CustomMethods.dartTextDocumentEditableArguments,
+    CustomMethods.dartTextDocumentEditArgument,
   };
 
   /// The name of the DTD service that methods will be registered under.

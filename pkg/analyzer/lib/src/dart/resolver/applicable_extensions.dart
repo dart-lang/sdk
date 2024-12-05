@@ -97,6 +97,18 @@ class InstantiatedExtensionWithoutMember {
   );
 }
 
+class InstantiatedExtensionWithoutMember2 {
+  final ExtensionElement2 extension;
+  final MapSubstitution substitution;
+  final DartType extendedType;
+
+  InstantiatedExtensionWithoutMember2(
+    this.extension,
+    this.substitution,
+    this.extendedType,
+  );
+}
+
 abstract class _NotInstantiatedExtension<R> {
   final ExtensionElement extension;
 
@@ -166,6 +178,21 @@ class _NotInstantiatedExtensionWithoutMember
     required DartType extendedType,
   }) {
     return InstantiatedExtensionWithoutMember(
+        extension, substitution, extendedType);
+  }
+}
+
+/// [_NotInstantiatedExtension2] for any [ExtensionElement2].
+class _NotInstantiatedExtensionWithoutMember2
+    extends _NotInstantiatedExtension2<InstantiatedExtensionWithoutMember2> {
+  _NotInstantiatedExtensionWithoutMember2(super.extension);
+
+  @override
+  InstantiatedExtensionWithoutMember2 instantiate({
+    required MapSubstitution substitution,
+    required DartType extendedType,
+  }) {
+    return InstantiatedExtensionWithoutMember2(
         extension, substitution, extendedType);
   }
 }
@@ -246,6 +273,16 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
 }
 
 extension ExtensionsExtensions2 on Iterable<ExtensionElement2> {
+  /// Extensions that can be applied, within [targetLibrary], to [targetType].
+  List<InstantiatedExtensionWithoutMember2> applicableTo({
+    required LibraryElement2 targetLibrary,
+    required DartType targetType,
+    required bool strictCasts,
+  }) {
+    return map((e) => _NotInstantiatedExtensionWithoutMember2(e))
+        .applicableTo(targetLibrary: targetLibrary, targetType: targetType);
+  }
+
   /// Returns the sublist of [ExtensionElement2]s that have an instance member
   /// named [baseName].
   List<_NotInstantiatedExtensionWithMember2> havingMemberWithBaseName(
@@ -337,6 +374,84 @@ extension NotInstantiatedExtensionsExtensions<R>
 
     for (var notInstantiated in this) {
       var extension = notInstantiated.extension;
+
+      var freshTypes = getFreshTypeParameters(extension.typeParameters);
+      var freshTypeParameters = freshTypes.freshTypeParameters;
+      var rawExtendedType = freshTypes.substitute(extension.extendedType);
+      // Casts aren't relevant in extension applicability.
+      var typeSystemOperations =
+          TypeSystemOperations(typeSystem, strictCasts: false);
+
+      inferenceLogWriter?.enterGenericInference(
+          freshTypeParameters, rawExtendedType);
+      var inferrer = GenericInferrer(
+        typeSystem,
+        freshTypeParameters,
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
+        strictInference: false,
+        typeSystemOperations: typeSystemOperations,
+        dataForTesting: null,
+      );
+      inferrer.constrainArgument(
+        targetType,
+        rawExtendedType,
+        'extendedType',
+        nodeForTesting: null,
+      );
+      var inferredTypes = inferrer.tryChooseFinalTypes();
+      if (inferredTypes == null) {
+        continue;
+      }
+
+      var substitution = Substitution.fromPairs(
+        extension.typeParameters,
+        inferredTypes,
+      );
+      var extendedType = substitution.substituteType(
+        extension.extendedType,
+      );
+
+      if (!typeSystem.isSubtypeOf(targetType, extendedType)) {
+        continue;
+      }
+
+      instantiated.add(
+        notInstantiated.instantiate(
+          substitution: substitution,
+          extendedType: extendedType,
+        ),
+      );
+    }
+
+    return instantiated;
+  }
+}
+
+extension NotInstantiatedExtensionsExtensions2<R>
+    on Iterable<_NotInstantiatedExtension2<R>> {
+  /// Extensions that can be applied, within [targetLibrary], to [targetType].
+  List<R> applicableTo({
+    required LibraryElement2 targetLibrary,
+    required DartType targetType,
+  }) {
+    if (identical(targetType, NeverTypeImpl.instance)) {
+      return <R>[];
+    }
+
+    targetLibrary as LibraryElementImpl;
+    var typeSystem = targetLibrary.typeSystem;
+    var genericMetadataIsEnabled = targetLibrary.featureSet.isEnabled(
+      Feature.generic_metadata,
+    );
+    var inferenceUsingBoundsIsEnabled = targetLibrary.featureSet.isEnabled(
+      Feature.inference_using_bounds,
+    );
+
+    var instantiated = <R>[];
+
+    for (var notInstantiated in this) {
+      var extension = notInstantiated.extension.asElement as ExtensionElement;
 
       var freshTypes = getFreshTypeParameters(extension.typeParameters);
       var freshTypeParameters = freshTypes.freshTypeParameters;

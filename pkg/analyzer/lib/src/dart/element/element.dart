@@ -3848,6 +3848,12 @@ abstract class ExecutableElementImpl2 extends FunctionTypedElementImpl2
     var firstFragment = this.firstFragment as ExecutableElementImpl;
     return firstFragment.hasModifier(Modifier.INVOKES_SUPER_SELF);
   }
+
+  @override
+  LibraryElement2 get library2 {
+    var firstFragment = this.firstFragment as ExecutableElementImpl;
+    return firstFragment.library2!;
+  }
 }
 
 /// A concrete implementation of an [ExtensionElement].
@@ -4281,6 +4287,11 @@ class FieldElementImpl2 extends PropertyInducingElementImpl2
 
   @override
   ElementKind get kind => ElementKind.FIELD;
+
+  @override
+  LibraryElement2 get library2 {
+    return firstFragment.library2!;
+  }
 
   @override
   String? get name3 => firstFragment.name2;
@@ -4848,15 +4859,6 @@ mixin FragmentedElementMixin<E extends Fragment> implements _Fragmented<E> {
     // We should never get to this point.
     assert(false, 'Fragment does not implement ElementImpl');
     return false;
-  }
-
-  LibraryElement2? get library2 {
-    if (firstFragment is ElementImpl) {
-      return (firstFragment as ElementImpl).library2;
-    }
-    // We should never get to this point.
-    assert(false, 'Fragment does not implement ElementImpl');
-    return null;
   }
 
   /// A list of all of the fragments from which this element is composed.
@@ -6464,6 +6466,11 @@ class LabelElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.LABEL;
 
   @override
+  LibraryElement2 get library2 {
+    return libraryFragment.element;
+  }
+
+  @override
   LibraryFragment get libraryFragment => enclosingUnit as LibraryFragment;
 
   @override
@@ -6505,7 +6512,9 @@ class LabelElementImpl2 extends ElementImpl2
   LabelFragment get firstFragment => _wrappedElement;
 
   @override
-  LibraryElement2 get library2 => super.library2!;
+  LibraryElement2 get library2 {
+    return _wrappedElement.library2;
+  }
 
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) {
@@ -7330,6 +7339,11 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
+  LibraryElement2 get library2 {
+    return libraryFragment.element;
+  }
+
+  @override
   LibraryFragment get libraryFragment => enclosingUnit as LibraryFragment;
 
   @override
@@ -7382,6 +7396,11 @@ class LocalVariableElementImpl2 extends PromotableElementImpl2
 
   @override
   bool get isStatic => _wrappedElement.isStatic;
+
+  @override
+  LibraryElement2 get library2 {
+    return _wrappedElement.library2;
+  }
 
   @override
   DartType get type => _wrappedElement.type;
@@ -7935,9 +7954,6 @@ class MethodElementImpl2 extends ExecutableElementImpl2
 
   @override
   ElementKind get kind => ElementKind.METHOD;
-
-  @override
-  LibraryElement2 get library2 => super.library2!;
 
   @override
   String? get lookupName {
@@ -8853,8 +8869,7 @@ class ParameterElementImpl extends VariableElementImpl
   set element(FormalParameterElement element) => _element = element;
 
   @override
-  ExecutableFragment? get enclosingFragment =>
-      enclosingElement3 as ExecutableFragment?;
+  Fragment? get enclosingFragment => enclosingElement3 as Fragment?;
 
   @override
   bool get hasDefaultValue {
@@ -10097,7 +10112,9 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl2
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
-  LibraryElement2 get library2 => super.library2!;
+  LibraryElement2 get library2 {
+    return firstFragment.library2!;
+  }
 
   @override
   String? get name3 => firstFragment.name;
@@ -10204,6 +10221,11 @@ class TopLevelVariableElementImpl2 extends PropertyInducingElementImpl2
 
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+
+  @override
+  LibraryElement2 get library2 {
+    return firstFragment.libraryFragment.element;
+  }
 
   @override
   String? get name3 => firstFragment.name2;
@@ -10510,6 +10532,11 @@ class TypeAliasElementImpl2 extends TypeDefiningElementImpl2
   ElementKind get kind => ElementKind.TYPE_ALIAS;
 
   @override
+  LibraryElement2 get library2 {
+    return firstFragment.library2!;
+  }
+
+  @override
   String? get name3 => firstFragment.name2;
 
   @override
@@ -10770,7 +10797,7 @@ class TypeParameterElementImpl2 extends TypeDefiningElementImpl2
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
-  LibraryElement2 get library2 => super.library2!;
+  LibraryElement2? get library2 => firstFragment.library2;
 
   @override
   Element? get _enclosingFunction => firstFragment._enclosingElement3;
@@ -11016,9 +11043,6 @@ mixin WrappedElementMixin implements ElementImpl2 {
 
   @override
   ElementKind get kind => _wrappedElement.kind;
-
-  @override
-  LibraryElement2? get library2 => _wrappedElement.library2;
 
   @override
   String? get name3 => _wrappedElement.name3;

@@ -243,7 +243,5 @@ test/src/task/strong/dart2_inference_test.dart
 test/src/task/strong/inferred_type_test.dart
 test/src/utilities/extensions/analysis_session_test.dart
 test/src/utilities/extensions/library_element_test.dart
-test/src/wolf/ir/ast_to_ir_test.dart
 test/util/element_printer.dart
-test/util/element_type_matchers.dart
 test/util/id_testing_helper.dart

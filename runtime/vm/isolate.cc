@@ -1860,14 +1860,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 #undef ISOLATE_METRIC_INIT
 #endif  // !defined(PRODUCT)
 
-  // First we ensure we enter the isolate. This will ensure we're participating
-  // in any safepointing requests from this point on. Other threads requesting a
-  // safepoint operation will therefore wait until we've stopped.
-  //
-  // Though the [result] isolate is still in a state where no memory has been
-  // allocated, which means it's safe to GC the isolate group until here.
-  Thread::EnterIsolate(result);
-
   // Setup the isolate message handler.
   result->message_handler_ = new IsolateMessageHandler(result);
 
@@ -1878,6 +1870,14 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   Isolate::VisitIsolates(&id_verifier);
 #endif
   result->set_origin_id(result->main_port());
+
+  // First we ensure we enter the isolate. This will ensure we're participating
+  // in any safepointing requests from this point on. Other threads requesting a
+  // safepoint operation will therefore wait until we've stopped.
+  //
+  // Though the [result] isolate is still in a state where no memory has been
+  // allocated, which means it's safe to GC the isolate group until here.
+  Thread::EnterIsolate(result);
 
   // Keep capability IDs less than 2^53 so web clients of the service
   // protocol can process it properly.

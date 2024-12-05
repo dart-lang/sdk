@@ -35,6 +35,36 @@ import 'package:language_server_protocol/protocol_generated.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
+bool _canParseArgumentEdit(
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ArgumentEdit.canParse(value, reporter)) {
+      reporter.reportError('must be of type ArgumentEdit');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseBool(
   Map<String, Object?> map,
   LspJsonReporter reporter,
@@ -585,6 +615,35 @@ bool _canParseOutline(
   return true;
 }
 
+bool _canParsePosition(
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) && !Position.canParse(value, reporter)) {
+      reporter.reportError('must be of type Position');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseRange(
   Map<String, Object?> map,
   LspJsonReporter reporter,
@@ -831,6 +890,63 @@ class AnalyzerStatusParams implements ToJsonable {
     final isAnalyzingJson = json['isAnalyzing'];
     final isAnalyzing = isAnalyzingJson as bool;
     return AnalyzerStatusParams(isAnalyzing: isAnalyzing);
+  }
+}
+
+class ArgumentEdit implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    ArgumentEdit.canParse,
+    ArgumentEdit.fromJson,
+  );
+
+  final String name;
+
+  final Object? newValue;
+
+  ArgumentEdit({required this.name, this.newValue});
+  @override
+  int get hashCode => Object.hash(name, newValue);
+
+  @override
+  bool operator ==(Object other) {
+    return other is ArgumentEdit &&
+        other.runtimeType == ArgumentEdit &&
+        name == other.name &&
+        newValue == other.newValue;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['name'] = name;
+    result['newValue'] = newValue;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseString(
+        obj,
+        reporter,
+        'name',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
+    } else {
+      reporter.reportError('must be of type ArgumentEdit');
+      return false;
+    }
+  }
+
+  static ArgumentEdit fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final newValueJson = json['newValue'];
+    final newValue = newValueJson;
+    return ArgumentEdit(name: name, newValue: newValue);
   }
 }
 
@@ -1793,6 +1909,96 @@ class EditableArguments implements ToJsonable {
       textDocumentJson as Map<String, Object?>,
     );
     return EditableArguments(arguments: arguments, textDocument: textDocument);
+  }
+}
+
+class EditArgumentParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    EditArgumentParams.canParse,
+    EditArgumentParams.fromJson,
+  );
+
+  final ArgumentEdit edit;
+
+  final Position position;
+
+  final TextDocumentIdentifier textDocument;
+  EditArgumentParams({
+    required this.edit,
+    required this.position,
+    required this.textDocument,
+  });
+  @override
+  int get hashCode => Object.hash(edit, position, textDocument);
+
+  @override
+  bool operator ==(Object other) {
+    return other is EditArgumentParams &&
+        other.runtimeType == EditArgumentParams &&
+        edit == other.edit &&
+        position == other.position &&
+        textDocument == other.textDocument;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['edit'] = edit.toJson();
+    result['position'] = position.toJson();
+    result['textDocument'] = textDocument.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseArgumentEdit(
+        obj,
+        reporter,
+        'edit',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      if (!_canParsePosition(
+        obj,
+        reporter,
+        'position',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      return _canParseTextDocumentIdentifier(
+        obj,
+        reporter,
+        'textDocument',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
+    } else {
+      reporter.reportError('must be of type EditArgumentParams');
+      return false;
+    }
+  }
+
+  static EditArgumentParams fromJson(Map<String, Object?> json) {
+    final editJson = json['edit'];
+    final edit = ArgumentEdit.fromJson(editJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+      textDocumentJson as Map<String, Object?>,
+    );
+    return EditArgumentParams(
+      edit: edit,
+      position: position,
+      textDocument: textDocument,
+    );
   }
 }
 

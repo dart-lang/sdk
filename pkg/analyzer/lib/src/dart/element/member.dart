@@ -263,7 +263,7 @@ abstract class ExecutableMember extends Member
   LibraryElement get library => _declaration.library!;
 
   @override
-  LibraryElement2? get library2 => _element2.library2;
+  LibraryElement2 get library2 => _element2.library2;
 
   @override
   Source get librarySource => _declaration.librarySource!;
@@ -555,7 +555,7 @@ class FieldMember extends VariableMember
   LibraryElement get library => _declaration.library!;
 
   @override
-  LibraryElement2? get library2 => _element2.library2;
+  LibraryElement2 get library2 => _element2.library2;
 
   @override
   String? get lookupName => _element2.lookupName;

@@ -267,7 +267,7 @@ extension ConstructorElementExtension on ConstructorElement2 {
     required String className,
     required String constructorName,
   }) =>
-      library2?.name3 == uri &&
+      library2.name3 == uri &&
       enclosingElement2.name3 == className &&
       name3 == constructorName;
 }
