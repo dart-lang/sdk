@@ -292,6 +292,62 @@ void f() {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_forLoop_insideNullAwareElement_inList() async {
+    var content = '''
+void f() {
+  [? (() { for (var i = 0; i < 1; i++) {} return 1; })()];
+}
+''';
+    var expected = '''
+void f() {
+  (Type:<int>)[? (() { for (var (Type:int) i = 0; i < 1; i++) {} return 1; })()];
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_forLoop_insideNullAwareElement_inSet() async {
+    var content = '''
+void f() {
+  <int>{? (() { for (var i = 0; i < 1; i++) {} return 1; })()};
+}
+''';
+    var expected = '''
+void f() {
+  <int>{? (() { for (var (Type:int) i = 0; i < 1; i++) {} return 1; })()};
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_forLoop_insideNullAwareKey_inMap() async {
+    var content = '''
+void f() {
+  <int, String>{? (() { for (var i = 0; i < 1; i++) {} return 1; })(): "value"};
+}
+''';
+    var expected = '''
+void f() {
+  <int, String>{? (() { for (var (Type:int) i = 0; i < 1; i++) {} return 1; })(): "value"};
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_forLoop_insideNullAwareValue_inMap() async {
+    var content = '''
+void f() {
+  <String, int>{"key": ? (() { for (var i = 0; i < 1; i++) {} return 1; })()};
+}
+''';
+    var expected = '''
+void f() {
+  <String, int>{"key": ? (() { for (var (Type:int) i = 0; i < 1; i++) {} return 1; })()};
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_forLoop_wildcards() async {
     var content = '''
 void f() {
