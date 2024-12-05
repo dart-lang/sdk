@@ -1017,12 +1017,6 @@ class LinterLintCode extends LintCode {
     hasPublishedDocs: true,
   );
 
-  static const LintCode package_api_docs = LinterLintCode(
-    LintNames.package_api_docs,
-    "Missing documentation for public API.",
-    correctionMessage: "Try adding a documentation comment.",
-  );
-
   static const LintCode package_names = LinterLintCode(
     LintNames.package_names,
     "The package name '{0}' isn't a lower_case_with_underscores identifier.",
