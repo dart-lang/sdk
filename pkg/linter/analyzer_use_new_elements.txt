@@ -2,4 +2,3 @@ lib/src/extensions.dart
 lib/src/rules/invalid_runtime_check_with_js_interop_types.dart
 lib/src/rules/unnecessary_overrides.dart
 lib/src/rules/use_late_for_private_fields_and_variables.dart
-lib/src/util/dart_type_utilities.dart
