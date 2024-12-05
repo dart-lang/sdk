@@ -7,11 +7,10 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -104,10 +103,13 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
     }
     // All extensions available in the current scope for the left operand that
     // define the other division operator.
-    var name = Name(unitResult.libraryElement.source.uri, otherOperator.lexeme);
+    var name = Name.forLibrary(
+      unitResult.libraryElement2,
+      otherOperator.lexeme,
+    );
     var hasNoExtensionWithOtherDivisionOperator =
-        await librariesWithExtensions(otherOperator.lexeme).where((library) {
-          return library.asElement2.exportedExtensions
+        await librariesWithExtensions2(otherOperator.lexeme).where((library) {
+          return library.exportedExtensions
               .havingMemberWithBaseName(name)
               .applicableTo(
                 targetLibrary: libraryElement2,
@@ -130,19 +132,19 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
 extension on DartType {
   Set<_DivisionOperator> get divisionOperators {
     // See operators defined for this type element.
-    if (element case InterfaceElement interfaceElement) {
+    if (element3 case InterfaceElement2 interfaceElement) {
       return {
-        for (var method in interfaceElement.methods)
+        for (var method in interfaceElement.methods2)
           // No need to test for eq operators, as they are not explicitly defined.
-          if (method.name == TokenType.SLASH.lexeme)
+          if (method.name3 == TokenType.SLASH.lexeme)
             _DivisionOperator.division
-          else if (method.name == TokenType.TILDE_SLASH.lexeme)
+          else if (method.name3 == TokenType.TILDE_SLASH.lexeme)
             _DivisionOperator.effectiveIntegerDivision,
         ...interfaceElement.allSupertypes.expand(
           (type) => type.divisionOperators,
         ),
       };
-    } else if (element case TypeParameterElement typeParameterElement) {
+    } else if (element3 case TypeParameterElement2 typeParameterElement) {
       return typeParameterElement.bound?.divisionOperators ?? const {};
     }
 
