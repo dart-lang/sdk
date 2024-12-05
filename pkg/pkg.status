@@ -288,6 +288,9 @@ kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 [ $simulator ]
 *: Skip
 
+[ $arch == arm64 && $runtime == vm && $system == windows ]
+dds/test/log_history_size_gigantic_test: Skip # The Windows ARM64 bots are not powerful enough to run this test without it timing out
+
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 
